@@ -4,8 +4,8 @@
   "description": "CLI no oficial para UPC Aula Virtual (Blackboard Learn) — acceso desde la terminal y MCP para Claude",
   "main": "run.js",
   "bin": {
-    "blackboard": "./run.js",
-    "blackboard-upc": "./run.js"
+    "blackboard": "run.js",
+    "blackboard-upc": "run.js"
   },
   "scripts": {
     "build": "tsc",
@@ -27,7 +27,7 @@
   "homepage": "https://github.com/alejooroncoy/blackboard-cli",
   "repository": {
     "type": "git",
-    "url": "https://github.com/alejooroncoy/blackboard-cli.git"
+    "url": "git+https://github.com/alejooroncoy/blackboard-cli.git"
   },
   "license": "ISC",
   "type": "commonjs",
