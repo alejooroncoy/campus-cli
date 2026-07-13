@@ -1,9 +1,11 @@
 {
-  "name": "blackboard-upc",
-  "version": "1.1.0",
-  "description": "CLI no oficial para UPC Aula Virtual (Blackboard Learn) — acceso desde la terminal y MCP para Claude",
+  "name": "campus-cli",
+  "version": "1.0.0",
+  "description": "CLI/MCP no oficial para el campus universitario (Blackboard, Canvas, Moodle...) — acceso desde la terminal y MCP para IA",
   "main": "run.js",
   "bin": {
+    "campus": "run.js",
+    "campus-cli": "run.js",
     "blackboard": "run.js",
     "blackboard-upc": "run.js"
   },
@@ -14,7 +16,10 @@
     "postinstall": "playwright install chromium || true"
   },
   "keywords": [
+    "campus",
     "blackboard",
+    "canvas",
+    "moodle",
     "upc",
     "aula-virtual",
     "cli",
@@ -24,10 +29,10 @@
     "peru"
   ],
   "author": "Alejandro Oroncoy",
-  "homepage": "https://github.com/alejooroncoy/blackboard-cli",
+  "homepage": "https://github.com/alejooroncoy/campus-cli",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alejooroncoy/blackboard-cli.git"
+    "url": "git+https://github.com/alejooroncoy/campus-cli.git"
   },
   "license": "ISC",
   "type": "commonjs",

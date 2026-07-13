@@ -60,7 +60,7 @@ export function loginCommand(program: Command) {
         console.log(chalk.green('✓ Sesión borrada') + chalk.gray(' (profile SSO conservado)'));
       } else {
         console.log(chalk.green('✓ Sesión y profile SSO borrados'));
-        console.log(chalk.gray('  El próximo `blackboard login` te pedirá credenciales de nuevo.'));
+        console.log(chalk.gray('  El próximo `campus login` te pedirá credenciales de nuevo.'));
       }
     });
 
@@ -70,7 +70,7 @@ export function loginCommand(program: Command) {
     .action(async () => {
       let session = await loadOrRefreshSession();
       if (!isSessionValid(session)) {
-        console.log(chalk.red('Not logged in. Run: blackboard login'));
+        console.log(chalk.red('Not logged in. Run: campus login'));
         process.exit(1);
       }
 

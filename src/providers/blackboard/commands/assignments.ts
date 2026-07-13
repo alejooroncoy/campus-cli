@@ -17,7 +17,7 @@ import {
 function requireSession() {
   const session = loadSession();
   if (!isSessionValid(session)) {
-    console.error(chalk.red('Not logged in. Run: blackboard login'));
+    console.error(chalk.red('Not logged in. Run: campus login'));
     process.exit(1);
   }
   return session!;

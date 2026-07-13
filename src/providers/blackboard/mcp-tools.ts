@@ -27,28 +27,28 @@ import {
 async function getClient() {
   const session = await loadOrRefreshSession();
   if (!isSessionValid(session)) {
-    throw new Error('Not authenticated. Ask the user to run: blackboard login');
+    throw new Error('Not authenticated. Ask the user to run: campus login');
   }
   return { client: createClient(session!), session: session! };
 }
 
 export function registerBlackboardTools(server: McpServer) {
-  // ── whoami ─────────────────────────────────────────────────────────────────
-  server.registerTool('whoami', { description: 'Get the currently authenticated UPC student info' }, async () => {
+  // ── blackboard_whoami ─────────────────────────────────────────────────────────────────
+  server.registerTool('blackboard_whoami', { description: 'Get the currently authenticated UPC student info' }, async () => {
     const { client } = await getClient();
     const me = await getMe(client);
     return { content: [{ type: 'text', text: JSON.stringify(me, null, 2) }] };
   });
 
-  // ── system_version ─────────────────────────────────────────────────────────
-  server.registerTool('system_version', { description: 'Get Blackboard Learn server version' }, async () => {
+  // ── blackboard_system_version ─────────────────────────────────────────────────────────
+  server.registerTool('blackboard_system_version', { description: 'Get Blackboard Learn server version' }, async () => {
     const { client } = await getClient();
     const v = await getSystemVersion(client);
     return { content: [{ type: 'text', text: JSON.stringify(v, null, 2) }] };
   });
 
-  // ── list_courses ────────────────────────────────────────────────────────────
-  server.registerTool('list_courses', { description: 'List all enrolled courses for the current student' }, async () => {
+  // ── blackboard_list_courses ────────────────────────────────────────────────────────────
+  server.registerTool('blackboard_list_courses', { description: 'List all enrolled courses for the current student' }, async () => {
     const { client, session } = await getClient();
     let userId = session.userId;
     if (!userId) { const me = await getMe(client); userId = me.id; }
@@ -56,9 +56,9 @@ export function registerBlackboardTools(server: McpServer) {
     return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
   });
 
-  // ── get_course ──────────────────────────────────────────────────────────────
+  // ── blackboard_get_course ──────────────────────────────────────────────────────────────
   server.registerTool(
-    'get_course',
+    'blackboard_get_course',
     {
       description: 'Get details of a specific course by its Blackboard ID (e.g. _529580_1)',
       inputSchema: { courseId: z.string().describe('Blackboard course ID like _529580_1') },
@@ -70,9 +70,9 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── list_contents ───────────────────────────────────────────────────────────
+  // ── blackboard_list_contents ───────────────────────────────────────────────────────────
   server.registerTool(
-    'list_contents',
+    'blackboard_list_contents',
     {
       description: 'List content items inside a course or folder. Use parentId to navigate into subfolders.',
       inputSchema: {
@@ -87,9 +87,9 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── list_announcements ──────────────────────────────────────────────────────
+  // ── blackboard_list_announcements ──────────────────────────────────────────────────────
   server.registerTool(
-    'list_announcements',
+    'blackboard_list_announcements',
     {
       description: 'List recent announcements for a course',
       inputSchema: { courseId: z.string().describe('Blackboard course ID') },
@@ -101,9 +101,9 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── list_assignments ────────────────────────────────────────────────────────
+  // ── blackboard_list_assignments ────────────────────────────────────────────────────────
   server.registerTool(
-    'list_assignments',
+    'blackboard_list_assignments',
     {
       description: 'List assignments and tasks in a course with due dates, scores and submission status',
       inputSchema: { courseId: z.string().describe('Blackboard course ID') },
@@ -115,9 +115,9 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── list_attempts ───────────────────────────────────────────────────────────
+  // ── blackboard_list_attempts ───────────────────────────────────────────────────────────
   server.registerTool(
-    'list_attempts',
+    'blackboard_list_attempts',
     {
       description: 'List submission attempts for a specific assignment (gradebook column)',
       inputSchema: {
@@ -132,9 +132,9 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── get_grades ──────────────────────────────────────────────────────────────
+  // ── blackboard_get_grades ──────────────────────────────────────────────────────────────
   server.registerTool(
-    'get_grades',
+    'blackboard_get_grades',
     {
       description: 'Get all grades for the current student in a course',
       inputSchema: { courseId: z.string().describe('Blackboard course ID') },
@@ -156,16 +156,16 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── download_attachment ─────────────────────────────────────────────────────
+  // ── blackboard_download_attachment ─────────────────────────────────────────────────────
   server.registerTool(
-    'download_attachment',
+    'blackboard_download_attachment',
     {
       description: 'Download a file from a course content item and save it to disk. attachmentId can be a Blackboard attachment ID (for x-bb-file) or a full bbcswebdav URL (for x-bb-document embedded files). Saves to outputDir (default: current working directory).',
       inputSchema: {
         courseId: z.string().describe('Blackboard course ID'),
         contentId: z.string().describe('Content item ID'),
-        attachmentId: z.string().describe('Attachment ID from list_attachments, or a full bbcswebdav URL for embedded files'),
-        filename: z.string().optional().describe('Filename to save as (e.g. displayName from list_attachments). Falls back to Content-Disposition header.'),
+        attachmentId: z.string().describe('Attachment ID from blackboard_list_attachments, or a full bbcswebdav URL for embedded files'),
+        filename: z.string().optional().describe('Filename to save as (e.g. displayName from blackboard_list_attachments). Falls back to Content-Disposition header.'),
         outputDir: z.string().optional().describe('Directory to save the file (default: current working directory)'),
       },
     },
@@ -199,9 +199,9 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── list_attachments ────────────────────────────────────────────────────────
+  // ── blackboard_list_attachments ────────────────────────────────────────────────────────
   server.registerTool(
-    'list_attachments',
+    'blackboard_list_attachments',
     {
       description: 'List file attachments for a course content item. Works for x-bb-file (REST API) and x-bb-document (embedded files in body HTML).',
       inputSchema: {
@@ -253,7 +253,7 @@ export function registerBlackboardTools(server: McpServer) {
         content: [{
           type: 'text',
           text: JSON.stringify(
-            { type: 'embedded_files', note: 'Pass downloadUrl as attachmentId to download_attachment', results: files },
+            { type: 'embedded_files', note: 'Pass downloadUrl as attachmentId to blackboard_download_attachment', results: files },
             null, 2
           ),
         }],
@@ -261,14 +261,14 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── download_file_url ───────────────────────────────────────────────────────
+  // ── blackboard_download_file_url ───────────────────────────────────────────────────────
   server.registerTool(
-    'download_file_url',
+    'blackboard_download_file_url',
     {
       description: 'Download a file directly from a Blackboard bbcswebdav URL and save it to disk. Saves to outputDir (default: current working directory).',
       inputSchema: {
-        url: z.string().describe('Direct file URL from bbcswebdav (downloadUrl from list_attachments)'),
-        filename: z.string().optional().describe('Filename to save as (e.g. displayName from list_attachments)'),
+        url: z.string().describe('Direct file URL from bbcswebdav (downloadUrl from blackboard_list_attachments)'),
+        filename: z.string().optional().describe('Filename to save as (e.g. displayName from blackboard_list_attachments)'),
         outputDir: z.string().optional().describe('Directory to save the file (default: current working directory)'),
       },
     },
@@ -297,9 +297,9 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── submit_attempt ──────────────────────────────────────────────────────────
+  // ── blackboard_submit_attempt ──────────────────────────────────────────────────────────
   server.registerTool(
-    'submit_attempt',
+    'blackboard_submit_attempt',
     {
       description: 'Submit an assignment attempt. ALWAYS confirm with the user before submitting.',
       inputSchema: {
@@ -320,9 +320,9 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── get_quiz_questions ──────────────────────────────────────────────────────
+  // ── blackboard_get_quiz_questions ──────────────────────────────────────────────────────
   server.registerTool(
-    'get_quiz_questions',
+    'blackboard_get_quiz_questions',
     {
       description:
         'Fetch all questions and answer options from a Blackboard Ultra quiz attempt. ' +
@@ -387,13 +387,13 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── save_quiz_answer ────────────────────────────────────────────────────────
+  // ── blackboard_save_quiz_answer ────────────────────────────────────────────────────────
   server.registerTool(
-    'save_quiz_answer',
+    'blackboard_save_quiz_answer',
     {
       description:
-        'Save a single answer for a quiz question (does NOT submit — use submit_quiz to finalize). ' +
-        'question is the full question object from get_quiz_questions. ' +
+        'Save a single answer for a quiz question (does NOT submit — use blackboard_submit_quiz to finalize). ' +
+        'question is the full question object from blackboard_get_quiz_questions. ' +
         'answer format depends on question.type:\n' +
         '  - eitherOr (true/false):       boolean (true = Verdadero)\n' +
         '  - multipleanswer (MC):         number (0-based index of the chosen option)\n' +
@@ -402,7 +402,7 @@ export function registerBlackboardTools(server: McpServer) {
       inputSchema: {
         courseId: z.string().describe('Course ID'),
         attemptId: z.string().describe('Quiz attempt ID (e.g. _94898825_1)'),
-        question: z.string().describe('JSON string of the question object from get_quiz_questions'),
+        question: z.string().describe('JSON string of the question object from blackboard_get_quiz_questions'),
         answer: z.union([z.boolean(), z.number(), z.string()]).describe(
           'eitherOr: true/false. multipleanswer: 0-based index. ' +
           'fimb: JSON string of {blankName: value} (e.g. \'{"BLANK-1":"1438.62"}\').'
@@ -437,13 +437,13 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── submit_quiz ─────────────────────────────────────────────────────────────
+  // ── blackboard_submit_quiz ─────────────────────────────────────────────────────────────
   server.registerTool(
-    'submit_quiz',
+    'blackboard_submit_quiz',
     {
       description:
         'Finalize and submit a quiz attempt. ALWAYS confirm with the user before calling this. ' +
-        'All individual answers should be saved first via save_quiz_answer.',
+        'All individual answers should be saved first via blackboard_save_quiz_answer.',
       inputSchema: {
         courseId: z.string().describe('Course ID'),
         attemptId: z.string().describe('Quiz attempt ID to submit'),
@@ -456,9 +456,9 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── get_assignment_feedback ─────────────────────────────────────────────────
+  // ── blackboard_get_assignment_feedback ─────────────────────────────────────────────────
   server.registerTool(
-    'get_assignment_feedback',
+    'blackboard_get_assignment_feedback',
     {
       description:
         'Get professor feedback and scores for all assignments in a course. ' +
@@ -523,19 +523,19 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── download_feedback_file ───────────────────────────────────────────────────
+  // ── blackboard_download_feedback_file ───────────────────────────────────────────────────
   server.registerTool(
-    'download_feedback_file',
+    'blackboard_download_feedback_file',
     {
       description:
         '[EXPERIMENTAL] Download a feedback file that a professor attached to a graded attempt. ' +
-        'Use the fileId from get_assignment_feedback → attempt.feedbackFiles. ' +
+        'Use the fileId from blackboard_get_assignment_feedback → attempt.feedbackFiles. ' +
         'The download endpoint may not be available on all Blackboard versions.',
       inputSchema: {
         courseId: z.string().describe('Blackboard course ID'),
         columnId: z.string().describe('Gradebook column (assignment) ID'),
-        attemptId: z.string().describe('Attempt ID from get_assignment_feedback'),
-        fileId: z.string().describe('File ID from get_assignment_feedback → attempt.feedbackFiles'),
+        attemptId: z.string().describe('Attempt ID from blackboard_get_assignment_feedback'),
+        fileId: z.string().describe('File ID from blackboard_get_assignment_feedback → attempt.feedbackFiles'),
         filename: z.string().optional().describe('Filename to save as (defaults to the name from feedbackFiles)'),
         outputDir: z.string().optional().describe('Directory to save the file (default: current working directory)'),
       },
@@ -567,9 +567,9 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── raw_api ─────────────────────────────────────────────────────────────────
+  // ── blackboard_raw_api ─────────────────────────────────────────────────────────────────
   server.registerTool(
-    'raw_api',
+    'blackboard_raw_api',
     {
       description: 'Make a raw REST API call to Blackboard Learn. Use for any endpoint not covered by other tools.',
       inputSchema: {

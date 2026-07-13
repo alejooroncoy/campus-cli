@@ -15,9 +15,9 @@ import { BANNER, ok, fail, hint, formatSessionLifetime } from './ui/theme.js';
 const program = new Command();
 
 program
-  .name('blackboard')
-  .description('CLI no oficial para UPC Aula Virtual (Blackboard Learn)')
-  .version('1.1.0')
+  .name('campus')
+  .description('CLI no oficial para tu campus universitario (Blackboard, Canvas, Moodle...)')
+  .version('1.0.0')
   .addHelpText('beforeAll', BANNER);
 
 // Auth commands
@@ -70,7 +70,7 @@ program
       console.log(`            ${chalk.gray(summary)}`);
       console.log(`            ${chalk.gray(note)}`);
     } else {
-      console.log(`  Sesión:   ${fail('no autenticado')} — ejecuta: ${hint('blackboard login')}`);
+      console.log(`  Sesión:   ${fail('no autenticado')} — ejecuta: ${hint('campus login')}`);
     }
     console.log('');
   });
@@ -93,7 +93,7 @@ program
   .action(async (method: string, apiPath: string, opts) => {
     const session = await loadOrRefreshSession();
     if (!isSessionValid(session)) {
-      console.error(JSON.stringify({ error: 'Not authenticated. Run: blackboard login' }));
+      console.error(JSON.stringify({ error: 'Not authenticated. Run: campus login' }));
       process.exit(1);
     }
 

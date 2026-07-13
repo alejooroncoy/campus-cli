@@ -1,8 +1,24 @@
 # Changelog
 
-All notable changes to `blackboard-upc` will be documented here.
+All notable changes to `campus-cli` (formerly `blackboard-upc`) will be documented here.
 
 ---
+
+## [1.0.0] — 2026-07-13 — renombrado a `campus-cli`
+
+Continúa la historia de `blackboard-upc` (ver entradas `1.0.x`–`1.1.0` abajo). Se renombra el paquete porque el alcance ya no es solo Blackboard/UPC: universidades peruanas usan LMS distintos (UTP/USIL/Wiener → Canvas, UCSM/UNAP → Moodle), y la estructura interna (`src/providers/<lms>/`) ya está pensada para agregarlos.
+
+### Added
+- Campo `instructions` en el handshake `initialize` del servidor MCP — cualquier cliente MCP (no solo Claude Code vía `CLAUDE.md`) recibe una guía de uso al conectarse.
+- Sección "Providers" en el README documentando el roadmap (Canvas, Moodle) y cómo contribuir.
+
+### Changed
+- **Breaking**: paquete npm `blackboard-upc` → `campus-cli`; bin primario `blackboard`/`blackboard-upc` → `campus`/`campus-cli` (los nombres viejos se mantienen como alias, no se rompen instalaciones existentes).
+- **Breaking**: las 19 tools MCP de Blackboard ahora llevan el prefijo `blackboard_` (ej. `whoami` → `blackboard_whoami`, `raw_api` → `blackboard_raw_api`) para no colisionar cuando se agreguen `canvas_*`/`moodle_*`.
+- Banner de terminal simplificado (ya no deletrea "BLACKBOARD" en ASCII art — no tenía sentido con el rebrand).
+
+### Deprecated
+- El paquete `blackboard-upc` en npm queda marcado como deprecado, apuntando a `campus-cli`.
 
 ## [1.1.0] — 2026-07-13
 

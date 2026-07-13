@@ -16,7 +16,7 @@ import {
 function requireSession() {
   const session = loadSession();
   if (!isSessionValid(session)) {
-    console.error(chalk.red('Not logged in. Run: blackboard login'));
+    console.error(chalk.red('Not logged in. Run: campus login'));
     process.exit(1);
   }
   return session!;
@@ -180,7 +180,7 @@ export function coursesCommand(program: Command) {
           console.log(`  ${chalk.bold(item.id)} ${chalk.cyan(item.title)}${hasChildren}${handlerStr}${avail}`);
 
           if (item.hasChildren) {
-            console.log(chalk.gray(`    → blackboard courses contents ${courseId} --parent ${item.id}`));
+            console.log(chalk.gray(`    → campus courses contents ${courseId} --parent ${item.id}`));
           }
           if (item.contentHandler?.url) {
             console.log(chalk.gray(`    url: ${item.contentHandler.url}`));

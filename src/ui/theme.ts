@@ -13,12 +13,8 @@ export const bold  = (s: string) => chalk.bold(s);
 export const gray  = (s: string) => chalk.gray(s);
 
 export const BANNER = `
-${upcRed('  ██████  ██       █████   ██████ ██   ██ ██████   ██████   █████  ██████  ██████  ')}
-${upcRed('  ██   ██ ██      ██   ██ ██      ██  ██  ██   ██ ██    ██ ██   ██ ██   ██ ██   ██ ')}
-${upcRed('  ██████  ██      ███████ ██      █████   ██████  ██    ██ ███████ ██████  ██   ██ ')}
-${upcRed('  ██   ██ ██      ██   ██ ██      ██  ██  ██   ██ ██    ██ ██   ██ ██   ██ ██   ██ ')}
-${upcRed('  ██████  ███████ ██   ██  ██████ ██   ██ ██████   ██████  ██   ██ ██   ██ ██████  ')}
-  ${chalk.dim('CLI no oficial para UPC Aula Virtual · Blackboard Learn')}
+  ${upcRedBold('campus-cli')}
+  ${chalk.dim('CLI no oficial para tu campus universitario · Blackboard · Canvas · Moodle')}
 `;
 
 export function formatSessionLifetime(bbExpiresAt: number, ssoExpiresAt?: number): {
@@ -51,10 +47,10 @@ export function whatNext() {
   console.log(`
   ${chalk.bold('¿Qué puedo hacer ahora?')}
 
-  ${hint('blackboard courses list')}               ver tus cursos del ciclo
-  ${hint('blackboard assignments list <courseId>')} ver tareas pendientes y notas
-  ${hint('blackboard courses contents <courseId>')} explorar materiales de un curso
-  ${hint('blackboard download-folder <id> <fid>')} descargar toda una carpeta
-  ${hint('blackboard status')}                     estado de sesión y servidor
+  ${hint('campus courses list')}               ver tus cursos del ciclo
+  ${hint('campus assignments list <courseId>')} ver tareas pendientes y notas
+  ${hint('campus courses contents <courseId>')} explorar materiales de un curso
+  ${hint('campus download-folder <id> <fid>')} descargar toda una carpeta
+  ${hint('campus status')}                     estado de sesión y servidor
 `);
 }

@@ -214,7 +214,7 @@ export async function login(opts: LoginOptions = {}): Promise<Session> {
 
 export async function silentRelogin(previousSession?: Session | null): Promise<Session> {
   if (!fs.existsSync(PROFILE_DIR)) {
-    throw new SilentLoginFailed('No browser profile — run blackboard login first');
+    throw new SilentLoginFailed('No browser profile — run campus login first');
   }
 
   let context;

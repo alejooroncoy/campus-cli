@@ -1,39 +1,39 @@
-# blackboard-cli — Agent Guide
+# campus-cli — Agent Guide
 
-This CLI gives Claude direct access to UPC Aula Virtual (Blackboard Learn). Use it to help students check their courses, assignments, grades, and download materials — all without opening a browser.
+This CLI/MCP server gives agents direct access to a student's university campus systems. Today only Blackboard Learn (UPC Aula Virtual) is implemented — all its tools use the `blackboard_` prefix. Use it to help students check their courses, assignments, grades, and download materials — all without opening a browser. (Future: `canvas_*`, `moodle_*` for other universities — not implemented yet.)
 
 ## Setup
 
 Before using any tool, the user must be authenticated:
 
 ```bash
-blackboard login        # opens browser for Microsoft SSO
-blackboard whoami       # verify session is active
+campus login              # opens browser for Microsoft SSO
+campus whoami              # verify session is active
 ```
 
-If you get `Not authenticated`, ask the user to run `blackboard login`.
+If you get `Not authenticated`, ask the user to run `campus login`.
 
 ## Primary workflow
 
 ```
-1. list_courses                           → find the relevant courseId
-2. list_assignments <courseId>            → see pending tasks + due dates
-3. get_grades <courseId>                  → check current grades
-4. list_contents <courseId>               → browse course materials
-5. list_contents <courseId> <parentId>    → navigate into a subfolder
-6. list_attachments <courseId> <contentId>→ find downloadable files
+1. blackboard_list_courses                           → find the relevant courseId
+2. blackboard_list_assignments <courseId>            → see pending tasks + due dates
+3. blackboard_get_grades <courseId>                  → check current grades
+4. blackboard_list_contents <courseId>               → browse course materials
+5. blackboard_list_contents <courseId> <parentId>    → navigate into a subfolder
+6. blackboard_list_attachments <courseId> <contentId>→ find downloadable files
 ```
 
 ### Quiz workflow
 
 ```
-1. list_contents <courseId>              → find the quiz contentId
-2. get_quiz_questions <url|ids>          → load questions + options + attempt policy
-3. save_quiz_answer (per question)       → save each answer individually
-4. submit_quiz (confirm first!)          → finalize and submit the attempt
+1. blackboard_list_contents <courseId>              → find the quiz contentId
+2. blackboard_get_quiz_questions <url|ids>          → load questions + options + attempt policy
+3. blackboard_save_quiz_answer (per question)       → save each answer individually
+4. blackboard_submit_quiz (confirm first!)          → finalize and submit the attempt
 ```
 
-Supported question types in `save_quiz_answer`:
+Supported question types in `blackboard_save_quiz_answer`:
 
 | `question.type`   | `answer` format                                                                |
 |-------------------|--------------------------------------------------------------------------------|
@@ -44,24 +44,24 @@ Supported question types in `save_quiz_answer`:
 ### Feedback workflow
 
 ```
-1. get_assignment_feedback <courseId>    → scores + instructor comments + feedback files for all assignments
-2. download_feedback_file <ids>          → download an annotated file the professor attached to the grade
+1. blackboard_get_assignment_feedback <courseId>    → scores + instructor comments + feedback files for all assignments
+2. blackboard_download_feedback_file <ids>          → download an annotated file the professor attached to the grade
 ```
 
 ## Agent behavior rules
 
-- **Always confirm before submitting** (`submit_attempt`, `submit_quiz`). Show the user what will be submitted and ask for confirmation. Never submit silently.
+- **Always confirm before submitting** (`blackboard_submit_attempt`, `blackboard_submit_quiz`). Show the user what will be submitted and ask for confirmation. Never submit silently.
 - **Show grades in context** — when showing grades, also show the assignment name, max score, and due date if available.
-- **Navigate content recursively** — if the user asks for materials, explore subfolders using `list_contents` with `parentId`.
-- **Use `raw_api` for anything not covered** — the Blackboard REST API is extensive. If there's no specific tool, use `raw_api` with the correct endpoint.
-- **Session errors are recoverable** — if you get a session error, tell the user to run `blackboard login` (not a fatal error).
+- **Navigate content recursively** — if the user asks for materials, explore subfolders using `blackboard_list_contents` with `parentId`.
+- **Use `blackboard_raw_api` for anything not covered** — the Blackboard REST API is extensive. If there's no specific tool, use `blackboard_raw_api` with the correct endpoint.
+- **Session errors are recoverable** — if you get a session error, tell the user to run `campus login` (not a fatal error).
 - **Respect rate limits** — don't fan out more than 5 parallel API calls.
 
 ## Key IDs
 
 Course IDs look like `_529580_1`. Content and column IDs follow the same pattern.
 
-## Useful endpoints (via raw_api)
+## Useful endpoints (via blackboard_raw_api)
 
 ```
 GET /learn/api/public/v1/users/me
@@ -79,22 +79,22 @@ GET /learn/api/public/v1/courses/{courseId}/contents/{id}/attachments/{id}/downl
 
 | Tool | What it does |
 |------|-------------|
-| `whoami` | Current student info |
-| `system_version` | Server version |
-| `list_courses` | All enrolled courses |
-| `get_course` | Single course details |
-| `list_contents` | Course materials tree |
-| `list_announcements` | Course announcements |
-| `list_assignments` | Tasks with due dates + grades |
-| `list_attempts` | Submission history |
-| `get_grades` | Full grade report for a course |
-| `list_attachments` | Files in a content item |
-| `download_attachment` | Download file to disk |
-| `download_file_url` | Download a bbcswebdav URL directly |
-| `submit_attempt` | Submit assignment (confirm first!) |
-| `get_assignment_feedback` | Scores + instructor comments + feedback files for all assignments in a course |
-| `download_feedback_file` | **[EXPERIMENTAL]** Download a file the professor attached to a graded attempt |
-| `get_quiz_questions` | Load quiz questions + options from an attempt (URL or IDs) |
-| `save_quiz_answer` | Save one answer without submitting |
-| `submit_quiz` | Finalize and submit a quiz attempt (confirm first!) |
-| `raw_api` | Any other Blackboard endpoint |
+| `blackboard_whoami` | Current student info |
+| `blackboard_system_version` | Server version |
+| `blackboard_list_courses` | All enrolled courses |
+| `blackboard_get_course` | Single course details |
+| `blackboard_list_contents` | Course materials tree |
+| `blackboard_list_announcements` | Course announcements |
+| `blackboard_list_assignments` | Tasks with due dates + grades |
+| `blackboard_list_attempts` | Submission history |
+| `blackboard_get_grades` | Full grade report for a course |
+| `blackboard_list_attachments` | Files in a content item |
+| `blackboard_download_attachment` | Download file to disk |
+| `blackboard_download_file_url` | Download a bbcswebdav URL directly |
+| `blackboard_submit_attempt` | Submit assignment (confirm first!) |
+| `blackboard_get_assignment_feedback` | Scores + instructor comments + feedback files for all assignments in a course |
+| `blackboard_download_feedback_file` | **[EXPERIMENTAL]** Download a file the professor attached to a graded attempt |
+| `blackboard_get_quiz_questions` | Load quiz questions + options from an attempt (URL or IDs) |
+| `blackboard_save_quiz_answer` | Save one answer without submitting |
+| `blackboard_submit_quiz` | Finalize and submit a quiz attempt (confirm first!) |
+| `blackboard_raw_api` | Any other Blackboard endpoint |

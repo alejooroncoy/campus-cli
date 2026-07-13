@@ -29,7 +29,7 @@ export function createClient(session: Session): AxiosInstance {
     (r) => r,
     (err: AxiosError) => {
       if (err.response?.status === 401) {
-        const e = new Error('Session expired. Run: blackboard login');
+        const e = new Error('Session expired. Run: campus login');
         (e as any).code = 'SESSION_EXPIRED';
         throw e;
       }
