@@ -127,9 +127,9 @@ Todos los comandos aceptan `--json`. Los spinners van a `stderr`, por lo que `--
 
 ---
 
-## Uso con Claude (MCP)
+## Uso con IA (MCP)
 
-`blackboard-cli` incluye un servidor MCP que Claude puede usar como herramientas nativas.
+`blackboard-cli` incluye un servidor **MCP** (Model Context Protocol) estándar — corre vía stdio con `npx blackboard-upc mcp`, así que funciona con cualquier cliente que hable MCP, no solo Claude. Configuración probada para los más comunes:
 
 ### Claude Code
 
@@ -161,7 +161,67 @@ Edita `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 
-> **Nota:** Si usas instalación global, reemplaza `npx blackboard-upc` por la ruta absoluta del binario (`which blackboard`).
+### Cursor
+
+`Settings → MCP → Add new MCP server`, o edita directamente `~/.cursor/mcp.json` (global) o `.cursor/mcp.json` (por proyecto):
+
+```json
+{
+  "mcpServers": {
+    "blackboard": {
+      "command": "npx",
+      "args": ["blackboard-upc", "mcp"]
+    }
+  }
+}
+```
+
+### GitHub Copilot (VS Code)
+
+Crea `.vscode/mcp.json` en tu proyecto (o usa el comando `MCP: Add Server` en la paleta de comandos):
+
+```json
+{
+  "servers": {
+    "blackboard": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["blackboard-upc", "mcp"]
+    }
+  }
+}
+```
+
+### OpenAI Codex CLI
+
+Agrega a `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.blackboard]
+command = "npx"
+args = ["blackboard-upc", "mcp"]
+```
+
+### Windsurf
+
+Edita `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "blackboard": {
+      "command": "npx",
+      "args": ["blackboard-upc", "mcp"]
+    }
+  }
+}
+```
+
+### Otros clientes (Perplexity y similares)
+
+Cualquier cliente con soporte MCP sobre stdio funciona con el mismo patrón: comando `npx`, argumentos `["blackboard-upc", "mcp"]`. Si tu cliente no aparece aquí, revisa su documentación de "MCP servers" o "Model Context Protocol" — la configuración siempre se reduce a esos dos datos (comando + args).
+
+> **Nota:** Si usas instalación global (`npm install -g blackboard-upc`), puedes reemplazar `npx blackboard-upc` por la ruta absoluta del binario (`which blackboard`) en cualquiera de las configs de arriba.
 
 ### Herramientas MCP disponibles
 
@@ -180,7 +240,7 @@ Edita `~/Library/Application Support/Claude/claude_desktop_config.json`:
 | `submit_attempt` | Entregar tarea (pide confirmación) |
 | `raw_api` | Cualquier endpoint de Blackboard |
 
-Con Claude puedes hacer cosas como:
+Con tu asistente de IA (Claude, Cursor, Copilot, Codex...) puedes hacer cosas como:
 
 > *"¿Qué tareas tengo pendientes esta semana?"*
 > *"Descárgame todos los exámenes del curso de Finanzas"*
