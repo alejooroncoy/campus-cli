@@ -1,5 +1,5 @@
 import type { AxiosInstance } from 'axios';
-import type { Course, UserCourse, PaginatedResponse } from '../types/index.js';
+import type { Course, UserCourse, PaginatedResponse } from '../types.js';
 
 export async function getMe(client: AxiosInstance): Promise<any> {
   const r = await client.get('/learn/api/public/v1/users/me');

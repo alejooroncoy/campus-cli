@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import type { Session } from '../types/index.js';
+import type { Session } from '../types.js';
 
 const BASE_URL = 'https://aulavirtual.upc.edu.pe';
 

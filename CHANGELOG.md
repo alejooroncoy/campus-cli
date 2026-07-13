@@ -4,6 +4,18 @@ All notable changes to `blackboard-upc` will be documented here.
 
 ---
 
+## [1.1.0] — 2026-07-13
+
+### Added
+- **Auto-instalación de Chromium**: `npm install` ahora corre `playwright install chromium` automáticamente (`postinstall`), y si de todas formas falta el navegador al hacer login, el CLI lo instala solo una vez y reintenta — antes esto fallaba con el error crudo de Playwright ("Executable doesn't exist") y el usuario tenía que arreglarlo a mano.
+- Mitigación de fingerprint de automatización en el login (`--disable-blink-features=AutomationControlled` + ocultar `navigator.webdriver`) para reducir falsos positivos de MFA/antifraude de Microsoft durante el SSO.
+
+### Changed
+- Restructuración interna: el código pasó a vivir en `src/providers/blackboard/` (auth, api, commands, mcp-tools) sin cambios de comportamiento — puramente organizacional, deja espacio para futuros providers. Los 18 tools MCP mantienen sus nombres exactos.
+
+### Explored and reverted
+- Se investigó (y se descartó) dar acceso también al portal Mi UPC (estudiante.upc.edu.pe): a diferencia de Blackboard, su token de sesión (Azure AD/MSAL) queda **cifrado en `localStorage`** — no es un endpoint público, extraerlo requeriría romper esa protección a propósito. Se prefirió no seguir por ese camino; queda documentado por si se retoma con un enfoque de automatización de navegador en vez de extracción de token.
+
 ## [1.0.10] — 2026-04-24
 
 ### Added

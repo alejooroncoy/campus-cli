@@ -1,9 +1,9 @@
-import { chromium } from 'playwright';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import type { Session, Cookie } from '../types/index.js';
+import type { Session, Cookie } from '../types.js';
 import { saveSession } from './session.js';
+import { launchPersistentContextSafe } from '../../../browser-install.js';
 
 const BASE_URL = 'https://aulavirtual.upc.edu.pe';
 const SAML_URL = `${BASE_URL}/auth-saml/saml/login?apId=_4893_1&redirectUrl=${encodeURIComponent(`${BASE_URL}/ultra`)}`;
@@ -98,7 +98,7 @@ export async function login(opts: LoginOptions = {}): Promise<Session> {
 
   ensureProfileDir();
 
-  const context = await chromium.launchPersistentContext(PROFILE_DIR, {
+  const context = await launchPersistentContextSafe(PROFILE_DIR, {
     headless,
     userAgent: USER_AGENT,
   });
@@ -219,7 +219,7 @@ export async function silentRelogin(previousSession?: Session | null): Promise<S
 
   let context;
   try {
-    context = await chromium.launchPersistentContext(PROFILE_DIR, {
+    context = await launchPersistentContextSafe(PROFILE_DIR, {
       headless: true,
       userAgent: USER_AGENT,
     });

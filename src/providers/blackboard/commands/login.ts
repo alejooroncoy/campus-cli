@@ -6,7 +6,7 @@ import { login, resolveDisplayName, getSsoExpiry } from '../auth/login.js';
 import { loadSession, loadOrRefreshSession, saveSession, clearSession, isSessionValid } from '../auth/session.js';
 import { createClient } from '../api/client.js';
 import { getMe } from '../api/courses.js';
-import { ok, fail, warn, whatNext, formatSessionLifetime } from '../ui/theme.js';
+import { ok, fail, warn, whatNext, formatSessionLifetime } from '../../../ui/theme.js';
 
 export function loginCommand(program: Command) {
   program

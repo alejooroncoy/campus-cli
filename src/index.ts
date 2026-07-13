@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { loginCommand } from './commands/login.js';
-import { coursesCommand } from './commands/courses.js';
-import { apiDocsCommand } from './commands/api-docs.js';
-import { downloadCommand } from './commands/download.js';
-import { assignmentsCommand } from './commands/assignments.js';
-import { loadSession, loadOrRefreshSession, saveSession, isSessionValid } from './auth/session.js';
-import { createClient } from './api/client.js';
-import { getMe, getSystemVersion } from './api/courses.js';
-import { resolveDisplayName, getSsoExpiry } from './auth/login.js';
+import { loginCommand } from './providers/blackboard/commands/login.js';
+import { coursesCommand } from './providers/blackboard/commands/courses.js';
+import { apiDocsCommand } from './providers/blackboard/commands/api-docs.js';
+import { downloadCommand } from './providers/blackboard/commands/download.js';
+import { assignmentsCommand } from './providers/blackboard/commands/assignments.js';
+import { loadSession, loadOrRefreshSession, saveSession, isSessionValid } from './providers/blackboard/auth/session.js';
+import { createClient } from './providers/blackboard/api/client.js';
+import { getMe, getSystemVersion } from './providers/blackboard/api/courses.js';
+import { resolveDisplayName, getSsoExpiry } from './providers/blackboard/auth/login.js';
 import { BANNER, ok, fail, hint, formatSessionLifetime } from './ui/theme.js';
 
 const program = new Command();
@@ -17,7 +17,7 @@ const program = new Command();
 program
   .name('blackboard')
   .description('CLI no oficial para UPC Aula Virtual (Blackboard Learn)')
-  .version('1.0.10')
+  .version('1.1.0')
   .addHelpText('beforeAll', BANNER);
 
 // Auth commands

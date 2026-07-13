@@ -1,6 +1,6 @@
 {
   "name": "blackboard-upc",
-  "version": "1.0.10",
+  "version": "1.1.0",
   "description": "CLI no oficial para UPC Aula Virtual (Blackboard Learn) — acceso desde la terminal y MCP para Claude",
   "main": "run.js",
   "bin": {
@@ -10,7 +10,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "postinstall": "playwright install chromium || true"
   },
   "keywords": [
     "blackboard",
@@ -23,10 +24,10 @@
     "peru"
   ],
   "author": "Alejandro Oroncoy",
-  "homepage": "https://github.com/aleoroni/blackboard-cli",
+  "homepage": "https://github.com/alejooroncoy/blackboard-cli",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aleoroni/blackboard-cli.git"
+    "url": "https://github.com/alejooroncoy/blackboard-cli.git"
   },
   "license": "ISC",
   "type": "commonjs",
