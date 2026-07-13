@@ -23,10 +23,11 @@ blackboard login
 # Opción 3 — clonar el repo
 git clone https://github.com/alejooroncoy/blackboard-cli
 cd blackboard-cli
-npm install
-npx playwright install chromium
+npm install               # instala Chromium automáticamente (postinstall)
 node run.js login
 ```
+
+> Si `npm install` corrió con `--ignore-scripts` (o el navegador igual falta al hacer login), el CLI lo instala solo la primera vez que hace falta — no necesitas correr `playwright install` a mano.
 
 ---
 
