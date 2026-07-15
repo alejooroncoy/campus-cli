@@ -138,11 +138,17 @@ export function assignmentsCommand(program: Command) {
           spinner.succeed(`${total} assignments found across ${results.length} courses`);
 
           if (opts.json) {
-            const payload = results.map((r) => ({
-              courseId: r.courseId,
-              courseName: r.courseName,
-              assignments: r.columns,
-            }));
+            const payload = results.map((r) => {
+              const gradeMap = new Map(r.gradesRes.map((g: any) => [g.columnId, g]));
+              return {
+                courseId: r.courseId,
+                courseName: r.courseName,
+                assignments: r.columns.filter((col) => {
+                  const grade = gradeMap.get(col.id) ?? null;
+                  return !opts.pending || isPendingAssignment(grade);
+                }),
+              };
+            });
             console.log(JSON.stringify({ results: payload, errors }, null, 2));
             return;
           }
@@ -178,7 +184,15 @@ export function assignmentsCommand(program: Command) {
 
         spinner.succeed(`${columns.length} assignments found`);
 
-        if (opts.json) { console.log(JSON.stringify(columns, null, 2)); return; }
+        if (opts.json) {
+          const gradeMap = new Map(gradesRes.map((g: any) => [g.columnId, g]));
+          const filtered = columns.filter((col) => {
+            const grade = gradeMap.get(col.id) ?? null;
+            return !opts.pending || isPendingAssignment(grade);
+          });
+          console.log(JSON.stringify(filtered, null, 2));
+          return;
+        }
 
         if (columns.length === 0) {
           console.log(chalk.yellow('No assignments found in this course.'));
