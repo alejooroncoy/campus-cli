@@ -10,7 +10,7 @@
 ```bash
 npx campus-cli login
 campus courses list
-campus assignments list <courseId> --pending
+campus assignments list --pending
 ```
 
 ## Qué puedes hacer
@@ -130,6 +130,8 @@ campus courses grades <courseId>
 
 ```bash
 campus assignments list <courseId>
+campus assignments list
+campus assignments list --pending
 campus assignments list <courseId> --pending
 campus assignments attempts <courseId> <assignmentId>
 campus assignments submit <courseId> <assignmentId> -f tarea.pdf
@@ -160,7 +162,7 @@ Todos los comandos aceptan `--json`. Los spinners van a `stderr`, así que puede
 
 | Modo | Úsalo cuando quieres | Ejemplo |
 |---|---|---|
-| CLI | Ejecutar comandos directos desde la terminal | `campus assignments list <courseId> --pending` |
+| CLI | Ejecutar comandos directos desde la terminal | `campus assignments list --pending` |
 | MCP | Darle acceso a tu campus a un asistente de IA | "Qué tareas tengo pendientes esta semana?" |
 | API raw | Automatizar consultas o explorar endpoints | `campus api GET /learn/api/public/v1/users/me` |
 
