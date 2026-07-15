@@ -42,7 +42,11 @@ function dueStatus(due?: string) {
 }
 
 export function isPendingAssignment(grade: any) {
-  return grade?.displayGrade?.score == null && grade?.status !== 'NeedsGrading';
+  return grade?.displayGrade?.score == null && grade?.score == null && grade?.status !== 'NeedsGrading';
+}
+
+function getGradeScore(grade: any) {
+  return grade?.displayGrade?.score ?? grade?.score ?? null;
 }
 
 function formatAssignment(col: any, grade: any, opts: { pending?: boolean; courseName?: string }) {
@@ -54,8 +58,8 @@ function formatAssignment(col: any, grade: any, opts: { pending?: boolean; cours
   const type = col.grading?.type === 'Manual' ? chalk.gray('[manual]') : '';
 
   let gradeStr = chalk.gray('sin entregar');
-  if (grade?.displayGrade?.score != null) {
-    const score = grade.displayGrade.score;
+  const score = getGradeScore(grade);
+  if (score != null) {
     const pct = possible !== '?' ? Math.round((score / Number(possible)) * 100) : null;
     const color = pct == null ? chalk.white : pct >= 60 ? chalk.green : chalk.red;
     gradeStr = color(`${score} / ${possible}${pct != null ? ` (${pct}%)` : ''}`);
@@ -202,10 +206,15 @@ export function assignmentsCommand(program: Command) {
         const gradeMap = new Map(gradesRes.map((g: any) => [g.columnId, g]));
 
         console.log('');
+        let printed = 0;
         columns.forEach((col) => {
           const grade = gradeMap.get(col.id) ?? null;
-          formatAssignment(col, grade, { pending: opts.pending });
+          if (formatAssignment(col, grade, { pending: opts.pending })) printed++;
         });
+
+        if (printed === 0 && opts.pending) {
+          console.log(chalk.yellow('No pending assignments found in this course.'));
+        }
       } catch (err: any) {
         spinner.fail(err.message);
         process.exit(1);
