@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { loadSession, isSessionValid } from '../auth/session.js';
 import { createClient } from '../api/client.js';
-import { getMe } from '../api/courses.js';
+import { getMe, getMyCourses } from '../api/courses.js';
 import {
   listAssignments,
   listAttempts,
@@ -41,6 +41,42 @@ function dueStatus(due?: string) {
   return chalk.gray(` (vence en ${days}d)`);
 }
 
+export function isPendingAssignment(grade: any) {
+  return grade?.displayGrade?.score == null && grade?.status !== 'NeedsGrading';
+}
+
+function formatAssignment(col: any, grade: any, opts: { pending?: boolean; courseName?: string }) {
+  const possible = col.score?.possible ?? '?';
+  const due = col.grading?.due;
+  const attemptsAllowed = col.grading?.attemptsAllowed === 0
+    ? 'ilimitados'
+    : `${col.grading?.attemptsAllowed ?? '?'} intento(s)`;
+  const type = col.grading?.type === 'Manual' ? chalk.gray('[manual]') : '';
+
+  let gradeStr = chalk.gray('sin entregar');
+  if (grade?.displayGrade?.score != null) {
+    const score = grade.displayGrade.score;
+    const pct = possible !== '?' ? Math.round((score / Number(possible)) * 100) : null;
+    const color = pct == null ? chalk.white : pct >= 60 ? chalk.green : chalk.red;
+    gradeStr = color(`${score} / ${possible}${pct != null ? ` (${pct}%)` : ''}`);
+  } else if (grade?.status === 'NeedsGrading') {
+    gradeStr = chalk.yellow('entregada — pendiente de nota');
+  }
+
+  if (opts.pending && !isPendingAssignment(grade)) return false;
+
+  const coursePrefix = opts.courseName ? `${chalk.gray(`[${opts.courseName}] `)}` : '';
+  console.log(
+    `  ${coursePrefix}${chalk.bold(col.id)} ${chalk.cyan(col.name)} ${type}`
+  );
+  console.log(
+    `    Nota: ${gradeStr}  ·  Máx: ${possible} pts  ·  ${attemptsAllowed}` +
+    (due ? `  ·  Entrega: ${formatDate(due)}${dueStatus(due)}` : '')
+  );
+  console.log('');
+  return true;
+}
+
 export function assignmentsCommand(program: Command) {
   const assignments = program
     .command('assignments')
@@ -48,32 +84,115 @@ export function assignmentsCommand(program: Command) {
 
   // ── LIST ──────────────────────────────────────────────────────────────────
   assignments
-    .command('list <courseId>')
-    .description('List assignments and tasks in a course')
+    .command('list [courseId]')
+    .description('List assignments and tasks in a course, or across all courses')
     .option('--json', 'Output raw JSON')
     .option('--pending', 'Show only assignments without a submission')
     .action(async (courseId, opts) => {
       const session = requireSession();
       const client = createClient(session);
-      const spinner = ora({ text: 'Fetching assignments...', stream: process.stderr }).start();
+      const spinner = ora({
+        text: courseId ? 'Fetching assignments...' : 'Fetching assignments across courses...',
+        stream: process.stderr,
+      }).start();
 
       try {
         let userId = session.userId;
         if (!userId) { const me = await getMe(client); userId = me.id; }
 
-        const [columns, gradesRes] = await Promise.all([
-          listAssignments(client, courseId),
-          client
-            .get(`/learn/api/public/v1/courses/${courseId}/gradebook/users/${userId}`, {
-              params: { limit: 200 },
-            })
-            .then((r) => r.data.results as any[])
-            .catch(() => [] as any[]),
-        ]);
+        const loadCourseAssignments = async (id: string, name?: string) => {
+          const [columns, gradesRes] = await Promise.all([
+            listAssignments(client, id),
+            client
+              .get(`/learn/api/public/v1/courses/${id}/gradebook/users/${userId}`, {
+                params: { limit: 200 },
+              })
+              .then((r) => r.data.results as any[])
+              .catch(() => [] as any[]),
+          ]);
+          return { courseId: id, courseName: name ?? id, columns, gradesRes };
+        };
+
+        if (!courseId) {
+          const courses = await getMyCourses(client, userId!, { limit: 100 });
+          const availableCourses = courses.results
+            .filter((uc: any) => uc.course?.availability?.available !== 'No')
+            .map((uc: any) => ({
+              id: uc.course?.id || uc.courseId,
+              name: uc.course?.name || uc.courseId,
+            }));
+
+          const results = [];
+          const errors: Array<{ courseId: string; courseName: string; error: string }> = [];
+
+          for (const course of availableCourses) {
+            spinner.text = `Fetching assignments: ${course.name}`;
+            try {
+              results.push(await loadCourseAssignments(course.id, course.name));
+            } catch (err: any) {
+              errors.push({ courseId: course.id, courseName: course.name, error: err.message });
+            }
+          }
+
+          const total = results.reduce((sum, r) => sum + r.columns.length, 0);
+          spinner.succeed(`${total} assignments found across ${results.length} courses`);
+
+          if (opts.json) {
+            const payload = results.map((r) => {
+              const gradeMap = new Map(r.gradesRes.map((g: any) => [g.columnId, g]));
+              return {
+                courseId: r.courseId,
+                courseName: r.courseName,
+                assignments: r.columns.filter((col) => {
+                  const grade = gradeMap.get(col.id) ?? null;
+                  return !opts.pending || isPendingAssignment(grade);
+                }),
+              };
+            });
+            console.log(JSON.stringify({ results: payload, errors }, null, 2));
+            return;
+          }
+
+          let printed = 0;
+          console.log('');
+          for (const result of results) {
+            const gradeMap = new Map(result.gradesRes.map((g: any) => [g.columnId, g]));
+            for (const col of result.columns) {
+              const grade = gradeMap.get(col.id) ?? null;
+              if (formatAssignment(col, grade, { pending: opts.pending, courseName: result.courseName })) {
+                printed++;
+              }
+            }
+          }
+
+          if (printed === 0) {
+            console.log(chalk.yellow(opts.pending
+              ? 'No pending assignments found across your courses.'
+              : 'No assignments found across your courses.'
+            ));
+          }
+
+          if (errors.length) {
+            console.log(chalk.yellow(`\nSkipped ${errors.length} course(s) due to errors:`));
+            errors.forEach((e) => console.log(chalk.gray(`  ${e.courseName}: ${e.error}`)));
+          }
+
+          return;
+        }
+
+        const { columns, gradesRes } = await loadCourseAssignments(courseId);
 
         spinner.succeed(`${columns.length} assignments found`);
 
-        if (opts.json) { console.log(JSON.stringify(columns, null, 2)); return; }
+        if (opts.json) {
+          const gradeMap = new Map(gradesRes.map((g: any) => [g.columnId, g]));
+          const filtered = columns.filter((col) => {
+            const grade = gradeMap.get(col.id) ?? null;
+            return !opts.pending || isPendingAssignment(grade);
+          });
+          console.log(JSON.stringify(filtered, null, 2));
+          return;
+        }
 
         if (columns.length === 0) {
           console.log(chalk.yellow('No assignments found in this course.'));
@@ -85,34 +204,7 @@ export function assignmentsCommand(program: Command) {
         console.log('');
         columns.forEach((col) => {
           const grade = gradeMap.get(col.id) ?? null;
-          const possible = col.score?.possible ?? '?';
-          const due = col.grading?.due;
-          const attemptsAllowed = col.grading?.attemptsAllowed === 0
-            ? 'ilimitados'
-            : `${col.grading?.attemptsAllowed ?? '?'} intento(s)`;
-          const type = col.grading?.type === 'Manual' ? chalk.gray('[manual]') : '';
-
-          // Grade display
-          let gradeStr = chalk.gray('sin entregar');
-          if (grade?.displayGrade?.score != null) {
-            const score = grade.displayGrade.score;
-            const pct = possible !== '?' ? Math.round((score / Number(possible)) * 100) : null;
-            const color = pct == null ? chalk.white : pct >= 60 ? chalk.green : chalk.red;
-            gradeStr = color(`${score} / ${possible}${pct != null ? ` (${pct}%)` : ''}`);
-          } else if (grade?.status === 'NeedsGrading') {
-            gradeStr = chalk.yellow('entregada — pendiente de nota');
-          }
-
-          if (opts.pending && grade?.displayGrade?.score != null) return;
-
-          console.log(
-            `  ${chalk.bold(col.id)} ${chalk.cyan(col.name)} ${type}`
-          );
-          console.log(
-            `    Nota: ${gradeStr}  ·  Máx: ${possible} pts  ·  ${attemptsAllowed}` +
-            (due ? `  ·  Entrega: ${formatDate(due)}${dueStatus(due)}` : '')
-          );
-          console.log('');
+          formatAssignment(col, grade, { pending: opts.pending });
         });
       } catch (err: any) {
         spinner.fail(err.message);

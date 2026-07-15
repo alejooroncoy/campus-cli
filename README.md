@@ -10,7 +10,7 @@
 ```bash
 npx campus-cli login
 campus courses list
-campus assignments list <courseId> --pending
+campus assignments list --pending
 ```
 
 ## Qué puedes hacer
@@ -31,6 +31,13 @@ campus assignments list <courseId> --pending
 | UCSM, UNAP | Moodle | Roadmap |
 
 Si estudias en una universidad con Canvas o Moodle y quieres ayudar a probar o implementar soporte, abre un issue para coordinar.
+
+## Requisitos
+
+- Node.js 18 o superior.
+- Una cuenta activa de UPC con acceso a Aula Virtual.
+- Acceso al flujo normal de Microsoft SSO, incluyendo MFA si tu cuenta lo pide.
+- macOS, Linux o Windows con un entorno donde Playwright pueda abrir Chromium.
 
 ## Instalación rápida
 
@@ -123,6 +130,8 @@ campus courses grades <courseId>
 
 ```bash
 campus assignments list <courseId>
+campus assignments list
+campus assignments list --pending
 campus assignments list <courseId> --pending
 campus assignments attempts <courseId> <assignmentId>
 campus assignments submit <courseId> <assignmentId> -f tarea.pdf
@@ -148,6 +157,16 @@ campus endpoints --json
 ```
 
 Todos los comandos aceptan `--json`. Los spinners van a `stderr`, así que puedes usar `--json 2>/dev/null` para obtener JSON limpio en scripts.
+
+## CLI o MCP
+
+| Modo | Úsalo cuando quieres | Ejemplo |
+|---|---|---|
+| CLI | Ejecutar comandos directos desde la terminal | `campus assignments list --pending` |
+| MCP | Darle acceso a tu campus a un asistente de IA | "Qué tareas tengo pendientes esta semana?" |
+| API raw | Automatizar consultas o explorar endpoints | `campus api GET /learn/api/public/v1/users/me` |
+
+Puedes usar ambos modos con la misma sesión. Primero ejecuta `campus login`; luego usa el CLI manualmente o conecta el servidor MCP a tu cliente de IA.
 
 ## Uso con IA mediante MCP
 
@@ -247,6 +266,19 @@ Edita `~/.codeium/windsurf/mcp_config.json`:
 
 Si instalaste el paquete globalmente con `npm install -g campus-cli`, puedes reemplazar `npx campus-cli` por la ruta absoluta de `campus`.
 
+### Configuración mínima
+
+Todos los clientes MCP terminan usando la misma idea:
+
+```json
+{
+  "command": "npx",
+  "args": ["campus-cli", "mcp"]
+}
+```
+
+El formato exacto cambia por cliente, pero el comando y los argumentos son los mismos.
+
 ## Herramientas MCP
 
 Todas las herramientas actuales usan el prefijo `blackboard_` para evitar colisiones cuando se agreguen `canvas_*` o `moodle_*`.
@@ -279,8 +311,20 @@ Cuál es mi nota actual en Arquitectura de Software?
 Busca los materiales sobre el parcial.
 ```
 
+Ejemplo de conversación:
+
+```text
+Usuario: Qué tareas tengo pendientes esta semana?
+IA: Tienes 2 pendientes:
+- Tarea 1 de Algoritmos, vence el 15/04.
+- Quiz de Bases de Datos, vence el 18/04.
+```
+
 ## Seguridad y privacidad
 
+- No necesitas escribir tu contraseña en la terminal.
+- No hay servidor intermedio de `campus-cli`.
+- Puedes cerrar sesión y borrar las cookies locales con `campus logout`.
 - Es un proyecto no oficial; no está afiliado a UPC, Blackboard, Canvas ni Moodle.
 - Tus credenciales se ingresan directamente en la ventana de Microsoft, no en el CLI.
 - Las cookies se guardan localmente en tu máquina.
@@ -289,6 +333,50 @@ Busca los materiales sobre el parcial.
 - Úsalo solo con tu propia cuenta y respeta las reglas de tu universidad.
 
 UPC usa SAML SSO con Microsoft Azure AD. El CLI abre Chromium con Playwright, espera a que completes el login, captura las cookies de Blackboard al volver a `/ultra` y las reutiliza para llamar la REST API.
+
+## Problemas comunes
+
+### `Not authenticated`
+
+Tu sesión local expiró o no existe. Ejecuta:
+
+```bash
+campus login
+```
+
+### Microsoft pide login cada vez
+
+Cuando aparezca **"Stay signed in?"**, marca **"Don't show this again"** y responde **Yes**. Si ya habías iniciado sesión antes, prueba borrar la sesión local:
+
+```bash
+campus logout
+campus login
+```
+
+### Chromium o Playwright no abre
+
+Normalmente el CLI instala Chromium automáticamente. Si instalaste dependencias con scripts desactivados, vuelve a instalar:
+
+```bash
+npm install
+```
+
+Luego intenta de nuevo:
+
+```bash
+campus login
+```
+
+### Un curso o archivo no aparece
+
+Primero confirma que aparece en Aula Virtual desde el navegador. Si aparece en Blackboard pero no en el CLI, abre un issue con:
+
+- Comando ejecutado.
+- Si usaste `--json`.
+- Tipo de contenido que falta: curso, carpeta, archivo, tarea o nota.
+- Mensaje de error, si lo hubo.
+
+No publiques cookies, tokens, capturas con datos personales ni archivos privados del curso.
 
 ## Desarrollo
 
@@ -317,6 +405,8 @@ La arquitectura separa cada LMS en `src/providers/<lms>/`. Blackboard vive en `s
 - Descarga de grabaciones o videos, si el LMS lo permite.
 - Soporte para múltiples cuentas o ciclos.
 - Más guías por cliente MCP.
+
+Si tu universidad usa Canvas o Moodle, abre un issue con el nombre de la universidad, el LMS y qué flujo quieres probar primero: cursos, tareas, notas o materiales.
 
 ## Contribuir
 
