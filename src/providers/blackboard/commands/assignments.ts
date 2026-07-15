@@ -41,7 +41,7 @@ function dueStatus(due?: string) {
   return chalk.gray(` (vence en ${days}d)`);
 }
 
-function isPending(grade: any) {
+export function isPendingAssignment(grade: any) {
   return grade?.displayGrade?.score == null && grade?.status !== 'NeedsGrading';
 }
 
@@ -63,7 +63,7 @@ function formatAssignment(col: any, grade: any, opts: { pending?: boolean; cours
     gradeStr = chalk.yellow('entregada — pendiente de nota');
   }
 
-  if (opts.pending && !isPending(grade)) return false;
+  if (opts.pending && !isPendingAssignment(grade)) return false;
 
   const coursePrefix = opts.courseName ? `${chalk.gray(`[${opts.courseName}] `)}` : '';
   console.log(
