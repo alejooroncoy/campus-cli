@@ -1,140 +1,167 @@
 # campus-cli
 
-> Accede al **campus universitario** desde la terminal o desde tu IA — sin abrir el navegador.
+[![npm version](https://img.shields.io/npm/v/campus-cli.svg)](https://www.npmjs.com/package/campus-cli)
+[![npm downloads](https://img.shields.io/npm/dw/campus-cli.svg)](https://www.npmjs.com/package/campus-cli)
 
-CLI/MCP no oficial para estudiantes. Consulta cursos, descarga materiales, revisa tareas y entregas directamente desde la línea de comandos, o dale acceso a tu asistente de IA vía **MCP**. Hoy soporta **Blackboard Learn**; Canvas y Moodle están en el roadmap (ver [Providers](#providers)).
+> Usa tu campus universitario desde la terminal o desde tu asistente de IA.
+
+`campus-cli` es un CLI/MCP no oficial para estudiantes. Permite consultar cursos, tareas, notas, anuncios y materiales sin abrir el navegador. Hoy funciona con **Blackboard Learn** en UPC; Canvas y Moodle están en el roadmap.
+
+```bash
+npx campus-cli login
+campus courses list
+campus assignments list <courseId> --pending
+```
+
+## Qué puedes hacer
+
+- Ver tus cursos del ciclo.
+- Revisar tareas pendientes, fechas de entrega y notas.
+- Descargar archivos y carpetas completas de Blackboard.
+- Consultar anuncios, contenidos y calificaciones.
+- Usarlo desde Claude, Cursor, Copilot, Codex u otro cliente compatible con MCP.
+- Automatizar consultas con `--json` o con llamadas directas a la API de Blackboard.
+
+## Estado actual
+
+| Universidad | LMS | Estado |
+|---|---|---|
+| UPC | Blackboard Learn | Implementado |
+| UTP, USIL, Norbert Wiener | Canvas | Roadmap |
+| UCSM, UNAP | Moodle | Roadmap |
+
+Si estudias en una universidad con Canvas o Moodle y quieres ayudar a probar o implementar soporte, abre un issue para coordinar.
+
+## Instalación rápida
+
+### Usar sin instalar
 
 ```bash
 npx campus-cli login
 ```
 
----
-
-## Instalación
+### Instalar globalmente
 
 ```bash
-# Opción 1 — usar directamente con npx (sin instalar)
-npx campus-cli login
-
-# Opción 2 — instalar globalmente
 npm install -g campus-cli
 campus login
+```
 
-# Opción 3 — clonar el repo
+### Clonar el repo
+
+```bash
 git clone https://github.com/alejooroncoy/campus-cli
 cd campus-cli
-npm install               # instala Chromium automáticamente (postinstall)
+npm install
 node run.js login
 ```
 
-> Si `npm install` corrió con `--ignore-scripts` (o el navegador igual falta al hacer login), el CLI lo instala solo la primera vez que hace falta — no necesitas correr `playwright install` a mano.
+`campus-cli` usa Playwright para abrir Chromium durante el login. `npm install` intenta instalar Chromium automáticamente; si el navegador falta, el CLI lo instala la primera vez que lo necesite.
 
----
-
-## Primeros pasos
-
-### 1. Login
+## Primer uso
 
 ```bash
 campus login
 ```
 
-Se abre una ventana del navegador con el login de Microsoft UPC. Inicia sesión con tu cuenta `u20XXXXXXX@upc.edu.pe` (incluye MFA si lo tienes). La ventana se cierra sola y la sesión queda guardada 8 horas.
+Se abrirá una ventana con el login de Microsoft UPC. Inicia sesión con tu cuenta universitaria y completa MFA si aplica.
 
-> **Importante:** durante el login, Microsoft mostrará el mensaje **"Stay signed in?"** con un checkbox **"Don't show this again"**. Activa ese checkbox y haz clic en **Yes** — esto le indica a Microsoft que mantenga la sesión activa y es necesario para que el CLI pueda guardar las cookies correctamente.
+Durante el login, Microsoft puede mostrar **"Stay signed in?"** con el checkbox **"Don't show this again"**. Marca ese checkbox y haz clic en **Yes** para que la sesión pueda mantenerse correctamente.
 
-```
-  campus-cli
-  CLI no oficial para tu campus universitario · Blackboard · Canvas · Moodle
-
-  ✓ Sesión guardada — expira en 8 horas
-    Usuario: Juan Pérez García
-
-  ¿Qué puedo hacer ahora?
-
-  campus courses list                ver tus cursos del ciclo
-  campus assignments list <id>       ver tareas pendientes y notas
-  campus courses contents <id>       explorar materiales
-  campus download-folder <id> <fid>  descargar toda una carpeta
-```
-
-### 2. Ver cursos y tareas
+Después del login:
 
 ```bash
 campus courses list
-
-  _100001_1  Cálculo Diferencial e Integral [Ultra]
-  _100002_1  Programación Orientada a Objetos [Ultra]
-  _100003_1  Bases de Datos [Ultra]
-  _100004_1  Algoritmos y Estructuras de Datos [Ultra]
-
-campus assignments list _100004_1
-
-  _200001_1  Tarea 1  [manual]
-    Nota: sin entregar · Máx: 5 pts · Entrega: 15/04/2026 (vence en 17d)
 ```
 
----
+Ejemplo:
 
-## Comandos
+```text
+_100001_1  Cálculo Diferencial e Integral [Ultra]
+_100002_1  Programación Orientada a Objetos [Ultra]
+_100003_1  Bases de Datos [Ultra]
+_100004_1  Algoritmos y Estructuras de Datos [Ultra]
+```
 
-> Nota: los comandos son de Blackboard (único provider implementado hoy). El bin `campus` es el nombre principal — `blackboard`/`blackboard-upc` siguen funcionando como alias por compatibilidad.
+Luego puedes revisar tareas de un curso:
+
+```bash
+campus assignments list _100004_1 --pending
+```
+
+Ejemplo:
+
+```text
+_200001_1  Tarea 1  [manual]
+  Nota: sin entregar · Máx: 5 pts · Entrega: 15/04/2026
+```
+
+## Comandos principales
 
 ### Sesión
+
 ```bash
-campus login              # autenticación Microsoft SSO
-campus logout             # borrar sesión
+campus login              # iniciar sesión con Microsoft SSO
+campus logout             # borrar sesión local
 campus whoami             # usuario activo y tiempo restante
-campus status             # versión del servidor Blackboard
+campus status             # sesión + versión del servidor Blackboard
 ```
 
 ### Cursos
+
 ```bash
 campus courses list
 campus courses get <courseId>
 campus courses contents <courseId>
-campus courses contents <courseId> --parent <folderId>   # navegar subcarpetas
+campus courses contents <courseId> --parent <folderId>
 campus courses contents <courseId> --type file|folder|assignment
 campus courses announcements <courseId>
 campus courses grades <courseId>
 ```
 
 ### Tareas
+
 ```bash
-campus assignments list <courseId>              # tareas con nota y fecha
-campus assignments list <courseId> --pending    # solo pendientes
-campus assignments attempts <courseId> <id>     # historial de entregas
-campus assignments submit <courseId> <id> -f tarea.pdf
-campus assignments submit <courseId> <id> -t "Mi respuesta" -c "Comentario"
-campus assignments submit <courseId> <id> -f borrador.pdf --draft
+campus assignments list <courseId>
+campus assignments list <courseId> --pending
+campus assignments attempts <courseId> <assignmentId>
+campus assignments submit <courseId> <assignmentId> -f tarea.pdf
+campus assignments submit <courseId> <assignmentId> -t "Mi respuesta" -c "Comentario"
+campus assignments submit <courseId> <assignmentId> -f borrador.pdf --draft
 ```
 
 ### Descargas
+
 ```bash
-campus download <courseId> <contentId>                    # archivo individual
-campus download-folder <courseId> <folderId> -o ./dir/    # carpeta completa
+campus download <courseId> <contentId>
+campus download-folder <courseId> <folderId> -o ./materiales/
 campus download-folder <courseId> <folderId> --filter "parcial"
 ```
 
-### API raw / scripting
+### API y scripting
+
 ```bash
 campus api GET /learn/api/public/v1/users/me
 campus api GET /learn/api/public/v1/courses -q "limit=10"
-campus endpoints          # catálogo de todos los endpoints conocidos
-campus endpoints --json   # para pipelines
+campus endpoints
+campus endpoints --json
 ```
 
-Todos los comandos aceptan `--json`. Los spinners van a `stderr`, por lo que `--json 2>/dev/null` es JSON limpio.
+Todos los comandos aceptan `--json`. Los spinners van a `stderr`, así que puedes usar `--json 2>/dev/null` para obtener JSON limpio en scripts.
 
----
+## Uso con IA mediante MCP
 
-## Uso con IA (MCP)
+`campus-cli` incluye un servidor MCP estándar. Corre por `stdio` con:
 
-`campus-cli` incluye un servidor **MCP** (Model Context Protocol) estándar — corre vía stdio con `npx campus-cli mcp`, así que funciona con cualquier cliente que hable MCP, no solo Claude. El servidor expone además un campo `instructions` (parte del handshake `initialize` de MCP) con una guía de uso, para que cualquier agente se oriente solo aunque no lea este README. Configuración probada para los más comunes:
+```bash
+npx campus-cli mcp
+```
+
+Eso permite conectar tu campus a clientes como Claude, Cursor, GitHub Copilot, OpenAI Codex CLI, Windsurf y otros clientes compatibles con Model Context Protocol.
 
 ### Claude Code
 
-Añade a `.mcp.json` en tu proyecto:
+Agrega esto a `.mcp.json`:
 
 ```json
 {
@@ -164,7 +191,7 @@ Edita `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ### Cursor
 
-`Settings → MCP → Add new MCP server`, o edita directamente `~/.cursor/mcp.json` (global) o `.cursor/mcp.json` (por proyecto):
+Usa `Settings -> MCP -> Add new MCP server`, o edita `~/.cursor/mcp.json`:
 
 ```json
 {
@@ -177,9 +204,9 @@ Edita `~/Library/Application Support/Claude/claude_desktop_config.json`:
 }
 ```
 
-### GitHub Copilot (VS Code)
+### GitHub Copilot en VS Code
 
-Crea `.vscode/mcp.json` en tu proyecto (o usa el comando `MCP: Add Server` en la paleta de comandos):
+Crea `.vscode/mcp.json`:
 
 ```json
 {
@@ -195,7 +222,7 @@ Crea `.vscode/mcp.json` en tu proyecto (o usa el comando `MCP: Add Server` en la
 
 ### OpenAI Codex CLI
 
-Agrega a `~/.codex/config.toml`:
+Agrega esto a `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.campus]
@@ -218,89 +245,90 @@ Edita `~/.codeium/windsurf/mcp_config.json`:
 }
 ```
 
-### Otros clientes (Perplexity y similares)
+Si instalaste el paquete globalmente con `npm install -g campus-cli`, puedes reemplazar `npx campus-cli` por la ruta absoluta de `campus`.
 
-Cualquier cliente con soporte MCP sobre stdio funciona con el mismo patrón: comando `npx`, argumentos `["campus-cli", "mcp"]`. Si tu cliente no aparece aquí, revisa su documentación de "MCP servers" o "Model Context Protocol" — la configuración siempre se reduce a esos dos datos (comando + args).
+## Herramientas MCP
 
-> **Nota:** Si usas instalación global (`npm install -g campus-cli`), puedes reemplazar `npx campus-cli` por la ruta absoluta del binario (`which campus`) en cualquiera de las configs de arriba.
-
-### Herramientas MCP disponibles
-
-Todas las tools de Blackboard llevan el prefijo `blackboard_` (evita colisiones cuando se agreguen Canvas/Moodle):
+Todas las herramientas actuales usan el prefijo `blackboard_` para evitar colisiones cuando se agreguen `canvas_*` o `moodle_*`.
 
 | Herramienta | Descripción |
 |---|---|
-| `blackboard_whoami` | Info del estudiante autenticado |
+| `blackboard_whoami` | Usuario autenticado |
 | `blackboard_list_courses` | Cursos inscritos |
 | `blackboard_get_course` | Detalle de un curso |
-| `blackboard_list_contents` | Árbol de materiales |
+| `blackboard_list_contents` | Materiales y carpetas |
 | `blackboard_list_announcements` | Anuncios del curso |
 | `blackboard_list_assignments` | Tareas con fechas y notas |
 | `blackboard_list_attempts` | Historial de entregas |
-| `blackboard_get_grades` | Notas del ciclo |
-| `blackboard_list_attachments` | Archivos de un contenido |
-| `blackboard_download_attachment` | Descargar archivo (base64) |
-| `blackboard_submit_attempt` | Entregar tarea (pide confirmación) |
+| `blackboard_get_grades` | Reporte de notas |
+| `blackboard_list_attachments` | Archivos adjuntos |
+| `blackboard_download_attachment` | Descargar archivo |
+| `blackboard_submit_attempt` | Entregar tarea; confirma antes de enviar |
 | `blackboard_get_quiz_questions` | Cargar preguntas de un quiz |
 | `blackboard_save_quiz_answer` | Guardar una respuesta sin enviar |
-| `blackboard_submit_quiz` | Finalizar y enviar un quiz (pide confirmación) |
-| `blackboard_get_assignment_feedback` | Notas + comentarios del profesor |
+| `blackboard_submit_quiz` | Finalizar y enviar un quiz; confirma antes de enviar |
+| `blackboard_get_assignment_feedback` | Comentarios y feedback del profesor |
 | `blackboard_raw_api` | Cualquier endpoint de Blackboard |
 
-Con tu asistente de IA (Claude, Cursor, Copilot, Codex...) puedes hacer cosas como:
+Ejemplos de uso con un asistente:
 
-> *"¿Qué tareas tengo pendientes esta semana?"*
-> *"Descárgame todos los exámenes del curso de Finanzas"*
-> *"¿Cuál es mi nota actual en Arquitectura de Software?"*
+```text
+Qué tareas tengo pendientes esta semana?
+Descarga todos los PDFs del curso de Finanzas.
+Cuál es mi nota actual en Arquitectura de Software?
+Busca los materiales sobre el parcial.
+```
 
----
+## Seguridad y privacidad
 
-## Cómo funciona la autenticación
+- Es un proyecto no oficial; no está afiliado a UPC, Blackboard, Canvas ni Moodle.
+- Tus credenciales se ingresan directamente en la ventana de Microsoft, no en el CLI.
+- Las cookies se guardan localmente en tu máquina.
+- La sesión local se guarda en `~/.blackboard-cli/session.json` con permisos restrictivos.
+- No se envían cookies, credenciales ni datos del campus a servidores externos del proyecto.
+- Úsalo solo con tu propia cuenta y respeta las reglas de tu universidad.
 
-UPC usa **SAML SSO → Microsoft Azure AD**. El CLI:
-1. Abre Chromium (Playwright) en la URL SAML de UPC
-2. Te muestra el login de Microsoft — tú ingresas tus credenciales
-3. Captura las cookies de sesión automáticamente al redirigir a `/ultra`
-4. Guarda todo en `~/.blackboard-cli/session.json` (permisos `600`)
+UPC usa SAML SSO con Microsoft Azure AD. El CLI abre Chromium con Playwright, espera a que completes el login, captura las cookies de Blackboard al volver a `/ultra` y las reutiliza para llamar la REST API.
 
-La sesión dura **8 horas**. Después necesitas volver a hacer `login`.
+## Desarrollo
 
----
+```bash
+npm install
+npm run build
+node run.js --help
+```
 
-## Stack
+Stack principal:
 
-- **TypeScript** + `tsx` — sin build step
-- **Playwright** — maneja el flujo SAML/SSO
-- **Axios** — llamadas a la REST API con cookies de sesión
-- **Commander.js** — framework CLI
-- **MCP SDK** — servidor MCP estándar (Claude, Cursor, Copilot, Codex...)
-- **Chalk** + **Ora** — output en la terminal
+- TypeScript
+- Playwright
+- Axios
+- Commander.js
+- MCP SDK
+- Chalk y Ora
 
----
+La arquitectura separa cada LMS en `src/providers/<lms>/`. Blackboard vive en `src/providers/blackboard/`; futuros providers deberían seguir el mismo patrón.
 
-## Providers
+## Roadmap
 
-`campus-cli` está pensado para crecer más allá de una sola universidad/LMS — la arquitectura interna (`src/providers/<lms>/`) ya separa cada proveedor en su propia carpeta (auth, api, comandos, tools MCP con su propio prefijo).
+- Soporte para Canvas.
+- Soporte para Moodle.
+- Notificaciones de entregas próximas.
+- Descarga de grabaciones o videos, si el LMS lo permite.
+- Soporte para múltiples cuentas o ciclos.
+- Más guías por cliente MCP.
 
-| Universidad | LMS | Estado |
-|---|---|---|
-| UPC | Blackboard Learn | ✅ Implementado (`blackboard_*`) |
-| UTP, USIL, Norbert Wiener | Canvas | 🗺️ Roadmap — no implementado |
-| UCSM, UNAP | Moodle | 🗺️ Roadmap — no implementado |
+## Contribuir
 
-¿Tienes cuenta en una universidad con Canvas o Moodle y quieres ayudar a implementarlo? Los PRs son bienvenidos — abre un issue para coordinar antes de empezar.
+Las contribuciones más útiles ahora son:
 
----
+- Probar el CLI en más cursos de UPC y reportar errores con el comando usado.
+- Confirmar versiones de Blackboard donde funciona o falla.
+- Ayudar con soporte para Canvas o Moodle si tienes una cuenta de prueba.
+- Mejorar ejemplos, screenshots, docs de instalación o configuraciones MCP.
 
-## Notas
-
-- Probado con Blackboard Learn `v4000.10.0` (UPC, 2026).
-- CLI **no oficial** — sin afiliación con ninguna universidad, Blackboard Inc., Canvas ni Moodle.
-- Úsalo solo con tu propia cuenta. Respeta los TOS de tu universidad.
-- Las cookies se guardan localmente. No se envían a servidores externos.
-
----
+Antes de trabajar en un provider nuevo, abre un issue para coordinar el alcance.
 
 ## Licencia
 
-MIT
+ISC
