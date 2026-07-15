@@ -4,6 +4,23 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
+## [1.0.1] — 2026-07-15
+
+### Added
+- `campus assignments list` ahora acepta `courseId` opcional. Sin `courseId`, recorre todos los cursos disponibles del estudiante.
+- `campus assignments list --pending` ahora funciona como vista global de pendientes, ideal después de `campus courses list`.
+- Suite mínima de tests con `node:test` vía `tsx`, cubriendo el uso opcional de `courseId` y el filtro de pendientes.
+
+### Fixed
+- `campus assignments list --pending` ya no falla con `missing required argument 'courseId'`.
+- `--pending --json` ahora filtra correctamente las tareas pendientes tanto en modo global como en modo de un solo curso.
+- El paquete npm ya no incluye `.codex/` ni `AGENTS.md` en el tarball publicado.
+
+### Changed
+- README reestructurado para facilitar adopción: badges de npm, requisitos, comparación CLI/MCP, configuración mínima MCP, privacidad, troubleshooting y contribución.
+
+---
+
 ## [1.0.0] — 2026-07-13 — renombrado a `campus-cli`
 
 Continúa la historia de `blackboard-upc` (ver entradas `1.0.x`–`1.1.0` abajo). Se renombra el paquete porque el alcance ya no es solo Blackboard/UPC: universidades peruanas usan LMS distintos (UTP/USIL/Wiener → Canvas, UCSM/UNAP → Moodle), y la estructura interna (`src/providers/<lms>/`) ya está pensada para agregarlos.
