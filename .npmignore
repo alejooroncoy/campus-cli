@@ -1,7 +1,9 @@
 .claude/
+.codex/
 node_modules/
 dist/
 *.js.map
 .env
 .DS_Store
 .mcp.json
+AGENTS.md
