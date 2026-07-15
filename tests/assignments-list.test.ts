@@ -18,5 +18,6 @@ test('pending filter includes only assignments without a score or submitted atte
   assert.equal(isPendingAssignment(null), true);
   assert.equal(isPendingAssignment({}), true);
   assert.equal(isPendingAssignment({ displayGrade: { score: 15 } }), false);
+  assert.equal(isPendingAssignment({ score: 15 }), false);
   assert.equal(isPendingAssignment({ status: 'NeedsGrading' }), false);
 });
