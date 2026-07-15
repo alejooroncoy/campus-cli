@@ -4,6 +4,15 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
+## [1.0.2] — 2026-07-15
+
+### Fixed
+- `campus assignments list <courseId>` ahora muestra notas que Blackboard devuelve en `grade.score`, no solo en `grade.displayGrade.score`.
+- `campus assignments list <courseId> --pending` ya no trata tareas calificadas como pendientes cuando la nota viene en `grade.score`.
+- Cuando un curso no tiene pendientes, el CLI ahora muestra `No pending assignments found in this course.` en vez de dejar una salida vacía.
+
+---
+
 ## [1.0.1] — 2026-07-15
 
 ### Added
