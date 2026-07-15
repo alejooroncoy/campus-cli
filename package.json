@@ -1,6 +1,6 @@
 {
   "name": "campus-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "CLI/MCP no oficial para el campus universitario (Blackboard, Canvas, Moodle...) — acceso desde la terminal y MCP para IA",
   "main": "run.js",
   "bin": {
