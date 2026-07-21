@@ -4,6 +4,19 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
+## [1.1.0] — 2026-07-21
+
+### Removed
+- **Breaking**: se eliminaron las tools `blackboard_get_quiz_questions`, `blackboard_save_quiz_answer` y `blackboard_submit_quiz` (auto-resolver y enviar quizzes/evaluaciones). Navegar y descargar archivos adjuntos dentro de un quiz sigue funcionando igual vía `blackboard_list_contents`/`blackboard_list_attachments`.
+
+### Added
+- `blackboard_upload_attempt_file` — sube un archivo local (imagen, PDF, etc.) a Blackboard y devuelve un `fileUploadId` para adjuntarlo a una entrega.
+- `blackboard_save_attempt_draft` — guarda texto y/o archivos en una entrega de tarea SIN enviarla; el intento queda abierto para seguir editando. No requiere confirmación (a diferencia de `blackboard_submit_attempt`).
+- `blackboard_submit_attempt` ahora también acepta `fileUploadIds` para adjuntar archivos al enviar.
+
+### Notes
+- Estas tools operan sobre columnas de calificación tipo entrega de archivo/texto/link. En Blackboard Ultra, tareas y quizzes comparten el mismo tipo de contenido (`resource/x-bb-asmt-test-link`); si se usan contra una evaluación con preguntas interactivas, Blackboard responde `400` ("Attempts cannot be created for assessments with non-presentation-only questions"). Un `403 bb-rest-attempt-past-due-exception` es el comportamiento normal una vez vencida la fecha de entrega.
+
 ## [1.0.2] — 2026-07-15
 
 ### Fixed
