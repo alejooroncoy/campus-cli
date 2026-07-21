@@ -295,10 +295,9 @@ Todas las herramientas actuales usan el prefijo `blackboard_` para evitar colisi
 | `blackboard_get_grades` | Reporte de notas |
 | `blackboard_list_attachments` | Archivos adjuntos |
 | `blackboard_download_attachment` | Descargar archivo |
+| `blackboard_upload_attempt_file` | Subir un archivo local (imagen, PDF, etc.) y obtener un fileUploadId |
+| `blackboard_save_attempt_draft` | Guardar texto/archivos en un intento SIN enviarlo (queda abierto para seguir editando) |
 | `blackboard_submit_attempt` | Entregar tarea; confirma antes de enviar |
-| `blackboard_get_quiz_questions` | Cargar preguntas de un quiz |
-| `blackboard_save_quiz_answer` | Guardar una respuesta sin enviar |
-| `blackboard_submit_quiz` | Finalizar y enviar un quiz; confirma antes de enviar |
 | `blackboard_get_assignment_feedback` | Comentarios y feedback del profesor |
 | `blackboard_raw_api` | Cualquier endpoint de Blackboard |
 
@@ -317,7 +316,7 @@ Ejemplo de conversación:
 Usuario: Qué tareas tengo pendientes esta semana?
 IA: Tienes 2 pendientes:
 - Tarea 1 de Algoritmos, vence el 15/04.
-- Quiz de Bases de Datos, vence el 18/04.
+- Lectura de Bases de Datos, vence el 18/04.
 ```
 
 ## Seguridad y privacidad

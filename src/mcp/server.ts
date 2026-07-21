@@ -12,9 +12,16 @@ terminal (abre un navegador para el SSO de Microsoft).
 
 Flujo típico: blackboard_list_courses → blackboard_list_assignments /
 blackboard_get_grades → blackboard_list_contents para materiales.
+
+Para entregas: blackboard_upload_attempt_file sube cada archivo/imagen y
+devuelve un fileUploadId; blackboard_save_attempt_draft guarda texto y/o
+esos fileUploadIds sin enviar (el intento queda abierto para seguir
+editando, no requiere confirmación); blackboard_submit_attempt finaliza
+y envía — siempre confirma con el usuario qué se va a enviar antes de
+llamarla.
+
 blackboard_raw_api cubre cualquier endpoint no expuesto por una tool
-dedicada. Antes de blackboard_submit_attempt o blackboard_submit_quiz,
-siempre confirma con el usuario qué se va a enviar.
+dedicada.
 
 Futuro: canvas_* y moodle_* para otras universidades (Canvas, Moodle) —
 no implementados todavía.

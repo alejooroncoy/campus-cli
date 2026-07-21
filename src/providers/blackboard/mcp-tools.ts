@@ -15,14 +15,8 @@ import {
   getSystemVersion,
 } from './api/courses.js';
 import { listAssignments, listAttempts, submitAttempt, uploadFile, getAttemptFiles } from './api/assignments.js';
-import {
-  getQuizQuestions,
-  saveQuizAnswer,
-  submitQuizAttempt,
-  getQuizColumnId,
-  parseQuizUrl,
-  type QuizQuestion,
-} from './api/quiz.js';
+
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB
 
 async function getClient() {
   const session = await loadOrRefreshSession();
@@ -297,162 +291,97 @@ export function registerBlackboardTools(server: McpServer) {
     }
   );
 
-  // ── blackboard_submit_attempt ──────────────────────────────────────────────────────────
+  // ── blackboard_upload_attempt_file ─────────────────────────────────────────────────────
   server.registerTool(
-    'blackboard_submit_attempt',
-    {
-      description: 'Submit an assignment attempt. ALWAYS confirm with the user before submitting.',
-      inputSchema: {
-        courseId: z.string().describe('Blackboard course ID'),
-        columnId: z.string().describe('Assignment (gradebook column) ID'),
-        studentComments: z.string().optional().describe('Comment to the instructor'),
-        studentSubmission: z.string().optional().describe('Text body of the submission'),
-      },
-    },
-    async ({ courseId, columnId, studentComments, studentSubmission }) => {
-      const { client } = await getClient();
-      const attempt = await submitAttempt(client, courseId, columnId, {
-        studentComments,
-        studentSubmission,
-        status: 'NeedsGrading',
-      });
-      return { content: [{ type: 'text', text: JSON.stringify(attempt, null, 2) }] };
-    }
-  );
-
-  // ── blackboard_get_quiz_questions ──────────────────────────────────────────────────────
-  server.registerTool(
-    'blackboard_get_quiz_questions',
+    'blackboard_upload_attempt_file',
     {
       description:
-        'Fetch all questions and answer options from a Blackboard Ultra quiz attempt. ' +
-        'Provide either a full quiz URL, or courseId + contentId + attemptId. ' +
-        'Returns each question with its type, text, options, and current saved answer.',
+        'Upload a local file (image, PDF, doc, etc.) to Blackboard and get back a fileUploadId. ' +
+        'This only uploads the file — it does NOT attach it to an attempt yet. ' +
+        'Pass the returned fileUploadId(s) into blackboard_save_attempt_draft or blackboard_submit_attempt via fileUploadIds.',
       inputSchema: {
-        url: z
-          .string()
-          .optional()
-          .describe(
-            'Full Ultra quiz URL, e.g. https://aulavirtual.upc.edu.pe/ultra/stream/assessment/_69146765_1/overview/attempt/_94898825_1?courseId=_529533_1'
-          ),
-        courseId: z.string().optional().describe('Course ID (e.g. _529533_1) — required if url not given'),
-        contentId: z.string().optional().describe('Quiz content item ID (e.g. _69146765_1) — required if url not given'),
-        attemptId: z.string().optional().describe('Attempt ID (e.g. _94898825_1) — required if url not given'),
+        filePath: z.string().describe('Absolute path to the local file to upload'),
       },
     },
-    async ({ url, courseId, contentId, attemptId }) => {
-      const { client, session } = await getClient();
-
-      // Resolve IDs from URL or direct params
-      let resolvedCourseId = courseId;
-      let resolvedContentId = contentId;
-      let resolvedAttemptId = attemptId;
-
-      if (url) {
-        const parsed = parseQuizUrl(url);
-        resolvedCourseId = resolvedCourseId || parsed.courseId;
-        resolvedContentId = resolvedContentId || parsed.contentId;
-        resolvedAttemptId = resolvedAttemptId || parsed.attemptId;
+    async ({ filePath }) => {
+      const { client } = await getClient();
+      const resolved = path.resolve(filePath);
+      if (!fs.existsSync(resolved)) {
+        throw new Error(`File not found: ${resolved}`);
       }
-
-      if (!resolvedCourseId || !resolvedContentId || !resolvedAttemptId) {
-        throw new Error(
-          'Provide either a full quiz URL or all three of: courseId, contentId, attemptId'
-        );
+      const { size } = fs.statSync(resolved);
+      if (size > MAX_UPLOAD_BYTES) {
+        throw new Error(`File too large (${size} bytes). Max is ${MAX_UPLOAD_BYTES} bytes.`);
       }
-
-      // Get columnId + attempt policy — reuse session already obtained above
-      const policy = await getQuizColumnId(client, resolvedCourseId, resolvedContentId, session.userId);
-
-      if (!policy.canAttempt) {
-        return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify({
-              error: 'NO_ATTEMPTS_LEFT',
-              message: `No quedan intentos para este cuestionario. ${policy.attemptSummary}`,
-              policy,
-            }, null, 2),
-          }],
-        };
-      }
-
-      const info = await getQuizQuestions(client, resolvedCourseId, policy.columnId, resolvedAttemptId);
+      const fileUploadId = await uploadFile(client, resolved);
       return {
         content: [{
           type: 'text',
-          text: JSON.stringify({ attemptPolicy: policy, ...info }, null, 2),
+          text: JSON.stringify({ fileUploadId, fileName: path.basename(resolved), size }, null, 2),
         }],
       };
     }
   );
 
-  // ── blackboard_save_quiz_answer ────────────────────────────────────────────────────────
+  // ── blackboard_save_attempt_draft ──────────────────────────────────────────────────────
   server.registerTool(
-    'blackboard_save_quiz_answer',
+    'blackboard_save_attempt_draft',
     {
       description:
-        'Save a single answer for a quiz question (does NOT submit — use blackboard_submit_quiz to finalize). ' +
-        'question is the full question object from blackboard_get_quiz_questions. ' +
-        'answer format depends on question.type:\n' +
-        '  - eitherOr (true/false):       boolean (true = Verdadero)\n' +
-        '  - multipleanswer (MC):         number (0-based index of the chosen option)\n' +
-        '  - fimb (fill-in-multi-blanks): JSON string of an object mapping blank names to values, ' +
-        'e.g. \'{"BLANK-1":"1438.62","BLANK-2":"140.62"}\' (read blank names from question.blanks)',
+        'Save progress on an assignment attempt WITHOUT submitting it — text, attached files, or both. ' +
+        'The attempt stays open (status InProgress) so the student can keep editing it later. ' +
+        'This does NOT send it to the instructor for grading — use blackboard_submit_attempt for that, ' +
+        'and always confirm with the user before calling that one.',
       inputSchema: {
-        courseId: z.string().describe('Course ID'),
-        attemptId: z.string().describe('Quiz attempt ID (e.g. _94898825_1)'),
-        question: z.string().describe('JSON string of the question object from blackboard_get_quiz_questions'),
-        answer: z.union([z.boolean(), z.number(), z.string()]).describe(
-          'eitherOr: true/false. multipleanswer: 0-based index. ' +
-          'fimb: JSON string of {blankName: value} (e.g. \'{"BLANK-1":"1438.62"}\').'
+        courseId: z.string().describe('Blackboard course ID'),
+        columnId: z.string().describe('Assignment (gradebook column) ID'),
+        studentComments: z.string().optional().describe('Comment to the instructor'),
+        studentSubmission: z.string().optional().describe('Text body of the submission'),
+        fileUploadIds: z.array(z.string()).optional().describe(
+          'fileUploadId(s) from blackboard_upload_attempt_file to attach to this draft'
         ),
       },
     },
-    async ({ courseId, attemptId, question: questionJson, answer }) => {
+    async ({ courseId, columnId, studentComments, studentSubmission, fileUploadIds }) => {
       const { client } = await getClient();
-      const question: QuizQuestion = JSON.parse(questionJson);
-
-      // For fimb, the MCP transport gives us a JSON string — parse it into the Record<string, string>
-      // saveQuizAnswer expects. boolean / number pass through as-is.
-      let parsedAnswer: boolean | number | Record<string, string>;
-      if (typeof answer === 'string') {
-        try {
-          const obj = JSON.parse(answer);
-          if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
-            throw new Error('fimb answer string must parse to a JSON object');
-          }
-          parsedAnswer = obj as Record<string, string>;
-        } catch (e: any) {
-          throw new Error(
-            `Invalid fimb answer: expected a JSON object string like '{"BLANK-1":"value"}'. ${e.message}`
-          );
-        }
-      } else {
-        parsedAnswer = answer;
-      }
-
-      const result = await saveQuizAnswer(client, courseId, attemptId, question, parsedAnswer);
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      const attempt = await submitAttempt(client, courseId, columnId, {
+        studentComments,
+        studentSubmission,
+        fileUploadIds,
+        status: 'InProgress',
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(attempt, null, 2) }] };
     }
   );
 
-  // ── blackboard_submit_quiz ─────────────────────────────────────────────────────────────
+  // ── blackboard_submit_attempt ──────────────────────────────────────────────────────────
   server.registerTool(
-    'blackboard_submit_quiz',
+    'blackboard_submit_attempt',
     {
       description:
-        'Finalize and submit a quiz attempt. ALWAYS confirm with the user before calling this. ' +
-        'All individual answers should be saved first via blackboard_save_quiz_answer.',
+        'Submit (finalize) an assignment attempt for grading — text, attached files, or both. ' +
+        'ALWAYS confirm with the user before submitting, showing exactly what will be sent. ' +
+        'Once submitted the instructor can grade it; use blackboard_save_attempt_draft instead ' +
+        'if the student just wants to save progress without sending it yet.',
       inputSchema: {
-        courseId: z.string().describe('Course ID'),
-        attemptId: z.string().describe('Quiz attempt ID to submit'),
+        courseId: z.string().describe('Blackboard course ID'),
+        columnId: z.string().describe('Assignment (gradebook column) ID'),
+        studentComments: z.string().optional().describe('Comment to the instructor'),
+        studentSubmission: z.string().optional().describe('Text body of the submission'),
+        fileUploadIds: z.array(z.string()).optional().describe(
+          'fileUploadId(s) from blackboard_upload_attempt_file to attach to this submission'
+        ),
       },
     },
-    async ({ courseId, attemptId }) => {
+    async ({ courseId, columnId, studentComments, studentSubmission, fileUploadIds }) => {
       const { client } = await getClient();
-      const result = await submitQuizAttempt(client, courseId, attemptId);
-      return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
+      const attempt = await submitAttempt(client, courseId, columnId, {
+        studentComments,
+        studentSubmission,
+        fileUploadIds,
+        status: 'NeedsGrading',
+      });
+      return { content: [{ type: 'text', text: JSON.stringify(attempt, null, 2) }] };
     }
   );
 
