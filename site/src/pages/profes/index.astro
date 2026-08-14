@@ -9,12 +9,12 @@ const schemas = [
     "@type": "WebPage",
     "@id": "https://campuscli.com/profes/#webpage",
     "url": "https://campuscli.com/profes/",
-    "name": "Campus Profes | Elige profesores universitarios antes de matricularte",
-    "description": "Campus Profes, parte de Campus Plus, ayuda a estudiantes en Perú a comparar calificaciones, comentarios y horarios de profesores universitarios antes de matricularse.",
+    "name": "Campus Profes UPC | Opiniones, calificaciones y horarios de profesores",
+    "description": "Campus Profes ayuda a estudiantes de UPC a comparar opiniones, calificaciones y horarios de profesores antes de matricularse.",
     "inLanguage": "es-PE",
     "isPartOf": { "@id": "https://campuscli.com/#website" },
     "mainEntity": { "@id": "https://campuscli.com/profes/#service" },
-    "about": ["profesores universitarios", "matrícula universitaria", "horarios de cursos", "reseñas de estudiantes"]
+    "about": ["profesores UPC", "opiniones de profesores", "matrícula UPC", "horarios de cursos", "reseñas de estudiantes"]
   },
   {
     "@context": "https://schema.org",
@@ -39,7 +39,7 @@ const schemas = [
     "@type": "Service",
     "@id": "https://campuscli.com/profes/#service",
     "name": "Campus Profes",
-    "serviceType": "Comparación de profesores universitarios",
+    "serviceType": "Opiniones, calificaciones y horarios de profesores UPC",
     "areaServed": "PE",
     "url": "https://campuscli.com/profes/",
     "inLanguage": "es-PE",
@@ -48,13 +48,13 @@ const schemas = [
       "name": "Campus",
       "url": "https://campuscli.com/"
     },
-    "description": "Campus Profes es parte de Campus Plus y ayuda a estudiantes en Perú a comparar calificaciones, comentarios y horarios de profesores antes de matricularse.",
+    "description": "Campus Profes es parte de Campus Plus y ayuda a estudiantes de UPC a comparar opiniones, calificaciones y horarios de profesores antes de matricularse.",
     "audience": { "@type": "EducationalAudience", "educationalRole": "student" },
     "offers": {
       "@type": "Offer",
       "price": "5",
       "priceCurrency": "PEN",
-      "description": "Acceso fundador a Campus Plus por mes.",
+      "description": "Acceso fundador a Campus Plus por S/5 el primer mes.",
       "availability": "https://schema.org/LimitedAvailability"
     }
   },
@@ -116,11 +116,11 @@ const schemas = [
 ---
 
 <Base
-  title={"Campus Profes | Elige profesores antes de matricularte"}
-  description={"Campus Profes vuelve como parte de Campus Plus: compara calificaciones, comentarios y horarios de profesores antes de matricularte."}
+  title={"Campus Profes UPC | Opiniones, calificaciones y horarios"}
+  description={"Compara opiniones, calificaciones y horarios de profesores UPC antes de matricularte con Campus Profes."}
   canonical={"https://campuscli.com/profes/"}
-  ogTitle={"Campus Profes | Elige a tu profesor por WhatsApp"}
-  ogDescription={"Profes, horarios y una matrícula mejor como parte de Campus Plus."}
+  ogTitle={"Campus Profes UPC | Elige mejor a tu profesor"}
+  ogDescription={"Opiniones, calificaciones y horarios de profesores UPC antes de matricularte."}
   markdownUrl={"https://campuscli.com/profes/index.md"}
   ogImageAlt={"Campus Profes: calificaciones y horarios de profesores por WhatsApp"}
   schemas={schemas}

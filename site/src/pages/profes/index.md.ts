@@ -10,7 +10,7 @@ export const GET: APIRoute = () => {
   const markdown = [
     "# Campus Profes",
     "",
-    "> Calificaciones, comentarios de otros alumnos y horarios de profesores, directo desde WhatsApp.",
+    "> Opiniones, calificaciones y horarios de profesores UPC, directo desde WhatsApp.",
     "",
     "Fuente: https://campuscli.com/profes/",
     "",
