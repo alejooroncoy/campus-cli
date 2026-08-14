@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           # La misma mayor que usa el Dockerfile de los directorios MCP, para
           # que un fallo aquí signifique lo mismo que un fallo allí.
