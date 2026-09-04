@@ -9,8 +9,8 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.7.3",
-    "astro": "^7.2.6"
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.2.10"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"
