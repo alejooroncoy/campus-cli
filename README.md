@@ -24,6 +24,7 @@ campus assignments list --pending
 - Revisar tareas pendientes, fechas de entrega y notas.
 - Descargar archivos y carpetas completas de Blackboard.
 - Consultar anuncios, mensajes, contenidos y calificaciones.
+- Obtener guías y plantillas de citas, referencias y formato APA 7 en español.
 - Usarlo desde Claude, Cursor, Copilot, Codex u otro cliente compatible con MCP.
 - Automatizar consultas con `--json` o con llamadas directas a la API de Blackboard.
 

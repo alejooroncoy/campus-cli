@@ -14,11 +14,13 @@
     "./assignments": "./dist/providers/blackboard/commands/assignments.js",
     "./types": "./dist/providers/blackboard/types.js",
     "./mcp-tools": "./dist/providers/blackboard/mcp-tools.js",
+    "./apa7-mcp-tools": "./dist/providers/academic/apa7-mcp-tools.js",
     "./banner-schedule": "./dist/providers/banner/schedule.js",
     "./analytics": "./dist/analytics.js"
   },
   "files": [
     "dist",
+    ".agents/skills/apa7-campus",
     "run.js",
     "README.md",
     "CHANGELOG.md",

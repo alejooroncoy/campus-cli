@@ -15,6 +15,11 @@ dist/
 .claude/
 .codex/
 .agents/
+# La skill APA es parte del producto; las demás configuraciones de agentes siguen locales.
+!.agents/
+!.agents/skills/
+!.agents/skills/apa7-campus/
+!.agents/skills/apa7-campus/**
 skills-lock.json
 .neon
 

@@ -3,6 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { registerBlackboardTools } from '../providers/blackboard/mcp-tools.js';
 import { registerBannerTools } from '../providers/banner/mcp-tools.js';
 import { registerUclassTools } from '../providers/uclass/mcp-tools.js';
+import { registerAcademicTools } from '../providers/academic/apa7-mcp-tools.js';
 import { track } from '../analytics.js';
 
 // La versión que anunciamos en el handshake sale del package.json. Estaba
@@ -31,6 +32,12 @@ banner_get_weekly_schedule consulta la matrícula UPC en Banner y devuelve el
 horario semanal de lunes a domingo. Úsala para responder qué clases tiene el
 estudiante, a qué hora y en qué aula; acepta un código de período opcional.
 campus_get_weekly_schedule continúa disponible como alias deprecado.
+
+campus_apa7_guidance ofrece reglas y modelos de APA 7 en español sin necesitar
+inicio de sesión. Úsala cuando se pida una cita, referencia, formato, revisión,
+tabla/figura o requisitos APA de un curso. Para requisitos de una entrega, usa
+después las herramientas Blackboard para leer la rúbrica o plantilla: la guía
+general nunca reemplaza al docente. No inventes metadatos bibliográficos.
 
 Para entregas: blackboard_upload_attempt_file sube cada archivo/imagen y
 devuelve un fileUploadId; blackboard_save_attempt_draft guarda texto y/o
@@ -64,6 +71,7 @@ export async function startMcpServer() {
   registerBlackboardTools(server);
   registerBannerTools(server);
   registerUclassTools(server);
+  registerAcademicTools(server);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
