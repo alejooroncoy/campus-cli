@@ -8,7 +8,7 @@ export type EmbeddedFile = {
 };
 
 function attribute(tag: string, name: string): string | undefined {
-  const match = tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])([\\s\\S]*?)\\1`, 'i'));
+  const match = tag.match(new RegExp(`(?:^|\\s)${name}\\s*=\\s*(["'])([\\s\\S]*?)\\1`, 'i'));
   return match?.[2];
 }
 

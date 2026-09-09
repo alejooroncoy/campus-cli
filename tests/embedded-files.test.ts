@@ -21,6 +21,12 @@ test('finds Blackboard video elements embedded in assignment instructions', () =
   assert.equal(embeddedMediaResourceLink(files[0]!)?.type, 'resource_link');
 });
 
+test('uses exact HTML attribute names instead of prefixed lookalikes', () => {
+  const files = extractEmbeddedFiles('<video data-src="https://example.com/placeholder" src="/bbcswebdav/pid-7/video.mp4" data-type="application/octet-stream" type="video/mp4"></video>');
+  assert.equal(files[0]?.downloadUrl, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4');
+  assert.equal(files[0]?.mimeType, 'video/mp4');
+});
+
 test('infers media type for an untyped source element from its URL', () => {
   const files = extractEmbeddedFiles('<video><source src="/bbcswebdav/pid-7/video.mp4"></video>');
   assert.equal(files[0]?.mimeType, 'video/mp4');
