@@ -23,6 +23,7 @@ campus assignments list --pending
 - Consultar tu horario semanal, con horas y aulas de tus cursos matriculados.
 - Revisar tareas pendientes, fechas de entrega y notas.
 - Descargar archivos y carpetas completas de Blackboard.
+- Buscar publicaciones en Crossref, OpenAlex, IEEE Xplore, ACM, Scopus, Web of Science y ScienceDirect; verificar DOI y avisos de retractación; localizar repositorios y leer PDF por página. Google Académico admite SerpApi opcional o enlaces manuales. Consulta la [configuración de investigación académica](docs/academic-research.md).
 - Consultar anuncios, mensajes, contenidos y calificaciones.
 - En un host de Campus que registre la función y autorice el acceso, obtener guías y plantillas APA 7 en español. El servidor MCP local iniciado con `npx campus-cli ... mcp` no la registra.
 - Usarlo desde Claude, Cursor, Copilot, Codex u otro cliente compatible con MCP.
@@ -40,7 +41,7 @@ Si estudias en una universidad con Canvas o Moodle y quieres ayudar a probar o i
 
 ## Requisitos
 
-- Node.js 22 o superior.
+- Node.js 22.13.0 o superior.
 - Una cuenta activa de UPC con acceso a Aula Virtual.
 - Acceso al flujo normal de Microsoft SSO, incluyendo MFA si tu cuenta lo pide.
 - macOS, Linux o Windows con un entorno donde Playwright pueda abrir Chromium.

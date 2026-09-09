@@ -15,16 +15,21 @@
     "./types": "./dist/providers/blackboard/types.js",
     "./mcp-tools": "./dist/providers/blackboard/mcp-tools.js",
     "./apa7-mcp-tools": "./dist/providers/academic/apa7-mcp-tools.js",
+    "./research-mcp-tools": "./dist/providers/academic/research-mcp-tools.js",
     "./banner-schedule": "./dist/providers/banner/schedule.js",
-    "./analytics": "./dist/analytics.js"
+    "./analytics": "./dist/analytics.js",
+    "./mendeley-mcp-tools": "./dist/providers/academic/mendeley-mcp-tools.js",
+    "./mendeley-service": "./dist/providers/academic/mendeley-service.js"
   },
   "files": [
     "dist",
     ".agents/skills/apa7-campus",
     "run.js",
     "README.md",
+    "docs/academic-research.md",
     "CHANGELOG.md",
-    "SECURITY.md"
+    "SECURITY.md",
+    "scripts/mendeley-connect.cjs"
   ],
   "bin": {
     "campus": "run.js",
@@ -69,9 +74,12 @@
     "axios": "^1.7.0",
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
+    "fflate": "^0.8.3",
     "form-data": "^4.0.5",
     "inquirer": "^12.0.0",
+    "ipaddr.js": "^2.5.0",
     "ora": "^8.1.0",
+    "pdfjs-dist": "^6.3.289",
     "playwright": "^1.62.1",
     "proper-lockfile": "4.1.2",
     "zod": "^4.4.3"
@@ -83,6 +91,6 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13.0"
   }
 }
