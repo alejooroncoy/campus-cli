@@ -40,6 +40,7 @@ function mediaCategoryFromUrl(url: URL): 'audio' | 'video' | undefined {
  * by the REST attachments endpoint. */
 export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
   const fileIndexes = new Map<string, number>();
+  const authoritativeFields = new Map<string, { displayName: boolean; mimeType: boolean }>();
   const files: EmbeddedFile[] = [];
   const mediaAncestors: Array<'audio' | 'video'> = [];
 
@@ -89,6 +90,10 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
         : undefined;
     const mediaCategory = mediaElement ?? mediaCategoryFromUrl(url);
     const urlMimeType = mediaCategory ? `${mediaCategory}/${mediaSubtypeFromUrl(url) ?? '*'}` : undefined;
+    const hasAuthoritativeName = typeof metadata.displayName === 'string'
+      || typeof metadata.linkName === 'string'
+      || Boolean(attribute(tag, 'title') ?? attribute(tag, 'aria-label'));
+    const hasAuthoritativeMimeType = typeof metadata.mimeType === 'string' || Boolean(attribute(tag, 'type'));
 
     const file: EmbeddedFile = {
       type: 'embedded',
@@ -105,13 +110,25 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
     const existingIndex = fileIndexes.get(url.href);
     if (existingIndex !== undefined) {
       const existing = files[existingIndex]!;
+      const existingAuthority = authoritativeFields.get(url.href) ?? { displayName: false, mimeType: false };
       const isMedia = /^(?:audio|video)\//i.test(file.mimeType);
-      if ((mediaElement && existing.mimeType !== file.mimeType) || (!/^(?:audio|video)\//i.test(existing.mimeType) && isMedia)) {
-        files[existingIndex] = file;
+      const shouldUpgrade = (!/^(?:audio|video)\//i.test(existing.mimeType) && isMedia)
+        || (Boolean(mediaElement) && existing.mimeType !== file.mimeType && !existingAuthority.mimeType);
+      if (shouldUpgrade) {
+        files[existingIndex] = {
+          ...file,
+          ...(existingAuthority.displayName ? { displayName: existing.displayName } : {}),
+          ...(existingAuthority.mimeType ? { mimeType: existing.mimeType } : {}),
+        };
       }
+      authoritativeFields.set(url.href, {
+        displayName: existingAuthority.displayName || hasAuthoritativeName,
+        mimeType: existingAuthority.mimeType || hasAuthoritativeMimeType,
+      });
       continue;
     }
     fileIndexes.set(url.href, files.length);
+    authoritativeFields.set(url.href, { displayName: hasAuthoritativeName, mimeType: hasAuthoritativeMimeType });
     files.push(file);
   }
 

@@ -54,6 +54,13 @@ test('an explicit media occurrence corrects an earlier URL-based media inference
   assert.equal(files[0]?.mimeType, 'audio/webm');
 });
 
+test('deduplication preserves authoritative Blackboard metadata', () => {
+  const files = extractEmbeddedFiles(`<a data-bbfile='{"resourceUrl":"/bbcswebdav/pid-7/xid-3","displayName":"Clase grabada","mimeType":"video/mp4"}'></a><video src="/bbcswebdav/pid-7/xid-3"></video>`);
+  assert.equal(files.length, 1);
+  assert.equal(files[0]?.displayName, 'Clase grabada');
+  assert.equal(files[0]?.mimeType, 'video/mp4');
+});
+
 test('infers media type from a direct video URL when Blackboard omits type', () => {
   const files = extractEmbeddedFiles('<video src="/bbcswebdav/pid-9/self-introduction.mp4"></video>');
 
