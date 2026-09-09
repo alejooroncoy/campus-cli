@@ -25,6 +25,11 @@ import { attachmentMediaResourceLink, resolvedEmbeddedMediaResourceLink } from '
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB
 const MCP_MAX_PARALLELISM = 5;
 
+function rethrowExpiredSession(error: unknown): null {
+  if ((error as { code?: unknown })?.code === 'SESSION_EXPIRED') throw error;
+  return null;
+}
+
 export function mergeAttachmentResponse(
   attachmentData: unknown,
   embeddedFiles: EmbeddedFile[],
@@ -442,12 +447,12 @@ export function registerBlackboardTools(server: McpServer) {
         .filter((value): value is string => typeof value === 'string').join('\n');
       const files = extractEmbeddedFiles(body);
       const embeddedLinks = (await mapWithConcurrency(files, MCP_MAX_PARALLELISM, async file => {
-        try { return await resolvedEmbeddedMediaResourceLink(client, file); } catch { return null; }
+        try { return await resolvedEmbeddedMediaResourceLink(client, file); } catch (error) { return rethrowExpiredSession(error); }
       })).filter((link): link is NonNullable<typeof link> => Boolean(link));
 
       if (attachments && attachments.length > 0) {
         const attachmentLinks = (await mapWithConcurrency(attachments, MCP_MAX_PARALLELISM, async (attachment: any) => {
-          try { return await attachmentMediaResourceLink(client, courseId, contentId, attachment); } catch { return null; }
+          try { return await attachmentMediaResourceLink(client, courseId, contentId, attachment); } catch (error) { return rethrowExpiredSession(error); }
         })).filter((link): link is NonNullable<typeof link> => Boolean(link));
         const links = [...attachmentLinks, ...embeddedLinks];
         const note = attachmentLinks.length && embeddedLinks.length
