@@ -8,6 +8,7 @@ import {
   assertBlackboardFileUrl,
   assertPublicApiUrl,
   assertSameOrigin,
+  assertTrustedBlackboardRedirect,
 } from '../src/providers/blackboard/api/client.js';
 import { blackboardCookies } from '../src/providers/blackboard/auth/session.js';
 import {
@@ -25,6 +26,19 @@ test('authenticated Blackboard requests stay on the exact HTTPS origin', () => {
   assert.throws(() => assertSameOrigin('https://evil.example/file'), /non-Blackboard host/);
   assert.throws(() => assertSameOrigin('//evil.example/file'), /non-Blackboard host/);
   assert.throws(() => assertSameOrigin('http://aulavirtual.upc.edu.pe/file'), /non-Blackboard host/);
+});
+
+test('Blackboard signed-download redirects may use any Blackboard subdomain', () => {
+  assert.doesNotThrow(() => assertTrustedBlackboardRedirect('https://aulavirtual.upc.edu.pe/bbcswebdav/file'));
+  assert.doesNotThrow(() => assertTrustedBlackboardRedirect('https://alt-5f0d0e6d23ee0.blackboard.com/file'));
+  assert.doesNotThrow(() => assertTrustedBlackboardRedirect('https://files.blackboard.com/file'));
+  assert.doesNotThrow(() => assertTrustedBlackboardRedirect('https://blackboard.com/file'));
+  assert.throws(
+    () => assertTrustedBlackboardRedirect('https://evil.example/file'), /untrusted host/,
+  );
+  assert.throws(
+    () => assertTrustedBlackboardRedirect('https://blackboard.com.evil.example/file'), /untrusted host/,
+  );
 });
 
 test('raw API and direct download URLs are narrowed to their intended endpoints', () => {
