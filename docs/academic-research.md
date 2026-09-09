@@ -123,10 +123,14 @@ Las conexiones externas usan HTTPS con verificación de DNS y dirección públic
 
 ## Mendeley local connector
 
-`campus_mendeley_list` reads the connected user's library. `campus_mendeley_save_doi`
-verifies exact Crossref metadata, scans all library pages for the DOI, and saves
-one private reference. It preserves separate author names, publication type,
-year, DOI and source. It does not certify peer review or upload PDFs.
+`campus_mendeley_list` reads the connected user's private library.
+`campus_mendeley_list_groups` lists groups available to that user, and
+`campus_mendeley_list_group_documents` reads one selected group.
+`campus_mendeley_save_doi` verifies exact Crossref metadata, scans every page in
+the selected destination for the DOI, and saves one reference either privately
+or in a writable group selected with `groupId`. It preserves separate author
+names, publication type, year, DOI and source. It does not certify peer review,
+upload PDFs, scrape Mendeley, or redistribute publisher content.
 
 Register a Mendeley application at https://dev.mendeley.com/myapps.html with
 `http://localhost:8765/mendeley/callback`, then provide `MENDELEY_CLIENT_ID`,
@@ -147,6 +151,21 @@ processes writing simultaneously are not covered by that lock.
 
 Official protocol: https://dev.mendeley.com/reference/topics/authorization_auth_code.html
 and https://dev.mendeley.com/methods/#documents.
+
+### Commercial boundary
+
+Campus uses Mendeley as an optional user-authorized destination for bibliographic
+metadata. It must remain complementary to Mendeley: do not reproduce its
+reference-manager product, scrape the website, use Mendeley trademarks in
+marketing without written permission, or upload article files unless the user
+has the required copyright or licence. Use the registered Campus application,
+keep one encrypted OAuth token set per user, and let each user explicitly select
+the destination library or group. Recheck the current API agreement before
+expanding the feature beyond this metadata-only workflow or changing how Campus
+presents, stores, or redistributes Mendeley data.
+
+Official terms: https://dev.mendeley.com/terms-and-conditions.html and
+https://www.elsevier.com/legal/elsevier-mendeley-terms-and-conditions.
 
 ## Lectura de otros formatos
 
