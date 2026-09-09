@@ -1,4 +1,10 @@
 // Local OAuth setup. Load client credentials with node --env-file=... .
+const envFileIndex = process.argv.indexOf('--env-file');
+if (envFileIndex !== -1) {
+  const envFile = process.argv[envFileIndex + 1];
+  if (!envFile) throw new Error('Missing path after --env-file');
+  process.loadEnvFile(envFile);
+}
 const http = require('node:http');
 const crypto = require('node:crypto');
 const fs = require('node:fs');

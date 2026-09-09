@@ -135,7 +135,7 @@ upload PDFs, scrape Mendeley, or redistribute publisher content.
 Register a Mendeley application at https://dev.mendeley.com/myapps.html with
 `http://localhost:8765/mendeley/callback`, then provide `MENDELEY_CLIENT_ID`,
 `MENDELEY_CLIENT_SECRET`, and `MENDELEY_REDIRECT_URI` in a protected environment.
-Run `node --env-file=/path/to/private.env scripts/mendeley-connect.cjs` and open
+Run `campus-mendeley-connect --env-file=/path/to/private.env` and open
 the displayed authorization URL. The loopback callback checks a random state,
 exchanges the code server-side and stores tokens with mode 600 in
 `~/.campus-cli/mendeley-tokens.json` (override with `MENDELEY_TOKEN_FILE`). Tokens
