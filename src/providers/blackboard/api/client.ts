@@ -6,6 +6,10 @@ import { Reuse, isReusable, keyFor, reuseFor } from './reuse.js';
 
 const BASE_URL = 'https://aulavirtual.upc.edu.pe';
 const ALLOWED_HOST = 'aulavirtual.upc.edu.pe';
+// Blackboard uses several vendor-owned hosts for signed file downloads. These
+// redirects are allowed only within the Blackboard domain; credentials are
+// stripped before following any cross-origin redirect below.
+const BLACKBOARD_DOWNLOAD_HOST = /(?:^|\.)blackboard\.com$/i;
 
 // Axios attaches the instance's default headers — including the session Cookie
 // and X-Blackboard-XSRF token — even when a request URL is absolute and points
@@ -24,6 +28,37 @@ export function assertSameOrigin(url: string): void {
     throw new Error(
       `Refusing to send the Blackboard session to a non-Blackboard host: ${parsed.hostname}`
     );
+  }
+}
+
+/**
+ * A redirect may use any Blackboard-owned signed download host, but callers
+ * can never start a session-authenticated request there. The redirect handler
+ * strips credentials before accepting it below.
+ */
+export function assertTrustedBlackboardRedirect(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url, BASE_URL);
+  } catch {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+  if (
+    parsed.protocol !== 'https:' ||
+    (parsed.host !== ALLOWED_HOST && !BLACKBOARD_DOWNLOAD_HOST.test(parsed.hostname))
+  ) {
+    throw new Error(
+      `Refusing to follow a Blackboard redirect to an untrusted host: ${parsed.hostname}`
+    );
+  }
+}
+
+function stripSessionHeaders(headers: Record<string, unknown> | undefined): void {
+  if (!headers) return;
+  for (const name of Object.keys(headers)) {
+    if (name.toLowerCase() === 'cookie' || name.toLowerCase() === 'x-blackboard-xsrf') {
+      delete headers[name];
+    }
   }
 }
 
@@ -98,7 +133,13 @@ export function createClient(session: Session, options: ClientOptions = {}): Axi
     },
     withCredentials: true,
     beforeRedirect: (options) => {
-      assertSameOrigin(`${options.protocol}//${options.hostname}${options.port ? `:${options.port}` : ''}${options.path ?? '/'}`);
+      const url = `${options.protocol}//${options.hostname}${options.port ? `:${options.port}` : ''}${options.path ?? '/'}`;
+      assertTrustedBlackboardRedirect(url);
+      // Signed Blackboard links authorize the download in their URL. Do not
+      // forward a student's Blackboard cookie or XSRF token cross-origin.
+      if (options.hostname !== ALLOWED_HOST) {
+        stripSessionHeaders(options.headers as Record<string, unknown> | undefined);
+      }
     },
   });
 
