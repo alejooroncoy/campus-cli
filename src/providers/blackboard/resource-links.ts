@@ -46,8 +46,10 @@ export async function resolvedEmbeddedMediaResourceLink(
   });
   response.data?.destroy?.();
   const location = response.headers.location as string | undefined;
-  if (!location) return null;
-  const uri = new URL(location, BLACKBOARD_ORIGIN).href;
+  const directUrl = new URL(file.downloadUrl);
+  const hasSignature = ['ticket', 'signature', 'sig', 'token'].some(key => directUrl.searchParams.has(key));
+  if (!location && !(response.status >= 200 && response.status < 300 && hasSignature)) return null;
+  const uri = location ? new URL(location, BLACKBOARD_ORIGIN).href : file.downloadUrl;
   assertBlackboardFileUrl(uri);
   return {
     type: 'resource_link', uri, name: file.displayName, mimeType: file.mimeType,

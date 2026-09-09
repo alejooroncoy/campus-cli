@@ -105,6 +105,15 @@ test('resolves embedded media before exposing a resource link', async () => {
   assert.equal(link?.uri, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4?ticket=temporary');
 });
 
+test('keeps a directly served signed embedded media URL', async () => {
+  let destroyed = false;
+  const client = { get: async () => ({ status: 200, data: { destroy: () => { destroyed = true; } }, headers: {} }) } as any;
+  const url = 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4?ticket=temporary';
+  const link = await resolvedEmbeddedMediaResourceLink(client, { displayName: 'Self-introduction.mp4', mimeType: 'video/mp4', downloadUrl: url });
+  assert.equal(destroyed, true);
+  assert.equal(link?.uri, url);
+});
+
 test('resolves an attached video without downloading it', async () => {
   let destroyed = false;
   const client = { get: async () => ({ data: { destroy: () => { destroyed = true; } }, headers: { location: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-8/video.mp4' } }) } as any;
