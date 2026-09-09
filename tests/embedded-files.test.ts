@@ -35,6 +35,13 @@ test('source elements retain their parent media category when the URL is ambiguo
   assert.ok(embeddedMediaResourceLink(files[1]!));
 });
 
+test('an explicit media occurrence upgrades an earlier generic occurrence of the same URL', () => {
+  const files = extractEmbeddedFiles('<iframe src="/bbcswebdav/pid-7/xid-3"></iframe><video src="/bbcswebdav/pid-7/xid-3"></video>');
+  assert.equal(files.length, 1);
+  assert.equal(files[0]?.mimeType, 'video/*');
+  assert.ok(embeddedMediaResourceLink(files[0]!));
+});
+
 test('infers media type from a direct video URL when Blackboard omits type', () => {
   const files = extractEmbeddedFiles('<video src="/bbcswebdav/pid-9/self-introduction.mp4"></video>');
 

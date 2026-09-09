@@ -39,7 +39,7 @@ function mediaCategoryFromUrl(url: URL): 'audio' | 'video' | undefined {
 /** Blackboard's document viewer can render a file even when it is not exposed
  * by the REST attachments endpoint. */
 export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
-  const seen = new Set<string>();
+  const fileIndexes = new Map<string, number>();
   const files: EmbeddedFile[] = [];
   const mediaAncestors: Array<'audio' | 'video'> = [];
 
@@ -81,8 +81,7 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
         // Try another candidate.
       }
     }
-    if (!url || seen.has(url.href)) continue;
-    seen.add(url.href);
+    if (!url) continue;
     const mediaElement = (tagName === 'audio' || tagName === 'video')
       ? tagName
       : tagName === 'source'
@@ -91,7 +90,7 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
     const mediaCategory = mediaElement ?? mediaCategoryFromUrl(url);
     const urlMimeType = mediaCategory ? `${mediaCategory}/${mediaSubtypeFromUrl(url) ?? '*'}` : undefined;
 
-    files.push({
+    const file: EmbeddedFile = {
       type: 'embedded',
       displayName: typeof metadata.displayName === 'string'
         ? metadata.displayName
@@ -102,7 +101,16 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
         ? metadata.mimeType
         : attribute(tag, 'type') ?? urlMimeType ?? 'application/octet-stream',
       downloadUrl: url.href,
-    });
+    };
+    const existingIndex = fileIndexes.get(url.href);
+    if (existingIndex !== undefined) {
+      if (!/^(?:audio|video)\//i.test(files[existingIndex]!.mimeType) && /^(?:audio|video)\//i.test(file.mimeType)) {
+        files[existingIndex] = file;
+      }
+      continue;
+    }
+    fileIndexes.set(url.href, files.length);
+    files.push(file);
   }
 
   return files;
