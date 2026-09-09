@@ -20,6 +20,14 @@ test('checks second page for duplicates',async()=>{
  let calls=0;const s=new MendeleyService(store(),{},async()=>++calls===1?json([],{link:'<https://api.mendeley.com/documents?marker=next>; rel="next"'}):json([{id:'existing',identifiers:{doi}}]),metadata);
  assert.equal((await s.saveDoi(doi)).status,'already_saved');assert.equal(calls,2);
 });
+test('lists every Mendeley page with an opaque, route-bound continuation cursor',async()=>{
+ let calls=0;const s=new MendeleyService(store(),{},async u=>++calls===1?json([{id:'first'}],{link:'<https://api.mendeley.com/documents?marker=next>; rel="next"'}):json([{id:'second'}]));
+ const first=await s.list(1);
+ assert.equal(first.hasMore,true);assert.ok(first.nextCursor);assert.doesNotMatch(first.nextCursor!,/api\.mendeley\.com/);
+ const second=await s.list(1,first.nextCursor!);
+ assert.equal(second.documents[0].id,'second');assert.equal(second.nextCursor,null);
+ await assert.rejects(s.list(1,Buffer.from('https://api.mendeley.com/groups?marker=next').toString('base64url')),/Cursor Mendeley no permitido/);
+});
 test('lists groups and saves a DOI to a writable group without duplicating it',async()=>{
  const groupId='ec47684d-4e4b-3f12-ba38-01509619c415';let docs:any[]=[];let payload:any;let writeUrl='';
  const s=new MendeleyService(store(),{},async(u,init)=>{

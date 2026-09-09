@@ -26,6 +26,13 @@ export class LocalMendeleyTokenStore implements MendeleyTokenStore {
 const documentSchema = z.object({ id:z.string(), title:z.string().optional(), identifiers:z.object({doi:z.string().optional()}).passthrough().optional() }).passthrough();
 const groupSchema = z.object({ id:z.string().uuid(), name:z.string().min(1), role:z.string().optional() }).passthrough();
 const crossrefSchema = z.object({message:z.object({DOI:z.string(),title:z.array(z.string()).min(1),type:z.string(),author:z.array(z.object({given:z.string().optional(),family:z.string().optional(),name:z.string().optional()})).optional(),issued:z.object({'date-parts':z.array(z.array(z.number().nullable()))}).optional(),'container-title':z.array(z.string()).optional(),volume:z.string().optional(),issue:z.string().optional(),page:z.string().optional()})});
+function encodeCursor(url:string):string { return Buffer.from(url).toString('base64url'); }
+function decodeCursor(cursor:string, pathname:string, groupId?:string):string {
+  let url:URL;
+  try { url=new URL(Buffer.from(z.string().min(1).max(8000).parse(cursor),'base64url').toString('utf8')); } catch { throw new Error('Cursor Mendeley inválido.'); }
+  if(url.origin!==origin || url.pathname!==pathname || (groupId!==undefined && url.searchParams.get('group_id')!==groupId)) throw new Error('Cursor Mendeley no permitido.');
+  return url.toString();
+}
 export class MendeleyService {
   private queue: Promise<unknown> = Promise.resolve();
   private refresh?: Promise<string>;
@@ -64,12 +71,12 @@ export class MendeleyService {
     const next=r.headers.get('link')?.match(/<([^>]+)>;\s*rel="next"/)?.[1]||null;
     return {data:await r.json(),next};
   }
-  async list(limit=20) {z.number().int().min(1).max(100).parse(limit);const r=await this.api('/documents?limit='+limit);return {documents:z.array(documentSchema).parse(r.data),hasMore:!!r.next};}
-  async listGroups(limit=20) {z.number().int().min(1).max(100).parse(limit);const r=await this.api('/groups?limit='+limit);return {groups:z.array(groupSchema).parse(r.data),hasMore:!!r.next};}
-  async listGroupDocuments(groupId:string,limit=20) {
+  async list(limit=20,cursor?:string) {z.number().int().min(1).max(100).parse(limit);const r=await this.api(cursor?decodeCursor(cursor,'/documents'):'/documents?limit='+limit);return {documents:z.array(documentSchema).parse(r.data),hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};}
+  async listGroups(limit=20,cursor?:string) {z.number().int().min(1).max(100).parse(limit);const r=await this.api(cursor?decodeCursor(cursor,'/groups'):'/groups?limit='+limit);return {groups:z.array(groupSchema).parse(r.data),hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};}
+  async listGroupDocuments(groupId:string,limit=20,cursor?:string) {
     const id=z.string().uuid().parse(groupId);z.number().int().min(1).max(100).parse(limit);
-    const r=await this.api('/documents?'+new URLSearchParams({group_id:id,limit:String(limit)}));
-    return {documents:z.array(documentSchema).parse(r.data),hasMore:!!r.next,groupId:id};
+    const r=await this.api(cursor?decodeCursor(cursor,'/documents',id):'/documents?'+new URLSearchParams({group_id:id,limit:String(limit)}));
+    return {documents:z.array(documentSchema).parse(r.data),hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null,groupId:id};
   }
   async get(id:string){z.string().uuid().parse(id);return documentSchema.parse((await this.api('/documents/'+id)).data);}
   saveDoi(doi:string,groupId?:string) {

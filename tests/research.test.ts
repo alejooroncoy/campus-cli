@@ -137,14 +137,15 @@ test('ScienceDirect uses Elsevier credentials, date range and supported page siz
 });
 
 test('five-database search uses the student requested recent years and preserves partial failures', async () => {
+  const year = new Date().getUTCFullYear();
   const service = new ResearchService(async url => {
     assert.match(url, /api\.crossref\.org\/prefixes\/10\.1145\/works/);
-    assert.equal(new URL(url).searchParams.get('filter'), 'from-pub-date:2024-01-01,until-pub-date:2026-12-31');
+    assert.equal(new URL(url).searchParams.get('filter'), `from-pub-date:${year - 2}-01-01,until-pub-date:${year}-12-31`);
     return collection([{ ...work, DOI: '10.1145/123.456' }]);
   }, {});
   const result = await service.searchDatabases({ query: 'education', recentYears: 3 });
-  assert.equal(result.yearFrom, 2024);
-  assert.equal(result.yearTo, 2026);
+  assert.equal(result.yearFrom, year - 2);
+  assert.equal(result.yearTo, year);
   assert.equal(result.periodMode, 'recent_calendar_years');
   assert.equal(result.databases.length, 5);
   assert.deepEqual(result.databases.map(item => item.provider),

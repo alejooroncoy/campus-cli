@@ -72,7 +72,7 @@ function epubSpineNames(files: Record<string, Uint8Array>): string[] {
     const parts: string[] = [];
     for (const part of path.split('/')) {
       if (!part || part === '.') continue;
-      if (part === '..') return [];
+      if (part === '..') { if (!parts.length) return []; parts.pop(); continue; }
       parts.push(part);
     }
     const name = parts.join('/');
