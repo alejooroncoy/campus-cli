@@ -112,7 +112,10 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
       const existing = files[existingIndex]!;
       const existingAuthority = authoritativeFields.get(url.href) ?? { displayName: false, mimeType: false };
       const isMedia = /^(?:audio|video)\//i.test(file.mimeType);
-      const shouldUpgrade = (!/^(?:audio|video)\//i.test(existing.mimeType) && isMedia)
+      const hasNewAuthoritativeField = (hasAuthoritativeName && !existingAuthority.displayName)
+        || (hasAuthoritativeMimeType && !existingAuthority.mimeType);
+      const shouldUpgrade = hasNewAuthoritativeField
+        || (!/^(?:audio|video)\//i.test(existing.mimeType) && isMedia)
         || (Boolean(mediaElement) && existing.mimeType !== file.mimeType && !existingAuthority.mimeType);
       if (shouldUpgrade) {
         files[existingIndex] = {
