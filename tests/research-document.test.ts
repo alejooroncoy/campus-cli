@@ -55,6 +55,21 @@ test('academic document reader follows EPUB spine order', () => {
   assert.deepEqual(result.sections.map(section => section.text), ['First chapter.', 'Second chapter.', 'Tenth chapter.']);
 });
 
+test('academic document reader decodes escaped EPUB spine paths', () => {
+  const epub = zipSync({
+    'META-INF/container.xml': strToU8('<container><rootfiles><rootfile full-path="OPS/book.opf"/></rootfiles></container>'),
+    'OPS/book.opf': strToU8('<package><manifest><item id="chapter" href="chapter%201.xhtml"/></manifest><spine><itemref idref="chapter"/></spine></package>'),
+    'OPS/chapter 1.xhtml': strToU8('<html><body><p>Escaped chapter is included.</p></body></html>'),
+  });
+  const result = text(extractDocumentBytes(epub, 'epub'));
+  assert.deepEqual(result.sections.map(section => section.text), ['Escaped chapter is included.']);
+});
+
+test('academic document reader bounds all ZIP entries before selecting content', () => {
+  const files = Object.fromEntries(Array.from({ length: 201 }, (_, index) => [`ignored/${index}.bin`, strToU8('x')]));
+  assert.throws(() => extractDocumentBytes(zipSync(files), 'epub'), /límite de análisis seguro/);
+});
+
 test('academic document reader delegates PDFs to the page reader', () => {
   assert.deepEqual(extractDocumentBytes(Buffer.from('%PDF-1.4\n'), 'auto'), { format: 'pdf', delegated: true });
 });

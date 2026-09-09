@@ -68,7 +68,9 @@ function epubSpineNames(files: Record<string, Uint8Array>): string[] {
   return (opf.match(/<itemref\b[^>]*>/gi) ?? []).flatMap(tag => {
     const href = manifest.get(xmlAttribute(tag, 'idref') ?? '');
     if (!href || /^[a-z][a-z0-9+.-]*:/i.test(href)) return [];
-    const path = `${directory}${href.split(/[?#]/, 1)[0]}`.replace(/\\/g, '/');
+    let relative:string;
+    try { relative = decodeURIComponent(href.split(/[?#]/, 1)[0]); } catch { return []; }
+    const path = `${directory}${relative}`.replace(/\\/g, '/');
     const parts: string[] = [];
     for (const part of path.split('/')) {
       if (!part || part === '.') continue;
@@ -89,17 +91,20 @@ function epubText(files: Record<string, Uint8Array>): string {
 
 function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
   let selected = 0;
+  let entries = 0;
   let originalBytes = 0;
   let files: Record<string, Uint8Array>;
   try {
     files = unzipSync(bytes, { filter: file => {
       if (file.name.includes('..') || file.name.length > 500) throw new Error('El archivo contiene una ruta no permitida.');
+      entries++;
+      if (entries > MAX_ARCHIVE_FILES) throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
       const wanted = format === 'docx' ? file.name === 'word/document.xml'
         : /^(?:META-INF\/container\.xml|.*\.opf|.*\.(?:xhtml|html|htm))$/i.test(file.name);
       if (!wanted) return false;
       selected++;
       originalBytes += file.originalSize;
-      if (selected > MAX_ARCHIVE_FILES || originalBytes > MAX_ARCHIVE_TEXT_BYTES) {
+      if (originalBytes > MAX_ARCHIVE_TEXT_BYTES) {
         throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
       }
       return true;
