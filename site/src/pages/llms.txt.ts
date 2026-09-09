@@ -38,6 +38,7 @@ with Campus Profes.
 - Homepage (routes to both products): https://campuscli.com/ (Markdown: https://campuscli.com/index.md)
 - Campus CLI (product hub): https://campuscli.com/campus-cli/ (Markdown: https://campuscli.com/campus-cli/index.md)
 - Campus Profes: https://campuscli.com/profes/ (Markdown: https://campuscli.com/profes/index.md)
+- Blackboard UPC: tareas, notas y materiales con IA: https://campuscli.com/blackboard-upc/ (Markdown: https://campuscli.com/blackboard-upc/index.md)
 - Blackboard in ChatGPT, nothing to install (paid): https://campuscli.com/blackboard-chatgpt/ (Markdown: https://campuscli.com/blackboard-chatgpt/index.md)
 - Blackboard MCP: https://campuscli.com/blackboard-mcp/ (Markdown: https://campuscli.com/blackboard-mcp/index.md)
 - Blackboard CLI, free and open source: https://campuscli.com/blackboard-cli/ (Markdown: https://campuscli.com/blackboard-cli/index.md)

@@ -100,9 +100,8 @@ export function htmlToMarkdown(html: string, baseUrl = 'https://campuscli.com'):
     if (name === 'table') {
       const rows = [...contents.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]
         .map((row) => [...row[1].matchAll(/<t[hd]\b[^>]*>([\s\S]*?)<\/t[hd]>/gi)]
-          .map((cell) => inline(cell[1], baseUrl).replace(/\|/g, '\\|'))
-          .filter(Boolean))
-        .filter((row) => row.length);
+          .map((cell) => inline(cell[1], baseUrl).replace(/\|/g, '\\|')))
+        .filter((row) => row.some(Boolean));
       if (rows.length) {
         const width = Math.max(...rows.map((row) => row.length));
         const normalized = rows.map((row) => [...row, ...Array(width - row.length).fill('')]);

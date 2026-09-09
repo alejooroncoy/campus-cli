@@ -5,6 +5,7 @@ import { htmlToMarkdown } from "../lib/html-to-markdown";
 import homeBody from "../html/index.html?raw";
 import campusCliBody from "../html/campus-cli/index.html?raw";
 import profesBody from "../html/profes/index.html?raw";
+import blackboardUpcBody from "../html/blackboard-upc/index.html?raw";
 import chatgptBody from "../html/blackboard-chatgpt/index.html?raw";
 import mcpBody from "../html/blackboard-mcp/index.html?raw";
 import cliBody from "../html/blackboard-cli/index.html?raw";
@@ -53,6 +54,12 @@ export const GET: APIRoute = async () => {
       description: "Bot de WhatsApp con calificaciones, comentarios y horarios de profesores, para elegir sección antes de matricularse.",
       url: "https://campuscli.com/profes/",
       body: profesBody,
+    },
+    {
+      title: "Blackboard UPC: tareas, notas y materiales con IA",
+      description: "Consulta tu Aula Virtual UPC desde ChatGPT o Claude con Campus.",
+      url: "https://campuscli.com/blackboard-upc/",
+      body: blackboardUpcBody,
     },
     {
       title: "Blackboard UPC en ChatGPT, sin instalar nada",
