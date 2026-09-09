@@ -33,6 +33,28 @@ export function embeddedMediaResourceLink(file: { displayName: string; mimeType:
   };
 }
 
+/** Resolves an embedded bbcswebdav URL while the student's Blackboard session
+ * is available. Raw embedded URLs are session-protected and cannot be used as
+ * MCP resource links by a separate client. */
+export async function resolvedEmbeddedMediaResourceLink(
+  client: AxiosInstance, file: { displayName: string; mimeType: string; downloadUrl: string },
+): Promise<MediaResourceLink | null> {
+  if (!isMediaMimeType(file.mimeType)) return null;
+  assertBlackboardFileUrl(file.downloadUrl);
+  const response = await client.get(file.downloadUrl, {
+    responseType: 'stream', maxRedirects: 0, validateStatus: (status) => status >= 200 && status < 400, headers: { Accept: '*/*' },
+  });
+  response.data?.destroy?.();
+  const location = response.headers.location as string | undefined;
+  if (!location) return null;
+  const uri = new URL(location, BLACKBOARD_ORIGIN).href;
+  assertBlackboardFileUrl(uri);
+  return {
+    type: 'resource_link', uri, name: file.displayName, mimeType: file.mimeType,
+    description: 'Recurso multimedia de Blackboard. Si el cliente admite este formato, puede analizarlo o transcribirlo; si no, use blackboard_download_file_url con el downloadUrl devuelto por la herramienta.',
+  };
+}
+
 /** Resolves the authenticated attachment endpoint to a short-lived, file-scoped
  * URL. The stream is destroyed immediately: listing must not download media. */
 export async function attachmentMediaResourceLink(

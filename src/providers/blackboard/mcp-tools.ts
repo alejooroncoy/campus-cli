@@ -20,7 +20,7 @@ import { listAssignments, listPublishedAssignments, listAttempts, submitAttempt,
 import { track } from '../../analytics.js';
 import { downloadRoot, resolveDownloadDir, safeNewFilePath, writeNamedDownload } from '../../security/files.js';
 import { extractEmbeddedFiles, type EmbeddedFile } from './embedded-files.js';
-import { attachmentMediaResourceLink, embeddedMediaResourceLink } from './resource-links.js';
+import { attachmentMediaResourceLink, resolvedEmbeddedMediaResourceLink } from './resource-links.js';
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB
 const MCP_MAX_PARALLELISM = 5;
@@ -441,7 +441,9 @@ export function registerBlackboardTools(server: McpServer) {
       const body: string = [r.data?.body, r.data?.contentHandler?.instructions]
         .filter((value): value is string => typeof value === 'string').join('\n');
       const files = extractEmbeddedFiles(body);
-      const embeddedLinks = files.map(embeddedMediaResourceLink).filter((link): link is NonNullable<typeof link> => Boolean(link));
+      const embeddedLinks = (await mapWithConcurrency(files, MCP_MAX_PARALLELISM, async file => {
+        try { return await resolvedEmbeddedMediaResourceLink(client, file); } catch { return null; }
+      })).filter((link): link is NonNullable<typeof link> => Boolean(link));
 
       if (attachments && attachments.length > 0) {
         const attachmentLinks = (await mapWithConcurrency(attachments, MCP_MAX_PARALLELISM, async (attachment: any) => {

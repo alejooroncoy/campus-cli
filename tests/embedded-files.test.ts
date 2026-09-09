@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { extractEmbeddedFiles } from '../src/providers/blackboard/embedded-files.js';
-import { attachmentMediaResourceLink, embeddedMediaResourceLink } from '../src/providers/blackboard/resource-links.js';
+import { attachmentMediaResourceLink, embeddedMediaResourceLink, resolvedEmbeddedMediaResourceLink } from '../src/providers/blackboard/resource-links.js';
 
 test('finds a viewer-only Blackboard file when the attachments API is empty', () => {
   const files = extractEmbeddedFiles('<iframe title="SEMANA 01 - 2026-2.pptx" src="/bbcswebdav/pid-1-dt-content-rid-2/xid-3"></iframe>');
@@ -95,6 +95,14 @@ test('turns embedded Blackboard media into a resource link', () => {
   const link = embeddedMediaResourceLink({ displayName: 'Self-introduction.mp4', mimeType: 'video/mp4', downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4' });
   assert.equal(link?.type, 'resource_link');
   assert.match(link?.description ?? '', /analizarlo o transcribirlo/);
+});
+
+test('resolves embedded media before exposing a resource link', async () => {
+  let destroyed = false;
+  const client = { get: async () => ({ data: { destroy: () => { destroyed = true; } }, headers: { location: '/bbcswebdav/pid-7/video.mp4?ticket=temporary' } }) } as any;
+  const link = await resolvedEmbeddedMediaResourceLink(client, { displayName: 'Self-introduction.mp4', mimeType: 'video/mp4', downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4' });
+  assert.equal(destroyed, true);
+  assert.equal(link?.uri, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4?ticket=temporary');
 });
 
 test('resolves an attached video without downloading it', async () => {
