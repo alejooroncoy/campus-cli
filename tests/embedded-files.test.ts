@@ -27,6 +27,12 @@ test('uses exact HTML attribute names instead of prefixed lookalikes', () => {
   assert.equal(files[0]?.mimeType, 'video/mp4');
 });
 
+test('keeps a quoted greater-than sign inside Blackboard metadata', () => {
+  const files = extractEmbeddedFiles(`<a data-bbfile='{"displayName":"Week 1 > Overview.mp4"}' href="/bbcswebdav/pid-7/video.mp4"></a>`);
+  assert.equal(files[0]?.displayName, 'Week 1 > Overview.mp4');
+  assert.equal(files[0]?.downloadUrl, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4');
+});
+
 test('infers media type for an untyped source element from its URL', () => {
   const files = extractEmbeddedFiles('<video><source src="/bbcswebdav/pid-7/video.mp4"></video>');
   assert.equal(files[0]?.mimeType, 'video/mp4');

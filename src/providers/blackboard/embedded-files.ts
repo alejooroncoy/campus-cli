@@ -36,6 +36,30 @@ function mediaCategoryFromUrl(url: URL): 'audio' | 'video' | undefined {
   return undefined;
 }
 
+function htmlTags(html: string): string[] {
+  const tags: string[] = [];
+  let start = -1;
+  let quote: '"' | "'" | undefined;
+  for (let index = 0; index < html.length; index++) {
+    const character = html[index];
+    if (start < 0) {
+      if (character === '<') start = index;
+      continue;
+    }
+    if (quote) {
+      if (character === quote) quote = undefined;
+      continue;
+    }
+    if (character === '"' || character === "'") {
+      quote = character;
+    } else if (character === '>') {
+      tags.push(html.slice(start, index + 1));
+      start = -1;
+    }
+  }
+  return tags;
+}
+
 /** Blackboard's document viewer can render a file even when it is not exposed
  * by the REST attachments endpoint. */
 export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
@@ -44,9 +68,9 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
   const files: EmbeddedFile[] = [];
   const mediaAncestors: Array<'audio' | 'video'> = [];
 
-  for (const match of body.matchAll(/<\/?(?:a|iframe|embed|object|audio|video|source)\b[^>]*>/gi)) {
-    const tag = match[0];
+  for (const tag of htmlTags(body)) {
     const tagName = tag.match(/^<\/?\s*(a|iframe|embed|object|audio|video|source)\b/i)?.[1]?.toLowerCase();
+    if (!tagName) continue;
     if (tagName === 'audio' || tagName === 'video') {
       if (/^<\//.test(tag)) {
         const ancestor = mediaAncestors.lastIndexOf(tagName);
