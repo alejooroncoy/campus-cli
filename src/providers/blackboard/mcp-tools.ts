@@ -19,11 +19,26 @@ import {
 import { listAssignments, listPublishedAssignments, listAttempts, submitAttempt, uploadFile, getAttemptFiles } from './api/assignments.js';
 import { track } from '../../analytics.js';
 import { downloadRoot, resolveDownloadDir, safeNewFilePath, writeNamedDownload } from '../../security/files.js';
-import { extractEmbeddedFiles } from './embedded-files.js';
+import { extractEmbeddedFiles, type EmbeddedFile } from './embedded-files.js';
 import { attachmentMediaResourceLink, embeddedMediaResourceLink } from './resource-links.js';
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB
 const MCP_MAX_PARALLELISM = 5;
+
+export function mergeAttachmentResponse(
+  attachmentData: unknown,
+  embeddedFiles: EmbeddedFile[],
+  note?: string,
+): unknown {
+  const additions = {
+    ...(embeddedFiles.length ? { embeddedFiles } : {}),
+    ...(note ? { note } : {}),
+  };
+  if (Array.isArray(attachmentData)) {
+    return Object.keys(additions).length ? { results: attachmentData, ...additions } : attachmentData;
+  }
+  return { ...(attachmentData as Record<string, unknown>), ...additions };
+}
 
 async function mapWithConcurrency<T, U>(
   items: readonly T[],
@@ -439,15 +454,11 @@ export function registerBlackboardTools(server: McpServer) {
             ? 'Multimedia is also returned as resource_link; use blackboard_download_attachment with the attachment id if the client cannot process it.'
             : 'Multimedia is also returned as resource_link; use blackboard_download_file_url with an embeddedFiles downloadUrl if the client cannot process it.';
         return { content: [
-          { type: 'text', text: JSON.stringify(
-            !Array.isArray(attachmentData)
-              ? {
-                ...attachmentData,
-                ...(files.length ? { embeddedFiles: files } : {}),
-                ...(links.length ? { note } : {}),
-              }
-              : attachmentData,
-          ) },
+          { type: 'text', text: JSON.stringify(mergeAttachmentResponse(
+            attachmentData,
+            files,
+            links.length ? note : undefined,
+          )) },
           ...links,
         ] };
       }
