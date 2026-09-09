@@ -43,7 +43,17 @@ function htmlTags(html: string): string[] {
   for (let index = 0; index < html.length; index++) {
     const character = html[index];
     if (start < 0) {
-      if (character === '<') start = index;
+      if (character === '<') {
+        if (html.startsWith('<!--', index)) {
+          const end = html.indexOf('-->', index + 4);
+          index = end >= 0 ? end + 2 : html.length;
+        } else if (html.startsWith('<!', index) || html.startsWith('<?', index)) {
+          const end = html.indexOf('>', index + 2);
+          index = end >= 0 ? end : html.length;
+        } else {
+          start = index;
+        }
+      }
       continue;
     }
     if (quote) {

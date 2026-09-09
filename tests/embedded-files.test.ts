@@ -33,6 +33,11 @@ test('keeps a quoted greater-than sign inside Blackboard metadata', () => {
   assert.equal(files[0]?.downloadUrl, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4');
 });
 
+test('skips HTML comments before extracting embedded files', () => {
+  const files = extractEmbeddedFiles(`<!-- student's video --><video src="/bbcswebdav/pid-7/video.mp4"></video>`);
+  assert.equal(files[0]?.downloadUrl, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4');
+});
+
 test('infers media type for an untyped source element from its URL', () => {
   const files = extractEmbeddedFiles('<video><source src="/bbcswebdav/pid-7/video.mp4"></video>');
   assert.equal(files[0]?.mimeType, 'video/mp4');
