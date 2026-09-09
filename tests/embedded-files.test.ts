@@ -42,6 +42,12 @@ test('an explicit media occurrence upgrades an earlier generic occurrence of the
   assert.ok(embeddedMediaResourceLink(files[0]!));
 });
 
+test('an explicit media occurrence corrects an earlier URL-based media inference', () => {
+  const files = extractEmbeddedFiles('<a href="/bbcswebdav/pid-7/clip.webm">Archivo</a><audio src="/bbcswebdav/pid-7/clip.webm"></audio>');
+  assert.equal(files.length, 1);
+  assert.equal(files[0]?.mimeType, 'audio/webm');
+});
+
 test('infers media type from a direct video URL when Blackboard omits type', () => {
   const files = extractEmbeddedFiles('<video src="/bbcswebdav/pid-9/self-introduction.mp4"></video>');
 

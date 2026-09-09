@@ -104,7 +104,9 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
     };
     const existingIndex = fileIndexes.get(url.href);
     if (existingIndex !== undefined) {
-      if (!/^(?:audio|video)\//i.test(files[existingIndex]!.mimeType) && /^(?:audio|video)\//i.test(file.mimeType)) {
+      const existing = files[existingIndex]!;
+      const isMedia = /^(?:audio|video)\//i.test(file.mimeType);
+      if ((mediaElement && existing.mimeType !== file.mimeType) || (!/^(?:audio|video)\//i.test(existing.mimeType) && isMedia)) {
         files[existingIndex] = file;
       }
       continue;
