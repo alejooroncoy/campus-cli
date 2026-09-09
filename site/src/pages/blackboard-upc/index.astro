@@ -1,0 +1,61 @@
+---
+import Base from "../../layouts/Base.astro";
+import body from "../../html/blackboard-upc/index.html?raw";
+
+const url = "https://campuscli.com/blackboard-upc/";
+
+const schemas = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: "https://campuscli.com/" },
+      { "@type": "ListItem", position: 2, name: "Blackboard UPC", item: url },
+    ],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: "Campus para Blackboard UPC",
+    serviceType: "Conexión de Blackboard UPC con asistentes de IA",
+    provider: { "@type": "Organization", name: "Campus", url: "https://campuscli.com/" },
+    areaServed: { "@type": "Country", name: "Perú" },
+    url,
+    description: "Consulta cursos, tareas, notas, anuncios y materiales de Blackboard UPC desde ChatGPT o Claude.",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "¿Puedo consultar Blackboard UPC con ChatGPT?",
+        acceptedAnswer: { "@type": "Answer", text: "Sí. Campus conecta tu Aula Virtual UPC con ChatGPT o Claude para consultar cursos, tareas, notas, anuncios y materiales con tu propia cuenta autorizada." },
+      },
+      {
+        "@type": "Question",
+        name: "¿Campus recibe mi contraseña de la UPC?",
+        acceptedAnswer: { "@type": "Answer", text: "No. El inicio de sesión ocurre en la página oficial de la universidad; Campus no recibe tu contraseña y puedes revocar la conexión cuando quieras." },
+      },
+      {
+        "@type": "Question",
+        name: "¿Campus está afiliado a la UPC o Blackboard?",
+        acceptedAnswer: { "@type": "Answer", text: "No. Campus es un proyecto independiente y no está afiliado a UPC ni a Blackboard." },
+      },
+    ],
+  },
+];
+---
+
+<Base
+  title="Blackboard UPC: tareas, notas y materiales con IA | Campus"
+  description="Consulta tus tareas, notas, anuncios y materiales de Blackboard UPC desde ChatGPT o Claude. Conecta tu Aula Virtual con Campus, sin copiar archivos."
+  canonical={url}
+  ogTitle="Tu Blackboard UPC, más fácil de consultar"
+  ogDescription="Pregunta por tus tareas, notas y materiales del Aula Virtual UPC desde ChatGPT o Claude."
+  ogImageAlt="Campus para Blackboard UPC"
+  markdownUrl={`${url}index.md`}
+  schemas={schemas}
+>
+  <Fragment set:html={body} />
+</Base>
