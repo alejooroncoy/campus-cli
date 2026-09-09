@@ -127,6 +127,13 @@ test('turns Blackboard login redirects into a recoverable session error', async 
   await assert.rejects(resolvedEmbeddedMediaResourceLink(client, { displayName: 'Self-introduction.mp4', mimeType: 'video/mp4', downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4' }), (error: any) => error?.code === 'SESSION_EXPIRED');
 });
 
+test('recognizes Blackboard SSO and Microsoft login redirect routes as expired sessions', async () => {
+  for (const location of ['/webapps/bb-auth-provider-shibboleth-BBLEARN/execute/shibbolethLogin', 'https://login.microsoftonline.com/tenant/saml2']) {
+    const client = { get: async () => ({ data: { destroy() {} }, headers: { location } }) } as any;
+    await assert.rejects(resolvedEmbeddedMediaResourceLink(client, { displayName: 'Self-introduction.mp4', mimeType: 'video/mp4', downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4' }), (error: any) => error?.code === 'SESSION_EXPIRED');
+  }
+});
+
 test('keeps a directly served signed embedded media URL', async () => {
   let destroyed = false;
   const client = { get: async () => ({ status: 200, data: { destroy: () => { destroyed = true; } }, headers: {} }) } as any;
