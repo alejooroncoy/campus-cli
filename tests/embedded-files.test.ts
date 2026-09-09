@@ -116,6 +116,17 @@ test('resolves embedded media before exposing a resource link', async () => {
   assert.equal(link?.uri, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4?ticket=temporary');
 });
 
+test('resolves relative embedded media redirects against the requested file', async () => {
+  const client = { get: async () => ({ data: { destroy() {} }, headers: { location: 'video.mp4?ticket=temporary' } }) } as any;
+  const link = await resolvedEmbeddedMediaResourceLink(client, { displayName: 'Self-introduction.mp4', mimeType: 'video/mp4', downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/media/' });
+  assert.equal(link?.uri, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/media/video.mp4?ticket=temporary');
+});
+
+test('turns Blackboard login redirects into a recoverable session error', async () => {
+  const client = { get: async () => ({ data: { destroy() {} }, headers: { location: '/webapps/login/' } }) } as any;
+  await assert.rejects(resolvedEmbeddedMediaResourceLink(client, { displayName: 'Self-introduction.mp4', mimeType: 'video/mp4', downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4' }), (error: any) => error?.code === 'SESSION_EXPIRED');
+});
+
 test('keeps a directly served signed embedded media URL', async () => {
   let destroyed = false;
   const client = { get: async () => ({ status: 200, data: { destroy: () => { destroyed = true; } }, headers: {} }) } as any;

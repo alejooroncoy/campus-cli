@@ -33,6 +33,17 @@ export function embeddedMediaResourceLink(file: { displayName: string; mimeType:
   };
 }
 
+function expiredSession(): never {
+  const error = Object.assign(new Error('Session expired. Run: campus login'), { code: 'SESSION_EXPIRED' });
+  throw error;
+}
+
+function resolveMediaLocation(location: string, requestUrl: string): string {
+  const resolved = new URL(location, requestUrl);
+  if (/(?:^|\/)(?:login|auth|saml|shibboleth)(?:\/|$)/i.test(resolved.pathname)) expiredSession();
+  return resolved.href;
+}
+
 /** Resolves an embedded bbcswebdav URL while the student's Blackboard session
  * is available. Raw embedded URLs are session-protected and cannot be used as
  * MCP resource links by a separate client. */
@@ -49,7 +60,7 @@ export async function resolvedEmbeddedMediaResourceLink(
   const directUrl = new URL(file.downloadUrl);
   const hasSignature = ['ticket', 'signature', 'sig', 'token'].some(key => directUrl.searchParams.has(key));
   if (!location && !(response.status >= 200 && response.status < 300 && hasSignature)) return null;
-  const uri = location ? new URL(location, BLACKBOARD_ORIGIN).href : file.downloadUrl;
+  const uri = location ? resolveMediaLocation(location, file.downloadUrl) : file.downloadUrl;
   assertBlackboardFileUrl(uri);
   return {
     type: 'resource_link', uri, name: file.displayName, mimeType: file.mimeType,
@@ -70,7 +81,8 @@ export async function attachmentMediaResourceLink(
   response.data?.destroy?.();
   const location = response.headers.location as string | undefined;
   if (!location) return null;
-  const uri = new URL(location, BLACKBOARD_ORIGIN).href;
+  const requestUrl = new URL(`/learn/api/public/v1/courses/${courseId}/contents/${contentId}/attachments/${attachment.id}/download`, BLACKBOARD_ORIGIN).href;
+  const uri = resolveMediaLocation(location, requestUrl);
   assertBlackboardFileUrl(uri);
   return {
     type: 'resource_link', uri,
