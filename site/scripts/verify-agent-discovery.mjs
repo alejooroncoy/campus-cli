@@ -9,6 +9,10 @@ const robots = await read("robots.txt");
 assert.match(robots, /^Content-Signal: ai-train=no, search=yes, ai-input=yes$/m);
 assert.match(robots, /^Agentmap: https:\/\/campuscli\.com\/.well-known\/ard\.json$/m);
 
+const did = JSON.parse(await read(".well-known/did.json"));
+assert.deepEqual(did["@context"], ["https://www.w3.org/ns/did/v1"]);
+assert.equal(did.id, "did:web:campuscli.com");
+
 const protectedResource = JSON.parse(await read(".well-known/oauth-protected-resource"));
 assert.equal(protectedResource.resource, "https://mcp.campuscli.com/mcp");
 assert.deepEqual(protectedResource.authorization_servers, ["https://mcp.campuscli.com"]);
