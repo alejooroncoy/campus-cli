@@ -40,7 +40,13 @@ function htmlText(value: string): string {
 }
 
 function xmlText(value: string): string {
-  return htmlText(value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+(?:\/|)>/g, tag => /<(?:p|title|sec|abstract|body|article-title|chapter)\b/i.test(tag) ? '\n\n' : ' '));
+  const cdata: string[] = [];
+  const protectedText = value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, (_match, payload: string) => {
+    const index = cdata.push(payload) - 1;
+    return `__CAMPUS_CDATA_${index}__`;
+  });
+  return htmlText(protectedText.replace(/<[^>]+(?:\/|)>/g, tag => /<(?:p|title|sec|abstract|body|article-title|chapter)\b/i.test(tag) ? '\n\n' : ' '))
+    .replace(/__CAMPUS_CDATA_(\d+)__/g, (_match, index: string) => cdata[Number(index)] ?? '');
 }
 
 function archiveXmlText(bytes: Uint8Array): string {
