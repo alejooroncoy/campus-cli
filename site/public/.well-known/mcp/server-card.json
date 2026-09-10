@@ -1,0 +1,25 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
+  "name": "com.campuscli/blackboard",
+  "version": "2.2.0",
+  "title": "Campus Blackboard MCP",
+  "description": "Consulta Blackboard UPC con tu propia sesión universitaria.",
+  "websiteUrl": "https://campuscli.com/blackboard-mcp/",
+  "repository": {
+    "url": "https://github.com/alejooroncoy/campus-cli",
+    "source": "github",
+    "subfolder": "src/mcp"
+  },
+  "icons": [
+    {
+      "src": "https://campuscli.com/assets/campus-logo.webp",
+      "mimeType": "image/webp"
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.campuscli.com/mcp"
+    }
+  ]
+}

@@ -1,4 +1,6 @@
-# Autenticación de Campus Blackboard MCP
+# Auth.md
+
+## Autenticación de Campus Blackboard MCP
 
 El endpoint remoto de Campus Blackboard MCP es `https://mcp.campuscli.com/mcp`.
 Cada estudiante se autentica con su propia cuenta Campus y, cuando corresponde,

@@ -9,6 +9,10 @@ const robots = await read("robots.txt");
 assert.match(robots, /^Content-Signal: ai-train=no, search=yes, ai-input=yes$/m);
 assert.match(robots, /^Agentmap: https:\/\/campuscli\.com\/.well-known\/ard\.json$/m);
 
+const did = JSON.parse(await read(".well-known/did.json"));
+assert.deepEqual(did["@context"], ["https://www.w3.org/ns/did/v1"]);
+assert.equal(did.id, "did:web:campuscli.com");
+
 const protectedResource = JSON.parse(await read(".well-known/oauth-protected-resource"));
 assert.equal(protectedResource.resource, "https://mcp.campuscli.com/mcp");
 assert.deepEqual(protectedResource.authorization_servers, ["https://mcp.campuscli.com"]);
@@ -18,11 +22,19 @@ const card = JSON.parse(await read(".well-known/mcp-server-card.json"));
 assert.equal(card.name, "com.campuscli/blackboard");
 assert.equal(card.remotes?.[0]?.url, "https://mcp.campuscli.com/mcp");
 
+const standardCard = JSON.parse(await read(".well-known/mcp/server-card.json"));
+assert.deepEqual(standardCard, card);
+
 for (const catalogPath of [".well-known/ard.json", ".well-known/ai-catalog.json"]) {
   const catalog = JSON.parse(await read(catalogPath));
+  assert.equal(catalog.specVersion, "1.0");
+  assert.equal(catalog.host?.identifier, "did:web:campuscli.com");
   assert.equal(catalog.entries?.[0]?.type, "application/mcp-server-card+json");
-  assert.equal(catalog.entries?.[0]?.url, "https://campuscli.com/.well-known/mcp-server-card.json");
+  assert.equal(catalog.entries?.[0]?.url, "https://campuscli.com/.well-known/mcp/server-card.json");
 }
+
+const auth = await read("auth.md");
+assert.match(auth, /^# Auth\.md$/m);
 
 const skills = JSON.parse(await read(".well-known/agent-skills/index.json"));
 const skill = skills.skills?.[0];
@@ -56,5 +68,12 @@ for (const path of ["/auth.md/missing", "/auth.md/missing.md"]) {
   assert.equal(nestedResponse.status, 404);
   assert.match(await nestedResponse.text(), /^# Página no encontrada \| Campus$/m);
 }
+
+const clientScript = await read("app.js");
+assert.match(clientScript, /navigator\.modelContext/);
+assert.match(clientScript, /modelContext\.registerTool/);
+assert.match(clientScript, /provideContext\(\{/);
+assert.match(clientScript, /campus_get_overview/);
+assert.match(clientScript, /campus_open_section/);
 
 console.log("Agent discovery metadata is internally consistent.");

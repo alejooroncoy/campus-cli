@@ -414,3 +414,66 @@ function addPageActions() {
 }
 
 setUpArticleReading();
+
+// WebMCP is progressive enhancement: browsers without the experimental API get
+// exactly the same site, while an agent-enabled browser can discover the two
+// safe actions that a visitor can already perform from the navigation.
+function provideWebMcpContext() {
+  const modelContext = navigator.modelContext;
+  if (!modelContext) return;
+
+  const sections = {
+    inicio: { href: "/", label: "Campus Plus" },
+    profesores: { href: "/profes/", label: "Campus Profes" },
+    blackboard: { href: "/blackboard-mcp/", label: "Blackboard MCP" },
+  };
+
+  const tools = [
+      {
+        name: "campus_get_overview",
+        description: "Obtiene una descripción breve de Campus Plus, Campus Profes y Blackboard MCP para UPC.",
+        inputSchema: { type: "object", properties: {}, additionalProperties: false },
+        execute: () => ({
+          content: [{
+            type: "text",
+            text: "Campus reúne Campus Profes para comparar docentes y horarios antes de matricularte, y Blackboard MCP para consultar cursos, tareas, notas y materiales con la propia sesión universitaria del estudiante.",
+          }],
+        }),
+      },
+      {
+        name: "campus_open_section",
+        description: "Abre una sección pública de Campus en la pestaña actual.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            section: {
+              type: "string",
+              enum: Object.keys(sections),
+              description: "La sección pública que se quiere abrir.",
+            },
+          },
+          required: ["section"],
+          additionalProperties: false,
+        },
+        execute: ({ section }) => {
+          const destination = sections[section];
+          if (!destination) {
+            return { content: [{ type: "text", text: "La sección solicitada no existe." }], isError: true };
+          }
+          window.location.assign(destination.href);
+          return { content: [{ type: "text", text: `Abriendo ${destination.label}.` }] };
+        },
+      },
+  ];
+
+  // `registerTool` is the imperative API exposed by current WebMCP browsers.
+  // Keep the earlier `provideContext` shape as a fallback for proposal builds
+  // that have not yet adopted the imperative method.
+  if (typeof modelContext.registerTool === "function") {
+    tools.forEach((tool) => modelContext.registerTool(tool));
+  } else if (typeof modelContext.provideContext === "function") {
+    modelContext.provideContext({ tools });
+  }
+}
+
+provideWebMcpContext();

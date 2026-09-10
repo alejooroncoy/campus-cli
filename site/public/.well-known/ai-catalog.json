@@ -1,11 +1,17 @@
 {
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "Campus",
+    "identifier": "did:web:campuscli.com",
+    "documentationUrl": "https://campuscli.com/blackboard-mcp/"
+  },
   "entries": [
     {
       "identifier": "urn:air:campuscli.com:mcp:campus-blackboard",
       "displayName": "Campus Blackboard MCP",
       "description": "Servidor MCP remoto para consultar cursos, tareas, notas y materiales de Blackboard UPC con la sesión del propio estudiante.",
       "type": "application/mcp-server-card+json",
-      "url": "https://campuscli.com/.well-known/mcp-server-card.json",
+      "url": "https://campuscli.com/.well-known/mcp/server-card.json",
       "version": "2.2.0",
       "capabilities": ["MCP", "Blackboard UPC", "student tools"],
       "representativeQueries": [
