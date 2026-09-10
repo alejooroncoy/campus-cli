@@ -168,11 +168,13 @@ function splitSections(text: string, startSection: number, sectionCount: number)
 }
 
 function declaredEncoding(bytes: Uint8Array, contentType: string): string {
-  const charset = contentType.match(/(?:^|;)\s*charset\s*=\s*[\"']?([^;\s\"']+)/i)?.[1];
-  if (charset) return charset.toLowerCase();
+  // A byte-order mark is part of the document bytes and takes precedence over
+  // stale transport metadata, especially for UTF-16 markup.
   if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) return 'utf-8';
   if (bytes[0] === 0xff && bytes[1] === 0xfe) return 'utf-16le';
   if (bytes[0] === 0xfe && bytes[1] === 0xff) return 'utf-16be';
+  const charset = contentType.match(/(?:^|;)\s*charset\s*=\s*[\"']?([^;\s\"']+)/i)?.[1];
+  if (charset) return charset.toLowerCase();
   // XML declarations are ASCII-compatible at their beginning, so this probe
   // is safe before decoding the complete document with its declared charset.
   const prefix = Buffer.from(bytes.subarray(0, 1000)).toString('latin1');

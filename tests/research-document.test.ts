@@ -128,6 +128,13 @@ test('academic document reader detects UTF-16 markup without a content type', ()
   assert.match(result.sections[0]!.text, /UTF sixteen/);
 });
 
+test('academic document reader gives a UTF-16 BOM precedence over a stale charset', () => {
+  const bytes = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from('<html><body><p>BOM wins.</p></body></html>', 'utf16le')]);
+  const result = text(extractDocumentBytes(bytes, 'auto', 1, 1, 'text/html; charset=utf-8'));
+  assert.equal(result.format, 'html');
+  assert.match(result.sections[0]!.text, /BOM wins/);
+});
+
 test('academic document reader honors declared public text encodings', () => {
   const latin = text(extractDocumentBytes(Buffer.from([0x43, 0x61, 0x66, 0xe9]), 'text', 1, 1, 'text/plain; charset=windows-1252'));
   assert.equal(latin.sections[0].text, 'Café');
