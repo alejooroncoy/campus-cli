@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Local OAuth setup. Load client credentials with node --env-file=... .
 const envFileIndex = process.argv.indexOf('--env-file');
-if (envFileIndex !== -1) {
-  const envFile = process.argv[envFileIndex + 1];
+const envFileEquals = process.argv.find((arg) => arg.startsWith('--env-file='));
+if (envFileIndex !== -1 || envFileEquals) {
+  const envFile = envFileEquals?.slice('--env-file='.length) ?? process.argv[envFileIndex + 1];
   if (!envFile) throw new Error('Missing path after --env-file');
   process.loadEnvFile(envFile);
 }

@@ -55,7 +55,9 @@ function epubSpineNames(files: Record<string, Uint8Array>): string[] {
   const container = files['META-INF/container.xml'];
   if (!container) return [];
   const containerXml = strFromU8(container);
-  const rootfile = xmlAttribute(containerXml.match(/<rootfile\b[^>]*>/i)?.[0] ?? '', 'full-path');
+  const rawRootfile = xmlAttribute(containerXml.match(/<rootfile\b[^>]*>/i)?.[0] ?? '', 'full-path');
+  let rootfile:string|null;
+  try { rootfile=rawRootfile?decodeURIComponent(decodeEntities(rawRootfile)).replace(/\\/g,'/'):null; } catch { return []; }
   if (!rootfile || !files[rootfile]) return [];
   const opf = strFromU8(files[rootfile]);
   const manifest = new Map<string, string>();
