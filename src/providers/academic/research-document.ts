@@ -40,7 +40,7 @@ function htmlText(value: string): string {
 }
 
 function xmlText(value: string): string {
-  return htmlText(value.replace(/<[^>]+(?:\/|)>/g, tag => /<(?:p|title|sec|abstract|body|article-title|chapter)\b/i.test(tag) ? '\n\n' : ' '));
+  return htmlText(value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+(?:\/|)>/g, tag => /<(?:p|title|sec|abstract|body|article-title|chapter)\b/i.test(tag) ? '\n\n' : ' '));
 }
 
 function archiveXmlText(bytes: Uint8Array): string {
@@ -50,7 +50,8 @@ function archiveXmlText(bytes: Uint8Array): string {
 function docxText(files: Record<string, Uint8Array>): string {
   const body = files['word/document.xml'];
   if (!body) throw new Error('El DOCX no contiene word/document.xml.');
-  return normalizeText(archiveXmlText(body).replace(/<w:p\b[^>]*>/g, '\n\n').replace(/<w:tab\b[^>]*\/>/g, '\t')
+  const xml = archiveXmlText(body).replace(/<w:del\b[^>]*>[\s\S]*?<\/w:del>/gi, '').replace(/<w:instrText\b[^>]*>[\s\S]*?<\/w:instrText>/gi, '');
+  return normalizeText(xml.replace(/<w:p\b[^>]*>/g, '\n\n').replace(/<w:tab\b[^>]*\/>/g, '\t')
     .replace(/<w:br\b[^>]*\/>/g, '\n').replace(/<w:t\b[^>]*>([\s\S]*?)<\/w:t>/g, '$1')
     .replace(/<[^>]+>/g, ''));
 }
@@ -69,15 +70,16 @@ function epubSpineNames(files: Record<string, Uint8Array>): string[] {
   try { rootfile=rawRootfile?decodeURIComponent(decodeEntities(rawRootfile)).replace(/\\/g,'/'):null; } catch { return []; }
   if (!rootfile || !files[rootfile]) return [];
   const opf = archiveXmlText(files[rootfile]);
-  const manifest = new Map<string, string>();
+  const manifest = new Map<string, { href: string; mediaType: string | null }>();
   for (const tag of opf.match(/<(?:[a-z][\w.-]*:)?item\b[^>]*>/gi) ?? []) {
     const id = xmlAttribute(tag, 'id');
     const href = xmlAttribute(tag, 'href');
-    if (id && href) manifest.set(id, href);
+    if (id && href) manifest.set(id, { href, mediaType: xmlAttribute(tag, 'media-type') });
   }
   const directory = rootfile.slice(0, rootfile.lastIndexOf('/') + 1);
   return (opf.match(/<(?:[a-z][\w.-]*:)?itemref\b[^>]*>/gi) ?? []).flatMap(tag => {
-    const href = manifest.get(xmlAttribute(tag, 'idref') ?? '');
+    const item = manifest.get(xmlAttribute(tag, 'idref') ?? '');
+    const href = item?.href;
     if (!href || /^[a-z][a-z0-9+.-]*:/i.test(href)) return [];
     let relative:string;
     try { relative = decodeURIComponent(decodeEntities(href.split(/[?#]/, 1)[0])); } catch { return []; }
@@ -89,7 +91,7 @@ function epubSpineNames(files: Record<string, Uint8Array>): string[] {
       parts.push(part);
     }
     const name = parts.join('/');
-    return /\.(?:xhtml|html|htm)$/i.test(name) && files[name] ? [name] : [];
+    return (item?.mediaType === 'application/xhtml+xml' || /\.(?:xhtml|html|htm)$/i.test(name)) && files[name] ? [name] : [];
   });
 }
 
@@ -111,7 +113,7 @@ function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
       entries++;
       if (entries > MAX_ARCHIVE_FILES) throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
       const wanted = format === 'docx' ? file.name === 'word/document.xml'
-        : /^(?:META-INF\/container\.xml|.*\.opf|.*\.(?:xhtml|html|htm))$/i.test(file.name);
+        : !file.name.endsWith('/');
       if (!wanted) return false;
       selected++;
       originalBytes += file.originalSize;
