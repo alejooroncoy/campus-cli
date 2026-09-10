@@ -104,6 +104,10 @@ function epubSpineNames(files: Record<string, Uint8Array>): string[] {
 function epubText(files: Record<string, Uint8Array>): string {
   const names = epubSpineNames(files);
   const chapterNames = names.length ? names : Object.keys(files).filter(name => /\.(?:xhtml|html|htm)$/i.test(name)).sort();
+  const metadataNames = Object.keys(files).filter(name => name === 'META-INF/container.xml' || /\.opf$/i.test(name));
+  const evidenceNames = [...new Set([...metadataNames, ...chapterNames])];
+  if (evidenceNames.reduce((size, name) => size + (files[name]?.byteLength ?? 0), 0) > MAX_ARCHIVE_TEXT_BYTES)
+    throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
   if (!chapterNames.length) throw new Error('El EPUB no contiene capítulos HTML legibles.');
   return chapterNames.map(name => htmlText(archiveXmlText(files[name]))).filter(Boolean).join('\n\n');
 }
@@ -122,7 +126,7 @@ function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
         : !file.name.endsWith('/');
       if (!wanted) return false;
       selected++;
-      originalBytes += file.originalSize;
+      if (format === 'docx') originalBytes += file.originalSize;
       if (originalBytes > MAX_ARCHIVE_TEXT_BYTES) {
         throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
       }
