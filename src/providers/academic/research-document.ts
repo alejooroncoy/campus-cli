@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { decodeHTML } from 'entities';
 import { unzipSync } from 'fflate';
 import { z } from 'zod';
@@ -41,12 +41,13 @@ function htmlText(value: string): string {
 
 function xmlText(value: string): string {
   const cdata: string[] = [];
+  const marker = `__CAMPUS_CDATA_${randomUUID()}_`;
   const protectedText = value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, (_match, payload: string) => {
     const index = cdata.push(payload) - 1;
-    return `__CAMPUS_CDATA_${index}__`;
+    return `${marker}${index}__`;
   });
   return htmlText(protectedText.replace(/<[^>]+(?:\/|)>/g, tag => /<(?:p|title|sec|abstract|body|article-title|chapter)\b/i.test(tag) ? '\n\n' : ' '))
-    .replace(/__CAMPUS_CDATA_(\d+)__/g, (_match, index: string) => cdata[Number(index)] ?? '');
+    .replace(new RegExp(`${marker}(\\d+)__`, 'g'), (_match, index: string) => cdata[Number(index)] ?? '');
 }
 
 function archiveXmlText(bytes: Uint8Array): string {
@@ -125,6 +126,8 @@ function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
       const wanted = format === 'docx' ? file.name === 'word/document.xml'
         : !file.name.endsWith('/');
       if (!wanted) return false;
+      if (format === 'epub' && file.originalSize > MAX_ARCHIVE_TEXT_BYTES)
+        throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
       selected++;
       if (format === 'docx') originalBytes += file.originalSize;
       if (originalBytes > MAX_ARCHIVE_TEXT_BYTES) {
