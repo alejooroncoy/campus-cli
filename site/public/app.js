@@ -88,6 +88,9 @@ const loadTurnstile = () => {
 };
 
 openFounder.forEach((button) => button.addEventListener("click", () => {
+  const intent = button.dataset.founderIntent;
+  const intentSelect = founderForm.elements.namedItem("intent");
+  if (intent && intentSelect instanceof HTMLSelectElement) intentSelect.value = intent;
   dialog.showModal();
   loadTurnstile();
 }));
