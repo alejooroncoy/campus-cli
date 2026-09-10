@@ -69,7 +69,7 @@ function epubSpineNames(files: Record<string, Uint8Array>): string[] {
     const href = manifest.get(xmlAttribute(tag, 'idref') ?? '');
     if (!href || /^[a-z][a-z0-9+.-]*:/i.test(href)) return [];
     let relative:string;
-    try { relative = decodeURIComponent(href.split(/[?#]/, 1)[0]); } catch { return []; }
+    try { relative = decodeURIComponent(decodeEntities(href.split(/[?#]/, 1)[0])); } catch { return []; }
     const path = `${directory}${relative}`.replace(/\\/g, '/');
     const parts: string[] = [];
     for (const part of path.split('/')) {

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // Local OAuth setup. Load client credentials with node --env-file=... .
 const envFileIndex = process.argv.indexOf('--env-file');
 if (envFileIndex !== -1) {
