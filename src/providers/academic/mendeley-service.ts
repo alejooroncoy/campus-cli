@@ -16,7 +16,7 @@ export interface MendeleyTokenStore { load(): Promise<MendeleyTokens>; save(toke
 /** For a local single-user process only. Hosted callers must inject a user-specific store. */
 export class LocalMendeleyTokenStore implements MendeleyTokenStore {
   constructor(private file = process.env.MENDELEY_TOKEN_FILE || join(homedir(), '.campus-cli', 'mendeley-tokens.json')) {}
-  async load() { try { return tokensSchema.parse(JSON.parse(await readFile(this.file, 'utf8'))); } catch { throw new Error('Conecta primero tu cuenta Mendeley con scripts/mendeley-connect.cjs.'); } }
+  async load() { try { return tokensSchema.parse(JSON.parse(await readFile(this.file, 'utf8'))); } catch { throw new Error('Conecta primero tu cuenta Mendeley con campus-mendeley-connect.'); } }
   async save(tokens: MendeleyTokens) {
     await mkdir(dirname(this.file), { recursive: true, mode: 0o700 });
     const temp = this.file + '.' + randomUUID() + '.tmp';

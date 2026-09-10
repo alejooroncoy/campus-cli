@@ -30,7 +30,7 @@ function normalizeText(value: string): string {
 }
 
 function htmlText(value: string): string {
-  const clean = value.replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+  const clean = value.replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '')
     .replace(/<\/?(?:article|section|div|p|br|li|h[1-6]|table|tr|blockquote)\b[^>]*>/gi, '\n');
   return normalizeText(clean.replace(/<[^>]+>/g, ' '));
 }
@@ -62,13 +62,13 @@ function epubSpineNames(files: Record<string, Uint8Array>): string[] {
   if (!rootfile || !files[rootfile]) return [];
   const opf = strFromU8(files[rootfile]);
   const manifest = new Map<string, string>();
-  for (const tag of opf.match(/<item\b[^>]*>/gi) ?? []) {
+  for (const tag of opf.match(/<(?:[a-z][\w.-]*:)?item\b[^>]*>/gi) ?? []) {
     const id = xmlAttribute(tag, 'id');
     const href = xmlAttribute(tag, 'href');
     if (id && href) manifest.set(id, href);
   }
   const directory = rootfile.slice(0, rootfile.lastIndexOf('/') + 1);
-  return (opf.match(/<itemref\b[^>]*>/gi) ?? []).flatMap(tag => {
+  return (opf.match(/<(?:[a-z][\w.-]*:)?itemref\b[^>]*>/gi) ?? []).flatMap(tag => {
     const href = manifest.get(xmlAttribute(tag, 'idref') ?? '');
     if (!href || /^[a-z][a-z0-9+.-]*:/i.test(href)) return [];
     let relative:string;

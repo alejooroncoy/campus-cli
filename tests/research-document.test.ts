@@ -10,10 +10,10 @@ function text(result: ReturnType<typeof extractDocumentBytes>) {
 }
 
 test('academic document reader extracts bounded HTML sections without scripts', () => {
-  const result = text(extractDocumentBytes(Buffer.from(`<!doctype html><html><body><h1>Method</h1><p>Sample: 42 students.</p><script>ignore()</script><p>Result: improved fluency.</p></body></html>`), 'auto', 1, 4, 'text/html'));
+  const result = text(extractDocumentBytes(Buffer.from(`<!doctype html><html><body><h1>Method</h1><p>Sample: 42 students.</p><script>ignore()</script ><style>also-ignore</style\n><p>Result: improved fluency.</p></body></html>`), 'auto', 1, 4, 'text/html'));
   assert.equal(result.format, 'html');
   assert.match(result.sections.map(section => section.text).join(' '), /42 students/);
-  assert.doesNotMatch(result.sections.map(section => section.text).join(' '), /ignore/);
+  assert.doesNotMatch(result.sections.map(section => section.text).join(' '), /ignore|also-ignore/);
 });
 
 test('academic document reader requires an explicit format for ZIP containers', () => {
@@ -40,6 +40,17 @@ test('academic document reader pages long DOCX files by paragraph', () => {
   assert.equal(result.totalSections, 3);
   assert.match(result.sections[0].text, /Methods remain available/);
   assert.equal(result.nextSection, null);
+});
+
+test('academic document reader follows namespace-prefixed EPUB spine order', () => {
+  const epub = zipSync({
+    'META-INF/container.xml': strToU8('<container><rootfiles><rootfile full-path="OPS/book.opf"/></rootfiles></container>'),
+    'OPS/book.opf': strToU8('<opf:package><opf:manifest><opf:item id="two" href="two.xhtml"/><opf:item id="one" href="one.xhtml"/></opf:manifest><opf:spine><opf:itemref idref="two"/><opf:itemref idref="one"/></opf:spine></opf:package>'),
+    'OPS/one.xhtml': strToU8('<html><body><p>First by spine.</p></body></html>'),
+    'OPS/two.xhtml': strToU8('<html><body><p>Second by spine.</p></body></html>'),
+  });
+  const result = text(extractDocumentBytes(epub, 'epub'));
+  assert.deepEqual(result.sections.map(section => section.text), ['Second by spine.', 'First by spine.']);
 });
 
 test('academic document reader follows EPUB spine order', () => {
