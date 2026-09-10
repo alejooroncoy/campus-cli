@@ -21,6 +21,12 @@ test('academic document reader decodes named and numeric character references', 
   assert.match(result.sections.map(section => section.text).join(' '), /García – α — β/);
 });
 
+test('academic document reader preserves literal entities in archive text', () => {
+  const docx = zipSync({ 'word/document.xml': strToU8('<w:document><w:body><w:p><w:t>&amp;amp;lt;</w:t></w:p></w:body></w:document>') });
+  const result = text(extractDocumentBytes(docx, 'docx'));
+  assert.equal(result.sections[0]?.text, '&lt;');
+});
+
 test('academic document reader requires an explicit format for ZIP containers', () => {
   const zip = zipSync({ 'word/document.xml': strToU8('<w:document/>') });
   assert.throws(() => extractDocumentBytes(zip, 'auto'), /format="docx"/);

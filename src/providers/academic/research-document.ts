@@ -26,7 +26,11 @@ function decodeEntities(value: string): string {
 }
 
 function normalizeText(value: string): string {
-  return decodeEntities(value.replace(/\r/g, '')).replace(/[\t ]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  return normalizeWhitespace(decodeEntities(value));
+}
+
+function normalizeWhitespace(value: string): string {
+  return value.replace(/\r/g, '').replace(/[\t ]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function htmlText(value: string): string {
@@ -207,7 +211,8 @@ export function extractDocumentBytes(bytes: Uint8Array, requested: z.infer<typeo
   const format = detectedFormat(bytes, contentType, requested);
   if (format === 'pdf') return { format: 'pdf', delegated: true };
   const raw = format === 'docx' || format === 'epub' ? archiveText(bytes, format) : decodeTextDocument(bytes, contentType);
-  const text = format === 'html' ? htmlText(raw) : format === 'xml' || format === 'jats' ? xmlText(raw) : normalizeText(raw);
+  const text = format === 'docx' || format === 'epub' ? normalizeWhitespace(raw)
+    : format === 'html' ? htmlText(raw) : format === 'xml' || format === 'jats' ? xmlText(raw) : normalizeText(raw);
   // Preserve the full section index so a later request can reach material
   // after the response-size boundary (for example, methods or references).
   // Each returned section remains bounded in splitSections.
