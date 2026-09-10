@@ -55,12 +55,14 @@ function archiveXmlText(bytes: Uint8Array): string {
 }
 
 function docxText(files: Record<string, Uint8Array>): string {
-  const body = files['word/document.xml'];
-  if (!body) throw new Error('El DOCX no contiene word/document.xml.');
-  const xml = archiveXmlText(body).replace(/<w:del\b[^>]*>[\s\S]*?<\/w:del>/gi, '').replace(/<w:instrText\b[^>]*>[\s\S]*?<\/w:instrText>/gi, '');
-  return normalizeText(xml.replace(/<w:p\b[^>]*>/g, '\n\n').replace(/<w:tab\b[^>]*\/>/g, '\t')
-    .replace(/<w:br\b[^>]*\/>/g, '\n').replace(/<w:t\b[^>]*>([\s\S]*?)<\/w:t>/g, '$1')
-    .replace(/<[^>]+>/g, ''));
+  const names = ['word/document.xml', 'word/footnotes.xml', 'word/endnotes.xml'].filter(name => files[name]);
+  if (!names.includes('word/document.xml')) throw new Error('El DOCX no contiene word/document.xml.');
+  return normalizeText(names.map(name => {
+    const xml = archiveXmlText(files[name]!).replace(/<w:del\b[^>]*>[\s\S]*?<\/w:del>/gi, '').replace(/<w:instrText\b[^>]*>[\s\S]*?<\/w:instrText>/gi, '');
+    return xml.replace(/<w:p\b[^>]*>/g, '\n\n').replace(/<w:tab\b[^>]*\/>/g, '\t')
+      .replace(/<w:br\b[^>]*\/>/g, '\n').replace(/<w:t\b[^>]*>([\s\S]*?)<\/w:t>/g, '$1')
+      .replace(/<[^>]+>/g, '');
+  }).join('\n\n'));
 }
 
 function xmlAttribute(tag: string, name: string): string | null {
@@ -123,7 +125,7 @@ function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
       if (file.name.includes('..') || file.name.length > 500) throw new Error('El archivo contiene una ruta no permitida.');
       entries++;
       if (entries > MAX_ARCHIVE_FILES) throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
-      const wanted = format === 'docx' ? file.name === 'word/document.xml'
+      const wanted = format === 'docx' ? /^(?:word\/(?:document|footnotes|endnotes)\.xml)$/.test(file.name)
         : !file.name.endsWith('/');
       if (!wanted) return false;
       if (format === 'epub' && file.originalSize > MAX_ARCHIVE_TEXT_BYTES)
@@ -232,10 +234,13 @@ function detectedFormat(bytes: Uint8Array, contentType: string, requested: z.inf
   if (zipSignature) throw new Error('El archivo ZIP puede ser DOCX o EPUB. Indica format="docx" o format="epub".');
   // Sniff the decoded text so a UTF-16 BOM does not turn markup into a plain
   // text document merely because its byte prefix contains NUL characters.
-  const prefix = decodeTextDocument(bytes, contentType).slice(0, 500);
+  const decoded = decodeTextDocument(bytes, contentType);
+  const prefix = decoded.slice(0, 500);
   const type = contentType.toLowerCase();
   if (type.includes('html') || /^\s*<!doctype html|^\s*<html\b/i.test(prefix)) return 'html' as const;
-  if (type.includes('xml') || /^\s*<\?xml|^\s*<article\b/i.test(prefix)) return 'xml' as const;
+  const root = prefix.match(/^\s*<([A-Za-z_][\w.:-]*)(?:\s[^>]*)?>/);
+  const hasClosingRoot = root && new RegExp(`</${root[1]!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*>`, 'i').test(decoded);
+  if (type.includes('xml') || /^\s*<\?xml|^\s*<article\b/i.test(prefix) || hasClosingRoot) return 'xml' as const;
   return 'text' as const;
 }
 
