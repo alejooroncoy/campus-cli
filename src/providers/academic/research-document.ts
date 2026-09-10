@@ -121,12 +121,11 @@ function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
 function splitSections(text: string, startSection: number, sectionCount: number): Omit<TextDocument, 'format'> {
   const chunks = text.split(/\n{2,}/).map(normalizeText).filter(Boolean);
   if (!chunks.length) throw new Error('El documento no contiene texto legible. Puede requerir OCR o un formato compatible.');
-  const all = chunks.flatMap((chunk, chunkIndex) => {
+  const all = chunks.flatMap(chunk => {
     const lines = chunk.split('\n');
     const first = lines[0];
     const heading = first.length <= 160 && (lines.length > 1 || /^\d+(?:\.\d+)*\s+/.test(first)) ? first : null;
     const content = heading ? lines.slice(1).join('\n').trim() : chunk;
-    if (chunks.length > 1) return [{section:0,heading,text:content.slice(0,12_000),truncated:content.length>12_000}];
     return Array.from({length:Math.ceil(content.length/12_000)||1},(_, index)=>({section:0,heading:index===0?heading:null,text:content.slice(index*12_000,(index+1)*12_000),truncated:content.length>(index+1)*12_000}));
   }).map((section,index)=>({...section,section:index+1}));
   if (startSection > all.length) throw new Error('La sección inicial supera el contenido disponible.');

@@ -36,8 +36,8 @@ test('academic document reader pages long DOCX files by paragraph', () => {
   const docx = zipSync({ 'word/document.xml': strToU8(`<w:document><w:body>
     <w:p><w:t>${'a'.repeat(12_001)}</w:t></w:p><w:p><w:t>Methods remain available.</w:t></w:p>
     </w:body></w:document>`) });
-  const result = text(extractDocumentBytes(docx, 'docx', 2, 1));
-  assert.equal(result.totalSections, 2);
+  const result = text(extractDocumentBytes(docx, 'docx', 3, 1));
+  assert.equal(result.totalSections, 3);
   assert.match(result.sections[0].text, /Methods remain available/);
   assert.equal(result.nextSection, null);
 });
@@ -76,16 +76,16 @@ test('academic document reader delegates PDFs to the page reader', () => {
 
 test('academic document reader keeps later sections available after a large prefix', () => {
   const prefix = 'a'.repeat(100_001);
-  const result = text(extractDocumentBytes(Buffer.from(`${prefix}\n\nMethods\nParticipants were surveyed.`), 'text', 2, 1));
-  assert.equal(result.totalSections, 2);
+  const result = text(extractDocumentBytes(Buffer.from(`${prefix}\n\nMethods\nParticipants were surveyed.`), 'text', 10, 1));
+  assert.equal(result.totalSections, 10);
   assert.equal(result.sections[0].heading, 'Methods');
   assert.match(result.sections[0].text, /Participants/);
 });
 
 test('academic document reader pages long JATS paragraphs without losing later evidence', () => {
   const jats = `<article><body><sec><p>${'a'.repeat(12_001)}</p><p>Results remain available.</p></sec></body></article>`;
-  const result = text(extractDocumentBytes(Buffer.from(jats), 'jats', 2, 1));
-  assert.equal(result.totalSections, 2);
+  const result = text(extractDocumentBytes(Buffer.from(jats), 'jats', 3, 1));
+  assert.equal(result.totalSections, 3);
   assert.match(result.sections[0].text, /Results remain available/);
 });
 
