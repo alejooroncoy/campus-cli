@@ -4,7 +4,7 @@ import { databasesSearchInput, ResearchService, scholarInput, searchInput } from
 import { pdfInput, readResearchPdf } from './research-pdf.js';
 import { documentInput, readResearchDocument } from './research-document.js';
 
-const CLIENT_PROCESSING_ERRORS = /documento supera el tamaño permitido|contenido descomprimido supera el límite de análisis seguro|PDF superó el tiempo máximo de análisis|PDF no pudo procesarse dentro de los límites de memoria|lector PDF terminó sin devolver evidencia|No se pudo leer el PDF|No se pudo abrir el archivo ZIP|documento no contiene texto legible|demasiadas secciones para analizarlo de forma segura|codificación no compatible/i;
+const CLIENT_PROCESSING_ERRORS = /documento supera el tamaño permitido|contenido descomprimido supera el límite de análisis seguro|PDF superó el tiempo máximo de análisis|PDF no pudo procesarse dentro de los límites de memoria|lector PDF terminó sin devolver evidencia|No se pudo leer el PDF|No se pudo abrir el archivo ZIP|documento no contiene texto legible|EPUB no contiene capítulos HTML legibles|demasiadas secciones para analizarlo de forma segura|codificación no compatible/i;
 
 /** Hosts must authorize every call. No Blackboard credentials are sent to research providers. */
 export function registerResearchTools(server: McpServer, options: {
