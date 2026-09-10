@@ -20,6 +20,12 @@ test('checks second page for duplicates',async()=>{
  let calls=0;const s=new MendeleyService(store(),{},async()=>++calls===1?json([],{link:'<https://api.mendeley.com/documents?marker=next>; rel="next"'}):json([{id:'existing',identifiers:{doi}}]),metadata);
  assert.equal((await s.saveDoi(doi)).status,'already_saved');assert.equal(calls,2);
 });
+test('rejects a group continuation cursor in personal Mendeley listings',async()=>{
+ const s=new MendeleyService(store(),{},async()=>json([]));
+ const cursor=Buffer.from('https://api.mendeley.com/documents?group_id=123e4567-e89b-12d3-a456-426614174000&marker=next').toString('base64url');
+ await assert.rejects(s.list(1,cursor),/Cursor Mendeley no permitido/);
+});
+
 test('lists every Mendeley page with an opaque, route-bound continuation cursor',async()=>{
  let calls=0;const s=new MendeleyService(store(),{},async u=>++calls===1?json([{id:'first'}],{link:'<https://api.mendeley.com/documents?marker=next>; rel="next"'}):json([{id:'second'}]));
  const first=await s.list(1);

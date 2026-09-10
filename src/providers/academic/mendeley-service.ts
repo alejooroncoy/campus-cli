@@ -35,7 +35,7 @@ function encodeCursor(url:string):string { return Buffer.from(url).toString('bas
 function decodeCursor(cursor:string, pathname:string, groupId?:string):string {
   let url:URL;
   try { url=new URL(Buffer.from(z.string().min(1).max(8000).parse(cursor),'base64url').toString('utf8')); } catch { throw new Error('Cursor Mendeley inválido.'); }
-  if(url.origin!==origin || url.pathname!==pathname || (groupId!==undefined && url.searchParams.get('group_id')!==groupId)) throw new Error('Cursor Mendeley no permitido.');
+  if(url.origin!==origin || url.pathname!==pathname || (groupId === undefined ? url.searchParams.has('group_id') : url.searchParams.get('group_id')!==groupId)) throw new Error('Cursor Mendeley no permitido.');
   return url.toString();
 }
 export class MendeleyService {

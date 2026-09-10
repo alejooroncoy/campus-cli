@@ -116,6 +116,18 @@ test('academic document reader uses the PDF reader page limit', () => {
 });
 
 
+test('academic document reader preserves literal entities in plain text', () => {
+  const result = text(extractDocumentBytes(Buffer.from('&lt;tag&gt; &#8212;'), 'text'));
+  assert.equal(result.sections[0]?.text, '&lt;tag&gt; &#8212;');
+});
+
+test('academic document reader detects UTF-16 markup without a content type', () => {
+  const bytes = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from('<html><body><p>UTF sixteen.</p></body></html>', 'utf16le')]);
+  const result = text(extractDocumentBytes(bytes, 'auto'));
+  assert.equal(result.format, 'html');
+  assert.match(result.sections[0]!.text, /UTF sixteen/);
+});
+
 test('academic document reader honors declared public text encodings', () => {
   const latin = text(extractDocumentBytes(Buffer.from([0x43, 0x61, 0x66, 0xe9]), 'text', 1, 1, 'text/plain; charset=windows-1252'));
   assert.equal(latin.sections[0].text, 'Café');

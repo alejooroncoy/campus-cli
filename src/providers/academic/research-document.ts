@@ -201,12 +201,15 @@ function decodeTextDocument(bytes: Uint8Array, contentType: string): string {
 
 function detectedFormat(bytes: Uint8Array, contentType: string, requested: z.infer<typeof documentFormat>) {
   if (requested !== 'auto') return requested;
-  const prefix = Buffer.from(bytes.subarray(0, 8)).toString('utf8');
-  if (prefix.startsWith('%PDF-')) return 'pdf' as const;
-  if (prefix.startsWith('PK')) throw new Error('El archivo ZIP puede ser DOCX o EPUB. Indica format="docx" o format="epub".');
+  const binaryPrefix = Buffer.from(bytes.subarray(0, 8)).toString('utf8');
+  if (binaryPrefix.startsWith('%PDF-')) return 'pdf' as const;
+  if (binaryPrefix.startsWith('PK')) throw new Error('El archivo ZIP puede ser DOCX o EPUB. Indica format="docx" o format="epub".');
+  // Sniff the decoded text so a UTF-16 BOM does not turn markup into a plain
+  // text document merely because its byte prefix contains NUL characters.
+  const prefix = decodeTextDocument(bytes, contentType).slice(0, 500);
   const type = contentType.toLowerCase();
-  if (type.includes('html') || /^\s*<!doctype html|^\s*<html\b/i.test(Buffer.from(bytes.subarray(0, 500)).toString('utf8'))) return 'html' as const;
-  if (type.includes('xml') || /^\s*<\?xml|^\s*<article\b/i.test(Buffer.from(bytes.subarray(0, 500)).toString('utf8'))) return 'xml' as const;
+  if (type.includes('html') || /^\s*<!doctype html|^\s*<html\b/i.test(prefix)) return 'html' as const;
+  if (type.includes('xml') || /^\s*<\?xml|^\s*<article\b/i.test(prefix)) return 'xml' as const;
   return 'text' as const;
 }
 
@@ -216,7 +219,7 @@ export function extractDocumentBytes(bytes: Uint8Array, requested: z.infer<typeo
   if (format === 'pdf') return { format: 'pdf', delegated: true };
   const raw = format === 'docx' || format === 'epub' ? archiveText(bytes, format) : decodeTextDocument(bytes, contentType);
   const text = format === 'docx' || format === 'epub' ? normalizeWhitespace(raw)
-    : format === 'html' ? htmlText(raw) : format === 'xml' || format === 'jats' ? xmlText(raw) : normalizeText(raw);
+    : format === 'html' ? htmlText(raw) : format === 'xml' || format === 'jats' ? xmlText(raw) : normalizeWhitespace(raw);
   // Preserve the full section index so a later request can reach material
   // after the response-size boundary (for example, methods or references).
   // Each returned section remains bounded in splitSections.
