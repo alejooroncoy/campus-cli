@@ -48,7 +48,7 @@ const server = http.createServer(async (req, res) => {
   } catch { res.writeHead(502).end('No se pudo conectar Mendeley. Reinicia la conexion.'); console.error('Mendeley OAuth failed; no credentials logged.'); clearTimeout(timer);server.close(); }
 });
 const timer=setTimeout(()=>server.close(),600000);
-server.listen(Number(target.port||80),()=>{
+server.listen(Number(target.port||80),'localhost',()=>{
   const url = new URL('https://api.mendeley.com/oauth/authorize');
   for(const [k,v] of Object.entries({client_id:id,response_type:'code',scope:'all',redirect_uri:redirect,state})) url.searchParams.set(k,v);
   console.log(url.toString());
