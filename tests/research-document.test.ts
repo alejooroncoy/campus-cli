@@ -137,8 +137,8 @@ test('academic document reader preserves literal entities in plain text', () => 
   assert.equal(result.sections[0]?.text, '&lt;tag&gt; &#8212;');
 });
 
-test('academic document reader auto-detects well-formed XML roots', () => {
-  const result = text(extractDocumentBytes(Buffer.from('<TEI><p>Repository evidence.</p></TEI>'), 'auto'));
+test('academic document reader auto-detects XML roots beyond the sniff prefix', () => {
+  const result = text(extractDocumentBytes(Buffer.from(`<TEI><p>${'x'.repeat(600)}Repository evidence.</p></TEI >`), 'auto'));
   assert.equal(result.format, 'xml');
   assert.match(result.sections[0]!.text, /Repository evidence/);
 });

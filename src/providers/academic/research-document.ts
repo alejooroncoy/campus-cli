@@ -234,11 +234,12 @@ function detectedFormat(bytes: Uint8Array, contentType: string, requested: z.inf
   if (zipSignature) throw new Error('El archivo ZIP puede ser DOCX o EPUB. Indica format="docx" o format="epub".');
   // Sniff the decoded text so a UTF-16 BOM does not turn markup into a plain
   // text document merely because its byte prefix contains NUL characters.
-  const prefix = decodeTextDocument(bytes, contentType).slice(0, 500);
+  const decoded = decodeTextDocument(bytes, contentType);
+  const prefix = decoded.slice(0, 500);
   const type = contentType.toLowerCase();
   if (type.includes('html') || /^\s*<!doctype html|^\s*<html\b/i.test(prefix)) return 'html' as const;
   const root = prefix.match(/^\s*<([A-Za-z_][\w.:-]*)(?:\s[^>]*)?>/);
-  const hasClosingRoot = root && new RegExp(`</${root[1]!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\s*>`, 'i').test(prefix);
+  const hasClosingRoot = root && new RegExp(`</${root[1]!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*>`, 'i').test(decoded);
   if (type.includes('xml') || /^\s*<\?xml|^\s*<article\b/i.test(prefix) || hasClosingRoot) return 'xml' as const;
   return 'text' as const;
 }
