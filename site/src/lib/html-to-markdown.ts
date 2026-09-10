@@ -71,7 +71,7 @@ export function htmlToMarkdown(html: string, baseUrl = 'https://campuscli.com'):
 
   const blocks: string[] = [];
   const pattern =
-    /<(h1|h2|h3|p|pre|ul|ol|dl)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
+    /<(h1|h2|h3|p|pre|ul|ol|dl|table)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
 
   for (const match of body.matchAll(pattern)) {
     const [, tag, , contents] = match;
@@ -94,6 +94,20 @@ export function htmlToMarkdown(html: string, baseUrl = 'https://campuscli.com'):
     if (name === 'pre') {
       const code = decode(contents.replace(/<[^>]+>/g, '')).replace(/^\n+|\n+$/g, '');
       if (code.trim()) blocks.push(['```bash', code, '```'].join('\n'));
+      continue;
+    }
+
+    if (name === 'table') {
+      const rows = [...contents.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]
+        .map((row) => [...row[1].matchAll(/<t[hd]\b[^>]*>([\s\S]*?)<\/t[hd]>/gi)]
+          .map((cell) => inline(cell[1], baseUrl).replace(/\|/g, '\\|')))
+        .filter((row) => row.some(Boolean));
+      if (rows.length) {
+        const width = Math.max(...rows.map((row) => row.length));
+        const normalized = rows.map((row) => [...row, ...Array(width - row.length).fill('')]);
+        blocks.push([`| ${normalized[0].join(' | ')} |`, `| ${Array(width).fill('---').join(' | ')} |`,
+          ...normalized.slice(1).map((row) => `| ${row.join(' | ')} |`)].join('\n'));
+      }
       continue;
     }
 
