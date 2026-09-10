@@ -17,7 +17,7 @@ test('save verifies metadata, stores once and returns existing reference on repe
  assert.equal(writes,1);assert.equal(docs[0].authors[0].last_name,'Perez');assert.equal(docs[0].title,'Verified title');
 });
 test('checks second page for duplicates',async()=>{
- let calls=0;const s=new MendeleyService(store(),{},async()=>++calls===1?json([],{link:'<https://api.mendeley.com/documents?marker=next>; rel="next"'}):json([{id:'existing',identifiers:{doi}}]),metadata);
+ let calls=0;const s=new MendeleyService(store(),{},async()=>++calls===1?json([],{link:'<https://api.mendeley.com/documents?limit=1&marker=next>; rel="next"'}):json([{id:'existing',identifiers:{doi}}]),metadata);
  assert.equal((await s.saveDoi(doi)).status,'already_saved');assert.equal(calls,2);
 });
 test('rejects a group continuation cursor in personal Mendeley listings',async()=>{
@@ -27,7 +27,7 @@ test('rejects a group continuation cursor in personal Mendeley listings',async()
 });
 
 test('lists every Mendeley page with an opaque, route-bound continuation cursor',async()=>{
- let calls=0;const s=new MendeleyService(store(),{},async u=>++calls===1?json([{id:'first'}],{link:'<https://api.mendeley.com/documents?marker=next>; rel="next"'}):json([{id:'second'}]));
+ let calls=0;const s=new MendeleyService(store(),{},async u=>++calls===1?json([{id:'first'}],{link:'<https://api.mendeley.com/documents?limit=1&marker=next>; rel="next"'}):json([{id:'second'}]));
  const first=await s.list(1);
  assert.equal(first.hasMore,true);assert.ok(first.nextCursor);assert.doesNotMatch(first.nextCursor!,/api\.mendeley\.com/);
  const second=await s.list(1,first.nextCursor!);

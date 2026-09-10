@@ -51,8 +51,8 @@ function docxText(files: Record<string, Uint8Array>): string {
   const body = files['word/document.xml'];
   if (!body) throw new Error('El DOCX no contiene word/document.xml.');
   return normalizeText(archiveXmlText(body).replace(/<w:p\b[^>]*>/g, '\n\n').replace(/<w:tab\b[^>]*\/>/g, '\t')
-    .replace(/<w:br\b[^>]*\/>/g, '\n').replace(/<w:t\b[^>]*>/g, '').replace(/<\/w:t>/g, '')
-    .replace(/<[^>]+>/g, ' '));
+    .replace(/<w:br\b[^>]*\/>/g, '\n').replace(/<w:t\b[^>]*>([\s\S]*?)<\/w:t>/g, '$1')
+    .replace(/<[^>]+>/g, ''));
 }
 
 function xmlAttribute(tag: string, name: string): string | null {
