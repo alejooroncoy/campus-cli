@@ -155,7 +155,9 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
         files[existingIndex] = {
           ...file,
           ...(existingAuthority.displayName ? { displayName: existing.displayName } : {}),
-          ...(existingAuthority.mimeType || (hasNewAuthoritativeField && !hasAuthoritativeMimeType) ? { mimeType: existing.mimeType } : {}),
+          // A later title is authoritative for the name, but an explicit
+          // audio/video element remains authoritative for its MIME context.
+          ...(existingAuthority.mimeType || (hasNewAuthoritativeField && !hasAuthoritativeMimeType && !mediaElement) ? { mimeType: existing.mimeType } : {}),
         };
       }
       authoritativeFields.set(url.href, {
