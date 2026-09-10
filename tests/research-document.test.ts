@@ -38,6 +38,16 @@ test('academic document reader requires an explicit format for ZIP containers', 
   assert.throws(() => extractDocumentBytes(zip, 'auto'), /format="docx"/);
 });
 
+test('academic document reader extracts DOCX footnotes and endnotes', () => {
+  const docx = zipSync({
+    'word/document.xml': strToU8('<w:document><w:body><w:p><w:t>Body evidence.</w:t></w:p></w:body></w:document>'),
+    'word/footnotes.xml': strToU8('<w:footnotes><w:footnote><w:p><w:t>Footnote citation.</w:t></w:p></w:footnote></w:footnotes>'),
+    'word/endnotes.xml': strToU8('<w:endnotes><w:endnote><w:p><w:t>Endnote evidence.</w:t></w:p></w:endnote></w:endnotes>'),
+  });
+  const result = text(extractDocumentBytes(docx, 'docx', 1, 8));
+  assert.match(result.sections.map(section => section.text).join(' '), /Body evidence.*Footnote citation.*Endnote evidence/);
+});
+
 test('academic document reader extracts DOCX paragraphs and EPUB chapters', () => {
   const docx = zipSync({ 'word/document.xml': strToU8('<w:document><w:body><w:p><w:t>Objective</w:t></w:p><w:p><w:t>Study with 80 students.</w:t></w:p></w:body></w:document>') });
   const docxResult = text(extractDocumentBytes(docx, 'docx'));
@@ -125,6 +135,12 @@ test('academic document reader uses the PDF reader page limit', () => {
 test('academic document reader preserves literal entities in plain text', () => {
   const result = text(extractDocumentBytes(Buffer.from('&lt;tag&gt; &#8212;'), 'text'));
   assert.equal(result.sections[0]?.text, '&lt;tag&gt; &#8212;');
+});
+
+test('academic document reader auto-detects well-formed XML roots', () => {
+  const result = text(extractDocumentBytes(Buffer.from('<TEI><p>Repository evidence.</p></TEI>'), 'auto'));
+  assert.equal(result.format, 'xml');
+  assert.match(result.sections[0]!.text, /Repository evidence/);
 });
 
 test('academic document reader detects UTF-16 markup without a content type', () => {
