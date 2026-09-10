@@ -36,7 +36,7 @@ function normalizeWhitespace(value: string): string {
 function htmlText(value: string): string {
   const clean = value.replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '')
     .replace(/<\/?(?:article|section|div|p|br|li|h[1-6]|table|tr|blockquote)\b[^>]*>/gi, '\n');
-  return normalizeText(clean.replace(/<[^>]+>/g, ' '));
+  return normalizeText(clean.replace(/<[^>]+>/g, ''));
 }
 
 function xmlText(value: string): string {
