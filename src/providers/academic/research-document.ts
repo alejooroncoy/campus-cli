@@ -170,6 +170,8 @@ function splitSections(text: string, startSection: number, sectionCount: number)
 function declaredEncoding(bytes: Uint8Array, contentType: string): string {
   // A byte-order mark is part of the document bytes and takes precedence over
   // stale transport metadata, especially for UTF-16 markup.
+  if (bytes[0] === 0xff && bytes[1] === 0xfe && bytes[2] === 0 && bytes[3] === 0) return 'utf-32le';
+  if (bytes[0] === 0 && bytes[1] === 0 && bytes[2] === 0xfe && bytes[3] === 0xff) return 'utf-32be';
   if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) return 'utf-8';
   if (bytes[0] === 0xff && bytes[1] === 0xfe) return 'utf-16le';
   if (bytes[0] === 0xfe && bytes[1] === 0xff) return 'utf-16be';
@@ -180,11 +182,17 @@ function declaredEncoding(bytes: Uint8Array, contentType: string): string {
   const prefix = Buffer.from(bytes.subarray(0, 1000)).toString('latin1');
   const xmlEncoding = prefix.match(/<\?xml\s+[^>]*encoding\s*=\s*[\"']([^\"']+)[\"']/i)?.[1];
   if (xmlEncoding) return xmlEncoding.toLowerCase();
-  // HTML documents often carry their only charset declaration in a meta tag.
-  // Inspect only the opening bytes before decoding the full public document.
-  for (const tag of prefix.match(/<meta\b[^>]*>/gi) ?? []) {
-    const metaEncoding = tag.match(/\bcharset\s*=\s*[\"']?([^\s\"'>;]+)/i)?.[1];
-    if (metaEncoding) return metaEncoding.toLowerCase();
+  // Only real metadata attributes select an HTML charset. Values inside a
+  // description (or a comment) must remain ordinary document evidence.
+  const htmlPrefix = prefix.replace(/<!--[\s\S]*?-->/g, '');
+  for (const tag of htmlPrefix.match(/<meta\b[^>]*>/gi) ?? []) {
+    const direct = xmlAttribute(tag, 'charset');
+    if (direct) return direct.toLowerCase();
+    if (xmlAttribute(tag, 'http-equiv')?.toLowerCase() === 'content-type') {
+      const content = xmlAttribute(tag, 'content');
+      const metaEncoding = content?.match(/(?:^|;)\s*charset\s*=\s*["']?([^;\s"']+)/i)?.[1];
+      if (metaEncoding) return metaEncoding.toLowerCase();
+    }
   }
   return 'utf-8';
 }
