@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { decodeHTML } from 'entities';
-import { strFromU8, unzipSync } from 'fflate';
+import { unzipSync } from 'fflate';
 import { z } from 'zod';
 import { researchDownload } from './research-http.js';
 import { readResearchPdfBytes } from './research-pdf.js';
@@ -43,10 +43,14 @@ function xmlText(value: string): string {
   return htmlText(value.replace(/<[^>]+(?:\/|)>/g, tag => /<(?:p|title|sec|abstract|body|article-title|chapter)\b/i.test(tag) ? '\n\n' : ' '));
 }
 
+function archiveXmlText(bytes: Uint8Array): string {
+  return decodeTextDocument(bytes, 'application/xml');
+}
+
 function docxText(files: Record<string, Uint8Array>): string {
   const body = files['word/document.xml'];
   if (!body) throw new Error('El DOCX no contiene word/document.xml.');
-  return normalizeText(strFromU8(body).replace(/<w:p\b[^>]*>/g, '\n\n').replace(/<w:tab\b[^>]*\/>/g, '\t')
+  return normalizeText(archiveXmlText(body).replace(/<w:p\b[^>]*>/g, '\n\n').replace(/<w:tab\b[^>]*\/>/g, '\t')
     .replace(/<w:br\b[^>]*\/>/g, '\n').replace(/<w:t\b[^>]*>/g, '').replace(/<\/w:t>/g, '')
     .replace(/<[^>]+>/g, ' '));
 }
@@ -59,12 +63,12 @@ function xmlAttribute(tag: string, name: string): string | null {
 function epubSpineNames(files: Record<string, Uint8Array>): string[] {
   const container = files['META-INF/container.xml'];
   if (!container) return [];
-  const containerXml = strFromU8(container);
-  const rawRootfile = xmlAttribute(containerXml.match(/<rootfile\b[^>]*>/i)?.[0] ?? '', 'full-path');
+  const containerXml = archiveXmlText(container);
+  const rawRootfile = xmlAttribute(containerXml.match(/<(?:[a-z][\w.-]*:)?rootfile\b[^>]*>/i)?.[0] ?? '', 'full-path');
   let rootfile:string|null;
   try { rootfile=rawRootfile?decodeURIComponent(decodeEntities(rawRootfile)).replace(/\\/g,'/'):null; } catch { return []; }
   if (!rootfile || !files[rootfile]) return [];
-  const opf = strFromU8(files[rootfile]);
+  const opf = archiveXmlText(files[rootfile]);
   const manifest = new Map<string, string>();
   for (const tag of opf.match(/<(?:[a-z][\w.-]*:)?item\b[^>]*>/gi) ?? []) {
     const id = xmlAttribute(tag, 'id');
@@ -93,7 +97,7 @@ function epubText(files: Record<string, Uint8Array>): string {
   const names = epubSpineNames(files);
   const chapterNames = names.length ? names : Object.keys(files).filter(name => /\.(?:xhtml|html|htm)$/i.test(name)).sort();
   if (!chapterNames.length) throw new Error('El EPUB no contiene capítulos HTML legibles.');
-  return chapterNames.map(name => htmlText(strFromU8(files[name]))).filter(Boolean).join('\n\n');
+  return chapterNames.map(name => htmlText(archiveXmlText(files[name]))).filter(Boolean).join('\n\n');
 }
 
 function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
@@ -128,7 +132,7 @@ function splitSections(text: string, startSection: number, sectionCount: number)
   const sections: Section[] = [];
 
   const addChunk = (value: string) => {
-    const chunk = normalizeText(value);
+    const chunk = normalizeWhitespace(value);
     if (!chunk) return;
     const lines = chunk.split('\n');
     const first = lines[0]!;

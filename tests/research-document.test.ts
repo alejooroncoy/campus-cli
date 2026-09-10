@@ -22,7 +22,7 @@ test('academic document reader decodes named and numeric character references', 
 });
 
 test('academic document reader preserves literal entities in archive text', () => {
-  const docx = zipSync({ 'word/document.xml': strToU8('<w:document><w:body><w:p><w:t>&amp;amp;lt;</w:t></w:p></w:body></w:document>') });
+  const docx = zipSync({ 'word/document.xml': strToU8('<w:document><w:body><w:p><w:t>&amp;lt;</w:t></w:p></w:body></w:document>') });
   const result = text(extractDocumentBytes(docx, 'docx'));
   assert.equal(result.sections[0]?.text, '&lt;');
 });
@@ -55,7 +55,7 @@ test('academic document reader pages long DOCX files by paragraph', () => {
 
 test('academic document reader follows namespace-prefixed EPUB spine order', () => {
   const epub = zipSync({
-    'META-INF/container.xml': strToU8('<container><rootfiles><rootfile full-path="OPS/book.opf"/></rootfiles></container>'),
+    'META-INF/container.xml': strToU8('<container><rootfiles><ocf:rootfile full-path="OPS/book.opf"/></rootfiles></container>'),
     'OPS/book.opf': strToU8('<opf:package><opf:manifest><opf:item id="two" href="two.xhtml"/><opf:item id="one" href="one.xhtml"/></opf:manifest><opf:spine><opf:itemref idref="two"/><opf:itemref idref="one"/></opf:spine></opf:package>'),
     'OPS/one.xhtml': strToU8('<html><body><p>First by spine.</p></body></html>'),
     'OPS/two.xhtml': strToU8('<html><body><p>Second by spine.</p></body></html>'),
