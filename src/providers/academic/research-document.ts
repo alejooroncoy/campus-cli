@@ -213,7 +213,8 @@ function detectedFormat(bytes: Uint8Array, contentType: string, requested: z.inf
   if (requested !== 'auto') return requested;
   const binaryPrefix = Buffer.from(bytes.subarray(0, 8)).toString('utf8');
   if (binaryPrefix.startsWith('%PDF-')) return 'pdf' as const;
-  if (binaryPrefix.startsWith('PK')) throw new Error('El archivo ZIP puede ser DOCX o EPUB. Indica format="docx" o format="epub".');
+  const zipSignature = bytes[0] === 0x50 && bytes[1] === 0x4b && ((bytes[2] === 0x03 && bytes[3] === 0x04) || (bytes[2] === 0x05 && bytes[3] === 0x06) || (bytes[2] === 0x07 && bytes[3] === 0x08));
+  if (zipSignature) throw new Error('El archivo ZIP puede ser DOCX o EPUB. Indica format="docx" o format="epub".');
   // Sniff the decoded text so a UTF-16 BOM does not turn markup into a plain
   // text document merely because its byte prefix contains NUL characters.
   const prefix = decodeTextDocument(bytes, contentType).slice(0, 500);

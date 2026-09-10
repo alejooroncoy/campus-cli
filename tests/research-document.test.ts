@@ -27,6 +27,12 @@ test('academic document reader preserves literal entities in archive text', () =
   assert.equal(result.sections[0]?.text, '&lt;');
 });
 
+test('academic document reader keeps ordinary PK-prefixed text', () => {
+  const result = text(extractDocumentBytes(Buffer.from('PK modeling is ordinary text.'), 'auto', 1, 1, 'text/plain'));
+  assert.equal(result.format, 'text');
+  assert.match(result.sections[0]!.text, /PK modeling/);
+});
+
 test('academic document reader requires an explicit format for ZIP containers', () => {
   const zip = zipSync({ 'word/document.xml': strToU8('<w:document/>') });
   assert.throws(() => extractDocumentBytes(zip, 'auto'), /format="docx"/);
