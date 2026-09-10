@@ -92,3 +92,12 @@ test('academic document reader pages long JATS paragraphs without losing later e
 test('academic document reader uses the PDF reader page limit', () => {
   assert.throws(() => documentInput.parse({ url: 'https://example.edu/study.pdf', sectionCount: 21 }));
 });
+
+
+test('academic document reader honors declared public text encodings', () => {
+  const latin = text(extractDocumentBytes(Buffer.from([0x43, 0x61, 0x66, 0xe9]), 'text', 1, 1, 'text/plain; charset=windows-1252'));
+  assert.equal(latin.sections[0].text, 'Café');
+  const xml = text(extractDocumentBytes(Buffer.from('<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><article><p>Perú</p></article>', 'latin1'), 'xml'));
+  assert.match(xml.sections[0].text, /Perú/);
+  assert.throws(() => extractDocumentBytes(Buffer.from('text'), 'text', 1, 1, 'text/plain; charset=shift_jis'), /codificación no compatible/);
+});

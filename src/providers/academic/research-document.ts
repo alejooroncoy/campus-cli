@@ -134,6 +134,30 @@ function splitSections(text: string, startSection: number, sectionCount: number)
   return { totalSections: all.length, sections, nextSection: last < all.length ? last + 1 : null };
 }
 
+function declaredEncoding(bytes: Uint8Array, contentType: string): string {
+  const charset = contentType.match(/(?:^|;)\s*charset\s*=\s*[\"']?([^;\s\"']+)/i)?.[1];
+  if (charset) return charset.toLowerCase();
+  if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) return 'utf-8';
+  if (bytes[0] === 0xff && bytes[1] === 0xfe) return 'utf-16le';
+  if (bytes[0] === 0xfe && bytes[1] === 0xff) return 'utf-16be';
+  // XML declarations are ASCII-compatible at their beginning, so this probe
+  // is safe before decoding the complete document with its declared charset.
+  const prefix = Buffer.from(bytes.subarray(0, 1000)).toString('latin1');
+  return prefix.match(/<\?xml\s+[^>]*encoding\s*=\s*[\"']([^\"']+)[\"']/i)?.[1]?.toLowerCase() ?? 'utf-8';
+}
+
+function decodeTextDocument(bytes: Uint8Array, contentType: string): string {
+  const declared = declaredEncoding(bytes, contentType).replace(/_/g, '-');
+  const aliases: Record<string, string> = {
+    'utf8': 'utf-8', 'utf-8': 'utf-8',
+    'utf16': 'utf-16le', 'utf-16le': 'utf-16le', 'utf-16be': 'utf-16be',
+    'latin1': 'iso-8859-1', 'iso-8859-1': 'iso-8859-1', 'windows-1252': 'windows-1252',
+  };
+  const encoding = aliases[declared];
+  if (!encoding) throw new Error(`El documento declara una codificación no compatible (${declared}).`);
+  return new TextDecoder(encoding).decode(bytes);
+}
+
 function detectedFormat(bytes: Uint8Array, contentType: string, requested: z.infer<typeof documentFormat>) {
   if (requested !== 'auto') return requested;
   const prefix = Buffer.from(bytes.subarray(0, 8)).toString('utf8');
@@ -149,7 +173,7 @@ export function extractDocumentBytes(bytes: Uint8Array, requested: z.infer<typeo
   if (bytes.length > MAX_DOCUMENT_BYTES) throw new Error('El documento supera el tamaño permitido (20 MB).');
   const format = detectedFormat(bytes, contentType, requested);
   if (format === 'pdf') return { format: 'pdf', delegated: true };
-  const raw = format === 'docx' || format === 'epub' ? archiveText(bytes, format) : strFromU8(bytes);
+  const raw = format === 'docx' || format === 'epub' ? archiveText(bytes, format) : decodeTextDocument(bytes, contentType);
   const text = format === 'html' ? htmlText(raw) : format === 'xml' || format === 'jats' ? xmlText(raw) : normalizeText(raw);
   // Preserve the full section index so a later request can reach material
   // after the response-size boundary (for example, methods or references).

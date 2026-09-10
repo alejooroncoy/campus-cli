@@ -12,6 +12,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const lockfile = require('proper-lockfile');
 const state = crypto.randomBytes(32).toString('hex');
 const redirect = process.env.MENDELEY_REDIRECT_URI || 'http://localhost:8765/mendeley/callback';
 const target = new URL(redirect);
@@ -34,8 +35,13 @@ const server = http.createServer(async (req, res) => {
     if (!t.access_token || !t.refresh_token) throw new Error('Incomplete OAuth response');
     const data = {access_token:t.access_token,refresh_token:t.refresh_token,expires_at:Date.now()+t.expires_in*1000};
     fs.mkdirSync(path.dirname(tokenFile),{recursive:true,mode:0o700});
-    const tmp=tokenFile+'.'+crypto.randomUUID()+'.tmp';
-    fs.writeFileSync(tmp,JSON.stringify(data),{mode:0o600,flag:'wx'}); fs.renameSync(tmp,tokenFile);
+    // Share the exact lock and retry policy used by LocalMendeleyTokenStore:
+    // a browser callback must not overwrite a concurrently refreshed token.
+    const release = await lockfile.lock(tokenFile, {realpath:false,stale:30_000,update:5_000,retries:{retries:40,minTimeout:50,maxTimeout:250,randomize:true}});
+    try {
+      const tmp=tokenFile+'.'+crypto.randomUUID()+'.tmp';
+      fs.writeFileSync(tmp,JSON.stringify(data),{mode:0o600,flag:'wx'}); fs.renameSync(tmp,tokenFile);
+    } finally { await release(); }
     res.end('Mendeley conectado a Campus. Puedes cerrar esta pestana.');
     console.log('Mendeley connected; tokens saved privately.');
     clearTimeout(timer); server.close();
