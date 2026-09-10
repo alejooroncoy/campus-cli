@@ -129,7 +129,7 @@ function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
       if (format === 'epub' && file.originalSize > MAX_ARCHIVE_TEXT_BYTES)
         throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
       selected++;
-      if (format === 'docx') originalBytes += file.originalSize;
+      originalBytes += file.originalSize;
       if (originalBytes > MAX_ARCHIVE_TEXT_BYTES) {
         throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
       }
