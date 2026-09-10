@@ -76,7 +76,9 @@ test('concurrent expired-token reads share one rotating-token refresh',async()=>
   return json([]);
  });
  await Promise.all([s.list(),s.list()]);
- assert.equal(loads,2);assert.equal(refreshes,1);
+ // The refresher reloads inside the lock so another process cannot rotate the
+ // token between the preflight check and the OAuth exchange.
+ assert.equal(loads,3);assert.equal(refreshes,1);
 });
 test('authorization fails before library operations and save is annotated as a write',async()=>{
  const tools=new Map<string,any>();registerMendeleyTools({registerTool:(n:any,s:any,h:any)=>tools.set(n,{s,h})} as any,{authorize:()=>false,service:{} as any});

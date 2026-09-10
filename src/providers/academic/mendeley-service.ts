@@ -2,6 +2,7 @@ import { readFile, mkdir, writeFile, rename } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { homedir } from 'node:os';
 import { randomUUID } from 'node:crypto';
+import lockfile from 'proper-lockfile';
 import { z } from 'zod';
 import { normalizeDoi } from './research-service.js';
 import { researchJson } from './research-http.js';
@@ -11,7 +12,7 @@ const mime = 'application/vnd.mendeley-document.1+json';
 const groupMime = 'application/vnd.mendeley-group.1+json';
 const tokensSchema = z.object({ access_token: z.string().min(1), refresh_token: z.string().min(1), expires_at: z.number() });
 export type MendeleyTokens = z.infer<typeof tokensSchema>;
-export interface MendeleyTokenStore { load(): Promise<MendeleyTokens>; save(tokens: MendeleyTokens): Promise<void> }
+export interface MendeleyTokenStore { load(): Promise<MendeleyTokens>; save(tokens: MendeleyTokens): Promise<void>; withRefreshLock?<T>(action:()=>Promise<T>):Promise<T> }
 /** For a local single-user process only. Hosted callers must inject a user-specific store. */
 export class LocalMendeleyTokenStore implements MendeleyTokenStore {
   constructor(private file = process.env.MENDELEY_TOKEN_FILE || join(homedir(), '.campus-cli', 'mendeley-tokens.json')) {}
@@ -21,6 +22,10 @@ export class LocalMendeleyTokenStore implements MendeleyTokenStore {
     const temp = this.file + '.' + randomUUID() + '.tmp';
     await writeFile(temp, JSON.stringify(tokensSchema.parse(tokens)), { mode: 0o600, flag: 'wx' });
     await rename(temp, this.file);
+  }
+  async withRefreshLock<T>(action:()=>Promise<T>):Promise<T> {
+    const release=await lockfile.lock(this.file,{realpath:false,stale:30_000,update:5_000,retries:{retries:40,minTimeout:50,maxTimeout:250,randomize:true}});
+    try{return await action();}finally{await release();}
   }
 }
 const documentSchema = z.object({ id:z.string(), title:z.string().optional(), identifiers:z.object({doi:z.string().optional()}).passthrough().optional() }).passthrough();
@@ -45,16 +50,19 @@ export class MendeleyService {
     // tokens. Reuse its promise so a rotating refresh token is never spent twice.
     if(this.refresh) return this.refresh;
     if(!force && t.expires_at>Date.now()+60000) return t.access_token;
-    this.refresh=(async()=>{
+    const renew=async()=>{
+      const current=await this.store.load();
+      if(!force && current.expires_at>Date.now()+60000) return current.access_token;
       const id=this.env.MENDELEY_CLIENT_ID,secret=this.env.MENDELEY_CLIENT_SECRET;
       if(!id||!secret) throw new Error('Faltan credenciales de la aplicación Mendeley.');
       let r:Response;
-      try { r=await this.request(origin+'/oauth/token',{method:'POST',redirect:'error',signal:AbortSignal.timeout(20000),headers:{Authorization:'Basic '+Buffer.from(id+':'+secret).toString('base64'),'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',refresh_token:t.refresh_token,redirect_uri:this.env.MENDELEY_REDIRECT_URI||'http://localhost:8765/mendeley/callback'})}); } catch { throw new Error('No se pudo renovar la conexión Mendeley.'); }
+      try { r=await this.request(origin+'/oauth/token',{method:'POST',redirect:'error',signal:AbortSignal.timeout(20000),headers:{Authorization:'Basic '+Buffer.from(id+':'+secret).toString('base64'),'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',refresh_token:current.refresh_token,redirect_uri:this.env.MENDELEY_REDIRECT_URI||'http://localhost:8765/mendeley/callback'})}); } catch { throw new Error('No se pudo renovar la conexión Mendeley.'); }
       if(!r.ok) throw new Error('Mendeley OAuth HTTP '+r.status+'; reconecta tu cuenta.');
       const n=z.object({access_token:z.string().min(1),refresh_token:z.string().min(1).optional(),expires_in:z.number().positive()}).parse(await r.json());
-      await this.store.save({access_token:n.access_token,refresh_token:n.refresh_token||t.refresh_token,expires_at:Date.now()+n.expires_in*1000});
+      await this.store.save({access_token:n.access_token,refresh_token:n.refresh_token||current.refresh_token,expires_at:Date.now()+n.expires_in*1000});
       return n.access_token;
-    })();
+    };
+    this.refresh=this.store.withRefreshLock?this.store.withRefreshLock(renew):renew();
     try {return await this.refresh;} finally {this.refresh=undefined;}
   }
   private async api(url:string,method='GET',body?:unknown,retry=true):Promise<{data:unknown,next:string|null}> {
