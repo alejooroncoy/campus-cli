@@ -101,3 +101,14 @@ test('academic document reader honors declared public text encodings', () => {
   assert.match(xml.sections[0].text, /Perú/);
   assert.throws(() => extractDocumentBytes(Buffer.from('text'), 'text', 1, 1, 'text/plain; charset=shift_jis'), /codificación no compatible/);
 });
+
+
+test('academic document reader honors HTML meta charset declarations', () => {
+  const html = Buffer.from('<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\"></head><body><p>Café</p></body></html>', 'latin1');
+  const result = text(extractDocumentBytes(html, 'html'));
+  assert.match(result.sections[0]!.text, /Café/);
+});
+
+test('academic document reader limits pathological section counts without materializing them', () => {
+  assert.throws(() => extractDocumentBytes(Buffer.from('x\n\n'.repeat(50_001)), 'text'), /demasiadas secciones/);
+});

@@ -7,6 +7,7 @@ import { readResearchPdfBytes } from './research-pdf.js';
 const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024;
 const MAX_ARCHIVE_FILES = 200;
 const MAX_ARCHIVE_TEXT_BYTES = 4 * 1024 * 1024;
+const MAX_DOCUMENT_SECTIONS = 50_000;
 
 export const documentFormat = z.enum(['auto', 'html', 'text', 'markdown', 'xml', 'jats', 'docx', 'epub']);
 export const documentInput = z.object({
@@ -119,19 +120,43 @@ function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
 }
 
 function splitSections(text: string, startSection: number, sectionCount: number): Omit<TextDocument, 'format'> {
-  const chunks = text.split(/\n{2,}/).map(normalizeText).filter(Boolean);
-  if (!chunks.length) throw new Error('El documento no contiene texto legible. Puede requerir OCR o un formato compatible.');
-  const all = chunks.flatMap(chunk => {
+  let totalSections = 0;
+  const sections: Section[] = [];
+
+  const addChunk = (value: string) => {
+    const chunk = normalizeText(value);
+    if (!chunk) return;
     const lines = chunk.split('\n');
-    const first = lines[0];
+    const first = lines[0]!;
     const heading = first.length <= 160 && (lines.length > 1 || /^\d+(?:\.\d+)*\s+/.test(first)) ? first : null;
     const content = heading ? lines.slice(1).join('\n').trim() : chunk;
-    return Array.from({length:Math.ceil(content.length/12_000)||1},(_, index)=>({section:0,heading:index===0?heading:null,text:content.slice(index*12_000,(index+1)*12_000),truncated:content.length>(index+1)*12_000}));
-  }).map((section,index)=>({...section,section:index+1}));
-  if (startSection > all.length) throw new Error('La sección inicial supera el contenido disponible.');
-  const sections = all.slice(startSection - 1, startSection - 1 + sectionCount);
+    const pieces = Math.ceil(content.length / 12_000) || 1;
+    for (let index = 0; index < pieces; index++) {
+      totalSections++;
+      if (totalSections > MAX_DOCUMENT_SECTIONS) {
+        throw new Error('El documento contiene demasiadas secciones para analizarlo de forma segura.');
+      }
+      if (totalSections >= startSection && sections.length < sectionCount) {
+        sections.push({ section: totalSections, heading: index === 0 ? heading : null,
+          text: content.slice(index * 12_000, (index + 1) * 12_000),
+          truncated: content.length > (index + 1) * 12_000 });
+      }
+    }
+  };
+
+  // Stream chunks from the source string. Do not materialize every paragraph
+  // and fragment before selecting the requested page.
+  const separators = /\n{2,}/g;
+  let cursor = 0;
+  for (let match = separators.exec(text); match; match = separators.exec(text)) {
+    addChunk(text.slice(cursor, match.index));
+    cursor = match.index + match[0].length;
+  }
+  addChunk(text.slice(cursor));
+  if (!totalSections) throw new Error('El documento no contiene texto legible. Puede requerir OCR o un formato compatible.');
+  if (startSection > totalSections) throw new Error('La sección inicial supera el contenido disponible.');
   const last = sections.at(-1)!.section;
-  return { totalSections: all.length, sections, nextSection: last < all.length ? last + 1 : null };
+  return { totalSections, sections, nextSection: last < totalSections ? last + 1 : null };
 }
 
 function declaredEncoding(bytes: Uint8Array, contentType: string): string {
@@ -143,7 +168,15 @@ function declaredEncoding(bytes: Uint8Array, contentType: string): string {
   // XML declarations are ASCII-compatible at their beginning, so this probe
   // is safe before decoding the complete document with its declared charset.
   const prefix = Buffer.from(bytes.subarray(0, 1000)).toString('latin1');
-  return prefix.match(/<\?xml\s+[^>]*encoding\s*=\s*[\"']([^\"']+)[\"']/i)?.[1]?.toLowerCase() ?? 'utf-8';
+  const xmlEncoding = prefix.match(/<\?xml\s+[^>]*encoding\s*=\s*[\"']([^\"']+)[\"']/i)?.[1];
+  if (xmlEncoding) return xmlEncoding.toLowerCase();
+  // HTML documents often carry their only charset declaration in a meta tag.
+  // Inspect only the opening bytes before decoding the full public document.
+  for (const tag of prefix.match(/<meta\b[^>]*>/gi) ?? []) {
+    const metaEncoding = tag.match(/\bcharset\s*=\s*[\"']?([^\s\"'>;]+)/i)?.[1];
+    if (metaEncoding) return metaEncoding.toLowerCase();
+  }
+  return 'utf-8';
 }
 
 function decodeTextDocument(bytes: Uint8Array, contentType: string): string {
