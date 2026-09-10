@@ -74,13 +74,12 @@ export async function researchDownload(value: string, options: {
       ]);
       if (!addresses.length) throw new Error('No se pudo resolver el proveedor.');
       addresses.forEach(item => assertPublicAddress(item.address));
-      const pinned = addresses[0];
       const response = await new Promise<{ bytes: Buffer; status: number; location?: string; contentType: string }>((resolve, reject) => {
         const req = request(url, {
           method: 'GET', signal: deadline, agent: false,
           // Pin the validated address to prevent DNS rebinding between check and connect.
           lookup: (_host, options, callback) => options.all
-            ? callback(null, [pinned]) : callback(null, pinned.address, pinned.family),
+            ? callback(null, addresses) : callback(null, addresses[0].address, addresses[0].family),
           headers: { 'User-Agent': 'campus-cli-academic-research/1.0 (+https://campuscli.com)',
             Accept: 'application/json, application/pdf;q=0.9', 'Accept-Encoding': 'identity', ...options.headers },
         }, res => {
