@@ -19,9 +19,31 @@ import {
 import { listAssignments, listPublishedAssignments, listAttempts, submitAttempt, uploadFile, getAttemptFiles } from './api/assignments.js';
 import { track } from '../../analytics.js';
 import { downloadRoot, resolveDownloadDir, safeNewFilePath, writeNamedDownload } from '../../security/files.js';
+import { extractEmbeddedFiles, type EmbeddedFile } from './embedded-files.js';
+import { attachmentMediaResourceLink, resolvedEmbeddedMediaResourceLink } from './resource-links.js';
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB
 const MCP_MAX_PARALLELISM = 5;
+
+function rethrowExpiredSession(error: unknown): null {
+  if ((error as { code?: unknown })?.code === 'SESSION_EXPIRED') throw error;
+  return null;
+}
+
+export function mergeAttachmentResponse(
+  attachmentData: unknown,
+  embeddedFiles: EmbeddedFile[],
+  note?: string,
+): unknown {
+  const additions = {
+    ...(embeddedFiles.length ? { embeddedFiles } : {}),
+    ...(note ? { note } : {}),
+  };
+  if (Array.isArray(attachmentData)) {
+    return Object.keys(additions).length ? { results: attachmentData, ...additions } : attachmentData;
+  }
+  return { ...(attachmentData as Record<string, unknown>), ...additions };
+}
 
 async function mapWithConcurrency<T, U>(
   items: readonly T[],
@@ -391,7 +413,7 @@ export function registerBlackboardTools(server: McpServer) {
   registerTrackedTool(
     'blackboard_list_attachments',
     {
-      description: 'List file attachments for a course content item. Works for x-bb-file (REST API) and x-bb-document (embedded files in body HTML).',
+      description: 'List file attachments for a course content item. Works for x-bb-file and files embedded in document or assignment HTML. Audio and video are additionally returned as MCP resource_link blocks so capable clients can process them directly; attachment metadata remains available as a download fallback.',
       inputSchema: {
         courseId: blackboardId('courseId').describe('Blackboard course ID'),
         contentId: blackboardId('contentId').describe('Content item ID'),
@@ -400,12 +422,19 @@ export function registerBlackboardTools(server: McpServer) {
     async ({ courseId, contentId }) => {
       const { client } = await getClient();
 
-      // Try standard REST attachments endpoint first (works for x-bb-file)
+      // Read standard REST attachments first, then merge any media embedded in the
+      // content HTML. An assignment can contain both kinds at once.
+      let attachmentData: any;
+      let attachments: any[] | undefined;
       try {
         const r = await client.get(
           `/learn/api/public/v1/courses/${courseId}/contents/${contentId}/attachments`
         );
-        return { content: [{ type: 'text', text: JSON.stringify(r.data) }] };
+        attachmentData = r.data;
+        attachments = Array.isArray(r.data?.results) ? r.data.results : Array.isArray(r.data) ? r.data : undefined;
+        if (attachments === undefined) {
+          return { content: [{ type: 'text', text: JSON.stringify(attachmentData) }] };
+        }
       } catch (err: any) {
         if (err.response?.status !== 400 && err.response?.status !== 404) throw err;
       }
@@ -414,36 +443,42 @@ export function registerBlackboardTools(server: McpServer) {
       const r = await client.get(
         `/learn/api/public/v1/courses/${courseId}/contents/${contentId}`
       );
-      const body: string = r.data?.body ?? '';
+      const body: string = [r.data?.body, r.data?.contentHandler?.instructions]
+        .filter((value): value is string => typeof value === 'string').join('\n');
+      const files = extractEmbeddedFiles(body);
+      const embeddedLinks = (await mapWithConcurrency(files, MCP_MAX_PARALLELISM, async file => {
+        try { return await resolvedEmbeddedMediaResourceLink(client, file); } catch (error) { return rethrowExpiredSession(error); }
+      })).filter((link): link is NonNullable<typeof link> => Boolean(link));
 
-      // Extract <a> tags with data-bbfile — capture both the JSON metadata and the href (signed download URL)
-      // Handle both attribute orderings: data-bbfile...href and href...data-bbfile
-      const filePattern = /data-bbfile="([^"]+)"[^<]*?href="([^"]+)"|href="([^"]+)"[^<]*?data-bbfile="([^"]+)"/g;
-      const anchorMatches = [...body.matchAll(filePattern)];
-      const files = anchorMatches.map((m) => {
-        const bbfileRaw = m[1] ?? m[4];
-        const hrefRaw   = m[2] ?? m[3];
-        try {
-          const meta = JSON.parse(bbfileRaw.replace(/&quot;/g, '"'));
-          const downloadUrl = hrefRaw ? hrefRaw.replace(/&amp;/g, '&') : (meta.resourceUrl ?? null);
-          return {
-            type: 'embedded',
-            displayName: meta.displayName ?? meta.linkName ?? 'unknown',
-            mimeType: meta.mimeType ?? 'application/octet-stream',
-            downloadUrl,
-          };
-        } catch {
-          return null;
-        }
-      }).filter(Boolean);
+      if (attachments && attachments.length > 0) {
+        const attachmentLinks = (await mapWithConcurrency(attachments, MCP_MAX_PARALLELISM, async (attachment: any) => {
+          try { return await attachmentMediaResourceLink(client, courseId, contentId, attachment); } catch (error) { return rethrowExpiredSession(error); }
+        })).filter((link): link is NonNullable<typeof link> => Boolean(link));
+        const links = [...attachmentLinks, ...embeddedLinks];
+        const note = attachmentLinks.length && embeddedLinks.length
+          ? 'Multimedia is also returned as resource_link; use blackboard_download_attachment with the REST attachment id, or blackboard_download_file_url with an embeddedFiles downloadUrl.'
+          : attachmentLinks.length
+            ? 'Multimedia is also returned as resource_link; use blackboard_download_attachment with the attachment id if the client cannot process it.'
+            : 'Multimedia is also returned as resource_link; use blackboard_download_file_url with an embeddedFiles downloadUrl if the client cannot process it.';
+        return { content: [
+          { type: 'text', text: JSON.stringify(mergeAttachmentResponse(
+            attachmentData,
+            files,
+            links.length ? note : undefined,
+          )) },
+          ...links,
+        ] };
+      }
 
       return {
-        content: [{
-          type: 'text',
-          text: JSON.stringify(
-            { type: 'embedded_files', note: 'Pass downloadUrl as attachmentId to blackboard_download_attachment', results: files }
-          ),
-        }],
+        content: [
+          { type: 'text', text: JSON.stringify({
+            type: 'embedded_files',
+            note: embeddedLinks.length ? 'Multimedia is also returned as resource_link; use blackboard_download_file_url with an embedded file downloadUrl if the client cannot process it.' : 'Use blackboard_download_file_url with an embedded file downloadUrl.',
+            results: files,
+          }) },
+          ...embeddedLinks,
+        ],
       };
     }
   );

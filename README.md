@@ -325,7 +325,7 @@ Las herramientas de Aula Virtual usan el prefijo `blackboard_`; `banner_get_week
 | `blackboard_list_assignments` | Tareas con fechas y notas |
 | `blackboard_list_attempts` | Historial de entregas |
 | `blackboard_get_grades` | Reporte de notas |
-| `blackboard_list_attachments` | Archivos adjuntos |
+| `blackboard_list_attachments` | Archivos adjuntos; los audios y videos también se entregan como `resource_link` para clientes compatibles |
 | `blackboard_download_attachment` | Descargar archivo dentro de `~/Downloads/campus-cli` |
 | `blackboard_upload_attempt_file` | Subir un archivo local; el cliente MCP pide confirmación directa |
 | `blackboard_save_attempt_draft` | Guardar texto/archivos en un intento SIN enviarlo (queda abierto para seguir editando) |

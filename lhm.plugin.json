@@ -266,7 +266,7 @@
       "name": "blackboard_download_attachment"
     },
     {
-      "description": "List file attachments for a course content item. Works for x-bb-file (REST API) and x-bb-document (embedded files in body HTML).",
+      "description": "List file attachments for a course content item. Works for x-bb-file and files embedded in document or assignment HTML. Audio and video are additionally returned as MCP resource_link blocks so capable clients can process them directly; attachment metadata remains available as a download fallback.",
       "execution": {
         "taskSupport": "forbidden"
       },
