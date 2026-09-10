@@ -38,7 +38,16 @@ const { parentPort, workerData } = require('node:worker_threads');
     for (let n = workerData.startPage; n <= end; n++) {
       const page = await doc.getPage(n);
       const content = await page.getTextContent();
-      const raw = content.items.map(item => 'str' in item ? item.str + (item.hasEOL ? '\\n' : ' ') : '').join('').trim();
+      let raw = '', previous: any;
+      for (const item of content.items) {
+        if (!('str' in item)) continue;
+        const lineChanged = previous && Math.abs(item.transform[5] - previous.transform[5]) > Math.max(item.height, previous.height) * 0.5;
+        const gap = previous ? item.transform[4] - (previous.transform[4] + previous.width) : 0;
+        raw += previous ? (previous.hasEOL || lineChanged ? '\n' : gap > Math.max(1, item.height * 0.15) ? ' ' : '') : '';
+        raw += item.str;
+        previous = item;
+      }
+      raw = raw.trim();
       const limit = Math.min(15000, remaining);
       const text = raw.slice(0, limit);
       remaining -= text.length;
