@@ -47,6 +47,27 @@ function resolveMediaLocation(location: string, requestUrl: string): string {
   return resolved.href;
 }
 
+function hasFileSignature(url: string): boolean {
+  const parsed = new URL(url);
+  return ['ticket', 'signature', 'sig', 'token'].some(key => parsed.searchParams.has(key));
+}
+
+async function resolveSignedMediaLocation(client: AxiosInstance, location: string, requestUrl: string): Promise<string | null> {
+  let uri = resolveMediaLocation(location, requestUrl);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    assertBlackboardFileUrl(uri);
+    if (hasFileSignature(uri)) return uri;
+    const response = await client.get(uri, {
+      responseType: 'stream', maxRedirects: 0, validateStatus: (status) => status >= 200 && status < 400, headers: { Accept: '*/*' },
+    });
+    response.data?.destroy?.();
+    const next = response.headers.location as string | undefined;
+    if (!next) return null;
+    uri = resolveMediaLocation(next, uri);
+  }
+  return null;
+}
+
 /** Resolves an embedded bbcswebdav URL while the student's Blackboard session
  * is available. Raw embedded URLs are session-protected and cannot be used as
  * MCP resource links by a separate client. */
@@ -60,11 +81,10 @@ export async function resolvedEmbeddedMediaResourceLink(
   });
   response.data?.destroy?.();
   const location = response.headers.location as string | undefined;
-  const directUrl = new URL(file.downloadUrl);
-  const hasSignature = ['ticket', 'signature', 'sig', 'token'].some(key => directUrl.searchParams.has(key));
+  const hasSignature = hasFileSignature(file.downloadUrl);
   if (!location && !(response.status >= 200 && response.status < 300 && hasSignature)) return null;
-  const uri = location ? resolveMediaLocation(location, file.downloadUrl) : file.downloadUrl;
-  assertBlackboardFileUrl(uri);
+  const uri = location ? await resolveSignedMediaLocation(client, location, file.downloadUrl) : file.downloadUrl;
+  if (!uri) return null;
   return {
     type: 'resource_link', uri, name: file.displayName, mimeType: file.mimeType,
     description: 'Recurso multimedia de Blackboard. Si el cliente admite este formato, puede analizarlo o transcribirlo; si no, use blackboard_download_file_url con el downloadUrl devuelto por la herramienta.',
@@ -85,8 +105,8 @@ export async function attachmentMediaResourceLink(
   const location = response.headers.location as string | undefined;
   if (!location) return null;
   const requestUrl = new URL(`/learn/api/public/v1/courses/${courseId}/contents/${contentId}/attachments/${attachment.id}/download`, BLACKBOARD_ORIGIN).href;
-  const uri = resolveMediaLocation(location, requestUrl);
-  assertBlackboardFileUrl(uri);
+  const uri = await resolveSignedMediaLocation(client, location, requestUrl);
+  if (!uri) return null;
   return {
     type: 'resource_link', uri,
     name: attachment.fileName ?? attachment.displayName ?? 'Recurso multimedia de Blackboard',

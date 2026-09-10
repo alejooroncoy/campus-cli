@@ -165,16 +165,23 @@ test('keeps a directly served signed embedded media URL', async () => {
 
 test('resolves an attached video without downloading it', async () => {
   let destroyed = false;
-  const client = { get: async () => ({ data: { destroy: () => { destroyed = true; } }, headers: { location: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-8/video.mp4' } }) } as any;
+  const client = { get: async () => ({ data: { destroy: () => { destroyed = true; } }, headers: { location: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-8/video.mp4?ticket=temporary' } }) } as any;
   const link = await attachmentMediaResourceLink(client, '_10_1', '_20_1', { id: '_30_1', fileName: 'Video de Adrián.mp4', mimeType: 'video/mp4', size: 5_996_902 });
   assert.equal(destroyed, true);
   assert.deepEqual(link && { type: link.type, name: link.name, mimeType: link.mimeType, size: link.size }, { type: 'resource_link', name: 'Video de Adrián.mp4', mimeType: 'video/mp4', size: 5_996_902 });
 });
 
-test('resolves relative Blackboard attachment redirects before exposing them', async () => {
+test('follows unsigned Blackboard attachment redirects until the URL is file-scoped', async () => {
+  let calls = 0;
+  const client = { get: async () => ({ data: { destroy() {} }, headers: { location: ++calls === 1 ? '/bbcswebdav/pid-8/video.mp4' : '?ticket=temporary' } }) } as any;
+  const link = await attachmentMediaResourceLink(client, '_10_1', '_20_1', { id: '_30_1', mimeType: 'video/mp4' });
+  assert.equal(link?.uri, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-8/video.mp4?ticket=temporary');
+});
+
+test('does not expose an unsigned attachment redirect as a resource link', async () => {
   const client = { get: async () => ({ data: { destroy() {} }, headers: { location: '/bbcswebdav/pid-8/video.mp4' } }) } as any;
   const link = await attachmentMediaResourceLink(client, '_10_1', '_20_1', { id: '_30_1', mimeType: 'video/mp4' });
-  assert.equal(link?.uri, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-8/video.mp4');
+  assert.equal(link, null);
 });
 
 test('does not resolve ordinary documents as media resource links', async () => {
