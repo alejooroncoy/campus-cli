@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { decodeHTML } from 'entities';
 import { strFromU8, unzipSync } from 'fflate';
 import { z } from 'zod';
 import { researchDownload } from './research-http.js';
@@ -21,8 +22,7 @@ type Section = { section: number; heading: string | null; text: string; truncate
 type TextDocument = { format: Exclude<z.infer<typeof documentFormat>, 'auto'>; totalSections: number; sections: Section[]; nextSection: number | null };
 
 function decodeEntities(value: string): string {
-  return value.replace(/&(?:nbsp|#160);/gi, ' ').replace(/&amp;/gi, '&').replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'");
+  return decodeHTML(value).replace(/\u00a0/g, ' ');
 }
 
 function normalizeText(value: string): string {

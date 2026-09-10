@@ -16,6 +16,11 @@ test('academic document reader extracts bounded HTML sections without scripts', 
   assert.doesNotMatch(result.sections.map(section => section.text).join(' '), /ignore|also-ignore/);
 });
 
+test('academic document reader decodes named and numeric character references', () => {
+  const result = text(extractDocumentBytes(Buffer.from('<p>Garc&iacute;a &ndash; \u03b1 &#8212; &#x3B2;</p>'), 'html'));
+  assert.match(result.sections.map(section => section.text).join(' '), /García – α — β/);
+});
+
 test('academic document reader requires an explicit format for ZIP containers', () => {
   const zip = zipSync({ 'word/document.xml': strToU8('<w:document/>') });
   assert.throws(() => extractDocumentBytes(zip, 'auto'), /format="docx"/);

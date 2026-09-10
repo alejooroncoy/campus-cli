@@ -75,6 +75,7 @@
     "axios": "^1.7.0",
     "chalk": "^6.0.0",
     "commander": "^15.0.0",
+    "entities": "^7.0.1",
     "fflate": "^0.8.3",
     "form-data": "^4.0.5",
     "inquirer": "^14.2.0",
