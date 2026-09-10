@@ -79,6 +79,12 @@ test('later authoritative Blackboard metadata replaces earlier URL inference', (
   assert.equal(files[0]?.mimeType, 'audio/webm');
 });
 
+test('a later name does not overwrite explicit audio media context', () => {
+  const files = extractEmbeddedFiles('<audio src="/bbcswebdav/pid-7/clip.webm"></audio><a href="/bbcswebdav/pid-7/clip.webm" title="Download audio"></a>');
+  assert.equal(files[0]?.displayName, 'Download audio');
+  assert.equal(files[0]?.mimeType, 'audio/webm');
+});
+
 test('infers media type from a direct video URL when Blackboard omits type', () => {
   const files = extractEmbeddedFiles('<video src="/bbcswebdav/pid-9/self-introduction.mp4"></video>');
 
@@ -132,6 +138,12 @@ test('recognizes Blackboard SSO and Microsoft login redirect routes as expired s
     const client = { get: async () => ({ data: { destroy() {} }, headers: { location } }) } as any;
     await assert.rejects(resolvedEmbeddedMediaResourceLink(client, { displayName: 'Self-introduction.mp4', mimeType: 'video/mp4', downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4' }), (error: any) => error?.code === 'SESSION_EXPIRED');
   }
+});
+
+test('does not mistake media filenames for Blackboard login routes', async () => {
+  const client = { get: async () => ({ data: { destroy() {} }, headers: { location: '/bbcswebdav/pid-7/authentication-demo.mp4?ticket=temporary' } }) } as any;
+  const link = await resolvedEmbeddedMediaResourceLink(client, { displayName: 'authentication-demo.mp4', mimeType: 'video/mp4', downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/authentication-demo.mp4' });
+  assert.match(link?.uri ?? '', /authentication-demo\.mp4/);
 });
 
 test('keeps a directly served signed embedded media URL', async () => {

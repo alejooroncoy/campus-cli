@@ -155,7 +155,7 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
         files[existingIndex] = {
           ...file,
           ...(existingAuthority.displayName ? { displayName: existing.displayName } : {}),
-          ...(existingAuthority.mimeType ? { mimeType: existing.mimeType } : {}),
+          ...(existingAuthority.mimeType || (hasNewAuthoritativeField && !hasAuthoritativeMimeType) ? { mimeType: existing.mimeType } : {}),
         };
       }
       authoritativeFields.set(url.href, {

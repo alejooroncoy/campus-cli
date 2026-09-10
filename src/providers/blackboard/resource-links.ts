@@ -41,7 +41,9 @@ function expiredSession(): never {
 function resolveMediaLocation(location: string, requestUrl: string): string {
   const resolved = new URL(location, requestUrl);
   const microsoftLogin = /(?:^|\.)login\.(?:microsoftonline|live)\.com$/i.test(resolved.hostname);
-  if (microsoftLogin || /(?:login|auth|saml|shibboleth|bb-auth-provider)/i.test(resolved.pathname)) expiredSession();
+  const blackboardLogin = /^\/webapps\/(?:login(?:\/|$)|bb-auth-provider-[^/]+\/execute\/(?:shibbolethLogin|samlLogin)(?:\/|$))/i.test(resolved.pathname)
+    || /^\/auth-saml\/saml\/login(?:\/|$)/i.test(resolved.pathname);
+  if (microsoftLogin || blackboardLogin) expiredSession();
   return resolved.href;
 }
 
