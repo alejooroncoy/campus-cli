@@ -1027,10 +1027,87 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
 .plus-access__price { display: grid !important; gap: 6px !important; }
 .plus-access__price span { width: max-content; padding: 4px 8px; border-radius: 999px; background: rgba(255,255,255,.72); color: #376573; font-size: 12px; font-weight: 750; line-height: 1; white-space: nowrap; }
 
+.guide-index {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 48px;
+  margin: 48px 0 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--line);
+}
+.guide-index li {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
+  grid-template-areas:
+    "moment ."
+    "title arrow"
+    "hint .";
+  column-gap: 16px;
+  align-items: start;
+  padding: 26px 0 24px;
+  border-top: 1px solid var(--line);
+}
+.guide-index__moment {
+  grid-area: moment;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.guide-index__moment--enroll { color: #0b5c45; }
+.guide-index__moment--class { color: #0a6a86; }
+.guide-index a {
+  grid-area: title;
+  color: var(--ink);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -.02em;
+}
+.guide-index a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.guide-index p {
+  grid-area: hint;
+  max-width: 38ch;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.guide-index svg {
+  grid-area: arrow;
+  align-self: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  color: #6a8392;
+  transition: color 180ms ease, transform 180ms ease;
+}
+.guide-index li:hover svg,
+.guide-index li:focus-within svg {
+  color: var(--sky);
+  transform: translateX(3px);
+}
+.guide-index a:focus-visible {
+  outline: none;
+}
+.guide-index a:focus-visible::after {
+  outline: 2px solid var(--sky);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
 @media (max-width: 1050px) {
   .hero--text { grid-template-columns: minmax(0, 1fr) minmax(330px, .72fr); gap: 42px; }
   .plus-hero-stage { padding: 18px; }
   .product-picks { grid-template-columns: 1fr; }
+  .guide-index { grid-template-columns: 1fr; gap: 0; }
 }
 @media (max-width: 820px) {
   .hero--text { grid-template-columns: 1fr; min-height: auto; padding-top: 88px; padding-bottom: 40px; }
@@ -1045,10 +1122,17 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
   .plus-access__action { justify-content: space-between; gap: 14px; align-items: center; }
   .plus-access__price { min-width: 108px; }
   .plus-access__action .button { min-height: 44px; padding-inline: 15px; }
+  .guide-index { margin-top: 32px; }
+  .guide-index li { padding: 20px 0 18px; }
+  .guide-index a { font-size: 18px; }
+  .guide-index p { font-size: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .wa-window, .wa-bubble--out, .wa-bubble--in { animation: none; }
+  .guide-index svg { transition: none; }
+  .guide-index li:hover svg,
+  .guide-index li:focus-within svg { transform: none; }
 }
 
 /* A single free-tier price card (Campus Profes has one plan, not a
