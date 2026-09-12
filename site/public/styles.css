@@ -469,8 +469,8 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
   .hero__proof { max-width: 380px; font-size: 13px; }
   .hero__lead-desktop { display: none; }
   .hero__lead-mobile { display: inline; }
-  .hero__actions { width: min(100%, 360px); margin-top: 24px; }
-  .hero__actions .button { min-width: 0; }
+  .hero__actions { width: min(100%, 360px); flex-wrap: wrap; margin-top: 24px; }
+  .hero__actions .button { flex: 1 1 100%; min-width: 0; }
   .hero__actions .text-link { min-height: 44px; justify-content: center; gap: 9px; padding: 0 16px; border: 1px solid #cbdce2; border-radius: 999px; background: rgba(255, 255, 255, .72); color: #486777; }
   .hero__actions .text-link:hover { background: #fff; transform: translateY(-1px); }
   .product-stage { padding: 14px; }
