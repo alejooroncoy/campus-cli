@@ -112,6 +112,19 @@ test('academic document reader delegates PDFs to the page reader', () => {
   assert.deepEqual(extractDocumentBytes(Buffer.from('%PDF-1.4\n'), 'auto'), { format: 'pdf', delegated: true });
 });
 
+test('academic document reader rejects declared formats that contradict binary signatures', () => {
+  assert.throws(
+    () => extractDocumentBytes(Buffer.from('%PDF-1.4\n'), 'html'),
+    /archivo es PDF.*format="auto"/,
+  );
+  const zip = zipSync({ 'word/document.xml': strToU8('<w:document/>') });
+  assert.throws(() => extractDocumentBytes(zip, 'html'), /archivo es ZIP.*format="docx"/);
+  assert.throws(
+    () => extractDocumentBytes(Buffer.from('<html><body>Evidence</body></html>'), 'docx'),
+    /no es un contenedor DOCX v[aá]lido/,
+  );
+});
+
 test('academic document reader keeps later sections available after a large prefix', () => {
   const prefix = 'a'.repeat(100_001);
   const result = text(extractDocumentBytes(Buffer.from(`${prefix}\n\nMethods\nParticipants were surveyed.`), 'text', 10, 1));
