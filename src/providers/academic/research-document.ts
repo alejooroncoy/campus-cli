@@ -227,11 +227,25 @@ function decodeTextDocument(bytes: Uint8Array, contentType: string): string {
 }
 
 function detectedFormat(bytes: Uint8Array, contentType: string, requested: z.infer<typeof documentFormat>) {
-  if (requested !== 'auto') return requested;
   const binaryPrefix = Buffer.from(bytes.subarray(0, 8)).toString('utf8');
-  if (binaryPrefix.startsWith('%PDF-')) return 'pdf' as const;
+  if (binaryPrefix.startsWith('%PDF-')) {
+    if (requested !== 'auto') {
+      throw new Error('Formato inválido: el archivo es PDF. Usa format="auto" o campus_research_read_pdf.');
+    }
+    return 'pdf' as const;
+  }
   const zipSignature = bytes[0] === 0x50 && bytes[1] === 0x4b && ((bytes[2] === 0x03 && bytes[3] === 0x04) || (bytes[2] === 0x05 && bytes[3] === 0x06) || (bytes[2] === 0x07 && bytes[3] === 0x08));
-  if (zipSignature) throw new Error('El archivo ZIP puede ser DOCX o EPUB. Indica format="docx" o format="epub".');
+  if (zipSignature) {
+    if (requested === 'auto') throw new Error('El archivo ZIP puede ser DOCX o EPUB. Indica format="docx" o format="epub".');
+    if (requested !== 'docx' && requested !== 'epub') {
+      throw new Error('Formato inválido: el archivo es ZIP. Indica format="docx" o format="epub".');
+    }
+    return requested;
+  }
+  if (requested === 'docx' || requested === 'epub') {
+    throw new Error(`Formato inválido: el archivo no es un contenedor ${requested.toUpperCase()} válido.`);
+  }
+  if (requested !== 'auto') return requested;
   // Sniff the decoded text so a UTF-16 BOM does not turn markup into a plain
   // text document merely because its byte prefix contains NUL characters.
   const decoded = decodeTextDocument(bytes, contentType);
