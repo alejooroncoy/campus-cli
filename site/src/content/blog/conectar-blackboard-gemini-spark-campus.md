@@ -155,6 +155,6 @@ Las aplicaciones MCP personalizadas están pensadas para tareas de Gemini Spark.
 
 ## Una conexión, preguntas en lenguaje natural
 
-El objetivo no es trasladar Blackboard a otra pantalla. Es dejar de navegar curso por curso cada vez que necesitas responder algo sencillo. Con Campus conectado a Gemini Spark, puedes formular la pregunta completa —qué vence, qué pesa más, dónde está la rúbrica o qué cambió— y recibir una respuesta construida con la información vigente de tu Aula Virtual.
+El objetivo no es trasladar Blackboard a otra pantalla. Es dejar de navegar curso por curso cada vez que necesitas responder algo sencillo. Con Campus conectado a Gemini Spark, puedes formular la pregunta completa: qué vence, qué pesa más, dónde está la rúbrica o qué cambió. Luego recibirás una respuesta construida con la información vigente de tu Aula Virtual.
 
 Si quieres conocer todas las funciones, límites y medidas de seguridad del conector, revisa la [guía de Blackboard MCP de Campus](https://campuscli.com/blackboard-mcp/). Para organizar primero qué información debes revisar cada semana, continúa con [cómo organizar tu semana en Blackboard sin perder fechas](https://campuscli.com/blog/organizar-tu-semana-blackboard/).
