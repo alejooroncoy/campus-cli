@@ -1,7 +1,8 @@
 ---
-title: "Cómo conectar Blackboard UPC con Gemini Spark usando Campus"
-seoTitle: "Cómo conectar Blackboard UPC con Gemini Spark | Campus"
-description: "Tutorial para conectar Campus a Gemini Spark mediante MCP y consultar cursos, tareas, fechas, notas y materiales de Blackboard UPC desde Gemini."
+title: "Gemini Spark MCP: cómo conectar Blackboard UPC con Campus"
+seoTitle: "Gemini Spark MCP: conecta Blackboard UPC con Campus"
+ogTitle: "Conecta Blackboard UPC con Gemini Spark mediante Campus MCP"
+description: "Conecta Blackboard UPC con Gemini Spark mediante Campus MCP y consulta cursos, tareas, fechas, notas y materiales desde una tarea de Gemini."
 published: "2026-09-13"
 updated: "2026-09-13"
 tag: "Tutorial · Gemini Spark"
@@ -40,7 +41,7 @@ summary:
   - "Después de autorizar tu cuenta puedes preguntar por **cursos, tareas, fechas, notas, anuncios y materiales** de Blackboard UPC desde una tarea de Spark."
   - "La advertencia de Google es normal para una app personalizada: verifica el dominio y recuerda que **ninguna entrega se envía sin tu confirmación**."
 ---
-Campus ya puede conectarse directamente a Gemini Spark. Eso significa que puedes consultar tu Aula Virtual UPC desde una tarea de Gemini sin descargar archivos, abrir cada curso ni copiar fechas a mano. La conexión utiliza MCP, el protocolo que permite a Gemini descubrir y usar las herramientas de Campus.
+Gemini Spark ya puede conectarse con Blackboard UPC mediante el servidor MCP de Campus. Eso significa que puedes consultar tu Aula Virtual desde una tarea de Gemini sin descargar archivos, abrir cada curso ni copiar fechas a mano. Campus funciona como la conexión MCP que permite a Gemini descubrir y usar sus herramientas académicas.
 
 En esta guía vas a conectar la cuenta, comprobar que funciona y ver qué preguntas conviene hacer después. La configuración toma unos cinco minutos si ya tienes acceso a Gemini Spark y tu sesión institucional está vigente.
 
