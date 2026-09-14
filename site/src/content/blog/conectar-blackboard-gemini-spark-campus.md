@@ -51,7 +51,10 @@ Necesitas tres cosas:
 
 - Una cuenta de Google que tenga acceso a **Gemini Spark**.
 - Acceso activo a tu cuenta de **Blackboard UPC**.
+- Acceso activo a **Campus Plus**, necesario para usar el servidor alojado de Campus.
 - La URL oficial del servidor MCP de Campus: `https://mcp.campuscli.com/mcp`.
+
+Durante el piloto, Campus Plus se activa manualmente y el acceso fundador cuesta S/5 el primer mes. Si todavía no tienes una cuenta habilitada, [solicita acceso a Campus Plus](https://campuscli.com/campus-cli/#acceso-anticipado) antes de iniciar la conexión; recibirás acompañamiento para completar la activación.
 
 Google mantiene Gemini Spark y sus aplicaciones personalizadas como una función de disponibilidad limitada. Si no ves «Spark» o «Custom apps for Spark» en tu cuenta, todavía no puedes completar esta configuración desde ella. La [guía oficial de Google para aplicaciones personalizadas](https://support.google.com/gemini/answer/17209137) contiene los requisitos y restricciones vigentes.
 
