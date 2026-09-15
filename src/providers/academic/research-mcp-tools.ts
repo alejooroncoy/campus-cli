@@ -4,7 +4,7 @@ import { citationVerificationInput, databasesSearchInput, ResearchService, schol
 import { pdfInput, readResearchPdf } from './research-pdf.js';
 import { documentInput, readResearchDocument } from './research-document.js';
 import { evidenceVerificationInput, verifyResearchEvidence } from './research-evidence.js';
-import { resolvedPublicHttpsUrl } from './research-http.js';
+import { publicHttpsUrl, resolvedPublicHttpsUrl } from './research-http.js';
 
 const CLIENT_PROCESSING_ERRORS = /documento supera el tamaño permitido|Se requiere un PDF válido|contenido descomprimido supera el límite de análisis seguro|PDF superó el tiempo máximo de análisis|PDF no pudo procesarse dentro de los límites de memoria|lector PDF terminó sin devolver evidencia|No se pudo leer el PDF|No se pudo abrir el archivo ZIP|documento no contiene texto legible|EPUB no contiene capítulos HTML legibles|demasiadas secciones para analizarlo de forma segura|codificación no compatible/i;
 
@@ -16,20 +16,23 @@ type ResearchResourceLink = {
   description?: string;
 };
 
+function resourceLink(parsed: URL, name: unknown, mimeType?: string): ResearchResourceLink {
+  const safeName = typeof name === 'string' ? name.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim() : '';
+  return { type: 'resource_link', uri: parsed.toString(),
+    name: safeName ? safeName.slice(0, 300) : 'Fuente académica',
+    ...(mimeType ? { mimeType } : {}),
+    description: 'Recurso descubierto por Campus. El cliente debe leerlo y conservar evidencia antes de atribuirle afirmaciones.' };
+}
+
 async function safeResourceLink(
-  url: unknown,
+  value: unknown,
   name: unknown,
   mimeType?: string,
   validateUrl: (value: string) => Promise<URL> = resolvedPublicHttpsUrl,
 ): Promise<ResearchResourceLink | null> {
-  if (typeof url !== 'string') return null;
+  if (typeof value !== 'string') return null;
   try {
-    const parsed = await validateUrl(url);
-    const safeName = typeof name === 'string' ? name.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim() : '';
-    return { type: 'resource_link', uri: parsed.toString(),
-      name: safeName ? safeName.slice(0, 300) : 'Fuente académica',
-      ...(mimeType ? { mimeType } : {}),
-      description: 'Recurso descubierto por Campus. El cliente debe leerlo y conservar evidencia antes de atribuirle afirmaciones.' };
+    return resourceLink(await validateUrl(value), name, mimeType);
   } catch { return null; }
 }
 
@@ -63,12 +66,28 @@ async function discoveredResourceLinks(
   });
   const seen = new Set<string>();
   const links: ResearchResourceLink[] = [];
-  for (const candidate of candidates) {
-    const link = await safeResourceLink(candidate.url, candidate.name, candidate.mimeType, validateUrl);
-    if (!link || seen.has(link.uri)) continue;
-    seen.add(link.uri);
-    links.push(link);
-    if (links.length === 25) break;
+  const validationByHostname = new Map<string, Promise<boolean>>();
+  const boundedCandidates = candidates.slice(0, 50);
+  for (let offset = 0; offset < boundedCandidates.length && links.length < 25; offset += 10) {
+    const batch = await Promise.all(boundedCandidates.slice(offset, offset + 10).map(async candidate => {
+      if (typeof candidate.url !== 'string') return null;
+      try {
+        const parsed = publicHttpsUrl(candidate.url);
+        const hostname = parsed.hostname.replace(/^\[|\]$/g, '').toLowerCase();
+        let validation = validationByHostname.get(hostname);
+        if (!validation) {
+          validation = validateUrl(parsed.origin).then(() => true, () => false);
+          validationByHostname.set(hostname, validation);
+        }
+        return await validation ? resourceLink(parsed, candidate.name, candidate.mimeType) : null;
+      } catch { return null; }
+    }));
+    for (const link of batch) {
+      if (!link || seen.has(link.uri)) continue;
+      seen.add(link.uri);
+      links.push(link);
+      if (links.length === 25) break;
+    }
   }
   return links;
 }

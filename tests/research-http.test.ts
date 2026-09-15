@@ -53,6 +53,11 @@ test('resource links reject provider hostnames that resolve to private addresses
   await assert.rejects(resolvedPublicHttpsUrl('https://127.0.0.1/article.pdf'), /privadas/);
 });
 
+test('resource-link DNS validation has a bounded deadline', async () => {
+  const neverResolves = (() => new Promise(() => {})) as typeof dns.lookup;
+  await assert.rejects(resolvedPublicHttpsUrl('https://catalog.example.edu/article.pdf', neverResolves, 5), /DNS agotado/);
+});
+
 test('PDF redirects are revalidated and cannot reach a metadata service', async t => {
   t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
   const requests = mockHttp(t, [{ status: 302, location: 'https://169.254.169.254/latest' }]);

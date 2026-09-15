@@ -202,6 +202,12 @@ test('strict citation verification rejects invented or incomplete metadata', asy
   const missingVenue = await journalWithoutVenue.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
   assert.equal(missingVenue.citeAllowed, false);
   assert.deepEqual(missingVenue.missingFields, ['venue']);
+
+  const bookWithoutPublisher = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'book', publisher: undefined } } : collection([]));
+  const missingPublisher = await bookWithoutPublisher.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(missingPublisher.citeAllowed, false);
+  assert.deepEqual(missingPublisher.missingFields, ['publisher']);
 });
 
 test('a notice retracting another DOI does not retract the notice itself', async () => {
@@ -397,16 +403,25 @@ test('successful academic reads always return the resolved document as a resourc
 
 test('academic searches expose discovered source URLs as deduplicated resource links', async () => {
   const handlers = new Map<string, any>();
+  let validations = 0;
   const service = new ResearchService(async () => collection([{ ...work,
-    link: [{ URL: 'https://repository.example.edu/article.pdf', 'content-type': 'application/pdf' }] }]));
+    link: [
+      { URL: 'https://repository.example.edu/article.pdf', 'content-type': 'application/pdf' },
+      { URL: 'https://repository.example.edu/supplement.pdf', 'content-type': 'application/pdf' },
+    ] }]));
   registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
     handlers.set(name, handler);
-  } } as any, { authorize: () => true, service, validateResourceUrl: acceptTestResourceUrl });
+  } } as any, { authorize: () => true, service, validateResourceUrl: async value => {
+    validations += 1;
+    return acceptTestResourceUrl(value);
+  } });
   const result = await handlers.get('campus_research_search')({ query: 'evidence' });
   const links = result.content.filter((part: any) => part.type === 'resource_link');
-  assert.equal(links.length, 2);
+  assert.equal(links.length, 3);
   assert.equal(links[0].uri, 'https://repository.example.edu/article.pdf');
-  assert.equal(links[1].uri, 'https://doi.org/10.1234/abc');
+  assert.equal(links[1].uri, 'https://repository.example.edu/supplement.pdf');
+  assert.equal(links[2].uri, 'https://doi.org/10.1234/abc');
+  assert.equal(validations, 2, 'DNS validation is cached by hostname');
 });
 
 test('evidence verification requires an exact locator and stable document hash', async () => {

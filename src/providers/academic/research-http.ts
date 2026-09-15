@@ -30,11 +30,19 @@ export function publicHttpsUrl(value: string): URL {
 export async function resolvedPublicHttpsUrl(
   value: string,
   resolve: typeof lookup = lookup,
+  timeoutMs = 2_000,
 ): Promise<URL> {
   const url = publicHttpsUrl(value);
   const hostname = url.hostname.replace(/^\[|\]$/g, '');
   if (ipaddr.isValid(hostname)) return url;
-  const addresses = await resolve(hostname, { all: true });
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const addresses = await Promise.race([
+    resolve(hostname, { all: true }),
+    new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => reject(new Error('Tiempo de resolución DNS agotado.')), timeoutMs);
+      timeout.unref?.();
+    }),
+  ]).finally(() => { if (timeout) clearTimeout(timeout); });
   if (!addresses.length) throw new Error('No se pudo resolver el proveedor.');
   addresses.forEach(item => assertPublicAddress(item.address));
   return url;

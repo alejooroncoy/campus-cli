@@ -110,6 +110,14 @@ function sameAuthors(expected: string[], registered: string[]): boolean {
     && expected.every((author, index) => normalizeEvidenceText(author) === normalizeEvidenceText(registered[index] ?? ''));
 }
 
+const CROSSREF_CONTAINER_TYPES = new Set([
+  'journal-article', 'proceedings-article', 'book-chapter', 'book-section', 'book-part', 'book-track',
+]);
+const CROSSREF_PUBLISHER_TYPES = new Set([
+  'book', 'edited-book', 'monograph', 'reference-book',
+  'book-chapter', 'book-section', 'book-part', 'book-track', 'report',
+]);
+
 function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const doi = normalizeDoi(work.DOI);
   return {
@@ -348,7 +356,8 @@ export class ResearchService {
       !registered.title ? 'title' : null,
       registered.authors.length === 0 ? 'authors' : null,
       registered.year === null ? 'year' : null,
-      registered.type === 'journal-article' && !registered.venue ? 'venue' : null,
+      registered.type && CROSSREF_CONTAINER_TYPES.has(registered.type) && !registered.venue ? 'venue' : null,
+      registered.type && CROSSREF_PUBLISHER_TYPES.has(registered.type) && !registered.publisher ? 'publisher' : null,
     ].filter((field): field is string => field !== null);
     const status = mismatches.length > 0 ? 'rejected' : missingFields.length > 0 ? 'partial' : 'verified';
     return {
