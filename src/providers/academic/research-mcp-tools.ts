@@ -171,8 +171,9 @@ export function registerResearchTools(server: McpServer, options: {
       const value = await action();
       const resolvedUrl = value && typeof value === 'object' && 'resolvedUrl' in value
         ? (value as { resolvedUrl?: unknown }).resolvedUrl : undefined;
-      const mimeType = resource?.mimeType ?? (value && typeof value === 'object'
-        ? documentMimeType((value as { format?: unknown }).format) : undefined);
+      const detectedMimeType = value && typeof value === 'object'
+        ? documentMimeType((value as { format?: unknown }).format) : undefined;
+      const mimeType = detectedMimeType ?? resource?.mimeType;
       const validateUrl = options.validateResourceUrl ?? resolvedPublicHttpsUrl;
       const directLink = resource
         ? await safeResourceLink(resolvedUrl ?? resource.url, resource.name, mimeType, validateUrl) : null;
