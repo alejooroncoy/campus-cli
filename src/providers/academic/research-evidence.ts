@@ -34,7 +34,7 @@ type EvidenceDependencies = {
 };
 
 function normalizedLiteral(value: string): string {
-  return value.normalize('NFKC').replace(/\r/g, '').replace(/\s+/g, ' ').trim();
+  return value.normalize('NFC').replace(/\r/g, '').replace(/\s+/g, ' ').trim();
 }
 
 function isTokenCharacter(value: string | undefined): boolean {
