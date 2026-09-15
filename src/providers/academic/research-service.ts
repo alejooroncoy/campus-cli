@@ -127,8 +127,7 @@ function optionalDoi(value?: string | null): string | null {
 }
 
 function normalizeEvidenceText(value: string): string {
-  return value.normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase('en-US')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
+  return value.normalize('NFC').toLocaleLowerCase('en-US').replace(/\s+/g, ' ').trim();
 }
 
 function sameAuthors(expected: string[], registered: string[]): boolean {
