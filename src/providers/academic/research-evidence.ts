@@ -45,6 +45,12 @@ function isDigit(value: string | undefined): boolean {
   return Boolean(value && /^\p{N}$/u.test(value));
 }
 
+function hasNumericSuffixContinuation(value: string): boolean {
+  return /^[\s]*[-−–—+×*/<>≤≥±≈~]/u.test(value)
+    || /^[\s]*(?:%|‰|°(?:[CFK])?)/u.test(value)
+    || /^[\s]*(?:kg|g|mg|µg|lb|oz|km|m|cm|mm|mi|ft|in|ms|s|min|h|Hz|kHz|MHz|GHz)\b/iu.test(value);
+}
+
 function hasBoundedLiteral(text: string, excerpt: string): boolean {
   const first = excerpt[0];
   const last = excerpt.at(-1);
@@ -61,10 +67,12 @@ function hasBoundedLiteral(text: string, excerpt: string): boolean {
       && isDigit(beforeCharacters.at(-2));
     const endsInsideDecimal = (isDigit(last) && /^[.,]$/.test(after ?? '') && isDigit(afterCharacters[1]))
       || (/^[.,]$/.test(last ?? '') && isDigit(excerptCharacters.at(-2)) && isDigit(after));
+    const endsBeforeNumericContinuation = isDigit(last)
+      && hasNumericSuffixContinuation(afterCharacters.join(''));
     if (!(isTokenCharacter(first) && isTokenCharacter(before))
       && !(isTokenCharacter(last) && isTokenCharacter(after))
       && !startsAfterNumericOperator && !startsAfterHyphenatedPrefix
-      && !startsInsideDecimal && !endsInsideDecimal) return true;
+      && !startsInsideDecimal && !endsInsideDecimal && !endsBeforeNumericContinuation) return true;
   }
   return false;
 }
