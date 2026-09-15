@@ -268,6 +268,7 @@ function crossrefSource(work: z.infer<typeof crossrefWork>, expectedTitle?: stri
   const publicationYears = [...new Set([
     issued?.[0], crossrefDateParts(work['published-online'])?.[0],
     crossrefDateParts(work['published-print'])?.[0], crossrefDateParts(work.published)?.[0],
+    awardStart?.[0],
   ].filter((year): year is number => typeof year === 'number'))];
   return {
     id: doi, doi, title: [mainTitle, subtitle].filter(Boolean).join(': ') || null,

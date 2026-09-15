@@ -428,6 +428,10 @@ test('grant citations use registered project funding, investigators and duration
   assert.deepEqual(result.citationRecord?.awardEnd, [2026, 12, 31]);
   assert.equal(result.citationRecord?.year, 2024);
 
+  const grantYear = await grant.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence Project', expectedYear: 2024 });
+  assert.equal(grantYear.status, 'verified');
+  assert.deepEqual(grantYear.citationRecord?.publicationYears, [2024]);
+
   const incomplete = new ResearchService(async url => url.includes('/works/')
     ? { message: { ...grantRecord, award: null,
       project: [{ ...grantRecord.project[0], funding: null, 'award-end': null }] } } : collection([]));
