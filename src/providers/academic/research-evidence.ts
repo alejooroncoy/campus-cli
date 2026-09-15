@@ -37,6 +37,22 @@ function normalizedLiteral(value: string): string {
   return value.normalize('NFKC').replace(/\r/g, '').replace(/\s+/g, ' ').trim();
 }
 
+function isTokenCharacter(value: string | undefined): boolean {
+  return Boolean(value && /^[\p{L}\p{N}\p{M}_]$/u.test(value));
+}
+
+function hasBoundedLiteral(text: string, excerpt: string): boolean {
+  const first = excerpt[0];
+  const last = excerpt.at(-1);
+  for (let index = text.indexOf(excerpt); index !== -1; index = text.indexOf(excerpt, index + 1)) {
+    const before = Array.from(text.slice(0, index)).at(-1);
+    const after = Array.from(text.slice(index + excerpt.length))[0];
+    if (!(isTokenCharacter(first) && isTokenCharacter(before))
+      && !(isTokenCharacter(last) && isTokenCharacter(after))) return true;
+  }
+  return false;
+}
+
 export async function verifyResearchEvidence(
   raw: z.input<typeof evidenceVerificationInput>,
   dependencies: EvidenceDependencies = {},
@@ -94,7 +110,7 @@ export async function verifyResearchEvidence(
   const normalizedExcerpt = normalizedLiteral(input.excerpt);
   const textAtLocator = 'heading' in source && source.heading
     ? `${source.heading}\n${source.text}` : source.text;
-  const found = normalizedLiteral(textAtLocator).includes(normalizedExcerpt);
+  const found = hasBoundedLiteral(normalizedLiteral(textAtLocator), normalizedExcerpt);
   if (!found) {
     if (source.truncated) {
       return { status: 'inconclusive', evidenceAllowed: false, reason: 'locator_text_truncated', proof,

@@ -775,6 +775,11 @@ test('evidence verification requires an exact locator and stable document hash',
   assert.equal(missing.status, 'rejected');
   assert.equal(missing.reason, 'excerpt_not_found_at_locator');
 
+  const alteredNumber = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    excerpt: 'The intervention improved learning outcomes by 1' }, { readPdf: readPdf as any });
+  assert.equal(alteredNumber.status, 'rejected');
+  assert.equal(alteredNumber.reason, 'excerpt_not_found_at_locator');
+
   const truncated = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
     excerpt: 'A possibly valid result beyond the extraction prefix.' }, { readPdf: (async () => ({
       ...(await readPdf()), pages: [{ page: 4, text: 'Only the bounded prefix.', truncated: true, needsOcr: false }],
