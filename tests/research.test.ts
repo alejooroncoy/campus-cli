@@ -274,7 +274,7 @@ test('citation records retain Crossref suffix, subtitle, edition and chapter loc
   assert.deepEqual(chapter.missingFields, ['pages']);
 });
 
-test('editor-led books and dissertation institutions remain valid canonical creators', async () => {
+test('editor-led books and dissertation metadata remain valid canonical creators', async () => {
   const referenceBook = new ResearchService(async url => url.includes('/works/')
     ? { message: { ...work, type: 'reference-book', author: undefined,
       editor: [{ name: 'Ema Editor' }], publisher: 'Evidence Press' } } : collection([]));
@@ -284,15 +284,16 @@ test('editor-led books and dissertation institutions remain valid canonical crea
     { name: 'Ema Editor', role: 'editor', literalName: 'Ema Editor' },
   ]);
 
-  const dissertation = (institution?: unknown[]) => new ResearchService(async url => url.includes('/works/')
-    ? { message: { ...work, type: 'dissertation', institution } } : collection([]));
+  const dissertation = (institution?: unknown[], degree?: string[]) => new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'dissertation', institution, degree } } : collection([]));
   const incomplete = await dissertation().verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
   assert.equal(incomplete.citeAllowed, false);
-  assert.deepEqual(incomplete.missingFields, ['institution']);
-  const complete = await dissertation([{ name: 'Evidence University' }])
+  assert.deepEqual(incomplete.missingFields, ['institution', 'degree']);
+  const complete = await dissertation([{ name: 'Evidence University' }], ['Doctor of Philosophy'])
     .verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
   assert.equal(complete.status, 'verified');
   assert.deepEqual(complete.citationRecord?.institutions, ['Evidence University']);
+  assert.deepEqual(complete.citationRecord?.degrees, ['Doctor of Philosophy']);
 });
 
 test('proceedings, preprints and reports retain their type-specific canonical metadata', async () => {
@@ -363,6 +364,33 @@ test('grant citations use registered project funding, investigators and duration
   const partial = await incomplete.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence Project' });
   assert.equal(partial.citeAllowed, false);
   assert.deepEqual(partial.missingFields, ['funder', 'awardNumber', 'awardDuration']);
+});
+
+test('grant citation dates are never combined across different projects', async () => {
+  const grantRecord = { DOI: work.DOI, type: 'grant', title: null, author: null,
+    award: 'GRANT-42', issued: { 'date-parts': [[2024]] }, project: [
+      { 'project-title': [{ title: 'First project' }],
+        'lead-investigator': [{ name: 'Ana Perez' }],
+        funding: [{ funder: { name: 'Evidence Foundation' } }],
+        'award-start': { 'date-parts': [[2024, 1, 1]] }, 'award-end': null },
+      { 'project-title': [{ title: 'Second project' }],
+        'lead-investigator': [{ name: 'Ben Rios' }],
+        funding: [{ funder: { name: 'Other Foundation' } }],
+        'award-start': null, 'award-end': { 'date-parts': [[2026, 12, 31]] } },
+    ] };
+  const service = new ResearchService(async url => url.includes('/works/')
+    ? { message: grantRecord } : collection([]));
+  const result = await service.verifyCitation({ doi: work.DOI, expectedTitle: 'First project' });
+  assert.equal(result.citeAllowed, false);
+  assert.ok(result.missingFields.includes('awardDuration'));
+  assert.deepEqual(result.citationRecord?.awardStart, [2024, 1, 1]);
+  assert.equal(result.citationRecord?.awardEnd, null);
+  assert.deepEqual(result.citationRecord?.grantProjects.map(project => ({
+    title: project.titles[0], start: project.awardStart, end: project.awardEnd,
+  })), [
+    { title: 'First project', start: [2024, 1, 1], end: null },
+    { title: 'Second project', start: null, end: [2026, 12, 31] },
+  ]);
 });
 
 test('a notice retracting another DOI does not retract the notice itself', async () => {

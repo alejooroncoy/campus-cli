@@ -83,6 +83,7 @@ const crossrefWork = z.object({
   translator: z.array(crossrefContributor).nullish(),
   'container-title': z.array(z.string()).nullish(), publisher: z.string().nullish(),
   institution: z.array(z.object({ name: z.string() })).nullish(),
+  degree: z.array(z.string()).nullish(),
   'group-title': z.string().optional(), subtype: z.string().optional(), number: z.string().optional(),
   volume: z.string().optional(), issue: z.string().optional(), page: z.string().optional(),
   'article-number': z.string().optional(), 'edition-number': z.string().optional(),
@@ -200,31 +201,47 @@ function uniqueContributors<T extends { name: string }>(contributors: T[]): T[] 
 function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const doi = normalizeDoi(work.DOI);
   const projects = work.project ?? [];
-  const projectTitles = projects.flatMap(project => project['project-title'] ?? [])
-    .map(item => crossrefPlainText(item.title)).filter(Boolean);
-  const mainTitle = work.title?.length ? crossrefPlainText(work.title.join(' ')) : projectTitles[0] ?? '';
+  const grantProjects = projects.map(project => {
+    const titles = (project['project-title'] ?? []).map(item => crossrefPlainText(item.title)).filter(Boolean);
+    const funders = [...new Set((project.funding ?? [])
+      .map(item => item.funder.name ? crossrefPlainText(item.funder.name) : '').filter(Boolean))];
+    const awardNumbers = [...new Set((project.funding ?? []).flatMap(item =>
+      Array.isArray(item.award) ? item.award : item.award ? [item.award] : [])
+      .map(crossrefPlainText).filter(Boolean))];
+    const investigators = uniqueContributors([
+      ...crossrefContributors(project['lead-investigator'], 'author'),
+      ...crossrefContributors(project.investigator, 'author'),
+    ]);
+    return { titles, funders, awardNumbers, investigators,
+      awardStart: crossrefDateParts(project['award-start']),
+      awardEnd: crossrefDateParts(project['award-end']) };
+  });
+  const topLevelAwardStart = crossrefDateParts(work['award-start']);
+  const topLevelAwardEnd = crossrefDateParts(work['award-end']);
+  const completeDatedProject = grantProjects.find(project => project.awardStart && project.awardEnd);
+  const selectedGrantProject = topLevelAwardStart && topLevelAwardEnd
+    ? grantProjects[0] : completeDatedProject ?? grantProjects[0];
+  const projectTitles = grantProjects.flatMap(project => project.titles);
+  const mainTitle = work.title?.length ? crossrefPlainText(work.title.join(' '))
+    : selectedGrantProject?.titles[0] ?? projectTitles[0] ?? '';
   const subtitle = work.subtitle ? crossrefPlainText(work.subtitle.join(' ')) : '';
   const institutions = work.institution?.map(item => crossrefPlainText(item.name)).filter(Boolean) ?? [];
+  const degrees = work.degree?.map(crossrefPlainText).filter(Boolean) ?? [];
   let authorContributors = crossrefContributors(work.author, 'author');
   if (work.type === 'grant' && authorContributors.length === 0) {
-    authorContributors = uniqueContributors([
-      ...projects.flatMap(project => crossrefContributors(project['lead-investigator'], 'author')),
-      ...projects.flatMap(project => crossrefContributors(project.investigator, 'author')),
-    ]);
+    authorContributors = selectedGrantProject?.investigators ?? [];
   }
   const editorContributors = crossrefContributors(work.editor, 'editor');
   const translatorContributors = crossrefContributors(work.translator, 'translator');
-  const funders = [...new Set(projects.flatMap(project => project.funding ?? [])
-    .map(item => item.funder.name ? crossrefPlainText(item.funder.name) : '').filter(Boolean))];
+  const funders = selectedGrantProject?.funders ?? [];
   const awardNumbers = [...new Set([
     ...(Array.isArray(work.award) ? work.award : work.award ? [work.award] : []),
-    ...projects.flatMap(project => project.funding ?? []).flatMap(item =>
-      Array.isArray(item.award) ? item.award : item.award ? [item.award] : []),
+    ...(selectedGrantProject?.awardNumbers ?? []),
   ].map(crossrefPlainText).filter(Boolean))];
-  const awardStart = crossrefDateParts(work['award-start'])
-    ?? projects.map(project => crossrefDateParts(project['award-start'])).find(Boolean) ?? null;
-  const awardEnd = crossrefDateParts(work['award-end'])
-    ?? projects.map(project => crossrefDateParts(project['award-end'])).find(Boolean) ?? null;
+  const awardStart = topLevelAwardStart && topLevelAwardEnd ? topLevelAwardStart
+    : completeDatedProject?.awardStart ?? topLevelAwardStart ?? selectedGrantProject?.awardStart ?? null;
+  const awardEnd = topLevelAwardStart && topLevelAwardEnd ? topLevelAwardEnd
+    : completeDatedProject?.awardEnd ?? topLevelAwardEnd ?? selectedGrantProject?.awardEnd ?? null;
   const issued = crossrefDateParts(work.issued);
   return {
     id: doi, doi, title: [mainTitle, subtitle].filter(Boolean).join(': ') || null,
@@ -232,14 +249,14 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
     authors: authorContributors.map(person => person.name),
     editors: editorContributors.map(person => person.name),
     authorContributors, editorContributors, translatorContributors,
-    institutions,
+    institutions, degrees,
     year: issued?.[0] ?? awardStart?.[0] ?? null, type: work.type ?? null,
     venue: work['container-title']?.[0] ?? null, publisher: work.publisher ?? null,
     volume: work.volume ?? null, issue: work.issue ?? null, pages: work.page ?? null,
     articleNumber: work['article-number'] ?? null, edition: work['edition-number'] ?? null,
     repository: work['group-title'] ? crossrefPlainText(work['group-title']) || null : null,
     subtype: work.subtype ?? null, reportNumber: work.number ?? null,
-    projectTitles, funders, awardNumbers, awardStart, awardEnd,
+    projectTitles, grantProjects, funders, awardNumbers, awardStart, awardEnd,
     url: `https://doi.org/${doi}`, peerReview: 'unknown', indexedIn: 'crossref',
     retractionStatus: 'not_checked', updatesToOtherWorks: work['update-to'] ?? [],
     fullTextLinks: work.link ?? [], fullTextAccess: 'not_checked',
@@ -477,6 +494,7 @@ export class ResearchService {
       registered.type && CROSSREF_LOCATOR_TYPES.has(registered.type)
         && !registered.pages && !registered.articleNumber ? 'pages' : null,
       registered.type === 'dissertation' && registered.institutions.length === 0 ? 'institution' : null,
+      registered.type === 'dissertation' && registered.degrees.length === 0 ? 'degree' : null,
       registered.type === 'posted-content' && !registered.repository ? 'repository' : null,
       registered.type === 'grant' && registered.funders.length === 0 ? 'funder' : null,
       registered.type === 'grant' && registered.awardNumbers.length === 0 ? 'awardNumber' : null,
@@ -491,12 +509,12 @@ export class ResearchService {
         year: registered.year, type: registered.type, venue: registered.venue,
         publisher: registered.publisher, volume: registered.volume, issue: registered.issue,
         pages: registered.pages, articleNumber: registered.articleNumber, edition: registered.edition,
-        subtitle: registered.subtitle, institutions: registered.institutions,
+        subtitle: registered.subtitle, institutions: registered.institutions, degrees: registered.degrees,
         repository: registered.repository, subtype: registered.subtype,
         reportNumber: registered.reportNumber, url: registered.url,
         projectTitles: registered.projectTitles, funders: registered.funders,
         awardNumbers: registered.awardNumbers, awardStart: registered.awardStart,
-        awardEnd: registered.awardEnd,
+        awardEnd: registered.awardEnd, grantProjects: registered.grantProjects,
       },
       comparisons: {
         title: mismatches.includes('title') ? 'mismatch' : 'match',
