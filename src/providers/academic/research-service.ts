@@ -63,17 +63,29 @@ const crossrefContributor = z.object({
   given: z.string().optional(), family: z.string().optional(), suffix: z.string().optional(),
   name: z.string().optional(),
 });
+const crossrefDate = z.object({
+  'date-parts': z.array(z.array(z.number().nullable())),
+});
+const crossrefProject = z.object({
+  'project-title': z.array(z.object({ title: z.string(), language: z.string().optional() })).nullish(),
+  funding: z.array(z.object({ funder: z.object({ name: z.string().optional() }) })).nullish(),
+  investigator: z.array(crossrefContributor).nullish(),
+  'lead-investigator': z.array(crossrefContributor).nullish(),
+  'award-start': crossrefDate.nullish(), 'award-end': crossrefDate.nullish(),
+});
 const crossrefWork = z.object({
-  DOI: z.string(), title: z.array(z.string()).optional(), subtitle: z.array(z.string()).optional(),
+  DOI: z.string(), title: z.array(z.string()).nullish(), subtitle: z.array(z.string()).nullish(),
   type: z.string().optional(),
-  author: z.array(crossrefContributor).optional(), editor: z.array(crossrefContributor).optional(),
-  translator: z.array(crossrefContributor).optional(),
-  'container-title': z.array(z.string()).optional(), publisher: z.string().optional(),
-  institution: z.array(z.object({ name: z.string() })).optional(),
+  author: z.array(crossrefContributor).nullish(), editor: z.array(crossrefContributor).nullish(),
+  translator: z.array(crossrefContributor).nullish(),
+  'container-title': z.array(z.string()).nullish(), publisher: z.string().nullish(),
+  institution: z.array(z.object({ name: z.string() })).nullish(),
   'group-title': z.string().optional(), subtype: z.string().optional(), number: z.string().optional(),
   volume: z.string().optional(), issue: z.string().optional(), page: z.string().optional(),
   'article-number': z.string().optional(), 'edition-number': z.string().optional(),
-  issued: z.object({ 'date-parts': z.array(z.array(z.number().nullable())) }).optional(),
+  issued: crossrefDate.nullish(),
+  award: z.union([z.string(), z.array(z.string())]).nullish(), project: z.array(crossrefProject).nullish(),
+  'award-start': crossrefDate.nullish(), 'award-end': crossrefDate.nullish(),
   link: z.array(z.object({ URL: z.string(), 'content-type': z.string().optional(), 'content-version': z.string().optional() })).optional(),
   'update-to': z.array(z.object({ DOI: z.string(), type: z.string().optional() })).optional(),
 });
@@ -130,7 +142,7 @@ function crossrefPlainText(value: string): string {
 type CrossrefContributorRole = 'author' | 'editor' | 'translator';
 
 function crossrefContributors(
-  contributors: z.infer<typeof crossrefContributor>[] | undefined,
+  contributors: z.infer<typeof crossrefContributor>[] | null | undefined,
   role: CrossrefContributorRole,
 ) {
   return contributors?.map(person => {
@@ -161,14 +173,53 @@ const CROSSREF_EDITOR_CREATOR_TYPES = new Set([
 ]);
 const CROSSREF_LOCATOR_TYPES = new Set(['book-chapter', 'book-section', 'book-part']);
 
+function crossrefDateParts(value: z.infer<typeof crossrefDate> | null | undefined): number[] | null {
+  const parts = value?.['date-parts'][0];
+  if (!parts || typeof parts[0] !== 'number') return null;
+  const result = [parts[0]];
+  for (const part of parts.slice(1)) {
+    if (typeof part !== 'number') break;
+    result.push(part);
+  }
+  return result;
+}
+
+function uniqueContributors<T extends { name: string }>(contributors: T[]): T[] {
+  const seen = new Set<string>();
+  return contributors.filter(contributor => {
+    const key = normalizeEvidenceText(contributor.name);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const doi = normalizeDoi(work.DOI);
-  const mainTitle = work.title ? crossrefPlainText(work.title.join(' ')) : '';
+  const projects = work.project ?? [];
+  const projectTitles = projects.flatMap(project => project['project-title'] ?? [])
+    .map(item => crossrefPlainText(item.title)).filter(Boolean);
+  const mainTitle = work.title?.length ? crossrefPlainText(work.title.join(' ')) : projectTitles[0] ?? '';
   const subtitle = work.subtitle ? crossrefPlainText(work.subtitle.join(' ')) : '';
   const institutions = work.institution?.map(item => crossrefPlainText(item.name)).filter(Boolean) ?? [];
-  const authorContributors = crossrefContributors(work.author, 'author');
+  let authorContributors = crossrefContributors(work.author, 'author');
+  if (work.type === 'grant' && authorContributors.length === 0) {
+    authorContributors = uniqueContributors([
+      ...projects.flatMap(project => crossrefContributors(project['lead-investigator'], 'author')),
+      ...projects.flatMap(project => crossrefContributors(project.investigator, 'author')),
+    ]);
+  }
   const editorContributors = crossrefContributors(work.editor, 'editor');
   const translatorContributors = crossrefContributors(work.translator, 'translator');
+  const funders = [...new Set(projects.flatMap(project => project.funding ?? [])
+    .map(item => item.funder.name ? crossrefPlainText(item.funder.name) : '').filter(Boolean))];
+  const awardNumbers = (Array.isArray(work.award) ? work.award : work.award ? [work.award] : [])
+    .map(crossrefPlainText).filter(Boolean);
+  const awardStart = crossrefDateParts(work['award-start'])
+    ?? projects.map(project => crossrefDateParts(project['award-start'])).find(Boolean) ?? null;
+  const awardEnd = crossrefDateParts(work['award-end'])
+    ?? projects.map(project => crossrefDateParts(project['award-end'])).find(Boolean) ?? null;
+  const issued = crossrefDateParts(work.issued);
   return {
     id: doi, doi, title: [mainTitle, subtitle].filter(Boolean).join(': ') || null,
     subtitle: subtitle || null,
@@ -176,12 +227,13 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
     editors: editorContributors.map(person => person.name),
     authorContributors, editorContributors, translatorContributors,
     institutions,
-    year: work.issued?.['date-parts'][0]?.[0] ?? null, type: work.type ?? null,
+    year: issued?.[0] ?? awardStart?.[0] ?? null, type: work.type ?? null,
     venue: work['container-title']?.[0] ?? null, publisher: work.publisher ?? null,
     volume: work.volume ?? null, issue: work.issue ?? null, pages: work.page ?? null,
     articleNumber: work['article-number'] ?? null, edition: work['edition-number'] ?? null,
     repository: work['group-title'] ? crossrefPlainText(work['group-title']) || null : null,
     subtype: work.subtype ?? null, reportNumber: work.number ?? null,
+    projectTitles, funders, awardNumbers, awardStart, awardEnd,
     url: `https://doi.org/${doi}`, peerReview: 'unknown', indexedIn: 'crossref',
     retractionStatus: 'not_checked', updatesToOtherWorks: work['update-to'] ?? [],
     fullTextLinks: work.link ?? [], fullTextAccess: 'not_checked',
@@ -420,6 +472,9 @@ export class ResearchService {
         && !registered.pages && !registered.articleNumber ? 'pages' : null,
       registered.type === 'dissertation' && registered.institutions.length === 0 ? 'institution' : null,
       registered.type === 'posted-content' && !registered.repository ? 'repository' : null,
+      registered.type === 'grant' && registered.funders.length === 0 ? 'funder' : null,
+      registered.type === 'grant' && registered.awardNumbers.length === 0 ? 'awardNumber' : null,
+      registered.type === 'grant' && (!registered.awardStart || !registered.awardEnd) ? 'awardDuration' : null,
     ].filter((field): field is string => field !== null);
     const status = mismatches.length > 0 ? 'rejected' : missingFields.length > 0 ? 'partial' : 'verified';
     return {
@@ -433,6 +488,9 @@ export class ResearchService {
         subtitle: registered.subtitle, institutions: registered.institutions,
         repository: registered.repository, subtype: registered.subtype,
         reportNumber: registered.reportNumber, url: registered.url,
+        projectTitles: registered.projectTitles, funders: registered.funders,
+        awardNumbers: registered.awardNumbers, awardStart: registered.awardStart,
+        awardEnd: registered.awardEnd,
       },
       comparisons: {
         title: mismatches.includes('title') ? 'mismatch' : 'match',

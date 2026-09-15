@@ -333,6 +333,38 @@ test('proceedings, preprints and reports retain their type-specific canonical me
   assert.deepEqual(componentResult.missingFields, ['venue']);
 });
 
+test('grant citations use registered project funding, investigators and duration', async () => {
+  const grantRecord = {
+    DOI: work.DOI, type: 'grant', title: null, author: null, issued: { 'date-parts': [[null]] },
+    award: 'GRANT-42', project: [{
+      'project-title': [{ title: 'Evidence Project' }],
+      'lead-investigator': [{ given: 'Ana', family: 'Perez' }],
+      investigator: [{ given: 'Ben', family: 'Rios' }],
+      funding: [{ funder: { name: 'Evidence Foundation' } }],
+      'award-start': { 'date-parts': [[2024, 1, 15]] },
+      'award-end': { 'date-parts': [[2026, 12, 31]] },
+    }],
+  };
+  const grant = new ResearchService(async url => url.includes('/works/')
+    ? { message: grantRecord } : collection([]));
+  const result = await grant.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence Project' });
+  assert.equal(result.status, 'verified');
+  assert.equal(result.citeAllowed, true);
+  assert.deepEqual(result.citationRecord?.authors.map(person => person.name), ['Ana Perez', 'Ben Rios']);
+  assert.deepEqual(result.citationRecord?.funders, ['Evidence Foundation']);
+  assert.deepEqual(result.citationRecord?.awardNumbers, ['GRANT-42']);
+  assert.deepEqual(result.citationRecord?.awardStart, [2024, 1, 15]);
+  assert.deepEqual(result.citationRecord?.awardEnd, [2026, 12, 31]);
+  assert.equal(result.citationRecord?.year, 2024);
+
+  const incomplete = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...grantRecord, award: null,
+      project: [{ ...grantRecord.project[0], funding: null, 'award-end': null }] } } : collection([]));
+  const partial = await incomplete.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence Project' });
+  assert.equal(partial.citeAllowed, false);
+  assert.deepEqual(partial.missingFields, ['funder', 'awardNumber', 'awardDuration']);
+});
+
 test('a notice retracting another DOI does not retract the notice itself', async () => {
   const service = new ResearchService(async url => url.includes('/works/')
     ? { message: { ...work, 'update-to': [{ DOI: '10.1234/other', type: 'retraction' }] } } : collection([]));
@@ -542,8 +574,8 @@ test('academic searches expose discovered source URLs as deduplicated resource l
   const links = result.content.filter((part: any) => part.type === 'resource_link');
   assert.equal(links.length, 3);
   assert.equal(links[0].uri, 'https://repository.example.edu/article.pdf');
-  assert.equal(links[1].uri, 'https://repository.example.edu/supplement.pdf');
-  assert.equal(links[2].uri, 'https://doi.org/10.1234/abc');
+  assert.equal(links[1].uri, 'https://doi.org/10.1234/abc');
+  assert.equal(links[2].uri, 'https://repository.example.edu/supplement.pdf');
   assert.equal(validations, 2, 'DNS validation is cached by hostname');
 });
 
@@ -564,9 +596,24 @@ test('academic searches retain a valid landing page when a PDF candidate is unsa
   assert.deepEqual(links.map((part: any) => part.uri), ['https://repository.example.edu/article']);
 });
 
+test('academic searches retain a DOI fallback when the record URL is unsafe', async () => {
+  const handlers = new Map<string, any>();
+  const service = { search: async () => ({ results: [{ title: 'DOI fallback',
+    url: 'https://private.example.edu/article', doi: '10.1234/fallback' }] }) };
+  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true, service: service as any, validateResourceUrl: async value => {
+    if (new URL(value).hostname === 'private.example.edu') throw new Error('private address');
+    return publicHttpsUrl(value);
+  } });
+  const result = await handlers.get('campus_research_search')({ query: 'evidence' });
+  const links = result.content.filter((part: any) => part.type === 'resource_link');
+  assert.deepEqual(links.map((part: any) => part.uri), ['https://doi.org/10.1234/fallback']);
+});
+
 test('duplicate OpenAlex locations cannot consume the bounded candidate budget', async () => {
   const handlers = new Map<string, any>();
-  const repeatedLocations = Array.from({ length: 30 }, (_, index) => ({
+  const repeatedLocations = Array.from({ length: 60 }, (_, index) => ({
     pdf_url: `https://private-${index}.example.edu/article.pdf`,
   }));
   const service = { search: async () => ({ results: [
@@ -616,4 +663,17 @@ test('evidence verification requires an exact locator and stable document hash',
   { readPdf: readPdf as any });
   assert.equal(changed.status, 'rejected');
   assert.equal(changed.reason, 'document_hash_mismatch');
+});
+
+test('evidence verification includes the section heading in the exact locator text', async () => {
+  const readDocument = async () => ({ requestedUrl: 'https://repository.example.edu/article.html',
+    resolvedUrl: 'https://repository.example.edu/article.html', retrievedAt: '2026-09-14T00:00:00.000Z',
+    sha256: 'c'.repeat(64), format: 'html', totalSections: 1,
+    sections: [{ section: 1, heading: 'Methods', text: 'Participants completed the survey.', truncated: false }],
+    nextSection: null, guidance: [] });
+  const result = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.html', section: 1,
+    format: 'html', excerpt: 'Methods Participants completed the survey.' }, { readDocument: readDocument as any });
+  assert.equal(result.status, 'verified');
+  assert.equal(result.evidenceAllowed, true);
+  assert.equal(result.proof.heading, 'Methods');
 });

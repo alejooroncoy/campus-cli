@@ -42,21 +42,27 @@ async function discoveredResourceLinks(
 ): Promise<ResearchResourceLink[]> {
   if (!value || typeof value !== 'object') return [];
   const root = value as Record<string, unknown>;
-  const candidates: Array<{ url: unknown; name: unknown; mimeType?: string }> = [];
+  type Candidate = { url: unknown; name: unknown; mimeType?: string };
+  const candidateGroups: Candidate[][] = [];
   const collect = (item: unknown) => {
     if (!item || typeof item !== 'object') return;
     const record = item as Record<string, any>;
     const title = record.title ?? 'Fuente académica';
-    for (const link of record.fullTextLinks ?? []) candidates.push({ url: link.URL, name: title, mimeType: link['content-type'] });
+    const group: Candidate[] = [];
+    for (const link of record.fullTextLinks ?? []) group.push({ url: link.URL, name: title, mimeType: link['content-type'] });
     for (const location of [...(record.repositoryLocations ?? []), ...(record.locations ?? [])]) {
-      if (location?.pdf_url) candidates.push({ url: location.pdf_url, name: title, mimeType: 'application/pdf' });
-      if (location?.landing_page_url) candidates.push({ url: location.landing_page_url, name: title, mimeType: 'text/html' });
+      if (location?.pdf_url) group.push({ url: location.pdf_url, name: title, mimeType: 'application/pdf' });
+      if (location?.landing_page_url) group.push({ url: location.landing_page_url, name: title, mimeType: 'text/html' });
     }
-    for (const resource of record.resources ?? []) candidates.push({ url: resource.link, name: resource.title ?? title,
+    for (const resource of record.resources ?? []) group.push({ url: resource.link, name: resource.title ?? title,
       mimeType: /pdf/i.test(resource.file_format ?? '') ? 'application/pdf' : undefined });
-    if (record.url) candidates.push({ url: record.url, name: title,
+    if (record.url) group.push({ url: record.url, name: title,
       mimeType: /\.pdf(?:$|[?#])/i.test(record.url) ? 'application/pdf' : 'text/html' });
-    else if (record.doi) candidates.push({ url: `https://doi.org/${record.doi}`, name: title, mimeType: 'text/html' });
+    if (record.doi) {
+      const doiCandidate = { url: `https://doi.org/${record.doi}`, name: title, mimeType: 'text/html' };
+      group.splice(Math.min(1, group.length), 0, doiCandidate);
+    }
+    if (group.length) candidateGroups.push(group);
   };
   if (Array.isArray(root.results)) root.results.forEach(collect);
   if (Array.isArray(root.databases)) root.databases.forEach(database => {
@@ -66,17 +72,24 @@ async function discoveredResourceLinks(
   });
   const seen = new Set<string>();
   const links: ResearchResourceLink[] = [];
-  const uniqueCandidates: typeof candidates = [];
+  const uniqueCandidates: Candidate[] = [];
   const seenCandidateUrls = new Set<string>();
-  for (const candidate of candidates) {
-    if (typeof candidate.url !== 'string') continue;
-    try {
-      const normalized = publicHttpsUrl(candidate.url).toString();
-      if (seenCandidateUrls.has(normalized)) continue;
-      seenCandidateUrls.add(normalized);
-      uniqueCandidates.push({ ...candidate, url: normalized });
-      if (uniqueCandidates.length === 50) break;
-    } catch { /* Unsafe candidates are omitted before they can spend the validation budget. */ }
+  candidateRounds: for (let round = 0; ; round += 1) {
+    let foundCandidate = false;
+    for (const group of candidateGroups) {
+      const candidate = group[round];
+      if (!candidate) continue;
+      foundCandidate = true;
+      if (typeof candidate.url !== 'string') continue;
+      try {
+        const normalized = publicHttpsUrl(candidate.url).toString();
+        if (seenCandidateUrls.has(normalized)) continue;
+        seenCandidateUrls.add(normalized);
+        uniqueCandidates.push({ ...candidate, url: normalized });
+        if (uniqueCandidates.length === 100) break candidateRounds;
+      } catch { /* Unsafe candidates are omitted before they can spend the DNS budget. */ }
+    }
+    if (!foundCandidate) break;
   }
   const validationByHostname = new Map<string, Promise<boolean>>();
   const boundedCandidates = uniqueCandidates;

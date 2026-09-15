@@ -92,7 +92,9 @@ export async function verifyResearchEvidence(
   }
 
   const normalizedExcerpt = normalizedLiteral(input.excerpt);
-  const found = normalizedLiteral(source.text).includes(normalizedExcerpt);
+  const textAtLocator = 'heading' in source && source.heading
+    ? `${source.heading}\n${source.text}` : source.text;
+  const found = normalizedLiteral(textAtLocator).includes(normalizedExcerpt);
   if (!found) {
     if (source.truncated) {
       return { status: 'inconclusive', evidenceAllowed: false, reason: 'locator_text_truncated', proof,
