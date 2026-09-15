@@ -59,9 +59,12 @@ export const RESEARCH_GUIDANCE = [
   'Analiza método, muestra, resultados y limitaciones con evidencia de páginas; un resumen no equivale a leer el texto completo.',
 ];
 
+const crossrefContributor = z.object({
+  given: z.string().optional(), family: z.string().optional(), name: z.string().optional(),
+});
 const crossrefWork = z.object({
   DOI: z.string(), title: z.array(z.string()).optional(), type: z.string().optional(),
-  author: z.array(z.object({ given: z.string().optional(), family: z.string().optional(), name: z.string().optional() })).optional(),
+  author: z.array(crossrefContributor).optional(), editor: z.array(crossrefContributor).optional(),
   'container-title': z.array(z.string()).optional(), publisher: z.string().optional(),
   volume: z.string().optional(), issue: z.string().optional(), page: z.string().optional(),
   'article-number': z.string().optional(),
@@ -112,23 +115,37 @@ function sameAuthors(expected: string[], registered: string[]): boolean {
 }
 
 function crossrefPlainText(value: string): string {
-  return decode(value).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  const knownInlineTag = '(?:i|b|em|strong|sup|sub|italic|bold|underline|small-caps|span|math|mml:[a-z][a-z0-9-]*)';
+  const rawMarkup = new RegExp(`<\\/?${knownInlineTag}(?:\\s[^<>]*?)?\\s*\\/?>`, 'gi');
+  const encodedMarkup = new RegExp(`&lt;\\/?${knownInlineTag}(?:\\s[^&]*?)?\\s*\\/?&gt;`, 'gi');
+  return decode(value.replace(rawMarkup, '').replace(encodedMarkup, ''))
+    .replace(/\s+/g, ' ').trim();
+}
+
+function crossrefContributors(contributors: z.infer<typeof crossrefContributor>[] | undefined): string[] {
+  return contributors?.map(person => crossrefPlainText(
+    person.name ?? [person.given, person.family].filter(Boolean).join(' '),
+  )).filter(Boolean) ?? [];
 }
 
 const CROSSREF_CONTAINER_TYPES = new Set([
   'journal-article', 'proceedings-article', 'book-chapter', 'book-section', 'book-part', 'book-track',
+  'reference-entry',
 ]);
 const CROSSREF_PUBLISHER_TYPES = new Set([
   'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book',
   'book-chapter', 'book-section', 'book-part', 'book-track', 'report',
+  'reference-entry',
+]);
+const CROSSREF_EDITOR_TYPES = new Set([
+  'edited-book', 'book-chapter', 'book-section', 'book-part', 'reference-entry',
 ]);
 
 function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const doi = normalizeDoi(work.DOI);
   return {
     id: doi, doi, title: work.title ? crossrefPlainText(work.title.join(' ')) || null : null,
-    authors: work.author?.map(a => crossrefPlainText(a.name ?? [a.given, a.family].filter(Boolean).join(' ')))
-      .filter(Boolean) ?? [],
+    authors: crossrefContributors(work.author), editors: crossrefContributors(work.editor),
     year: work.issued?.['date-parts'][0]?.[0] ?? null, type: work.type ?? null,
     venue: work['container-title']?.[0] ?? null, publisher: work.publisher ?? null,
     volume: work.volume ?? null, issue: work.issue ?? null, pages: work.page ?? null,
@@ -360,7 +377,8 @@ export class ResearchService {
     }
     const missingFields = [
       !registered.title ? 'title' : null,
-      registered.authors.length === 0 ? 'authors' : null,
+      registered.type !== 'edited-book' && registered.authors.length === 0 ? 'authors' : null,
+      registered.type && CROSSREF_EDITOR_TYPES.has(registered.type) && registered.editors.length === 0 ? 'editors' : null,
       registered.year === null ? 'year' : null,
       registered.type && CROSSREF_CONTAINER_TYPES.has(registered.type) && !registered.venue ? 'venue' : null,
       registered.type && CROSSREF_PUBLISHER_TYPES.has(registered.type) && !registered.publisher ? 'publisher' : null,
@@ -370,6 +388,7 @@ export class ResearchService {
       status, citeAllowed: status === 'verified', doi,
       citationRecord: {
         doi: registered.doi, title: registered.title, authors: registered.authors,
+        editors: registered.editors.map(name => ({ name, role: 'editor' as const })),
         year: registered.year, type: registered.type, venue: registered.venue,
         publisher: registered.publisher, volume: registered.volume, issue: registered.issue,
         pages: registered.pages, articleNumber: registered.articleNumber, url: registered.url,

@@ -224,6 +224,30 @@ test('citation verification compares rendered Crossref titles rather than markup
   const result = await service.verifyCitation({ doi: work.DOI, expectedTitle: 'Effects of X2 & Y' });
   assert.equal(result.status, 'verified');
   assert.equal(result.citationRecord?.title, 'Effects of X2 & Y');
+
+  const inequality = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, title: ['Results for p &lt; 0.05 and age &gt; 65'] } } : collection([]));
+  const inequalityResult = await inequality.verifyCitation({ doi: work.DOI,
+    expectedTitle: 'Results for p < 0.05 and age > 65' });
+  assert.equal(inequalityResult.status, 'verified');
+  assert.equal(inequalityResult.citationRecord?.title, 'Results for p < 0.05 and age > 65');
+});
+
+test('edited books preserve editors and reference entries require their containing work', async () => {
+  const editedBook = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'edited-book', author: undefined,
+      editor: [{ given: 'Ema', family: 'Editor' }], publisher: 'Evidence Press' } } : collection([]));
+  const edited = await editedBook.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(edited.status, 'verified');
+  assert.deepEqual(edited.citationRecord?.authors, []);
+  assert.deepEqual(edited.citationRecord?.editors, [{ name: 'Ema Editor', role: 'editor' }]);
+
+  const referenceEntry = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'reference-entry', 'container-title': undefined,
+      editor: [{ name: 'Ema Editor' }], publisher: 'Evidence Press' } } : collection([]));
+  const entry = await referenceEntry.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(entry.citeAllowed, false);
+  assert.deepEqual(entry.missingFields, ['venue']);
 });
 
 test('a notice retracting another DOI does not retract the notice itself', async () => {
