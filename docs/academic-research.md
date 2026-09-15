@@ -6,14 +6,16 @@ Las herramientas recuperan registros bibliográficos y evidencia de documentos r
 
 | Herramienta | Función |
 |---|---|
-| `campus_research_search` | Búsqueda paginada en Crossref, OpenAlex, ACM, IEEE Xplore, Scopus, Web of Science o ScienceDirect, con años, DOI, autores y procedencia. |
-| `campus_research_search_databases` | Busca en IEEE Xplore, ACM, Scopus, Web of Science y ScienceDirect durante el período indicado por el estudiante. |
+| `campus_research_search` | Búsqueda paginada en Crossref, OpenAlex, ACM, Scopus o Web of Science, con años, DOI, autores y procedencia. |
+| `campus_research_search_databases` | Busca en ACM, Scopus y Web of Science durante el período indicado por el estudiante. |
 | `campus_research_google_scholar` | Búsqueda en Google Académico mediante SerpApi opcional; sin clave devuelve solo un enlace manual, identificado como tal. |
 | `campus_research_verify_doi` | Consulta exacta en Crossref y comprobación de avisos de corrección/retractación relacionados con ese DOI. |
+| `campus_research_verify_citation` | Compara el título descubierto con el registro DOI exacto y bloquea la cita ante diferencias o metadatos canónicos incompletos. |
 | `campus_research_read_pdf` | Texto de un PDF HTTPS público, separado por páginas, con URL final, fecha de lectura y SHA-256. |
 | `campus_research_read_document` | Evidencia por secciones desde PDF, HTML, texto, Markdown, XML/JATS, DOCX o EPUB públicos. Los ZIP requieren indicar `docx` o `epub`. |
+| `campus_research_verify_evidence` | Comprueba que un fragmento aparezca en la página o sección indicada y que la huella SHA-256 siga siendo la misma; devuelve un `evidenceId` estable. |
 
-El servidor MCP local registra las cinco herramientas y exige una sesión Blackboard válida (`campus login`). Las credenciales Blackboard nunca se envían a los proveedores de investigación. Reinicia el servidor MCP después de compilar para que el cliente descubra las herramientas nuevas. No se añaden comandos CLI de investigación en esta versión.
+El servidor MCP local registra estas herramientas y exige una sesión Blackboard válida (`campus login`). Las credenciales Blackboard nunca se envían a los proveedores de investigación. Reinicia el servidor MCP después de compilar para que el cliente descubra las herramientas nuevas. No se añaden comandos CLI de investigación en esta versión.
 
 ## Configuración
 
@@ -22,16 +24,15 @@ Requiere Node.js **22.13.0 o posterior** para el lector PDF. Configura las varia
 | Variable | Uso |
 |---|---|
 | `OPENALEX_API_KEY` | Opcional para OpenAlex; mejora el presupuesto de consultas según el plan del proveedor. |
-| `IEEE_XPLORE_API_KEY` | Obligatoria para IEEE Xplore, emitida por IEEE Developer. |
 | `WOS_API_KEY` | Obligatoria para Web of Science Starter API, emitida por Clarivate Developer Portal. |
-| `ELSEVIER_API_KEY` | Clave recomendada para Scopus y ScienceDirect, emitida por Elsevier. |
-| `SCOPUS_API_KEY` | Alias compatible para la clave Elsevier; también se acepta en ScienceDirect. |
+| `ELSEVIER_API_KEY` | Clave recomendada para Scopus, emitida por Elsevier. |
+| `SCOPUS_API_KEY` | Alias compatible para la clave Elsevier usada por Scopus. |
 | `SCOPUS_INSTTOKEN` | Token institucional opcional de Elsevier, cuando corresponda. |
 | `SERPAPI_API_KEY` | Habilita resultados de Google Académico mediante SerpApi, un tercero con su propio plan y cuota. |
 
 Crossref no requiere clave. La búsqueda de publicaciones ACM tampoco requiere una clave adicional: consulta en Crossref únicamente los registros administrados bajo el prefijo DOI de ACM `10.1145` y construye el enlace correspondiente a ACM Digital Library. El resultado indica `discoveredVia=crossref_acm_prefix_10.1145`, porque no proviene del buscador interno de ACM.
 
-Los permisos de IEEE, Web of Science, Scopus y ScienceDirect dependen de sus claves, planes y acceso institucional. Tener cuenta universitaria en Blackboard no concede acceso a estas API. Si faltan permisos, la herramienta informa el problema y no lo presenta como una búsqueda vacía. No crea cuentas, contrata planes ni evade controles de acceso.
+Los permisos de Web of Science y Scopus dependen de sus claves, planes y acceso institucional. Tener cuenta universitaria en Blackboard no concede acceso a estas API. Si faltan permisos, la herramienta informa el problema y no lo presenta como una búsqueda vacía. No crea cuentas, contrata planes ni evade controles de acceso.
 
 ## Ejemplos
 
@@ -49,7 +50,7 @@ Buscar versiones en repositorios de universidades y repositorios temáticos:
 
 `repositoryLocations` conserva nombre del repositorio, organización anfitriona cuando está disponible, versión, licencia y URL PDF cuando el catálogo los proporciona. La cobertura es la de OpenAlex: no incluye necesariamente todos los repositorios ni todos sus documentos. Una copia `submittedVersion` puede preceder a la revisión editorial. El filtro incluye repositorios temáticos; no certifica por sí mismo que el repositorio pertenezca a una universidad.
 
-Buscar en las cinco bases pedidas para los últimos tres años:
+Buscar en las tres bases disponibles para los últimos tres años:
 
 ```json
 {"query":"inteligencia artificial en educación superior","recentYears":3}
@@ -59,13 +60,11 @@ Usa `campus_research_search_databases`. `recentYears=3` consulta, en 2026, los a
 
 También se puede consultar cada base con `campus_research_search` y uno de estos valores en `provider`:
 
-- `ieee_xplore`: API oficial IEEE Xplore; requiere `IEEE_XPLORE_API_KEY`.
 - `acm_dl`: publicaciones del prefijo ACM `10.1145` obtenidas mediante Crossref; no equivale a consultar directamente el buscador interno de ACM DL.
 - `scopus`: Scopus Search API; requiere una clave Elsevier con acceso correspondiente.
 - `web_of_science`: Web of Science Starter API, limitada a Core Collection (`db=WOS`); requiere `WOS_API_KEY`.
-- `science_direct`: ScienceDirect Search API; requiere una clave Elsevier con acceso correspondiente.
 
-En todos los proveedores, `peerReview=unknown` exige comprobar el tipo de documento y la política editorial. IEEE Xplore incluye, además de artículos, actas, libros, cursos y estándares; ACM incluye distintos tipos de publicaciones; ScienceDirect contiene artículos y capítulos. Estar presente en estas plataformas no demuestra por sí solo que el documento pasó revisión por pares.
+En todos los proveedores, `peerReview=unknown` exige comprobar el tipo de documento y la política editorial. ACM y los demás catálogos incluyen distintos tipos de publicaciones. Estar presente en estas plataformas no demuestra por sí solo que el documento pasó revisión por pares.
 
 Google Académico:
 
@@ -80,6 +79,14 @@ Verificar un DOI recuperado de los resultados:
 ```json
 {"doi":"10.1038/nphys1170"}
 ```
+
+Antes de redactar una referencia, usa además la verificación estricta con el título exacto devuelto por la búsqueda:
+
+```json
+{"doi":"10.1038/nphys1170","expectedTitle":"Measured measurement"}
+```
+
+Solo `status=verified` y `citeAllowed=true` autorizan a construir una referencia, y únicamente con los campos de `citationRecord`. Esta validación es bibliográfica: una afirmación sobre método, resultados o conclusiones requiere leer el documento y conservar página o sección.
 
 Luego pasa una URL PDF devuelta por el catálogo a `campus_research_read_pdf`, con `startPage=1` y `pageCount=5`. Continúa desde `nextPage` para leer el resto. La lectura no descarga archivos permanentes: procesa los bytes en memoria. No accede a PDF privados de Blackboard, archivos locales, páginas de login o documentos detrás de suscripciones.
 
@@ -114,9 +121,7 @@ Las conexiones externas usan HTTPS con verificación de DNS y dirección públic
 - [Crossref REST API](https://www.crossref.org/documentation/retrieve-metadata/rest-api/) y [filtros de actualización](https://www.crossref.org/documentation/retrieve-metadata/rest-api/rest-api-filters/).
 - [OpenAlex: ubicaciones y versiones](https://help.openalex.org/data/locations/) y [autenticación](https://help.openalex.org/api/authentication/).
 - [Scopus Search API](https://dev.elsevier.com/documentation/SCOPUSSearchAPI.wadl) y [autenticación Elsevier](https://dev.elsevier.com/tecdoc_api_authentication.html).
-- [IEEE Xplore Metadata API](https://developer.ieee.org/docs/read/Searching_the_IEEE_Xplore_Metadata_API) y [filtros por año](https://developer.ieee.org/docs/read/metadata_api_details/Filtering_Parameters).
 - [Web of Science Starter API](https://developer.clarivate.com/apis/wos-starter).
-- [ScienceDirect Search API V2](https://dev.elsevier.com/documentation/SCIDIRSearchAPI.wadl).
 - [ACM Digital Library](https://dl.acm.org/) y búsqueda de metadatos ACM mediante [Crossref REST API](https://www.crossref.org/documentation/retrieve-metadata/rest-api/).
 - [Ayuda de Google Académico](https://scholar.google.com/intl/us/scholar/help.html) y [Google Scholar API de SerpApi](https://serpapi.com/google-scholar-api).
 - [PDF.js](https://mozilla.github.io/pdf.js/).
@@ -170,3 +175,11 @@ https://www.elsevier.com/legal/elsevier-mendeley-terms-and-conditions.
 ## Lectura de otros formatos
 
 Usa `campus_research_read_document` para una página HTML del editor, texto, Markdown, XML/JATS, DOCX o EPUB público. La herramienta devuelve secciones con encabezado, texto y continuidad; en PDF delega al lector paginado. Indica `format=docx` o `format=epub` para archivos ZIP, ya que el formato automático no adivina un contenedor comprimido. Solo procesa URLs HTTPS públicas de hasta 20 MB; no utiliza cookies, no inicia sesión, no descarga contenido protegido y no sigue instrucciones contenidas en el documento. Cuando Campus no puede procesar una fuente dentro de sus límites seguros —por tamaño, tiempo, memoria, cifrado, daño o formato— devuelve `status=client_processing_required` y un `resource_link` de MCP hacia la URL original. El cliente compatible puede abrirla o procesarla directamente; Campus no conserva el archivo ni continúa procesándolo.
+
+Las búsquedas devuelven sus metadatos y, cuando existe una URL utilizable, bloques MCP `resource_link`. Los lectores también adjuntan el documento como `resource_link` cuando la extracción tiene éxito. Así la IA del cliente puede abrir y analizar la fuente directamente. Un enlace descubierto no prueba que el texto sea completo, accesible ni correcto.
+
+Después del análisis del cliente, pasa cada fragmento a `campus_research_verify_evidence` con la misma URL, la página PDF o sección, y preferiblemente el `sha256` devuelto por el lector. Campus rechaza el fragmento si el documento cambió o si el texto no aparece en el localizador. Un resultado `verified` demuestra integridad textual, no que la interpretación del cliente sea válida; la respuesta debe conservar `evidenceId`, URL, SHA-256 y página/sección.
+
+```json
+{"url":"https://repositorio.example.edu/articulo.pdf","page":8,"format":"pdf","excerpt":"Fragmento seleccionado por la IA cliente","expectedSha256":"[sha256 devuelto por la lectura]"}
+```

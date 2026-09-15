@@ -4,6 +4,7 @@ import { ResearchService, normalizeDoi, scholarSearchLinks } from '../src/provid
 import { assertPublicAddress, publicHttpsUrl, ResearchHttpError } from '../src/providers/academic/research-http.js';
 import { extractPdfBytes } from '../src/providers/academic/research-pdf.js';
 import { registerResearchTools } from '../src/providers/academic/research-mcp-tools.js';
+import { verifyResearchEvidence } from '../src/providers/academic/research-evidence.js';
 
 const work = { DOI: '10.1234/ABC', title: ['Evidence'], type: 'journal-article',
   author: [{ given: 'Ana', family: 'Perez' }], issued: { 'date-parts': [[2024]] } };
@@ -85,22 +86,6 @@ test('ACM search is constrained to the ACM DOI prefix and labels Crossref proven
   assert.equal((result.results[0] as any).url, 'https://dl.acm.org/doi/10.1145/123.456');
 });
 
-test('IEEE Xplore uses official date filters and never returns its API key', async () => {
-  const service = new ResearchService(async url => {
-    const parsed = new URL(url);
-    assert.equal(parsed.hostname, 'ieeexploreapi.ieee.org');
-    assert.equal(parsed.searchParams.get('apikey'), 'ieee-secret');
-    assert.equal(parsed.searchParams.get('start_year'), '2024');
-    assert.equal(parsed.searchParams.get('end_year'), '2026');
-    return { total_records: 1, articles: [{ article_number: '123', title: 'IEEE study', doi: '10.1109/ABC.2025.1',
-      publication_year: '2025', authors: { authors: [{ full_name: 'Ana Perez' }] }, html_url: 'https://ieeexplore.ieee.org/document/123' }] };
-  }, { IEEE_XPLORE_API_KEY: 'ieee-secret' });
-  const result = await service.search({ query: 'education', provider: 'ieee_xplore', yearFrom: 2024, yearTo: 2026 });
-  assert.equal((result.results[0] as any).indexedIn, 'ieee_xplore');
-  assert.equal((result.results[0] as any).year, 2025);
-  assert.ok(!JSON.stringify(result).includes('ieee-secret'));
-});
-
 test('Web of Science uses Core Collection, exact time span and key header', async () => {
   const service = new ResearchService(async (url, headers) => {
     const parsed = new URL(url);
@@ -118,25 +103,7 @@ test('Web of Science uses Core Collection, exact time span and key header', asyn
   assert.ok(!JSON.stringify(result).includes('wos-secret'));
 });
 
-test('ScienceDirect uses Elsevier credentials, date range and supported page size', async () => {
-  const service = new ResearchService(async (url, headers) => {
-    const parsed = new URL(url);
-    assert.equal(headers?.['X-ELS-APIKey'], 'elsevier-secret');
-    assert.equal(parsed.searchParams.get('date'), '2024-2026');
-    assert.equal(parsed.searchParams.get('count'), '10');
-    assert.equal(parsed.searchParams.get('start'), '5');
-    return { 'search-results': { 'opensearch:totalResults': '11', entry: [{ 'dc:identifier': 'SD:1',
-      'dc:title': 'ScienceDirect study', 'prism:doi': '10.1016/J.TEST.2025.1', 'dc:creator': 'Perez A',
-      link: [{ '@ref': 'scidir', '@href': 'https://www.sciencedirect.com/science/article/pii/1' }] }] } };
-  }, { ELSEVIER_API_KEY: 'elsevier-secret' });
-  const result = await service.search({ query: 'education', provider: 'science_direct', yearFrom: 2024, yearTo: 2026,
-    limit: 5, page: 2 });
-  assert.equal((result.results[0] as any).indexedIn, 'science_direct');
-  assert.equal((result.results[0] as any).authorsComplete, false);
-  assert.ok(!JSON.stringify(result).includes('elsevier-secret'));
-});
-
-test('five-database search uses the student requested recent years and preserves partial failures', async () => {
+test('three-database search uses the student requested recent years and preserves partial failures', async () => {
   const year = new Date().getUTCFullYear();
   const service = new ResearchService(async url => {
     assert.match(url, /api\.crossref\.org\/prefixes\/10\.1145\/works/);
@@ -147,14 +114,14 @@ test('five-database search uses the student requested recent years and preserves
   assert.equal(result.yearFrom, year - 2);
   assert.equal(result.yearTo, year);
   assert.equal(result.periodMode, 'recent_calendar_years');
-  assert.equal(result.databases.length, 5);
+  assert.equal(result.databases.length, 3);
   assert.deepEqual(result.databases.map(item => item.provider),
-    ['ieee_xplore', 'acm_dl', 'scopus', 'web_of_science', 'science_direct']);
+    ['acm_dl', 'scopus', 'web_of_science']);
   assert.equal(result.databases.find(item => item.provider === 'acm_dl')?.status, 'ok');
-  assert.equal(result.databases.filter(item => item.status === 'unavailable').length, 4);
+  assert.equal(result.databases.filter(item => item.status === 'unavailable').length, 2);
 });
 
-test('five-database search accepts an explicit student range and rejects ambiguous periods', async () => {
+test('three-database search accepts an explicit student range and rejects ambiguous periods', async () => {
   const service = new ResearchService(async url => {
     assert.equal(new URL(url).searchParams.get('filter'), 'from-pub-date:2020-01-01,until-pub-date:2022-12-31');
     return collection([]);
@@ -172,6 +139,8 @@ test('invalid date range, limits and repository provider fail before the request
   await assert.rejects(service.search({ query: 'xx', yearFrom: 2025, yearTo: 2020 }), /yearFrom/);
   await assert.rejects(service.search({ query: 'xx', limit: 100 }));
   await assert.rejects(service.search({ query: 'xx', repositoriesOnly: true }), /openalex/);
+  await assert.rejects(service.search({ query: 'xx', provider: 'ieee_xplore' as any }));
+  await assert.rejects(service.search({ query: 'xx', provider: 'science_direct' as any }));
 });
 
 test('Crossref records with an unknown issued date remain usable without inventing a year', async () => {
@@ -188,6 +157,37 @@ test('DOI lookup checks exact incoming update relationships', async () => {
   const result = await service.verifyDoi('https://doi.org/10.1234/ABC');
   assert.equal(result.status, 'registered_in_crossref');
   assert.equal(result.retractionStatus, 'flagged_by_crossref');
+});
+
+test('strict citation verification returns only canonical registry fields with a proof receipt', async () => {
+  const service = new ResearchService(async url => url.includes('/works/')
+    ? { message: work } : collection([]));
+  const result = await service.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence',
+    expectedAuthors: ['Ana Perez'], expectedYear: 2024 });
+  assert.equal(result.status, 'verified');
+  assert.equal(result.citeAllowed, true);
+  assert.deepEqual(result.mismatches, []);
+  assert.deepEqual(result.missingFields, []);
+  assert.deepEqual(result.citationRecord?.authors, ['Ana Perez']);
+  assert.equal(result.proof.registry, 'crossref');
+  assert.equal(result.claimEvidence, 'bibliographic_only');
+});
+
+test('strict citation verification rejects invented or incomplete metadata', async () => {
+  const service = new ResearchService(async url => url.includes('/works/')
+    ? { message: work } : collection([]));
+  const rejected = await service.verifyCitation({ doi: work.DOI, expectedTitle: 'Invented title',
+    expectedAuthors: ['Other Author'], expectedYear: 2025 });
+  assert.equal(rejected.status, 'rejected');
+  assert.equal(rejected.citeAllowed, false);
+  assert.deepEqual(rejected.mismatches, ['title', 'year', 'authors']);
+
+  const incomplete = new ResearchService(async url => url.includes('/works/')
+    ? { message: { DOI: work.DOI, title: ['Evidence'] } } : collection([]));
+  const partial = await incomplete.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(partial.status, 'partial');
+  assert.equal(partial.citeAllowed, false);
+  assert.deepEqual(partial.missingFields, ['authors', 'year']);
 });
 
 test('a notice retracting another DOI does not retract the notice itself', async () => {
@@ -255,7 +255,7 @@ test('research tools fail closed before all external operations', async () => {
     registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
       handlers.set(name, handler);
     } } as any, { authorize } as any);
-    assert.equal(handlers.size, 6);
+    assert.equal(handlers.size, 8);
     for (const handler of handlers.values()) await assert.rejects(handler({}), /autorizado|auth unavailable/);
   }
 });
@@ -362,4 +362,58 @@ test('safe document-processing failures return a client resource link', async ()
   assert.match(result.content[0].text, /server_processing_unavailable/);
   assert.equal(result.content[1].type, 'resource_link');
   assert.equal(result.content[1].uri, 'https://repository.example.edu/thesis.docx');
+});
+
+test('successful academic reads always return the resolved document as a resource link', async () => {
+  const handlers = new Map<string, any>();
+  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true,
+    readPdf: async () => ({ requestedUrl: 'https://repository.example.edu/redirect',
+      resolvedUrl: 'https://repository.example.edu/article.pdf', retrievedAt: '2026-09-14T00:00:00.000Z',
+      sha256: 'a'.repeat(64), totalPages: 1, pages: [], nextPage: null, guidance: [] }) });
+  const result = await handlers.get('campus_research_read_pdf')({ url: 'https://repository.example.edu/redirect' });
+  assert.equal(result.content[1].type, 'resource_link');
+  assert.equal(result.content[1].uri, 'https://repository.example.edu/article.pdf');
+  assert.equal(result.content[1].mimeType, 'application/pdf');
+});
+
+test('academic searches expose discovered source URLs as deduplicated resource links', async () => {
+  const handlers = new Map<string, any>();
+  const service = new ResearchService(async () => collection([{ ...work,
+    link: [{ URL: 'https://repository.example.edu/article.pdf', 'content-type': 'application/pdf' }] }]));
+  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true, service });
+  const result = await handlers.get('campus_research_search')({ query: 'evidence' });
+  const links = result.content.filter((part: any) => part.type === 'resource_link');
+  assert.equal(links.length, 2);
+  assert.equal(links[0].uri, 'https://repository.example.edu/article.pdf');
+  assert.equal(links[1].uri, 'https://doi.org/10.1234/abc');
+});
+
+test('evidence verification requires an exact locator and stable document hash', async () => {
+  const readPdf = async () => ({ requestedUrl: 'https://repository.example.edu/article.pdf',
+    resolvedUrl: 'https://cdn.example.edu/article.pdf', retrievedAt: '2026-09-14T00:00:00.000Z',
+    sha256: 'a'.repeat(64), totalPages: 10,
+    pages: [{ page: 4, text: 'The intervention improved learning outcomes by 12 percent.', truncated: false, needsOcr: false }],
+    nextPage: 5, guidance: [] });
+  const verified = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    format: 'pdf', excerpt: 'The intervention improved learning outcomes\nby 12 percent.', expectedSha256: 'a'.repeat(64) },
+  { readPdf: readPdf as any });
+  assert.equal(verified.status, 'verified');
+  assert.equal(verified.evidenceAllowed, true);
+  assert.equal(verified.semanticSupport, 'client_assessment_required');
+  assert.match(verified.evidenceId!, /^[a-f0-9]{64}$/);
+
+  const missing = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    excerpt: 'An invented result that does not occur.' }, { readPdf: readPdf as any });
+  assert.equal(missing.status, 'rejected');
+  assert.equal(missing.reason, 'excerpt_not_found_at_locator');
+
+  const changed = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    excerpt: 'The intervention improved learning outcomes.', expectedSha256: 'b'.repeat(64) },
+  { readPdf: readPdf as any });
+  assert.equal(changed.status, 'rejected');
+  assert.equal(changed.reason, 'document_hash_mismatch');
 });

@@ -23,7 +23,7 @@ campus assignments list --pending
 - Consultar tu horario semanal, con horas y aulas de tus cursos matriculados.
 - Revisar tareas pendientes, fechas de entrega y notas.
 - Descargar archivos y carpetas completas de Blackboard.
-- Buscar publicaciones en Crossref, OpenAlex, IEEE Xplore, ACM, Scopus, Web of Science y ScienceDirect; verificar DOI y avisos de retractación; localizar repositorios y leer PDF por página. Google Académico admite SerpApi opcional o enlaces manuales. Consulta la [configuración de investigación académica](docs/academic-research.md).
+- Buscar publicaciones en Crossref, OpenAlex, ACM, Scopus y Web of Science; entregar las fuentes como `resource_link` para que la IA cliente las analice; y verificar DOI, fragmentos, páginas/secciones y huellas del documento. Google Académico admite SerpApi opcional o enlaces manuales. Consulta la [configuración de investigación académica](docs/academic-research.md).
 - Consultar anuncios, mensajes, contenidos y calificaciones.
 - En un host de Campus que registre la función y autorice el acceso, obtener guías y plantillas APA 7 en español. El servidor MCP local iniciado con `npx campus-cli ... mcp` no la registra.
 - Usarlo desde Claude, Cursor, Copilot, Codex u otro cliente compatible con MCP.

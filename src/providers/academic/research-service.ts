@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ResearchHttpError, researchJson, type ResearchJson } from './research-http.js';
 
 export const researchProvider = z.enum([
-  'crossref', 'openalex', 'acm_dl', 'ieee_xplore', 'scopus', 'web_of_science', 'science_direct',
+  'crossref', 'openalex', 'acm_dl', 'scopus', 'web_of_science',
 ]);
 
 export const searchInput = z.object({
@@ -17,8 +17,8 @@ export const searchInput = z.object({
 
 export const databasesSearchInput = z.object({
   query: searchInput.shape.query,
-  providers: z.array(z.enum(['ieee_xplore', 'acm_dl', 'scopus', 'web_of_science', 'science_direct']))
-    .min(1).max(5).default(['ieee_xplore', 'acm_dl', 'scopus', 'web_of_science', 'science_direct']),
+  providers: z.array(z.enum(['acm_dl', 'scopus', 'web_of_science']))
+    .min(1).max(3).default(['acm_dl', 'scopus', 'web_of_science']),
   limitPerProvider: z.number().int().min(1).max(25).default(10),
   yearFrom: searchInput.shape.yearFrom,
   yearTo: searchInput.shape.yearTo,
@@ -32,6 +32,16 @@ export const scholarInput = z.object({
   yearTo: searchInput.shape.yearTo,
   page: z.number().int().min(1).max(100).default(1),
   mode: z.enum(['search', 'link']).default('search').describe('search uses a configured third-party SerpApi key; without a key returns an explicitly labeled manual link.'),
+});
+
+export const citationVerificationInput = z.object({
+  doi: z.string().trim().min(6).max(350),
+  expectedTitle: z.string().trim().min(2).max(1_000)
+    .describe('Exact title returned by the discovery provider. It is compared with the DOI registry before citation is allowed.'),
+  expectedAuthors: z.array(z.string().trim().min(1).max(300)).min(1).max(100).optional()
+    .describe('Optional complete author list from the candidate, in order. If supplied, every author must match the registry.'),
+  expectedYear: z.number().int().min(1500).max(2100).optional()
+    .describe('Optional publication year from the candidate. If supplied, it must match the registry.'),
 });
 
 export function normalizeDoi(value: string): string {
@@ -74,13 +84,6 @@ const scopusWork = z.object({
   'prism:coverDate': z.string().optional(), subtypeDescription: z.string().optional(),
   link: z.array(z.object({ '@ref': z.string().optional(), '@href': z.string() })).optional(),
 });
-const ieeeWork = z.object({
-  article_number: z.string().optional(), title: z.string().optional(), doi: z.string().optional(),
-  publication_title: z.string().optional(), publication_year: z.union([z.string(), z.number()]).optional(),
-  content_type: z.string().optional(), html_url: z.string().optional(), pdf_url: z.string().optional(),
-  abstract: z.string().optional(),
-  authors: z.object({ authors: z.array(z.object({ full_name: z.string().optional() })).optional() }).optional(),
-});
 const wosWork = z.object({
   uid: z.string(), title: z.string().optional(), types: z.array(z.string()).optional(),
   source: z.object({ sourceTitle: z.string().optional(), publishYear: z.number().optional() }).optional(),
@@ -93,6 +96,16 @@ const wosWork = z.object({
 function optionalDoi(value?: string | null): string | null {
   if (!value) return null;
   try { return normalizeDoi(value); } catch { return null; }
+}
+
+function normalizeEvidenceText(value: string): string {
+  return value.normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase('en-US')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
+}
+
+function sameAuthors(expected: string[], registered: string[]): boolean {
+  return expected.length === registered.length
+    && expected.every((author, index) => normalizeEvidenceText(author) === normalizeEvidenceText(registered[index] ?? ''));
 }
 
 function crossrefSource(work: z.infer<typeof crossrefWork>) {
@@ -229,25 +242,6 @@ export class ResearchService {
       total = data.message['total-results'];
       results = data.message.items.map(work => ({ ...crossrefSource(work), indexedIn: 'acm_digital_library',
         discoveredVia: 'crossref_acm_prefix_10.1145', url: `https://dl.acm.org/doi/${normalizeDoi(work.DOI)}` }));
-    } else if (provider === 'ieee_xplore') {
-      if (!this.env.IEEE_XPLORE_API_KEY) throw new Error('IEEE Xplore requiere IEEE_XPLORE_API_KEY del portal IEEE Developer.');
-      const apiUrl = endpoint('https://ieeexploreapi.ieee.org/api/v1/search/articles', {
-        apikey: this.env.IEEE_XPLORE_API_KEY, querytext: query, max_records: limit,
-        start_record: offset + 1, ...(yearFrom ? { start_year: yearFrom } : {}), ...(yearTo ? { end_year: yearTo } : {}),
-      });
-      requestUrl = endpoint('https://ieeexploreapi.ieee.org/api/v1/search/articles', {
-        querytext: query, max_records: limit, start_record: offset + 1,
-        ...(yearFrom ? { start_year: yearFrom } : {}), ...(yearTo ? { end_year: yearTo } : {}),
-      });
-      const data = z.object({ total_records: z.number(), articles: z.array(ieeeWork).optional() }).parse(await this.json(apiUrl));
-      total = data.total_records;
-      results = (data.articles ?? []).map(work => ({ id: work.article_number ?? work.doi ?? null,
-        doi: optionalDoi(work.doi), title: work.title ?? null,
-        authors: work.authors?.authors?.map(author => author.full_name).filter(Boolean) ?? [],
-        year: work.publication_year ? Number(work.publication_year) : null,
-        type: work.content_type ?? null, venue: work.publication_title ?? null,
-        url: work.html_url ?? null, pdfUrl: work.pdf_url ?? null, abstract: work.abstract ?? null,
-        indexedIn: 'ieee_xplore', peerReview: 'unknown', retractionStatus: 'not_checked' }));
     } else if (provider === 'web_of_science') {
       if (!this.env.WOS_API_KEY) throw new Error('Web of Science requiere WOS_API_KEY de Clarivate Developer Portal.');
       const terms = query.replace(/["\\]/g, ' ').trim();
@@ -264,33 +258,6 @@ export class ResearchService {
         year: work.source?.publishYear ?? null, type: work.types ?? [], venue: work.source?.sourceTitle ?? null,
         url: work.links?.record ?? null, citations: work.citations ?? [], indexedIn: 'web_of_science_core_collection',
         peerReview: 'unknown', retractionStatus: 'not_checked' }));
-    } else if (provider === 'science_direct') {
-      const elsevierKey = this.env.ELSEVIER_API_KEY ?? this.env.SCOPUS_API_KEY;
-      if (!elsevierKey) throw new Error('ScienceDirect requiere ELSEVIER_API_KEY (o SCOPUS_API_KEY compatible) de Elsevier.');
-      const terms = query.replace(/[(){}"\\]/g, ' ').trim();
-      if (!terms) throw new Error('La búsqueda debe contener texto.');
-      // ScienceDirect accepts only certain page sizes, but callers can ask for
-      // any limit from 1 to 25. Advance by the visible page size so a request
-      // for five results does not skip records 5–9 on its second page.
-      const count = limit <= 10 ? 10 : 25;
-      const apiOffset = (page - 1) * limit;
-      requestUrl = endpoint('https://api.elsevier.com/content/search/sciencedirect', {
-        query: `all(${terms})`, count, start: apiOffset, view: 'STANDARD',
-        ...(yearFrom || yearTo ? { date: `${yearFrom ?? 1500}-${yearTo ?? 2100}` } : {}),
-      });
-      const headers: Record<string, string> = { 'X-ELS-APIKey': elsevierKey, Accept: 'application/json' };
-      if (this.env.SCOPUS_INSTTOKEN) headers['X-ELS-Insttoken'] = this.env.SCOPUS_INSTTOKEN;
-      const data = z.object({ 'search-results': z.object({ 'opensearch:totalResults': z.string().regex(/^\d+$/),
-        entry: z.array(z.unknown()).optional() }) }).parse(await this.json(requestUrl, headers))['search-results'];
-      total = Number(data['opensearch:totalResults']);
-      results = total === 0 ? [] : z.array(scopusWork).parse(data.entry).slice(0, limit).map(work => ({
-        id: work['dc:identifier'], doi: optionalDoi(work['prism:doi']), title: work['dc:title'] ?? null,
-        authors: work['dc:creator'] ? [work['dc:creator']] : [], authorsComplete: false,
-        date: work['prism:coverDate'] ?? null, venue: work['prism:publicationName'] ?? null,
-        type: work.subtypeDescription ?? null, indexedIn: 'science_direct', peerReview: 'unknown',
-        retractionStatus: 'not_checked', url: work.link?.find(link => link['@ref'] === 'scidir')?.['@href']
-          ?? work.link?.find(link => link['@ref'] === 'self')?.['@href'] ?? null,
-      }));
     } else {
       const elsevierKey = this.env.ELSEVIER_API_KEY ?? this.env.SCOPUS_API_KEY;
       if (!elsevierKey) throw new Error('Scopus requiere ELSEVIER_API_KEY o SCOPUS_API_KEY de Elsevier. El acceso depende de los permisos institucionales; SCOPUS_INSTTOKEN es opcional.');
@@ -349,6 +316,56 @@ export class ResearchService {
     return { status: 'registered_in_crossref', source: crossrefSource(work), requestUrl, updatesUrl,
       retrievedAt: new Date().toISOString(), retractionStatus, updates, updatesTotal, updatesError,
       guidance: [...RESEARCH_GUIDANCE, 'La ausencia de avisos en Crossref no garantiza ausencia de retractación. Verifica también la página editorial.'] };
+  }
+
+  async verifyCitation(raw: z.input<typeof citationVerificationInput>) {
+    const input = citationVerificationInput.parse(raw);
+    const doi = normalizeDoi(input.doi);
+    const verification = await this.verifyDoi(doi);
+    const retrievedAt = new Date().toISOString();
+    if (!('source' in verification) || !verification.source) return {
+      status: 'unverified', citeAllowed: false, doi, citationRecord: null,
+      mismatches: [], missingFields: [],
+      proof: { registry: 'crossref', recordId: doi, recordUrl: verification.requestUrl, retrievedAt },
+      reason: 'El DOI no está registrado en Crossref. No se permite construir una referencia con datos inferidos.',
+      claimEvidence: 'not_checked',
+    };
+
+    const registered = verification.source;
+    const mismatches: string[] = [];
+    if (!registered.title || normalizeEvidenceText(input.expectedTitle) !== normalizeEvidenceText(registered.title)) {
+      mismatches.push('title');
+    }
+    if (input.expectedYear !== undefined && input.expectedYear !== registered.year) mismatches.push('year');
+    if (input.expectedAuthors !== undefined && !sameAuthors(input.expectedAuthors, registered.authors)) {
+      mismatches.push('authors');
+    }
+    const missingFields = [
+      !registered.title ? 'title' : null,
+      registered.authors.length === 0 ? 'authors' : null,
+      registered.year === null ? 'year' : null,
+    ].filter((field): field is string => field !== null);
+    const status = mismatches.length > 0 ? 'rejected' : missingFields.length > 0 ? 'partial' : 'verified';
+    return {
+      status, citeAllowed: status === 'verified', doi,
+      citationRecord: {
+        doi: registered.doi, title: registered.title, authors: registered.authors,
+        year: registered.year, type: registered.type, venue: registered.venue,
+        publisher: registered.publisher, url: registered.url,
+      },
+      comparisons: {
+        title: mismatches.includes('title') ? 'mismatch' : 'match',
+        year: input.expectedYear === undefined ? 'not_provided' : mismatches.includes('year') ? 'mismatch' : 'match',
+        authors: input.expectedAuthors === undefined ? 'not_provided' : mismatches.includes('authors') ? 'mismatch' : 'match',
+      },
+      mismatches, missingFields,
+      proof: { registry: 'crossref', recordId: doi, recordUrl: verification.requestUrl,
+        resolverUrl: `https://doi.org/${doi}`, retrievedAt },
+      retractionStatus: verification.retractionStatus,
+      noInferencePolicy: 'Usa únicamente citationRecord. No completes autores, año, título, revista, editorial ni otros campos ausentes.',
+      claimEvidence: 'bibliographic_only',
+      claimEvidenceGuidance: 'Este comprobante verifica identidad bibliográfica, no afirmaciones del artículo. Para citar contenido, lee el documento y conserva página o sección.',
+    };
   }
 }
 
