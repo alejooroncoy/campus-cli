@@ -8,6 +8,22 @@ import { publicHttpsUrl, resolvedPublicHttpsUrl } from './research-http.js';
 
 const CLIENT_PROCESSING_ERRORS = /documento supera el tamaño permitido|Se requiere un PDF válido|contenido descomprimido supera el límite de análisis seguro|PDF superó el tiempo máximo de análisis|PDF no pudo procesarse dentro de los límites de memoria|lector PDF terminó sin devolver evidencia|No se pudo leer el PDF|No se pudo abrir el archivo ZIP|documento no contiene texto legible|EPUB no contiene capítulos HTML legibles|demasiadas secciones para analizarlo de forma segura|codificación no compatible/i;
 
+// resource_link is fetched by the MCP client, outside Campus's pinned-DNS
+// download boundary. Discovery responses therefore must not turn arbitrary
+// provider metadata into client-fetchable URLs. Document reads still use
+// researchDownload, which validates every hop before fetching content.
+const TRUSTED_DISCOVERY_RESOURCE_HOSTS = new Set([
+  'api.crossref.org', 'api.openalex.org', 'arxiv.org', 'dl.acm.org', 'doi.org',
+  'ieeexplore.ieee.org', 'link.springer.com', 'nature.com', 'onlinelibrary.wiley.com',
+  'pmc.ncbi.nlm.nih.gov', 'pubmed.ncbi.nlm.nih.gov', 'sciencedirect.com',
+  'tandfonline.com', 'www.webofscience.com',
+]);
+
+function isTrustedDiscoveryResource(parsed: URL): boolean {
+  const hostname = parsed.hostname.toLowerCase();
+  return [...TRUSTED_DISCOVERY_RESOURCE_HOSTS].some(host => hostname === host || hostname.endsWith(`.${host}`));
+}
+
 type ResearchResourceLink = {
   type: 'resource_link';
   uri: string;
@@ -83,6 +99,7 @@ async function discoveredResourceLinks(
       if (typeof candidate.url !== 'string') continue;
       try {
         const normalized = publicHttpsUrl(candidate.url).toString();
+        if (!isTrustedDiscoveryResource(new URL(normalized))) continue;
         if (seenCandidateUrls.has(normalized)) continue;
         seenCandidateUrls.add(normalized);
         uniqueCandidates.push({ ...candidate, url: normalized });

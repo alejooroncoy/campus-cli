@@ -218,6 +218,16 @@ test('strict citation verification rejects invented or incomplete metadata', asy
   const missingAuthor = await blankAuthor.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
   assert.deepEqual(missingAuthor.citationRecord?.authors, []);
   assert.deepEqual(missingAuthor.missingFields, ['authors']);
+
+  const datasetWithoutSource = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'dataset', publisher: undefined, 'group-title': undefined } } : collection([]));
+  const incompleteDataset = await datasetWithoutSource.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(incompleteDataset.citeAllowed, false);
+  assert.deepEqual(incompleteDataset.missingFields, ['source']);
+
+  const datasetWithRepository = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'dataset', publisher: undefined, 'group-title': 'Evidence Repository' } } : collection([]));
+  assert.equal((await datasetWithRepository.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' })).status, 'verified');
 });
 
 test('authorless journal articles and editor-led journal issues retain valid creators', async () => {
@@ -651,8 +661,8 @@ test('academic searches expose discovered source URLs as deduplicated resource l
   let validations = 0;
   const service = new ResearchService(async () => collection([{ ...work,
     link: [
-      { URL: 'https://repository.example.edu/article.pdf', 'content-type': 'application/pdf' },
-      { URL: 'https://repository.example.edu/supplement.pdf', 'content-type': 'application/pdf' },
+      { URL: 'https://arxiv.org/pdf/1234.5678', 'content-type': 'application/pdf' },
+      { URL: 'https://arxiv.org/html/1234.5678', 'content-type': 'text/html' },
     ] }]));
   registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
     handlers.set(name, handler);
@@ -663,9 +673,9 @@ test('academic searches expose discovered source URLs as deduplicated resource l
   const result = await handlers.get('campus_research_search')({ query: 'evidence' });
   const links = result.content.filter((part: any) => part.type === 'resource_link');
   assert.equal(links.length, 3);
-  assert.equal(links[0].uri, 'https://repository.example.edu/article.pdf');
+  assert.equal(links[0].uri, 'https://arxiv.org/pdf/1234.5678');
   assert.equal(links[1].uri, 'https://doi.org/10.1234/abc');
-  assert.equal(links[2].uri, 'https://repository.example.edu/supplement.pdf');
+  assert.equal(links[2].uri, 'https://arxiv.org/html/1234.5678');
   assert.equal(validations, 2, 'DNS validation is cached by hostname');
 });
 
@@ -673,7 +683,7 @@ test('academic searches retain a valid landing page when a PDF candidate is unsa
   const handlers = new Map<string, any>();
   const service = { search: async () => ({ results: [{ title: 'Safe landing page', locations: [{
     pdf_url: 'https://private.example.edu/article.pdf',
-    landing_page_url: 'https://repository.example.edu/article',
+    landing_page_url: 'https://arxiv.org/abs/1234.5678',
   }] }] }) };
   registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
     handlers.set(name, handler);
@@ -683,7 +693,18 @@ test('academic searches retain a valid landing page when a PDF candidate is unsa
   } });
   const result = await handlers.get('campus_research_search')({ query: 'evidence' });
   const links = result.content.filter((part: any) => part.type === 'resource_link');
-  assert.deepEqual(links.map((part: any) => part.uri), ['https://repository.example.edu/article']);
+  assert.deepEqual(links.map((part: any) => part.uri), ['https://arxiv.org/abs/1234.5678']);
+});
+
+test('academic searches do not emit provider-controlled resource links from untrusted hosts', async () => {
+  const handlers = new Map<string, any>();
+  const service = { search: async () => ({ results: [{ title: 'Untrusted host',
+    url: 'https://catalog-controlled.example/article', doi: null }] }) };
+  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true, service: service as any, validateResourceUrl: acceptTestResourceUrl });
+  const result = await handlers.get('campus_research_search')({ query: 'evidence' });
+  assert.deepEqual(result.content.filter((part: any) => part.type === 'resource_link'), []);
 });
 
 test('academic searches retain a DOI fallback when the record URL is unsafe', async () => {
@@ -708,7 +729,7 @@ test('duplicate OpenAlex locations cannot consume the bounded candidate budget',
   }));
   const service = { search: async () => ({ results: [
     { title: 'Replicated source', repositoryLocations: repeatedLocations, locations: repeatedLocations },
-    { title: 'Later source', url: 'https://later.example.edu/article' },
+    { title: 'Later source', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC1234567/' },
   ] }) };
   registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
     handlers.set(name, handler);
@@ -718,7 +739,7 @@ test('duplicate OpenAlex locations cannot consume the bounded candidate budget',
   } });
   const result = await handlers.get('campus_research_search')({ query: 'evidence' });
   const links = result.content.filter((part: any) => part.type === 'resource_link');
-  assert.deepEqual(links.map((part: any) => part.uri), ['https://later.example.edu/article']);
+  assert.deepEqual(links.map((part: any) => part.uri), ['https://pmc.ncbi.nlm.nih.gov/articles/PMC1234567/']);
 });
 
 test('evidence verification requires an exact locator and stable document hash', async () => {

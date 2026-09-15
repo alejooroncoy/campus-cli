@@ -515,6 +515,7 @@ export class ResearchService {
       registered.type && CROSSREF_PUBLISHER_TYPES.has(registered.type) && !registered.publisher ? 'publisher' : null,
       registered.type && CROSSREF_LOCATOR_TYPES.has(registered.type)
         && !registered.pages && !registered.articleNumber ? 'pages' : null,
+      registered.type === 'dataset' && !registered.publisher && !registered.repository ? 'source' : null,
       registered.type === 'dissertation' && registered.institutions.length === 0 ? 'institution' : null,
       registered.type === 'dissertation' && registered.degrees.length === 0 ? 'degree' : null,
       registered.type === 'posted-content' && !registered.repository ? 'repository' : null,
