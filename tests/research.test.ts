@@ -220,6 +220,21 @@ test('strict citation verification rejects invented or incomplete metadata', asy
   assert.deepEqual(missingAuthor.missingFields, ['authors']);
 });
 
+test('authorless journal articles and editor-led journal issues retain valid creators', async () => {
+  const unsignedArticle = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, author: undefined } } : collection([]));
+  const article = await unsignedArticle.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(article.status, 'verified');
+  assert.deepEqual(article.citationRecord?.authors, []);
+
+  const editedIssue = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'journal-issue', author: undefined,
+      editor: [{ given: 'Ema', family: 'Editor' }] } } : collection([]));
+  const issue = await editedIssue.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(issue.status, 'verified');
+  assert.deepEqual(issue.citationRecord?.editors.map(editor => editor.name), ['Ema Editor']);
+});
+
 test('citation verification compares rendered Crossref titles rather than markup tags', async () => {
   const service = new ResearchService(async url => url.includes('/works/')
     ? { message: { ...work, title: ['Effects of <i>X</i><sup>2</sup> &amp; Y'] } } : collection([]));

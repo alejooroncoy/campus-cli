@@ -174,7 +174,9 @@ const CROSSREF_EDITOR_TYPES = new Set([
 ]);
 const CROSSREF_EDITOR_CREATOR_TYPES = new Set([
   'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book', 'proceedings',
+  'journal-issue',
 ]);
+const CROSSREF_TITLE_FIRST_TYPES = new Set(['journal-article']);
 const CROSSREF_LOCATOR_TYPES = new Set(['book-chapter', 'book-section', 'book-part']);
 
 function crossrefDateParts(value: z.infer<typeof crossrefDate> | null | undefined): number[] | null {
@@ -249,6 +251,7 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
     authors: authorContributors.map(person => person.name),
     editors: editorContributors.map(person => person.name),
     authorContributors, editorContributors, translatorContributors,
+    authorEntriesPresent: (work.author?.length ?? 0) > 0,
     institutions, degrees,
     year: issued?.[0] ?? awardStart?.[0] ?? null, type: work.type ?? null,
     venue: work['container-title']?.[0] ?? null, publisher: work.publisher ?? null,
@@ -486,6 +489,7 @@ export class ResearchService {
       !registered.title ? 'title' : null,
       registered.authors.length === 0
         && !(registered.type && CROSSREF_EDITOR_CREATOR_TYPES.has(registered.type) && registered.editors.length > 0)
+        && !(registered.type && CROSSREF_TITLE_FIRST_TYPES.has(registered.type) && !registered.authorEntriesPresent)
         ? (registered.type && CROSSREF_EDITOR_CREATOR_TYPES.has(registered.type) ? 'creators' : 'authors') : null,
       registered.type && CROSSREF_EDITOR_TYPES.has(registered.type) && registered.editors.length === 0 ? 'editors' : null,
       registered.year === null ? 'year' : null,
