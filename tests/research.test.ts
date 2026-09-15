@@ -799,6 +799,18 @@ test('evidence verification requires an exact locator and stable document hash',
   assert.equal(alteredDecimal.status, 'rejected');
   assert.equal(alteredDecimal.reason, 'excerpt_not_found_at_locator');
 
+  const alteredPolarity = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    excerpt: 'The result was significant in both groups.' }, { readPdf: (async () => ({
+      ...(await readPdf()), pages: [{ page: 4, text: 'The result was non-significant in both groups.', truncated: false, needsOcr: false }],
+    })) as any });
+  assert.equal(alteredPolarity.status, 'rejected');
+
+  const alteredSign = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    excerpt: 'The change was 10 percent.' }, { readPdf: (async () => ({
+      ...(await readPdf()), pages: [{ page: 4, text: 'The change was -10 percent.', truncated: false, needsOcr: false }],
+    })) as any });
+  assert.equal(alteredSign.status, 'rejected');
+
   const truncated = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
     excerpt: 'A possibly valid result beyond the extraction prefix.' }, { readPdf: (async () => ({
       ...(await readPdf()), pages: [{ page: 4, text: 'Only the bounded prefix.', truncated: true, needsOcr: false }],
