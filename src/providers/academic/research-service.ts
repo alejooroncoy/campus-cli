@@ -68,7 +68,10 @@ const crossrefDate = z.object({
 });
 const crossrefProject = z.object({
   'project-title': z.array(z.object({ title: z.string(), language: z.string().optional() })).nullish(),
-  funding: z.array(z.object({ funder: z.object({ name: z.string().optional() }) })).nullish(),
+  funding: z.array(z.object({
+    funder: z.object({ name: z.string().optional() }),
+    award: z.union([z.string(), z.array(z.string())]).nullish(),
+  })).nullish(),
   investigator: z.array(crossrefContributor).nullish(),
   'lead-investigator': z.array(crossrefContributor).nullish(),
   'award-start': crossrefDate.nullish(), 'award-end': crossrefDate.nullish(),
@@ -213,8 +216,11 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const translatorContributors = crossrefContributors(work.translator, 'translator');
   const funders = [...new Set(projects.flatMap(project => project.funding ?? [])
     .map(item => item.funder.name ? crossrefPlainText(item.funder.name) : '').filter(Boolean))];
-  const awardNumbers = (Array.isArray(work.award) ? work.award : work.award ? [work.award] : [])
-    .map(crossrefPlainText).filter(Boolean);
+  const awardNumbers = [...new Set([
+    ...(Array.isArray(work.award) ? work.award : work.award ? [work.award] : []),
+    ...projects.flatMap(project => project.funding ?? []).flatMap(item =>
+      Array.isArray(item.award) ? item.award : item.award ? [item.award] : []),
+  ].map(crossrefPlainText).filter(Boolean))];
   const awardStart = crossrefDateParts(work['award-start'])
     ?? projects.map(project => crossrefDateParts(project['award-start'])).find(Boolean) ?? null;
   const awardEnd = crossrefDateParts(work['award-end'])

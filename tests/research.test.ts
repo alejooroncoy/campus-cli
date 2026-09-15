@@ -336,11 +336,11 @@ test('proceedings, preprints and reports retain their type-specific canonical me
 test('grant citations use registered project funding, investigators and duration', async () => {
   const grantRecord = {
     DOI: work.DOI, type: 'grant', title: null, author: null, issued: { 'date-parts': [[null]] },
-    award: 'GRANT-42', project: [{
+    award: null, project: [{
       'project-title': [{ title: 'Evidence Project' }],
       'lead-investigator': [{ given: 'Ana', family: 'Perez' }],
       investigator: [{ given: 'Ben', family: 'Rios' }],
-      funding: [{ funder: { name: 'Evidence Foundation' } }],
+      funding: [{ funder: { name: 'Evidence Foundation' }, award: ['GRANT-42'] }],
       'award-start': { 'date-parts': [[2024, 1, 15]] },
       'award-end': { 'date-parts': [[2026, 12, 31]] },
     }],
