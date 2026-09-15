@@ -7,8 +7,11 @@ import { registerResearchTools } from '../src/providers/academic/research-mcp-to
 import { verifyResearchEvidence } from '../src/providers/academic/research-evidence.js';
 
 const work = { DOI: '10.1234/ABC', title: ['Evidence'], type: 'journal-article',
-  author: [{ given: 'Ana', family: 'Perez' }], issued: { 'date-parts': [[2024]] } };
+  author: [{ given: 'Ana', family: 'Perez' }], issued: { 'date-parts': [[2024]] },
+  'container-title': ['Journal of Evidence'], volume: '12', issue: '3', page: '41-52',
+  'article-number': 'e123' };
 const collection = (items: unknown[], total = items.length) => ({ message: { items, 'total-results': total } });
+const acceptTestResourceUrl = async (value: string) => publicHttpsUrl(value);
 
 test('Crossref search preserves provenance, encodes query and does not invent peer review', async () => {
   const service = new ResearchService(async url => {
@@ -169,6 +172,11 @@ test('strict citation verification returns only canonical registry fields with a
   assert.deepEqual(result.mismatches, []);
   assert.deepEqual(result.missingFields, []);
   assert.deepEqual(result.citationRecord?.authors, ['Ana Perez']);
+  assert.equal(result.citationRecord?.venue, 'Journal of Evidence');
+  assert.equal(result.citationRecord?.volume, '12');
+  assert.equal(result.citationRecord?.issue, '3');
+  assert.equal(result.citationRecord?.pages, '41-52');
+  assert.equal(result.citationRecord?.articleNumber, 'e123');
   assert.equal(result.proof.registry, 'crossref');
   assert.equal(result.claimEvidence, 'bibliographic_only');
 });
@@ -188,6 +196,12 @@ test('strict citation verification rejects invented or incomplete metadata', asy
   assert.equal(partial.status, 'partial');
   assert.equal(partial.citeAllowed, false);
   assert.deepEqual(partial.missingFields, ['authors', 'year']);
+
+  const journalWithoutVenue = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, 'container-title': undefined } } : collection([]));
+  const missingVenue = await journalWithoutVenue.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(missingVenue.citeAllowed, false);
+  assert.deepEqual(missingVenue.missingFields, ['venue']);
 });
 
 test('a notice retracting another DOI does not retract the notice itself', async () => {
@@ -342,6 +356,7 @@ test('sources Campus cannot process return their original link for client handli
   registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
     handlers.set(name, handler);
   } } as any, { authorize: () => true,
+    validateResourceUrl: acceptTestResourceUrl,
     readPdf: async () => { throw new Error('El documento supera el tamaño permitido.'); } });
   const result = await handlers.get('campus_research_read_pdf')({ url: 'https://publisher.example.edu/article.pdf' });
   assert.equal(result.isError, undefined);
@@ -356,6 +371,7 @@ test('safe document-processing failures return a client resource link', async ()
   registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
     handlers.set(name, handler);
   } } as any, { authorize: () => true,
+    validateResourceUrl: acceptTestResourceUrl,
     readDocument: async () => { throw new Error('El contenido descomprimido supera el límite de análisis seguro.'); } });
   const result = await handlers.get('campus_research_read_document')({ url: 'https://repository.example.edu/thesis.docx', format: 'docx' });
   assert.equal(result.isError, undefined);
@@ -369,6 +385,7 @@ test('successful academic reads always return the resolved document as a resourc
   registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
     handlers.set(name, handler);
   } } as any, { authorize: () => true,
+    validateResourceUrl: acceptTestResourceUrl,
     readPdf: async () => ({ requestedUrl: 'https://repository.example.edu/redirect',
       resolvedUrl: 'https://repository.example.edu/article.pdf', retrievedAt: '2026-09-14T00:00:00.000Z',
       sha256: 'a'.repeat(64), totalPages: 1, pages: [], nextPage: null, guidance: [] }) });
@@ -384,7 +401,7 @@ test('academic searches expose discovered source URLs as deduplicated resource l
     link: [{ URL: 'https://repository.example.edu/article.pdf', 'content-type': 'application/pdf' }] }]));
   registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
     handlers.set(name, handler);
-  } } as any, { authorize: () => true, service });
+  } } as any, { authorize: () => true, service, validateResourceUrl: acceptTestResourceUrl });
   const result = await handlers.get('campus_research_search')({ query: 'evidence' });
   const links = result.content.filter((part: any) => part.type === 'resource_link');
   assert.equal(links.length, 2);
@@ -410,6 +427,14 @@ test('evidence verification requires an exact locator and stable document hash',
     excerpt: 'An invented result that does not occur.' }, { readPdf: readPdf as any });
   assert.equal(missing.status, 'rejected');
   assert.equal(missing.reason, 'excerpt_not_found_at_locator');
+
+  const truncated = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    excerpt: 'A possibly valid result beyond the extraction prefix.' }, { readPdf: (async () => ({
+      ...(await readPdf()), pages: [{ page: 4, text: 'Only the bounded prefix.', truncated: true, needsOcr: false }],
+    })) as any });
+  assert.equal(truncated.status, 'inconclusive');
+  assert.equal(truncated.evidenceAllowed, false);
+  assert.equal(truncated.reason, 'locator_text_truncated');
 
   const changed = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
     excerpt: 'The intervention improved learning outcomes.', expectedSha256: 'b'.repeat(64) },

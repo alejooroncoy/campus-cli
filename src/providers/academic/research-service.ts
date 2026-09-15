@@ -62,6 +62,8 @@ const crossrefWork = z.object({
   DOI: z.string(), title: z.array(z.string()).optional(), type: z.string().optional(),
   author: z.array(z.object({ given: z.string().optional(), family: z.string().optional(), name: z.string().optional() })).optional(),
   'container-title': z.array(z.string()).optional(), publisher: z.string().optional(),
+  volume: z.string().optional(), issue: z.string().optional(), page: z.string().optional(),
+  'article-number': z.string().optional(),
   issued: z.object({ 'date-parts': z.array(z.array(z.number().nullable())) }).optional(),
   link: z.array(z.object({ URL: z.string(), 'content-type': z.string().optional(), 'content-version': z.string().optional() })).optional(),
   'update-to': z.array(z.object({ DOI: z.string(), type: z.string().optional() })).optional(),
@@ -115,6 +117,8 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
     authors: work.author?.map(a => a.name ?? [a.given, a.family].filter(Boolean).join(' ')) ?? [],
     year: work.issued?.['date-parts'][0]?.[0] ?? null, type: work.type ?? null,
     venue: work['container-title']?.[0] ?? null, publisher: work.publisher ?? null,
+    volume: work.volume ?? null, issue: work.issue ?? null, pages: work.page ?? null,
+    articleNumber: work['article-number'] ?? null,
     url: `https://doi.org/${doi}`, peerReview: 'unknown', indexedIn: 'crossref',
     retractionStatus: 'not_checked', updatesToOtherWorks: work['update-to'] ?? [],
     fullTextLinks: work.link ?? [], fullTextAccess: 'not_checked',
@@ -344,6 +348,7 @@ export class ResearchService {
       !registered.title ? 'title' : null,
       registered.authors.length === 0 ? 'authors' : null,
       registered.year === null ? 'year' : null,
+      registered.type === 'journal-article' && !registered.venue ? 'venue' : null,
     ].filter((field): field is string => field !== null);
     const status = mismatches.length > 0 ? 'rejected' : missingFields.length > 0 ? 'partial' : 'verified';
     return {
@@ -351,7 +356,8 @@ export class ResearchService {
       citationRecord: {
         doi: registered.doi, title: registered.title, authors: registered.authors,
         year: registered.year, type: registered.type, venue: registered.venue,
-        publisher: registered.publisher, url: registered.url,
+        publisher: registered.publisher, volume: registered.volume, issue: registered.issue,
+        pages: registered.pages, articleNumber: registered.articleNumber, url: registered.url,
       },
       comparisons: {
         title: mismatches.includes('title') ? 'mismatch' : 'match',

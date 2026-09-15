@@ -27,6 +27,19 @@ export function publicHttpsUrl(value: string): URL {
   return url;
 }
 
+export async function resolvedPublicHttpsUrl(
+  value: string,
+  resolve: typeof lookup = lookup,
+): Promise<URL> {
+  const url = publicHttpsUrl(value);
+  const hostname = url.hostname.replace(/^\[|\]$/g, '');
+  if (ipaddr.isValid(hostname)) return url;
+  const addresses = await resolve(hostname, { all: true });
+  if (!addresses.length) throw new Error('No se pudo resolver el proveedor.');
+  addresses.forEach(item => assertPublicAddress(item.address));
+  return url;
+}
+
 let active = 0;
 const queue: Array<() => void> = [];
 

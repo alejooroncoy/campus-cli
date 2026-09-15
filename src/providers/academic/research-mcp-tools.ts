@@ -4,6 +4,7 @@ import { citationVerificationInput, databasesSearchInput, ResearchService, schol
 import { pdfInput, readResearchPdf } from './research-pdf.js';
 import { documentInput, readResearchDocument } from './research-document.js';
 import { evidenceVerificationInput, verifyResearchEvidence } from './research-evidence.js';
+import { resolvedPublicHttpsUrl } from './research-http.js';
 
 const CLIENT_PROCESSING_ERRORS = /documento supera el tamaño permitido|Se requiere un PDF válido|contenido descomprimido supera el límite de análisis seguro|PDF superó el tiempo máximo de análisis|PDF no pudo procesarse dentro de los límites de memoria|lector PDF terminó sin devolver evidencia|No se pudo leer el PDF|No se pudo abrir el archivo ZIP|documento no contiene texto legible|EPUB no contiene capítulos HTML legibles|demasiadas secciones para analizarlo de forma segura|codificación no compatible/i;
 
@@ -15,13 +16,15 @@ type ResearchResourceLink = {
   description?: string;
 };
 
-function safeResourceLink(url: unknown, name: unknown, mimeType?: string): ResearchResourceLink | null {
+async function safeResourceLink(
+  url: unknown,
+  name: unknown,
+  mimeType?: string,
+  validateUrl: (value: string) => Promise<URL> = resolvedPublicHttpsUrl,
+): Promise<ResearchResourceLink | null> {
   if (typeof url !== 'string') return null;
   try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== 'https:' || parsed.username || parsed.password) return null;
-    const hostname = parsed.hostname.replace(/^\[|\]$/g, '').toLowerCase();
-    if (hostname === 'localhost' || hostname.endsWith('.localhost') || hostname.endsWith('.local') || hostname.endsWith('.internal')) return null;
+    const parsed = await validateUrl(url);
     const safeName = typeof name === 'string' ? name.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim() : '';
     return { type: 'resource_link', uri: parsed.toString(),
       name: safeName ? safeName.slice(0, 300) : 'Fuente académica',
@@ -30,7 +33,10 @@ function safeResourceLink(url: unknown, name: unknown, mimeType?: string): Resea
   } catch { return null; }
 }
 
-function discoveredResourceLinks(value: unknown): ResearchResourceLink[] {
+async function discoveredResourceLinks(
+  value: unknown,
+  validateUrl: (value: string) => Promise<URL>,
+): Promise<ResearchResourceLink[]> {
   if (!value || typeof value !== 'object') return [];
   const root = value as Record<string, unknown>;
   const candidates: Array<{ url: unknown; name: unknown; mimeType?: string }> = [];
@@ -58,7 +64,7 @@ function discoveredResourceLinks(value: unknown): ResearchResourceLink[] {
   const seen = new Set<string>();
   const links: ResearchResourceLink[] = [];
   for (const candidate of candidates) {
-    const link = safeResourceLink(candidate.url, candidate.name, candidate.mimeType);
+    const link = await safeResourceLink(candidate.url, candidate.name, candidate.mimeType, validateUrl);
     if (!link || seen.has(link.uri)) continue;
     seen.add(link.uri);
     links.push(link);
@@ -74,6 +80,7 @@ export function registerResearchTools(server: McpServer, options: {
   readPdf?: typeof readResearchPdf;
   readDocument?: typeof readResearchDocument;
   verifyEvidence?: typeof verifyResearchEvidence;
+  validateResourceUrl?: (value: string) => Promise<URL>;
 }) {
   const service = options?.service ?? new ResearchService();
   const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
@@ -85,18 +92,24 @@ export function registerResearchTools(server: McpServer, options: {
       const value = await action();
       const resolvedUrl = value && typeof value === 'object' && 'resolvedUrl' in value
         ? (value as { resolvedUrl?: unknown }).resolvedUrl : undefined;
-      const directLink = resource ? safeResourceLink(resolvedUrl ?? resource.url, resource.name, resource.mimeType) : null;
-      const links = includeDiscoveredResources ? discoveredResourceLinks(value) : directLink ? [directLink] : [];
+      const validateUrl = options.validateResourceUrl ?? resolvedPublicHttpsUrl;
+      const directLink = resource
+        ? await safeResourceLink(resolvedUrl ?? resource.url, resource.name, resource.mimeType, validateUrl) : null;
+      const links = includeDiscoveredResources
+        ? await discoveredResourceLinks(value, validateUrl) : directLink ? [directLink] : [];
       return { content: [{ type: 'text' as const, text: JSON.stringify(value) }, ...links] };
     } catch (error) {
       // Zod issues can include provider values; never echo raw responses or request headers.
       const message = error instanceof z.ZodError ? 'Entrada o respuesta del proveedor con formato inesperado.'
         : error instanceof Error ? error.message : 'No se pudo completar la consulta académica.';
       if (resource && CLIENT_PROCESSING_ERRORS.test(message)) {
+        const link = await safeResourceLink(resource.url, resource.name, resource.mimeType,
+          options.validateResourceUrl ?? resolvedPublicHttpsUrl);
+        if (!link) return { isError: true, content: [{ type: 'text' as const, text: message }] };
         return { content: [
           { type: 'text' as const, text: JSON.stringify({ status: 'client_processing_required', reason: 'server_processing_unavailable', url: resource.url,
             guidance: 'Campus no puede procesar este documento dentro de sus límites seguros. Usa el enlace original en el cliente; Campus no lo conserva ni continúa procesándolo.' }) },
-          { type: 'resource_link' as const, uri: resource.url, name: resource.name, mimeType: resource.mimeType },
+          link,
         ] };
       }
       return { isError: true, content: [{ type: 'text' as const, text: message }] };

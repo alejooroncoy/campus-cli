@@ -94,6 +94,12 @@ export async function verifyResearchEvidence(
   const normalizedExcerpt = normalizedLiteral(input.excerpt);
   const found = normalizedLiteral(source.text).includes(normalizedExcerpt);
   if (!found) {
+    if (source.truncated) {
+      return { status: 'inconclusive', evidenceAllowed: false, reason: 'locator_text_truncated', proof,
+        semanticSupport: 'not_evaluated',
+        matchMode: 'unicode_nfkc_and_whitespace',
+        guidance: 'El texto extraído de esta página o sección fue truncado. Campus no puede confirmar ni descartar el fragmento; vuelve a leerlo con una extracción completa o verifícalo en el recurso original.' };
+    }
     return { status: 'rejected', evidenceAllowed: false, reason: 'excerpt_not_found_at_locator', proof,
       semanticSupport: 'not_evaluated',
       matchMode: 'unicode_nfkc_and_whitespace',
