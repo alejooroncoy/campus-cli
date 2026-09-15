@@ -846,6 +846,12 @@ test('evidence verification requires an exact locator and stable document hash',
     })) as any });
   assert.equal(alteredRange.status, 'rejected');
 
+  const alteredSpacedOperator = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    excerpt: 'The result was 10 percent.' }, { readPdf: (async () => ({
+      ...(await readPdf()), pages: [{ page: 4, text: 'The result was < 10 percent.', truncated: false, needsOcr: false }],
+    })) as any });
+  assert.equal(alteredSpacedOperator.status, 'rejected');
+
   const truncated = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
     excerpt: 'A possibly valid result beyond the extraction prefix.' }, { readPdf: (async () => ({
       ...(await readPdf()), pages: [{ page: 4, text: 'Only the bounded prefix.', truncated: true, needsOcr: false }],

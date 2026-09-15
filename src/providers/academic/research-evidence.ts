@@ -60,9 +60,12 @@ function hasBoundedLiteral(text: string, excerpt: string): boolean {
     const afterCharacters = Array.from(text.slice(index + excerpt.length));
     const before = beforeCharacters.at(-1);
     const after = afterCharacters[0];
-    const startsAfterNumericOperator = isDigit(first) && /^[+\-−–<>≤≥±]$/.test(before ?? '');
-    const startsAfterHyphenatedPrefix = /^[\-−–]$/.test(before ?? '')
-      && isTokenCharacter(first) && isTokenCharacter(beforeCharacters.at(-2));
+    let prefixIndex = beforeCharacters.length - 1;
+    while (prefixIndex >= 0 && /\s/u.test(beforeCharacters[prefixIndex]!)) prefixIndex -= 1;
+    const semanticPrefix = beforeCharacters[prefixIndex];
+    const startsAfterNumericOperator = isDigit(first) && /^[+\-−–<>≤≥±]$/.test(semanticPrefix ?? '');
+    const startsAfterHyphenatedPrefix = /^[\-−–]$/.test(semanticPrefix ?? '')
+      && isTokenCharacter(first) && isTokenCharacter(beforeCharacters[prefixIndex - 1]);
     const startsInsideDecimal = isDigit(first) && /^[.,]$/.test(before ?? '')
       && isDigit(beforeCharacters.at(-2));
     const endsInsideDecimal = (isDigit(last) && /^[.,]$/.test(after ?? '') && isDigit(afterCharacters[1]))
