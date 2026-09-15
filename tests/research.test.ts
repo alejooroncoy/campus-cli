@@ -282,6 +282,20 @@ test('citation verification compares rendered Crossref titles rather than markup
   assert.equal(inequalityResult.citationRecord?.title, 'Results for p < 0.05 and age > 65');
 });
 
+test('citation records decode Crossref venue and publisher markup', async () => {
+  const journal = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, 'container-title': ['Research &amp; <i>Development</i>'] } } : collection([]));
+  const journalResult = await journal.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(journalResult.status, 'verified');
+  assert.equal(journalResult.citationRecord?.venue, 'Research & Development');
+
+  const book = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'book', publisher: 'Evidence &amp; <i>Press</i>' } } : collection([]));
+  const bookResult = await book.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(bookResult.status, 'verified');
+  assert.equal(bookResult.citationRecord?.publisher, 'Evidence & Press');
+});
+
 test('edited books preserve editors and reference entries require their containing work', async () => {
   const editedBook = new ResearchService(async url => url.includes('/works/')
     ? { message: { ...work, type: 'edited-book', author: undefined,
