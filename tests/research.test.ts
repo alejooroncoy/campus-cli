@@ -203,11 +203,13 @@ test('strict citation verification rejects invented or incomplete metadata', asy
   assert.equal(missingVenue.citeAllowed, false);
   assert.deepEqual(missingVenue.missingFields, ['venue']);
 
-  const bookWithoutPublisher = new ResearchService(async url => url.includes('/works/')
-    ? { message: { ...work, type: 'book', publisher: undefined } } : collection([]));
-  const missingPublisher = await bookWithoutPublisher.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
-  assert.equal(missingPublisher.citeAllowed, false);
-  assert.deepEqual(missingPublisher.missingFields, ['publisher']);
+  for (const type of ['book', 'book-series', 'book-set']) {
+    const bookWithoutPublisher = new ResearchService(async url => url.includes('/works/')
+      ? { message: { ...work, type, publisher: undefined } } : collection([]));
+    const missingPublisher = await bookWithoutPublisher.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+    assert.equal(missingPublisher.citeAllowed, false, type);
+    assert.deepEqual(missingPublisher.missingFields, ['publisher'], type);
+  }
 });
 
 test('a notice retracting another DOI does not retract the notice itself', async () => {

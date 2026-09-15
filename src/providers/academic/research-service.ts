@@ -114,7 +114,7 @@ const CROSSREF_CONTAINER_TYPES = new Set([
   'journal-article', 'proceedings-article', 'book-chapter', 'book-section', 'book-part', 'book-track',
 ]);
 const CROSSREF_PUBLISHER_TYPES = new Set([
-  'book', 'edited-book', 'monograph', 'reference-book',
+  'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book',
   'book-chapter', 'book-section', 'book-part', 'book-track', 'report',
 ]);
 
