@@ -246,6 +246,15 @@ test('authorless journal articles and editor-led journal issues retain valid cre
     : collection([]));
   const incompleteIssue = await issueWithoutPeriodicalMetadata.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
   assert.deepEqual(incompleteIssue.missingFields, ['venue', 'volume', 'issue']);
+
+  const journalVolume = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'journal-volume', issue: undefined } } : collection([]));
+  assert.equal((await journalVolume.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' })).status, 'verified');
+  const incompleteVolume = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'journal-volume', issue: undefined,
+      'container-title': undefined, volume: undefined } } : collection([]));
+  assert.deepEqual((await incompleteVolume.verifyCitation({ doi: work.DOI,
+    expectedTitle: 'Evidence' })).missingFields, ['venue', 'volume']);
 });
 
 test('citation verification compares rendered Crossref titles rather than markup tags', async () => {
@@ -292,6 +301,7 @@ test('citation records retain Crossref suffix, subtitle, edition and chapter loc
     { name: 'Ana Perez Jr.', role: 'author', given: 'Ana', family: 'Perez', suffix: 'Jr.' },
   ]);
   assert.equal(book.citationRecord?.subtitle, 'Methods');
+  assert.equal(book.citationRecord?.title, 'Evidence');
   assert.equal(book.citationRecord?.edition, '2');
 
   const chapterWithoutPages = new ResearchService(async url => url.includes('/works/')

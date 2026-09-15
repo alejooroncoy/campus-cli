@@ -162,7 +162,7 @@ function crossrefContributors(
 
 const CROSSREF_CONTAINER_TYPES = new Set([
   'journal-article', 'proceedings-article', 'book-chapter', 'book-section', 'book-part', 'book-track',
-  'reference-entry', 'component', 'journal-issue',
+  'reference-entry', 'component', 'journal-issue', 'journal-volume',
 ]);
 const CROSSREF_PUBLISHER_TYPES = new Set([
   'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book',
@@ -174,9 +174,10 @@ const CROSSREF_EDITOR_TYPES = new Set([
 ]);
 const CROSSREF_EDITOR_CREATOR_TYPES = new Set([
   'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book', 'proceedings',
-  'journal-issue',
+  'journal-issue', 'journal-volume',
 ]);
 const CROSSREF_TITLE_FIRST_TYPES = new Set(['journal-article']);
+const CROSSREF_PERIODICAL_VOLUME_TYPES = new Set(['journal-issue', 'journal-volume']);
 const CROSSREF_LOCATOR_TYPES = new Set(['book-chapter', 'book-section', 'book-part']);
 
 function crossrefDateParts(value: z.infer<typeof crossrefDate> | null | undefined): number[] | null {
@@ -261,6 +262,7 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const issued = crossrefDateParts(work.issued);
   return {
     id: doi, doi, title: [mainTitle, subtitle].filter(Boolean).join(': ') || null,
+    mainTitle: mainTitle || null,
     subtitle: subtitle || null,
     authors: authorContributors.map(person => person.name),
     editors: editorContributors.map(person => person.name),
@@ -508,7 +510,7 @@ export class ResearchService {
       registered.type && CROSSREF_EDITOR_TYPES.has(registered.type) && registered.editors.length === 0 ? 'editors' : null,
       registered.year === null ? 'year' : null,
       registered.type && CROSSREF_CONTAINER_TYPES.has(registered.type) && !registered.venue ? 'venue' : null,
-      registered.type === 'journal-issue' && !registered.volume ? 'volume' : null,
+      registered.type && CROSSREF_PERIODICAL_VOLUME_TYPES.has(registered.type) && !registered.volume ? 'volume' : null,
       registered.type === 'journal-issue' && !registered.issue ? 'issue' : null,
       registered.type && CROSSREF_PUBLISHER_TYPES.has(registered.type) && !registered.publisher ? 'publisher' : null,
       registered.type && CROSSREF_LOCATOR_TYPES.has(registered.type)
@@ -524,7 +526,7 @@ export class ResearchService {
     return {
       status, citeAllowed: status === 'verified', doi,
       citationRecord: {
-        doi: registered.doi, title: registered.title, authors: registered.authorContributors,
+        doi: registered.doi, title: registered.mainTitle, authors: registered.authorContributors,
         editors: registered.editorContributors, translators: registered.translatorContributors,
         year: registered.year, type: registered.type, venue: registered.venue,
         publisher: registered.publisher, volume: registered.volume, issue: registered.issue,
