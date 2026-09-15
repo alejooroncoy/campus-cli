@@ -210,6 +210,20 @@ test('strict citation verification rejects invented or incomplete metadata', asy
     assert.equal(missingPublisher.citeAllowed, false, type);
     assert.deepEqual(missingPublisher.missingFields, ['publisher'], type);
   }
+
+  const blankAuthor = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, author: [{}] } } : collection([]));
+  const missingAuthor = await blankAuthor.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.deepEqual(missingAuthor.citationRecord?.authors, []);
+  assert.deepEqual(missingAuthor.missingFields, ['authors']);
+});
+
+test('citation verification compares rendered Crossref titles rather than markup tags', async () => {
+  const service = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, title: ['Effects of <i>X</i><sup>2</sup> &amp; Y'] } } : collection([]));
+  const result = await service.verifyCitation({ doi: work.DOI, expectedTitle: 'Effects of X2 & Y' });
+  assert.equal(result.status, 'verified');
+  assert.equal(result.citationRecord?.title, 'Effects of X2 & Y');
 });
 
 test('a notice retracting another DOI does not retract the notice itself', async () => {

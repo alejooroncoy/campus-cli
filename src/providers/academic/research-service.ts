@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { decode } from 'entities';
 import { ResearchHttpError, researchJson, type ResearchJson } from './research-http.js';
 
 export const researchProvider = z.enum([
@@ -110,6 +111,10 @@ function sameAuthors(expected: string[], registered: string[]): boolean {
     && expected.every((author, index) => normalizeEvidenceText(author) === normalizeEvidenceText(registered[index] ?? ''));
 }
 
+function crossrefPlainText(value: string): string {
+  return decode(value).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+}
+
 const CROSSREF_CONTAINER_TYPES = new Set([
   'journal-article', 'proceedings-article', 'book-chapter', 'book-section', 'book-part', 'book-track',
 ]);
@@ -121,8 +126,9 @@ const CROSSREF_PUBLISHER_TYPES = new Set([
 function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const doi = normalizeDoi(work.DOI);
   return {
-    id: doi, doi, title: work.title?.join(' ') ?? null,
-    authors: work.author?.map(a => a.name ?? [a.given, a.family].filter(Boolean).join(' ')) ?? [],
+    id: doi, doi, title: work.title ? crossrefPlainText(work.title.join(' ')) || null : null,
+    authors: work.author?.map(a => crossrefPlainText(a.name ?? [a.given, a.family].filter(Boolean).join(' ')))
+      .filter(Boolean) ?? [],
     year: work.issued?.['date-parts'][0]?.[0] ?? null, type: work.type ?? null,
     venue: work['container-title']?.[0] ?? null, publisher: work.publisher ?? null,
     volume: work.volume ?? null, issue: work.issue ?? null, pages: work.page ?? null,
