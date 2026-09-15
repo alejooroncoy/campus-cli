@@ -19,10 +19,18 @@ const INSTRUCTIONS = `
 campus-cli conecta el campus universitario del estudiante con su agente de IA.
 
 Para investigación académica usa campus_research_search (Crossref, OpenAlex,
-ACM, IEEE Xplore, Scopus, Web of Science y ScienceDirect),
-campus_research_search_databases para buscar en las cinco bases usando el rango
+ACM, Scopus y Web of Science),
+campus_research_search_databases para buscar en las tres bases usando el rango
 o cantidad de años que indique el estudiante, campus_research_verify_doi y
-campus_research_read_pdf. Google Académico
+campus_research_verify_citation antes de redactar una referencia, y
+campus_research_read_pdf o campus_research_read_document para entregar el
+documento también como resource_link a la IA cliente. Después usa
+campus_research_verify_evidence para comprobar que cada fragmento atribuido
+aparece en la página o sección y en la misma huella del documento. Nunca cites
+un resultado si verify_citation devuelve citeAllowed=false ni completes campos
+ausentes por inferencia. La verificación de fragmentos no evalúa si una
+inferencia es correcta: la IA cliente debe clasificar el respaldo y conservar
+evidenceId, URL, SHA-256 y localizador. Google Académico
 usa campus_research_google_scholar mediante SerpApi si está configurado;
 de lo contrario devuelve solo un enlace de búsqueda manual, sin resultados.
 La indexación y el DOI no prueban revisión por pares ni validez científica.
