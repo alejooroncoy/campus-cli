@@ -32,6 +32,19 @@ type ResearchResourceLink = {
   description?: string;
 };
 
+function documentMimeType(format: unknown): string | undefined {
+  switch (format) {
+    case 'pdf': return 'application/pdf';
+    case 'html': return 'text/html';
+    case 'text': return 'text/plain';
+    case 'markdown': return 'text/markdown';
+    case 'xml': return 'application/xml';
+    case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'epub': return 'application/epub+zip';
+    default: return undefined;
+  }
+}
+
 function resourceLink(parsed: URL, name: unknown, mimeType?: string): ResearchResourceLink {
   const safeName = typeof name === 'string' ? name.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim() : '';
   return { type: 'resource_link', uri: parsed.toString(),
@@ -150,7 +163,7 @@ export function registerResearchTools(server: McpServer, options: {
 }) {
   const service = options?.service ?? new ResearchService();
   const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true };
-  const run = async (action: () => Promise<unknown> | unknown, resource?: { url: string; name: string; mimeType: string }, includeDiscoveredResources = false) => {
+  const run = async (action: () => Promise<unknown> | unknown, resource?: { url: string; name: string; mimeType?: string }, includeDiscoveredResources = false) => {
     if (!options?.authorize || !(await options.authorize())) {
       throw new Error('No autorizado para investigación académica. Verifica la sesión o el acceso Campus del usuario.');
     }
@@ -158,9 +171,11 @@ export function registerResearchTools(server: McpServer, options: {
       const value = await action();
       const resolvedUrl = value && typeof value === 'object' && 'resolvedUrl' in value
         ? (value as { resolvedUrl?: unknown }).resolvedUrl : undefined;
+      const mimeType = resource?.mimeType ?? (value && typeof value === 'object'
+        ? documentMimeType((value as { format?: unknown }).format) : undefined);
       const validateUrl = options.validateResourceUrl ?? resolvedPublicHttpsUrl;
       const directLink = resource
-        ? await safeResourceLink(resolvedUrl ?? resource.url, resource.name, resource.mimeType, validateUrl) : null;
+        ? await safeResourceLink(resolvedUrl ?? resource.url, resource.name, mimeType, validateUrl) : null;
       const links = includeDiscoveredResources
         ? await discoveredResourceLinks(value, validateUrl) : directLink ? [directLink] : [];
       return { content: [{ type: 'text' as const, text: JSON.stringify(value) }, ...links] };

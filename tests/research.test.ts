@@ -872,6 +872,13 @@ test('evidence verification requires an exact locator and stable document hash',
       pages: [{ page: 4, text: 'The dose was 10² mg.', truncated: false, needsOcr: false }],
     })) as any });
   assert.equal(alteredSuperscript.status, 'rejected');
+
+  const alteredUnit = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    excerpt: 'The dose was 10 mg' }, { readPdf: (async () => ({
+      ...(await readPdf()),
+      pages: [{ page: 4, text: 'The dose was 10 mg/kg.', truncated: false, needsOcr: false }],
+    })) as any });
+  assert.equal(alteredUnit.status, 'rejected');
 });
 
 test('evidence verification includes the section heading in the exact locator text', async () => {

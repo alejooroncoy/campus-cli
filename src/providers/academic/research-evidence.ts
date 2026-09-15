@@ -51,6 +51,10 @@ function hasNumericSuffixContinuation(value: string): boolean {
     || /^[\s]*(?:kg|g|mg|µg|lb|oz|km|m|cm|mm|mi|ft|in|ms|s|min|h|Hz|kHz|MHz|GHz)\b/iu.test(value);
 }
 
+function endsWithNumericExpression(value: string): boolean {
+  return /\p{N}\s*(?:(?:kg|g|mg|µg|lb|oz|km|m|cm|mm|mi|ft|in|ms|s|min|h|Hz|kHz|MHz|GHz)\b|[%‰°](?:[CFK])?)?\s*$/iu.test(value);
+}
+
 function hasBoundedLiteral(text: string, excerpt: string): boolean {
   const first = excerpt[0];
   const last = excerpt.at(-1);
@@ -70,7 +74,7 @@ function hasBoundedLiteral(text: string, excerpt: string): boolean {
       && isDigit(beforeCharacters.at(-2));
     const endsInsideDecimal = (isDigit(last) && /^[.,]$/.test(after ?? '') && isDigit(afterCharacters[1]))
       || (/^[.,]$/.test(last ?? '') && isDigit(excerptCharacters.at(-2)) && isDigit(after));
-    const endsBeforeNumericContinuation = isDigit(last)
+    const endsBeforeNumericContinuation = endsWithNumericExpression(excerpt)
       && hasNumericSuffixContinuation(afterCharacters.join(''));
     if (!(isTokenCharacter(first) && isTokenCharacter(before))
       && !(isTokenCharacter(last) && isTokenCharacter(after))
