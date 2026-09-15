@@ -46,7 +46,7 @@ function isDigit(value: string | undefined): boolean {
 }
 
 function hasNumericSuffixContinuation(value: string): boolean {
-  return /^[\s]*[-−–—+×*/<>≤≥±≈~]/u.test(value)
+  return /^[\s]*[-−–—+×*/<>≤≥±≈~^]/u.test(value)
     || /^[\s]*(?:%|‰|°(?:[CFK])?)/u.test(value)
     || /^[\s]*(?:kg|g|mg|µg|lb|oz|km|m|cm|mm|mi|ft|in|ms|s|min|h|Hz|kHz|MHz|GHz)\b/iu.test(value);
 }
@@ -146,12 +146,12 @@ export async function verifyResearchEvidence(
     if (source.truncated) {
       return { status: 'inconclusive', evidenceAllowed: false, reason: 'locator_text_truncated', proof,
         semanticSupport: 'not_evaluated',
-        matchMode: 'unicode_nfkc_and_whitespace',
+        matchMode: 'unicode_nfc_and_whitespace',
         guidance: 'El texto extraído de esta página o sección fue truncado. Campus no puede confirmar ni descartar el fragmento; vuelve a leerlo con una extracción completa o verifícalo en el recurso original.' };
     }
     return { status: 'rejected', evidenceAllowed: false, reason: 'excerpt_not_found_at_locator', proof,
       semanticSupport: 'not_evaluated',
-      matchMode: 'unicode_nfkc_and_whitespace',
+      matchMode: 'unicode_nfc_and_whitespace',
       guidance: 'El fragmento no aparece en la página o sección indicada. Corrige el localizador o descarta la atribución.' };
   }
 
@@ -165,7 +165,7 @@ export async function verifyResearchEvidence(
     evidenceId,
     excerpt: input.excerpt,
     proof,
-    matchMode: 'unicode_nfkc_and_whitespace',
+    matchMode: 'unicode_nfc_and_whitespace',
     truncatedAtLocator: source.truncated,
     semanticSupport: 'client_assessment_required',
     guidance: [
