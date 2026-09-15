@@ -233,6 +233,19 @@ test('authorless journal articles and editor-led journal issues retain valid cre
   const issue = await editedIssue.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
   assert.equal(issue.status, 'verified');
   assert.deepEqual(issue.citationRecord?.editors.map(editor => editor.name), ['Ema Editor']);
+
+  const issueWithoutJournal = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'journal-issue', author: undefined,
+      editor: [{ name: 'Ema Editor' }], 'container-title': undefined } } : collection([]));
+  const partialIssue = await issueWithoutJournal.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.deepEqual(partialIssue.missingFields, ['venue']);
+
+  const issueWithoutPeriodicalMetadata = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'journal-issue', author: undefined,
+      editor: [{ name: 'Ema Editor' }], 'container-title': undefined, volume: undefined, issue: undefined } }
+    : collection([]));
+  const incompleteIssue = await issueWithoutPeriodicalMetadata.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.deepEqual(incompleteIssue.missingFields, ['venue', 'volume', 'issue']);
 });
 
 test('citation verification compares rendered Crossref titles rather than markup tags', async () => {
@@ -406,6 +419,30 @@ test('grant citation dates are never combined across different projects', async 
     { title: 'First project', start: [2024, 1, 1], end: null },
     { title: 'Second project', start: null, end: [2026, 12, 31] },
   ]);
+
+  const partialTopLevel = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...grantRecord, 'award-start': { 'date-parts': [[2023, 6, 1]] },
+      project: [{ ...grantRecord.project[0], 'award-start': null,
+        'award-end': { 'date-parts': [[2026, 12, 31]] } }] } } : collection([]));
+  const topLevelResult = await partialTopLevel.verifyCitation({ doi: work.DOI, expectedTitle: 'First project' });
+  assert.ok(topLevelResult.missingFields.includes('awardDuration'));
+  assert.deepEqual(topLevelResult.citationRecord?.awardStart, [2023, 6, 1]);
+  assert.equal(topLevelResult.citationRecord?.awardEnd, null);
+
+  const laterCompleteProject = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...grantRecord, award: null, project: [
+      { ...grantRecord.project[0], funding: null,
+        'award-start': { 'date-parts': [[2024, 1, 1]] }, 'award-end': { 'date-parts': [[2025, 1, 1]] } },
+      { ...grantRecord.project[1], 'project-title': [{ title: 'Complete project' }],
+        funding: [{ funder: { name: 'Complete Foundation' }, award: ['COMPLETE-7'] }],
+        'award-start': { 'date-parts': [[2025, 2, 1]] }, 'award-end': { 'date-parts': [[2026, 2, 1]] } },
+    ] } } : collection([]));
+  const complete = await laterCompleteProject.verifyCitation({ doi: work.DOI, expectedTitle: 'Complete project' });
+  assert.equal(complete.status, 'verified');
+  assert.deepEqual(complete.citationRecord?.funders, ['Complete Foundation']);
+  assert.deepEqual(complete.citationRecord?.awardNumbers, ['COMPLETE-7']);
+  assert.deepEqual(complete.citationRecord?.awardStart, [2025, 2, 1]);
+  assert.deepEqual(complete.citationRecord?.awardEnd, [2026, 2, 1]);
 });
 
 test('a notice retracting another DOI does not retract the notice itself', async () => {

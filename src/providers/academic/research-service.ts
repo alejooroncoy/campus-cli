@@ -162,7 +162,7 @@ function crossrefContributors(
 
 const CROSSREF_CONTAINER_TYPES = new Set([
   'journal-article', 'proceedings-article', 'book-chapter', 'book-section', 'book-part', 'book-track',
-  'reference-entry', 'component',
+  'reference-entry', 'component', 'journal-issue',
 ]);
 const CROSSREF_PUBLISHER_TYPES = new Set([
   'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book',
@@ -220,9 +220,18 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
   });
   const topLevelAwardStart = crossrefDateParts(work['award-start']);
   const topLevelAwardEnd = crossrefDateParts(work['award-end']);
-  const completeDatedProject = grantProjects.find(project => project.awardStart && project.awardEnd);
-  const selectedGrantProject = topLevelAwardStart && topLevelAwardEnd
-    ? grantProjects[0] : completeDatedProject ?? grantProjects[0];
+  const topLevelAwardNumbers = (Array.isArray(work.award) ? work.award : work.award ? [work.award] : [])
+    .map(crossrefPlainText).filter(Boolean);
+  const selectedGrantProject = grantProjects.reduce<typeof grantProjects[number] | undefined>((best, project) => {
+    const score = Number(project.titles.length > 0) + Number(project.investigators.length > 0)
+      + Number(project.funders.length > 0) + Number(topLevelAwardNumbers.length > 0 || project.awardNumbers.length > 0)
+      + 2 * Number(Boolean((topLevelAwardStart && topLevelAwardEnd) || (project.awardStart && project.awardEnd)));
+    if (!best) return project;
+    const bestScore = Number(best.titles.length > 0) + Number(best.investigators.length > 0)
+      + Number(best.funders.length > 0) + Number(topLevelAwardNumbers.length > 0 || best.awardNumbers.length > 0)
+      + 2 * Number(Boolean((topLevelAwardStart && topLevelAwardEnd) || (best.awardStart && best.awardEnd)));
+    return score > bestScore ? project : best;
+  }, undefined);
   const projectTitles = grantProjects.flatMap(project => project.titles);
   const mainTitle = work.title?.length ? crossrefPlainText(work.title.join(' '))
     : selectedGrantProject?.titles[0] ?? projectTitles[0] ?? '';
@@ -237,13 +246,18 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const translatorContributors = crossrefContributors(work.translator, 'translator');
   const funders = selectedGrantProject?.funders ?? [];
   const awardNumbers = [...new Set([
-    ...(Array.isArray(work.award) ? work.award : work.award ? [work.award] : []),
+    ...topLevelAwardNumbers,
     ...(selectedGrantProject?.awardNumbers ?? []),
   ].map(crossrefPlainText).filter(Boolean))];
-  const awardStart = topLevelAwardStart && topLevelAwardEnd ? topLevelAwardStart
-    : completeDatedProject?.awardStart ?? topLevelAwardStart ?? selectedGrantProject?.awardStart ?? null;
-  const awardEnd = topLevelAwardStart && topLevelAwardEnd ? topLevelAwardEnd
-    : completeDatedProject?.awardEnd ?? topLevelAwardEnd ?? selectedGrantProject?.awardEnd ?? null;
+  const awardDurationSource = topLevelAwardStart && topLevelAwardEnd
+    ? { awardStart: topLevelAwardStart, awardEnd: topLevelAwardEnd }
+    : selectedGrantProject?.awardStart && selectedGrantProject.awardEnd
+      ? selectedGrantProject
+      : (topLevelAwardStart || topLevelAwardEnd
+        ? { awardStart: topLevelAwardStart, awardEnd: topLevelAwardEnd }
+        : selectedGrantProject);
+  const awardStart = awardDurationSource?.awardStart ?? null;
+  const awardEnd = awardDurationSource?.awardEnd ?? null;
   const issued = crossrefDateParts(work.issued);
   return {
     id: doi, doi, title: [mainTitle, subtitle].filter(Boolean).join(': ') || null,
@@ -494,6 +508,8 @@ export class ResearchService {
       registered.type && CROSSREF_EDITOR_TYPES.has(registered.type) && registered.editors.length === 0 ? 'editors' : null,
       registered.year === null ? 'year' : null,
       registered.type && CROSSREF_CONTAINER_TYPES.has(registered.type) && !registered.venue ? 'venue' : null,
+      registered.type === 'journal-issue' && !registered.volume ? 'volume' : null,
+      registered.type === 'journal-issue' && !registered.issue ? 'issue' : null,
       registered.type && CROSSREF_PUBLISHER_TYPES.has(registered.type) && !registered.publisher ? 'publisher' : null,
       registered.type && CROSSREF_LOCATOR_TYPES.has(registered.type)
         && !registered.pages && !registered.articleNumber ? 'pages' : null,
