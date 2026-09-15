@@ -68,6 +68,7 @@ const crossrefWork = z.object({
   type: z.string().optional(),
   author: z.array(crossrefContributor).optional(), editor: z.array(crossrefContributor).optional(),
   'container-title': z.array(z.string()).optional(), publisher: z.string().optional(),
+  institution: z.array(z.object({ name: z.string() })).optional(),
   volume: z.string().optional(), issue: z.string().optional(), page: z.string().optional(),
   'article-number': z.string().optional(), 'edition-number': z.string().optional(),
   issued: z.object({ 'date-parts': z.array(z.array(z.number().nullable())) }).optional(),
@@ -142,16 +143,21 @@ const CROSSREF_PUBLISHER_TYPES = new Set([
 const CROSSREF_EDITOR_TYPES = new Set([
   'edited-book', 'book-chapter', 'book-section', 'book-part', 'reference-entry',
 ]);
+const CROSSREF_EDITOR_CREATOR_TYPES = new Set([
+  'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book',
+]);
 const CROSSREF_LOCATOR_TYPES = new Set(['book-chapter', 'book-section', 'book-part']);
 
 function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const doi = normalizeDoi(work.DOI);
   const mainTitle = work.title ? crossrefPlainText(work.title.join(' ')) : '';
   const subtitle = work.subtitle ? crossrefPlainText(work.subtitle.join(' ')) : '';
+  const institutions = work.institution?.map(item => crossrefPlainText(item.name)).filter(Boolean) ?? [];
   return {
     id: doi, doi, title: [mainTitle, subtitle].filter(Boolean).join(': ') || null,
     subtitle: subtitle || null,
     authors: crossrefContributors(work.author), editors: crossrefContributors(work.editor),
+    institutions,
     year: work.issued?.['date-parts'][0]?.[0] ?? null, type: work.type ?? null,
     venue: work['container-title']?.[0] ?? null, publisher: work.publisher ?? null,
     volume: work.volume ?? null, issue: work.issue ?? null, pages: work.page ?? null,
@@ -383,13 +389,16 @@ export class ResearchService {
     }
     const missingFields = [
       !registered.title ? 'title' : null,
-      registered.type !== 'edited-book' && registered.authors.length === 0 ? 'authors' : null,
+      registered.authors.length === 0
+        && !(registered.type && CROSSREF_EDITOR_CREATOR_TYPES.has(registered.type) && registered.editors.length > 0)
+        ? (registered.type && CROSSREF_EDITOR_CREATOR_TYPES.has(registered.type) ? 'creators' : 'authors') : null,
       registered.type && CROSSREF_EDITOR_TYPES.has(registered.type) && registered.editors.length === 0 ? 'editors' : null,
       registered.year === null ? 'year' : null,
       registered.type && CROSSREF_CONTAINER_TYPES.has(registered.type) && !registered.venue ? 'venue' : null,
       registered.type && CROSSREF_PUBLISHER_TYPES.has(registered.type) && !registered.publisher ? 'publisher' : null,
       registered.type && CROSSREF_LOCATOR_TYPES.has(registered.type)
         && !registered.pages && !registered.articleNumber ? 'pages' : null,
+      registered.type === 'dissertation' && registered.institutions.length === 0 ? 'institution' : null,
     ].filter((field): field is string => field !== null);
     const status = mismatches.length > 0 ? 'rejected' : missingFields.length > 0 ? 'partial' : 'verified';
     return {
@@ -400,7 +409,7 @@ export class ResearchService {
         year: registered.year, type: registered.type, venue: registered.venue,
         publisher: registered.publisher, volume: registered.volume, issue: registered.issue,
         pages: registered.pages, articleNumber: registered.articleNumber, edition: registered.edition,
-        subtitle: registered.subtitle, url: registered.url,
+        subtitle: registered.subtitle, institutions: registered.institutions, url: registered.url,
       },
       comparisons: {
         title: mismatches.includes('title') ? 'mismatch' : 'match',

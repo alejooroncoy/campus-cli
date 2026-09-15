@@ -268,6 +268,25 @@ test('citation records retain Crossref suffix, subtitle, edition and chapter loc
   assert.deepEqual(chapter.missingFields, ['pages']);
 });
 
+test('editor-led books and dissertation institutions remain valid canonical creators', async () => {
+  const referenceBook = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'reference-book', author: undefined,
+      editor: [{ name: 'Ema Editor' }], publisher: 'Evidence Press' } } : collection([]));
+  const book = await referenceBook.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(book.status, 'verified');
+  assert.deepEqual(book.citationRecord?.editors, [{ name: 'Ema Editor', role: 'editor' }]);
+
+  const dissertation = (institution?: unknown[]) => new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'dissertation', institution } } : collection([]));
+  const incomplete = await dissertation().verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(incomplete.citeAllowed, false);
+  assert.deepEqual(incomplete.missingFields, ['institution']);
+  const complete = await dissertation([{ name: 'Evidence University' }])
+    .verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(complete.status, 'verified');
+  assert.deepEqual(complete.citationRecord?.institutions, ['Evidence University']);
+});
+
 test('a notice retracting another DOI does not retract the notice itself', async () => {
   const service = new ResearchService(async url => url.includes('/works/')
     ? { message: { ...work, 'update-to': [{ DOI: '10.1234/other', type: 'retraction' }] } } : collection([]));
