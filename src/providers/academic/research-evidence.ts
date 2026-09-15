@@ -54,15 +54,17 @@ function hasBoundedLiteral(text: string, excerpt: string): boolean {
     const afterCharacters = Array.from(text.slice(index + excerpt.length));
     const before = beforeCharacters.at(-1);
     const after = afterCharacters[0];
-    const startsAfterSemanticPunctuation = /^[+\-−–]$/.test(before ?? '')
-      && (isDigit(first) || (isTokenCharacter(first) && isTokenCharacter(beforeCharacters.at(-2))));
+    const startsAfterNumericOperator = isDigit(first) && /^[+\-−–<>≤≥±]$/.test(before ?? '');
+    const startsAfterHyphenatedPrefix = /^[\-−–]$/.test(before ?? '')
+      && isTokenCharacter(first) && isTokenCharacter(beforeCharacters.at(-2));
     const startsInsideDecimal = isDigit(first) && /^[.,]$/.test(before ?? '')
       && isDigit(beforeCharacters.at(-2));
     const endsInsideDecimal = (isDigit(last) && /^[.,]$/.test(after ?? '') && isDigit(afterCharacters[1]))
       || (/^[.,]$/.test(last ?? '') && isDigit(excerptCharacters.at(-2)) && isDigit(after));
     if (!(isTokenCharacter(first) && isTokenCharacter(before))
       && !(isTokenCharacter(last) && isTokenCharacter(after))
-      && !startsAfterSemanticPunctuation && !startsInsideDecimal && !endsInsideDecimal) return true;
+      && !startsAfterNumericOperator && !startsAfterHyphenatedPrefix
+      && !startsInsideDecimal && !endsInsideDecimal) return true;
   }
   return false;
 }

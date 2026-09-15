@@ -213,7 +213,7 @@ test('strict citation verification rejects invented or incomplete metadata', asy
   assert.equal(missingVenue.citeAllowed, false);
   assert.deepEqual(missingVenue.missingFields, ['venue']);
 
-  for (const type of ['book', 'book-series', 'book-set']) {
+  for (const type of ['book', 'book-series', 'book-set', 'proceedings-series', 'report-series']) {
     const bookWithoutPublisher = new ResearchService(async url => url.includes('/works/')
       ? { message: { ...work, type, publisher: undefined } } : collection([]));
     const missingPublisher = await bookWithoutPublisher.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
@@ -833,6 +833,12 @@ test('evidence verification requires an exact locator and stable document hash',
       ...(await readPdf()), pages: [{ page: 4, text: 'The change was -10 percent.', truncated: false, needsOcr: false }],
     })) as any });
   assert.equal(alteredSign.status, 'rejected');
+
+  const alteredOperator = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    excerpt: 'The change was 10 percent.' }, { readPdf: (async () => ({
+      ...(await readPdf()), pages: [{ page: 4, text: 'The change was ≤10 percent.', truncated: false, needsOcr: false }],
+    })) as any });
+  assert.equal(alteredOperator.status, 'rejected');
 
   const truncated = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
     excerpt: 'A possibly valid result beyond the extraction prefix.' }, { readPdf: (async () => ({
