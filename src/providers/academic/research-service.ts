@@ -67,6 +67,7 @@ const crossrefWork = z.object({
   DOI: z.string(), title: z.array(z.string()).optional(), subtitle: z.array(z.string()).optional(),
   type: z.string().optional(),
   author: z.array(crossrefContributor).optional(), editor: z.array(crossrefContributor).optional(),
+  translator: z.array(crossrefContributor).optional(),
   'container-title': z.array(z.string()).optional(), publisher: z.string().optional(),
   institution: z.array(z.object({ name: z.string() })).optional(),
   'group-title': z.string().optional(), subtype: z.string().optional(), number: z.string().optional(),
@@ -126,15 +127,26 @@ function crossrefPlainText(value: string): string {
     .replace(/\s+/g, ' ').trim();
 }
 
-function crossrefContributors(contributors: z.infer<typeof crossrefContributor>[] | undefined): string[] {
-  return contributors?.map(person => crossrefPlainText(
-    person.name ?? [person.given, person.family, person.suffix].filter(Boolean).join(' '),
-  )).filter(Boolean) ?? [];
+type CrossrefContributorRole = 'author' | 'editor' | 'translator';
+
+function crossrefContributors(
+  contributors: z.infer<typeof crossrefContributor>[] | undefined,
+  role: CrossrefContributorRole,
+) {
+  return contributors?.map(person => {
+    const literalName = person.name ? crossrefPlainText(person.name) : '';
+    const given = person.given ? crossrefPlainText(person.given) : '';
+    const family = person.family ? crossrefPlainText(person.family) : '';
+    const suffix = person.suffix ? crossrefPlainText(person.suffix) : '';
+    const name = literalName || [given, family, suffix].filter(Boolean).join(' ');
+    return name ? { name, role, ...(literalName ? { literalName } : {}),
+      ...(given ? { given } : {}), ...(family ? { family } : {}), ...(suffix ? { suffix } : {}) } : null;
+  }).filter((person): person is NonNullable<typeof person> => person !== null) ?? [];
 }
 
 const CROSSREF_CONTAINER_TYPES = new Set([
   'journal-article', 'proceedings-article', 'book-chapter', 'book-section', 'book-part', 'book-track',
-  'reference-entry',
+  'reference-entry', 'component',
 ]);
 const CROSSREF_PUBLISHER_TYPES = new Set([
   'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book',
@@ -154,10 +166,15 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const mainTitle = work.title ? crossrefPlainText(work.title.join(' ')) : '';
   const subtitle = work.subtitle ? crossrefPlainText(work.subtitle.join(' ')) : '';
   const institutions = work.institution?.map(item => crossrefPlainText(item.name)).filter(Boolean) ?? [];
+  const authorContributors = crossrefContributors(work.author, 'author');
+  const editorContributors = crossrefContributors(work.editor, 'editor');
+  const translatorContributors = crossrefContributors(work.translator, 'translator');
   return {
     id: doi, doi, title: [mainTitle, subtitle].filter(Boolean).join(': ') || null,
     subtitle: subtitle || null,
-    authors: crossrefContributors(work.author), editors: crossrefContributors(work.editor),
+    authors: authorContributors.map(person => person.name),
+    editors: editorContributors.map(person => person.name),
+    authorContributors, editorContributors, translatorContributors,
     institutions,
     year: work.issued?.['date-parts'][0]?.[0] ?? null, type: work.type ?? null,
     venue: work['container-title']?.[0] ?? null, publisher: work.publisher ?? null,
@@ -408,8 +425,8 @@ export class ResearchService {
     return {
       status, citeAllowed: status === 'verified', doi,
       citationRecord: {
-        doi: registered.doi, title: registered.title, authors: registered.authors,
-        editors: registered.editors.map(name => ({ name, role: 'editor' as const })),
+        doi: registered.doi, title: registered.title, authors: registered.authorContributors,
+        editors: registered.editorContributors, translators: registered.translatorContributors,
         year: registered.year, type: registered.type, venue: registered.venue,
         publisher: registered.publisher, volume: registered.volume, issue: registered.issue,
         pages: registered.pages, articleNumber: registered.articleNumber, edition: registered.edition,

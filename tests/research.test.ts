@@ -171,7 +171,9 @@ test('strict citation verification returns only canonical registry fields with a
   assert.equal(result.citeAllowed, true);
   assert.deepEqual(result.mismatches, []);
   assert.deepEqual(result.missingFields, []);
-  assert.deepEqual(result.citationRecord?.authors, ['Ana Perez']);
+  assert.deepEqual(result.citationRecord?.authors, [
+    { name: 'Ana Perez', role: 'author', given: 'Ana', family: 'Perez' },
+  ]);
   assert.equal(result.citationRecord?.venue, 'Journal of Evidence');
   assert.equal(result.citationRecord?.volume, '12');
   assert.equal(result.citationRecord?.issue, '3');
@@ -240,7 +242,9 @@ test('edited books preserve editors and reference entries require their containi
   const edited = await editedBook.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
   assert.equal(edited.status, 'verified');
   assert.deepEqual(edited.citationRecord?.authors, []);
-  assert.deepEqual(edited.citationRecord?.editors, [{ name: 'Ema Editor', role: 'editor' }]);
+  assert.deepEqual(edited.citationRecord?.editors, [
+    { name: 'Ema Editor', role: 'editor', given: 'Ema', family: 'Editor' },
+  ]);
 
   const referenceEntry = new ResearchService(async url => url.includes('/works/')
     ? { message: { ...work, type: 'reference-entry', 'container-title': undefined,
@@ -256,7 +260,9 @@ test('citation records retain Crossref suffix, subtitle, edition and chapter loc
       subtitle: ['Methods'], publisher: 'Evidence Press', 'edition-number': '2' } } : collection([]));
   const book = await completeBook.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence: Methods' });
   assert.equal(book.status, 'verified');
-  assert.deepEqual(book.citationRecord?.authors, ['Ana Perez Jr.']);
+  assert.deepEqual(book.citationRecord?.authors, [
+    { name: 'Ana Perez Jr.', role: 'author', given: 'Ana', family: 'Perez', suffix: 'Jr.' },
+  ]);
   assert.equal(book.citationRecord?.subtitle, 'Methods');
   assert.equal(book.citationRecord?.edition, '2');
 
@@ -274,7 +280,9 @@ test('editor-led books and dissertation institutions remain valid canonical crea
       editor: [{ name: 'Ema Editor' }], publisher: 'Evidence Press' } } : collection([]));
   const book = await referenceBook.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
   assert.equal(book.status, 'verified');
-  assert.deepEqual(book.citationRecord?.editors, [{ name: 'Ema Editor', role: 'editor' }]);
+  assert.deepEqual(book.citationRecord?.editors, [
+    { name: 'Ema Editor', role: 'editor', literalName: 'Ema Editor' },
+  ]);
 
   const dissertation = (institution?: unknown[]) => new ResearchService(async url => url.includes('/works/')
     ? { message: { ...work, type: 'dissertation', institution } } : collection([]));
@@ -310,6 +318,19 @@ test('proceedings, preprints and reports retain their type-specific canonical me
   const reportResult = await report.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
   assert.equal(reportResult.status, 'verified');
   assert.equal(reportResult.citationRecord?.reportNumber, 'TR-42');
+
+  const translated = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'book', publisher: 'Evidence Press',
+      translator: [{ given: 'Tara', family: 'Translator' }] } } : collection([]));
+  const translatedResult = await translated.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.deepEqual(translatedResult.citationRecord?.translators, [
+    { name: 'Tara Translator', role: 'translator', given: 'Tara', family: 'Translator' },
+  ]);
+
+  const component = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'component', 'container-title': undefined } } : collection([]));
+  const componentResult = await component.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.deepEqual(componentResult.missingFields, ['venue']);
 });
 
 test('a notice retracting another DOI does not retract the notice itself', async () => {
@@ -541,6 +562,26 @@ test('academic searches retain a valid landing page when a PDF candidate is unsa
   const result = await handlers.get('campus_research_search')({ query: 'evidence' });
   const links = result.content.filter((part: any) => part.type === 'resource_link');
   assert.deepEqual(links.map((part: any) => part.uri), ['https://repository.example.edu/article']);
+});
+
+test('duplicate OpenAlex locations cannot consume the bounded candidate budget', async () => {
+  const handlers = new Map<string, any>();
+  const repeatedLocations = Array.from({ length: 30 }, (_, index) => ({
+    pdf_url: `https://private-${index}.example.edu/article.pdf`,
+  }));
+  const service = { search: async () => ({ results: [
+    { title: 'Replicated source', repositoryLocations: repeatedLocations, locations: repeatedLocations },
+    { title: 'Later source', url: 'https://later.example.edu/article' },
+  ] }) };
+  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true, service: service as any, validateResourceUrl: async value => {
+    if (new URL(value).hostname.startsWith('private-')) throw new Error('unavailable host');
+    return publicHttpsUrl(value);
+  } });
+  const result = await handlers.get('campus_research_search')({ query: 'evidence' });
+  const links = result.content.filter((part: any) => part.type === 'resource_link');
+  assert.deepEqual(links.map((part: any) => part.uri), ['https://later.example.edu/article']);
 });
 
 test('evidence verification requires an exact locator and stable document hash', async () => {

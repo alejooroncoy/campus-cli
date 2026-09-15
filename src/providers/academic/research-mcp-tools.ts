@@ -66,8 +66,20 @@ async function discoveredResourceLinks(
   });
   const seen = new Set<string>();
   const links: ResearchResourceLink[] = [];
+  const uniqueCandidates: typeof candidates = [];
+  const seenCandidateUrls = new Set<string>();
+  for (const candidate of candidates) {
+    if (typeof candidate.url !== 'string') continue;
+    try {
+      const normalized = publicHttpsUrl(candidate.url).toString();
+      if (seenCandidateUrls.has(normalized)) continue;
+      seenCandidateUrls.add(normalized);
+      uniqueCandidates.push({ ...candidate, url: normalized });
+      if (uniqueCandidates.length === 50) break;
+    } catch { /* Unsafe candidates are omitted before they can spend the validation budget. */ }
+  }
   const validationByHostname = new Map<string, Promise<boolean>>();
-  const boundedCandidates = candidates.slice(0, 50);
+  const boundedCandidates = uniqueCandidates;
   for (let offset = 0; offset < boundedCandidates.length && links.length < 25; offset += 10) {
     const batch = await Promise.all(boundedCandidates.slice(offset, offset + 10).map(async candidate => {
       if (typeof candidate.url !== 'string') return null;
