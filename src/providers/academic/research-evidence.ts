@@ -46,7 +46,7 @@ function isDigit(value: string | undefined): boolean {
 }
 
 function hasNumericSuffixContinuation(value: string): boolean {
-  return /^[\s]*[-−–—+×*/<>≤≥±≈~^]/u.test(value)
+  return /^[\s]*[-−–—+×*/<>≤≥±≈~^⁺⁻]/u.test(value)
     || /^[\s]*(?:%|‰|°(?:[CFK])?)/u.test(value)
     || /^[\s]*(?:kg|g|mg|µg|lb|oz|km|m|cm|mm|mi|ft|in|ms|s|min|h|Hz|kHz|MHz|GHz)\b/iu.test(value);
 }

@@ -172,7 +172,9 @@ export function registerResearchTools(server: McpServer, options: {
       const resolvedUrl = value && typeof value === 'object' && 'resolvedUrl' in value
         ? (value as { resolvedUrl?: unknown }).resolvedUrl : undefined;
       const detectedMimeType = value && typeof value === 'object'
-        ? documentMimeType((value as { format?: unknown }).format) : undefined;
+        ? documentMimeType((value as { format?: unknown; pages?: unknown }).format)
+          ?? (Array.isArray((value as { pages?: unknown }).pages) ? 'application/pdf' : undefined)
+        : undefined;
       const mimeType = detectedMimeType ?? resource?.mimeType;
       const validateUrl = options.validateResourceUrl ?? resolvedPublicHttpsUrl;
       const directLink = resource
