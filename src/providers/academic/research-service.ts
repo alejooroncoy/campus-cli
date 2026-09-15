@@ -87,7 +87,8 @@ const crossrefWork = z.object({
   'group-title': z.string().optional(), subtype: z.string().optional(), number: z.string().optional(),
   volume: z.string().optional(), issue: z.string().optional(), page: z.string().optional(),
   'article-number': z.string().optional(), 'edition-number': z.string().optional(),
-  issued: crossrefDate.nullish(),
+  issued: crossrefDate.nullish(), 'published-online': crossrefDate.nullish(),
+  'published-print': crossrefDate.nullish(), published: crossrefDate.nullish(),
   award: z.union([z.string(), z.array(z.string())]).nullish(), project: z.array(crossrefProject).nullish(),
   'award-start': crossrefDate.nullish(), 'award-end': crossrefDate.nullish(),
   link: z.array(z.object({ URL: z.string(), 'content-type': z.string().optional(), 'content-version': z.string().optional() })).optional(),
@@ -264,6 +265,10 @@ function crossrefSource(work: z.infer<typeof crossrefWork>, expectedTitle?: stri
   const awardStart = awardDurationSource?.awardStart ?? null;
   const awardEnd = awardDurationSource?.awardEnd ?? null;
   const issued = crossrefDateParts(work.issued);
+  const publicationYears = [...new Set([
+    issued?.[0], crossrefDateParts(work['published-online'])?.[0],
+    crossrefDateParts(work['published-print'])?.[0], crossrefDateParts(work.published)?.[0],
+  ].filter((year): year is number => typeof year === 'number'))];
   return {
     id: doi, doi, title: [mainTitle, subtitle].filter(Boolean).join(': ') || null,
     mainTitle: mainTitle || null,
@@ -273,7 +278,8 @@ function crossrefSource(work: z.infer<typeof crossrefWork>, expectedTitle?: stri
     authorContributors, editorContributors, translatorContributors,
     authorEntriesPresent: (work.author?.length ?? 0) > 0,
     institutions, degrees,
-    year: issued?.[0] ?? awardStart?.[0] ?? null, type: work.type ?? null,
+    year: issued?.[0] ?? awardStart?.[0] ?? publicationYears[0] ?? null, publicationYears,
+    type: work.type ?? null,
     venue: work['container-title']?.[0] ? crossrefPlainText(work['container-title'][0]) || null : null,
     publisher: work.publisher ? crossrefPlainText(work.publisher) || null : null,
     volume: work.volume ?? null, issue: work.issue ?? null, pages: work.page ?? null,
@@ -502,7 +508,7 @@ export class ResearchService {
     if (!registered.title || normalizeEvidenceText(input.expectedTitle) !== normalizeEvidenceText(registered.title)) {
       mismatches.push('title');
     }
-    if (input.expectedYear !== undefined && input.expectedYear !== registered.year) mismatches.push('year');
+    if (input.expectedYear !== undefined && !registered.publicationYears.includes(input.expectedYear)) mismatches.push('year');
     if (input.expectedAuthors !== undefined && !sameAuthors(input.expectedAuthors, registered.authors)) {
       mismatches.push('authors');
     }
@@ -535,6 +541,7 @@ export class ResearchService {
         doi: registered.doi, title: registered.mainTitle, authors: registered.authorContributors,
         editors: registered.editorContributors, translators: registered.translatorContributors,
         year: registered.year, type: registered.type, venue: registered.venue,
+        publicationYears: registered.publicationYears,
         publisher: registered.publisher, volume: registered.volume, issue: registered.issue,
         pages: registered.pages, articleNumber: registered.articleNumber, edition: registered.edition,
         subtitle: registered.subtitle, institutions: registered.institutions, degrees: registered.degrees,

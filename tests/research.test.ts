@@ -181,6 +181,14 @@ test('strict citation verification returns only canonical registry fields with a
   assert.equal(result.citationRecord?.articleNumber, 'e123');
   assert.equal(result.proof.registry, 'crossref');
   assert.equal(result.claimEvidence, 'bibliographic_only');
+
+  const onlinePrint = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, issued: { 'date-parts': [[2023]] },
+      'published-online': { 'date-parts': [[2024, 2, 1]] },
+      'published-print': { 'date-parts': [[2025, 3, 1]] } } } : collection([]));
+  const onlineYear = await onlinePrint.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence', expectedYear: 2024 });
+  assert.equal(onlineYear.status, 'verified');
+  assert.deepEqual(onlineYear.citationRecord?.publicationYears, [2023, 2024, 2025]);
 });
 
 test('strict citation verification rejects invented or incomplete metadata', async () => {
@@ -736,7 +744,7 @@ test('academic searches do not emit provider-controlled resource links from untr
 test('academic searches retain a non-resolver Crossref fallback when the record URL is unsafe', async () => {
   const handlers = new Map<string, any>();
   const service = { search: async () => ({ results: [{ title: 'DOI fallback',
-    url: 'https://private.example.edu/article', doi: '10.1234/fallback' }] }) };
+    url: 'https://private.example.edu/article', doi: '10.1234/fallback', indexedIn: 'crossref' }] }) };
   registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
     handlers.set(name, handler);
   } } as any, { authorize: () => true, service: service as any, validateResourceUrl: async value => {
@@ -746,6 +754,17 @@ test('academic searches retain a non-resolver Crossref fallback when the record 
   const result = await handlers.get('campus_research_search')({ query: 'evidence' });
   const links = result.content.filter((part: any) => part.type === 'resource_link');
   assert.deepEqual(links.map((part: any) => part.uri), ['https://api.crossref.org/works/10.1234%2Ffallback']);
+});
+
+test('academic searches do not invent Crossref fallbacks for non-Crossref DOI providers', async () => {
+  const handlers = new Map<string, any>();
+  const service = { search: async () => ({ results: [{ title: 'DataCite result',
+    url: 'https://private.example.edu/article', doi: '10.5555/datacite', indexedIn: 'openalex' }] }) };
+  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true, service: service as any, validateResourceUrl: acceptTestResourceUrl });
+  const result = await handlers.get('campus_research_search')({ query: 'evidence' });
+  assert.deepEqual(result.content.filter((part: any) => part.type === 'resource_link'), []);
 });
 
 test('duplicate OpenAlex locations cannot consume the bounded candidate budget', async () => {

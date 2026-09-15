@@ -74,7 +74,8 @@ async function discoveredResourceLinks(
       mimeType: /pdf/i.test(resource.file_format ?? '') ? 'application/pdf' : undefined });
     if (record.url) group.push({ url: record.url, name: title,
       mimeType: /\.pdf(?:$|[?#])/i.test(record.url) ? 'application/pdf' : 'text/html' });
-    if (typeof record.doi === 'string') {
+    if (typeof record.doi === 'string'
+      && (record.indexedIn === 'crossref' || record.indexedIn === 'acm_digital_library')) {
       // A doi.org resolver can redirect the client to a provider-controlled host.
       // Crossref's API record is a stable, non-resolver source for the DOI metadata.
       group.splice(Math.min(1, group.length), 0, {
