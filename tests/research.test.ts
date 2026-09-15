@@ -250,6 +250,24 @@ test('edited books preserve editors and reference entries require their containi
   assert.deepEqual(entry.missingFields, ['venue']);
 });
 
+test('citation records retain Crossref suffix, subtitle, edition and chapter locator requirements', async () => {
+  const completeBook = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'book', author: [{ given: 'Ana', family: 'Perez', suffix: 'Jr.' }],
+      subtitle: ['Methods'], publisher: 'Evidence Press', 'edition-number': '2' } } : collection([]));
+  const book = await completeBook.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence: Methods' });
+  assert.equal(book.status, 'verified');
+  assert.deepEqual(book.citationRecord?.authors, ['Ana Perez Jr.']);
+  assert.equal(book.citationRecord?.subtitle, 'Methods');
+  assert.equal(book.citationRecord?.edition, '2');
+
+  const chapterWithoutPages = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'book-chapter', page: undefined, 'article-number': undefined,
+      editor: [{ name: 'Ema Editor' }], publisher: 'Evidence Press' } } : collection([]));
+  const chapter = await chapterWithoutPages.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(chapter.citeAllowed, false);
+  assert.deepEqual(chapter.missingFields, ['pages']);
+});
+
 test('a notice retracting another DOI does not retract the notice itself', async () => {
   const service = new ResearchService(async url => url.includes('/works/')
     ? { message: { ...work, 'update-to': [{ DOI: '10.1234/other', type: 'retraction' }] } } : collection([]));
