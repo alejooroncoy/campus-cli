@@ -287,6 +287,31 @@ test('editor-led books and dissertation institutions remain valid canonical crea
   assert.deepEqual(complete.citationRecord?.institutions, ['Evidence University']);
 });
 
+test('proceedings, preprints and reports retain their type-specific canonical metadata', async () => {
+  const proceedings = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'proceedings', author: undefined,
+      editor: [{ name: 'Ema Editor' }], publisher: 'Evidence Press' } } : collection([]));
+  const proceedingsResult = await proceedings.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(proceedingsResult.status, 'verified');
+
+  const preprint = (repository?: string) => new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'posted-content', 'group-title': repository,
+      subtype: 'preprint' } } : collection([]));
+  const incompletePreprint = await preprint().verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.deepEqual(incompletePreprint.missingFields, ['repository']);
+  const completePreprint = await preprint('Evidence Archive')
+    .verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(completePreprint.status, 'verified');
+  assert.equal(completePreprint.citationRecord?.repository, 'Evidence Archive');
+  assert.equal(completePreprint.citationRecord?.subtype, 'preprint');
+
+  const report = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, type: 'report', publisher: 'Evidence Agency', number: 'TR-42' } } : collection([]));
+  const reportResult = await report.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
+  assert.equal(reportResult.status, 'verified');
+  assert.equal(reportResult.citationRecord?.reportNumber, 'TR-42');
+});
+
 test('a notice retracting another DOI does not retract the notice itself', async () => {
   const service = new ResearchService(async url => url.includes('/works/')
     ? { message: { ...work, 'update-to': [{ DOI: '10.1234/other', type: 'retraction' }] } } : collection([]));
@@ -499,6 +524,23 @@ test('academic searches expose discovered source URLs as deduplicated resource l
   assert.equal(links[1].uri, 'https://repository.example.edu/supplement.pdf');
   assert.equal(links[2].uri, 'https://doi.org/10.1234/abc');
   assert.equal(validations, 2, 'DNS validation is cached by hostname');
+});
+
+test('academic searches retain a valid landing page when a PDF candidate is unsafe', async () => {
+  const handlers = new Map<string, any>();
+  const service = { search: async () => ({ results: [{ title: 'Safe landing page', locations: [{
+    pdf_url: 'https://private.example.edu/article.pdf',
+    landing_page_url: 'https://repository.example.edu/article',
+  }] }] }) };
+  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true, service: service as any, validateResourceUrl: async value => {
+    if (new URL(value).hostname === 'private.example.edu') throw new Error('private address');
+    return publicHttpsUrl(value);
+  } });
+  const result = await handlers.get('campus_research_search')({ query: 'evidence' });
+  const links = result.content.filter((part: any) => part.type === 'resource_link');
+  assert.deepEqual(links.map((part: any) => part.uri), ['https://repository.example.edu/article']);
 });
 
 test('evidence verification requires an exact locator and stable document hash', async () => {

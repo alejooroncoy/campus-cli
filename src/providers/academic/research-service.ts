@@ -69,6 +69,7 @@ const crossrefWork = z.object({
   author: z.array(crossrefContributor).optional(), editor: z.array(crossrefContributor).optional(),
   'container-title': z.array(z.string()).optional(), publisher: z.string().optional(),
   institution: z.array(z.object({ name: z.string() })).optional(),
+  'group-title': z.string().optional(), subtype: z.string().optional(), number: z.string().optional(),
   volume: z.string().optional(), issue: z.string().optional(), page: z.string().optional(),
   'article-number': z.string().optional(), 'edition-number': z.string().optional(),
   issued: z.object({ 'date-parts': z.array(z.array(z.number().nullable())) }).optional(),
@@ -137,14 +138,14 @@ const CROSSREF_CONTAINER_TYPES = new Set([
 ]);
 const CROSSREF_PUBLISHER_TYPES = new Set([
   'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book',
-  'book-chapter', 'book-section', 'book-part', 'book-track', 'report',
+  'book-chapter', 'book-section', 'book-part', 'book-track', 'report', 'proceedings',
   'reference-entry',
 ]);
 const CROSSREF_EDITOR_TYPES = new Set([
   'edited-book', 'book-chapter', 'book-section', 'book-part', 'reference-entry',
 ]);
 const CROSSREF_EDITOR_CREATOR_TYPES = new Set([
-  'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book',
+  'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book', 'proceedings',
 ]);
 const CROSSREF_LOCATOR_TYPES = new Set(['book-chapter', 'book-section', 'book-part']);
 
@@ -162,6 +163,8 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
     venue: work['container-title']?.[0] ?? null, publisher: work.publisher ?? null,
     volume: work.volume ?? null, issue: work.issue ?? null, pages: work.page ?? null,
     articleNumber: work['article-number'] ?? null, edition: work['edition-number'] ?? null,
+    repository: work['group-title'] ? crossrefPlainText(work['group-title']) || null : null,
+    subtype: work.subtype ?? null, reportNumber: work.number ?? null,
     url: `https://doi.org/${doi}`, peerReview: 'unknown', indexedIn: 'crossref',
     retractionStatus: 'not_checked', updatesToOtherWorks: work['update-to'] ?? [],
     fullTextLinks: work.link ?? [], fullTextAccess: 'not_checked',
@@ -399,6 +402,7 @@ export class ResearchService {
       registered.type && CROSSREF_LOCATOR_TYPES.has(registered.type)
         && !registered.pages && !registered.articleNumber ? 'pages' : null,
       registered.type === 'dissertation' && registered.institutions.length === 0 ? 'institution' : null,
+      registered.type === 'posted-content' && !registered.repository ? 'repository' : null,
     ].filter((field): field is string => field !== null);
     const status = mismatches.length > 0 ? 'rejected' : missingFields.length > 0 ? 'partial' : 'verified';
     return {
@@ -409,7 +413,9 @@ export class ResearchService {
         year: registered.year, type: registered.type, venue: registered.venue,
         publisher: registered.publisher, volume: registered.volume, issue: registered.issue,
         pages: registered.pages, articleNumber: registered.articleNumber, edition: registered.edition,
-        subtitle: registered.subtitle, institutions: registered.institutions, url: registered.url,
+        subtitle: registered.subtitle, institutions: registered.institutions,
+        repository: registered.repository, subtype: registered.subtype,
+        reportNumber: registered.reportNumber, url: registered.url,
       },
       comparisons: {
         title: mismatches.includes('title') ? 'mismatch' : 'match',

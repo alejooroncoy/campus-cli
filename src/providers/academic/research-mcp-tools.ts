@@ -50,7 +50,7 @@ async function discoveredResourceLinks(
     for (const link of record.fullTextLinks ?? []) candidates.push({ url: link.URL, name: title, mimeType: link['content-type'] });
     for (const location of [...(record.repositoryLocations ?? []), ...(record.locations ?? [])]) {
       if (location?.pdf_url) candidates.push({ url: location.pdf_url, name: title, mimeType: 'application/pdf' });
-      else if (location?.landing_page_url) candidates.push({ url: location.landing_page_url, name: title, mimeType: 'text/html' });
+      if (location?.landing_page_url) candidates.push({ url: location.landing_page_url, name: title, mimeType: 'text/html' });
     }
     for (const resource of record.resources ?? []) candidates.push({ url: resource.link, name: resource.title ?? title,
       mimeType: /pdf/i.test(resource.file_format ?? '') ? 'application/pdf' : undefined });
