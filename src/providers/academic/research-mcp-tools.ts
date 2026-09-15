@@ -13,7 +13,7 @@ const CLIENT_PROCESSING_ERRORS = /documento supera el tamaño permitido|Se requi
 // provider metadata into client-fetchable URLs. Document reads still use
 // researchDownload, which validates every hop before fetching content.
 const TRUSTED_DISCOVERY_RESOURCE_HOSTS = new Set([
-  'api.crossref.org', 'api.openalex.org', 'arxiv.org', 'dl.acm.org', 'doi.org',
+  'api.crossref.org', 'api.openalex.org', 'arxiv.org', 'dl.acm.org',
   'ieeexplore.ieee.org', 'link.springer.com', 'nature.com', 'onlinelibrary.wiley.com',
   'pmc.ncbi.nlm.nih.gov', 'pubmed.ncbi.nlm.nih.gov', 'sciencedirect.com',
   'tandfonline.com', 'www.webofscience.com',
@@ -74,9 +74,13 @@ async function discoveredResourceLinks(
       mimeType: /pdf/i.test(resource.file_format ?? '') ? 'application/pdf' : undefined });
     if (record.url) group.push({ url: record.url, name: title,
       mimeType: /\.pdf(?:$|[?#])/i.test(record.url) ? 'application/pdf' : 'text/html' });
-    if (record.doi) {
-      const doiCandidate = { url: `https://doi.org/${record.doi}`, name: title, mimeType: 'text/html' };
-      group.splice(Math.min(1, group.length), 0, doiCandidate);
+    if (typeof record.doi === 'string') {
+      // A doi.org resolver can redirect the client to a provider-controlled host.
+      // Crossref's API record is a stable, non-resolver source for the DOI metadata.
+      group.splice(Math.min(1, group.length), 0, {
+        url: `https://api.crossref.org/works/${encodeURIComponent(record.doi)}`,
+        name: title, mimeType: 'application/json',
+      });
     }
     if (group.length) candidateGroups.push(group);
   };

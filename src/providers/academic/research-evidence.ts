@@ -41,14 +41,26 @@ function isTokenCharacter(value: string | undefined): boolean {
   return Boolean(value && /^[\p{L}\p{N}\p{M}_]$/u.test(value));
 }
 
+function isDigit(value: string | undefined): boolean {
+  return Boolean(value && /^\p{N}$/u.test(value));
+}
+
 function hasBoundedLiteral(text: string, excerpt: string): boolean {
   const first = excerpt[0];
   const last = excerpt.at(-1);
+  const excerptCharacters = Array.from(excerpt);
   for (let index = text.indexOf(excerpt); index !== -1; index = text.indexOf(excerpt, index + 1)) {
-    const before = Array.from(text.slice(0, index)).at(-1);
-    const after = Array.from(text.slice(index + excerpt.length))[0];
+    const beforeCharacters = Array.from(text.slice(0, index));
+    const afterCharacters = Array.from(text.slice(index + excerpt.length));
+    const before = beforeCharacters.at(-1);
+    const after = afterCharacters[0];
+    const startsInsideDecimal = isDigit(first) && /^[.,]$/.test(before ?? '')
+      && isDigit(beforeCharacters.at(-2));
+    const endsInsideDecimal = (isDigit(last) && /^[.,]$/.test(after ?? '') && isDigit(afterCharacters[1]))
+      || (/^[.,]$/.test(last ?? '') && isDigit(excerptCharacters.at(-2)) && isDigit(after));
     if (!(isTokenCharacter(first) && isTokenCharacter(before))
-      && !(isTokenCharacter(last) && isTokenCharacter(after))) return true;
+      && !(isTokenCharacter(last) && isTokenCharacter(after))
+      && !startsInsideDecimal && !endsInsideDecimal) return true;
   }
   return false;
 }

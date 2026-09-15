@@ -426,6 +426,18 @@ test('grant citations use registered project funding, investigators and duration
   const partial = await incomplete.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence Project' });
   assert.equal(partial.citeAllowed, false);
   assert.deepEqual(partial.missingFields, ['funder', 'awardNumber', 'awardDuration']);
+
+  const equalProjects = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...grantRecord, project: [grantRecord.project[0], {
+      ...grantRecord.project[0], 'project-title': [{ title: 'Second Evidence Project' }],
+      'lead-investigator': [{ name: 'Bea Rios' }],
+      funding: [{ funder: { name: 'Second Foundation' }, award: ['GRANT-84'] }],
+    }] } } : collection([]));
+  const selectedLaterProject = await equalProjects.verifyCitation({ doi: work.DOI, expectedTitle: 'Second Evidence Project' });
+  assert.equal(selectedLaterProject.status, 'verified');
+  assert.deepEqual(selectedLaterProject.citationRecord?.authors.map(person => person.name), ['Bea Rios', 'Ben Rios']);
+  assert.deepEqual(selectedLaterProject.citationRecord?.funders, ['Second Foundation']);
+  assert.deepEqual(selectedLaterProject.citationRecord?.awardNumbers, ['GRANT-84']);
 });
 
 test('grant citation dates are never combined across different projects', async () => {
@@ -688,7 +700,7 @@ test('academic searches expose discovered source URLs as deduplicated resource l
   const links = result.content.filter((part: any) => part.type === 'resource_link');
   assert.equal(links.length, 3);
   assert.equal(links[0].uri, 'https://arxiv.org/pdf/1234.5678');
-  assert.equal(links[1].uri, 'https://doi.org/10.1234/abc');
+  assert.equal(links[1].uri, 'https://api.crossref.org/works/10.1234%2Fabc');
   assert.equal(links[2].uri, 'https://arxiv.org/html/1234.5678');
   assert.equal(validations, 2, 'DNS validation is cached by hostname');
 });
@@ -721,7 +733,7 @@ test('academic searches do not emit provider-controlled resource links from untr
   assert.deepEqual(result.content.filter((part: any) => part.type === 'resource_link'), []);
 });
 
-test('academic searches retain a DOI fallback when the record URL is unsafe', async () => {
+test('academic searches retain a non-resolver Crossref fallback when the record URL is unsafe', async () => {
   const handlers = new Map<string, any>();
   const service = { search: async () => ({ results: [{ title: 'DOI fallback',
     url: 'https://private.example.edu/article', doi: '10.1234/fallback' }] }) };
@@ -733,7 +745,7 @@ test('academic searches retain a DOI fallback when the record URL is unsafe', as
   } });
   const result = await handlers.get('campus_research_search')({ query: 'evidence' });
   const links = result.content.filter((part: any) => part.type === 'resource_link');
-  assert.deepEqual(links.map((part: any) => part.uri), ['https://doi.org/10.1234/fallback']);
+  assert.deepEqual(links.map((part: any) => part.uri), ['https://api.crossref.org/works/10.1234%2Ffallback']);
 });
 
 test('duplicate OpenAlex locations cannot consume the bounded candidate budget', async () => {
@@ -779,6 +791,13 @@ test('evidence verification requires an exact locator and stable document hash',
     excerpt: 'The intervention improved learning outcomes by 1' }, { readPdf: readPdf as any });
   assert.equal(alteredNumber.status, 'rejected');
   assert.equal(alteredNumber.reason, 'excerpt_not_found_at_locator');
+
+  const alteredDecimal = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
+    excerpt: 'The intervention improved learning outcomes by 12.' }, { readPdf: (async () => ({
+      ...(await readPdf()), pages: [{ page: 4, text: 'The intervention improved learning outcomes by 12.5 percent.', truncated: false, needsOcr: false }],
+    })) as any });
+  assert.equal(alteredDecimal.status, 'rejected');
+  assert.equal(alteredDecimal.reason, 'excerpt_not_found_at_locator');
 
   const truncated = await verifyResearchEvidence({ url: 'https://repository.example.edu/article.pdf', page: 4,
     excerpt: 'A possibly valid result beyond the extraction prefix.' }, { readPdf: (async () => ({

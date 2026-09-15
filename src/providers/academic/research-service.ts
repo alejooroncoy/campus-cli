@@ -201,7 +201,7 @@ function uniqueContributors<T extends { name: string }>(contributors: T[]): T[] 
   });
 }
 
-function crossrefSource(work: z.infer<typeof crossrefWork>) {
+function crossrefSource(work: z.infer<typeof crossrefWork>, expectedTitle?: string) {
   const doi = normalizeDoi(work.DOI);
   const projects = work.project ?? [];
   const grantProjects = projects.map(project => {
@@ -223,7 +223,11 @@ function crossrefSource(work: z.infer<typeof crossrefWork>) {
   const topLevelAwardEnd = crossrefDateParts(work['award-end']);
   const topLevelAwardNumbers = (Array.isArray(work.award) ? work.award : work.award ? [work.award] : [])
     .map(crossrefPlainText).filter(Boolean);
-  const selectedGrantProject = grantProjects.reduce<typeof grantProjects[number] | undefined>((best, project) => {
+  const normalizedExpectedTitle = expectedTitle ? normalizeEvidenceText(expectedTitle) : null;
+  const titleMatchedProject = normalizedExpectedTitle
+    ? grantProjects.find(project => project.titles.some(title => normalizeEvidenceText(title) === normalizedExpectedTitle))
+    : undefined;
+  const selectedGrantProject = titleMatchedProject ?? grantProjects.reduce<typeof grantProjects[number] | undefined>((best, project) => {
     const score = Number(project.titles.length > 0) + Number(project.investigators.length > 0)
       + Number(project.funders.length > 0) + Number(topLevelAwardNumbers.length > 0 || project.awardNumbers.length > 0)
       + 2 * Number(Boolean((topLevelAwardStart && topLevelAwardEnd) || (project.awardStart && project.awardEnd)));
@@ -371,7 +375,7 @@ export class ResearchService {
       requestUrl = endpoint('https://api.crossref.org/works', { 'query.bibliographic': query, rows: limit, offset,
         ...(filters.length ? { filter: filters.join(',') } : {}) });
       const data = z.object({ message: z.object({ items: z.array(crossrefWork), 'total-results': z.number() }) }).parse(await this.json(requestUrl));
-      results = data.message.items.map(crossrefSource);
+      results = data.message.items.map(work => crossrefSource(work));
       total = data.message['total-results'];
     } else if (provider === 'openalex') {
       if (yearFrom) filters.push(`from_publication_date:${yearFrom}-01-01`);
@@ -448,7 +452,7 @@ export class ResearchService {
       nextPage: offset + limit < total && page < 100 ? page + 1 : null, results, guidance: RESEARCH_GUIDANCE };
   }
 
-  async verifyDoi(value: string) {
+  async verifyDoi(value: string, expectedTitle?: string) {
     const doi = normalizeDoi(value);
     const requestUrl = `https://api.crossref.org/works/${encodeURIComponent(doi)}`;
     let work: z.infer<typeof crossrefWork>;
@@ -471,11 +475,11 @@ export class ResearchService {
     else try {
       const data = z.object({ message: z.object({ items: z.array(crossrefWork), 'total-results': z.number() }) }).parse(await this.json(updatesUrl)).message;
       updatesTotal = data['total-results'];
-      updates = data.items.map(crossrefSource);
+      updates = data.items.map(work => crossrefSource(work));
       const retracted = data.items.some(w => w['update-to']?.some(u => normalizeDoi(u.DOI) === doi && /^(retraction|withdrawal)$/i.test(u.type ?? '')));
       retractionStatus = retracted ? 'flagged_by_crossref' : updatesTotal > data.items.length ? 'unknown_incomplete_updates' : 'no_notice_found_in_crossref';
     } catch { updatesError = 'No se pudo comprobar actualizaciones; no interpretes esto como ausencia de retractación.'; }
-    return { status: 'registered_in_crossref', source: crossrefSource(work), requestUrl, updatesUrl,
+    return { status: 'registered_in_crossref', source: crossrefSource(work, expectedTitle), requestUrl, updatesUrl,
       retrievedAt: new Date().toISOString(), retractionStatus, updates, updatesTotal, updatesError,
       guidance: [...RESEARCH_GUIDANCE, 'La ausencia de avisos en Crossref no garantiza ausencia de retractación. Verifica también la página editorial.'] };
   }
@@ -483,7 +487,7 @@ export class ResearchService {
   async verifyCitation(raw: z.input<typeof citationVerificationInput>) {
     const input = citationVerificationInput.parse(raw);
     const doi = normalizeDoi(input.doi);
-    const verification = await this.verifyDoi(doi);
+    const verification = await this.verifyDoi(doi, input.expectedTitle);
     const retrievedAt = new Date().toISOString();
     if (!('source' in verification) || !verification.source) return {
       status: 'unverified', citeAllowed: false, doi, citationRecord: null,
