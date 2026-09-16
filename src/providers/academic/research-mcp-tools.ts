@@ -39,6 +39,7 @@ function documentMimeType(format: unknown): string | undefined {
     case 'text': return 'text/plain';
     case 'markdown': return 'text/markdown';
     case 'xml': return 'application/xml';
+    case 'jats': return 'application/xml';
     case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     case 'epub': return 'application/epub+zip';
     default: return undefined;

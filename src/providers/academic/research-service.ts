@@ -514,6 +514,7 @@ export class ResearchService {
     }
     const missingFields = [
       !registered.title ? 'title' : null,
+      !registered.type ? 'type' : null,
       registered.authors.length === 0
         && !(registered.type && CROSSREF_EDITOR_CREATOR_TYPES.has(registered.type) && registered.editors.length > 0)
         && !(registered.type && CROSSREF_TITLE_FIRST_TYPES.has(registered.type) && !registered.authorEntriesPresent)

@@ -205,7 +205,7 @@ test('strict citation verification rejects invented or incomplete metadata', asy
   const partial = await incomplete.verifyCitation({ doi: work.DOI, expectedTitle: 'Evidence' });
   assert.equal(partial.status, 'partial');
   assert.equal(partial.citeAllowed, false);
-  assert.deepEqual(partial.missingFields, ['authors', 'year']);
+  assert.deepEqual(partial.missingFields, ['type', 'authors', 'year']);
 
   const journalWithoutVenue = new ResearchService(async url => url.includes('/works/')
     ? { message: { ...work, 'container-title': undefined } } : collection([]));
