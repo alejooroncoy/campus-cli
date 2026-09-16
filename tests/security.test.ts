@@ -13,6 +13,7 @@ import {
 import { blackboardCookies } from '../src/providers/blackboard/auth/session.js';
 import {
   DOWNLOAD_QUOTA_LOCK,
+  DOWNLOAD_QUOTA_OWNER,
   resolveDownloadDir,
   safeNewFilePath,
   writeLimitedDownload,
@@ -262,11 +263,12 @@ test('a replaced quota lock fences the old writer before final publication', asy
   const input = new PassThrough();
   const download = writeLimitedDownload(input, destination, 20, { root, maxBytes: 20 });
   const lockPath = path.join(root, DOWNLOAD_QUOTA_LOCK);
+  const ownerPath = path.join(lockPath, DOWNLOAD_QUOTA_OWNER);
 
-  for (let attempt = 0; attempt < 20 && !fs.existsSync(lockPath); attempt += 1) {
+  for (let attempt = 0; attempt < 50 && !fs.existsSync(ownerPath); attempt += 1) {
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
-  assert.equal(fs.existsSync(lockPath), true);
+  assert.equal(fs.existsSync(ownerPath), true);
   fs.rmSync(lockPath, { recursive: true });
   fs.mkdirSync(lockPath);
   input.end('complete');
