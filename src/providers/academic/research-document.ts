@@ -34,7 +34,10 @@ function normalizeWhitespace(value: string): string {
 }
 
 function htmlText(value: string): string {
-  const clean = value.replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '')
+  const superscriptDigits = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+  const clean = value.replace(/<!--[\s\S]*?-->/g, '').replace(/<sup\b[^>]*>([0-9]+)<\/sup>/gi, (_match, digits: string) =>
+    [...digits].map(digit => superscriptDigits[Number(digit)]).join(''))
+    .replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '')
     .replace(/<\/?(?:article|section|div|p|br|li|h[1-6]|table|tr|blockquote)\b[^>]*>/gi, '\n');
   return normalizeText(clean.replace(/<[^>]+>/g, ''));
 }
