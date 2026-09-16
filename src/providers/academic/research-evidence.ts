@@ -52,7 +52,7 @@ function hasNumericSuffixContinuation(value: string): boolean {
 }
 
 function endsWithNumericExpression(value: string): boolean {
-  return /\p{N}\s*(?:[\p{L}\p{M}µμ]+|[%‰°](?:[CFK])?)?\s*$/u.test(value);
+  return /\p{N}\s*(?:[\p{L}\p{M}µμ]{1,6}|[%‰°](?:[CFK])?)?\s*$/u.test(value);
 }
 
 function hasBoundedLiteral(text: string, excerpt: string): boolean {
@@ -68,6 +68,8 @@ function hasBoundedLiteral(text: string, excerpt: string): boolean {
     while (prefixIndex >= 0 && /\s/u.test(beforeCharacters[prefixIndex]!)) prefixIndex -= 1;
     const semanticPrefix = beforeCharacters[prefixIndex];
     const startsAfterNumericOperator = isDigit(first) && /^[+\-−–<>≤≥±≈~]$/.test(semanticPrefix ?? '');
+    const startsAfterStandaloneNegation = isTokenCharacter(first)
+      && /(?:^|\s)(?:no|not)\s*$/iu.test(beforeCharacters.slice(0, prefixIndex + 1).join(''));
     const startsAfterHyphenatedPrefix = /^[\-−–]$/.test(semanticPrefix ?? '')
       && isTokenCharacter(first) && isTokenCharacter(beforeCharacters[prefixIndex - 1]);
     const startsInsideDecimal = (isDigit(first) && /^[.,]$/.test(before ?? '')
@@ -80,6 +82,7 @@ function hasBoundedLiteral(text: string, excerpt: string): boolean {
     if (!(isTokenCharacter(first) && isTokenCharacter(before))
       && !(isTokenCharacter(last) && isTokenCharacter(after))
       && !startsAfterNumericOperator && !startsAfterHyphenatedPrefix
+      && !startsAfterStandaloneNegation
       && !startsInsideDecimal && !endsInsideDecimal && !endsBeforeNumericContinuation) return true;
   }
   return false;
