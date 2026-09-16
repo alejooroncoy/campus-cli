@@ -16,6 +16,7 @@ const TRUSTED_DISCOVERY_RESOURCE_HOSTS = new Set([
   'api.crossref.org', 'api.openalex.org', 'arxiv.org', 'dl.acm.org',
   'ieeexplore.ieee.org', 'link.springer.com', 'nature.com', 'onlinelibrary.wiley.com',
   'pmc.ncbi.nlm.nih.gov', 'pubmed.ncbi.nlm.nih.gov', 'sciencedirect.com',
+  'scopus.com',
   'tandfonline.com', 'www.webofscience.com',
 ]);
 
