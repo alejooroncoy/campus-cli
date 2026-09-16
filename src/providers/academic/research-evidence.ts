@@ -70,8 +70,9 @@ function hasBoundedLiteral(text: string, excerpt: string): boolean {
     const startsAfterNumericOperator = isDigit(first) && /^[+\-−–<>≤≥±≈~]$/.test(semanticPrefix ?? '');
     const startsAfterHyphenatedPrefix = /^[\-−–]$/.test(semanticPrefix ?? '')
       && isTokenCharacter(first) && isTokenCharacter(beforeCharacters[prefixIndex - 1]);
-    const startsInsideDecimal = isDigit(first) && /^[.,]$/.test(before ?? '')
-      && isDigit(beforeCharacters.at(-2));
+    const startsInsideDecimal = (isDigit(first) && /^[.,]$/.test(before ?? '')
+      && isDigit(beforeCharacters.at(-2)))
+      || (/^[.,]$/.test(first ?? '') && isDigit(before) && isDigit(excerptCharacters[1]));
     const endsInsideDecimal = (isDigit(last) && /^[.,]$/.test(after ?? '') && isDigit(afterCharacters[1]))
       || (/^[.,]$/.test(last ?? '') && isDigit(excerptCharacters.at(-2)) && isDigit(after));
     const endsBeforeNumericContinuation = endsWithNumericExpression(excerpt)
