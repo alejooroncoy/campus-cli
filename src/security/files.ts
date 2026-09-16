@@ -9,7 +9,7 @@ import lockfile from 'proper-lockfile';
 export const MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024;
 export const MAX_DOWNLOAD_ROOT_BYTES = 500 * 1024 * 1024;
 export const DOWNLOAD_QUOTA_LOCK = '.campus-download-quota.lock';
-const DOWNLOAD_QUOTA_OWNER = 'owner';
+export const DOWNLOAD_QUOTA_OWNER = 'owner';
 const DOWNLOAD_QUOTA_REAP_PREFIX = `${DOWNLOAD_QUOTA_LOCK}.reap-`;
 const PRIVATE_PART_PATTERN = /^\..+\.\d+\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.part$/i;
 

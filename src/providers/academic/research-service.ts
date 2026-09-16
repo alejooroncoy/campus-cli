@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import { decode } from 'entities';
 import { ResearchHttpError, researchJson, type ResearchJson } from './research-http.js';
 
 export const researchProvider = z.enum([
-  'crossref', 'openalex', 'acm_dl', 'ieee_xplore', 'scopus', 'web_of_science', 'science_direct',
+  'crossref', 'openalex', 'acm_dl', 'scopus', 'web_of_science',
 ]);
 
 export const searchInput = z.object({
@@ -17,8 +18,8 @@ export const searchInput = z.object({
 
 export const databasesSearchInput = z.object({
   query: searchInput.shape.query,
-  providers: z.array(z.enum(['ieee_xplore', 'acm_dl', 'scopus', 'web_of_science', 'science_direct']))
-    .min(1).max(5).default(['ieee_xplore', 'acm_dl', 'scopus', 'web_of_science', 'science_direct']),
+  providers: z.array(z.enum(['acm_dl', 'scopus', 'web_of_science']))
+    .min(1).max(3).default(['acm_dl', 'scopus', 'web_of_science']),
   limitPerProvider: z.number().int().min(1).max(25).default(10),
   yearFrom: searchInput.shape.yearFrom,
   yearTo: searchInput.shape.yearTo,
@@ -32,6 +33,16 @@ export const scholarInput = z.object({
   yearTo: searchInput.shape.yearTo,
   page: z.number().int().min(1).max(100).default(1),
   mode: z.enum(['search', 'link']).default('search').describe('search uses a configured third-party SerpApi key; without a key returns an explicitly labeled manual link.'),
+});
+
+export const citationVerificationInput = z.object({
+  doi: z.string().trim().min(6).max(350),
+  expectedTitle: z.string().trim().min(2).max(1_000)
+    .describe('Exact title returned by the discovery provider. It is compared with the DOI registry before citation is allowed.'),
+  expectedAuthors: z.array(z.string().trim().min(1).max(300)).min(1).max(100).optional()
+    .describe('Optional complete author list from the candidate, in order. If supplied, every author must match the registry.'),
+  expectedYear: z.number().int().min(1500).max(2100).optional()
+    .describe('Optional publication year from the candidate. If supplied, it must match the registry.'),
 });
 
 export function normalizeDoi(value: string): string {
@@ -48,11 +59,38 @@ export const RESEARCH_GUIDANCE = [
   'Analiza método, muestra, resultados y limitaciones con evidencia de páginas; un resumen no equivale a leer el texto completo.',
 ];
 
+const crossrefContributor = z.object({
+  given: z.string().optional(), family: z.string().optional(), suffix: z.string().optional(),
+  name: z.string().optional(),
+});
+const crossrefDate = z.object({
+  'date-parts': z.array(z.array(z.number().nullable())),
+});
+const crossrefProject = z.object({
+  'project-title': z.array(z.object({ title: z.string(), language: z.string().optional() })).nullish(),
+  funding: z.array(z.object({
+    funder: z.object({ name: z.string().optional() }),
+    award: z.union([z.string(), z.array(z.string())]).nullish(),
+  })).nullish(),
+  investigator: z.array(crossrefContributor).nullish(),
+  'lead-investigator': z.array(crossrefContributor).nullish(),
+  'award-start': crossrefDate.nullish(), 'award-end': crossrefDate.nullish(),
+});
 const crossrefWork = z.object({
-  DOI: z.string(), title: z.array(z.string()).optional(), type: z.string().optional(),
-  author: z.array(z.object({ given: z.string().optional(), family: z.string().optional(), name: z.string().optional() })).optional(),
-  'container-title': z.array(z.string()).optional(), publisher: z.string().optional(),
-  issued: z.object({ 'date-parts': z.array(z.array(z.number().nullable())) }).optional(),
+  DOI: z.string(), title: z.array(z.string()).nullish(), subtitle: z.array(z.string()).nullish(),
+  type: z.string().optional(),
+  author: z.array(crossrefContributor).nullish(), editor: z.array(crossrefContributor).nullish(),
+  translator: z.array(crossrefContributor).nullish(),
+  'container-title': z.array(z.string()).nullish(), publisher: z.string().nullish(),
+  institution: z.array(z.object({ name: z.string() })).nullish(),
+  degree: z.array(z.string()).nullish(),
+  'group-title': z.string().optional(), subtype: z.string().optional(), number: z.string().optional(),
+  volume: z.string().optional(), issue: z.string().optional(), page: z.string().optional(),
+  'article-number': z.string().optional(), 'edition-number': z.string().optional(),
+  issued: crossrefDate.nullish(), 'published-online': crossrefDate.nullish(),
+  'published-print': crossrefDate.nullish(), published: crossrefDate.nullish(),
+  award: z.union([z.string(), z.array(z.string())]).nullish(), project: z.array(crossrefProject).nullish(),
+  'award-start': crossrefDate.nullish(), 'award-end': crossrefDate.nullish(),
   link: z.array(z.object({ URL: z.string(), 'content-type': z.string().optional(), 'content-version': z.string().optional() })).optional(),
   'update-to': z.array(z.object({ DOI: z.string(), type: z.string().optional() })).optional(),
 });
@@ -74,13 +112,6 @@ const scopusWork = z.object({
   'prism:coverDate': z.string().optional(), subtypeDescription: z.string().optional(),
   link: z.array(z.object({ '@ref': z.string().optional(), '@href': z.string() })).optional(),
 });
-const ieeeWork = z.object({
-  article_number: z.string().optional(), title: z.string().optional(), doi: z.string().optional(),
-  publication_title: z.string().optional(), publication_year: z.union([z.string(), z.number()]).optional(),
-  content_type: z.string().optional(), html_url: z.string().optional(), pdf_url: z.string().optional(),
-  abstract: z.string().optional(),
-  authors: z.object({ authors: z.array(z.object({ full_name: z.string().optional() })).optional() }).optional(),
-});
 const wosWork = z.object({
   uid: z.string(), title: z.string().optional(), types: z.array(z.string()).optional(),
   source: z.object({ sourceTitle: z.string().optional(), publishYear: z.number().optional() }).optional(),
@@ -95,13 +126,167 @@ function optionalDoi(value?: string | null): string | null {
   try { return normalizeDoi(value); } catch { return null; }
 }
 
-function crossrefSource(work: z.infer<typeof crossrefWork>) {
+function normalizeEvidenceText(value: string): string {
+  return value.normalize('NFC').toLocaleLowerCase('en-US').replace(/\s+/g, ' ').trim();
+}
+
+function sameAuthors(expected: string[], registered: string[]): boolean {
+  return expected.length === registered.length
+    && expected.every((author, index) => normalizeEvidenceText(author) === normalizeEvidenceText(registered[index] ?? ''));
+}
+
+function crossrefPlainText(value: string): string {
+  const knownInlineTag = '(?:i|b|em|strong|sup|sub|scp|italic|bold|underline|small-caps|span|math|mml:[a-z][a-z0-9-]*)';
+  const rawMarkup = new RegExp(`<\\/?${knownInlineTag}(?:\\s[^<>]*?)?\\s*\\/?>`, 'gi');
+  const encodedMarkup = new RegExp(`&lt;\\/?${knownInlineTag}(?:\\s[^&]*?)?\\s*\\/?&gt;`, 'gi');
+  return decode(value.replace(rawMarkup, '').replace(encodedMarkup, ''))
+    .replace(/\s+/g, ' ').trim();
+}
+
+type CrossrefContributorRole = 'author' | 'editor' | 'translator';
+
+function crossrefContributors(
+  contributors: z.infer<typeof crossrefContributor>[] | null | undefined,
+  role: CrossrefContributorRole,
+) {
+  return contributors?.map(person => {
+    const literalName = person.name ? crossrefPlainText(person.name) : '';
+    const given = person.given ? crossrefPlainText(person.given) : '';
+    const family = person.family ? crossrefPlainText(person.family) : '';
+    const suffix = person.suffix ? crossrefPlainText(person.suffix) : '';
+    const name = literalName || [given, family, suffix].filter(Boolean).join(' ');
+    return name ? { name, role, ...(literalName ? { literalName } : {}),
+      ...(given ? { given } : {}), ...(family ? { family } : {}), ...(suffix ? { suffix } : {}) } : null;
+  }).filter((person): person is NonNullable<typeof person> => person !== null) ?? [];
+}
+
+const CROSSREF_CONTAINER_TYPES = new Set([
+  'journal-article', 'proceedings-article', 'book-chapter', 'book-section', 'book-part', 'book-track',
+  'reference-entry', 'component', 'journal-issue', 'journal-volume',
+]);
+const CROSSREF_PUBLISHER_TYPES = new Set([
+  'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book',
+  'book-chapter', 'book-section', 'book-part', 'book-track', 'report', 'proceedings',
+  'reference-entry', 'proceedings-series', 'report-series',
+]);
+const CROSSREF_EDITOR_TYPES = new Set([
+  'edited-book', 'book-chapter', 'book-section', 'book-part',
+]);
+const CROSSREF_EDITOR_CREATOR_TYPES = new Set([
+  'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book', 'proceedings',
+  'journal-issue', 'journal-volume',
+]);
+const CROSSREF_TITLE_FIRST_TYPES = new Set(['journal-article', 'book', 'reference-book', 'report', 'dataset']);
+const CROSSREF_PERIODICAL_VOLUME_TYPES = new Set(['journal-issue', 'journal-volume']);
+const CROSSREF_LOCATOR_TYPES = new Set(['book-chapter', 'book-section', 'book-part']);
+
+function crossrefDateParts(value: z.infer<typeof crossrefDate> | null | undefined): number[] | null {
+  const parts = value?.['date-parts'][0];
+  if (!parts || typeof parts[0] !== 'number') return null;
+  const result = [parts[0]];
+  for (const part of parts.slice(1)) {
+    if (typeof part !== 'number') break;
+    result.push(part);
+  }
+  return result;
+}
+
+function uniqueContributors<T extends { name: string }>(contributors: T[]): T[] {
+  const seen = new Set<string>();
+  return contributors.filter(contributor => {
+    const key = normalizeEvidenceText(contributor.name);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function crossrefSource(work: z.infer<typeof crossrefWork>, expectedTitle?: string) {
   const doi = normalizeDoi(work.DOI);
+  const projects = work.project ?? [];
+  const grantProjects = projects.map(project => {
+    const titles = (project['project-title'] ?? []).map(item => crossrefPlainText(item.title)).filter(Boolean);
+    const funders = [...new Set((project.funding ?? [])
+      .map(item => item.funder.name ? crossrefPlainText(item.funder.name) : '').filter(Boolean))];
+    const awardNumbers = [...new Set((project.funding ?? []).flatMap(item =>
+      Array.isArray(item.award) ? item.award : item.award ? [item.award] : [])
+      .map(crossrefPlainText).filter(Boolean))];
+    const investigators = uniqueContributors([
+      ...crossrefContributors(project['lead-investigator'], 'author'),
+      ...crossrefContributors(project.investigator, 'author'),
+    ]);
+    return { titles, funders, awardNumbers, investigators,
+      awardStart: crossrefDateParts(project['award-start']),
+      awardEnd: crossrefDateParts(project['award-end']) };
+  });
+  const topLevelAwardStart = crossrefDateParts(work['award-start']);
+  const topLevelAwardEnd = crossrefDateParts(work['award-end']);
+  const topLevelAwardNumbers = (Array.isArray(work.award) ? work.award : work.award ? [work.award] : [])
+    .map(crossrefPlainText).filter(Boolean);
+  const normalizedExpectedTitle = expectedTitle ? normalizeEvidenceText(expectedTitle) : null;
+  const titleMatchedProject = normalizedExpectedTitle
+    ? grantProjects.find(project => project.titles.some(title => normalizeEvidenceText(title) === normalizedExpectedTitle))
+    : undefined;
+  const selectedGrantProject = titleMatchedProject ?? grantProjects.reduce<typeof grantProjects[number] | undefined>((best, project) => {
+    const score = Number(project.titles.length > 0) + Number(project.investigators.length > 0)
+      + Number(project.funders.length > 0) + Number(topLevelAwardNumbers.length > 0 || project.awardNumbers.length > 0)
+      + 2 * Number(Boolean((topLevelAwardStart && topLevelAwardEnd) || (project.awardStart && project.awardEnd)));
+    if (!best) return project;
+    const bestScore = Number(best.titles.length > 0) + Number(best.investigators.length > 0)
+      + Number(best.funders.length > 0) + Number(topLevelAwardNumbers.length > 0 || best.awardNumbers.length > 0)
+      + 2 * Number(Boolean((topLevelAwardStart && topLevelAwardEnd) || (best.awardStart && best.awardEnd)));
+    return score > bestScore ? project : best;
+  }, undefined);
+  const projectTitles = grantProjects.flatMap(project => project.titles);
+  const mainTitle = work.title?.length ? crossrefPlainText(work.title.join(' '))
+    : selectedGrantProject?.titles[0] ?? projectTitles[0] ?? '';
+  const subtitle = work.subtitle ? crossrefPlainText(work.subtitle.join(' ')) : '';
+  const institutions = work.institution?.map(item => crossrefPlainText(item.name)).filter(Boolean) ?? [];
+  const degrees = work.degree?.map(crossrefPlainText).filter(Boolean) ?? [];
+  let authorContributors = crossrefContributors(work.author, 'author');
+  if (work.type === 'grant' && authorContributors.length === 0) {
+    authorContributors = selectedGrantProject?.investigators ?? [];
+  }
+  const editorContributors = crossrefContributors(work.editor, 'editor');
+  const translatorContributors = crossrefContributors(work.translator, 'translator');
+  const funders = selectedGrantProject?.funders ?? [];
+  const awardNumbers = [...new Set([
+    ...topLevelAwardNumbers,
+    ...(selectedGrantProject?.awardNumbers ?? []),
+  ].map(crossrefPlainText).filter(Boolean))];
+  const awardDurationSource = topLevelAwardStart && topLevelAwardEnd
+    ? { awardStart: topLevelAwardStart, awardEnd: topLevelAwardEnd }
+    : selectedGrantProject?.awardStart && selectedGrantProject.awardEnd
+      ? selectedGrantProject
+      : (topLevelAwardStart || topLevelAwardEnd
+        ? { awardStart: topLevelAwardStart, awardEnd: topLevelAwardEnd }
+        : selectedGrantProject);
+  const awardStart = awardDurationSource?.awardStart ?? null;
+  const awardEnd = awardDurationSource?.awardEnd ?? null;
+  const issued = crossrefDateParts(work.issued);
+  const publicationYears = [...new Set([
+    issued?.[0], crossrefDateParts(work['published-online'])?.[0],
+    crossrefDateParts(work['published-print'])?.[0], crossrefDateParts(work.published)?.[0],
+    awardStart?.[0],
+  ].filter((year): year is number => typeof year === 'number'))];
   return {
-    id: doi, doi, title: work.title?.join(' ') ?? null,
-    authors: work.author?.map(a => a.name ?? [a.given, a.family].filter(Boolean).join(' ')) ?? [],
-    year: work.issued?.['date-parts'][0]?.[0] ?? null, type: work.type ?? null,
-    venue: work['container-title']?.[0] ?? null, publisher: work.publisher ?? null,
+    id: doi, doi, title: [mainTitle, subtitle].filter(Boolean).join(': ') || null,
+    mainTitle: mainTitle || null,
+    subtitle: subtitle || null,
+    authors: authorContributors.map(person => person.name),
+    editors: editorContributors.map(person => person.name),
+    authorContributors, editorContributors, translatorContributors,
+    authorEntriesPresent: (work.author?.length ?? 0) > 0,
+    institutions, degrees,
+    year: issued?.[0] ?? awardStart?.[0] ?? publicationYears[0] ?? null, publicationYears,
+    type: work.type ?? null,
+    venue: work['container-title']?.[0] ? crossrefPlainText(work['container-title'][0]) || null : null,
+    publisher: work.publisher ? crossrefPlainText(work.publisher) || null : null,
+    volume: work.volume ?? null, issue: work.issue ?? null, pages: work.page ?? null,
+    articleNumber: work['article-number'] ?? null, edition: work['edition-number'] ?? null,
+    repository: work['group-title'] ? crossrefPlainText(work['group-title']) || null : null,
+    subtype: work.subtype ?? null, reportNumber: work.number ?? null,
+    projectTitles, grantProjects, funders, awardNumbers, awardStart, awardEnd,
     url: `https://doi.org/${doi}`, peerReview: 'unknown', indexedIn: 'crossref',
     retractionStatus: 'not_checked', updatesToOtherWorks: work['update-to'] ?? [],
     fullTextLinks: work.link ?? [], fullTextAccess: 'not_checked',
@@ -196,7 +381,7 @@ export class ResearchService {
       requestUrl = endpoint('https://api.crossref.org/works', { 'query.bibliographic': query, rows: limit, offset,
         ...(filters.length ? { filter: filters.join(',') } : {}) });
       const data = z.object({ message: z.object({ items: z.array(crossrefWork), 'total-results': z.number() }) }).parse(await this.json(requestUrl));
-      results = data.message.items.map(crossrefSource);
+      results = data.message.items.map(work => crossrefSource(work));
       total = data.message['total-results'];
     } else if (provider === 'openalex') {
       if (yearFrom) filters.push(`from_publication_date:${yearFrom}-01-01`);
@@ -229,25 +414,6 @@ export class ResearchService {
       total = data.message['total-results'];
       results = data.message.items.map(work => ({ ...crossrefSource(work), indexedIn: 'acm_digital_library',
         discoveredVia: 'crossref_acm_prefix_10.1145', url: `https://dl.acm.org/doi/${normalizeDoi(work.DOI)}` }));
-    } else if (provider === 'ieee_xplore') {
-      if (!this.env.IEEE_XPLORE_API_KEY) throw new Error('IEEE Xplore requiere IEEE_XPLORE_API_KEY del portal IEEE Developer.');
-      const apiUrl = endpoint('https://ieeexploreapi.ieee.org/api/v1/search/articles', {
-        apikey: this.env.IEEE_XPLORE_API_KEY, querytext: query, max_records: limit,
-        start_record: offset + 1, ...(yearFrom ? { start_year: yearFrom } : {}), ...(yearTo ? { end_year: yearTo } : {}),
-      });
-      requestUrl = endpoint('https://ieeexploreapi.ieee.org/api/v1/search/articles', {
-        querytext: query, max_records: limit, start_record: offset + 1,
-        ...(yearFrom ? { start_year: yearFrom } : {}), ...(yearTo ? { end_year: yearTo } : {}),
-      });
-      const data = z.object({ total_records: z.number(), articles: z.array(ieeeWork).optional() }).parse(await this.json(apiUrl));
-      total = data.total_records;
-      results = (data.articles ?? []).map(work => ({ id: work.article_number ?? work.doi ?? null,
-        doi: optionalDoi(work.doi), title: work.title ?? null,
-        authors: work.authors?.authors?.map(author => author.full_name).filter(Boolean) ?? [],
-        year: work.publication_year ? Number(work.publication_year) : null,
-        type: work.content_type ?? null, venue: work.publication_title ?? null,
-        url: work.html_url ?? null, pdfUrl: work.pdf_url ?? null, abstract: work.abstract ?? null,
-        indexedIn: 'ieee_xplore', peerReview: 'unknown', retractionStatus: 'not_checked' }));
     } else if (provider === 'web_of_science') {
       if (!this.env.WOS_API_KEY) throw new Error('Web of Science requiere WOS_API_KEY de Clarivate Developer Portal.');
       const terms = query.replace(/["\\]/g, ' ').trim();
@@ -264,33 +430,6 @@ export class ResearchService {
         year: work.source?.publishYear ?? null, type: work.types ?? [], venue: work.source?.sourceTitle ?? null,
         url: work.links?.record ?? null, citations: work.citations ?? [], indexedIn: 'web_of_science_core_collection',
         peerReview: 'unknown', retractionStatus: 'not_checked' }));
-    } else if (provider === 'science_direct') {
-      const elsevierKey = this.env.ELSEVIER_API_KEY ?? this.env.SCOPUS_API_KEY;
-      if (!elsevierKey) throw new Error('ScienceDirect requiere ELSEVIER_API_KEY (o SCOPUS_API_KEY compatible) de Elsevier.');
-      const terms = query.replace(/[(){}"\\]/g, ' ').trim();
-      if (!terms) throw new Error('La búsqueda debe contener texto.');
-      // ScienceDirect accepts only certain page sizes, but callers can ask for
-      // any limit from 1 to 25. Advance by the visible page size so a request
-      // for five results does not skip records 5–9 on its second page.
-      const count = limit <= 10 ? 10 : 25;
-      const apiOffset = (page - 1) * limit;
-      requestUrl = endpoint('https://api.elsevier.com/content/search/sciencedirect', {
-        query: `all(${terms})`, count, start: apiOffset, view: 'STANDARD',
-        ...(yearFrom || yearTo ? { date: `${yearFrom ?? 1500}-${yearTo ?? 2100}` } : {}),
-      });
-      const headers: Record<string, string> = { 'X-ELS-APIKey': elsevierKey, Accept: 'application/json' };
-      if (this.env.SCOPUS_INSTTOKEN) headers['X-ELS-Insttoken'] = this.env.SCOPUS_INSTTOKEN;
-      const data = z.object({ 'search-results': z.object({ 'opensearch:totalResults': z.string().regex(/^\d+$/),
-        entry: z.array(z.unknown()).optional() }) }).parse(await this.json(requestUrl, headers))['search-results'];
-      total = Number(data['opensearch:totalResults']);
-      results = total === 0 ? [] : z.array(scopusWork).parse(data.entry).slice(0, limit).map(work => ({
-        id: work['dc:identifier'], doi: optionalDoi(work['prism:doi']), title: work['dc:title'] ?? null,
-        authors: work['dc:creator'] ? [work['dc:creator']] : [], authorsComplete: false,
-        date: work['prism:coverDate'] ?? null, venue: work['prism:publicationName'] ?? null,
-        type: work.subtypeDescription ?? null, indexedIn: 'science_direct', peerReview: 'unknown',
-        retractionStatus: 'not_checked', url: work.link?.find(link => link['@ref'] === 'scidir')?.['@href']
-          ?? work.link?.find(link => link['@ref'] === 'self')?.['@href'] ?? null,
-      }));
     } else {
       const elsevierKey = this.env.ELSEVIER_API_KEY ?? this.env.SCOPUS_API_KEY;
       if (!elsevierKey) throw new Error('Scopus requiere ELSEVIER_API_KEY o SCOPUS_API_KEY de Elsevier. El acceso depende de los permisos institucionales; SCOPUS_INSTTOKEN es opcional.');
@@ -319,7 +458,7 @@ export class ResearchService {
       nextPage: offset + limit < total && page < 100 ? page + 1 : null, results, guidance: RESEARCH_GUIDANCE };
   }
 
-  async verifyDoi(value: string) {
+  async verifyDoi(value: string, expectedTitle?: string) {
     const doi = normalizeDoi(value);
     const requestUrl = `https://api.crossref.org/works/${encodeURIComponent(doi)}`;
     let work: z.infer<typeof crossrefWork>;
@@ -342,13 +481,90 @@ export class ResearchService {
     else try {
       const data = z.object({ message: z.object({ items: z.array(crossrefWork), 'total-results': z.number() }) }).parse(await this.json(updatesUrl)).message;
       updatesTotal = data['total-results'];
-      updates = data.items.map(crossrefSource);
+      updates = data.items.map(work => crossrefSource(work));
       const retracted = data.items.some(w => w['update-to']?.some(u => normalizeDoi(u.DOI) === doi && /^(retraction|withdrawal)$/i.test(u.type ?? '')));
       retractionStatus = retracted ? 'flagged_by_crossref' : updatesTotal > data.items.length ? 'unknown_incomplete_updates' : 'no_notice_found_in_crossref';
     } catch { updatesError = 'No se pudo comprobar actualizaciones; no interpretes esto como ausencia de retractación.'; }
-    return { status: 'registered_in_crossref', source: crossrefSource(work), requestUrl, updatesUrl,
+    return { status: 'registered_in_crossref', source: crossrefSource(work, expectedTitle), requestUrl, updatesUrl,
       retrievedAt: new Date().toISOString(), retractionStatus, updates, updatesTotal, updatesError,
       guidance: [...RESEARCH_GUIDANCE, 'La ausencia de avisos en Crossref no garantiza ausencia de retractación. Verifica también la página editorial.'] };
+  }
+
+  async verifyCitation(raw: z.input<typeof citationVerificationInput>) {
+    const input = citationVerificationInput.parse(raw);
+    const doi = normalizeDoi(input.doi);
+    const verification = await this.verifyDoi(doi, input.expectedTitle);
+    const retrievedAt = new Date().toISOString();
+    if (!('source' in verification) || !verification.source) return {
+      status: 'unverified', citeAllowed: false, doi, citationRecord: null,
+      mismatches: [], missingFields: [],
+      proof: { registry: 'crossref', recordId: doi, recordUrl: verification.requestUrl, retrievedAt },
+      reason: 'El DOI no está registrado en Crossref. No se permite construir una referencia con datos inferidos.',
+      claimEvidence: 'not_checked',
+    };
+
+    const registered = verification.source;
+    const mismatches: string[] = [];
+    if (!registered.title || normalizeEvidenceText(input.expectedTitle) !== normalizeEvidenceText(registered.title)) {
+      mismatches.push('title');
+    }
+    if (input.expectedYear !== undefined && !registered.publicationYears.includes(input.expectedYear)) mismatches.push('year');
+    if (input.expectedAuthors !== undefined && !sameAuthors(input.expectedAuthors, registered.authors)) {
+      mismatches.push('authors');
+    }
+    const missingFields = [
+      !registered.title ? 'title' : null,
+      !registered.type ? 'type' : null,
+      registered.authors.length === 0
+        && !(registered.type && CROSSREF_EDITOR_CREATOR_TYPES.has(registered.type) && registered.editors.length > 0)
+        && !(registered.type && CROSSREF_TITLE_FIRST_TYPES.has(registered.type) && !registered.authorEntriesPresent)
+        ? (registered.type && CROSSREF_EDITOR_CREATOR_TYPES.has(registered.type) ? 'creators' : 'authors') : null,
+      registered.type && CROSSREF_EDITOR_TYPES.has(registered.type) && registered.editors.length === 0 ? 'editors' : null,
+      registered.year === null ? 'year' : null,
+      registered.type && CROSSREF_CONTAINER_TYPES.has(registered.type) && !registered.venue ? 'venue' : null,
+      registered.type && CROSSREF_PERIODICAL_VOLUME_TYPES.has(registered.type) && !registered.volume ? 'volume' : null,
+      registered.type === 'journal-issue' && !registered.issue ? 'issue' : null,
+      registered.type && CROSSREF_PUBLISHER_TYPES.has(registered.type) && !registered.publisher ? 'publisher' : null,
+      registered.type && CROSSREF_LOCATOR_TYPES.has(registered.type)
+        && !registered.pages && !registered.articleNumber ? 'pages' : null,
+      registered.type === 'dataset' && !registered.publisher && !registered.repository ? 'source' : null,
+      registered.type === 'dissertation' && registered.institutions.length === 0 ? 'institution' : null,
+      registered.type === 'dissertation' && registered.degrees.length === 0 ? 'degree' : null,
+      registered.type === 'posted-content' && !registered.repository ? 'repository' : null,
+      registered.type === 'grant' && registered.funders.length === 0 ? 'funder' : null,
+      registered.type === 'grant' && registered.awardNumbers.length === 0 ? 'awardNumber' : null,
+      registered.type === 'grant' && (!registered.awardStart || !registered.awardEnd) ? 'awardDuration' : null,
+    ].filter((field): field is string => field !== null);
+    const status = mismatches.length > 0 ? 'rejected' : missingFields.length > 0 ? 'partial' : 'verified';
+    return {
+      status, citeAllowed: status === 'verified', doi,
+      citationRecord: {
+        doi: registered.doi, title: registered.mainTitle, authors: registered.authorContributors,
+        editors: registered.editorContributors, translators: registered.translatorContributors,
+        year: registered.year, type: registered.type, venue: registered.venue,
+        publicationYears: registered.publicationYears,
+        publisher: registered.publisher, volume: registered.volume, issue: registered.issue,
+        pages: registered.pages, articleNumber: registered.articleNumber, edition: registered.edition,
+        subtitle: registered.subtitle, institutions: registered.institutions, degrees: registered.degrees,
+        repository: registered.repository, subtype: registered.subtype,
+        reportNumber: registered.reportNumber, url: registered.url,
+        projectTitles: registered.projectTitles, funders: registered.funders,
+        awardNumbers: registered.awardNumbers, awardStart: registered.awardStart,
+        awardEnd: registered.awardEnd, grantProjects: registered.grantProjects,
+      },
+      comparisons: {
+        title: mismatches.includes('title') ? 'mismatch' : 'match',
+        year: input.expectedYear === undefined ? 'not_provided' : mismatches.includes('year') ? 'mismatch' : 'match',
+        authors: input.expectedAuthors === undefined ? 'not_provided' : mismatches.includes('authors') ? 'mismatch' : 'match',
+      },
+      mismatches, missingFields,
+      proof: { registry: 'crossref', recordId: doi, recordUrl: verification.requestUrl,
+        resolverUrl: `https://doi.org/${doi}`, retrievedAt },
+      retractionStatus: verification.retractionStatus,
+      noInferencePolicy: 'Usa únicamente citationRecord. No completes autores, año, título, revista, editorial ni otros campos ausentes.',
+      claimEvidence: 'bibliographic_only',
+      claimEvidenceGuidance: 'Este comprobante verifica identidad bibliográfica, no afirmaciones del artículo. Para citar contenido, lee el documento y conserva página o sección.',
+    };
   }
 }
 

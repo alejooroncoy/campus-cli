@@ -4,7 +4,7 @@ import dns from 'node:dns/promises';
 import https from 'node:https';
 import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
-import { researchDownload, researchJson } from '../src/providers/academic/research-http.js';
+import { researchDownload, researchJson, resolvedPublicHttpsUrl } from '../src/providers/academic/research-http.js';
 
 function mockHttp(t: TestContext, responses: Array<{ status: number; location?: string; body?: string; length?: string }>) {
   const requests: Array<{ url: URL; options: any }> = [];
@@ -45,6 +45,17 @@ test('HTTP rejects private DNS answers including mixed public/private responses 
   const requests = mockHttp(t, []);
   await assert.rejects(researchDownload('https://example.edu/file.pdf'), /privadas/);
   assert.equal(requests.length, 0);
+});
+
+test('resource links reject provider hostnames that resolve to private addresses', async t => {
+  t.mock.method(dns, 'lookup', async () => [{ address: '10.0.0.8', family: 4 }]);
+  await assert.rejects(resolvedPublicHttpsUrl('https://catalog.example.edu/article.pdf'), /privadas/);
+  await assert.rejects(resolvedPublicHttpsUrl('https://127.0.0.1/article.pdf'), /privadas/);
+});
+
+test('resource-link DNS validation has a bounded deadline', async () => {
+  const neverResolves = (() => new Promise(() => {})) as typeof dns.lookup;
+  await assert.rejects(resolvedPublicHttpsUrl('https://catalog.example.edu/article.pdf', neverResolves, 5), /DNS agotado/);
 });
 
 test('PDF redirects are revalidated and cannot reach a metadata service', async t => {
