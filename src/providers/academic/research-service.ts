@@ -136,7 +136,7 @@ function sameAuthors(expected: string[], registered: string[]): boolean {
 }
 
 function crossrefPlainText(value: string): string {
-  const knownInlineTag = '(?:i|b|em|strong|sup|sub|italic|bold|underline|small-caps|span|math|mml:[a-z][a-z0-9-]*)';
+  const knownInlineTag = '(?:i|b|em|strong|sup|sub|scp|italic|bold|underline|small-caps|span|math|mml:[a-z][a-z0-9-]*)';
   const rawMarkup = new RegExp(`<\\/?${knownInlineTag}(?:\\s[^<>]*?)?\\s*\\/?>`, 'gi');
   const encodedMarkup = new RegExp(`&lt;\\/?${knownInlineTag}(?:\\s[^&]*?)?\\s*\\/?&gt;`, 'gi');
   return decode(value.replace(rawMarkup, '').replace(encodedMarkup, ''))
@@ -176,7 +176,7 @@ const CROSSREF_EDITOR_CREATOR_TYPES = new Set([
   'book', 'book-series', 'book-set', 'edited-book', 'monograph', 'reference-book', 'proceedings',
   'journal-issue', 'journal-volume',
 ]);
-const CROSSREF_TITLE_FIRST_TYPES = new Set(['journal-article']);
+const CROSSREF_TITLE_FIRST_TYPES = new Set(['journal-article', 'book', 'reference-book', 'report', 'dataset']);
 const CROSSREF_PERIODICAL_VOLUME_TYPES = new Set(['journal-issue', 'journal-volume']);
 const CROSSREF_LOCATOR_TYPES = new Set(['book-chapter', 'book-section', 'book-part']);
 
