@@ -52,7 +52,7 @@ function hasNumericSuffixContinuation(value: string): boolean {
 }
 
 function endsWithNumericExpression(value: string): boolean {
-  return /\p{N}\s*(?:[\p{L}\p{M}µμ]{1,6}|[%‰°](?:[CFK])?)?\s*$/u.test(value);
+  return /\p{N}\s*(?:(?:kg|g|mg|µg|ng|pg|lb|oz|km|m|cm|mm|µm|mi|ft|in|ms|s|min|h|Hz|kHz|MHz|GHz|mol|mmol|µmol|L|mL|dL|Pa|kPa|MPa|W|kW|J|kJ|V|mV|A|mA)\b|[%‰°](?:[CFK])?)?\s*$/iu.test(value);
 }
 
 function hasBoundedLiteral(text: string, excerpt: string): boolean {
