@@ -10,6 +10,10 @@ import {
   getCourse,
   getCourseContents,
   getCourseAnnouncements,
+  getCourseDiscussions,
+  getCourseDiscussion,
+  getDiscussionMessages,
+  getDiscussionMessageReplies,
   getMessageCourseSummaries,
   getCourseConversationsPageSet,
   getGrades,
@@ -57,6 +61,47 @@ async function mapWithConcurrency<T, U>(
     output.push(...chunkResult);
   }
   return output;
+}
+
+function embeddedFilesFromBody(body: unknown) {
+  return typeof body === 'string' ? extractEmbeddedFiles(body) : [];
+}
+
+async function resourceLinksForEmbeddedFiles(client: any, files: ReturnType<typeof extractEmbeddedFiles>) {
+  return (await mapWithConcurrency(files, MCP_MAX_PARALLELISM, async (file) => {
+    try {
+      return await resolvedEmbeddedMediaResourceLink(client, file);
+    } catch (error) {
+      return rethrowExpiredSession(error);
+    }
+  })).filter((link): link is NonNullable<typeof link> => Boolean(link));
+}
+
+async function decorateDiscussionEmbeds(client: any, discussion: any) {
+  const files = embeddedFilesFromBody(discussion?.topic?.body);
+  if (!files.length) return { value: discussion, links: [] };
+  return {
+    value: {
+      ...discussion,
+      topic: {
+        ...discussion.topic,
+        embeddedFiles: files,
+      },
+    },
+    links: await resourceLinksForEmbeddedFiles(client, files),
+  };
+}
+
+async function decorateMessageEmbeds(client: any, message: any) {
+  const files = embeddedFilesFromBody(message?.body);
+  if (!files.length) return { value: message, links: [] };
+  return {
+    value: {
+      ...message,
+      embeddedFiles: files,
+    },
+    links: await resourceLinksForEmbeddedFiles(client, files),
+  };
 }
 
 // Blackboard's own IDs (course, content, column, attempt, file) always look like
@@ -193,6 +238,201 @@ export function registerBlackboardTools(server: McpServer) {
       const { client } = await getClient();
       const data = await getCourseAnnouncements(client, courseId);
       return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+    }
+  );
+
+  // ── blackboard_list_discussions ────────────────────────────────────────────────────────
+  registerTrackedTool(
+    'blackboard_list_discussions',
+    {
+      description:
+        'List Ultra discussions in a course, including titles and topic bodies when Blackboard exposes them. ' +
+        'This is read-only and returns only discussions the current student can access.',
+      inputSchema: {
+        courseId: blackboardId('courseId').describe('Blackboard course ID'),
+        title: z.string().optional().describe('Optional case-insensitive title search'),
+        gradable: z.boolean().optional().describe('Filter to graded or ungraded discussions'),
+        limit: z.number().int().min(1).max(100).optional().describe('Maximum discussions to return (default 100)'),
+        offset: z.number().int().min(0).optional().describe('Pagination offset'),
+      },
+    },
+    async ({ courseId, title, gradable, limit, offset }) => {
+      const { client } = await getClient();
+      const data = await getCourseDiscussions(client, courseId, { title, gradable, limit, offset });
+      const decorated = await mapWithConcurrency(data.results ?? [], MCP_MAX_PARALLELISM, (discussion: any) => decorateDiscussionEmbeds(client, discussion));
+      return {
+        content: [
+          { type: 'text', text: JSON.stringify({ ...data, results: decorated.map(({ value }) => value) }) },
+          ...decorated.flatMap(({ links }) => links),
+        ],
+      };
+    }
+  );
+
+  // ── blackboard_get_discussion ──────────────────────────────────────────────────────────
+  registerTrackedTool(
+    'blackboard_get_discussion',
+    {
+      description:
+        'Read one Ultra discussion, including its topic/prompt when Blackboard exposes it. ' +
+        'Use blackboard_list_discussion_messages to read student posts.',
+      inputSchema: {
+        courseId: blackboardId('courseId').describe('Blackboard course ID'),
+        discussionId: blackboardId('discussionId').describe('Discussion ID from blackboard_list_discussions'),
+      },
+    },
+    async ({ courseId, discussionId }) => {
+      const { client } = await getClient();
+      const data = await getCourseDiscussion(client, courseId, discussionId);
+      const decorated = await decorateDiscussionEmbeds(client, data);
+      return { content: [{ type: 'text', text: JSON.stringify(decorated.value) }, ...decorated.links] };
+    }
+  );
+
+  // ── blackboard_list_discussion_messages ────────────────────────────────────────────────
+  registerTrackedTool(
+    'blackboard_list_discussion_messages',
+    {
+      description:
+        'Read top-level messages/posts in an Ultra discussion. For group discussions, students only see posts from their groups. ' +
+        'Use blackboard_list_discussion_replies with a messageId to read replies.',
+      inputSchema: {
+        courseId: blackboardId('courseId').describe('Blackboard course ID'),
+        discussionId: blackboardId('discussionId').describe('Discussion ID from blackboard_list_discussions'),
+        groupId: blackboardId('groupId').optional().describe('Optional group filter for group discussions'),
+        userId: blackboardId('userId').optional().describe('Optional author user ID filter'),
+        status: z.enum(['Published', 'Deleted', 'Draft']).optional().describe('Message status filter'),
+        isRead: z.boolean().optional().describe('Filter read or unread messages'),
+        limit: z.number().int().min(1).max(100).optional().describe('Maximum messages to return (default 100)'),
+        offset: z.number().int().min(0).optional().describe('Pagination offset'),
+      },
+    },
+    async ({ courseId, discussionId, groupId, userId, status, isRead, limit, offset }) => {
+      const { client } = await getClient();
+      const data = await getDiscussionMessages(client, courseId, discussionId, {
+        groupId,
+        userId,
+        status,
+        isRead,
+        limit,
+        offset,
+      });
+      const decorated = await mapWithConcurrency(data.results ?? [], MCP_MAX_PARALLELISM, (message: any) => decorateMessageEmbeds(client, message));
+      return {
+        content: [
+          { type: 'text', text: JSON.stringify({ ...data, results: decorated.map(({ value }) => value) }) },
+          ...decorated.flatMap(({ links }) => links),
+        ],
+      };
+    }
+  );
+
+  // ── blackboard_list_discussion_replies ─────────────────────────────────────────────────
+  registerTrackedTool(
+    'blackboard_list_discussion_replies',
+    {
+      description: 'Read replies to a discussion message/post in an Ultra discussion.',
+      inputSchema: {
+        courseId: blackboardId('courseId').describe('Blackboard course ID'),
+        discussionId: blackboardId('discussionId').describe('Discussion ID from blackboard_list_discussions'),
+        messageId: blackboardId('messageId').describe('Message ID from blackboard_list_discussion_messages'),
+        groupId: blackboardId('groupId').optional().describe('Optional group filter for group discussions'),
+        userId: blackboardId('userId').optional().describe('Optional author user ID filter'),
+        status: z.enum(['Published', 'Deleted', 'Draft']).optional().describe('Message status filter'),
+        isRead: z.boolean().optional().describe('Filter read or unread messages'),
+        limit: z.number().int().min(1).max(100).optional().describe('Maximum replies to return (default 100)'),
+        offset: z.number().int().min(0).optional().describe('Pagination offset'),
+      },
+    },
+    async ({ courseId, discussionId, messageId, groupId, userId, status, isRead, limit, offset }) => {
+      const { client } = await getClient();
+      const data = await getDiscussionMessageReplies(client, courseId, discussionId, messageId, {
+        groupId,
+        userId,
+        status,
+        isRead,
+        limit,
+        offset,
+      });
+      const decorated = await mapWithConcurrency(data.results ?? [], MCP_MAX_PARALLELISM, (message: any) => decorateMessageEmbeds(client, message));
+      return {
+        content: [
+          { type: 'text', text: JSON.stringify({ ...data, results: decorated.map(({ value }) => value) }) },
+          ...decorated.flatMap(({ links }) => links),
+        ],
+      };
+    }
+  );
+
+  // ── blackboard_get_discussion_thread ───────────────────────────────────────────────────
+  registerTrackedTool(
+    'blackboard_get_discussion_thread',
+    {
+      description:
+        'Read an Ultra discussion as a thread: discussion topic, top-level posts, and replies. ' +
+        'Embedded Blackboard images, audio, video, and files are included in embeddedFiles; supported media are also returned as resource_link blocks.',
+      inputSchema: {
+        courseId: blackboardId('courseId').describe('Blackboard course ID'),
+        discussionId: blackboardId('discussionId').describe('Discussion ID from blackboard_list_discussions'),
+        status: z.enum(['Published', 'Deleted', 'Draft']).optional().describe('Message status filter (default Published)'),
+        messageLimit: z.number().int().min(1).max(25).optional().describe('Maximum top-level posts to read (default 10)'),
+        replyLimit: z.number().int().min(1).max(25).optional().describe('Maximum replies per message to read (default 10)'),
+        maxDepth: z.number().int().min(0).max(3).optional().describe('Reply nesting depth to follow (default 1)'),
+      },
+    },
+    async ({ courseId, discussionId, status, messageLimit, replyLimit, maxDepth }) => {
+      const { client } = await getClient();
+      const effectiveStatus = status ?? 'Published';
+      const depth = maxDepth ?? 1;
+      const links: Awaited<ReturnType<typeof resourceLinksForEmbeddedFiles>> = [];
+
+      const discussion = await decorateDiscussionEmbeds(client, await getCourseDiscussion(client, courseId, discussionId));
+      links.push(...discussion.links);
+
+      const attachReplies = async (message: any, remainingDepth: number): Promise<any> => {
+        const decorated = await decorateMessageEmbeds(client, message);
+        links.push(...decorated.links);
+        if (remainingDepth <= 0) return decorated.value;
+        const repliesPage = await getDiscussionMessageReplies(client, courseId, discussionId, message.id, {
+          status: effectiveStatus,
+          limit: replyLimit ?? 10,
+        });
+        const replies = await mapWithConcurrency(
+          repliesPage.results ?? [],
+          MCP_MAX_PARALLELISM,
+          (reply: any) => attachReplies(reply, remainingDepth - 1),
+        );
+        return {
+          ...decorated.value,
+          replies,
+          repliesPaging: repliesPage.paging,
+        };
+      };
+
+      const messagesPage = await getDiscussionMessages(client, courseId, discussionId, {
+        status: effectiveStatus,
+        limit: messageLimit ?? 10,
+      });
+      const messages = await mapWithConcurrency(
+        messagesPage.results ?? [],
+        MCP_MAX_PARALLELISM,
+        (message: any) => attachReplies(message, depth),
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              discussion: discussion.value,
+              messages,
+              paging: messagesPage.paging,
+              limits: { messageLimit: messageLimit ?? 10, replyLimit: replyLimit ?? 10, maxDepth: depth },
+            }),
+          },
+          ...links,
+        ],
+      };
     }
   );
 
@@ -413,7 +653,7 @@ export function registerBlackboardTools(server: McpServer) {
   registerTrackedTool(
     'blackboard_list_attachments',
     {
-      description: 'List file attachments for a course content item. Works for x-bb-file and files embedded in document or assignment HTML. Audio and video are additionally returned as MCP resource_link blocks so capable clients can process them directly; attachment metadata remains available as a download fallback.',
+      description: 'List file attachments for a course content item. Works for x-bb-file and files embedded in document or assignment HTML. Images, audio, and video are additionally returned as MCP resource_link blocks so capable clients can process them directly; attachment metadata remains available as a download fallback.',
       inputSchema: {
         courseId: blackboardId('courseId').describe('Blackboard course ID'),
         contentId: blackboardId('contentId').describe('Content item ID'),

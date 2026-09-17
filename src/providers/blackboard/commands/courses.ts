@@ -9,6 +9,10 @@ import {
   getCourse,
   getCourseContents,
   getCourseAnnouncements,
+  getCourseDiscussions,
+  getCourseDiscussion,
+  getDiscussionMessages,
+  getDiscussionMessageReplies,
   getMessageCourseSummaries,
   getCourseConversationsPageSet,
   getGradeColumns,
@@ -228,6 +232,215 @@ export function coursesCommand(program: Command) {
           console.log(`  ${chalk.bold(ann.title)} ${chalk.gray(date)}`);
           const body = ann.body?.replace(/<[^>]+>/g, '').slice(0, 200) || '';
           if (body) console.log(`  ${chalk.gray(body)}`);
+          console.log('');
+        }
+      } catch (err: any) {
+        spinner.fail(err.message);
+        process.exit(1);
+      }
+    });
+
+  // Discussions
+  courses
+    .command('discussions <courseId>')
+    .description('List Ultra discussions in a course')
+    .option('--json', 'Output raw JSON')
+    .option('--title <title>', 'Filter by title')
+    .option('--gradable <value>', 'Filter by gradable: true|false')
+    .option('--limit <n>', 'Max results (1-100)', '100')
+    .option('--offset <n>', 'Pagination offset', '0')
+    .action(async (courseId, opts) => {
+      const limit = Number.parseInt(opts.limit, 10);
+      const offset = Number.parseInt(opts.offset, 10);
+      if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('--limit must be an integer from 1 to 100');
+      if (!Number.isInteger(offset) || offset < 0) throw new Error('--offset must be a non-negative integer');
+      const gradable = opts.gradable === undefined
+        ? undefined
+        : opts.gradable === 'true'
+          ? true
+          : opts.gradable === 'false'
+            ? false
+            : (() => { throw new Error('--gradable must be true or false'); })();
+
+      const session = requireSession();
+      const client = createClient(session);
+      const spinner = ora({ text: 'Fetching discussions...', stream: process.stderr }).start();
+
+      try {
+        const data = await getCourseDiscussions(client, courseId, {
+          title: opts.title,
+          gradable,
+          limit,
+          offset,
+        });
+        spinner.succeed(`${data.results.length} discussions`);
+
+        if (opts.json) {
+          console.log(JSON.stringify(data, null, 2));
+          return;
+        }
+
+        if (data.results.length === 0) {
+          console.log(chalk.yellow('No discussions found.'));
+          return;
+        }
+
+        console.log('');
+        for (const discussion of data.results as any[]) {
+          const status = discussion.available === false ? chalk.red(' [hidden]') : '';
+          const graded = discussion.gradable ? chalk.gray(' [graded]') : '';
+          const group = discussion.groupDiscussion ? chalk.gray(' [groups]') : '';
+          const date = discussion.modifiedDate ?? discussion.createdDate;
+          const body = String(discussion.topic?.body ?? '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 240);
+          console.log(`  ${chalk.bold(discussion.id)} ${chalk.cyan(discussion.title)}${status}${graded}${group}${date ? chalk.gray(`  ${new Date(date).toLocaleString()}`) : ''}`);
+          if (body) console.log(`  ${chalk.gray(body)}`);
+          console.log(chalk.gray(`    → campus courses discussion-messages ${courseId} ${discussion.id}`));
+        }
+        console.log('');
+      } catch (err: any) {
+        spinner.fail(err.message);
+        process.exit(1);
+      }
+    });
+
+  courses
+    .command('discussion <courseId> <discussionId>')
+    .description('Read one Ultra discussion topic')
+    .option('--json', 'Output raw JSON')
+    .action(async (courseId, discussionId, opts) => {
+      const session = requireSession();
+      const client = createClient(session);
+      const spinner = ora({ text: 'Fetching discussion...', stream: process.stderr }).start();
+
+      try {
+        const discussion = await getCourseDiscussion(client, courseId, discussionId);
+        spinner.succeed('Discussion loaded');
+
+        if (opts.json) {
+          console.log(JSON.stringify(discussion, null, 2));
+          return;
+        }
+
+        const body = String(discussion.topic?.body ?? '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        console.log(`\n  ${chalk.bold(discussion.id)} ${chalk.cyan(discussion.title)}`);
+        if (body) console.log(`  ${body}`);
+        console.log(chalk.gray(`\n  → campus courses discussion-messages ${courseId} ${discussion.id}\n`));
+      } catch (err: any) {
+        spinner.fail(err.message);
+        process.exit(1);
+      }
+    });
+
+  courses
+    .command('discussion-messages <courseId> <discussionId>')
+    .description('List messages/posts in an Ultra discussion')
+    .option('--json', 'Output raw JSON')
+    .option('--status <status>', 'Filter by status: Published, Deleted, Draft', 'Published')
+    .option('--limit <n>', 'Max results (1-100)', '100')
+    .option('--offset <n>', 'Pagination offset', '0')
+    .action(async (courseId, discussionId, opts) => {
+      const limit = Number.parseInt(opts.limit, 10);
+      const offset = Number.parseInt(opts.offset, 10);
+      if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('--limit must be an integer from 1 to 100');
+      if (!Number.isInteger(offset) || offset < 0) throw new Error('--offset must be a non-negative integer');
+      if (!['Published', 'Deleted', 'Draft'].includes(opts.status)) throw new Error('--status must be Published, Deleted, or Draft');
+
+      const session = requireSession();
+      const client = createClient(session);
+      const spinner = ora({ text: 'Fetching discussion messages...', stream: process.stderr }).start();
+
+      try {
+        const data = await getDiscussionMessages(client, courseId, discussionId, {
+          status: opts.status,
+          limit,
+          offset,
+        });
+        spinner.succeed(`${data.results.length} messages`);
+
+        if (opts.json) {
+          console.log(JSON.stringify(data, null, 2));
+          return;
+        }
+
+        if (data.results.length === 0) {
+          console.log(chalk.yellow('No messages found.'));
+          return;
+        }
+
+        console.log('');
+        for (const message of data.results as any[]) {
+          const author = [message.givenName, message.familyName].filter(Boolean).join(' ');
+          const date = message.postDate ?? message.createdDate;
+          const body = String(message.body ?? '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 320);
+          console.log(`  ${chalk.bold(message.id)}${author ? chalk.gray(` — ${author}`) : ''}${date ? chalk.gray(`  ${new Date(date).toLocaleString()}`) : ''}`);
+          if (body) console.log(`  ${body}`);
+          console.log(chalk.gray(`    → campus courses discussion-replies ${courseId} ${discussionId} ${message.id}`));
+          console.log('');
+        }
+      } catch (err: any) {
+        spinner.fail(err.message);
+        process.exit(1);
+      }
+    });
+
+  courses
+    .command('discussion-replies <courseId> <discussionId> <messageId>')
+    .description('List replies to a discussion message/post')
+    .option('--json', 'Output raw JSON')
+    .option('--status <status>', 'Filter by status: Published, Deleted, Draft', 'Published')
+    .option('--limit <n>', 'Max results (1-100)', '100')
+    .option('--offset <n>', 'Pagination offset', '0')
+    .action(async (courseId, discussionId, messageId, opts) => {
+      const limit = Number.parseInt(opts.limit, 10);
+      const offset = Number.parseInt(opts.offset, 10);
+      if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('--limit must be an integer from 1 to 100');
+      if (!Number.isInteger(offset) || offset < 0) throw new Error('--offset must be a non-negative integer');
+      if (!['Published', 'Deleted', 'Draft'].includes(opts.status)) throw new Error('--status must be Published, Deleted, or Draft');
+
+      const session = requireSession();
+      const client = createClient(session);
+      const spinner = ora({ text: 'Fetching discussion replies...', stream: process.stderr }).start();
+
+      try {
+        const data = await getDiscussionMessageReplies(client, courseId, discussionId, messageId, {
+          status: opts.status,
+          limit,
+          offset,
+        });
+        spinner.succeed(`${data.results.length} replies`);
+
+        if (opts.json) {
+          console.log(JSON.stringify(data, null, 2));
+          return;
+        }
+
+        if (data.results.length === 0) {
+          console.log(chalk.yellow('No replies found.'));
+          return;
+        }
+
+        console.log('');
+        for (const reply of data.results as any[]) {
+          const author = [reply.givenName, reply.familyName].filter(Boolean).join(' ');
+          const date = reply.postDate ?? reply.createdDate;
+          const body = String(reply.body ?? '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 320);
+          console.log(`  ${chalk.bold(reply.id)}${author ? chalk.gray(` — ${author}`) : ''}${date ? chalk.gray(`  ${new Date(date).toLocaleString()}`) : ''}`);
+          if (body) console.log(`  ${body}`);
           console.log('');
         }
       } catch (err: any) {

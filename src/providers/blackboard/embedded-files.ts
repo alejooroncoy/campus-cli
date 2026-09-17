@@ -25,13 +25,15 @@ function mediaSubtypeFromUrl(url: URL): string | undefined {
   const subtypes: Record<string, string> = {
     aac: 'aac', flac: 'flac', m4a: 'mp4', mp3: 'mpeg', oga: 'ogg', ogg: 'ogg', wav: 'wav', weba: 'webm',
     m4v: 'mp4', mov: 'quicktime', mp4: 'mp4', ogv: 'ogg', webm: 'webm',
+    avif: 'avif', bmp: 'bmp', gif: 'gif', jpeg: 'jpeg', jpg: 'jpeg', png: 'png', svg: 'svg+xml', webp: 'webp',
   };
   return extension ? subtypes[extension] : undefined;
 }
 
-function mediaCategoryFromUrl(url: URL): 'audio' | 'video' | undefined {
+function mediaCategoryFromUrl(url: URL): 'audio' | 'image' | 'video' | undefined {
   const extension = url.pathname.match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase();
   if (extension && ['aac', 'flac', 'm4a', 'mp3', 'oga', 'ogg', 'wav', 'weba'].includes(extension)) return 'audio';
+  if (extension && ['avif', 'bmp', 'gif', 'jpeg', 'jpg', 'png', 'svg', 'webp'].includes(extension)) return 'image';
   if (extension && ['m4v', 'mov', 'mp4', 'ogv', 'webm'].includes(extension)) return 'video';
   return undefined;
 }
@@ -79,7 +81,7 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
   const mediaAncestors: Array<'audio' | 'video'> = [];
 
   for (const tag of htmlTags(body)) {
-    const tagName = tag.match(/^<\/?\s*(a|iframe|embed|object|audio|video|source)\b/i)?.[1]?.toLowerCase();
+    const tagName = tag.match(/^<\/?\s*(a|iframe|embed|object|audio|video|source|img)\b/i)?.[1]?.toLowerCase();
     if (!tagName) continue;
     if (tagName === 'audio' || tagName === 'video') {
       if (/^<\//.test(tag)) {
@@ -121,12 +123,14 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
       ? tagName
       : tagName === 'source'
         ? mediaAncestors[mediaAncestors.length - 1]
-        : undefined;
+        : tagName === 'img'
+          ? 'image'
+          : undefined;
     const mediaCategory = mediaElement ?? mediaCategoryFromUrl(url);
     const urlMimeType = mediaCategory ? `${mediaCategory}/${mediaSubtypeFromUrl(url) ?? '*'}` : undefined;
     const hasAuthoritativeName = typeof metadata.displayName === 'string'
       || typeof metadata.linkName === 'string'
-      || Boolean(attribute(tag, 'title') ?? attribute(tag, 'aria-label'));
+      || Boolean(attribute(tag, 'title') ?? attribute(tag, 'aria-label') ?? attribute(tag, 'alt'));
     const hasAuthoritativeMimeType = typeof metadata.mimeType === 'string' || Boolean(attribute(tag, 'type'));
 
     const file: EmbeddedFile = {
@@ -135,7 +139,7 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
         ? metadata.displayName
         : typeof metadata.linkName === 'string'
           ? metadata.linkName
-          : attribute(tag, 'title') ?? attribute(tag, 'aria-label') ?? fileNameFromUrl(url.href),
+          : attribute(tag, 'title') ?? attribute(tag, 'aria-label') ?? attribute(tag, 'alt') ?? fileNameFromUrl(url.href),
       mimeType: typeof metadata.mimeType === 'string'
         ? metadata.mimeType
         : attribute(tag, 'type') ?? urlMimeType ?? 'application/octet-stream',
@@ -145,18 +149,18 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
     if (existingIndex !== undefined) {
       const existing = files[existingIndex]!;
       const existingAuthority = authoritativeFields.get(url.href) ?? { displayName: false, mimeType: false };
-      const isMedia = /^(?:audio|video)\//i.test(file.mimeType);
+      const isMedia = /^(?:audio|image|video)\//i.test(file.mimeType);
       const hasNewAuthoritativeField = (hasAuthoritativeName && !existingAuthority.displayName)
         || (hasAuthoritativeMimeType && !existingAuthority.mimeType);
       const shouldUpgrade = hasNewAuthoritativeField
-        || (!/^(?:audio|video)\//i.test(existing.mimeType) && isMedia)
+        || (!/^(?:audio|image|video)\//i.test(existing.mimeType) && isMedia)
         || (Boolean(mediaElement) && existing.mimeType !== file.mimeType && !existingAuthority.mimeType);
       if (shouldUpgrade) {
         files[existingIndex] = {
           ...file,
           ...(existingAuthority.displayName ? { displayName: existing.displayName } : {}),
           // A later title is authoritative for the name, but an explicit
-          // audio/video element remains authoritative for its MIME context.
+          // media element remains authoritative for its MIME context.
           ...(existingAuthority.mimeType || (hasNewAuthoritativeField && !hasAuthoritativeMimeType && !mediaElement) ? { mimeType: existing.mimeType } : {}),
         };
       }

@@ -29,6 +29,18 @@ test('messages command exposes inbox filtering and pagination options', () => {
   assert.match(output, /--offset <n>/);
 });
 
+test('courses command exposes discussion readers', () => {
+  const output = execFileSync(
+    process.execPath,
+    ['run.js', 'courses', '--help'],
+    { cwd: process.cwd(), encoding: 'utf8' }
+  );
+
+  assert.match(output, /discussions \[options\] <courseId>/);
+  assert.match(output, /discussion-messages \[options\] <courseId> <discussionId>/);
+  assert.match(output, /discussion-replies \[options\] <courseId> <discussionId> <messageId>/);
+});
+
 test('pending filter includes only assignments without a score or submitted attempt pending grading', () => {
   assert.equal(isPendingAssignment(null), true);
   assert.equal(isPendingAssignment({}), true);
@@ -200,4 +212,50 @@ test('published assessment discovery follows content pages and ignores hidden fo
 
   assert.equal(assignments.length, 1);
   assert.equal(assignments[0].name, 'Later activity');
+});
+
+test('published group assessment is listed when its gradebook column is restricted', async () => {
+  const requested: string[] = [];
+  const client = {
+    get: async (url: string) => {
+      requested.push(url);
+      if (url.endsWith('/gradebook/columns')) {
+        return { data: { results: [] } };
+      }
+      if (url.endsWith('/contents')) {
+        return {
+          data: {
+            results: [{
+              id: '_folder_1', title: 'Week 2', hasChildren: true,
+            }],
+          },
+        };
+      }
+      if (url.endsWith('/contents/_folder_1/children')) {
+        return {
+          data: {
+            results: [{
+              id: '_content_1', title: 'Actividad grupal', hasGradebookColumns: true,
+              hasAssociatedGroups: true, availability: { available: 'Yes' },
+              contentHandler: { gradeColumnId: '_restricted_column_1' },
+            }],
+          },
+        };
+      }
+      if (url.endsWith('/gradebook/columns/_restricted_column_1/groupAttempts')) {
+        return { data: { results: [{ id: '_attempt_1', groupId: '_group_1', status: 'InProgress' }] } };
+      }
+      throw new Error(`Unexpected request: ${url}`);
+    },
+  } as any;
+
+  const assignments = await listPublishedAssignments(client, '_course_1');
+
+  assert.deepEqual(assignments, [{
+    id: '_restricted_column_1', name: 'Actividad grupal', contentId: '_content_1',
+    grading: { type: 'Attempts' }, gradebookAccess: 'restricted', hasAssociatedGroups: true,
+    groupAttempts: [{ id: '_attempt_1', groupId: '_group_1', status: 'InProgress' }],
+    groupAttemptsAccess: 'available',
+  }]);
+  assert.equal(requested.filter((url) => url.includes('_restricted_column_1')).length, 1);
 });

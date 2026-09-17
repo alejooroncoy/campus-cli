@@ -21,16 +21,7 @@ export type MediaResourceLink = {
 };
 
 export function isMediaMimeType(mimeType?: string): boolean {
-  return /^(?:audio|video)\//i.test(mimeType ?? '');
-}
-
-export function embeddedMediaResourceLink(file: { displayName: string; mimeType: string; downloadUrl: string }): MediaResourceLink | null {
-  if (!isMediaMimeType(file.mimeType)) return null;
-  assertBlackboardFileUrl(file.downloadUrl);
-  return {
-    type: 'resource_link', uri: file.downloadUrl, name: file.displayName, mimeType: file.mimeType,
-    description: 'Recurso multimedia de Blackboard. Si el cliente admite este formato, puede analizarlo o transcribirlo; si no, use blackboard_download_attachment con los metadatos devueltos por la herramienta.',
-  };
+  return /^(?:audio|image|video)\//i.test(mimeType ?? '');
 }
 
 function expiredSession(): never {
@@ -87,7 +78,7 @@ export async function resolvedEmbeddedMediaResourceLink(
   if (!uri) return null;
   return {
     type: 'resource_link', uri, name: file.displayName, mimeType: file.mimeType,
-    description: 'Recurso multimedia de Blackboard. Si el cliente admite este formato, puede analizarlo o transcribirlo; si no, use blackboard_download_file_url con el downloadUrl devuelto por la herramienta.',
+    description: 'Recurso multimedia de Blackboard. Si el cliente admite este formato, puede verlo, analizarlo o transcribirlo; si no, use blackboard_download_file_url con el downloadUrl devuelto por la herramienta.',
   };
 }
 
@@ -112,6 +103,6 @@ export async function attachmentMediaResourceLink(
     name: attachment.fileName ?? attachment.displayName ?? 'Recurso multimedia de Blackboard',
     mimeType: attachment.mimeType!,
     ...(typeof attachment.size === 'number' && Number.isFinite(attachment.size) ? { size: attachment.size } : {}),
-    description: 'Recurso multimedia de Blackboard. Si el cliente admite este formato, puede analizarlo o transcribirlo; si no, use blackboard_download_attachment con los metadatos devueltos por la herramienta.',
+    description: 'Recurso multimedia de Blackboard. Si el cliente admite este formato, puede verlo, analizarlo o transcribirlo; si no, use blackboard_download_attachment con los metadatos devueltos por la herramienta.',
   };
 }
