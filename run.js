@@ -14,4 +14,10 @@ if (fs.existsSync(compiled)) {
   const entry = path.join(__dirname, 'src', 'index.ts');
   result = spawnSync(tsx, [entry, ...process.argv.slice(2)], { stdio: 'inherit', env });
 }
-process.exit(result.status ?? 0);
+
+if (result.error) {
+  console.error(result.error.message);
+  process.exit(1);
+}
+
+process.exit(result.status ?? 1);
