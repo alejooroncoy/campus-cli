@@ -12,8 +12,8 @@ import {
   getCourseAnnouncements,
   getCourseDiscussions,
   getCourseDiscussion,
-  getDiscussionMessages,
   getDiscussionMessageReplies,
+  getDiscussionTopicMessages,
   getMessageCourseSummaries,
   getCourseConversationsPageSet,
   getGrades,
@@ -309,7 +309,8 @@ export function registerBlackboardTools(server: McpServer) {
     },
     async ({ courseId, discussionId, groupId, userId, status, isRead, limit, offset }) => {
       const { client } = await getClient();
-      const data = await getDiscussionMessages(client, courseId, discussionId, {
+      const discussion = await getCourseDiscussion(client, courseId, discussionId);
+      const data = await getDiscussionTopicMessages(client, courseId, discussionId, discussion.topic, {
         groupId,
         userId,
         status,
@@ -409,7 +410,7 @@ export function registerBlackboardTools(server: McpServer) {
         };
       };
 
-      const messagesPage = await getDiscussionMessages(client, courseId, discussionId, {
+      const messagesPage = await getDiscussionTopicMessages(client, courseId, discussionId, discussion.value?.topic, {
         status: effectiveStatus,
         limit: messageLimit ?? 10,
       });

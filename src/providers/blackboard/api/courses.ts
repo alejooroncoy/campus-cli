@@ -151,6 +151,24 @@ export async function getDiscussionMessageReplies(
   return r.data;
 }
 
+/** Blackboard Ultra stores ordinary forum posts as replies to the topic's
+ * root message. Some courses return an empty /messages collection even when
+ * that root has visible replies. */
+export async function getDiscussionTopicMessages(
+  client: AxiosInstance,
+  courseId: string,
+  discussionId: string,
+  topic: unknown,
+  opts: Parameters<typeof getDiscussionMessages>[3] = {},
+): Promise<PaginatedResponse<any>> {
+  const topicId = typeof (topic as { id?: unknown } | undefined)?.id === 'string'
+    ? (topic as { id: string }).id
+    : undefined;
+  return topicId
+    ? getDiscussionMessageReplies(client, courseId, discussionId, topicId, opts)
+    : getDiscussionMessages(client, courseId, discussionId, opts);
+}
+
 /** Blackboard Ultra's authenticated inbox summary (not part of the public REST API). */
 export async function getMessageCourseSummaries(
   client: AxiosInstance,

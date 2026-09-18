@@ -6,6 +6,7 @@ import {
   getCourseDiscussions,
   getDiscussionMessages,
   getDiscussionMessageReplies,
+  getDiscussionTopicMessages,
   getMessageCourseSummaries,
 } from '../src/providers/blackboard/api/courses.js';
 
@@ -78,5 +79,27 @@ test('Blackboard discussion APIs request discussions, messages, and replies', as
   assert.deepEqual(requests.at(-1), {
     path: '/learn/api/public/v1/courses/_42_1/discussions/_99_1/messages/_100_1/replies',
     params: { limit: 100, offset: 20, status: 'Published' },
+  });
+});
+
+test('Blackboard topic messages use the topic root replies when available', async () => {
+  const requests: Array<{ path: string; params?: any }> = [];
+  const client = {
+    get: async (path: string, config?: any) => {
+      requests.push({ path, params: config?.params });
+      return { data: { results: [] } };
+    },
+  } as any;
+
+  await getDiscussionTopicMessages(client, '_42_1', '_99_1', { id: '_100_1' }, { status: 'Published', limit: 10 });
+  assert.deepEqual(requests.at(-1), {
+    path: '/learn/api/public/v1/courses/_42_1/discussions/_99_1/messages/_100_1/replies',
+    params: { limit: 10, status: 'Published' },
+  });
+
+  await getDiscussionTopicMessages(client, '_42_1', '_99_1', undefined, { limit: 10 });
+  assert.deepEqual(requests.at(-1), {
+    path: '/learn/api/public/v1/courses/_42_1/discussions/_99_1/messages',
+    params: { limit: 10 },
   });
 });
