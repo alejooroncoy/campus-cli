@@ -24,6 +24,9 @@ The read-only `campus_apa7_guidance` tool is the exception to the Blackboard-ses
 4. blackboard_list_contents <courseId>               → browse course materials
 5. blackboard_list_contents <courseId> <parentId>    → navigate into a subfolder
 6. blackboard_list_attachments <courseId> <contentId>→ find downloadable files
+7. blackboard_list_discussions <courseId>              → list Ultra course discussions
+8. blackboard_get_discussion / blackboard_list_discussion_messages / blackboard_list_discussion_replies
+                                                       → read discussion prompts, posts, and replies
 ```
 
 ### Feedback workflow
@@ -40,6 +43,8 @@ The read-only `campus_apa7_guidance` tool is the exception to the Blackboard-ses
 - **`blackboard_save_attempt_draft`/`blackboard_submit_attempt` only work on file/text/link-submission columns** — not on quiz-style columns with interactive questions (both look identical from `blackboard_list_assignments`, since Ultra treats tests and assignments as the same `resource/x-bb-asmt-test-link` content type). If Blackboard returns `400` with a message like "Attempts cannot be created for assessments with non-presentation-only questions", that column is actually a quiz/test — tell the user, don't retry. A `403 bb-rest-attempt-past-due-exception` is expected/normal once the due date has passed and late attempts aren't allowed — same as the web UI would show, not a bug.
 - **Show grades in context** — when showing grades, also show the assignment name, max score, and due date if available.
 - **Navigate content recursively** — if the user asks for materials, explore subfolders using `blackboard_list_contents` with `parentId`.
+- **Verify academic schedules with the right source** — for questions about deliverables, advances, due weeks, grading weights, or what to prepare for class, first explore the course content recursively and inspect the official course presentation/guide (often “About the Course” or Week 1), then the syllabus, then assignment briefs and templates. Treat these as distinct evidence: the presentation/guide defines the assessment structure and weights; the syllabus confirms official weeks and evaluations; a brief/template only identifies possible work materials; `blackboard_list_assignments` alone confirms that a submission is currently published and its due date.
+- **Report evidence, not guesses** — separate the answer into: confirmed schedule, currently published Blackboard task, and details not yet specified. Name the file/section supporting each claim. If the student mentions “advances” but the syllabus shows only one global evaluation, investigate that discrepancy before answering. Never infer that a template is a specific advance without an explicit assignment in an official source; say the exact scope is not yet published instead.
 - **Use `blackboard_raw_api` for anything not covered** — it is restricted to `/learn/api/public/`. `POST`, `PUT`, `PATCH`, and `DELETE` require direct user confirmation through MCP elicitation.
 - **Session errors are recoverable** — if you get a session error, tell the user to run `campus login` (not a fatal error).
 - **Respect rate limits** — don't fan out more than 5 parallel API calls.
@@ -72,6 +77,11 @@ GET /learn/api/public/v1/courses/{courseId}/contents/{id}/attachments/{id}/downl
 | `blackboard_get_course` | Single course details |
 | `blackboard_list_contents` | Course materials tree |
 | `blackboard_list_announcements` | Course announcements |
+| `blackboard_list_discussions` | Ultra course discussions |
+| `blackboard_get_discussion` | One Ultra discussion prompt/topic |
+| `blackboard_list_discussion_messages` | Top-level posts in an Ultra discussion |
+| `blackboard_list_discussion_replies` | Replies to a discussion post |
+| `blackboard_get_discussion_thread` | Ultra discussion with posts, replies, and embedded media metadata |
 | `blackboard_list_assignments` | Tasks with due dates + grades |
 | `blackboard_list_attempts` | Submission history |
 | `blackboard_get_grades` | Full grade report for a course |

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { extractEmbeddedFiles } from '../src/providers/blackboard/embedded-files.js';
-import { attachmentMediaResourceLink, embeddedMediaResourceLink, resolvedEmbeddedMediaResourceLink } from '../src/providers/blackboard/resource-links.js';
+import { attachmentMediaResourceLink, isMediaMimeType, resolvedEmbeddedMediaResourceLink } from '../src/providers/blackboard/resource-links.js';
 
 test('finds a viewer-only Blackboard file when the attachments API is empty', () => {
   const files = extractEmbeddedFiles('<iframe title="SEMANA 01 - 2026-2.pptx" src="/bbcswebdav/pid-1-dt-content-rid-2/xid-3"></iframe>');
@@ -18,7 +18,7 @@ test('finds Blackboard video elements embedded in assignment instructions', () =
   assert.equal(files.length, 1);
   assert.equal(files[0]?.mimeType, 'video/mp4');
   assert.equal(files[0]?.downloadUrl, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4');
-  assert.equal(embeddedMediaResourceLink(files[0]!)?.type, 'resource_link');
+  assert.equal(isMediaMimeType(files[0]?.mimeType), true);
 });
 
 test('uses exact HTML attribute names instead of prefixed lookalikes', () => {
@@ -41,22 +41,22 @@ test('skips HTML comments before extracting embedded files', () => {
 test('infers media type for an untyped source element from its URL', () => {
   const files = extractEmbeddedFiles('<video><source src="/bbcswebdav/pid-7/video.mp4"></video>');
   assert.equal(files[0]?.mimeType, 'video/mp4');
-  assert.equal(embeddedMediaResourceLink(files[0]!)?.type, 'resource_link');
+  assert.equal(isMediaMimeType(files[0]?.mimeType), true);
 });
 
 test('source elements retain their parent media category when the URL is ambiguous', () => {
   const files = extractEmbeddedFiles('<video><source src="/bbcswebdav/pid-7/xid-3"></video><audio><source src="/bbcswebdav/pid-8/clip.webm"></audio>');
   assert.equal(files[0]?.mimeType, 'video/*');
   assert.equal(files[1]?.mimeType, 'audio/webm');
-  assert.ok(embeddedMediaResourceLink(files[0]!));
-  assert.ok(embeddedMediaResourceLink(files[1]!));
+  assert.equal(isMediaMimeType(files[0]?.mimeType), true);
+  assert.equal(isMediaMimeType(files[1]?.mimeType), true);
 });
 
 test('an explicit media occurrence upgrades an earlier generic occurrence of the same URL', () => {
   const files = extractEmbeddedFiles('<iframe src="/bbcswebdav/pid-7/xid-3"></iframe><video src="/bbcswebdav/pid-7/xid-3"></video>');
   assert.equal(files.length, 1);
   assert.equal(files[0]?.mimeType, 'video/*');
-  assert.ok(embeddedMediaResourceLink(files[0]!));
+  assert.equal(isMediaMimeType(files[0]?.mimeType), true);
 });
 
 test('an explicit media occurrence corrects an earlier URL-based media inference', () => {
@@ -70,7 +70,7 @@ test('a titled explicit media occurrence upgrades an earlier generic occurrence'
   assert.equal(files.length, 1);
   assert.equal(files[0]?.displayName, 'Lecture');
   assert.equal(files[0]?.mimeType, 'video/*');
-  assert.ok(embeddedMediaResourceLink(files[0]!));
+  assert.equal(isMediaMimeType(files[0]?.mimeType), true);
 });
 
 test('deduplication preserves authoritative Blackboard metadata', () => {
@@ -97,15 +97,15 @@ test('infers media type from a direct video URL when Blackboard omits type', () 
   const files = extractEmbeddedFiles('<video src="/bbcswebdav/pid-9/self-introduction.mp4"></video>');
 
   assert.equal(files[0]?.mimeType, 'video/mp4');
-  assert.equal(embeddedMediaResourceLink(files[0]!)?.type, 'resource_link');
+  assert.equal(isMediaMimeType(files[0]?.mimeType), true);
 });
 
 test('keeps the media element category for untyped extensionless and WebM embeds', () => {
   const files = extractEmbeddedFiles('<video src="/bbcswebdav/pid-9/xid-3"></video><audio src="/bbcswebdav/pid-10/clip.webm"></audio>');
   assert.equal(files[0]?.mimeType, 'video/*');
   assert.equal(files[1]?.mimeType, 'audio/webm');
-  assert.ok(embeddedMediaResourceLink(files[0]!));
-  assert.ok(embeddedMediaResourceLink(files[1]!));
+  assert.equal(isMediaMimeType(files[0]?.mimeType), true);
+  assert.equal(isMediaMimeType(files[1]?.mimeType), true);
 });
 
 test('finds Blackboard audio elements embedded in assignment instructions', () => {
@@ -113,13 +113,28 @@ test('finds Blackboard audio elements embedded in assignment instructions', () =
 
   assert.equal(files.length, 1);
   assert.equal(files[0]?.mimeType, 'audio/mpeg');
-  assert.equal(embeddedMediaResourceLink(files[0]!)?.type, 'resource_link');
+  assert.equal(isMediaMimeType(files[0]?.mimeType), true);
 });
 
-test('turns embedded Blackboard media into a resource link', () => {
-  const link = embeddedMediaResourceLink({ displayName: 'Self-introduction.mp4', mimeType: 'video/mp4', downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4' });
-  assert.equal(link?.type, 'resource_link');
-  assert.match(link?.description ?? '', /analizarlo o transcribirlo/);
+test('finds Blackboard images embedded in discussion posts', () => {
+  const files = extractEmbeddedFiles(
+    '<p>Captura:</p><img alt="avance" src="/bbcswebdav/pid-11-dt-content-rid-12/screenshot.png" data-bbfile="{&quot;displayName&quot;:&quot;screenshot.png&quot;,&quot;mimeType&quot;:&quot;image/png&quot;}">',
+  );
+
+  assert.deepEqual(files, [{
+    type: 'embedded',
+    displayName: 'screenshot.png',
+    mimeType: 'image/png',
+    downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-11-dt-content-rid-12/screenshot.png',
+  }]);
+  assert.equal(isMediaMimeType(files[0]?.mimeType), true);
+});
+
+test('infers media type from an untyped image URL', () => {
+  const files = extractEmbeddedFiles('<img alt="avance" src="/bbcswebdav/pid-11/screenshot.png">');
+  assert.equal(files[0]?.displayName, 'avance');
+  assert.equal(files[0]?.mimeType, 'image/png');
+  assert.equal(isMediaMimeType(files[0]?.mimeType), true);
 });
 
 test('resolves embedded media before exposing a resource link', async () => {
@@ -128,6 +143,18 @@ test('resolves embedded media before exposing a resource link', async () => {
   const link = await resolvedEmbeddedMediaResourceLink(client, { displayName: 'Self-introduction.mp4', mimeType: 'video/mp4', downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4' });
   assert.equal(destroyed, true);
   assert.equal(link?.uri, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4?ticket=temporary');
+});
+
+test('turns embedded Blackboard images into resolved resource links', async () => {
+  const client = { get: async () => ({ data: { destroy() {} }, headers: { location: '/bbcswebdav/pid-11/screenshot.png?ticket=temporary' } }) } as any;
+  const link = await resolvedEmbeddedMediaResourceLink(client, {
+    displayName: 'screenshot.png',
+    mimeType: 'image/png',
+    downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-11/screenshot.png',
+  });
+  assert.equal(link?.type, 'resource_link');
+  assert.equal(link?.mimeType, 'image/png');
+  assert.match(link?.description ?? '', /verlo, analizarlo o transcribirlo/);
 });
 
 test('resolves relative embedded media redirects against the requested file', async () => {

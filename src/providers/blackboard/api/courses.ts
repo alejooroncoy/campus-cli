@@ -61,6 +61,96 @@ export async function getCourseAnnouncements(
   return r.data;
 }
 
+function compactParams(params: Record<string, any>): Record<string, any> {
+  return Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined));
+}
+
+export async function getCourseDiscussions(
+  client: AxiosInstance,
+  courseId: string,
+  opts: { limit?: number; offset?: number; title?: string; gradable?: boolean; sort?: string } = {}
+): Promise<PaginatedResponse<any>> {
+  const r = await client.get(`/learn/api/public/v1/courses/${courseId}/discussions`, {
+    params: compactParams({
+      limit: opts.limit ?? 100,
+      offset: opts.offset,
+      title: opts.title,
+      gradable: opts.gradable,
+      sort: opts.sort,
+    }),
+  });
+  return r.data;
+}
+
+export async function getCourseDiscussion(
+  client: AxiosInstance,
+  courseId: string,
+  discussionId: string
+): Promise<any> {
+  const r = await client.get(`/learn/api/public/v1/courses/${courseId}/discussions/${discussionId}`);
+  return r.data;
+}
+
+export async function getDiscussionMessages(
+  client: AxiosInstance,
+  courseId: string,
+  discussionId: string,
+  opts: {
+    limit?: number;
+    offset?: number;
+    groupId?: string;
+    userId?: string;
+    status?: 'Published' | 'Deleted' | 'Draft';
+    isRead?: boolean;
+    sort?: string;
+  } = {}
+): Promise<PaginatedResponse<any>> {
+  const r = await client.get(`/learn/api/public/v1/courses/${courseId}/discussions/${discussionId}/messages`, {
+    params: compactParams({
+      limit: opts.limit ?? 100,
+      offset: opts.offset,
+      groupId: opts.groupId,
+      userId: opts.userId,
+      status: opts.status,
+      isRead: opts.isRead,
+      sort: opts.sort,
+    }),
+  });
+  return r.data;
+}
+
+export async function getDiscussionMessageReplies(
+  client: AxiosInstance,
+  courseId: string,
+  discussionId: string,
+  messageId: string,
+  opts: {
+    limit?: number;
+    offset?: number;
+    groupId?: string;
+    userId?: string;
+    status?: 'Published' | 'Deleted' | 'Draft';
+    isRead?: boolean;
+    sort?: string;
+  } = {}
+): Promise<PaginatedResponse<any>> {
+  const r = await client.get(
+    `/learn/api/public/v1/courses/${courseId}/discussions/${discussionId}/messages/${messageId}/replies`,
+    {
+      params: compactParams({
+        limit: opts.limit ?? 100,
+        offset: opts.offset,
+        groupId: opts.groupId,
+        userId: opts.userId,
+        status: opts.status,
+        isRead: opts.isRead,
+        sort: opts.sort,
+      }),
+    }
+  );
+  return r.data;
+}
+
 /** Blackboard Ultra's authenticated inbox summary (not part of the public REST API). */
 export async function getMessageCourseSummaries(
   client: AxiosInstance,

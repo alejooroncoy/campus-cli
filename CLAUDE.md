@@ -22,6 +22,9 @@ If you get `Not authenticated`, ask the user to run `campus login`.
 4. blackboard_list_contents <courseId>               → browse course materials
 5. blackboard_list_contents <courseId> <parentId>    → navigate into a subfolder
 6. blackboard_list_attachments <courseId> <contentId>→ find downloadable files
+7. blackboard_list_discussions <courseId>              → list Ultra course discussions
+8. blackboard_get_discussion / blackboard_list_discussion_messages / blackboard_list_discussion_replies
+                                                       → read discussion prompts, posts, and replies
 ```
 
 ### Feedback workflow
@@ -70,6 +73,11 @@ GET /learn/api/public/v1/courses/{courseId}/contents/{id}/attachments/{id}/downl
 | `blackboard_get_course` | Single course details |
 | `blackboard_list_contents` | Course materials tree |
 | `blackboard_list_announcements` | Course announcements |
+| `blackboard_list_discussions` | Ultra course discussions |
+| `blackboard_get_discussion` | One Ultra discussion prompt/topic |
+| `blackboard_list_discussion_messages` | Top-level posts in an Ultra discussion |
+| `blackboard_list_discussion_replies` | Replies to a discussion post |
+| `blackboard_get_discussion_thread` | Ultra discussion with posts, replies, and embedded media metadata |
 | `blackboard_list_assignments` | Tasks with due dates + grades |
 | `blackboard_list_attempts` | Submission history |
 | `blackboard_get_grades` | Full grade report for a course |

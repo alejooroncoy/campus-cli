@@ -3,13 +3,13 @@
   "authorUrl": "https://github.com/alejooroncoy",
   "category": "productivity",
   "cloudEndpoint": "https://mcp.campuscli.com/mcp",
-  "description": "Connects university systems to AI assistants from the student's own account: courses, assignments, due dates, grades, instructor feedback, announcements and course materials. Uses the student's own SSO session, so no institutional API key is needed. Blackboard Learn today (UPC, Peru); more LMS connectors on the way.",
+  "description": "Connects university systems to AI assistants from the student's own account: courses, assignments, due dates, grades, instructor feedback, announcements, discussions and course materials. Uses the student's own SSO session, so no institutional API key is needed. Blackboard Learn today (UPC, Peru); more LMS connectors on the way.",
   "homepage": "https://github.com/alejooroncoy/campus-cli",
   "icon": "🎓",
   "identifier": "alejooroncoy-campus-cli",
   "localizations": [
     {
-      "description": "Conecta los sistemas de tu universidad con tu asistente de IA desde tu propia cuenta: cursos, tareas, fechas de entrega, notas, feedback del profesor, anuncios y materiales. Usa tu sesión SSO, así que no hace falta ninguna clave de API de la institución. Hoy Blackboard Learn (UPC, Perú); vienen más conectores.",
+      "description": "Conecta los sistemas de tu universidad con tu asistente de IA desde tu propia cuenta: cursos, tareas, fechas de entrega, notas, feedback del profesor, anuncios, debates y materiales. Usa tu sesión SSO, así que no hace falta ninguna clave de API de la institución. Hoy Blackboard Learn (UPC, Perú); vienen más conectores.",
       "locale": "es-ES",
       "name": "Campus",
       "tags": [
@@ -137,6 +137,226 @@
         "type": "object"
       },
       "name": "blackboard_list_announcements"
+    },
+    {
+      "description": "List Ultra discussions in a course, including titles and topic bodies when Blackboard exposes them. This is read-only and returns only discussions the current student can access.",
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "courseId": {
+            "description": "Blackboard course ID",
+            "type": "string"
+          },
+          "title": {
+            "description": "Optional case-insensitive title search",
+            "type": "string"
+          },
+          "gradable": {
+            "description": "Filter to graded or ungraded discussions",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Maximum discussions to return (default 100)",
+            "type": "number"
+          },
+          "offset": {
+            "description": "Pagination offset",
+            "type": "number"
+          }
+        },
+        "required": [
+          "courseId"
+        ],
+        "type": "object"
+      },
+      "name": "blackboard_list_discussions"
+    },
+    {
+      "description": "Read one Ultra discussion, including its topic/prompt when Blackboard exposes it. Use blackboard_list_discussion_messages to read student posts.",
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "courseId": {
+            "description": "Blackboard course ID",
+            "type": "string"
+          },
+          "discussionId": {
+            "description": "Discussion ID from blackboard_list_discussions",
+            "type": "string"
+          }
+        },
+        "required": [
+          "courseId",
+          "discussionId"
+        ],
+        "type": "object"
+      },
+      "name": "blackboard_get_discussion"
+    },
+    {
+      "description": "Read top-level messages/posts in an Ultra discussion. For group discussions, students only see posts from their groups. Use blackboard_list_discussion_replies with a messageId to read replies.",
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "courseId": {
+            "description": "Blackboard course ID",
+            "type": "string"
+          },
+          "discussionId": {
+            "description": "Discussion ID from blackboard_list_discussions",
+            "type": "string"
+          },
+          "groupId": {
+            "description": "Optional group filter for group discussions",
+            "type": "string"
+          },
+          "userId": {
+            "description": "Optional author user ID filter",
+            "type": "string"
+          },
+          "status": {
+            "description": "Message status filter",
+            "enum": [
+              "Published",
+              "Deleted",
+              "Draft"
+            ],
+            "type": "string"
+          },
+          "isRead": {
+            "description": "Filter read or unread messages",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Maximum messages to return (default 100)",
+            "type": "number"
+          },
+          "offset": {
+            "description": "Pagination offset",
+            "type": "number"
+          }
+        },
+        "required": [
+          "courseId",
+          "discussionId"
+        ],
+        "type": "object"
+      },
+      "name": "blackboard_list_discussion_messages"
+    },
+    {
+      "description": "Read replies to a discussion message/post in an Ultra discussion.",
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "courseId": {
+            "description": "Blackboard course ID",
+            "type": "string"
+          },
+          "discussionId": {
+            "description": "Discussion ID from blackboard_list_discussions",
+            "type": "string"
+          },
+          "messageId": {
+            "description": "Message ID from blackboard_list_discussion_messages",
+            "type": "string"
+          },
+          "groupId": {
+            "description": "Optional group filter for group discussions",
+            "type": "string"
+          },
+          "userId": {
+            "description": "Optional author user ID filter",
+            "type": "string"
+          },
+          "status": {
+            "description": "Message status filter",
+            "enum": [
+              "Published",
+              "Deleted",
+              "Draft"
+            ],
+            "type": "string"
+          },
+          "isRead": {
+            "description": "Filter read or unread messages",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Maximum replies to return (default 100)",
+            "type": "number"
+          },
+          "offset": {
+            "description": "Pagination offset",
+            "type": "number"
+          }
+        },
+        "required": [
+          "courseId",
+          "discussionId",
+          "messageId"
+        ],
+        "type": "object"
+      },
+      "name": "blackboard_list_discussion_replies"
+    },
+    {
+      "description": "Read an Ultra discussion as a thread: discussion topic, top-level posts, and replies. Embedded Blackboard images, audio, video, and files are included in embeddedFiles; supported media are also returned as resource_link blocks.",
+      "execution": {
+        "taskSupport": "forbidden"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "courseId": {
+            "description": "Blackboard course ID",
+            "type": "string"
+          },
+          "discussionId": {
+            "description": "Discussion ID from blackboard_list_discussions",
+            "type": "string"
+          },
+          "status": {
+            "description": "Message status filter (default Published)",
+            "enum": [
+              "Published",
+              "Deleted",
+              "Draft"
+            ],
+            "type": "string"
+          },
+          "messageLimit": {
+            "description": "Maximum top-level posts to read (default 10)",
+            "type": "number"
+          },
+          "replyLimit": {
+            "description": "Maximum replies per message to read (default 10)",
+            "type": "number"
+          },
+          "maxDepth": {
+            "description": "Reply nesting depth to follow (default 1)",
+            "type": "number"
+          }
+        },
+        "required": [
+          "courseId",
+          "discussionId"
+        ],
+        "type": "object"
+      },
+      "name": "blackboard_get_discussion_thread"
     },
     {
       "description": "Instructors and classmates of a course. Use it to resolve an internal user id into a person's name. Pass search to look up one person and get their contact details.",

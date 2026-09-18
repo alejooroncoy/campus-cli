@@ -60,6 +60,13 @@ propuestas o resultados parciales en decisiones sin verificar el tramo completo.
 
 Flujo típico: blackboard_list_courses → blackboard_list_assignments /
 blackboard_get_grades → blackboard_list_contents para materiales.
+Para debates Ultra usa blackboard_list_discussions para ubicar el debate,
+blackboard_get_discussion para leer el tema/pregunta, y
+blackboard_list_discussion_messages / blackboard_list_discussion_replies para
+leer publicaciones y respuestas visibles para el estudiante. Si necesitas el
+hilo completo, usa blackboard_get_discussion_thread; las imágenes y multimedia
+embebidas se devuelven como embeddedFiles y, cuando el cliente lo soporta, como
+resource_link.
 
 Para preguntas sobre entregables, avances, fechas, pesos o qué preparar para
 clase, no concluyas solo a partir de una fuente ni conviertas una plantilla en
@@ -95,6 +102,7 @@ por el usuario) y nunca sobrescriben archivos existentes.
 
 blackboard_raw_api cubre endpoints públicos no expuestos por una tool
 dedicada; cualquier método que modifique datos exige elicitation.
+
 
 Futuro: canvas_* y moodle_* para otras universidades (Canvas, Moodle) —
 no implementados todavía.

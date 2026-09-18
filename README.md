@@ -141,6 +141,10 @@ campus courses contents <courseId> --parent <folderId>
 campus courses contents <courseId> --type file|folder|assignment
 campus courses announcements <courseId>
 campus courses grades <courseId>
+campus courses discussions <courseId>
+campus courses discussion <courseId> <discussionId>
+campus courses discussion-messages <courseId> <discussionId>
+campus courses discussion-replies <courseId> <discussionId> <messageId>
 campus messages
 campus messages --course <courseId>
 ```
@@ -322,6 +326,11 @@ Las herramientas de Aula Virtual usan el prefijo `blackboard_`; `banner_get_week
 | `blackboard_get_course` | Detalle de un curso |
 | `blackboard_list_contents` | Materiales y carpetas |
 | `blackboard_list_announcements` | Anuncios del curso |
+| `blackboard_list_discussions` | Debates Ultra del curso, incluyendo el tema/pregunta cuando Blackboard lo expone |
+| `blackboard_get_discussion` | Detalle de un debate Ultra |
+| `blackboard_list_discussion_messages` | Publicaciones principales de un debate Ultra |
+| `blackboard_list_discussion_replies` | Respuestas a una publicación de debate |
+| `blackboard_get_discussion_thread` | Debate con publicaciones y respuestas; incluye imágenes/medios embebidos cuando Blackboard los expone |
 | `blackboard_list_messages` | Mensajes de la bandeja de entrada de Blackboard |
 | `blackboard_list_assignments` | Tareas con fechas y notas |
 | `blackboard_list_attempts` | Historial de entregas |
