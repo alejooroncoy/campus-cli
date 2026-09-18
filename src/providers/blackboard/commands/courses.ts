@@ -11,8 +11,8 @@ import {
   getCourseAnnouncements,
   getCourseDiscussions,
   getCourseDiscussion,
-  getDiscussionMessages,
   getDiscussionMessageReplies,
+  getDiscussionTopicMessages,
   getMessageCourseSummaries,
   getCourseConversationsPageSet,
   getGradeColumns,
@@ -357,7 +357,8 @@ export function coursesCommand(program: Command) {
       const spinner = ora({ text: 'Fetching discussion messages...', stream: process.stderr }).start();
 
       try {
-        const data = await getDiscussionMessages(client, courseId, discussionId, {
+        const discussion = await getCourseDiscussion(client, courseId, discussionId);
+        const data = await getDiscussionTopicMessages(client, courseId, discussionId, discussion.topic, {
           status: opts.status,
           limit,
           offset,
