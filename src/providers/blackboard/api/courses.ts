@@ -196,6 +196,26 @@ export async function getCourseConversations(
 }
 
 /**
+ * Read one complete Ultra inbox conversation. The collection endpoint only
+ * includes a summary/latest message; this authenticated UI endpoint includes
+ * every message and its body (including embedded message attachments).
+ */
+export async function getCourseConversation(
+  client: AxiosInstance,
+  courseId: string,
+  conversationId: string,
+): Promise<any> {
+  if (!/^_\d+_\d+$/.test(courseId)) {
+    throw new Error(`courseId must look like a Blackboard ID, e.g. _529580_1`);
+  }
+  if (!/^_\d+_\d+$/.test(conversationId)) {
+    throw new Error(`conversationId must look like a Blackboard ID, e.g. _529580_1`);
+  }
+  const r = await client.get(`/learn/api/v1/courses/${courseId}/conversations/${conversationId}`);
+  return r.data;
+}
+
+/**
  * Read additional Ultra conversation pages without allowing one inbox request
  * to grow without bound. Callers surface `truncated` so an assistant never
  * mistakes the bounded result for a complete long-running conversation list.

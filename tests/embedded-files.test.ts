@@ -21,6 +21,33 @@ test('finds Blackboard video elements embedded in assignment instructions', () =
   assert.equal(isMediaMimeType(files[0]?.mimeType), true);
 });
 
+test('extracts attachments from the rawText body returned by inbox messages', () => {
+  const files = extractEmbeddedFiles(
+    '<a href="/bbcswebdav/internal/messages/_1_1/embedded/guide.pdf" data-bbtype="attachment" data-bbfile="{&quot;displayName&quot;:&quot;guide.pdf&quot;,&quot;mimeType&quot;:&quot;application/pdf&quot;}">guide.pdf</a>',
+  );
+
+  assert.deepEqual(files, [{
+    type: 'embedded',
+    displayName: 'guide.pdf',
+    mimeType: 'application/pdf',
+    downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/internal/messages/_1_1/embedded/guide.pdf',
+  }]);
+});
+
+test('keeps Blackboard metadata but rejects external and non-file links', () => {
+  const files = extractEmbeddedFiles([
+    '<a href="https://evil.example/bbcswebdav/file">outside</a>',
+    '<a href="/webapps/blackboard/content/listContent.jsp">not a file</a>',
+    '<a data-bbfile="{&quot;displayName&quot;:&quot;guide.pdf&quot;,&quot;mimeType&quot;:&quot;application/pdf&quot;}" href="/bbcswebdav/pid-1">guide</a>',
+  ].join(''));
+  assert.deepEqual(files, [{
+    type: 'embedded',
+    displayName: 'guide.pdf',
+    mimeType: 'application/pdf',
+    downloadUrl: 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-1',
+  }]);
+});
+
 test('uses exact HTML attribute names instead of prefixed lookalikes', () => {
   const files = extractEmbeddedFiles('<video data-src="https://example.com/placeholder" src="/bbcswebdav/pid-7/video.mp4" data-type="application/octet-stream" type="video/mp4"></video>');
   assert.equal(files[0]?.downloadUrl, 'https://aulavirtual.upc.edu.pe/bbcswebdav/pid-7/video.mp4');
