@@ -11,7 +11,7 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
     POSTHOG_DISABLED=1 \
     NODE_ENV=production
 
-RUN npm install -g campus-cli@2.0.0 \
+RUN npm install -g campus-cli@2.2.1 \
     && npm cache clean --force
 
 # stdio: el verificador habla por la entrada y salida estándar del proceso.

@@ -4,6 +4,14 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
+## [2.2.1] — 2026-09-19
+
+### Fixed
+- `blackboard_list_messages` ahora expande cada conversación de la bandeja de entrada antes de devolverla. Así incluye todos los mensajes del hilo y expone sus adjuntos en `attachments`, tanto por conversación como por mensaje.
+- La lectura de cuerpos de mensajes admite las variantes `rawText` y `displayText` que entrega Blackboard, para no omitir adjuntos embebidos cuando el texto no llega como cadena simple.
+
+---
+
 ## [2.2.0] — 2026-08-26
 
 ### Added
