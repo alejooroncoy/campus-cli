@@ -1,6 +1,6 @@
 {
   "name": "campus-cli",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Conecta Blackboard UPC con ChatGPT y Claude vía MCP, o úsalo desde la terminal — CLI/MCP no oficial para el campus universitario (Blackboard, Canvas, Moodle...)",
   "mcpName": "io.github.alejooroncoy/campus-cli",
   "main": "run.js",
