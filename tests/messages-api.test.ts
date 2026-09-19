@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   getCourseConversations,
+  getCourseConversation,
   getCourseConversationsPageSet,
   getCourseDiscussions,
   getDiscussionMessages,
@@ -29,7 +30,10 @@ test('Blackboard Ultra message APIs request the course summary and conversations
   await getCourseConversations(client, '_42_1', { limit: 10, offset: 2 });
   assert.equal(request.path, '/learn/api/v1/courses/_42_1/conversations');
   assert.deepEqual(request.config.params, { limit: 10, offset: 2 });
+  await getCourseConversation(client, '_42_1', '_43_1');
+  assert.equal(request.path, '/learn/api/v1/courses/_42_1/conversations/_43_1');
   await assert.rejects(getCourseConversations(client, '../other'), /courseId must look like a Blackboard ID/);
+  await assert.rejects(getCourseConversation(client, '_42_1', '../other'), /conversationId must look like a Blackboard ID/);
 });
 
 test('getCourseConversationsPageSet marks an inbox as truncated after its bounded pages', async () => {

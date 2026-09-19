@@ -16,6 +16,7 @@ import {
   getDiscussionTopicMessages,
   getMessageCourseSummaries,
   getCourseConversationsPageSet,
+  getCourseConversation,
   getGrades,
   getGradeColumns,
   getSystemVersion,
@@ -64,7 +65,15 @@ async function mapWithConcurrency<T, U>(
 }
 
 function embeddedFilesFromBody(body: unknown) {
-  return typeof body === 'string' ? extractEmbeddedFiles(body) : [];
+  if (typeof body === 'string') return extractEmbeddedFiles(body);
+  if (!body || typeof body !== 'object') return [];
+  const value = body as { rawText?: unknown; displayText?: unknown };
+  const html = typeof value.rawText === 'string'
+    ? value.rawText
+    : typeof value.displayText === 'string'
+      ? value.displayText
+      : undefined;
+  return html ? extractEmbeddedFiles(html) : [];
 }
 
 async function resourceLinksForEmbeddedFiles(client: any, files: ReturnType<typeof extractEmbeddedFiles>) {
@@ -99,6 +108,9 @@ async function decorateMessageEmbeds(client: any, message: any) {
     value: {
       ...message,
       embeddedFiles: files,
+      // Keep a plain-language alias so clients do not need to know that
+      // Blackboard stores inbox files as embedded BBML inside the body HTML.
+      attachments: files,
     },
     links: await resourceLinksForEmbeddedFiles(client, files),
   };
@@ -442,7 +454,7 @@ export function registerBlackboardTools(server: McpServer) {
     'blackboard_list_messages',
     {
       description:
-        'Read conversation messages from the current student’s Blackboard inbox. Optionally restrict results to one Blackboard course ID.',
+        'Read complete conversation threads from the current student’s Blackboard inbox, including all messages and embedded file attachments. Optionally restrict results to one Blackboard course ID.',
       inputSchema: {
         courseId: blackboardId('courseId').optional().describe('Only return messages associated with this course'),
         limit: z.number().int().min(1).max(100).optional().describe('Maximum conversations to return (default 50)'),
@@ -468,11 +480,36 @@ export function registerBlackboardTools(server: McpServer) {
       );
       const start = offset ?? 0;
       const end = start + (limit ?? 50);
+      const expanded = await mapWithConcurrency(all.slice(start, end), MCP_MAX_PARALLELISM, async (conversation: any) => {
+        const thread = await getCourseConversation(client, conversation.course.id, conversation.id);
+        const decoratedMessages = await mapWithConcurrency(
+          thread.messages ?? [],
+          MCP_MAX_PARALLELISM,
+          (message: any) => decorateMessageEmbeds(client, message),
+        );
+        const attachments = Array.from(
+          new Map(
+            decoratedMessages
+              .flatMap((decorated: { value: any }) => decorated.value.attachments ?? [])
+              .map((file: any) => [file.downloadUrl, file]),
+          ).values(),
+        );
+        return {
+          value: {
+            ...conversation,
+            ...thread,
+            messages: decoratedMessages.map((decorated: { value: any }) => decorated.value),
+            attachments,
+          },
+          links: decoratedMessages.flatMap((decorated: { links: Awaited<ReturnType<typeof resourceLinksForEmbeddedFiles>> }) => decorated.links),
+        };
+      });
+      const selected = expanded.map(({ value }) => value);
       return { content: [{ type: 'text', text: JSON.stringify({
-        results: all.slice(start, end),
+        results: selected,
         paging: { limit: limit ?? 50, offset: start, count: all.length, nextPage: end < all.length ? String(end) : undefined },
         courseSummaries: groups.map(({ course, conversations, truncated }) => ({ ...course, conversationCount: conversations.length, truncated })),
-      }) }] };
+      }) }, ...expanded.flatMap(({ links }) => links)] };
     }
   );
 
