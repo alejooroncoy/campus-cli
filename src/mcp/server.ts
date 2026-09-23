@@ -42,7 +42,8 @@ original al cliente compatible para que lo abra o procese directamente. No pidas
 a Campus que continúe descargándolo, lo reintente ni lo almacene.
 
 Para guardar referencias usa campus_mendeley_list, campus_mendeley_list_groups,
-campus_mendeley_list_group_documents y campus_mendeley_save_doi. Cada operación
+campus_mendeley_list_group_documents, campus_mendeley_save_doi y
+campus_mendeley_save_reference para fuentes sin DOI confirmado. Cada operación
 usa la cuenta Mendeley conectada por el estudiante. Antes de guardar en un grupo,
 lista los grupos y utiliza exactamente su ID; no subas PDFs ni contenido del
 editor mediante estas herramientas.

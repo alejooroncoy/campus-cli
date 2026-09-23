@@ -136,6 +136,11 @@ the selected destination for the DOI, and saves one reference either privately
 or in a writable group selected with `groupId`. It preserves separate author
 names, publication type, year, DOI and source. It does not certify peer review,
 upload PDFs, scrape Mendeley, or redistribute publisher content.
+`campus_mendeley_save_reference` saves user-supplied metadata for a source without
+a confirmed DOI. It requires the exact title and HTTPS article URL, accepts
+optional publication details, scans the full destination for the same URL, and
+can target a writable group with `groupId`. It does not fetch article metadata
+or infer a DOI.
 
 Register a Mendeley application at https://dev.mendeley.com/myapps.html with
 `http://localhost:8765/mendeley/callback`, then provide `MENDELEY_CLIENT_ID`,

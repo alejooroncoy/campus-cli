@@ -28,9 +28,18 @@ export class LocalMendeleyTokenStore implements MendeleyTokenStore {
     try{return await action();}finally{await release();}
   }
 }
-const documentSchema = z.object({ id:z.string(), title:z.string().optional(), identifiers:z.object({doi:z.string().optional()}).passthrough().optional() }).passthrough();
+const documentSchema = z.object({ id:z.string(), title:z.string().optional(), websites:z.array(z.string()).optional(), identifiers:z.object({doi:z.string().optional()}).passthrough().optional() }).passthrough();
 const groupSchema = z.object({ id:z.string().uuid(), name:z.string().min(1), role:z.string().optional() }).passthrough();
 const crossrefSchema = z.object({message:z.object({DOI:z.string(),title:z.array(z.string()).min(1),type:z.string(),author:z.array(z.object({given:z.string().optional(),family:z.string().optional(),name:z.string().optional()})).optional(),issued:z.object({'date-parts':z.array(z.array(z.number().nullable()))}).optional(),'container-title':z.array(z.string()).optional(),volume:z.string().optional(),issue:z.string().optional(),page:z.string().optional()})});
+const referenceSchema = z.object({url:z.url().max(5000),title:z.string().trim().min(1).max(500),type:z.enum(['journal','book','generic','book_section','conference_proceedings','working_paper','report','web_page','thesis','magazine_article','newspaper_article']).default('journal'),source:z.string().trim().min(1).max(255).optional(),year:z.number().int().min(1000).max(3000).optional(),authors:z.array(z.object({first_name:z.string().trim().max(255).optional(),last_name:z.string().trim().min(1).max(255)})).max(100).optional(),groupId:z.string().uuid().optional()});
+export type MendeleyReference = z.input<typeof referenceSchema>;
+function canonicalUrl(value:string) {
+  const url=new URL(value);
+  if(url.protocol!=='https:' || url.username || url.password) throw new Error('La URL de la referencia debe usar HTTPS y no incluir credenciales.');
+  url.hash='';url.searchParams.sort();
+  if(url.pathname.length>1) url.pathname=url.pathname.replace(/\/+$/,'');
+  return url.toString();
+}
 function encodeCursor(url:string):string { return Buffer.from(url).toString('base64url'); }
 function decodeCursor(cursor:string, pathname:string, groupId?:string):string {
   let url:URL;
@@ -90,6 +99,28 @@ export class MendeleyService {
   async get(id:string){z.string().uuid().parse(id);return documentSchema.parse((await this.api('/documents/'+id)).data);}
   saveDoi(doi:string,groupId?:string) {
     const result=this.queue.then(()=>this.saveVerified(doi,groupId));this.queue=result.catch(()=>undefined);return result;
+  }
+  saveReference(reference:MendeleyReference) {
+    const result=this.queue.then(()=>this.saveReferenceVerified(reference));this.queue=result.catch(()=>undefined);return result;
+  }
+  private async saveReferenceVerified(value:MendeleyReference) {
+    const reference=referenceSchema.parse(value);
+    const url=canonicalUrl(reference.url);
+    if(reference.groupId) await this.ensureWritableGroup(reference.groupId);
+    let pageUrl:string|null='/documents?'+new URLSearchParams({...reference.groupId?{group_id:reference.groupId}:{},limit:'500',view:'bib'});
+    const seen=new Set<string>();
+    for(let page=0;pageUrl && page<100;page++) {
+      if(seen.has(pageUrl)) throw new Error('Paginación Mendeley repetida; no se guardó un duplicado.');seen.add(pageUrl);
+      const response=await this.api(pageUrl);
+      const existing=z.array(documentSchema).parse(response.data).find(d=>d.websites?.some(site=>{try{return canonicalUrl(site)===url;}catch{return false;}}));
+      if(existing) return {status:'already_saved',document:existing,url,groupId:reference.groupId};
+      pageUrl=response.next;
+    }
+    if(pageUrl) throw new Error('Biblioteca demasiado grande para comprobar duplicados; no se guardó.');
+    const payload={title:reference.title,type:reference.type,websites:[url],...(reference.source?{source:reference.source}:{}),...(reference.year?{year:reference.year}:{}),...(reference.authors?{authors:reference.authors}:{})};
+    const destination='/documents'+(reference.groupId?'?'+new URLSearchParams({group_id:reference.groupId}):'');
+    const document=documentSchema.parse((await this.api(destination,'POST',payload)).data);
+    return {status:'saved',document,url,groupId:reference.groupId,metadataSource:'user_provided',doi:'unconfirmed'};
   }
   private async ensureWritableGroup(groupId:string) {
     let url:string|null='/groups?limit=500';const seen=new Set<string>();
