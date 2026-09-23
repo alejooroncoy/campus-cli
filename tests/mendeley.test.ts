@@ -66,6 +66,30 @@ test('mismatched DOI stops before writing',async()=>{
  let writes=0;const s=new MendeleyService(store(),{},async(_u,init)=>{if(init?.method==='POST')writes++;return json([]);},async()=>({message:{DOI:'10.1234/other',title:['wrong'],type:'journal-article'}}));
  await assert.rejects(s.saveDoi(doi),/no coincide/);assert.equal(writes,0);
 });
+test('saves a reference without DOI to a writable group and detects its URL on a later page',async()=>{
+ const groupId='ec47684d-4e4b-3f12-ba38-01509619c415';
+ const url='https://revistas.uh.cu/revflacso/article/view/7514';
+ let docs:any[]=[];let writes=0;
+ const s=new MendeleyService(store(),{},async(u,init)=>{
+  const requestUrl=String(u);
+  if(requestUrl.includes('/groups?'))return json([{id:groupId,name:'Research',role:'normal'}]);
+  if(init?.method==='POST'){writes++;assert.equal(new URL(requestUrl).searchParams.get('group_id'),groupId);const d={id:'saved',...JSON.parse(init.body as string)};docs=[d];return json(d,{},201);}
+  if(requestUrl.includes('marker=next'))return json(docs);
+  if(requestUrl.includes('/documents?')){assert.equal(new URL(requestUrl).searchParams.get('view'),'bib');return json([],{link:'<https://api.mendeley.com/documents?marker=next>; rel="next"'});}
+  return json([]);
+ });
+ const reference={url:url+'/',title:'Artículo verificado',source:'Revista de la Universidad de La Habana',groupId};
+ assert.equal((await s.saveReference(reference)).status,'saved');
+ assert.equal((await s.saveReference(reference)).status,'already_saved');
+ assert.equal(writes,1);assert.equal(docs[0].websites[0],url);assert.equal(docs[0].group_id,undefined);
+ assert.equal(docs[0].identifiers,undefined);
+});
+test('rejects unsafe reference URLs before writing',async()=>{
+ let writes=0;const s=new MendeleyService(store(),{},async(_u,init)=>{if(init?.method==='POST')writes++;return json([]);});
+ await assert.rejects(s.saveReference({url:'http://example.org/article',title:'Article'}),/HTTPS/);
+ await assert.rejects(s.saveReference({url:'https://person:secret@example.org/article',title:'Article'}),/credenciales/);
+ assert.equal(writes,0);
+});
 test('refreshes and persists rotated tokens before API request',async()=>{
  const st=store(true);const s=new MendeleyService(st,{MENDELEY_CLIENT_ID:'id',MENDELEY_CLIENT_SECRET:'secret'},async(u,init)=>{
   if(String(u).endsWith('/oauth/token'))return json({access_token:'new',refresh_token:'rotated',expires_in:3600});
@@ -89,6 +113,8 @@ test('concurrent expired-token reads share one rotating-token refresh',async()=>
 test('authorization fails before library operations and save is annotated as a write',async()=>{
  const tools=new Map<string,any>();registerMendeleyTools({registerTool:(n:any,s:any,h:any)=>tools.set(n,{s,h})} as any,{authorize:()=>false,service:{} as any});
  assert.equal(tools.get('campus_mendeley_save_doi').s.annotations.readOnlyHint,false);
+ assert.equal(tools.get('campus_mendeley_save_reference').s.annotations.readOnlyHint,false);
  assert.equal(tools.get('campus_mendeley_list_groups').s.annotations.readOnlyHint,true);
  await assert.rejects(tools.get('campus_mendeley_save_doi').h({doi}),/No autorizado/);
+ await assert.rejects(tools.get('campus_mendeley_save_reference').h({url:'https://example.org',title:'Article',type:'journal'}),/No autorizado/);
 });
