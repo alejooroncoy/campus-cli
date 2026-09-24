@@ -588,6 +588,28 @@ test('authorization is rechecked each call, and provider errors are MCP errors',
   await assert.rejects(handlers.get('campus_research_search')({ query: 'education' }), /autorizado/);
 });
 
+test('public source access denial is distinct from an API key failure', () => {
+  assert.match(new ResearchHttpError(401).message, /iniciar sesión/);
+  assert.match(new ResearchHttpError(403).message, /lectura automática/);
+  assert.match(new ResearchHttpError(401, true).message, /clave/);
+  assert.match(new ResearchHttpError(403, true).message, /clave/);
+});
+
+test('a blocked public document is handed to the client without claiming it was read', async () => {
+  const handlers = new Map<string, any>();
+  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true,
+    validateResourceUrl: acceptTestResourceUrl,
+    readDocument: async () => { throw new ResearchHttpError(403); } });
+  const result = await handlers.get('campus_research_read_document')({ url: 'https://repository.example.edu/article.html' });
+  assert.equal(result.isError, undefined);
+  assert.equal(JSON.parse(result.content[0].text).reason, 'source_access_denied');
+  assert.match(result.content[0].text, /No se leyó el contenido/);
+  assert.equal(result.content[1].type, 'resource_link');
+  assert.equal(result.content[1].uri, 'https://repository.example.edu/article.html');
+});
+
 test('public URL validation blocks local, reserved, mapped and credentialed targets', () => {
   for (const address of ['127.0.0.1', '10.0.0.1', '169.254.169.254', '192.168.0.1', '100.64.0.1',
     '::1', '::ffff:127.0.0.1', 'fc00::1', 'fe80::1', '224.0.0.1', '2001:db8::1']) {
