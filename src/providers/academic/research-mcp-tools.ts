@@ -209,6 +209,20 @@ export function registerResearchTools(server: McpServer, options: {
           link,
         ] };
       }
+      if (resource && ((error instanceof ResearchHttpError && error.status >= 500 && error.status <= 599)
+        || /Tiempo de consulta agotado\./.test(message))) {
+        const publisherPdf = officialResearchPdf(resource.url);
+        const link = await safeResourceLink(publisherPdf ?? resource.url, resource.name,
+          publisherPdf ? 'application/pdf' : resource.mimeType,
+          options.validateResourceUrl ?? resolvedPublicHttpsUrl);
+        if (!link) return { isError: true, content: [{ type: 'text' as const, text: message }] };
+        return { content: [
+          { type: 'text' as const, text: JSON.stringify({ status: 'resource_link',
+            reason: 'source_temporarily_unavailable', url: link.uri,
+            guidance: `${message} Campus no leyó el contenido. El cliente puede intentar abrir esta ruta del editor; atribuye afirmaciones solo si logra leer las páginas.` }) },
+          link,
+        ] };
+      }
       if (resource && CLIENT_PROCESSING_ERRORS.test(message)) {
         const link = await safeResourceLink(resource.url, resource.name, resource.mimeType,
           options.validateResourceUrl ?? resolvedPublicHttpsUrl);
