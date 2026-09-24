@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ResearchService, normalizeDoi, scholarSearchLinks } from '../src/providers/academic/research-service.js';
 import { assertPublicAddress, publicHttpsUrl, ResearchHttpError } from '../src/providers/academic/research-http.js';
-import { extractPdfBytes, extractPdfIndexBytes } from '../src/providers/academic/research-pdf.js';
+import { extractPdfBytes, extractPdfIndexBytes, readResearchSourceFile } from '../src/providers/academic/research-pdf.js';
 import { ResearchPdfIndex } from '../src/providers/academic/research-pdf-index.js';
 import { registerResearchTools } from '../src/providers/academic/research-mcp-tools.js';
 import { verifyResearchEvidence } from '../src/providers/academic/research-evidence.js';
@@ -571,7 +571,7 @@ test('research tools fail closed before all external operations', async () => {
     registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
       handlers.set(name, handler);
     } } as any, { authorize } as any);
-    assert.equal(handlers.size, 12);
+    assert.equal(handlers.size, 13);
     for (const handler of handlers.values()) await assert.rejects(handler({}), /autorizado|auth unavailable/);
   }
 });
@@ -840,6 +840,42 @@ test('PDF parser rejects HTML login pages, malformed PDFs, and invalid page rang
   await assert.rejects(extractPdfBytes(Buffer.from('%PDF-broken')), /No se pudo leer/);
   await assert.rejects(extractPdfBytes(pdfFixture(), 3, 1), /página inicial supera/);
   await assert.rejects(extractPdfBytes(pdfFixture(), 0, 30));
+});
+
+test('an attached source file becomes page evidence without exposing its signed URL', async () => {
+  const signedUrl = 'https://files.example.edu/document.pdf?token=private';
+  const result = await readResearchSourceFile({
+    source_file: { download_url: signedUrl, file_id: 'file_123', mime_type: 'application/pdf', file_name: 'article.pdf' },
+    sourceUrl: 'https://revistas.uh.cu/revflacso/article/view/7514',
+    pageCount: 2,
+  }, { download: async (url, options) => {
+    assert.equal(url, signedUrl);
+    assert.equal(options.maxBytes, 20 * 1024 * 1024);
+    return { bytes: pdfFixture(), url, contentType: 'application/pdf' };
+  } });
+  assert.equal(result.sourceKind, 'client_file');
+  assert.equal(result.sourceIdentityVerified, false);
+  assert.equal(result.totalPages, 2);
+  assert.equal(result.pages.length, 2);
+  assert.equal(result.nextPage, null);
+  assert.doesNotMatch(JSON.stringify(result), /token=private|file_123/);
+});
+
+test('the source-file reader advertises a client file parameter and returns only page evidence', async () => {
+  const handlers = new Map<string, any>();
+  const configs = new Map<string, any>();
+  registerResearchTools({ registerTool(name: string, config: unknown, handler: unknown) {
+    configs.set(name, config);
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true,
+    readSourceFile: async () => ({ sourceKind: 'client_file', totalPages: 1,
+      pages: [{ page: 1, text: 'Evidence', truncated: false, needsOcr: false }], nextPage: null }) as any });
+  assert.deepEqual(configs.get('campus_research_read_source_file')._meta['openai/fileParams'], ['source_file']);
+  const result = await handlers.get('campus_research_read_source_file')({
+    source_file: { download_url: 'https://files.example.edu/document.pdf', file_id: 'file_123' },
+  });
+  assert.equal(result.content.length, 1);
+  assert.match(result.content[0].text, /Evidence/);
 });
 
 test('an invalid PDF page range stays an input error instead of a client handoff', async () => {
