@@ -24,9 +24,17 @@ campus_research_search_databases para buscar en las tres bases usando el rango
 o cantidad de años que indique el estudiante, campus_research_verify_doi y
 campus_research_verify_citation antes de redactar una referencia, y
 campus_research_read_pdf o campus_research_read_document para entregar el
-documento también como resource_link a la IA cliente. Después usa
-campus_research_verify_evidence para comprobar que cada fragmento atribuido
-aparece en la página o sección y en la misma huella del documento. Nunca cites
+documento también como resource_link a la IA cliente.
+Para un PDF público de más de 20 páginas con evidencia distribuida o páginas
+desconocidas, usa campus_research_index_pdf una sola vez, espera
+campus_research_index_status=ready, localiza con campus_research_search_index y
+lee las páginas con campus_research_read_indexed_pdf. No repitas
+campus_research_read_pdf para recorrerlo: cada llamada descarga el PDF entero.
+Si el estudiante adjunta un PDF largo sin URL pública, usa
+campus_research_read_source_file en rangos concretos y declara cuáles leíste.
+Después verifica los fragmentos decisivos con campus_research_verify_evidence
+cuando haya URL pública: comprueba la página y la huella del documento. Nunca
+afirmes revisión integral por conocer totalPages. Nunca cites
 un resultado si verify_citation devuelve citeAllowed=false ni completes campos
 ausentes por inferencia. La verificación de fragmentos no evalúa si una
 inferencia es correcta: la IA cliente debe clasificar el respaldo y conservar
