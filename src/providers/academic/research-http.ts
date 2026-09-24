@@ -3,10 +3,14 @@ import { request } from 'node:https';
 import ipaddr from 'ipaddr.js';
 
 export class ResearchHttpError extends Error {
-  constructor(public readonly status: number) {
+  constructor(public readonly status: number, authenticated = false) {
     super(status === 429 ? 'El proveedor alcanzó su límite de consultas; intenta más tarde.'
-      : status === 401 ? 'El proveedor rechazó la clave: verifica que copiaste la API key correcta y completa.'
-      : status === 403 ? 'La cuenta asociada a la clave no tiene permisos para esta consulta.'
+      : status === 401 ? authenticated
+        ? 'El proveedor rechazó la clave: verifica que copiaste la API key correcta y completa.'
+        : 'La fuente requiere iniciar sesión; Campus no puede leerla desde el servidor.'
+      : status === 403 ? authenticated
+        ? 'La cuenta asociada a la clave no tiene permisos para esta consulta.'
+        : 'La fuente denegó la lectura automática desde el servidor.'
       : `El proveedor respondió HTTP ${status}.`);
   }
 }
@@ -83,6 +87,7 @@ export async function researchDownload(value: string, options: {
 } = {}): Promise<ResearchDownload> {
   return withSlot(async () => {
     const deadline = AbortSignal.timeout(25_000);
+    const authenticated = hasSensitiveHeaders(options.headers);
     let url = publicHttpsUrl(value);
     for (let hop = 0; ; hop++) {
       const hostname = url.hostname.replace(/^\[|\]$/g, '');
@@ -110,7 +115,7 @@ export async function researchDownload(value: string, options: {
             resolve({ bytes: Buffer.alloc(0), status, location: res.headers.location, contentType: '' });
             return;
           }
-          if (status < 200 || status >= 300) { res.destroy(); reject(new ResearchHttpError(status)); return; }
+          if (status < 200 || status >= 300) { res.destroy(); reject(new ResearchHttpError(status, authenticated)); return; }
           const max = options.maxBytes ?? 4 * 1024 * 1024;
           if (Number(res.headers['content-length']) > max) {
             res.destroy(); reject(new Error('El documento supera el tamaño permitido.')); return;
@@ -126,7 +131,8 @@ export async function researchDownload(value: string, options: {
           res.on('end', () => resolve({ bytes: Buffer.concat(chunks), status,
             contentType: res.headers['content-type'] ?? '' }));
         });
-        req.on('error', error => reject(error instanceof ResearchHttpError ? error : new Error('No se pudo completar la conexión segura con el proveedor.')));
+        req.on('error', error => reject(error instanceof ResearchHttpError ? error
+          : new Error(deadline.aborted ? 'Tiempo de consulta agotado.' : 'No se pudo completar la conexión segura con el proveedor.')));
         req.end();
       });
       if (response.status < 300) return { bytes: response.bytes, url: url.toString(), contentType: response.contentType };

@@ -104,6 +104,13 @@ test('provider rate-limit and invalid JSON are errors, never empty successful se
 test('provider authentication errors distinguish invalid keys from missing permissions', async t => {
   t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
   mockHttp(t, [{ status: 401 }, { status: 403 }]);
-  await assert.rejects(researchJson('https://example.edu/api'), /rechazó la clave/);
-  await assert.rejects(researchJson('https://example.edu/api'), /no tiene permisos/);
+  await assert.rejects(researchJson('https://example.edu/api', { Authorization: 'Bearer secret' }), /rechazó la clave/);
+  await assert.rejects(researchJson('https://example.edu/api', { 'X-Api-Key': 'secret' }), /no tiene permisos/);
+});
+
+test('public page authentication errors do not claim an API key was used', async t => {
+  t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
+  mockHttp(t, [{ status: 401 }, { status: 403 }]);
+  await assert.rejects(researchDownload('https://example.edu/article.html', { headers: { Accept: 'text/html' } }), /iniciar sesión/);
+  await assert.rejects(researchDownload('https://example.edu/article.html', { headers: { Accept: 'text/html' } }), /lectura automática/);
 });

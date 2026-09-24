@@ -4,7 +4,7 @@ import { citationVerificationInput, databasesSearchInput, ResearchService, schol
 import { pdfInput, readResearchPdf } from './research-pdf.js';
 import { documentInput, readResearchDocument } from './research-document.js';
 import { evidenceVerificationInput, verifyResearchEvidence } from './research-evidence.js';
-import { publicHttpsUrl, resolvedPublicHttpsUrl } from './research-http.js';
+import { publicHttpsUrl, resolvedPublicHttpsUrl, ResearchHttpError } from './research-http.js';
 import { pdfIndexInput, pdfIndexReadInput, pdfIndexSearchInput, pdfIndexStatusInput,
   researchPdfIndex, type ResearchPdfIndex } from './research-pdf-index.js';
 
@@ -196,6 +196,17 @@ export function registerResearchTools(server: McpServer, options: {
       // Zod issues can include provider values; never echo raw responses or request headers.
       const message = error instanceof z.ZodError ? 'Entrada o respuesta del proveedor con formato inesperado.'
         : error instanceof Error ? error.message : 'No se pudo completar la consulta académica.';
+      if (resource && error instanceof ResearchHttpError && (error.status === 401 || error.status === 403)) {
+        const link = await safeResourceLink(resource.url, resource.name, resource.mimeType,
+          options.validateResourceUrl ?? resolvedPublicHttpsUrl);
+        if (!link) return { isError: true, content: [{ type: 'text' as const, text: message }] };
+        return { content: [
+          { type: 'text' as const, text: JSON.stringify({ status: 'resource_link',
+            reason: error.status === 401 ? 'source_login_required' : 'source_access_denied',
+            url: resource.url, guidance: `${message} No se leyó el contenido. Abre esta fuente en el cliente o busca una copia pública accesible; no atribuyas afirmaciones sin leerla.` }) },
+          link,
+        ] };
+      }
       if (resource && CLIENT_PROCESSING_ERRORS.test(message)) {
         const link = await safeResourceLink(resource.url, resource.name, resource.mimeType,
           options.validateResourceUrl ?? resolvedPublicHttpsUrl);
