@@ -297,13 +297,13 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
     await new Promise(resolve => setTimeout(resolve, 1_500));
     downloaded = await download(sourceUrl, options);
   }
-  if (alternate?.scope === 'full_report') {
+  if (alternate?.scope === 'full_report' || alternate?.scope === 'full_article') {
     if (!downloaded.bytes.subarray(0, 5).equals(Buffer.from('%PDF-'))) {
       throw new Error('La ruta oficial del informe no devolvió un PDF válido.');
     }
     return { ...await readResearchPdfBytes(downloaded.bytes,
       { requestedUrl: input.url, resolvedUrl: downloaded.url }, input.startSection, input.sectionCount),
-      accessScope: 'full_report' as const, sourceRoute: 'official_alternate' as const };
+      accessScope: alternate.scope, sourceRoute: 'official_alternate' as const };
   }
   // ISO's catalog has a large navigation shell. Restrict evidence to the
   // published description when its semantic field is present.

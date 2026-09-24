@@ -719,7 +719,7 @@ test('the ISO alternate exposes only the public catalog, not the paid standard',
 
 test('the intermittently blocked journal gets one bounded retry', async () => {
   let calls = 0;
-  const url = 'https://revistas.uh.cu/revflacso/article/view/7514';
+  const url = 'https://revistas.uh.cu/revflacso/article/view/8000';
   const result = await readResearchDocument({ url, format: 'html' }, {
     download: async requested => {
       assert.equal(requested, url);
@@ -730,6 +730,23 @@ test('the intermittently blocked journal gets one bounded retry', async () => {
   });
   assert.equal(calls, 2);
   assert.match(result.sections[0].text, /Verified article abstract/);
+});
+
+test('the verified journal article route reads its full editorial PDF', async () => {
+  const landing = 'https://revistas.uh.cu/revflacso/article/view/7514';
+  const pdf = 'https://revistas.uh.cu/revflacso/article/download/7514/6400/9026';
+  const result = await readResearchDocument({ url: landing, format: 'auto', sectionCount: 1 }, {
+    download: async requested => {
+      assert.equal(requested, pdf);
+      return { bytes: pdfFixture(), url: requested, contentType: 'application/pdf' };
+    },
+  });
+  assert.equal(result.requestedUrl, landing);
+  assert.equal(result.resolvedUrl, pdf);
+  assert.equal(result.accessScope, 'full_article');
+  assert.ok('pages' in result);
+  assert.equal(officialResearchAlternate(`${landing}?source=other`), null);
+  assert.equal(officialResearchAlternate('https://example.com/revflacso/article/view/7514'), null);
 });
 
 test('the full-report PDF index resolves the official source before downloading', async () => {
