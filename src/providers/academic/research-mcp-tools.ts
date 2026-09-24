@@ -6,7 +6,7 @@ import { documentInput, readResearchDocument } from './research-document.js';
 import { officialResearchPdf } from './research-official-sources.js';
 import { evidenceVerificationInput, verifyResearchEvidence } from './research-evidence.js';
 import { publicHttpsUrl, resolvedPublicHttpsUrl, ResearchHttpError } from './research-http.js';
-import { pdfIndexInput, pdfIndexReadInput, pdfIndexSearchInput, pdfIndexStatusInput, pdfIndexQuotesInput,
+import { pdfIndexAuditInput, pdfIndexInput, pdfIndexReadInput, pdfIndexSearchInput, pdfIndexStatusInput, pdfIndexQuotesInput,
   researchPdfIndex, type ResearchPdfIndex } from './research-pdf-index.js';
 
 // Hosts may provide a shared parser limiter around background indexing.
@@ -299,6 +299,10 @@ export function registerResearchTools(server: McpServer, options: {
     description: 'Check extraction progress, outline, OCR gaps and SHA-256. Pass analysisId from index_pdf to receive readPages and verifiedEvidence for this analysis; without it the ledger is cumulative for all uses of this documentId and cannot prove what this answer read. indexedPages is extraction coverage only. Indexes are temporary and may be lost on restart or another relay instance.',
     inputSchema: pdfIndexStatusInput.shape, annotations,
   }, input => run(() => index.status(scope, input)));
+  server.registerTool('campus_research_audit_indexed_pdf', {
+    description: 'Create a page-by-page audit manifest for a prepared PDF. It classifies extracted text, truncation, and text-detected figure/table/box signals. no_extractable_text is not proof that a page is blank or that OCR failed; visualReviewRecommended is a lead, not visual inspection. Use the original PDF resource link to inspect flagged pages, then state exactly which pages were inspected. The audit identifies outstanding work and cannot certify whole-document critical reading.',
+    inputSchema: pdfIndexAuditInput.shape, annotations,
+  }, input => run(() => index.audit(scope, input)));
   server.registerTool('campus_research_search_index', {
     description: 'Search a completed PDF index by meaningful words. Pass analysisId from index_pdf to keep this analysis ledger separate. Returns ranked page snippets as discovery leads, not scientific conclusions; read original pages and verify excerpts before citing.',
     inputSchema: pdfIndexSearchInput.shape, annotations,

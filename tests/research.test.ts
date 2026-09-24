@@ -574,7 +574,7 @@ test('research tools fail closed before all external operations', async () => {
     registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
       handlers.set(name, handler);
     } } as any, { authorize } as any);
-    assert.equal(handlers.size, 14);
+    assert.equal(handlers.size, 15);
     for (const handler of handlers.values()) await assert.rejects(handler({}), /autorizado|auth unavailable/);
   }
 });
@@ -776,6 +776,7 @@ test('PDF index parser extracts every page once and reports OCR gaps', async () 
   assert.equal(events[0].metadata.totalPages, 2);
   assert.equal(events.flatMap(event => event.batch ?? []).length, 2);
   assert.equal(events.flatMap(event => event.batch ?? [])[1].needsOcr, true);
+  assert.deepEqual(events.flatMap(event => event.batch ?? [])[0].visualSignals, []);
 });
 
 test('PDF index processes a 300-page text fixture with exact coverage', async () => {
@@ -870,6 +871,16 @@ test('indexed PDF verification reuses the parsed page and reports actual reading
   assert.ok(configs.get('campus_research_read_indexed_pdf').inputSchema.analysisId);
   assert.ok(configs.get('campus_research_verify_evidence').inputSchema.analysisId);
   assert.ok(configs.get('campus_research_verify_quotes').inputSchema.citations);
+  assert.ok(configs.get('campus_research_audit_indexed_pdf').inputSchema.includePages);
+  const audit = await handlers.get('campus_research_audit_indexed_pdf')({
+    documentId: started.documentId, analysisId: started.analysisId,
+  });
+  const manifest = JSON.parse(audit.content[0].text);
+  assert.deepEqual(manifest.audit.counts, {
+    text_ready: 1, text_truncated: 0, no_extractable_text: 1, visualReviewRecommended: 0,
+  });
+  assert.equal(manifest.audit.pages[1].textStatus, 'no_extractable_text');
+  assert.match(manifest.audit.meaning, /No demuestra que la página esté en blanco/);
   const toolResult = await handlers.get('campus_research_verify_evidence')({
     documentId: started.documentId, analysisId: started.analysisId,
     url, page: 1, excerpt: 'Academic evidence on page one.',
@@ -911,7 +922,7 @@ test('one account cannot evict another account PDF index when cache capacity is 
     download: async url => ({ bytes: pdfFixture(), url, contentType: 'application/pdf' }),
     extract: async (_bytes, onEvent) => {
       onEvent({ metadata: { totalPages: 1, outline: [] } });
-      onEvent({ batch: [{ page: 1, text: 'Evidence from source.', truncated: false, needsOcr: false }] });
+      onEvent({ batch: [{ page: 1, text: 'Evidence from source.', truncated: false, needsOcr: false, visualSignals: [] }] });
     },
   });
   const ids: string[] = [];

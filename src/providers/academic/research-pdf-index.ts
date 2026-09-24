@@ -21,6 +21,9 @@ export const pdfIndexReadInput = pdfIndexStatusInput.extend({
   startPage: z.number().int().min(1),
   pageCount: z.number().int().min(1).max(5).default(3),
 });
+export const pdfIndexAuditInput = pdfIndexStatusInput.extend({
+  includePages: z.boolean().default(true),
+});
 export const pdfIndexQuotesInput = z.object({
   documentId: z.string().uuid(),
   analysisId: z.string().uuid(),
@@ -194,6 +197,38 @@ export class ResearchPdfIndex {
   status(scope: string, raw: z.input<typeof pdfIndexStatusInput>) {
     const { documentId, analysisId } = pdfIndexStatusInput.parse(raw);
     return this.summary(this.find(scope, documentId), analysisId);
+  }
+
+  /**
+   * Return a compact, page-level audit. It is deliberately conservative:
+   * extraction can identify a blank-text page and visual leads, but it cannot
+   * certify a page was visually examined or that blank text means blank ink.
+   */
+  audit(scope: string, raw: z.input<typeof pdfIndexAuditInput>) {
+    const input = pdfIndexAuditInput.parse(raw);
+    const record = this.find(scope, input.documentId);
+    const summary = this.summary(record, input.analysisId);
+    const pages = record.pages.map(page => ({
+      page: page.page,
+      textStatus: (page.needsOcr ? 'no_extractable_text'
+        : page.truncated ? 'text_truncated' : 'text_ready') as 'no_extractable_text' | 'text_truncated' | 'text_ready',
+      visualReviewRecommended: (page.visualSignals?.length ?? 0) > 0,
+      visualSignals: page.visualSignals ?? [],
+    }));
+    const counts = pages.reduce((result, page) => {
+      result[page.textStatus] += 1;
+      if (page.visualReviewRecommended) result.visualReviewRecommended += 1;
+      return result;
+    }, { text_ready: 0, text_truncated: 0, no_extractable_text: 0, visualReviewRecommended: 0 });
+    return {
+      ...summary,
+      audit: {
+        counts,
+        pages: input.includePages ? pages : undefined,
+        meaning: 'no_extractable_text significa que Campus no obtuvo texto. No demuestra que la página esté en blanco ni que exista un fallo de OCR. visualReviewRecommended se basa en señales textuales de figuras, tablas o recuadros; abre la página original antes de afirmar qué muestra.',
+        completionRule: 'Una revisión integral exige que cada página tenga evidencia de lectura textual o de inspección visual. Este manifiesto solo identifica el trabajo pendiente; no lo completa.',
+      },
+    };
   }
 
   search(scope: string, raw: z.input<typeof pdfIndexSearchInput>) {
