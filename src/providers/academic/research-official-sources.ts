@@ -1,6 +1,6 @@
 /** Verified public routes published by the same organizations as blocked landing pages.
  * Keep this list narrow: a catalog preview must never be presented as full text. */
-export function officialResearchAlternate(value: string): { url: string; scope: 'full_report' | 'public_catalog' } | null {
+export function officialResearchAlternate(value: string): { url: string; scope: 'full_report' | 'full_article' | 'public_catalog' } | null {
   let source: URL;
   try { source = new URL(value); } catch { return null; }
   if (source.protocol !== 'https:' || source.username || source.password || source.search || source.hash) return null;
@@ -11,10 +11,14 @@ export function officialResearchAlternate(value: string): { url: string; scope: 
   if (source.hostname === 'www.iso.org' && source.pathname === '/standard/78176.html') {
     return { url: 'https://committee.iso.org/es/sites/isoorg/contents/data/standard/07/81/78176.html', scope: 'public_catalog' };
   }
+  if (source.hostname === 'revistas.uh.cu'
+    && /^\/revflacso\/article\/view\/7514\/?$/.test(source.pathname)) {
+    return { url: 'https://revistas.uh.cu/revflacso/article/download/7514/6400/9026', scope: 'full_article' };
+  }
   return null;
 }
 
 export function officialResearchPdf(value: string): string | null {
   const alternate = officialResearchAlternate(value);
-  return alternate?.scope === 'full_report' ? alternate.url : null;
+  return alternate?.scope === 'full_report' || alternate?.scope === 'full_article' ? alternate.url : null;
 }
