@@ -41,10 +41,26 @@ export type PdfSource = {
   retrievedAt?: string;
 };
 
+/**
+ * These labels are discovery leads only. PDF text order is not stable enough
+ * to decide that a caption begins a visual object, so a reference in prose is
+ * still useful as a page that may deserve visual review.
+ */
+export function detectPdfVisualSignals(raw: string): Array<'figure_or_table_marker' | 'box_marker'> {
+  const text = raw.replace(/\s+/gu, ' ');
+  return [
+    ...(/\b(?:fig(?:ure)?s?|tables?)\s+(?:[A-Z]\s*)?\d+(?:\.\d+)*\b/iu.test(text)
+      ? ['figure_or_table_marker'] as const : []),
+    ...(/\bbox(?:es)?\s+(?:[A-Z]\s*)?\d+(?:\.\d+)*\b/iu.test(text)
+      ? ['box_marker'] as const : []),
+  ];
+}
+
 // Parse untrusted files off the MCP event loop, with a hard deadline and heap cap.
 // Native import inside the worker loads PDF.js's ESM build from this installation.
 const PARSER = `
 const { parentPort, workerData } = require('node:worker_threads');
+const detectVisualSignals = ${detectPdfVisualSignals.toString()};
 (async () => {
   const pageText = async page => {
     const content = await page.getTextContent();
@@ -94,10 +110,7 @@ const { parentPort, workerData } = require('node:worker_threads');
         const page = await doc.getPage(n);
         const raw = await pageText(page);
         const text = raw.slice(0, 15000);
-        const visualSignals = [
-          ...(/(?:^|\\n)\\s*(?:figure|fig\\.|table)\\s+[A-Z]?\\d/m.test(raw) ? ['figure_or_table_marker'] : []),
-          ...( /(?:^|\\n)\\s*box\\s+[A-Z]?\\d/m.test(raw) ? ['box_marker'] : []),
-        ];
+        const visualSignals = detectVisualSignals(raw);
         batch.push({ page: n, text, truncated: raw.length > text.length, needsOcr: raw.length === 0, visualSignals });
         page.cleanup();
         if (batch.length === 10 || n === doc.numPages) {
@@ -118,10 +131,7 @@ const { parentPort, workerData } = require('node:worker_threads');
       const limit = Math.min(15000, remaining);
       const text = raw.slice(0, limit);
       remaining -= text.length;
-      const visualSignals = [
-        ...( /(?:^|\\n)\\s*(?:figure|fig\\.|table)\\s+[A-Z]?\\d/m.test(raw) ? ['figure_or_table_marker'] : []),
-        ...( /(?:^|\\n)\\s*box\\s+[A-Z]?\\d/m.test(raw) ? ['box_marker'] : []),
-      ];
+      const visualSignals = detectVisualSignals(raw);
       pages.push({ page: n, text, truncated: raw.length > text.length, needsOcr: raw.length === 0, visualSignals });
       page.cleanup();
       if (remaining === 0) break;

@@ -5,7 +5,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ResearchService, normalizeDoi, scholarSearchLinks } from '../src/providers/academic/research-service.js';
 import { assertPublicAddress, publicHttpsUrl, ResearchHttpError } from '../src/providers/academic/research-http.js';
-import { extractPdfBytes, extractPdfIndexBytes, readResearchPdfBytes, readResearchSourceFile } from '../src/providers/academic/research-pdf.js';
+import { detectPdfVisualSignals, extractPdfBytes, extractPdfIndexBytes, readResearchPdfBytes, readResearchSourceFile } from '../src/providers/academic/research-pdf.js';
 import { ResearchPdfIndex } from '../src/providers/academic/research-pdf-index.js';
 import { registerResearchTools } from '../src/providers/academic/research-mcp-tools.js';
 import { verifyResearchEvidence } from '../src/providers/academic/research-evidence.js';
@@ -18,6 +18,13 @@ const work = { DOI: '10.1234/ABC', title: ['Evidence'], type: 'journal-article',
   'article-number': 'e123' };
 const collection = (items: unknown[], total = items.length) => ({ message: { items, 'total-results': total } });
 const acceptTestResourceUrl = async (value: string) => publicHttpsUrl(value);
+
+test('PDF visual leads survive unstable text-line reconstruction', () => {
+  assert.deepEqual(detectPdfVisualSignals('la evidencia continúa (figure 9.1) y table P1.1'),
+    ['figure_or_table_marker']);
+  assert.deepEqual(detectPdfVisualSignals('See Box 2.3 for the case study.'), ['box_marker']);
+  assert.deepEqual(detectPdfVisualSignals('No visual label appears here.'), []);
+});
 
 test('Crossref search preserves provenance, encodes query and does not invent peer review', async () => {
   const service = new ResearchService(async url => {
