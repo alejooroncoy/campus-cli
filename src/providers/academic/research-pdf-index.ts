@@ -21,6 +21,16 @@ export const pdfIndexReadInput = pdfIndexStatusInput.extend({
   startPage: z.number().int().min(1),
   pageCount: z.number().int().min(1).max(5).default(3),
 });
+export const pdfIndexQuotesInput = z.object({
+  documentId: z.string().uuid(),
+  analysisId: z.string().uuid(),
+  url: z.string().url().max(4000),
+  expectedSha256: z.string().regex(/^[a-f0-9]{64}$/i),
+  citations: z.array(z.object({
+    page: z.number().int().min(1),
+    excerpt: z.string().trim().min(10).max(1000),
+  })).min(1).max(8),
+});
 
 type OutlineEntry = { title: string; page: number; depth: number };
 type EvidenceLedger = { readPages: Set<number>; verifiedEvidence: Array<{ page: number; evidenceId: string }> };
@@ -270,6 +280,36 @@ export class ResearchPdfIndex {
     }
     return { ...result, verificationSource: 'prepared_pdf_index', documentId: record.id,
       ...(input.analysisId ? { analysisId: input.analysisId } : {}) };
+  }
+
+  async verifyQuotes(scope: string, raw: z.input<typeof pdfIndexQuotesInput>) {
+    const input = pdfIndexQuotesInput.parse(raw);
+    const record = this.find(scope, input.documentId);
+    this.analysis(record, input.analysisId);
+    if (record.status !== 'ready') throw new Error('El índice PDF aún no está listo para verificar citas.');
+    if (input.url !== record.requestedUrl) throw new Error('La URL no corresponde al documentId de este índice.');
+    const results = [];
+    for (const citation of input.citations) {
+      if (citation.page > record.totalPages!) {
+        results.push({ page: citation.page, excerpt: citation.excerpt,
+          status: 'rejected', evidenceAllowed: false, reason: 'page_out_of_range' });
+        continue;
+      }
+      const result = await this.verify(scope, { documentId: input.documentId,
+        analysisId: input.analysisId, url: input.url, expectedSha256: input.expectedSha256,
+        page: citation.page, excerpt: citation.excerpt });
+      results.push({ page: citation.page, excerpt: citation.excerpt,
+        status: result.status, evidenceAllowed: result.evidenceAllowed,
+        ...('evidenceId' in result ? { evidenceId: result.evidenceId } : {}),
+        ...('reason' in result ? { reason: result.reason } : {}) });
+    }
+    return { documentId: input.documentId, analysisId: input.analysisId,
+      documentSha256: record.sha256,
+      allExcerptsLocated: results.every(result => result.status === 'verified'),
+      results, readPages: this.summary(record, input.analysisId).readPages,
+      semanticSupport: 'client_assessment_required',
+      guidance: 'Solo los fragmentos con status=verified aparecieron en las páginas indicadas. Eso no demuestra que respalden la afirmación ni autoriza ampliar una cita más allá del fragmento verificado.',
+    };
   }
 }
 

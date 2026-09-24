@@ -574,7 +574,7 @@ test('research tools fail closed before all external operations', async () => {
     registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
       handlers.set(name, handler);
     } } as any, { authorize } as any);
-    assert.equal(handlers.size, 13);
+    assert.equal(handlers.size, 14);
     for (const handler of handlers.values()) await assert.rejects(handler({}), /autorizado|auth unavailable/);
   }
 });
@@ -869,12 +869,29 @@ test('indexed PDF verification reuses the parsed page and reports actual reading
     validateResourceUrl: acceptTestResourceUrl });
   assert.ok(configs.get('campus_research_read_indexed_pdf').inputSchema.analysisId);
   assert.ok(configs.get('campus_research_verify_evidence').inputSchema.analysisId);
+  assert.ok(configs.get('campus_research_verify_quotes').inputSchema.citations);
   const toolResult = await handlers.get('campus_research_verify_evidence')({
     documentId: started.documentId, analysisId: started.analysisId,
     url, page: 1, excerpt: 'Academic evidence on page one.',
     expectedSha256: status.sha256,
   });
   assert.equal(JSON.parse(toolResult.content[0].text).verificationSource, 'prepared_pdf_index');
+  assert.equal(downloads, 1);
+  const batch = await handlers.get('campus_research_verify_quotes')({
+    documentId: started.documentId, analysisId: started.analysisId,
+    url, expectedSha256: status.sha256,
+    citations: [
+      { page: 1, excerpt: 'Academic evidence on page one.' },
+      { page: 1, excerpt: 'A made-up quotation about page one.' },
+      { page: 999, excerpt: 'A quote assigned to a nonexistent page.' },
+    ],
+  });
+  const checked = JSON.parse(batch.content[0].text);
+  assert.equal(checked.allExcerptsLocated, false);
+  assert.deepEqual(checked.results.map((item: any) => item.status), ['verified', 'rejected', 'rejected']);
+  assert.equal(checked.results[1].reason, 'excerpt_not_found_at_locator');
+  assert.equal(checked.results[2].reason, 'page_out_of_range');
+  assert.deepEqual(checked.readPages, [1]);
   assert.equal(downloads, 1);
 
   const wrongHash = await index.verify('student-a', { documentId: started.documentId, url, page: 1,
