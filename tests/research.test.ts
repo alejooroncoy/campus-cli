@@ -5,7 +5,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ResearchService, normalizeDoi, scholarSearchLinks } from '../src/providers/academic/research-service.js';
 import { assertPublicAddress, publicHttpsUrl, ResearchHttpError } from '../src/providers/academic/research-http.js';
-import { extractPdfBytes, extractPdfIndexBytes, readResearchSourceFile } from '../src/providers/academic/research-pdf.js';
+import { extractPdfBytes, extractPdfIndexBytes, readResearchPdfBytes, readResearchSourceFile } from '../src/providers/academic/research-pdf.js';
 import { ResearchPdfIndex } from '../src/providers/academic/research-pdf-index.js';
 import { registerResearchTools } from '../src/providers/academic/research-mcp-tools.js';
 import { verifyResearchEvidence } from '../src/providers/academic/research-evidence.js';
@@ -862,6 +862,23 @@ test('an attached source file becomes page evidence without exposing its signed 
   assert.equal(result.pages.length, 2);
   assert.equal(result.nextPage, null);
   assert.doesNotMatch(JSON.stringify(result), /token=private|file_123/);
+});
+
+test('long-PDF page reads expose their limited coverage and the indexed workflow', async () => {
+  const bytes = longPdfFixture(25);
+  const publicResult = await readResearchPdfBytes(bytes, {
+    requestedUrl: 'https://example.edu/report.pdf', resolvedUrl: 'https://example.edu/report.pdf',
+  }, 1, 2);
+  assert.equal(publicResult.totalPages, 25);
+  assert.deepEqual(publicResult.pages.map(page => page.page), [1, 2]);
+  assert.match(publicResult.guidance.join(' '), /25 páginas.*campus_research_index_pdf.*descarga y procesa/);
+
+  const attachedResult = await readResearchSourceFile({
+    source_file: { download_url: 'https://files.example.edu/report.pdf', file_id: 'file_long' },
+    startPage: 23, pageCount: 2,
+  }, { download: async url => ({ bytes, url, contentType: 'application/pdf' }) });
+  assert.deepEqual(attachedResult.pages.map(page => page.page), [23, 24]);
+  assert.match(attachedResult.guidance.join(' '), /25 páginas.*solo leyó 2 páginas.*cobertura real/);
 });
 
 test('the source-file reader advertises a client file parameter and returns only page evidence', async () => {
