@@ -9,6 +9,8 @@ export const evidenceVerificationInput = z.object({
   url: z.string().url().max(4000),
   documentId: z.string().uuid().optional()
     .describe('ID de un índice PDF preparado. Reutiliza sus páginas y su SHA-256 sin descargar el PDF otra vez.'),
+  analysisId: z.string().uuid().optional()
+    .describe('ID de la consulta devuelto al iniciar el índice; registra lecturas y verificaciones de este análisis por separado.'),
   excerpt: z.string().trim().min(10).max(4000)
     .describe('Fragmento atribuido a la fuente. Campus comprueba que aparezca en el texto extraído de la página o sección indicada.'),
   format: evidenceFormat.default('auto'),
@@ -21,6 +23,9 @@ export const evidenceVerificationInput = z.object({
 }).superRefine((input, context) => {
   if (input.documentId && input.page === undefined) {
     context.addIssue({ code: 'custom', message: 'documentId requiere page.' });
+  }
+  if (input.analysisId && !input.documentId) {
+    context.addIssue({ code: 'custom', message: 'analysisId requiere documentId.' });
   }
   if ((input.page === undefined) === (input.section === undefined)) {
     context.addIssue({ code: 'custom', message: 'Indica exactamente page o section.' });

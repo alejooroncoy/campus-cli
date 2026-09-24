@@ -11,7 +11,8 @@ const MAX_ACTIVE = 2;
 const IDLE_MS = 60 * 60 * 1000;
 
 export const pdfIndexInput = z.object({ url: z.string().url().max(4000) });
-export const pdfIndexStatusInput = z.object({ documentId: z.string().uuid() });
+export const pdfIndexStatusInput = z.object({ documentId: z.string().uuid(),
+  analysisId: z.string().uuid().optional() });
 export const pdfIndexSearchInput = pdfIndexStatusInput.extend({
   query: z.string().trim().min(2).max(500),
   limit: z.number().int().min(1).max(10).default(5),
@@ -22,6 +23,7 @@ export const pdfIndexReadInput = pdfIndexStatusInput.extend({
 });
 
 type OutlineEntry = { title: string; page: number; depth: number };
+type EvidenceLedger = { readPages: Set<number>; verifiedEvidence: Array<{ page: number; evidenceId: string }> };
 type IndexRecord = {
   id: string;
   scope: string;
@@ -35,6 +37,7 @@ type IndexRecord = {
   pages: IndexedPdfPage[];
   readPages: Set<number>;
   verifiedEvidence: Array<{ page: number; evidenceId: string }>;
+  analyses: Map<string, EvidenceLedger>;
   outline: OutlineEntry[];
   error?: string;
   lastAccess: number;
@@ -87,7 +90,22 @@ export class ResearchPdfIndex {
     return record;
   }
 
-  private summary(record: IndexRecord) {
+  private analysis(record: IndexRecord, analysisId?: string): EvidenceLedger {
+    if (!analysisId) return record;
+    const ledger = record.analyses.get(analysisId);
+    if (!ledger) throw new Error('El analysisId no está disponible para este índice. Inicia un nuevo análisis.');
+    return ledger;
+  }
+
+  private newAnalysis(record: IndexRecord): string {
+    const analysisId = randomUUID();
+    record.analyses.set(analysisId, { readPages: new Set(), verifiedEvidence: [] });
+    if (record.analyses.size > 32) record.analyses.delete(record.analyses.keys().next().value!);
+    return analysisId;
+  }
+
+  private summary(record: IndexRecord, analysisId?: string) {
+    const ledger = this.analysis(record, analysisId);
     const needsOcrPages = record.pages.filter(page => page.needsOcr).map(page => page.page);
     const truncatedPages = record.pages.filter(page => page.truncated).map(page => page.page);
     return {
@@ -97,8 +115,10 @@ export class ResearchPdfIndex {
       totalPages: record.totalPages, indexedPages: record.indexedPages,
       coverage: record.totalPages === null ? 'unknown' : `${record.indexedPages}/${record.totalPages}`,
       needsOcrPages, truncatedPages, outline: record.outline,
-      readPages: [...record.readPages].sort((a, b) => a - b),
-      verifiedEvidence: record.verifiedEvidence,
+      ...(analysisId ? { analysisId } : {}),
+      ledgerScope: analysisId ? 'analysis' : 'document_lifetime',
+      readPages: [...ledger.readPages].sort((a, b) => a - b),
+      verifiedEvidence: ledger.verifiedEvidence,
       ...(record.error ? { error: record.error } : {}),
       guidance: record.status === 'ready'
         ? 'El índice localiza páginas, pero no interpreta resultados. Lee las páginas originales y verifica los fragmentos antes de citar; OCR, tablas, fórmulas e imágenes requieren revisión adicional.'
@@ -114,7 +134,7 @@ export class ResearchPdfIndex {
       && record.requestedUrl === url && record.status !== 'failed');
     if (existing) {
       existing.lastAccess = Date.now();
-      return this.summary(existing);
+      return this.summary(existing, this.newAnalysis(existing));
     }
     this.makeRoom(scope);
     if (this.records.size >= MAX_DOCUMENTS
@@ -123,11 +143,12 @@ export class ResearchPdfIndex {
     }
     const record: IndexRecord = {
       id: randomUUID(), scope, requestedUrl: url, status: 'downloading', totalPages: null,
-      indexedPages: 0, pages: [], readPages: new Set(), verifiedEvidence: [], outline: [], lastAccess: Date.now(),
+      indexedPages: 0, pages: [], readPages: new Set(), verifiedEvidence: [], analyses: new Map(),
+      outline: [], lastAccess: Date.now(),
     };
     this.records.set(record.id, record);
     void this.prepare(record);
-    return this.summary(record);
+    return this.summary(record, this.newAnalysis(record));
   }
 
   private async prepare(record: IndexRecord): Promise<void> {
@@ -161,14 +182,14 @@ export class ResearchPdfIndex {
   }
 
   status(scope: string, raw: z.input<typeof pdfIndexStatusInput>) {
-    const { documentId } = pdfIndexStatusInput.parse(raw);
-    return this.summary(this.find(scope, documentId));
+    const { documentId, analysisId } = pdfIndexStatusInput.parse(raw);
+    return this.summary(this.find(scope, documentId), analysisId);
   }
 
   search(scope: string, raw: z.input<typeof pdfIndexSearchInput>) {
     const input = pdfIndexSearchInput.parse(raw);
     const record = this.find(scope, input.documentId);
-    if (record.status !== 'ready') return { ...this.summary(record), matches: [] };
+    if (record.status !== 'ready') return { ...this.summary(record, input.analysisId), matches: [] };
     const query = normalize(input.query);
     const terms = [...new Set(query.match(/[\p{L}\p{N}]{2,}/gu)?.filter(term => !STOP_WORDS.has(term)) ?? [])];
     if (!terms.length) throw new Error('La búsqueda necesita palabras significativas.');
@@ -196,18 +217,22 @@ export class ResearchPdfIndex {
     }).filter((value): value is NonNullable<typeof value> => value !== null)
       .sort((a, b) => b.score - a.score || a.page - b.page)
       .slice(0, input.limit);
-    return { ...this.summary(record), query: input.query, matches,
+    return { ...this.summary(record, input.analysisId), query: input.query, matches,
       matchMeaning: 'Coincidencia léxica aproximada; no demuestra que la página respalde una afirmación.' };
   }
 
   read(scope: string, raw: z.input<typeof pdfIndexReadInput>) {
     const input = pdfIndexReadInput.parse(raw);
     const record = this.find(scope, input.documentId);
-    if (record.status !== 'ready') return { ...this.summary(record), pages: [] };
+    if (record.status !== 'ready') return { ...this.summary(record, input.analysisId), pages: [] };
     if (input.startPage > record.totalPages!) throw new Error('La página inicial supera el documento.');
     const pages = record.pages.slice(input.startPage - 1, input.startPage - 1 + input.pageCount);
-    for (const page of pages) record.readPages.add(page.page);
-    return { ...this.summary(record), pages,
+    const ledger = this.analysis(record, input.analysisId);
+    for (const page of pages) {
+      record.readPages.add(page.page);
+      ledger.readPages.add(page.page);
+    }
+    return { ...this.summary(record, input.analysisId), pages,
       nextPage: pages.at(-1)!.page < record.totalPages! ? pages.at(-1)!.page + 1 : null };
   }
 
@@ -215,11 +240,12 @@ export class ResearchPdfIndex {
     const input = evidenceVerificationInput.parse(raw);
     if (!input.documentId || input.page === undefined) throw new Error('Indica documentId y page para verificar desde el índice.');
     const record = this.find(scope, input.documentId);
+    const ledger = this.analysis(record, input.analysisId);
     if (record.status !== 'ready') throw new Error('El índice PDF aún no está listo para verificar citas.');
     if (input.url !== record.requestedUrl) throw new Error('La URL no corresponde al documentId de este índice.');
     if (input.page > record.totalPages!) throw new Error('La página indicada supera el documento.');
     const page = record.pages[input.page - 1]!;
-    const { documentId: _documentId, ...verification } = input;
+    const { documentId: _documentId, analysisId: _analysisId, ...verification } = input;
     const result = await verifyResearchEvidence(verification, {
       readPdf: async () => ({
         requestedUrl: record.requestedUrl,
@@ -237,7 +263,13 @@ export class ResearchPdfIndex {
       record.verifiedEvidence.push({ page: input.page, evidenceId: result.evidenceId });
       if (record.verifiedEvidence.length > 100) record.verifiedEvidence.shift();
     }
-    return { ...result, verificationSource: 'prepared_pdf_index', documentId: record.id };
+    if (result.status === 'verified' && result.evidenceId
+      && !ledger.verifiedEvidence.some(item => item.evidenceId === result.evidenceId)) {
+      ledger.verifiedEvidence.push({ page: input.page, evidenceId: result.evidenceId });
+      if (ledger.verifiedEvidence.length > 100) ledger.verifiedEvidence.shift();
+    }
+    return { ...result, verificationSource: 'prepared_pdf_index', documentId: record.id,
+      ...(input.analysisId ? { analysisId: input.analysisId } : {}) };
   }
 }
 

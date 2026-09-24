@@ -28,12 +28,16 @@ documento también como resource_link a la IA cliente.
 Para un PDF público de más de 20 páginas con evidencia distribuida o páginas
 desconocidas, usa campus_research_index_pdf una sola vez, espera
 campus_research_index_status=ready, localiza con campus_research_search_index y
-lee las páginas con campus_research_read_indexed_pdf. No repitas
+lee las páginas con campus_research_read_indexed_pdf. Conserva documentId y
+analysisId de index_pdf y pasa ambos a status, search, read y verify: el índice
+puede compartirse entre consultas, pero readPages y verifiedEvidence deben
+corresponder solo al análisis actual. Sin analysisId el registro es acumulativo
+y no prueba lo leído para esta respuesta. No repitas
 campus_research_read_pdf para recorrerlo: cada llamada descarga el PDF entero.
 Si el estudiante adjunta un PDF largo sin URL pública, usa
 campus_research_read_source_file en rangos concretos y declara cuáles leíste.
 Después verifica los fragmentos decisivos con campus_research_verify_evidence
-cuando haya URL pública: si ya preparaste un índice, pasa documentId, la URL
+cuando haya URL pública: si ya preparaste un índice, pasa documentId, analysisId, la URL
 original, la página y la huella para reutilizar el texto extraído sin descargar
 otra vez. campus_research_index_status distingue indexedPages de readPages y
 verifiedEvidence; usa esa cobertura real en la respuesta. Comprueba la página

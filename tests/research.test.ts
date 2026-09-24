@@ -836,24 +836,42 @@ test('indexed PDF verification reuses the parsed page and reports actual reading
   assert.equal(status.indexedPages, 2);
   assert.deepEqual(status.readPages, []);
   assert.deepEqual(status.verifiedEvidence, []);
+  const otherAnalysis = index.start('student-a', { url });
+  assert.equal(otherAnalysis.documentId, started.documentId);
+  assert.notEqual(otherAnalysis.analysisId, started.analysisId);
 
-  index.read('student-a', { documentId: started.documentId, startPage: 1, pageCount: 1 });
-  const verified = await index.verify('student-a', { documentId: started.documentId, url, page: 1,
+  index.read('student-a', { documentId: started.documentId, analysisId: started.analysisId,
+    startPage: 1, pageCount: 1 });
+  const verified = await index.verify('student-a', { documentId: started.documentId,
+    analysisId: started.analysisId, url, page: 1,
     excerpt: 'Academic evidence on page one.', expectedSha256: status.sha256! });
   assert.equal(verified.status, 'verified');
   assert.equal(verified.verificationSource, 'prepared_pdf_index');
   assert.equal(downloads, 1);
-  status = index.status('student-a', { documentId: started.documentId });
+  status = index.status('student-a', { documentId: started.documentId, analysisId: started.analysisId });
   assert.deepEqual(status.readPages, [1]);
   assert.deepEqual(status.verifiedEvidence, [{ page: 1, evidenceId: verified.evidenceId }]);
+  const untouched = index.status('student-a', { documentId: started.documentId,
+    analysisId: otherAnalysis.analysisId });
+  assert.deepEqual(untouched.readPages, []);
+  assert.deepEqual(untouched.verifiedEvidence, []);
+  assert.equal(untouched.ledgerScope, 'analysis');
+  assert.equal(index.status('student-a', { documentId: started.documentId }).ledgerScope, 'document_lifetime');
+  assert.throws(() => index.status('student-a', { documentId: started.documentId,
+    analysisId: '00000000-0000-4000-8000-000000000001' }), /analysisId no está disponible/);
 
   const handlers = new Map<string, any>();
-  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+  const configs = new Map<string, any>();
+  registerResearchTools({ registerTool(name: string, config: unknown, handler: unknown) {
+    configs.set(name, config);
     handlers.set(name, handler);
   } } as any, { authorize: () => true, pdfIndex: index, indexScope: 'student-a',
     validateResourceUrl: acceptTestResourceUrl });
+  assert.ok(configs.get('campus_research_read_indexed_pdf').inputSchema.analysisId);
+  assert.ok(configs.get('campus_research_verify_evidence').inputSchema.analysisId);
   const toolResult = await handlers.get('campus_research_verify_evidence')({
-    documentId: started.documentId, url, page: 1, excerpt: 'Academic evidence on page one.',
+    documentId: started.documentId, analysisId: started.analysisId,
+    url, page: 1, excerpt: 'Academic evidence on page one.',
     expectedSha256: status.sha256,
   });
   assert.equal(JSON.parse(toolResult.content[0].text).verificationSource, 'prepared_pdf_index');
