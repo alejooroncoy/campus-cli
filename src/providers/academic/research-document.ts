@@ -2,8 +2,9 @@ import { createHash, randomUUID } from 'node:crypto';
 import { decodeHTML } from 'entities';
 import { unzipSync } from 'fflate';
 import { z } from 'zod';
-import { researchDownload } from './research-http.js';
+import { researchDownload, ResearchHttpError } from './research-http.js';
 import { readResearchPdfBytes } from './research-pdf.js';
+import { officialResearchAlternate } from './research-official-sources.js';
 
 const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024;
 const MAX_ARCHIVE_FILES = 200;
@@ -275,17 +276,53 @@ export function extractDocumentBytes(bytes: Uint8Array, requested: z.infer<typeo
   return { format, ...result };
 }
 
-export async function readResearchDocument(raw: z.input<typeof documentInput>) {
+export async function readResearchDocument(raw: z.input<typeof documentInput>, dependencies: {
+  download?: typeof researchDownload;
+} = {}) {
   const input = documentInput.parse(raw);
-  const downloaded = await researchDownload(input.url, { maxBytes: MAX_DOCUMENT_BYTES, redirects: 4,
-    headers: { Accept: 'application/pdf, application/epub+zip, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/html, application/xhtml+xml, application/xml, text/plain, text/markdown;q=0.9' } });
-  const extracted = extractDocumentBytes(downloaded.bytes, input.format, input.startSection, input.sectionCount, downloaded.contentType);
+  const alternate = (input.format === 'auto' || input.format === 'html')
+    ? officialResearchAlternate(input.url) : null;
+  const sourceUrl = alternate?.url ?? input.url;
+  const download = dependencies.download ?? researchDownload;
+  const options = { maxBytes: MAX_DOCUMENT_BYTES, redirects: 4,
+    headers: { Accept: 'application/pdf, application/epub+zip, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/html, application/xhtml+xml, application/xml, text/plain, text/markdown;q=0.9' } };
+  let downloaded;
+  try {
+    downloaded = await download(sourceUrl, options);
+  } catch (error) {
+    // The journal occasionally responds with a temporary request limit under HTTP 403.
+    // Retry only when its bounded response explicitly identifies that condition.
+    if (!(error instanceof ResearchHttpError && error.rateLimited
+      && new URL(sourceUrl).hostname === 'revistas.uh.cu')) throw error;
+    await new Promise(resolve => setTimeout(resolve, 1_500));
+    downloaded = await download(sourceUrl, options);
+  }
+  if (alternate?.scope === 'full_report') {
+    if (!downloaded.bytes.subarray(0, 5).equals(Buffer.from('%PDF-'))) {
+      throw new Error('La ruta oficial del informe no devolvió un PDF válido.');
+    }
+    return { ...await readResearchPdfBytes(downloaded.bytes,
+      { requestedUrl: input.url, resolvedUrl: downloaded.url }, input.startSection, input.sectionCount),
+      accessScope: 'full_report' as const, sourceRoute: 'official_alternate' as const };
+  }
+  // ISO's catalog has a large navigation shell. Restrict evidence to the
+  // published description when its semantic field is present.
+  const catalogDescription = alternate?.scope === 'public_catalog'
+    ? downloaded.bytes.toString('utf8').match(/<div\s+itemprop="description"[^>]*>([\s\S]*?)<\/div>/i)?.[1]
+    : undefined;
+  const evidenceBytes = catalogDescription ? Buffer.from(catalogDescription, 'utf8') : downloaded.bytes;
+  const extracted = extractDocumentBytes(evidenceBytes, alternate?.scope === 'public_catalog' ? 'html' : input.format,
+    input.startSection, input.sectionCount, downloaded.contentType);
   if (extracted.format === 'pdf') {
     return readResearchPdfBytes(downloaded.bytes, { requestedUrl: input.url, resolvedUrl: downloaded.url }, input.startSection, input.sectionCount);
   }
   return { requestedUrl: input.url, resolvedUrl: downloaded.url, retrievedAt: new Date().toISOString(),
     sha256: createHash('sha256').update(downloaded.bytes).digest('hex'), ...extracted,
+    ...(alternate?.scope === 'public_catalog' ? { accessScope: 'public_catalog' as const,
+      sourceRoute: 'official_alternate' as const } : {}),
     guidance: [
+      ...(alternate?.scope === 'public_catalog'
+        ? ['Solo se leyó la ficha pública de ISO. El texto íntegro de la norma requiere acceso autorizado; no atribuyas sus cláusulas a esta vista previa.'] : []),
       'Texto extraído de un documento público para análisis; no verifica la identidad bibliográfica ni la revisión por pares.',
       'Cita la URL y el número o encabezado de sección devuelto. No atribuyas resultados a partes no leídas.',
       'HTML dinámico, tablas, imágenes, ecuaciones y diseños complejos pueden perderse. Revisa la fuente original antes de citar.',

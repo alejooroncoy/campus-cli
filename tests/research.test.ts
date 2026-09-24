@@ -6,6 +6,8 @@ import { extractPdfBytes, extractPdfIndexBytes } from '../src/providers/academic
 import { ResearchPdfIndex } from '../src/providers/academic/research-pdf-index.js';
 import { registerResearchTools } from '../src/providers/academic/research-mcp-tools.js';
 import { verifyResearchEvidence } from '../src/providers/academic/research-evidence.js';
+import { readResearchDocument } from '../src/providers/academic/research-document.js';
+import { officialResearchAlternate } from '../src/providers/academic/research-official-sources.js';
 
 const work = { DOI: '10.1234/ABC', title: ['Evidence'], type: 'journal-article',
   author: [{ given: 'Ana', family: 'Perez' }], issued: { 'date-parts': [[2024]] },
@@ -677,6 +679,75 @@ test('real PDF parser returns page evidence, continuation, and explicit OCR need
   const second = await extractPdfBytes(pdfFixture(), 2, 1);
   assert.equal(second.pages[0].needsOcr, true);
   assert.equal(second.nextPage, null);
+});
+
+test('a blocked WEF landing page reads its verified official full PDF', async () => {
+  const landing = 'https://www.weforum.org/publications/the-future-of-jobs-report-2025/';
+  const pdf = 'https://reports.weforum.org/docs/WEF_Future_of_Jobs_Report_2025.pdf';
+  const result = await readResearchDocument({ url: landing, format: 'html', sectionCount: 1 }, {
+    download: async url => {
+      assert.equal(url, pdf);
+      return { bytes: pdfFixture(), url, contentType: 'application/pdf' };
+    },
+  });
+  assert.equal(result.requestedUrl, landing);
+  assert.equal(result.resolvedUrl, pdf);
+  assert.equal(result.accessScope, 'full_report');
+  assert.ok('pages' in result);
+  if ('pages' in result) assert.match(result.pages[0].text, /Academic evidence/);
+  assert.equal(officialResearchAlternate(landing.slice(0, -1))?.url, pdf);
+  assert.equal(officialResearchAlternate('https://evil.example/publications/the-future-of-jobs-report-2025/'), null);
+  assert.equal(officialResearchAlternate(`${landing}?token=private`), null);
+});
+
+test('the ISO alternate exposes only the public catalog, not the paid standard', async () => {
+  const landing = 'https://www.iso.org/standard/78176.html';
+  const alternate = 'https://committee.iso.org/es/sites/isoorg/contents/data/standard/07/81/78176.html';
+  const result = await readResearchDocument({ url: landing, format: 'html' }, {
+    download: async url => {
+      assert.equal(url, alternate);
+      return { bytes: Buffer.from('<html><nav>Unrelated links.</nav><div itemprop="description"><p>Public ISO catalog abstract.</p></div></html>'),
+        url, contentType: 'text/html' };
+    },
+  });
+  assert.equal(result.resolvedUrl, alternate);
+  assert.equal(result.accessScope, 'public_catalog');
+  assert.match(result.sections[0].text, /Public ISO catalog abstract/);
+  assert.doesNotMatch(result.sections[0].text, /Unrelated links/);
+  assert.match(result.guidance.join(' '), /texto íntegro.*requiere acceso autorizado/);
+});
+
+test('the intermittently blocked journal gets one bounded retry', async () => {
+  let calls = 0;
+  const url = 'https://revistas.uh.cu/revflacso/article/view/7514';
+  const result = await readResearchDocument({ url, format: 'html' }, {
+    download: async requested => {
+      assert.equal(requested, url);
+      if (++calls === 1) throw new ResearchHttpError(403, false, true);
+      return { bytes: Buffer.from('<html><article><p>Verified article abstract.</p></article></html>'),
+        url, contentType: 'text/html' };
+    },
+  });
+  assert.equal(calls, 2);
+  assert.match(result.sections[0].text, /Verified article abstract/);
+});
+
+test('the full-report PDF index resolves the official source before downloading', async () => {
+  const landing = 'https://www.weforum.org/publications/the-future-of-jobs-report-2025/';
+  const pdf = 'https://reports.weforum.org/docs/WEF_Future_of_Jobs_Report_2025.pdf';
+  const index = new ResearchPdfIndex({ download: async url => {
+    assert.equal(url, pdf);
+    return { bytes: pdfFixture(), url, contentType: 'application/pdf' };
+  } });
+  const started = index.start('wef-reader', { url: landing });
+  let result = index.status('wef-reader', { documentId: started.documentId });
+  for (let attempt = 0; attempt < 100 && result.status !== 'ready'; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 20));
+    result = index.status('wef-reader', { documentId: started.documentId });
+  }
+  assert.equal(result.status, 'ready');
+  assert.equal(result.requestedUrl, landing);
+  assert.equal(result.resolvedUrl, pdf);
 });
 
 test('PDF index parser extracts every page once and reports OCR gaps', async () => {

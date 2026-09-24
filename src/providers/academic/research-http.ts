@@ -3,8 +3,8 @@ import { request } from 'node:https';
 import ipaddr from 'ipaddr.js';
 
 export class ResearchHttpError extends Error {
-  constructor(public readonly status: number, authenticated = false) {
-    super(status === 429 ? 'El proveedor alcanzó su límite de consultas; intenta más tarde.'
+  constructor(public readonly status: number, authenticated = false, public readonly rateLimited = false) {
+    super(status === 429 || rateLimited ? 'El proveedor alcanzó su límite de consultas; intenta más tarde.'
       : status === 401 ? authenticated
         ? 'El proveedor rechazó la clave: verifica que copiaste la API key correcta y completa.'
         : 'La fuente requiere iniciar sesión; Campus no puede leerla desde el servidor.'
@@ -115,7 +115,25 @@ export async function researchDownload(value: string, options: {
             resolve({ bytes: Buffer.alloc(0), status, location: res.headers.location, contentType: '' });
             return;
           }
-          if (status < 200 || status >= 300) { res.destroy(); reject(new ResearchHttpError(status, authenticated)); return; }
+          if (status < 200 || status >= 300) {
+            // This journal reports its temporary request limit as HTTP 403.
+            // Read only a tiny diagnostic body so it is not mistaken for a paywall.
+            if (status === 403 && !authenticated && url.hostname === 'revistas.uh.cu') {
+              let detail = '';
+              res.on('data', (chunk: Buffer) => {
+                detail += chunk.toString('utf8');
+                if (detail.length > 512) {
+                  res.destroy();
+                  reject(new ResearchHttpError(status, authenticated));
+                }
+              });
+              res.on('error', () => reject(new ResearchHttpError(status, authenticated)));
+              res.on('end', () => reject(new ResearchHttpError(status, authenticated,
+                /acceso denegado temporalmente por exceso de peticiones/i.test(detail))));
+              return;
+            }
+            res.destroy(); reject(new ResearchHttpError(status, authenticated)); return;
+          }
           const max = options.maxBytes ?? 4 * 1024 * 1024;
           if (Number(res.headers['content-length']) > max) {
             res.destroy(); reject(new Error('El documento supera el tamaño permitido.')); return;

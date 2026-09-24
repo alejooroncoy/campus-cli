@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { publicHttpsUrl, researchDownload } from './research-http.js';
+import { officialResearchPdf } from './research-official-sources.js';
 import { extractPdfIndexBytes, type IndexedPdfPage } from './research-pdf.js';
 
 const MAX_DOCUMENTS = 8;
@@ -126,7 +127,7 @@ export class ResearchPdfIndex {
 
   private async prepare(record: IndexRecord): Promise<void> {
     try {
-      const downloaded = await (this.dependencies.download ?? researchDownload)(record.requestedUrl,
+      const downloaded = await (this.dependencies.download ?? researchDownload)(officialResearchPdf(record.requestedUrl) ?? record.requestedUrl,
         { maxBytes: 20 * 1024 * 1024, redirects: 4 });
       record.resolvedUrl = downloaded.url;
       record.retrievedAt = new Date().toISOString();

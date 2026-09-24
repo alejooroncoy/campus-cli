@@ -4,7 +4,7 @@ import dns from 'node:dns/promises';
 import https from 'node:https';
 import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
-import { researchDownload, researchJson, resolvedPublicHttpsUrl } from '../src/providers/academic/research-http.js';
+import { researchDownload, researchJson, resolvedPublicHttpsUrl, ResearchHttpError } from '../src/providers/academic/research-http.js';
 
 function mockHttp(t: TestContext, responses: Array<{ status: number; location?: string; body?: string; length?: string }>) {
   const requests: Array<{ url: URL; options: any }> = [];
@@ -113,4 +113,11 @@ test('public page authentication errors do not claim an API key was used', async
   mockHttp(t, [{ status: 401 }, { status: 403 }]);
   await assert.rejects(researchDownload('https://example.edu/article.html', { headers: { Accept: 'text/html' } }), /iniciar sesión/);
   await assert.rejects(researchDownload('https://example.edu/article.html', { headers: { Accept: 'text/html' } }), /lectura automática/);
+});
+
+test('the journal temporary 403 request limit is recognized by its bounded response', async t => {
+  t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
+  mockHttp(t, [{ status: 403, body: 'Acceso denegado temporalmente por exceso de peticiones.' }]);
+  await assert.rejects(researchDownload('https://revistas.uh.cu/revflacso/article/view/7514'),
+    (error: unknown) => error instanceof ResearchHttpError && error.rateLimited === true);
 });
