@@ -895,8 +895,11 @@ test('temporary publisher outage hands the verified PDF to the client without cl
   assert.equal(result.isError, undefined);
   assert.match(result.content[0].text, /source_temporarily_unavailable/);
   assert.match(result.content[0].text, /no leyó el contenido/i);
+  assert.equal(JSON.parse(result.content[0].text).downloadUrl,
+    'https://revistas.uh.cu/revflacso/article/download/7514/6400/9026');
   assert.equal(result.content[1].uri, 'https://revistas.uh.cu/revflacso/article/download/7514/6400/9026');
   assert.equal(result.content[1].mimeType, 'application/pdf');
+  assert.equal(result.content[1].name, 'Descargar PDF editorial');
 });
 
 test('successful academic reads always return the resolved document as a resource link', async () => {
