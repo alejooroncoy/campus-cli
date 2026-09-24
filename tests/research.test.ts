@@ -882,6 +882,23 @@ test('safe document-processing failures return a client resource link', async ()
   assert.equal(result.content[1].uri, 'https://repository.example.edu/thesis.docx');
 });
 
+test('temporary publisher outage hands the verified PDF to the client without claiming a read', async () => {
+  const handlers = new Map<string, any>();
+  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true,
+    validateResourceUrl: acceptTestResourceUrl,
+    readDocument: async () => { throw new ResearchHttpError(502); } });
+  const result = await handlers.get('campus_research_read_document')({
+    url: 'https://revistas.uh.cu/revflacso/article/view/7514', format: 'auto',
+  });
+  assert.equal(result.isError, undefined);
+  assert.match(result.content[0].text, /source_temporarily_unavailable/);
+  assert.match(result.content[0].text, /no leyó el contenido/i);
+  assert.equal(result.content[1].uri, 'https://revistas.uh.cu/revflacso/article/download/7514/6400/9026');
+  assert.equal(result.content[1].mimeType, 'application/pdf');
+});
+
 test('successful academic reads always return the resolved document as a resource link', async () => {
   const handlers = new Map<string, any>();
   registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
