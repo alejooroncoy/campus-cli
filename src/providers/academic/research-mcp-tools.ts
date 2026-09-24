@@ -219,8 +219,11 @@ export function registerResearchTools(server: McpServer, options: {
         return { content: [
           { type: 'text' as const, text: JSON.stringify({ status: 'resource_link',
             reason: 'source_temporarily_unavailable', url: link.uri,
-            guidance: `${message} Campus no leyó el contenido. El cliente puede intentar abrir esta ruta del editor; atribuye afirmaciones solo si logra leer las páginas.` }) },
-          link,
+            ...(publisherPdf ? { downloadUrl: link.uri } : {}),
+            guidance: publisherPdf
+              ? `${message} Campus no leyó el contenido. El cliente puede intentar descargar este PDF editorial y leer sus páginas antes de atribuirle afirmaciones.`
+              : `${message} Campus no leyó el contenido. El cliente puede intentar abrir la fuente y leerla antes de atribuirle afirmaciones.` }) },
+          publisherPdf ? { ...link, name: 'Descargar PDF editorial' } : link,
         ] };
       }
       if (resource && CLIENT_PROCESSING_ERRORS.test(message)) {
