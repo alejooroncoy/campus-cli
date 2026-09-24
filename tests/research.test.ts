@@ -837,6 +837,11 @@ test('indexed PDF verification reuses the parsed page and reports actual reading
   assert.equal(status.indexedPages, 2);
   assert.deepEqual(status.readPages, []);
   assert.deepEqual(status.verifiedEvidence, []);
+  assert.deepEqual(status.coverageAudit.counts, {
+    text_ready: 1, text_truncated: 0, no_extractable_text: 1, visualReviewRecommended: 0,
+  });
+  assert.equal(status.coverageAudit.pages, undefined);
+  assert.match(status.coverageAudit.meaning, /No demuestra que la página esté en blanco/);
   const otherAnalysis = index.start('student-a', { url });
   assert.equal(otherAnalysis.documentId, started.documentId);
   assert.notEqual(otherAnalysis.analysisId, started.analysisId);
