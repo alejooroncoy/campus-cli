@@ -12,6 +12,11 @@ import { pdfIndexAuditInput, pdfIndexInput, pdfIndexReadInput, pdfIndexSearchInp
 // Hosts may provide a shared parser limiter around background indexing.
 export { ResearchPdfIndex } from './research-pdf-index.js';
 export { extractPdfIndexBytes } from './research-pdf.js';
+// The hosted relay uses the same pinned-DNS, bounded downloader when it must
+// stage a public PDF for a ChatGPT file handoff.  Keeping this export beside
+// the MCP tools prevents a weaker second downloader from drifting into the
+// relay.
+export { researchDownload } from './research-http.js';
 
 const CLIENT_PROCESSING_ERRORS = /documento supera el tamaño permitido|Se requiere un PDF válido|contenido descomprimido supera el límite de análisis seguro|PDF superó el tiempo máximo de análisis|PDF no pudo procesarse dentro de los límites de memoria|lector PDF terminó sin devolver evidencia|No se pudo leer el PDF|No se pudo abrir el archivo ZIP|documento no contiene texto legible|EPUB no contiene capítulos HTML legibles|demasiadas secciones para analizarlo de forma segura|codificación no compatible/i;
 
