@@ -33,7 +33,11 @@ campus_research_read_pdf para recorrerlo: cada llamada descarga el PDF entero.
 Si el estudiante adjunta un PDF largo sin URL pública, usa
 campus_research_read_source_file en rangos concretos y declara cuáles leíste.
 Después verifica los fragmentos decisivos con campus_research_verify_evidence
-cuando haya URL pública: comprueba la página y la huella del documento. Nunca
+cuando haya URL pública: si ya preparaste un índice, pasa documentId, la URL
+original, la página y la huella para reutilizar el texto extraído sin descargar
+otra vez. campus_research_index_status distingue indexedPages de readPages y
+verifiedEvidence; usa esa cobertura real en la respuesta. Comprueba la página
+y la huella del documento. Nunca
 afirmes revisión integral por conocer totalPages. Nunca cites
 un resultado si verify_citation devuelve citeAllowed=false ni completes campos
 ausentes por inferencia. La verificación de fragmentos no evalúa si una

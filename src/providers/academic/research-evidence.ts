@@ -7,6 +7,8 @@ const evidenceFormat = z.enum(['auto', 'pdf', ...documentFormat.options.filter(f
 
 export const evidenceVerificationInput = z.object({
   url: z.string().url().max(4000),
+  documentId: z.string().uuid().optional()
+    .describe('ID de un índice PDF preparado. Reutiliza sus páginas y su SHA-256 sin descargar el PDF otra vez.'),
   excerpt: z.string().trim().min(10).max(4000)
     .describe('Fragmento atribuido a la fuente. Campus comprueba que aparezca en el texto extraído de la página o sección indicada.'),
   format: evidenceFormat.default('auto'),
@@ -17,6 +19,9 @@ export const evidenceVerificationInput = z.object({
   expectedSha256: z.string().regex(/^[a-f0-9]{64}$/i).optional()
     .describe('SHA-256 devuelto por la lectura anterior. Si el documento cambió, la evidencia se rechaza.'),
 }).superRefine((input, context) => {
+  if (input.documentId && input.page === undefined) {
+    context.addIssue({ code: 'custom', message: 'documentId requiere page.' });
+  }
   if ((input.page === undefined) === (input.section === undefined)) {
     context.addIssue({ code: 'custom', message: 'Indica exactamente page o section.' });
   }
@@ -93,6 +98,7 @@ export async function verifyResearchEvidence(
   dependencies: EvidenceDependencies = {},
 ) {
   const input = evidenceVerificationInput.parse(raw);
+  if (input.documentId) throw new Error('La verificación con documentId requiere el índice PDF de la sesión.');
   const readPdf = dependencies.readPdf ?? readResearchPdf;
   const readDocument = dependencies.readDocument ?? readResearchDocument;
   const document = input.page !== undefined

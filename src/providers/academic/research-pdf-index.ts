@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { publicHttpsUrl, researchDownload } from './research-http.js';
 import { officialResearchPdf } from './research-official-sources.js';
 import { extractPdfIndexBytes, type IndexedPdfPage } from './research-pdf.js';
+import { evidenceVerificationInput, verifyResearchEvidence } from './research-evidence.js';
 
 const MAX_DOCUMENTS = 8;
 const MAX_DOCUMENTS_PER_SCOPE = 2;
@@ -32,6 +33,8 @@ type IndexRecord = {
   totalPages: number | null;
   indexedPages: number;
   pages: IndexedPdfPage[];
+  readPages: Set<number>;
+  verifiedEvidence: Array<{ page: number; evidenceId: string }>;
   outline: OutlineEntry[];
   error?: string;
   lastAccess: number;
@@ -94,6 +97,8 @@ export class ResearchPdfIndex {
       totalPages: record.totalPages, indexedPages: record.indexedPages,
       coverage: record.totalPages === null ? 'unknown' : `${record.indexedPages}/${record.totalPages}`,
       needsOcrPages, truncatedPages, outline: record.outline,
+      readPages: [...record.readPages].sort((a, b) => a - b),
+      verifiedEvidence: record.verifiedEvidence,
       ...(record.error ? { error: record.error } : {}),
       guidance: record.status === 'ready'
         ? 'El índice localiza páginas, pero no interpreta resultados. Lee las páginas originales y verifica los fragmentos antes de citar; OCR, tablas, fórmulas e imágenes requieren revisión adicional.'
@@ -118,7 +123,7 @@ export class ResearchPdfIndex {
     }
     const record: IndexRecord = {
       id: randomUUID(), scope, requestedUrl: url, status: 'downloading', totalPages: null,
-      indexedPages: 0, pages: [], outline: [], lastAccess: Date.now(),
+      indexedPages: 0, pages: [], readPages: new Set(), verifiedEvidence: [], outline: [], lastAccess: Date.now(),
     };
     this.records.set(record.id, record);
     void this.prepare(record);
@@ -201,8 +206,38 @@ export class ResearchPdfIndex {
     if (record.status !== 'ready') return { ...this.summary(record), pages: [] };
     if (input.startPage > record.totalPages!) throw new Error('La página inicial supera el documento.');
     const pages = record.pages.slice(input.startPage - 1, input.startPage - 1 + input.pageCount);
+    for (const page of pages) record.readPages.add(page.page);
     return { ...this.summary(record), pages,
       nextPage: pages.at(-1)!.page < record.totalPages! ? pages.at(-1)!.page + 1 : null };
+  }
+
+  async verify(scope: string, raw: z.input<typeof evidenceVerificationInput>) {
+    const input = evidenceVerificationInput.parse(raw);
+    if (!input.documentId || input.page === undefined) throw new Error('Indica documentId y page para verificar desde el índice.');
+    const record = this.find(scope, input.documentId);
+    if (record.status !== 'ready') throw new Error('El índice PDF aún no está listo para verificar citas.');
+    if (input.url !== record.requestedUrl) throw new Error('La URL no corresponde al documentId de este índice.');
+    if (input.page > record.totalPages!) throw new Error('La página indicada supera el documento.');
+    const page = record.pages[input.page - 1]!;
+    const { documentId: _documentId, ...verification } = input;
+    const result = await verifyResearchEvidence(verification, {
+      readPdf: async () => ({
+        requestedUrl: record.requestedUrl,
+        resolvedUrl: record.resolvedUrl!,
+        retrievedAt: record.retrievedAt!,
+        sha256: record.sha256!,
+        totalPages: record.totalPages!,
+        pages: [page],
+        nextPage: page.page < record.totalPages! ? page.page + 1 : null,
+        guidance: [],
+      }),
+    });
+    if (result.status === 'verified' && result.evidenceId
+      && !record.verifiedEvidence.some(item => item.evidenceId === result.evidenceId)) {
+      record.verifiedEvidence.push({ page: input.page, evidenceId: result.evidenceId });
+      if (record.verifiedEvidence.length > 100) record.verifiedEvidence.shift();
+    }
+    return { ...result, verificationSource: 'prepared_pdf_index', documentId: record.id };
   }
 }
 

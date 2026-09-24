@@ -819,6 +819,58 @@ test('long PDF index reuses one download, limits account access, and keeps page 
   assert.equal(downloads, 1);
 });
 
+test('indexed PDF verification reuses the parsed page and reports actual reading separately from indexing', async () => {
+  const url = 'https://repository.example.edu/article.pdf';
+  let downloads = 0;
+  const index = new ResearchPdfIndex({ download: async () => {
+    downloads++;
+    return { bytes: pdfFixture(), url, contentType: 'application/pdf' };
+  } });
+  const started = index.start('student-a', { url });
+  let status = index.status('student-a', { documentId: started.documentId });
+  for (let attempt = 0; attempt < 100 && status.status !== 'ready'; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 20));
+    status = index.status('student-a', { documentId: started.documentId });
+  }
+  assert.equal(status.status, 'ready');
+  assert.equal(status.indexedPages, 2);
+  assert.deepEqual(status.readPages, []);
+  assert.deepEqual(status.verifiedEvidence, []);
+
+  index.read('student-a', { documentId: started.documentId, startPage: 1, pageCount: 1 });
+  const verified = await index.verify('student-a', { documentId: started.documentId, url, page: 1,
+    excerpt: 'Academic evidence on page one.', expectedSha256: status.sha256! });
+  assert.equal(verified.status, 'verified');
+  assert.equal(verified.verificationSource, 'prepared_pdf_index');
+  assert.equal(downloads, 1);
+  status = index.status('student-a', { documentId: started.documentId });
+  assert.deepEqual(status.readPages, [1]);
+  assert.deepEqual(status.verifiedEvidence, [{ page: 1, evidenceId: verified.evidenceId }]);
+
+  const handlers = new Map<string, any>();
+  registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
+    handlers.set(name, handler);
+  } } as any, { authorize: () => true, pdfIndex: index, indexScope: 'student-a',
+    validateResourceUrl: acceptTestResourceUrl });
+  const toolResult = await handlers.get('campus_research_verify_evidence')({
+    documentId: started.documentId, url, page: 1, excerpt: 'Academic evidence on page one.',
+    expectedSha256: status.sha256,
+  });
+  assert.equal(JSON.parse(toolResult.content[0].text).verificationSource, 'prepared_pdf_index');
+  assert.equal(downloads, 1);
+
+  const wrongHash = await index.verify('student-a', { documentId: started.documentId, url, page: 1,
+    excerpt: 'Academic evidence on page one.', expectedSha256: '0'.repeat(64) });
+  assert.equal(wrongHash.status, 'rejected');
+  assert.equal(wrongHash.reason, 'document_hash_mismatch');
+  assert.equal(downloads, 1);
+  assert.rejects(index.verify('student-b', { documentId: started.documentId, url, page: 1,
+    excerpt: 'Academic evidence on page one.' }), /no está disponible/);
+  assert.rejects(index.verify('student-a', { documentId: started.documentId,
+    url: 'https://repository.example.edu/other.pdf', page: 1,
+    excerpt: 'Academic evidence on page one.' }), /no corresponde/);
+});
+
 test('one account cannot evict another account PDF index when cache capacity is full', async () => {
   const index = new ResearchPdfIndex({
     download: async url => ({ bytes: pdfFixture(), url, contentType: 'application/pdf' }),
