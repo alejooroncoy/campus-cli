@@ -40,6 +40,10 @@ Si campus_research_read_pdf o campus_research_read_document devuelve
 status=client_processing_required junto con un resource_link, entrega ese enlace
 original al cliente compatible para que lo abra o procese directamente. No pidas
 a Campus que continúe descargándolo, lo reintente ni lo almacene.
+Si el editor falla pero el estudiante adjunta el PDF descargado, usa
+campus_research_read_source_file para extraer páginas del archivo. Un enlace
+de descarga por sí solo no demuestra lectura; comprueba título, autores y
+publicación dentro del PDF antes de atribuirlo a su URL de origen.
 
 Para guardar referencias usa campus_mendeley_list, campus_mendeley_list_groups,
 campus_mendeley_list_group_documents, campus_mendeley_save_doi y
