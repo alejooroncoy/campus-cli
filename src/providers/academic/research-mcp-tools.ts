@@ -8,6 +8,10 @@ import { publicHttpsUrl, resolvedPublicHttpsUrl } from './research-http.js';
 import { pdfIndexInput, pdfIndexReadInput, pdfIndexSearchInput, pdfIndexStatusInput,
   researchPdfIndex, type ResearchPdfIndex } from './research-pdf-index.js';
 
+// Hosts may provide a shared parser limiter around background indexing.
+export { ResearchPdfIndex } from './research-pdf-index.js';
+export { extractPdfIndexBytes } from './research-pdf.js';
+
 const CLIENT_PROCESSING_ERRORS = /documento supera el tamaño permitido|Se requiere un PDF válido|contenido descomprimido supera el límite de análisis seguro|PDF superó el tiempo máximo de análisis|PDF no pudo procesarse dentro de los límites de memoria|lector PDF terminó sin devolver evidencia|No se pudo leer el PDF|No se pudo abrir el archivo ZIP|documento no contiene texto legible|EPUB no contiene capítulos HTML legibles|demasiadas secciones para analizarlo de forma segura|codificación no compatible/i;
 
 // resource_link is fetched by the MCP client, outside Campus's pinned-DNS
