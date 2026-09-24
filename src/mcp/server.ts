@@ -41,8 +41,12 @@ cuando haya URL pública: si ya preparaste un índice, pasa documentId, analysis
 original, la página y la huella para reutilizar el texto extraído sin descargar
 otra vez. campus_research_index_status distingue indexedPages de readPages y
 verifiedEvidence; usa esa cobertura real en la respuesta. Comprueba la página
-y la huella del documento. Nunca
-afirmes revisión integral por conocer totalPages. Nunca cites
+y la huella del documento.
+Para varias citas literales de un PDF indexado, usa
+campus_research_verify_quotes con todas las citas que planeas incluir, hasta
+ocho por llamada; conserva solo las verificadas y no amplíes una cita con
+palabras que no estaban en el fragmento cotejado. Nunca afirmes revisión
+integral por conocer totalPages. Nunca cites
 un resultado si verify_citation devuelve citeAllowed=false ni completes campos
 ausentes por inferencia. La verificación de fragmentos no evalúa si una
 inferencia es correcta: la IA cliente debe clasificar el respaldo y conservar
