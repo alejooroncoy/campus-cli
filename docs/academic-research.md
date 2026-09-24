@@ -14,6 +14,10 @@ Las herramientas recuperan registros bibliográficos y evidencia de documentos r
 | `campus_research_read_pdf` | Texto de un PDF HTTPS público, separado por páginas, con URL final, fecha de lectura y SHA-256. |
 | `campus_research_read_document` | Evidencia por secciones desde PDF, HTML, texto, Markdown, XML/JATS, DOCX o EPUB públicos. Los ZIP requieren indicar `docx` o `epub`. |
 | `campus_research_verify_evidence` | Comprueba que un fragmento aparezca en la página o sección indicada y que la huella SHA-256 siga siendo la misma; devuelve un `evidenceId` estable. |
+| `campus_research_index_pdf` | Inicia en segundo plano la extracción única de un PDF público extenso y devuelve un `documentId`. |
+| `campus_research_index_status` | Informa cobertura, índice de capítulos si el PDF lo incluye, páginas sin texto y páginas truncadas. |
+| `campus_research_search_index` | Busca términos en el texto extraído y devuelve páginas candidatas con fragmentos; los resultados aún deben leerse. |
+| `campus_research_read_indexed_pdf` | Abre páginas concretas del índice temporal, sin volver a descargar ni analizar el PDF. |
 
 El servidor MCP local registra estas herramientas y exige una sesión Blackboard válida (`campus login`). Las credenciales Blackboard nunca se envían a los proveedores de investigación. Reinicia el servidor MCP después de compilar para que el cliente descubra las herramientas nuevas. No se añaden comandos CLI de investigación en esta versión.
 
@@ -101,6 +105,10 @@ Luego pasa una URL PDF devuelta por el catálogo a `campus_research_read_pdf`, c
 7. Redacta la síntesis y referencias usando únicamente metadatos comprobados. La guía APA 7 existente puede ayudar con el formato cuando esté disponible en el host.
 
 El lector devuelve evidencia para que el agente analice; no genera una revisión metodológica automática. Máximo 20 MB, 20 páginas por llamada, 15 000 caracteres por página y 100 000 por respuesta. `truncated` señala texto omitido dentro de una página, que requiere otra forma de lectura. No realiza OCR ni conserva la disposición de tablas, columnas, fórmulas o imágenes. Los números devueltos son páginas del archivo PDF, que pueden diferir de los impresos. Las páginas sin texto se marcan `needsOcr` (también pueden ser páginas en blanco).
+
+Para un PDF extenso, inicia `campus_research_index_pdf` con su URL y consulta `campus_research_index_status` con el `documentId` hasta obtener `status=ready` y `coverage=N/N`. Luego usa `campus_research_search_index` para localizar páginas y `campus_research_read_indexed_pdf` para leerlas antes de atribuir afirmaciones. La búsqueda es léxica: un resultado indica coincidencia de palabras, no que la página sostenga una conclusión. Para un resumen de todo el documento, revisa todas las secciones pertinentes y señala cualquier página `needsOcr` o `truncated`; el índice por sí mismo no equivale a una lectura interpretativa integral.
+
+La primera versión admite PDF públicos de hasta 20 MB y 500 páginas. Extrae texto en un worker con límite de memoria y 180 segundos; el índice se guarda solo en memoria, separado por cuenta, por una hora de inactividad, con hasta cuatro documentos y dos análisis simultáneos por proceso. Un reinicio o una solicitud que llegue a otra instancia puede perderlo: en ese caso vuelve a iniciarlo. No ejecuta OCR ni reconstruye tablas, fórmulas o imágenes. Para citas, pasa el fragmento y `sha256` a `campus_research_verify_evidence`, que vuelve a descargar la fuente para comprobar que sigue siendo la misma versión.
 
 ## Integración en otros hosts
 

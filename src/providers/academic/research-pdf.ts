@@ -14,6 +14,7 @@ export type PdfEvidence = {
   pages: Array<{ page: number; text: string; truncated: boolean; needsOcr: boolean }>;
   nextPage: number | null;
 };
+export type IndexedPdfPage = PdfEvidence['pages'][number];
 
 export type PdfSource = {
   requestedUrl: string;
@@ -26,34 +27,71 @@ export type PdfSource = {
 const PARSER = `
 const { parentPort, workerData } = require('node:worker_threads');
 (async () => {
+  const pageText = async page => {
+    const content = await page.getTextContent();
+    let raw = '';
+    let previous = null;
+    for (const item of content.items) {
+      if (!('str' in item)) continue;
+      let separator = '';
+      if (previous) {
+        const sameLine = Math.abs(item.transform[5] - previous.transform[5])
+          <= Math.max(item.height || 0, previous.height || 0) * 0.5;
+        const gap = item.transform[4] - (previous.transform[4] + previous.width);
+        if (previous.hasEOL || !sameLine) separator = '\\n';
+        else if (gap > Math.max(1, (item.height || previous.height || 0) * 0.15)) separator = ' ';
+      }
+      raw += separator + item.str;
+      previous = item;
+    }
+    return raw.trim();
+  };
   const { getDocument } = await import(workerData.moduleUrl);
   const task = getDocument({ data: new Uint8Array(workerData.bytes), isEvalSupported: false,
     useSystemFonts: false, disableFontFace: true, verbosity: 0 });
   try {
     const doc = await task.promise;
+    if (workerData.indexAll) {
+      if (doc.numPages > 500) throw new Error('El PDF supera el límite de 500 páginas para el índice.');
+      const outline = await doc.getOutline().catch(() => null);
+      const headings = [];
+      const collect = async (items, depth) => {
+        if (depth > 8) return;
+        for (const item of items || []) {
+          if (headings.length >= 120) return;
+          let page = null;
+          try {
+            const dest = typeof item.dest === 'string' ? await doc.getDestination(item.dest) : item.dest;
+            if (dest?.[0]) page = (await doc.getPageIndex(dest[0])) + 1;
+          } catch {}
+          if (page && typeof item.title === 'string') headings.push({ title: item.title.slice(0, 200), page, depth });
+          await collect(item.items, depth + 1);
+        }
+      };
+      await collect(outline, 0);
+      parentPort.postMessage({ metadata: { totalPages: doc.numPages, outline: headings } });
+      let batch = [];
+      for (let n = 1; n <= doc.numPages; n++) {
+        const page = await doc.getPage(n);
+        const raw = await pageText(page);
+        const text = raw.slice(0, 15000);
+        batch.push({ page: n, text, truncated: raw.length > text.length, needsOcr: raw.length === 0 });
+        page.cleanup();
+        if (batch.length === 10 || n === doc.numPages) {
+          parentPort.postMessage({ batch });
+          batch = [];
+        }
+      }
+      parentPort.postMessage({ done: true });
+      return;
+    }
     if (workerData.startPage > doc.numPages) throw new Error('La página inicial supera el documento.');
     const end = Math.min(doc.numPages, workerData.startPage + workerData.pageCount - 1);
     const pages = [];
     let remaining = 100000;
     for (let n = workerData.startPage; n <= end; n++) {
       const page = await doc.getPage(n);
-      const content = await page.getTextContent();
-      let raw = '';
-      let previous = null;
-      for (const item of content.items) {
-        if (!('str' in item)) continue;
-        let separator = '';
-        if (previous) {
-          const sameLine = Math.abs(item.transform[5] - previous.transform[5])
-            <= Math.max(item.height || 0, previous.height || 0) * 0.5;
-          const gap = item.transform[4] - (previous.transform[4] + previous.width);
-          if (previous.hasEOL || !sameLine) separator = '\\n';
-          else if (gap > Math.max(1, (item.height || previous.height || 0) * 0.15)) separator = ' ';
-        }
-        raw += separator + item.str;
-        previous = item;
-      }
-      raw = raw.trim();
+      const raw = await pageText(page);
       const limit = Math.min(15000, remaining);
       const text = raw.slice(0, limit);
       remaining -= text.length;
@@ -64,9 +102,50 @@ const { parentPort, workerData } = require('node:worker_threads');
     const last = pages[pages.length - 1].page;
     parentPort.postMessage({ result: { totalPages: doc.numPages, pages, nextPage: last < doc.numPages ? last + 1 : null } });
   } finally { await task.destroy(); }
-})().catch(error => parentPort.postMessage({ error: error instanceof Error && error.message === 'La página inicial supera el documento.'
+})().catch(error => parentPort.postMessage({ error: error instanceof Error &&
+  (error.message === 'La página inicial supera el documento.' || error.message === 'El PDF supera el límite de 500 páginas para el índice.')
   ? error.message : 'No se pudo leer el PDF. Puede estar dañado o cifrado.' }));
 `;
+
+/** Stream page batches from one bounded PDF.js parse; MCP receives page text only when requested. */
+export async function extractPdfIndexBytes(bytes: Uint8Array, onEvent: (event: {
+  metadata?: { totalPages: number; outline: Array<{ title: string; page: number; depth: number }> };
+  batch?: IndexedPdfPage[];
+}) => void): Promise<void> {
+  if (bytes.length > 20 * 1024 * 1024 || Buffer.from(bytes.subarray(0, 5)).toString() !== '%PDF-') {
+    throw new Error('Se requiere un PDF válido de hasta 20 MB; no se aceptan páginas de acceso o HTML.');
+  }
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(PARSER, {
+      eval: true, workerData: { bytes, indexAll: true,
+        moduleUrl: pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.mjs')).href },
+      resourceLimits: { maxOldGenerationSizeMb: 256, maxYoungGenerationSizeMb: 48 },
+      stdout: true, stderr: true,
+    });
+    worker.stdout?.resume();
+    worker.stderr?.resume();
+    let settled = false;
+    const finish = (error?: Error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      void worker.terminate();
+      if (error) reject(error);
+      else resolve();
+    };
+    const timer = setTimeout(() => finish(new Error('El índice PDF superó el tiempo máximo de análisis (180 segundos).')), 180_000);
+    worker.on('message', message => {
+      if (message.error) finish(new Error(message.error));
+      else if (message.done) finish();
+      else {
+        try { onEvent(message); }
+        catch { finish(new Error('No se pudo conservar el índice PDF.')); }
+      }
+    });
+    worker.once('error', () => finish(new Error('El índice PDF superó los límites de memoria.')));
+    worker.once('exit', () => finish(new Error('El lector PDF terminó antes de completar el índice.')));
+  });
+}
 
 export async function extractPdfBytes(bytes: Uint8Array, startPage = 1, pageCount = 5): Promise<PdfEvidence> {
   pdfInput.omit({ url: true }).parse({ startPage, pageCount });

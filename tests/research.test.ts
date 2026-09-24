@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ResearchService, normalizeDoi, scholarSearchLinks } from '../src/providers/academic/research-service.js';
 import { assertPublicAddress, publicHttpsUrl, ResearchHttpError } from '../src/providers/academic/research-http.js';
-import { extractPdfBytes } from '../src/providers/academic/research-pdf.js';
+import { extractPdfBytes, extractPdfIndexBytes } from '../src/providers/academic/research-pdf.js';
+import { ResearchPdfIndex } from '../src/providers/academic/research-pdf-index.js';
 import { registerResearchTools } from '../src/providers/academic/research-mcp-tools.js';
 import { verifyResearchEvidence } from '../src/providers/academic/research-evidence.js';
 
@@ -568,7 +569,7 @@ test('research tools fail closed before all external operations', async () => {
     registerResearchTools({ registerTool(name: string, _config: unknown, handler: unknown) {
       handlers.set(name, handler);
     } } as any, { authorize } as any);
-    assert.equal(handlers.size, 8);
+    assert.equal(handlers.size, 12);
     for (const handler of handlers.values()) await assert.rejects(handler({}), /autorizado|auth unavailable/);
   }
 });
@@ -621,6 +622,30 @@ function pdfFixture() {
   return Buffer.from(pdf);
 }
 
+function longPdfFixture(pageCount: number) {
+  const objects: string[] = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    `<< /Type /Pages /Kids [${Array.from({ length: pageCount }, (_, i) => `${i + 3} 0 R`).join(' ')}] /Count ${pageCount} >>`,
+  ];
+  const fontId = pageCount + 3;
+  for (let page = 1; page <= pageCount; page++) {
+    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 600 800] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${fontId + page} 0 R >>`);
+  }
+  objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+  for (let page = 1; page <= pageCount; page++) {
+    const line = `Page ${page} contains a distinct research finding.`;
+    const stream = `BT /F1 12 Tf 20 700 Td (${line}) Tj ET`;
+    objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+  }
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  objects.forEach((body, i) => { offsets.push(Buffer.byteLength(pdf)); pdf += `${i + 1} 0 obj\n${body}\nendobj\n`; });
+  const xref = Buffer.byteLength(pdf);
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (const offset of offsets.slice(1)) pdf += `${String(offset).padStart(10, '0')} 00000 n \n`;
+  return Buffer.from(`${pdf}trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+}
+
 test('real PDF parser returns page evidence, continuation, and explicit OCR need', async () => {
   const first = await extractPdfBytes(pdfFixture(), 1, 1);
   assert.equal(first.totalPages, 2);
@@ -630,6 +655,55 @@ test('real PDF parser returns page evidence, continuation, and explicit OCR need
   const second = await extractPdfBytes(pdfFixture(), 2, 1);
   assert.equal(second.pages[0].needsOcr, true);
   assert.equal(second.nextPage, null);
+});
+
+test('PDF index parser extracts every page once and reports OCR gaps', async () => {
+  const events: any[] = [];
+  await extractPdfIndexBytes(pdfFixture(), event => events.push(event));
+  assert.equal(events[0].metadata.totalPages, 2);
+  assert.equal(events.flatMap(event => event.batch ?? []).length, 2);
+  assert.equal(events.flatMap(event => event.batch ?? [])[1].needsOcr, true);
+});
+
+test('PDF index processes a 300-page text fixture with exact coverage', async () => {
+  const batches: any[] = [];
+  const metadata: any[] = [];
+  await extractPdfIndexBytes(longPdfFixture(300), event => {
+    if (event.metadata) metadata.push(event.metadata);
+    if (event.batch) batches.push(...event.batch);
+  });
+  assert.equal(metadata[0].totalPages, 300);
+  assert.equal(batches.length, 300);
+  assert.match(batches[299].text, /Page 300 contains/);
+});
+
+test('long PDF index reuses one download, limits account access, and keeps page evidence', async () => {
+  let downloads = 0;
+  const index = new ResearchPdfIndex({
+    download: async () => {
+      downloads++;
+      return { bytes: pdfFixture(), url: 'https://repository.example.edu/final.pdf', contentType: 'application/pdf' };
+    },
+  });
+  const started = index.start('student-a', { url: 'https://repository.example.edu/article.pdf' });
+  assert.equal(started.status, 'downloading');
+  assert.equal(index.start('student-a', { url: 'https://repository.example.edu/article.pdf' }).documentId, started.documentId);
+  assert.throws(() => index.status('student-b', { documentId: started.documentId }), /no está disponible/);
+  let result = index.status('student-a', { documentId: started.documentId });
+  for (let attempt = 0; attempt < 100 && result.status !== 'ready'; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 20));
+    result = index.status('student-a', { documentId: started.documentId });
+  }
+  assert.equal(result.status, 'ready');
+  assert.equal(result.coverage, '2/2');
+  assert.deepEqual(result.needsOcrPages, [2]);
+  assert.match(result.sha256!, /^[a-f0-9]{64}$/);
+  const found = index.search('student-a', { documentId: started.documentId, query: 'academic evidence' });
+  assert.deepEqual(found.matches.map(match => match.page), [1]);
+  const read = index.read('student-a', { documentId: started.documentId, startPage: 1, pageCount: 2 });
+  assert.match(read.pages[0].text, /Academic evidence/);
+  assert.equal(read.pages[1].needsOcr, true);
+  assert.equal(downloads, 1);
 });
 
 test('PDF parser rejects HTML login pages, malformed PDFs, and invalid page ranges', async () => {
