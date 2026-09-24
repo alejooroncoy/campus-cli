@@ -23,7 +23,14 @@ export const sourceFilePdfInput = z.object({
 });
 export type PdfEvidence = {
   totalPages: number;
-  pages: Array<{ page: number; text: string; truncated: boolean; needsOcr: boolean }>;
+  pages: Array<{
+    page: number;
+    text: string;
+    truncated: boolean;
+    needsOcr: boolean;
+    /** These are text-detected leads, not proof that the visual object was inspected. */
+    visualSignals?: Array<'figure_or_table_marker' | 'box_marker'>;
+  }>;
   nextPage: number | null;
 };
 export type IndexedPdfPage = PdfEvidence['pages'][number];
@@ -87,7 +94,11 @@ const { parentPort, workerData } = require('node:worker_threads');
         const page = await doc.getPage(n);
         const raw = await pageText(page);
         const text = raw.slice(0, 15000);
-        batch.push({ page: n, text, truncated: raw.length > text.length, needsOcr: raw.length === 0 });
+        const visualSignals = [
+          ...(/(?:^|\\n)\\s*(?:figure|fig\\.|table)\\s+[A-Z]?\\d/m.test(raw) ? ['figure_or_table_marker'] : []),
+          ...( /(?:^|\\n)\\s*box\\s+[A-Z]?\\d/m.test(raw) ? ['box_marker'] : []),
+        ];
+        batch.push({ page: n, text, truncated: raw.length > text.length, needsOcr: raw.length === 0, visualSignals });
         page.cleanup();
         if (batch.length === 10 || n === doc.numPages) {
           parentPort.postMessage({ batch });
@@ -107,7 +118,11 @@ const { parentPort, workerData } = require('node:worker_threads');
       const limit = Math.min(15000, remaining);
       const text = raw.slice(0, limit);
       remaining -= text.length;
-      pages.push({ page: n, text, truncated: raw.length > text.length, needsOcr: raw.length === 0 });
+      const visualSignals = [
+        ...( /(?:^|\\n)\\s*(?:figure|fig\\.|table)\\s+[A-Z]?\\d/m.test(raw) ? ['figure_or_table_marker'] : []),
+        ...( /(?:^|\\n)\\s*box\\s+[A-Z]?\\d/m.test(raw) ? ['box_marker'] : []),
+      ];
+      pages.push({ page: n, text, truncated: raw.length > text.length, needsOcr: raw.length === 0, visualSignals });
       page.cleanup();
       if (remaining === 0) break;
     }

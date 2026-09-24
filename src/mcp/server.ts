@@ -34,6 +34,13 @@ puede compartirse entre consultas, pero readPages y verifiedEvidence deben
 corresponder solo al análisis actual. Sin analysisId el registro es acumulativo
 y no prueba lo leído para esta respuesta. No repitas
 campus_research_read_pdf para recorrerlo: cada llamada descarga el PDF entero.
+Antes de afirmar una revisión amplia, usa campus_research_audit_indexed_pdf.
+El manifiesto separa texto extraíble, truncación y páginas con señales de
+figuras o tablas que requieren inspección visual. Una página sin texto
+extraíble no prueba que esté vacía ni que haya fallado OCR: abre la página
+original antes de decidirlo. Declara páginas leídas, páginas inspeccionadas
+visualmente y el trabajo pendiente; indexar todas las páginas no equivale a
+lectura ni revisión crítica integral.
 Si el estudiante adjunta un PDF largo sin URL pública, usa
 campus_research_read_source_file en rangos concretos y declara cuáles leíste.
 Después verifica los fragmentos decisivos con campus_research_verify_evidence
