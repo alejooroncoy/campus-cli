@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { researchDownload } from './research-http.js';
+import { officialResearchPdf } from './research-official-sources.js';
 
 export const pdfInput = z.object({
   url: z.string().url().max(4000),
@@ -182,7 +183,8 @@ export async function extractPdfBytes(bytes: Uint8Array, startPage = 1, pageCoun
 
 export async function readResearchPdf(raw: z.input<typeof pdfInput>) {
   const { url, startPage, pageCount } = pdfInput.parse(raw);
-  const downloaded = await researchDownload(url, { maxBytes: 20 * 1024 * 1024, redirects: 4 });
+  const downloaded = await researchDownload(officialResearchPdf(url) ?? url,
+    { maxBytes: 20 * 1024 * 1024, redirects: 4 });
   return readResearchPdfBytes(downloaded.bytes, { requestedUrl: url, resolvedUrl: downloaded.url }, startPage, pageCount);
 }
 
