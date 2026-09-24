@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { ResearchService, normalizeDoi, scholarSearchLinks } from '../src/providers/academic/research-service.js';
 import { assertPublicAddress, publicHttpsUrl, ResearchHttpError } from '../src/providers/academic/research-http.js';
 import { extractPdfBytes, extractPdfIndexBytes, readResearchSourceFile } from '../src/providers/academic/research-pdf.js';
@@ -876,6 +879,51 @@ test('the source-file reader advertises a client file parameter and returns only
   });
   assert.equal(result.content.length, 1);
   assert.match(result.content[0].text, /Evidence/);
+});
+
+test('MCP SDK client discovers and reads an attached research PDF end to end', async () => {
+  const server = new McpServer({ name: 'campus-research-test', version: '1.0.0' });
+  const client = new Client({ name: 'research-test-client', version: '1.0.0' });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  const signedUrl = 'https://files.example.edu/article.pdf?opaque=private';
+  const bytes = pdfFixture();
+  let authorized = 0;
+  registerResearchTools(server, {
+    authorize: () => { authorized++; return true; },
+    readSourceFile: input => readResearchSourceFile(input, { download: async (url, options) => {
+      assert.equal(url, signedUrl);
+      assert.equal(options.maxBytes, 20 * 1024 * 1024);
+      return { bytes, url, contentType: 'application/pdf' };
+    } }),
+  });
+  try {
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    const listed = await client.listTools();
+    const fileTool = listed.tools.find(tool => tool.name === 'campus_research_read_source_file');
+    assert.ok(fileTool);
+    assert.deepEqual(fileTool._meta?.['openai/fileParams'], ['source_file']);
+    assert.deepEqual(fileTool.inputSchema.properties?.source_file?.required, ['download_url', 'file_id']);
+
+    const response = await client.callTool({ name: 'campus_research_read_source_file', arguments: {
+      source_file: { download_url: signedUrl, file_id: 'file_private', mime_type: 'application/pdf' },
+      sourceUrl: 'https://revistas.uh.cu/revflacso/article/view/7514',
+      pageCount: 2,
+    } });
+    assert.equal(response.isError, undefined);
+    assert.equal(response.content.length, 1);
+    assert.equal(response.content[0].type, 'text');
+    const value = JSON.parse(response.content[0].text);
+    assert.equal(value.sourceKind, 'client_file');
+    assert.equal(value.totalPages, 2);
+    assert.match(value.pages[0].text, /Academic evidence on page one/);
+    assert.equal(value.sourceIdentityVerified, false);
+    assert.ok(authorized > 0);
+    assert.doesNotMatch(JSON.stringify(response), /opaque=private|file_private/);
+  } finally {
+    await client.close();
+    await server.close();
+  }
 });
 
 test('an invalid PDF page range stays an input error instead of a client handoff', async () => {
