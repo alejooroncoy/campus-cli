@@ -706,6 +706,25 @@ test('long PDF index reuses one download, limits account access, and keeps page 
   assert.equal(downloads, 1);
 });
 
+test('one account cannot evict another account PDF index when cache capacity is full', async () => {
+  const index = new ResearchPdfIndex({
+    download: async url => ({ bytes: pdfFixture(), url, contentType: 'application/pdf' }),
+    extract: async (_bytes, onEvent) => {
+      onEvent({ metadata: { totalPages: 1, outline: [] } });
+      onEvent({ batch: [{ page: 1, text: 'Evidence from source.', truncated: false, needsOcr: false }] });
+    },
+  });
+  const ids: string[] = [];
+  for (let account = 0; account < 8; account++) {
+    const started = index.start(`student-${account}`, { url: `https://example.edu/thesis-${account}.pdf` });
+    ids.push(started.documentId);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(index.status(`student-${account}`, { documentId: started.documentId }).status, 'ready');
+  }
+  assert.throws(() => index.start('student-8', { url: 'https://example.edu/another.pdf' }), /ocupados/);
+  assert.equal(index.status('student-0', { documentId: ids[0] }).status, 'ready');
+});
+
 test('PDF parser rejects HTML login pages, malformed PDFs, and invalid page ranges', async () => {
   await assert.rejects(extractPdfBytes(Buffer.from('<html>login</html>')), /PDF válido/);
   await assert.rejects(extractPdfBytes(Buffer.from('%PDF-broken')), /No se pudo leer/);

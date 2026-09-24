@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { publicHttpsUrl, researchDownload } from './research-http.js';
 import { extractPdfIndexBytes, type IndexedPdfPage } from './research-pdf.js';
 
-const MAX_DOCUMENTS = 4;
+const MAX_DOCUMENTS = 8;
+const MAX_DOCUMENTS_PER_SCOPE = 2;
 const MAX_ACTIVE = 2;
 const IDLE_MS = 60 * 60 * 1000;
 
@@ -60,10 +61,11 @@ export class ResearchPdfIndex {
     }
   }
 
-  private makeRoom() {
-    while (this.records.size >= MAX_DOCUMENTS) {
+  private makeRoom(scope: string) {
+    while (this.records.size >= MAX_DOCUMENTS
+      || [...this.records.values()].filter(record => record.scope === scope).length >= MAX_DOCUMENTS_PER_SCOPE) {
       const evictable = [...this.records.values()]
-        .filter(record => record.status === 'ready' || record.status === 'failed')
+        .filter(record => record.scope === scope && (record.status === 'ready' || record.status === 'failed'))
         .sort((a, b) => a.lastAccess - b.lastAccess)[0];
       if (!evictable) break;
       this.records.delete(evictable.id);
@@ -108,7 +110,7 @@ export class ResearchPdfIndex {
       existing.lastAccess = Date.now();
       return this.summary(existing);
     }
-    this.makeRoom();
+    this.makeRoom(scope);
     if (this.records.size >= MAX_DOCUMENTS
       || [...this.records.values()].filter(record => record.status === 'downloading' || record.status === 'indexing').length >= MAX_ACTIVE) {
       throw new Error('Los lectores de documentos extensos están ocupados. Intenta de nuevo en unos minutos.');
