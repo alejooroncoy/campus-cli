@@ -27,7 +27,13 @@ skills-lock.json
 
 # Directorios de trabajo temporal
 outputs/
+output/
 tmp/
+.codex-tmp/
+
+# Exportaciones locales con datos de estudiantes o contactos.
+*_contacts.csv
+*_envio_manual.csv
 
 # Material de marketing y estrategia: vive en local, no en el repo público.
 # El código de campus-cli es abierto; el plan de distribución no.
