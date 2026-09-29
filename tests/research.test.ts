@@ -120,6 +120,7 @@ test('Scopus text searches treat natural language words as keywords, not an exac
   }, { SCOPUS_API_KEY: 'secret' });
   const result = await service.search({ query: 'sharing detailed research data citation rate', provider: 'scopus',
     yearFrom: 2007, yearTo: 2007 });
+  assert.equal(new URL(result.requestUrl).searchParams.get('sort'), '-relevancy');
   assert.equal(result.total, 1);
   assert.equal((result.results[0] as any).doi, doi);
 });
