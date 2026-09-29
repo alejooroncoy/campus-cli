@@ -356,8 +356,16 @@ export async function verifyResearchDocumentIdentity(
         || new RegExp(`(?:^|\\D)${input.expectedYear}(?:\\D|$)`).test(frontText);
       return distance <= 8 && Boolean(authorsMatch) && yearMatch;
     }));
-  const arxivDoiOnFirstPage = doi !== null && /^10\.48550\/arxiv\./i.test(doi) && 'pages' in document
-    && document.pages.some(page => page.page === 1 && doiAppearsInText(page.text, doi));
+  const arxivId = doi?.match(/^10\.48550\/arxiv\.(\d{4}\.\d{4,5})$/i)?.[1];
+  const arxivUrlMatches = arxivId && (() => {
+    const parsed = new URL(document.resolvedUrl);
+    return parsed.hostname === 'arxiv.org'
+      && new RegExp(`^/pdf/${arxivId.replace('.', '\\.')}v?\\d*(?:\\.pdf)?$`, 'i').test(parsed.pathname);
+  })();
+  const arxivDoiOnFirstPage = doi !== null && arxivId && arxivUrlMatches && 'pages' in document
+    && document.pages.some(page => page.page === 1
+      && !page.text.toLowerCase().includes(doi)
+      && new RegExp(`\\barxiv\\s*:\\s*${arxivId.replace('.', '\\.')}v?\\d*\\b`, 'i').test(page.text));
   const doiInFrontMatter = doi === null || doiSegments.some(segment => doiAppearsInText(segment.text, doi))
     || arxivDoiOnFirstPage;
   const doiInSelfCitation = !doiInFrontMatter && doi !== null && 'pages' in document
@@ -373,7 +381,8 @@ export async function verifyResearchDocumentIdentity(
     titleFound: true, doiFound: doi !== null,
     titleLocators: matchingTitleSegments.map(segment => segment.locator),
     identityBasis: doi === null ? 'title_and_hash'
-      : doiInSelfCitation ? 'title_authors_year_self_citation_doi_and_hash' : 'title_doi_and_hash',
+      : doiInSelfCitation ? 'title_authors_year_self_citation_doi_and_hash'
+        : arxivDoiOnFirstPage ? 'title_arxiv_identifier_and_hash' : 'title_doi_and_hash',
     guidance: doiInSelfCitation
       ? 'El DOI aparece en la cita sugerida tras el resumen, vinculada por título, autores y año a la portada. Revisa visualmente esta disposición editorial antes de atribuir una afirmación.'
       : 'La coincidencia de título y DOI es textual en la primera página PDF o en las primeras secciones. Revisa la versión editorial y la página de evidencia antes de citar una afirmación.' };
