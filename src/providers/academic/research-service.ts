@@ -664,8 +664,38 @@ export class ResearchService {
           ? `OpenAlex HTTP ${error.status}` : 'OpenAlex no pudo verificar este DOI.';
       }
     }
+    let europePmcStatus: 'found' | 'not_found' | 'unavailable' = 'not_found';
+    let europePmcError: string | null = null;
+    try {
+      const data = europePmcResponse.parse(await this.json(endpoint(
+        'https://www.ebi.ac.uk/europepmc/webservices/rest/search', {
+          query: `DOI:${doi}`, format: 'json', pageSize: 5, resultType: 'core',
+        })));
+      const exactRecords = data.resultList.result.filter(record =>
+        optionalDoi(typeof record.doi === 'string' ? record.doi : null) === doi);
+      if (exactRecords.length > 0) {
+        europePmcStatus = 'found';
+        for (const record of exactRecords) {
+          const pmcid = typeof record.pmcid === 'string' && /^PMC\d+$/i.test(record.pmcid)
+            ? record.pmcid.toUpperCase() : null;
+          if (!pmcid) continue;
+          add(`https://www.ebi.ac.uk/europepmc/webservices/rest/${pmcid}/fullTextXML`,
+            'document', 'europe_pmc_full_text', typeof record.title === 'string' ? record.title : title,
+            null, typeof record.license === 'string' ? record.license : null, 'repository', 'xml');
+        }
+      } else if (data.resultList.result.some(record => typeof record.doi === 'string'
+        && optionalDoi(record.doi) !== null && optionalDoi(record.doi) !== doi)) {
+        europePmcStatus = 'unavailable';
+        europePmcError = 'Europe PMC devolvió un registro con DOI distinto al solicitado.';
+      }
+    } catch (error) {
+      europePmcStatus = 'unavailable';
+      europePmcError = error instanceof ResearchHttpError && error.status
+        ? `Europe PMC HTTP ${error.status}` : 'Europe PMC no pudo verificar este DOI.';
+    }
     add(doiSourceUrl(doi), 'landing_page', 'doi_resolver', title);
     return { doi, registryStatus: verification.status, registrySource: registered,
+      europePmcStatus, europePmcError,
       zenodoStatus, zenodoError,
       openalexStatus, openalexError, openalexUrl, retrievedAt: new Date().toISOString(),
       results: candidates, pdfCandidates: candidates.filter(candidate => candidate.kind === 'pdf').length,

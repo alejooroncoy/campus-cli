@@ -1987,6 +1987,66 @@ test('exact DOI resolution connects a catalog record to versioned PDF candidates
   assert.ok(calls.some(url => url.includes('/works/https://doi.org/10.1234%2Fabc')));
 });
 
+test('exact DOI resolution adds only Europe PMC full text that confirms the DOI', async () => {
+  const doi = '10.1371/journal.pone.0000308';
+  const calls: string[] = [];
+  const service = new ResearchService(async url => {
+    calls.push(url);
+    const parsed = new URL(url);
+    if (parsed.pathname.includes('/works/https://doi.org/')) return {
+      id: 'https://openalex.org/W123', doi: `https://doi.org/${doi}`,
+      display_name: 'Sharing detailed research data is associated with increased citation rate',
+      locations: [],
+    };
+    if (parsed.pathname.endsWith('/search')) {
+      assert.equal(parsed.searchParams.get('query'), `DOI:${doi}`);
+      assert.equal(parsed.searchParams.get('resultType'), 'core');
+      return { hitCount: 2, resultList: { result: [
+        { doi, pmcid: 'pmc1817752', title: 'Verified Europe PMC article', license: 'cc by' },
+        { doi: '10.1371/journal.pone.0000309', pmcid: 'PMC9999999', title: 'Different article' },
+      ] } };
+    }
+    if (url.includes('filter=updates%3A')) return collection([]);
+    return { message: { ...work, DOI: doi, link: [] } };
+  });
+  const result = await service.resolveDocument({ doi });
+  assert.equal(result.europePmcStatus, 'found');
+  assert.equal(result.europePmcError, null);
+  assert.equal(result.documentCandidates, 1);
+  assert.deepEqual(result.results.filter(candidate => candidate.discoveredVia === 'europe_pmc_full_text').map(candidate => ({
+    url: candidate.url, title: candidate.title, kind: candidate.kind, formatHint: candidate.formatHint,
+    license: candidate.license, locationType: candidate.locationType,
+  })), [{
+    url: 'https://www.ebi.ac.uk/europepmc/webservices/rest/PMC1817752/fullTextXML',
+    title: 'Verified Europe PMC article', kind: 'document', formatHint: 'xml',
+    license: 'cc by', locationType: 'repository',
+  }]);
+  assert.ok(calls.some(url => new URL(url).hostname === 'www.ebi.ac.uk'));
+});
+
+test('Europe PMC DOI mismatches and rate limits never contribute unverified files', async () => {
+  for (const europePmcResponse of [
+    { hitCount: 1, resultList: { result: [{ doi: '10.1234/wrong', pmcid: 'PMC9999999' }] } },
+    new ResearchHttpError(429),
+  ]) {
+    const service = new ResearchService(async url => {
+      if (url.includes('/works/https://doi.org/')) throw new ResearchHttpError(404);
+      if (new URL(url).pathname.endsWith('/search')) {
+        if (europePmcResponse instanceof Error) throw europePmcResponse;
+        return europePmcResponse;
+      }
+      if (url.includes('filter=updates%3A')) return collection([]);
+      return { message: { ...work, link: [{ URL: 'https://publisher.example.edu/real.pdf',
+        'content-type': 'application/pdf' }] } };
+    });
+    const result = await service.resolveDocument({ doi: work.DOI });
+    assert.equal(result.europePmcStatus, 'unavailable');
+    assert.ok(result.europePmcError);
+    assert.equal(result.results.some(candidate => candidate.discoveredVia === 'europe_pmc_full_text'), false);
+    assert.equal(result.results.some(candidate => candidate.url === 'https://publisher.example.edu/real.pdf'), true);
+  }
+});
+
 test('DOI resolution preserves a repository landing page without promoting it to a PDF', async () => {
   const repositoryUrl = 'https://hdl.handle.net/2086/22272';
   const service = new ResearchService(async url => {
@@ -4058,6 +4118,29 @@ test('direct quote receipt accepts the first full sentence after a verified titl
   assert.equal(fragment.status, 'partial');
   assert.equal(fragment.verbatimCitationAllowed, false);
   assert.equal(fragment.reason, 'quote_not_full_sentence');
+});
+
+test('JATS extraction retains the article DOI metadata for identity verification', async () => {
+  const doi = '10.1234/structured-doi';
+  const title = 'Structured Article Identity in JATS';
+  const bytes = Buffer.from(`<?xml version="1.0"?><article><front><article-meta>
+    <article-id pub-id-type="pmc">PMC123456</article-id>
+    <article-id pub-id-type="doi">${doi}</article-id>
+    <title-group><article-title>${title}</article-title></title-group>
+    <pub-date><year>2024</year></pub-date>
+    <abstract><p>A short abstract for identity checking.</p></abstract>
+  </article-meta></front><body><sec><title>Results</title><p>The result was consistent.</p></sec></body></article>`);
+  const url = 'https://repository.example.edu/article.xml';
+  const sha256 = createHash('sha256').update(bytes).digest('hex');
+  const readDocument = (raw: any) => readResearchDocument(raw, { download: async requestedUrl => ({
+    bytes, url: requestedUrl, contentType: 'application/xml',
+  }) });
+  const document = await readDocument({ url, format: 'xml', sectionCount: 8 });
+  assert.ok(document.sections.some(section => section.text.includes(`DOI: ${doi}`)));
+  const identity = await verifyResearchDocumentIdentity({ url, expectedSha256: sha256,
+    expectedTitle: title, expectedDoi: doi, expectedYear: 2024, format: 'xml' }, { readDocument });
+  assert.equal(identity.status, 'verified', JSON.stringify(identity));
+  assert.equal(identity.identityAllowed, true);
 });
 
 test('direct quote receipt verifies XML/JATS section, DOI identity, hash and exact sentence', async () => {
