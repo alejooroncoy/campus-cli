@@ -4223,6 +4223,9 @@ test('arXiv DOI identity requires the same arXiv id in the PDF URL and first pag
   assert.equal(matching.identityBasis, 'title_arxiv_identifier_and_hash');
   const wrongFile = await verify('https://arxiv.org/pdf/1706.03763v1');
   assert.equal(wrongFile.identityAllowed, false);
+  const mirrorWithIdentifier = await verify('https://repository.example.edu/attention.pdf');
+  assert.equal(mirrorWithIdentifier.identityAllowed, false);
+  assert.equal(mirrorWithIdentifier.reason, 'doi_not_found_in_document');
   const missingMarker = await verify('https://arxiv.org/pdf/1706.03762v7', page.replace('arXiv:1706.03762v7', 'arXiv:1706.03763v1'));
   assert.equal(missingMarker.identityAllowed, false);
 });

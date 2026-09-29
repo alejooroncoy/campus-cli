@@ -133,12 +133,7 @@ function doiAppearsInText(text: string, doi: string): boolean {
     .join('\\s{0,4}');
   // Permit line wraps inside a DOI and punctuation after it, but never accept a
   // longer DOI whose suffix merely starts with the expected value.
-  if (new RegExp(`(?:^|[^a-z0-9])${literal}(?=$|\\s|[.,;:!?)](?:\\s|$))`, 'i').test(text)) return true;
-  // DataCite registers arXiv deposits as 10.48550/arxiv.<id>, while the paper
-  // itself prints its canonical arXiv identifier (often with a version suffix).
-  const arxivDoi = /^10\.48550\/arxiv\.(\d{4}\.\d{4,5})(?:v\d+)?$/i.exec(doi);
-  if (!arxivDoi) return false;
-  return new RegExp(`(?:^|[^a-z0-9])ar\\s?xiv\\s*:\\s*${arxivDoi[1]}(?:v\\d+)?(?=$|[^a-z0-9])`, 'i').test(text);
+  return new RegExp(`(?:^|[^a-z0-9])${literal}(?=$|\\s|[.,;:!?)](?:\\s|$))`, 'i').test(text);
 }
 
 const REFERENCE_SECTION_NAME = '(?:references?(?:\\s+(?:and|&)\\s+(?:notes|sources))?|bibliograph(?:y|ies|ie)|bibliograf[ií]as?|bibliograf[ií]es?|bibliografie|bibliografija|referencias?|referências?|riferimenti(?:\\s+bibliografici)?|literaturverzeichnis|works cited|cited works|literature cited|список\\s+литературы|библиограф(?:ия|ический\\s+список)|références bibliographiques|références|引用文献|参考文献|参考资料|參考文獻|참고문헌|kaynakça|lähdeluettelo|literaturliste|المراجع|संदर्भ)';
