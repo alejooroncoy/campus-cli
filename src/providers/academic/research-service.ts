@@ -916,8 +916,15 @@ export class ResearchService {
           if (optionalDoi(paper.externalIds?.DOI) !== exactDoi) {
             throw new Error('Semantic Scholar devolvió un registro con DOI distinto a la búsqueda exacta.');
           }
-          papers = page === 1 ? [paper] : [];
-          total = 1;
+          const yearFilterFrom = yearFrom ?? 1500;
+          const yearFilterTo = yearTo ?? new Date().getUTCFullYear();
+          if ((yearFrom !== undefined || yearTo !== undefined) && paper.year == null) {
+            throw new Error('Semantic Scholar encontró el DOI, pero no informó el año necesario para aplicar el rango solicitado.');
+          }
+          const yearMatches = paper.year === undefined || paper.year === null
+            || (paper.year >= yearFilterFrom && paper.year <= yearFilterTo);
+          papers = page === 1 && yearMatches ? [paper] : [];
+          total = yearMatches ? 1 : 0;
         } catch (error) {
           if (!(error instanceof ResearchHttpError && error.status === 404)) throw error;
           papers = [];

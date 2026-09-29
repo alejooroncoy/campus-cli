@@ -1627,6 +1627,14 @@ test('Semantic Scholar resolves an exact DOI by identifier and fails closed on m
   const absent = await missing.search({ query: doi, provider: 'semantic_scholar' });
   assert.equal(absent.total, 0);
   assert.deepEqual(absent.results, []);
+
+  const outsideRange = new ResearchService(async () => paper);
+  const excluded = await outsideRange.search({ query: doi, provider: 'semantic_scholar', yearFrom: 2020, yearTo: 2025 });
+  assert.equal(excluded.total, 0);
+  assert.deepEqual(excluded.results, []);
+
+  const yearUnavailable = new ResearchService(async () => ({ ...paper, year: null }));
+  await assert.rejects(yearUnavailable.search({ query: doi, provider: 'semantic_scholar', yearFrom: 2020 }), /no informó el año/);
 });
 
 test('Semantic Scholar caps pagination at the 1000 relevance-search result ceiling', async () => {
