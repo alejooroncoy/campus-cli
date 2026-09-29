@@ -56,23 +56,27 @@ export const documentResolutionInput = z.object({
 export function normalizeDoi(value: string): string {
   const trimmed = value.trim();
   let identifier: string;
+  let fromResolverUrl = false;
   if (/^https?:\/\//i.test(trimmed)) {
     let url: URL;
     try { url = new URL(trimmed); } catch { throw new Error('DOI inválido.'); }
     if (!['doi.org', 'dx.doi.org'].includes(url.hostname.toLowerCase())
       || url.username || url.password || url.port) throw new Error('DOI inválido.');
     // Resolver query parameters and fragments describe the URL, not the DOI.
-    identifier = url.pathname.replace(/^\/+/, '');
+    try { identifier = decodeURIComponent(url.pathname.replace(/^\/+/, '')); }
+    catch { throw new Error('DOI inválido.'); }
+    fromResolverUrl = true;
   } else {
     identifier = trimmed.replace(/^doi:\s*/i, '');
   }
   const doi = identifier.toLowerCase();
-  if (!/^10\.\d{4,9}\/[^\s?#]+$/.test(doi) || doi.length > 300) throw new Error('DOI inválido.');
+  const validSuffix = fromResolverUrl ? !/[\s\p{C}]/u.test(doi) : !/[\s?#]/u.test(doi);
+  if (!/^10\.\d{4,9}\//.test(doi) || !validSuffix || doi.length > 300) throw new Error('DOI inválido.');
   return doi;
 }
 
 function doiSearchQuery(value: string): string | null {
-  if (!/^(?:(?:https?:\/\/(?:dx\.)?doi\.org\/)|doi:\s*)?10\.\d{4,9}\//i.test(value.trim())) return null;
+  if (!/^(?:(?:https?:\/\/(?:dx\.)?doi\.org\/)|doi:\s*)?10\.\d{4,9}(?:\/|%2f)/i.test(value.trim())) return null;
   return normalizeDoi(value);
 }
 
