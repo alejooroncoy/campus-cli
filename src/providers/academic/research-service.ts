@@ -1189,7 +1189,7 @@ export class ResearchService {
       if (yearFrom) expression += ` AND PUBYEAR > ${yearFrom - 1}`;
       if (yearTo) expression += ` AND PUBYEAR < ${yearTo + 1}`;
       requestUrl = endpoint('https://api.elsevier.com/content/search/scopus', {
-        query: expression, count: limit, start: offset, view: 'STANDARD',
+        query: expression, count: limit, start: offset, view: 'STANDARD', sort: '-relevancy',
       });
       const headers: Record<string, string> = { 'X-ELS-APIKey': elsevierKey, Accept: 'application/json' };
       if (this.env.SCOPUS_INSTTOKEN) headers['X-ELS-Insttoken'] = this.env.SCOPUS_INSTTOKEN;
