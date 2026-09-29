@@ -90,7 +90,7 @@ test('Scopus headers and literal search preserve missing author information', as
   const service = new ResearchService(async (url, headers) => {
     assert.equal(headers?.['X-ELS-APIKey'], 'secret');
     assert.equal(headers?.['X-ELS-Insttoken'], 'institution');
-    assert.equal(new URL(url).searchParams.get('query'), 'TITLE-ABS-KEY({education}) AND PUBYEAR > 2019');
+    assert.equal(new URL(url).searchParams.get('query'), 'TITLE-ABS-KEY(education) AND PUBYEAR > 2019');
     return { 'search-results': { 'opensearch:totalResults': '1', entry: [
       { 'dc:identifier': 'SCOPUS_ID:123', 'dc:title': 'Education', 'dc:creator': 'Perez A' },
     ] } };
@@ -105,6 +105,23 @@ test('Scopus no-results entry is not presented as a publication', async () => {
     'opensearch:totalResults': '0', entry: [{ error: 'Result set was empty' }],
   } }), { SCOPUS_API_KEY: 'secret' });
   assert.deepEqual((await service.search({ query: 'education', provider: 'scopus' })).results, []);
+});
+
+test('Scopus text searches treat natural language words as keywords, not an exact phrase', async () => {
+  const doi = '10.1371/journal.pone.0000308';
+  const service = new ResearchService(async url => {
+    assert.equal(new URL(url).searchParams.get('query'),
+      'TITLE-ABS-KEY(sharing detailed research data citation rate) AND PUBYEAR > 2006 AND PUBYEAR < 2008');
+    return { 'search-results': { 'opensearch:totalResults': '1', entry: [{
+      'dc:identifier': 'SCOPUS_ID:36248970413',
+      'dc:title': 'Sharing detailed research data is associated with increased citation rate',
+      'prism:doi': doi,
+    }] } };
+  }, { SCOPUS_API_KEY: 'secret' });
+  const result = await service.search({ query: 'sharing detailed research data citation rate', provider: 'scopus',
+    yearFrom: 2007, yearTo: 2007 });
+  assert.equal(result.total, 1);
+  assert.equal((result.results[0] as any).doi, doi);
 });
 
 test('ACM search is constrained to the ACM DOI prefix and labels Crossref provenance', async () => {
