@@ -148,8 +148,7 @@ const pubmedSummaryResponse = z.object({ result: z.record(z.string(), z.unknown(
 const europePmcResponse = z.object({ hitCount: z.number().int().nonnegative(), resultList: z.object({
   result: z.array(z.record(z.string(), z.unknown())).default([]),
 }) });
-const semanticScholarResponse = z.object({ total: z.number().int().nonnegative(),
-  data: z.array(z.object({ paperId: z.string(), title: z.string().nullable().optional(),
+const semanticScholarPaper = z.object({ paperId: z.string(), title: z.string().nullable().optional(),
     year: z.number().int().nullable().optional(), authors: z.array(z.object({ name: z.string().nullable().optional() })).optional(),
     externalIds: z.object({ DOI: z.string().nullable().optional(), PubMed: z.string().nullable().optional(),
       CorpusId: z.number().int().nullable().optional() }).nullable().optional(),
@@ -158,7 +157,9 @@ const semanticScholarResponse = z.object({ total: z.number().int().nonnegative()
     publicationTypes: z.array(z.string()).nullable().optional(),
     openAccessPdf: z.object({ url: z.string().nullable().optional(), status: z.string().nullable().optional(),
       license: z.string().nullable().optional() }).nullable().optional(),
-  })).default([]),
+  });
+const semanticScholarResponse = z.object({ total: z.number().int().nonnegative(),
+  data: z.array(semanticScholarPaper).default([]),
 });
 const openAireResponse = z.object({ header: z.object({ numFound: z.number().int().nonnegative() }),
   results: z.array(z.record(z.string(), z.unknown())).default([]),
@@ -895,20 +896,39 @@ export class ResearchService {
         throw new Error('Europe PMC devolvió un registro con DOI distinto a la búsqueda exacta.');
       }
     } else if (provider === 'semantic_scholar') {
+      const exactDoi = doiSearchQuery(query);
       const terms = query.replace(/["\\]/g, ' ').trim();
       if (!terms) throw new Error('La búsqueda debe contener texto.');
       const year = yearFrom || yearTo
         ? `${yearFrom ?? 1500}-${yearTo ?? new Date().getUTCFullYear()}` : null;
-      requestUrl = endpoint('https://api.semanticscholar.org/graph/v1/paper/search', {
-        query: terms, limit, offset,
-        fields: 'title,year,authors,externalIds,url,abstract,publicationVenue,publicationTypes,openAccessPdf',
-        ...(year ? { year } : {}),
-      });
+      const fields = 'title,year,authors,externalIds,url,abstract,publicationVenue,publicationTypes,openAccessPdf';
+      requestUrl = exactDoi
+        ? endpoint(`https://api.semanticscholar.org/graph/v1/paper/${encodeURIComponent(`DOI:${exactDoi}`)}`, { fields })
+        : endpoint('https://api.semanticscholar.org/graph/v1/paper/search', {
+          query: terms, limit, offset, fields, ...(year ? { year } : {}),
+        });
       const headers = this.env.SEMANTIC_SCHOLAR_API_KEY
         ? { 'x-api-key': this.env.SEMANTIC_SCHOLAR_API_KEY } : undefined;
-      const data = semanticScholarResponse.parse(await this.json(requestUrl, headers));
-      total = data.total;
-      results = data.data.map(paper => {
+      let papers: z.infer<typeof semanticScholarPaper>[];
+      if (exactDoi) {
+        try {
+          const paper = semanticScholarPaper.parse(await this.json(requestUrl, headers));
+          if (optionalDoi(paper.externalIds?.DOI) !== exactDoi) {
+            throw new Error('Semantic Scholar devolvió un registro con DOI distinto a la búsqueda exacta.');
+          }
+          papers = page === 1 ? [paper] : [];
+          total = 1;
+        } catch (error) {
+          if (!(error instanceof ResearchHttpError && error.status === 404)) throw error;
+          papers = [];
+          total = 0;
+        }
+      } else {
+        const data = semanticScholarResponse.parse(await this.json(requestUrl, headers));
+        total = data.total;
+        papers = data.data;
+      }
+      results = papers.map(paper => {
         const doi = optionalDoi(paper.externalIds?.DOI);
         const pdfUrl = publicSourceUrl(paper.openAccessPdf?.url);
         return { id: `semantic_scholar:${paper.paperId}`, paperId: paper.paperId,
