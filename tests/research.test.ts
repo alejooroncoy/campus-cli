@@ -3418,7 +3418,7 @@ test('DataCite arXiv DOI matches the arXiv identifier printed on a versioned PDF
     expectedTitle: 'Attention Is All You Need', expectedDoi: '10.48550/arXiv.1706.03762' };
   const verified = await verifyResearchDocumentIdentity(base, { readPdf: readPdf as any });
   assert.equal(verified.identityAllowed, true);
-  assert.equal(verified.identityBasis, 'title_doi_and_hash');
+  assert.equal(verified.identityBasis, 'title_arxiv_identifier_and_hash');
   const wrongArxivId = await verifyResearchDocumentIdentity({ ...base,
     expectedDoi: '10.48550/arXiv.2102.05095' }, { readPdf: readPdf as any });
   assert.equal(wrongArxivId.identityAllowed, false);
@@ -4206,4 +4206,48 @@ test('publisher self-citation box and abstract paragraph bind an exact quote to 
     quote: 'The best translation results came from 200 patients.' }, dependencies);
   assert.equal(fabricated.verbatimCitationAllowed, false);
   assert.equal(fabricated.reason, 'excerpt_not_found_at_locator');
+});
+
+test('arXiv DOI identity requires the same arXiv id in the PDF URL and first page', async () => {
+  const page = 'Attention Is All You Need\nAshish Vaswani\nAbstract\nA new architecture is proposed.\n\narXiv:1706.03762v7 [cs.CL]';
+  const sha256 = createHash('sha256').update(page).digest('hex');
+  const verify = (resolvedUrl: string, text = page) => verifyResearchDocumentIdentity({
+    url: 'https://arxiv.org/pdf/1706.03762v7', format: 'pdf', expectedSha256: sha256,
+    expectedTitle: 'Attention Is All You Need', expectedDoi: '10.48550/arxiv.1706.03762',
+  }, { readPdf: (async () => ({ requestedUrl: 'https://arxiv.org/pdf/1706.03762v7',
+    resolvedUrl, retrievedAt: '2026-09-29T00:00:00.000Z', sha256, totalPages: 1,
+    pages: [{ page: 1, text, truncated: false, needsOcr: false }], nextPage: null, guidance: [],
+  })) as any });
+  const matching = await verify('https://arxiv.org/pdf/1706.03762v7');
+  assert.equal(matching.identityAllowed, true);
+  assert.equal(matching.identityBasis, 'title_arxiv_identifier_and_hash');
+  const wrongFile = await verify('https://arxiv.org/pdf/1706.03763v1');
+  assert.equal(wrongFile.identityAllowed, false);
+  const missingMarker = await verify('https://arxiv.org/pdf/1706.03762v7', page.replace('arXiv:1706.03762v7', 'arXiv:1706.03763v1'));
+  assert.equal(missingMarker.identityAllowed, false);
+});
+
+test('unheaded section quote is accepted when the immediately preceding section ends a sentence', async () => {
+  const title = 'A Section Boundary Verification Study';
+  const doi = '10.1234/section-boundary';
+  const quote = 'The treatment did not improve outcomes in this sample.';
+  const sections = [
+    { section: 1, heading: title, text: `DOI: ${doi}`, truncated: false },
+    { section: 2, heading: null, text: 'The previous paragraph ends here.', truncated: false },
+    { section: 3, heading: null, text: quote, truncated: false },
+  ];
+  const sha256 = createHash('sha256').update(JSON.stringify(sections)).digest('hex');
+  const service = new ResearchService(async url => url.includes('/works/')
+    ? { message: { ...work, DOI: doi, title: [title] } } : collection([]));
+  const readDocument = (async () => ({ requestedUrl: 'https://www.ebi.ac.uk/article.xml',
+    resolvedUrl: 'https://www.ebi.ac.uk/article.xml', retrievedAt: '2026-09-29T00:00:00.000Z',
+    sha256, format: 'xml', totalSections: 3, sections, nextSection: null,
+    textCoverage: 'complete', guidance: [] })) as any;
+  const result = await verifyResearchQuote({ doi, expectedTitle: title,
+    url: 'https://www.ebi.ac.uk/article.xml', expectedSha256: sha256,
+    format: 'xml', section: 3, quote }, { service,
+    verifyIdentity: ((raw: any) => verifyResearchDocumentIdentity(raw, { readDocument })) as any,
+    verifyEvidence: ((raw: any) => verifyResearchEvidence(raw, { readDocument })) as any });
+  assert.equal(result.verbatimCitationAllowed, true, JSON.stringify(result));
+  assert.equal(result.evidence?.precedingSections.at(-1).section, 2);
 });

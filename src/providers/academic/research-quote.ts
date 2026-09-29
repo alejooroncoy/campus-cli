@@ -158,12 +158,19 @@ export async function verifyResearchQuote(raw: z.input<typeof quoteVerificationI
       guidance: 'La cita comienza al inicio de una página posterior a la primera. Revisa la página anterior para confirmar que la oración no empezó allí.' };
   }
   const evidenceHeading = 'heading' in evidence.proof ? evidence.proof.heading : null;
+  const previousSection = input.section !== undefined && Array.isArray(evidence.precedingSections)
+    ? evidence.precedingSections.at(-1) : null;
+  const precedingSectionSentenceBoundary = previousSection
+    && previousSection.section === input.section! - 1 && !previousSection.truncated
+    && evidence.precedingSectionsInspected?.includes(previousSection.section)
+    && endsSentence(normalizedQuote(previousSection.text))
+    && !endsWithAbbreviation(normalizedQuote(previousSection.text));
   const verifiedFrontMatterBoundary = startsAfterVerifiedDocumentFrontMatter(input.quote, evidence,
     bibliography.citationRecord.title!, bibliography.citationRecord.doi,
     bibliography.citationRecord.authors.map(author => author.name), bibliography.citationRecord.year);
   if (input.section !== undefined && input.section > 1
     && evidence.sectionStartsWithExcerpt && !verifiedFrontMatterBoundary
-    && !isStructuralSectionHeading(evidenceHeading)) {
+    && !isStructuralSectionHeading(evidenceHeading) && !precedingSectionSentenceBoundary) {
     return { status: 'partial', verbatimCitationAllowed: false, stage: 'context',
       reason: 'section_boundary_context_unverified', bibliography, identity, evidence,
       guidance: 'La cita empieza al inicio de una sección sin encabezado. Comprueba la sección anterior para confirmar que la oración no comenzó antes del corte.' };
@@ -172,6 +179,8 @@ export async function verifyResearchQuote(raw: z.input<typeof quoteVerificationI
     || (evidence.paragraphBoundaryBeforeExcerpt && endsSentence(normalizedQuote(input.quote))
       && !endsWithAbbreviation(normalizedQuote(input.quote)))
     || verifiedFrontMatterBoundary
+    || (evidence.sectionStartsWithExcerpt && precedingSectionSentenceBoundary
+      && endsSentence(normalizedQuote(input.quote)) && !endsWithAbbreviation(normalizedQuote(input.quote)))
     || (input.section !== undefined && evidence.sectionStartsWithExcerpt
       && isStructuralSectionHeading(evidenceHeading) && endsSentence(normalizedQuote(input.quote))
       && !endsWithAbbreviation(normalizedQuote(input.quote)))
