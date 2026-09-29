@@ -1862,11 +1862,11 @@ test('OpenAIRE avoids invented URLs and falls back to a registered DOI when reco
   assert.equal((result.results[1] as any).url, 'https://doi.org/10.1234/doi-only');
 });
 
-const arxivFeed = (id = '2505.01648v1', pdfId = id) => `<?xml version="1.0" encoding="UTF-8"?>
+const arxivFeed = (id = '2505.01648v1', pdfId = id, title = 'A &amp; B: robust research systems') => `<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom">
   <opensearch:totalResults>42</opensearch:totalResults>
   <entry><id>http://arxiv.org/abs/${id}</id><published>2025-05-02T10:00:00Z</published>
-    <updated>2025-05-03T11:00:00Z</updated><title>A &amp; B: robust research systems</title>
+    <updated>2025-05-03T11:00:00Z</updated><title>${title}</title>
     <summary>First line of abstract. Second line of abstract.</summary>
     <author><name>Ada Lovelace</name></author><author><name>Grace Hopper</name></author>
     <arxiv:doi>10.1145/3757486</arxiv:doi><arxiv:journal_ref>ACM Conference</arxiv:journal_ref>
@@ -1905,6 +1905,24 @@ test('arXiv Atom search preserves the e-print ID, DOI, version and matching PDF 
   assert.equal(source.documentAccess, 'pdf_candidate_unverified');
   assert.equal(result.nextPage, 3);
   assert.equal((result as any).paginationLimited, false);
+});
+
+test('arXiv ranks exact title matches ahead of longer titles containing the query', async () => {
+  const exact = arxivFeed('1706.03762v7', '1706.03762v7', 'Attention Is All You Need');
+  const partial = arxivFeed('2604.21816v1', '2604.21816v1', 'Tool Attention Is All You Need: Dynamic Tool Gating');
+  const entryFrom = (feed: string) => feed.match(/  <entry>[\s\S]*?<\/entry>/)?.[0] ?? '';
+  const entries = [entryFrom(partial), entryFrom(exact)].join('\n');
+  const feed = arxivFeed().replace('<opensearch:totalResults>42</opensearch:totalResults>',
+    '<opensearch:totalResults>2</opensearch:totalResults>').replace(/  <entry>[\s\S]*?<\/entry>/, entries);
+  const service = new ResearchService(async () => ({}), process.env,
+    async () => feed, async () => {});
+
+  const result = await service.search({ query: 'Attention Is All You Need', provider: 'arxiv', limit: 5 });
+
+  assert.deepEqual((result.results as any[]).map(item => item.title), [
+    'Attention Is All You Need', 'Tool Attention Is All You Need: Dynamic Tool Gating',
+  ]);
+  assert.deepEqual((result.results as any[]).map(item => item.arxivId), ['1706.03762v7', '2604.21816v1']);
 });
 
 test('arXiv exact IDs, URLs, DOI aliases and legacy IDs use id_list rather than text search', async () => {
