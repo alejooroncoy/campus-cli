@@ -125,6 +125,22 @@ test('Scopus text searches treat natural language words as keywords, not an exac
   assert.equal((result.results[0] as any).doi, doi);
 });
 
+test('Scopus preserves balanced quoted subphrases and normalizes typographic quotes', async () => {
+  const cases = [
+    { query: 'sharing detailed research data "citation rate"', terms: 'sharing detailed research data "citation rate"' },
+    { query: 'sharing detailed research data “citation rate”', terms: 'sharing detailed research data "citation rate"' },
+    { query: 'sharing detailed research data {citation rate}', terms: 'sharing detailed research data citation rate' },
+    { query: 'sharing detailed research data "citation rate', terms: 'sharing detailed research data citation rate' },
+  ];
+  for (const item of cases) {
+    const service = new ResearchService(async url => {
+      assert.equal(new URL(url).searchParams.get('query'), `TITLE-ABS-KEY(${item.terms})`);
+      return { 'search-results': { 'opensearch:totalResults': '0', entry: [] } };
+    }, { SCOPUS_API_KEY: 'secret' });
+    assert.equal((await service.search({ query: item.query, provider: 'scopus' })).total, 0);
+  }
+});
+
 test('ACM search is constrained to the ACM DOI prefix and labels Crossref provenance', async () => {
   const acmWork = { ...work, DOI: '10.1145/123.456' };
   const service = new ResearchService(async url => {

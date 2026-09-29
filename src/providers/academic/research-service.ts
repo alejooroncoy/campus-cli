@@ -64,6 +64,12 @@ function doiSearchQuery(value: string): string | null {
   return normalizeDoi(value);
 }
 
+function scopusSearchTerms(value: string): string {
+  let terms = value.replace(/[“”]/g, '"').replace(/[{}\\]/g, ' ');
+  if ((terms.match(/"/g)?.length ?? 0) % 2 !== 0) terms = terms.replace(/"/g, ' ');
+  return terms.replace(/\s+/g, ' ').trim();
+}
+
 export const RESEARCH_GUIDANCE = [
   'Un registro indexado confirma su presencia en ese catálogo, no la veracidad de sus conclusiones ni revisión por pares.',
   'No inventes autores, DOI, resultados ni referencias. Comprueba título, autores, año y versión antes de citar.',
@@ -1181,7 +1187,7 @@ export class ResearchService {
       const elsevierKey = this.env.ELSEVIER_API_KEY ?? this.env.SCOPUS_API_KEY;
       if (!elsevierKey) throw new Error('Scopus requiere ELSEVIER_API_KEY o SCOPUS_API_KEY de Elsevier. El acceso depende de los permisos institucionales; SCOPUS_INSTTOKEN es opcional.');
       const exactDoi = doiSearchQuery(query);
-      const terms = query.replace(/[{}"\\]/g, ' ').trim();
+      const terms = scopusSearchTerms(query);
       if (!terms) throw new Error('La búsqueda debe contener texto.');
       // Bare Scopus terms are combined as keywords; braces would require an exact
       // phrase and silently miss records when the user's words are non-contiguous.
