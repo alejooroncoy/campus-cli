@@ -1869,6 +1869,9 @@ test('arXiv exact IDs, URLs, DOI aliases and legacy IDs use id_list rather than 
     { query: 'arXiv:1706.03762v7', id: '1706.03762v7', returnedId: '1706.03762v7' },
     { query: 'https://arxiv.org/abs/1706.03762v7', id: '1706.03762v7', returnedId: '1706.03762v7' },
     { query: '10.48550/arxiv.1706.03762', id: '1706.03762', returnedId: '1706.03762v7' },
+    { query: 'https://doi.org/10.48550/arXiv.1706.03762', id: '1706.03762', returnedId: '1706.03762v7' },
+    { query: 'https://doi.org/10.48550%2FarXiv.1706.03762?utm_source=campus#citation',
+      id: '1706.03762', returnedId: '1706.03762v7' },
     { query: 'HEP-TH/9901001v3', id: 'hep-th/9901001v3', returnedId: 'hep-th/9901001v3' },
   ];
   for (const item of cases) {
