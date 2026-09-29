@@ -1837,6 +1837,33 @@ test('arXiv Atom search preserves the e-print ID, DOI, version and matching PDF 
   assert.equal((result as any).paginationLimited, false);
 });
 
+test('arXiv exact IDs, URLs, DOI aliases and legacy IDs use id_list rather than text search', async () => {
+  const cases = [
+    { query: '1706.03762', id: '1706.03762', returnedId: '1706.03762v7' },
+    { query: 'arXiv:1706.03762v7', id: '1706.03762v7', returnedId: '1706.03762v7' },
+    { query: 'https://arxiv.org/abs/1706.03762v7', id: '1706.03762v7', returnedId: '1706.03762v7' },
+    { query: '10.48550/arxiv.1706.03762', id: '1706.03762', returnedId: '1706.03762v7' },
+    { query: 'HEP-TH/9901001v3', id: 'hep-th/9901001v3', returnedId: 'hep-th/9901001v3' },
+  ];
+  for (const item of cases) {
+    let requested = '';
+    const service = new ResearchService(async () => ({}), process.env,
+      async url => { requested = url; return arxivFeed(item.returnedId); }, async () => {});
+    const result = await service.search({ query: item.query, provider: 'arxiv', limit: 1 });
+    const params = new URL(requested).searchParams;
+    assert.equal(params.get('id_list'), item.id, item.query);
+    assert.equal(params.get('search_query'), null, item.query);
+    assert.equal((result.results[0] as any).arxivId, item.returnedId);
+  }
+  let requested = '';
+  const dated = new ResearchService(async () => ({}), process.env,
+    async url => { requested = url; return arxivFeed('1706.03762v7'); }, async () => {});
+  await dated.search({ query: '1706.03762v7', provider: 'arxiv', yearFrom: 2017, yearTo: 2017 });
+  const params = new URL(requested).searchParams;
+  assert.equal(params.get('id_list'), '1706.03762v7');
+  assert.equal(params.get('search_query'), 'submittedDate:[201701010000 TO 201712312359]');
+});
+
 test('arXiv rejects error Atom feeds and refuses a PDF link for a different e-print', async () => {
   const wrongPdf = arxivFeed('2505.01648v1', '2505.09999v1');
   const service = new ResearchService(async () => ({}), process.env,
