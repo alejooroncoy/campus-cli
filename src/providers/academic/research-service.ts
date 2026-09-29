@@ -336,6 +336,17 @@ function normalizeEvidenceText(value: string): string {
     .replace(/[^\p{L}\p{N}]+/gu, ' ').trim().replace(/\s+/g, ' ');
 }
 
+function exactTitleMatchesFirst(records: unknown[], query: string): unknown[] {
+  const normalizedQuery = normalizeEvidenceText(query);
+  if (!normalizedQuery) return records;
+  return records.map((record, index) => ({ record, index,
+    exact: Boolean(record && typeof record === 'object' && 'title' in record
+      && typeof (record as { title?: unknown }).title === 'string'
+      && normalizeEvidenceText((record as { title: string }).title) === normalizedQuery) }))
+    .sort((left, right) => Number(right.exact) - Number(left.exact) || left.index - right.index)
+    .map(item => item.record);
+}
+
 const ACADEMIC_QUERY_STOP_WORDS = new Set('a an and of the for to in on by against with from'.split(' '));
 
 function titleQueryMatch(query: string, title: string | null | undefined) {
@@ -1161,6 +1172,9 @@ export class ResearchService {
           documentVersion: entryId?.match(/v(\d+)$/i)?.[1] ? `v${entryId.match(/v(\d+)$/i)![1]}` : null,
           fullTextLinks: documentUrl ? [{ URL: documentUrl, title: 'arXiv PDF', version: entryId }] : [] };
       });
+      // arXiv's phrase search also matches longer titles containing the phrase.
+      // Keep those candidates, but put exact title matches ahead of them.
+      if (!exactId) results = exactTitleMatchesFirst(results, terms);
     } else if (provider === 'acm_dl') {
       const exactDoi = doiSearchQuery(query);
       if (yearFrom) filters.push(`from-pub-date:${yearFrom}-01-01`);
