@@ -57,8 +57,13 @@ integral por conocer totalPages. Nunca cites
 un resultado si verify_citation devuelve citeAllowed=false ni completes campos
 ausentes por inferencia. La verificación de fragmentos no evalúa si una
 inferencia es correcta: la IA cliente debe clasificar el respaldo y conservar
-evidenceId, URL, SHA-256 y localizador. Google Académico
-usa campus_research_google_scholar mediante SerpApi si está configurado;
+evidenceId, URL, SHA-256 y localizador.
+Para una cita textual de un PDF con DOI, usa campus_research_verify_quote:
+combina registro, identidad del archivo y oración completa en la página en un
+único comprobante. Un fragmento de oración queda parcial porque puede omitir
+una negación. verbatimCitationAllowed solo cubre esas palabras exactas; revisa
+también el contexto y no extiendas el comprobante a una paráfrasis.
+Google Académico usa campus_research_google_scholar mediante SerpApi si está configurado;
 de lo contrario devuelve solo un enlace de búsqueda manual, sin resultados.
 La indexación y el DOI no prueban revisión por pares ni validez científica.
 Conserva la procedencia, comprueba avisos de retractación y cita páginas leídas.
@@ -98,7 +103,12 @@ blackboard_list_discussion_messages / blackboard_list_discussion_replies para
 leer publicaciones y respuestas visibles para el estudiante. Si necesitas el
 hilo completo, usa blackboard_get_discussion_thread; las imágenes y multimedia
 embebidas se devuelven como embeddedFiles y, cuando el cliente lo soporta, como
-resource_link.
+resource_link. Los contenidos del curso solo dan el enlace del foro: no concluyas
+que las publicaciones son inaccesibles sin probar las herramientas de debate.
+La lectura del hilo tiene páginas; revisa coverage y continúa con messageOffset
+o con blackboard_list_discussion_replies y offset antes de afirmar que leíste
+todos los mensajes. Si hacen falta todas las respuestas anidadas, pide
+maxDepth=3 y no afirmes completitud más allá de la profundidad consultada.
 
 Para preguntas sobre entregables, avances, fechas, pesos o qué preparar para
 clase, no concluyas solo a partir de una fuente ni conviertas una plantilla en

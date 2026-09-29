@@ -1,10 +1,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { citationVerificationInput, databasesSearchInput, ResearchService, scholarInput, searchInput } from './research-service.js';
+import { citationVerificationInput, databasesSearchInput, documentResolutionInput, ResearchService, scholarInput, searchInput } from './research-service.js';
 import { pdfInput, readResearchPdf, readResearchSourceFile, sourceFilePdfInput } from './research-pdf.js';
 import { documentInput, readResearchDocument } from './research-document.js';
 import { officialResearchPdf } from './research-official-sources.js';
-import { evidenceVerificationInput, verifyResearchEvidence } from './research-evidence.js';
+import { documentIdentityInput, verifyResearchDocumentIdentity, evidenceVerificationInput, verifyResearchEvidence } from './research-evidence.js';
 import { publicHttpsUrl, resolvedPublicHttpsUrl, ResearchHttpError } from './research-http.js';
 import { pdfIndexAuditInput, pdfIndexInput, pdfIndexReadInput, pdfIndexSearchInput, pdfIndexStatusInput, pdfIndexQuotesInput,
   researchPdfIndex, type ResearchPdfIndex } from './research-pdf-index.js';
@@ -18,7 +18,7 @@ export { extractPdfIndexBytes } from './research-pdf.js';
 // relay.
 export { researchDownload } from './research-http.js';
 
-const CLIENT_PROCESSING_ERRORS = /documento supera el tamaño permitido|Se requiere un PDF válido|contenido descomprimido supera el límite de análisis seguro|PDF superó el tiempo máximo de análisis|PDF no pudo procesarse dentro de los límites de memoria|lector PDF terminó sin devolver evidencia|No se pudo leer el PDF|No se pudo abrir el archivo ZIP|documento no contiene texto legible|EPUB no contiene capítulos HTML legibles|demasiadas secciones para analizarlo de forma segura|codificación no compatible/i;
+const CLIENT_PROCESSING_ERRORS = /documento supera el tamaño permitido|Se requiere un PDF válido|contenido descomprimido supera el límite de análisis seguro|PDF superó el tiempo máximo de análisis|PDF no pudo procesarse dentro de los límites de memoria|lector PDF terminó sin devolver evidencia|El proceso lector del PDF falló|No se pudo leer el PDF|No se pudo abrir el archivo ZIP|documento no contiene texto legible|EPUB no contiene capítulos HTML legibles|demasiadas secciones para analizarlo de forma segura|codificación no compatible/i;
 
 // resource_link is fetched by the MCP client, outside Campus's pinned-DNS
 // download boundary. Discovery responses therefore must not turn arbitrary
@@ -29,13 +29,16 @@ const TRUSTED_DISCOVERY_RESOURCE_HOSTS = new Set([
   'ieeexplore.ieee.org', 'link.springer.com', 'nature.com', 'onlinelibrary.wiley.com',
   'pmc.ncbi.nlm.nih.gov', 'pubmed.ncbi.nlm.nih.gov', 'sciencedirect.com',
   'scopus.com',
-  'tandfonline.com', 'www.webofscience.com',
+  'tandfonline.com', 'www.webofscience.com', 'journals.plos.org', 'aclanthology.org',
+  'ebi.ac.uk', 'openaire.eu', 'semanticscholar.org', 'zenodo.org', 'api.datacite.org',
+  'scholar.google.com',
 ]);
 
 function isTrustedDiscoveryResource(parsed: URL): boolean {
   const hostname = parsed.hostname.toLowerCase();
   return [...TRUSTED_DISCOVERY_RESOURCE_HOSTS].some(host => hostname === host || hostname.endsWith(`.${host}`));
 }
+import { quoteVerificationInput, verifyResearchQuote } from './research-quote.js';
 
 type ResearchResourceLink = {
   type: 'resource_link';
@@ -44,6 +47,8 @@ type ResearchResourceLink = {
   mimeType?: string;
   description?: string;
 };
+
+class ResearchToolInputError extends Error {}
 
 function documentMimeType(format: unknown): string | undefined {
   switch (format) {
@@ -54,6 +59,8 @@ function documentMimeType(format: unknown): string | undefined {
     case 'xml': return 'application/xml';
     case 'jats': return 'application/xml';
     case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'csv': return 'text/csv';
+    case 'xlsx': return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     case 'epub': return 'application/epub+zip';
     default: return undefined;
   }
@@ -92,7 +99,8 @@ async function discoveredResourceLinks(
     const record = item as Record<string, any>;
     const title = record.title ?? 'Fuente académica';
     const group: Candidate[] = [];
-    for (const link of record.fullTextLinks ?? []) group.push({ url: link.URL, name: title, mimeType: link['content-type'] });
+    if (record.documentUrl) group.push({ url: record.documentUrl, name: title, mimeType: documentMimeType(record.documentFormat) ?? 'application/pdf' });
+    for (const link of record.fullTextLinks ?? []) group.push({ url: link.URL, name: title, mimeType: link['content-type'] && link['content-type'] !== 'unspecified' ? link['content-type'] : /(?:\.pdf(?:$|[?#])|\/doi\/pdf\/)/i.test(link.URL ?? '') ? 'application/pdf' : undefined });
     for (const location of [...(record.repositoryLocations ?? []), ...(record.locations ?? [])]) {
       if (location?.pdf_url) group.push({ url: location.pdf_url, name: title, mimeType: 'application/pdf' });
       if (location?.landing_page_url) group.push({ url: location.landing_page_url, name: title, mimeType: 'text/html' });
@@ -100,9 +108,9 @@ async function discoveredResourceLinks(
     for (const resource of record.resources ?? []) group.push({ url: resource.link, name: resource.title ?? title,
       mimeType: /pdf/i.test(resource.file_format ?? '') ? 'application/pdf' : undefined });
     if (record.url) group.push({ url: record.url, name: title,
-      mimeType: /\.pdf(?:$|[?#])/i.test(record.url) ? 'application/pdf' : 'text/html' });
+      mimeType: record.kind === 'pdf' ? 'application/pdf' : documentMimeType(record.formatHint) ?? (/\.pdf(?:$|[?#])/i.test(record.url) ? 'application/pdf' : 'text/html') });
     if (typeof record.doi === 'string'
-      && (record.indexedIn === 'crossref' || record.indexedIn === 'acm_digital_library')) {
+      && (record.indexedIn === 'crossref' || record.indexedIn === 'acm_digital_library' || root.registry === 'crossref' || root.proof && (root.proof as any).registry === 'crossref')) {
       // A doi.org resolver can redirect the client to a provider-controlled host.
       // Crossref's API record is a stable, non-resolver source for the DOI metadata.
       group.splice(Math.min(1, group.length), 0, {
@@ -112,6 +120,9 @@ async function discoveredResourceLinks(
     }
     if (group.length) candidateGroups.push(group);
   };
+  for (const key of ['source', 'registrySource', 'citationRecord']) if (root[key]) collect(root[key]);
+  if (root.mode === 'manual_search_link' && typeof root.url === 'string') collect(root);
+  for (const key of ['candidates', 'updates', 'editorialNotices', 'retractionNotices']) if (Array.isArray(root[key])) (root[key] as unknown[]).forEach(collect);
   if (Array.isArray(root.results)) root.results.forEach(collect);
   if (Array.isArray(root.databases)) root.databases.forEach(database => {
     if (database && typeof database === 'object' && Array.isArray((database as Record<string, unknown>).results)) {
@@ -170,6 +181,8 @@ async function discoveredResourceLinks(
 export function registerResearchTools(server: McpServer, options: {
   authorize: () => boolean | Promise<boolean>;
   service?: ResearchService;
+  verifyDocumentIdentity?: typeof verifyResearchDocumentIdentity;
+  verifyQuote?: typeof verifyResearchQuote;
   readPdf?: typeof readResearchPdf;
   readSourceFile?: typeof readResearchSourceFile;
   readDocument?: typeof readResearchDocument;
@@ -186,13 +199,16 @@ export function registerResearchTools(server: McpServer, options: {
     }
     try {
       const value = await action();
-      const resolvedUrl = value && typeof value === 'object' && 'resolvedUrl' in value
-        ? (value as { resolvedUrl?: unknown }).resolvedUrl : undefined;
+      const resolvedUrl = value && typeof value === 'object'
+        ? (value as { resolvedUrl?: unknown; proof?: { resolvedUrl?: unknown } }).resolvedUrl
+          ?? (value as { proof?: { resolvedUrl?: unknown } }).proof?.resolvedUrl : undefined;
       const detectedMimeType = value && typeof value === 'object'
         ? documentMimeType((value as { format?: unknown; pages?: unknown }).format)
           ?? (Array.isArray((value as { pages?: unknown }).pages) ? 'application/pdf' : undefined)
         : undefined;
-      const mimeType = detectedMimeType ?? resource?.mimeType;
+      const unprocessed = value && typeof value === 'object'
+        && (value as { status?: unknown }).status === 'client_processing_required';
+      const mimeType = unprocessed ? 'application/octet-stream' : detectedMimeType ?? resource?.mimeType;
       const validateUrl = options.validateResourceUrl ?? resolvedPublicHttpsUrl;
       const directLink = resource
         ? await safeResourceLink(resolvedUrl ?? resource.url, resource.name, mimeType, validateUrl) : null;
@@ -201,17 +217,19 @@ export function registerResearchTools(server: McpServer, options: {
       return { content: [{ type: 'text' as const, text: JSON.stringify(value) }, ...links] };
     } catch (error) {
       // Zod issues can include provider values; never echo raw responses or request headers.
-      const message = error instanceof z.ZodError ? 'Entrada o respuesta del proveedor con formato inesperado.'
+      const message = error instanceof ResearchToolInputError ? error.message
+        : error instanceof z.ZodError ? 'Entrada o respuesta del proveedor con formato inesperado.'
         : error instanceof Error ? error.message : 'No se pudo completar la consulta académica.';
-      if (resource && error instanceof ResearchHttpError && (error.status === 401 || error.status === 403)) {
+      if (resource && error instanceof ResearchHttpError && (error.status === 401 || error.status === 403 || error.status === 404)) {
         const link = await safeResourceLink(resource.url, resource.name, resource.mimeType,
           options.validateResourceUrl ?? resolvedPublicHttpsUrl);
         if (!link) return { isError: true, content: [{ type: 'text' as const, text: message }] };
         return { content: [
           { type: 'text' as const, text: JSON.stringify({ status: 'resource_link',
-            reason: error.rateLimited ? 'source_rate_limited'
+            evidenceAllowed: false, httpStatus: error.status,
+            reason: error.status === 404 ? 'source_not_found' : error.rateLimited ? 'source_rate_limited'
               : error.status === 401 ? 'source_login_required' : 'source_access_denied',
-            url: resource.url, guidance: `${message} No se leyó el contenido. Abre esta fuente en el cliente o busca una copia pública accesible; no atribuyas afirmaciones sin leerla.` }) },
+            url: resource.url, guidance: `${message} No se leyó el archivo. Abre esta fuente en el cliente o busca una copia pública accesible; no atribuyas afirmaciones sin leerla.` }) },
           link,
         ] };
       }
@@ -233,11 +251,12 @@ export function registerResearchTools(server: McpServer, options: {
         ] };
       }
       if (resource && CLIENT_PROCESSING_ERRORS.test(message)) {
-        const link = await safeResourceLink(resource.url, resource.name, resource.mimeType,
+        const link = await safeResourceLink(resource.url, resource.name, 'application/octet-stream',
           options.validateResourceUrl ?? resolvedPublicHttpsUrl);
         if (!link) return { isError: true, content: [{ type: 'text' as const, text: message }] };
         return { content: [
-          { type: 'text' as const, text: JSON.stringify({ status: 'client_processing_required', reason: 'server_processing_unavailable', url: resource.url,
+          { type: 'text' as const, text: JSON.stringify({ status: 'client_processing_required', evidenceAllowed: false,
+            reason: /proceso lector del PDF falló/i.test(message) ? 'document_reader_unavailable' : 'server_processing_unavailable', url: resource.url,
             guidance: 'Campus no puede procesar este documento dentro de sus límites seguros. Usa el enlace original en el cliente; Campus no lo conserva ni continúa procesándolo.' }) },
           link,
         ] };
@@ -254,20 +273,24 @@ export function registerResearchTools(server: McpServer, options: {
     inputSchema: databasesSearchInput.shape, annotations,
   }, input => run(() => service.searchDatabases(input), undefined, true));
   server.registerTool('campus_research_verify_doi', {
-    description: 'Look up an exact DOI in Crossref and check registered correction/retraction notices. Compare the returned title, authors and year to the candidate citation. A missing Crossref record is not proof of fabrication. Does not certify peer review or scientific validity.',
+    description: 'Look up an exact DOI in Crossref, then DataCite on a Crossref 404 or temporary 429/503. A temporary Crossref failure plus DataCite 404 remains an upstream error, not proof of absence. Check Crossref correction/retraction notices when available. Does not certify peer review or scientific validity.',
     inputSchema: { doi: z.string().min(6).max(350) }, annotations,
-  }, ({ doi }) => run(() => service.verifyDoi(doi)));
+  }, ({ doi }) => run(() => service.verifyDoi(doi), undefined, true));
+  server.registerTool('campus_research_resolve_document', {
+    description: 'Resolve an exact DOI from a Scopus, Web of Science or other catalog record into public Crossref/DataCite, OpenAlex and matching Zenodo record file or landing-page candidates. Zenodo formatHint identifies PDF, HTML, text, XML, DOCX and EPUB readers. Candidate URLs are unverified until the file is read and its title, DOI, hash and supporting passage are checked.',
+    inputSchema: documentResolutionInput.shape, annotations,
+  }, input => run(() => service.resolveDocument(input), undefined, true));
   server.registerTool('campus_research_verify_citation', {
-    description: 'Strictly verify that a discovered title belongs to an exact DOI record before citing it. Returns citeAllowed=false for mismatches, absent records, or incomplete canonical metadata. citationRecord contains only registry fields and must never be completed by inference. This verifies bibliographic identity only; claims still require page or section evidence from the document.',
+    description: 'Strictly verify that a discovered title belongs to an exact Crossref or DataCite DOI record before citing it. Returns citeAllowed=false for mismatches, absent records, incomplete metadata, retractions and exact editorial updates; inspect retractionNotices/editorialNotices. citationRecord contains only registry fields and must never be completed by inference. Claims still require document identity and page or section evidence.',
     inputSchema: citationVerificationInput.shape, annotations,
-  }, input => run(() => service.verifyCitation(input)));
+  }, input => run(() => service.verifyCitation(input), undefined, true));
   server.registerTool('campus_research_google_scholar', {
     description: 'Search Google Scholar through the optional third-party SerpApi integration (SERPAPI_API_KEY). Returns discovery candidates requiring independent verification, not certified sources. Without a key, or with mode=link, returns only an explicitly labeled manual search link. Not an official Google API.',
     inputSchema: scholarInput.shape,
     annotations,
   }, input => run(() => service.googleScholar(input), undefined, true));
   server.registerTool('campus_research_read_document', {
-    description: 'Read a public HTTPS academic document in PDF, HTML, plain text, Markdown, XML/JATS, DOCX or EPUB into bounded section-based evidence and return the source as resource_link. PDF is routed to the specialised page reader. ZIP files require format=docx or format=epub. Maximum 20 MB; does not bypass paywalls, logins or DRM. If Campus cannot process it safely, the resource link remains available for client handling.',
+    description: 'Read a public HTTPS academic document in PDF, HTML, plain text, Markdown, XML/JATS, DOCX, EPUB, CSV or XLSX into bounded section-based evidence. CSV rows and XLSX sheet, row and cell coordinates are preserved; formulas are not recalculated. PDF is routed to the specialised page reader. ZIP files require format=docx, epub or xlsx. Maximum 20 MB; does not bypass paywalls, logins or DRM.',
     inputSchema: documentInput.shape, annotations,
   }, input => run(() => (options.readDocument ?? readResearchDocument)(input), {
     url: input.url, name: 'Documento académico sin procesar',
@@ -287,9 +310,24 @@ export function registerResearchTools(server: McpServer, options: {
   server.registerTool('campus_research_verify_evidence', {
     description: 'Verify a client-selected excerpt at its exact PDF page or document section. For an indexed PDF, pass documentId, analysisId and original URL to reuse the prepared page and SHA-256 without downloading again; campus_research_index_status with both IDs then reports the evidence for this analysis only. Returns a stable evidenceId. Textual integrity is checked, but the client AI must still judge whether the excerpt supports its claim.',
     inputSchema: evidenceVerificationInput.shape, annotations,
-  }, input => run(() => input.documentId ? index.verify(scope, input)
-    : (options.verifyEvidence ?? verifyResearchEvidence)(input),
+  }, input => run(() => {
+    const parsed = evidenceVerificationInput.safeParse(input);
+    if (!parsed.success) throw new ResearchToolInputError(parsed.error.issues.map(issue => issue.message).join(' '));
+    return input.documentId ? index.verify(scope, parsed.data)
+      : (options.verifyEvidence ?? verifyResearchEvidence)(parsed.data);
+  },
     { url: input.url, name: 'Fuente académica verificada', mimeType: input.format === 'pdf' || input.page ? 'application/pdf' : 'application/octet-stream' }));
+  server.registerTool('campus_research_verify_document_identity', {
+    description: 'Check that the already-read file, identified by its required SHA-256, contains the expected bibliographic title and DOI (when provided) in its first pages or sections. For a PDF whose DOI occurs only in a self-citation after the abstract, pass canonical expectedAuthors and expectedYear; only a matching short author list, title, year and exact DOI can establish identity. Fails closed on a mismatch. Does not judge scientific claims.',
+    inputSchema: documentIdentityInput.shape, annotations,
+  }, input => run(() => (options.verifyDocumentIdentity ?? verifyResearchDocumentIdentity)(input),
+    { url: input.url, name: 'Documento académico identificado', mimeType: input.format === 'pdf' ? 'application/pdf' : 'application/octet-stream' }));
+  server.registerTool('campus_research_verify_quote', {
+    description: 'Fail-closed full-sentence quotation check: exact DOI registry metadata, no known retraction or editorial update awaiting review, the same file SHA-256, title and DOI in the file, and the complete quoted sentence on the stated PDF page or document section. Supports PDF and readable HTML, text, Markdown, XML/JATS, DOCX and EPUB. For CSV/XLSX rows or cells use verify_evidence; data locators are not complete sentences. A sentence fragment remains partial because it may omit negation or qualifications. Wider context and interpretation still require review.',
+    inputSchema: quoteVerificationInput.shape, annotations,
+  }, input => run(() => (options.verifyQuote ?? verifyResearchQuote)(input),
+    { url: input.url, name: 'Cita textual comprobada', mimeType: input.format === 'pdf'
+      ? 'application/pdf' : documentMimeType(input.format) ?? 'application/octet-stream' }));
   server.registerTool('campus_research_verify_quotes', {
     description: 'Check every literal quotation planned for one answer in one cached-PDF call (up to 8). Pass documentId and analysisId from index_pdf, original URL, SHA-256, and each exact PDF page/excerpt. Returns per-quote status and allExcerptsLocated. Omit any rejected or inconclusive quote from the answer; never expand a verified excerpt with unverified words. This confirms text location only, not whether a quote supports a claim.',
     inputSchema: pdfIndexQuotesInput.shape, annotations,

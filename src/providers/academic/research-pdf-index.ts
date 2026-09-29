@@ -6,11 +6,11 @@ import { extractPdfIndexBytes, type IndexedPdfPage } from './research-pdf.js';
 import { evidenceVerificationInput, verifyResearchEvidence } from './research-evidence.js';
 
 const MAX_DOCUMENTS = 8;
-const MAX_DOCUMENTS_PER_SCOPE = 2;
+const MAX_DOCUMENTS_PER_SCOPE = 4;
 const MAX_ACTIVE = 2;
 const IDLE_MS = 60 * 60 * 1000;
 
-export const pdfIndexInput = z.object({ url: z.string().url().max(4000) });
+export const pdfIndexInput = z.object({ url: z.string().url().max(4000), refresh: z.boolean().default(false) });
 export const pdfIndexStatusInput = z.object({ documentId: z.string().uuid(),
   analysisId: z.string().uuid().optional() });
 export const pdfIndexSearchInput = pdfIndexStatusInput.extend({
@@ -32,7 +32,7 @@ export const pdfIndexQuotesInput = z.object({
   citations: z.array(z.object({
     page: z.number().int().min(1),
     excerpt: z.string().trim().min(10).max(1000),
-  })).min(1).max(8),
+  })).min(1).max(8, 'Se permiten hasta ocho citas por lote.'),
 });
 
 type OutlineEntry = { title: string; page: number; depth: number };
@@ -140,15 +140,18 @@ export class ResearchPdfIndex {
   }
 
   start(scope: string, raw: z.input<typeof pdfIndexInput>) {
-    const { url } = pdfIndexInput.parse(raw);
+    const { url, refresh } = pdfIndexInput.parse(raw);
     publicHttpsUrl(url);
     this.prune();
-    const existing = [...this.records.values()].find(record => record.scope === scope
+    const existing = [...this.records.values()].reverse().find(record => record.scope === scope
       && record.requestedUrl === url && record.status !== 'failed');
-    if (existing) {
+    if (existing && !refresh) {
       existing.lastAccess = Date.now();
       return this.summary(existing, this.newAnalysis(existing));
     }
+    const active = [...this.records.values()].filter(record => record.status === 'downloading' || record.status === 'indexing').length;
+    if (active >= MAX_ACTIVE) throw new Error('Los lectores de documentos extensos están ocupados. Intenta de nuevo en unos minutos.');
+    if (refresh && existing && (existing.status === 'downloading' || existing.status === 'indexing')) throw new Error('El documento aún está en proceso.');
     this.makeRoom(scope);
     if (this.records.size >= MAX_DOCUMENTS
       || [...this.records.values()].filter(record => record.status === 'downloading' || record.status === 'indexing').length >= MAX_ACTIVE) {
@@ -178,6 +181,12 @@ export class ResearchPdfIndex {
           record.outline = event.metadata.outline;
         }
         if (event.batch) {
+          const known = new Set(record.pages.map(page => page.page));
+          for (const page of event.batch) {
+            if (known.has(page.page)) throw new Error('El índice recibió páginas duplicadas.');
+            if (!record.totalPages || page.page < 1 || page.page > record.totalPages) throw new Error('El índice recibió una página fuera del documento.');
+            known.add(page.page);
+          }
           record.pages.push(...event.batch);
           record.indexedPages = record.pages.length;
         }
@@ -347,7 +356,7 @@ export class ResearchPdfIndex {
         ...('reason' in result ? { reason: result.reason } : {}) });
     }
     return { documentId: input.documentId, analysisId: input.analysisId,
-      documentSha256: record.sha256,
+      documentSha256: record.sha256, processedCount: results.length,
       allExcerptsLocated: results.every(result => result.status === 'verified'),
       results, readPages: this.summary(record, input.analysisId).readPages,
       semanticSupport: 'client_assessment_required',
@@ -355,5 +364,7 @@ export class ResearchPdfIndex {
     };
   }
 }
+
+export const pdfIndexQuoteBatchInput = pdfIndexQuotesInput;
 
 export const researchPdfIndex = new ResearchPdfIndex();

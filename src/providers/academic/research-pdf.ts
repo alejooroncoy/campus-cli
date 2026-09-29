@@ -154,6 +154,7 @@ export async function extractPdfIndexBytes(bytes: Uint8Array, onEvent: (event: {
   }
   return new Promise((resolve, reject) => {
     const worker = new Worker(PARSER, {
+      execArgv: [],
       eval: true, workerData: { bytes, indexAll: true,
         moduleUrl: pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.mjs')).href },
       resourceLimits: { maxOldGenerationSizeMb: 256, maxYoungGenerationSizeMb: 48 },
@@ -191,6 +192,7 @@ export async function extractPdfBytes(bytes: Uint8Array, startPage = 1, pageCoun
   }
   return new Promise((resolve, reject) => {
     const worker = new Worker(PARSER, {
+      execArgv: [],
       eval: true, workerData: { bytes, startPage, pageCount,
         moduleUrl: pathToFileURL(require.resolve('pdfjs-dist/legacy/build/pdf.mjs')).href },
       resourceLimits: { maxOldGenerationSizeMb: 192, maxYoungGenerationSizeMb: 32 },

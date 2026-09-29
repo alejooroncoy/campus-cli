@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 import lockfile from 'proper-lockfile';
 import { z } from 'zod';
 import { normalizeDoi } from './research-service.js';
-import { researchJson } from './research-http.js';
+import { publicHttpsUrl, researchJson } from './research-http.js';
 
 const origin = 'https://api.mendeley.com';
 const mime = 'application/vnd.mendeley-document.1+json';
@@ -33,9 +33,21 @@ const groupSchema = z.object({ id:z.string().uuid(), name:z.string().min(1), rol
 const crossrefSchema = z.object({message:z.object({DOI:z.string(),title:z.array(z.string()).min(1),type:z.string(),author:z.array(z.object({given:z.string().optional(),family:z.string().optional(),name:z.string().optional()})).optional(),issued:z.object({'date-parts':z.array(z.array(z.number().nullable()))}).optional(),'container-title':z.array(z.string()).optional(),volume:z.string().optional(),issue:z.string().optional(),page:z.string().optional()})});
 const referenceSchema = z.object({url:z.url().max(5000),title:z.string().trim().min(1).max(500),type:z.enum(['journal','book','generic','book_section','conference_proceedings','working_paper','report','web_page','thesis','magazine_article','newspaper_article']).default('journal'),source:z.string().trim().min(1).max(255).optional(),year:z.number().int().min(1000).max(3000).optional(),authors:z.array(z.object({first_name:z.string().trim().max(255).optional(),last_name:z.string().trim().min(1).max(255)})).max(100).optional(),groupId:z.string().uuid().optional()});
 export type MendeleyReference = z.input<typeof referenceSchema>;
+function withSourceCandidate(document:z.infer<typeof documentSchema>) {
+  let doiUrl:string|null=null;
+  if(document.identifiers?.doi) {
+    try { doiUrl='https://doi.org/'+normalizeDoi(document.identifiers.doi); } catch { /* Malformed library DOI is not a source URL. */ }
+  }
+  const websites=(document.websites??[]).map(site=>{
+    try{return site.length<=4000?publicHttpsUrl(site).toString():null;}catch{return null;}
+  }).filter((site):site is string=>site!==null);
+  const website=websites[0]??null;
+  return {...document,websites,sourceUrlCandidate:doiUrl??website,
+    sourceUrlBasis:doiUrl?'unverified_library_doi':website?'unverified_library_website':null,
+    sourceUrlVerified:false};
+}
 function canonicalUrl(value:string) {
-  const url=new URL(value);
-  if(url.protocol!=='https:' || url.username || url.password) throw new Error('La URL de la referencia debe usar HTTPS y no incluir credenciales.');
+  const url=publicHttpsUrl(value);
   url.hash='';url.searchParams.sort();
   if(url.pathname.length>1) url.pathname=url.pathname.replace(/\/+$/,'');
   return url.toString();
@@ -89,14 +101,14 @@ export class MendeleyService {
     const next=r.headers.get('link')?.match(/<([^>]+)>;\s*rel="next"/)?.[1]||null;
     return {data:await r.json(),next};
   }
-  async list(limit=20,cursor?:string) {z.number().int().min(1).max(100).parse(limit);const r=await this.api(cursor?decodeCursor(cursor,'/documents'):'/documents?limit='+limit);return {documents:z.array(documentSchema).parse(r.data),hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};}
+  async list(limit=20,cursor?:string) {z.number().int().min(1).max(100).parse(limit);const r=await this.api(cursor?decodeCursor(cursor,'/documents'):'/documents?limit='+limit);return {documents:z.array(documentSchema).parse(r.data).map(withSourceCandidate),documentRead:false,citationReady:false,hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};}
   async listGroups(limit=20,cursor?:string) {z.number().int().min(1).max(100).parse(limit);const r=await this.api(cursor?decodeCursor(cursor,'/groups'):'/groups?limit='+limit);return {groups:z.array(groupSchema).parse(r.data),hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};}
   async listGroupDocuments(groupId:string,limit=20,cursor?:string) {
     const id=z.string().uuid().parse(groupId);z.number().int().min(1).max(100).parse(limit);
     const r=await this.api(cursor?decodeCursor(cursor,'/documents',id):'/documents?'+new URLSearchParams({group_id:id,limit:String(limit)}));
-    return {documents:z.array(documentSchema).parse(r.data),hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null,groupId:id};
+    return {documents:z.array(documentSchema).parse(r.data).map(withSourceCandidate),documentRead:false,citationReady:false,hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null,groupId:id};
   }
-  async get(id:string){z.string().uuid().parse(id);return documentSchema.parse((await this.api('/documents/'+id)).data);}
+  async get(id:string){z.string().uuid().parse(id);return {...withSourceCandidate(documentSchema.parse((await this.api('/documents/'+id)).data)),documentRead:false,citationReady:false};}
   saveDoi(doi:string,groupId?:string) {
     const result=this.queue.then(()=>this.saveVerified(doi,groupId));this.queue=result.catch(()=>undefined);return result;
   }
@@ -113,14 +125,14 @@ export class MendeleyService {
       if(seen.has(pageUrl)) throw new Error('Paginación Mendeley repetida; no se guardó un duplicado.');seen.add(pageUrl);
       const response=await this.api(pageUrl);
       const existing=z.array(documentSchema).parse(response.data).find(d=>d.websites?.some(site=>{try{return canonicalUrl(site)===url;}catch{return false;}}));
-      if(existing) return {status:'already_saved',document:existing,url,groupId:reference.groupId};
+      if(existing) return {documentRead:false,citationReady:false,status:'already_saved',document:existing,url,groupId:reference.groupId};
       pageUrl=response.next;
     }
     if(pageUrl) throw new Error('Biblioteca demasiado grande para comprobar duplicados; no se guardó.');
     const payload={title:reference.title,type:reference.type,websites:[url],...(reference.source?{source:reference.source}:{}),...(reference.year?{year:reference.year}:{}),...(reference.authors?{authors:reference.authors}:{})};
     const destination='/documents'+(reference.groupId?'?'+new URLSearchParams({group_id:reference.groupId}):'');
     const document=documentSchema.parse((await this.api(destination,'POST',payload)).data);
-    return {status:'saved',document,url,groupId:reference.groupId,metadataSource:'user_provided',doi:'unconfirmed'};
+    return {documentRead:false,citationReady:false,status:'saved',document,url,groupId:reference.groupId,metadataSource:'user_provided',doi:'unconfirmed'};
   }
   private async ensureWritableGroup(groupId:string) {
     let url:string|null='/groups?limit=500';const seen=new Set<string>();
@@ -145,7 +157,7 @@ export class MendeleyService {
       if(seen.has(url)) throw new Error('Paginación Mendeley repetida; no se guardó un duplicado.');seen.add(url);
       const r=await this.api(url);
       const existing=z.array(documentSchema).parse(r.data).find(d=>d.identifiers?.doi?.toLowerCase()===doi);
-      if(existing) return {status:'already_saved',document:existing,doi};
+      if(existing) return {status:'already_saved',document:existing,doi,documentRead:false,citationReady:false,retractionStatus:'not_checked'};
       url=r.next;
     }
     if(url) throw new Error('Biblioteca demasiado grande para comprobar duplicados; no se guardó.');
@@ -156,6 +168,6 @@ export class MendeleyService {
     const payload={title:w.title[0],type:type[w.type]||'generic',identifiers:{doi},...(year?{year}:{}),source:w['container-title']?.[0],authors:w.author?.map(a=>({first_name:a.given||'',last_name:a.family||a.name||''})),volume:w.volume,issue:w.issue,pages:w.page,websites:['https://doi.org/'+doi]};
     const destination='/documents'+(targetGroup?'?'+new URLSearchParams({group_id:targetGroup}):'');
     const document=documentSchema.parse((await this.api(destination,'POST',payload)).data);
-    return {status:'saved',doi,document,groupId:targetGroup,verifiedVia:'crossref',peerReview:'unknown'};
+    return {documentRead:false,citationReady:false,status:'saved',doi,document,groupId:targetGroup,verifiedVia:'crossref',peerReview:'unknown'};
   }
 }

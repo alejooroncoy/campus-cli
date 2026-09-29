@@ -3,7 +3,8 @@ import { request } from 'node:https';
 import ipaddr from 'ipaddr.js';
 
 export class ResearchHttpError extends Error {
-  constructor(public readonly status: number, authenticated = false, public readonly rateLimited = false) {
+  constructor(public readonly status: number, authenticated = false, public readonly rateLimited = false,
+    public readonly retryAfterMs: number | null = null, public readonly rateLimitRemaining: number | null = null) {
     super(status === 429 || rateLimited ? 'El proveedor alcanzó su límite de consultas; intenta más tarde.'
       : status === 401 ? authenticated
         ? 'El proveedor rechazó la clave: verifica que copiaste la API key correcta y completa.'
@@ -13,6 +14,14 @@ export class ResearchHttpError extends Error {
         : 'La fuente denegó la lectura automática desde el servidor.'
       : `El proveedor respondió HTTP ${status}.`);
   }
+}
+
+function retryAfterMilliseconds(value: string | string[] | undefined): number | null {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (!raw) return null;
+  if (/^\d+$/.test(raw.trim())) return Number(raw.trim()) * 1000;
+  const date = Date.parse(raw);
+  return Number.isNaN(date) ? null : Math.max(0, date - Date.now());
 }
 
 export function assertPublicAddress(address: string): void {
@@ -27,6 +36,10 @@ export function publicHttpsUrl(value: string): URL {
     throw new Error('Usa una URL HTTPS pública, sin credenciales ni puertos personalizados.');
   }
   const hostname = url.hostname.replace(/^\[|\]$/g, '');
+  if (hostname === 'localhost' || hostname.endsWith('.localhost')
+    || hostname.endsWith('.local') || hostname.endsWith('.internal')) {
+    throw new Error('No se permiten direcciones de red privadas, locales o reservadas.');
+  }
   if (ipaddr.isValid(hostname)) assertPublicAddress(hostname);
   return url;
 }
@@ -83,7 +96,7 @@ function hasSensitiveHeaders(headers: Record<string, string> | undefined): boole
 
 /** No campus cookies, proxies, automatic redirects, or unbounded response bodies. */
 export async function researchDownload(value: string, options: {
-  headers?: Record<string, string>; maxBytes?: number; redirects?: number;
+  headers?: Record<string, string>; accept?: string; maxBytes?: number; redirects?: number;
 } = {}): Promise<ResearchDownload> {
   return withSlot(async () => {
     const deadline = AbortSignal.timeout(25_000);
@@ -107,7 +120,8 @@ export async function researchDownload(value: string, options: {
           lookup: (_host, options, callback) => options.all
             ? callback(null, addresses) : callback(null, addresses[0].address, addresses[0].family),
           headers: { 'User-Agent': 'campus-cli-academic-research/1.0 (+https://campuscli.com)',
-            Accept: 'application/json, application/pdf;q=0.9', 'Accept-Encoding': 'identity', ...options.headers },
+            Accept: options.accept ?? 'application/json, application/pdf;q=0.9',
+            'Accept-Encoding': 'identity', ...options.headers },
         }, res => {
           const status = res.statusCode ?? 0;
           if (status >= 300 && status < 400) {
@@ -132,7 +146,11 @@ export async function researchDownload(value: string, options: {
                 /acceso denegado temporalmente por exceso de peticiones/i.test(detail))));
               return;
             }
-            res.destroy(); reject(new ResearchHttpError(status, authenticated)); return;
+            const retryAfterMs = retryAfterMilliseconds(res.headers['retry-after']);
+            const remaining = res.headers['x-ratelimit-remaining'];
+            const remainingText = Array.isArray(remaining) ? remaining[0] : remaining;
+            const rateLimitRemaining = remainingText && /^\d+$/.test(remainingText) ? Number(remainingText) : null;
+            res.destroy(); reject(new ResearchHttpError(status, authenticated, false, retryAfterMs, rateLimitRemaining)); return;
           }
           const max = options.maxBytes ?? 4 * 1024 * 1024;
           if (Number(res.headers['content-length']) > max) {
@@ -165,7 +183,21 @@ export async function researchDownload(value: string, options: {
 
 export type ResearchJson = (url: string, headers?: Record<string, string>) => Promise<unknown>;
 export const researchJson: ResearchJson = async (url, headers) => {
-  const result = await researchDownload(url, { headers });
-  try { return JSON.parse(result.bytes.toString('utf8')); }
-  catch { throw new Error('El proveedor no devolvió metadatos JSON válidos.'); }
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let result: ResearchDownload;
+    try { result = await researchDownload(url, { headers }); }
+    catch (error) {
+      if (attempt > 0 || !(error instanceof ResearchHttpError)) throw error;
+      if (error.status === 429 && error.rateLimitRemaining === 0) throw error;
+      const delay = error.status === 429 ? error.retryAfterMs
+        ?? (new URL(url).hostname === 'api.openalex.org' ? 1_000 : null)
+        : error.status === 503 ? error.retryAfterMs ?? 500 : null;
+      if (delay === null || !Number.isFinite(delay) || delay > 2_000) throw error;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      continue;
+    }
+    try { return JSON.parse(result.bytes.toString('utf8')); }
+    catch { throw new Error('El proveedor no devolvió metadatos JSON válidos.'); }
+  }
+  throw new Error('No se pudo completar la consulta académica.');
 };

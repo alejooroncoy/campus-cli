@@ -2,10 +2,15 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MendeleyService, type MendeleyTokens } from '../src/providers/academic/mendeley-service.js';
 import { registerMendeleyTools } from '../src/providers/academic/mendeley-mcp-tools.js';
+
 const doi='10.1234/test';
+
 function store(expired=false) {let t:MendeleyTokens={access_token:'private',refresh_token:'refresh',expires_at:expired?0:Date.now()+3600000};return {load:async()=>t,save:async(n:MendeleyTokens)=>{t=n;}};}
+
 const json=(data:unknown,headers?:Record<string,string>,status=200)=>new Response(JSON.stringify(data),{status,headers});
+
 const metadata=async()=>({message:{DOI:doi,title:['Verified title'],type:'journal-article',author:[{given:'Ana',family:'Perez'}],issued:{'date-parts':[[2024]]}}});
+
 test('save verifies metadata, stores once and returns existing reference on repeat',async()=>{
  let docs:any[]=[];let writes=0;
  const s=new MendeleyService(store(),{},async(_u,init)=>{
@@ -16,10 +21,12 @@ test('save verifies metadata, stores once and returns existing reference on repe
  assert.equal((await s.saveDoi(doi)).status,'already_saved');
  assert.equal(writes,1);assert.equal(docs[0].authors[0].last_name,'Perez');assert.equal(docs[0].title,'Verified title');
 });
+
 test('checks second page for duplicates',async()=>{
  let calls=0;const s=new MendeleyService(store(),{},async()=>++calls===1?json([],{link:'<https://api.mendeley.com/documents?limit=1&marker=next>; rel="next"'}):json([{id:'existing',identifiers:{doi}}]),metadata);
  assert.equal((await s.saveDoi(doi)).status,'already_saved');assert.equal(calls,2);
 });
+
 test('rejects a group continuation cursor in personal Mendeley listings',async()=>{
  const s=new MendeleyService(store(),{},async()=>json([]));
  const cursor=Buffer.from('https://api.mendeley.com/documents?group_id=123e4567-e89b-12d3-a456-426614174000&marker=next').toString('base64url');
@@ -34,6 +41,7 @@ test('lists every Mendeley page with an opaque, route-bound continuation cursor'
  assert.equal(second.documents[0].id,'second');assert.equal(second.nextCursor,null);
  await assert.rejects(s.list(1,Buffer.from('https://api.mendeley.com/groups?marker=next').toString('base64url')),/Cursor Mendeley no permitido/);
 });
+
 test('lists groups and saves a DOI to a writable group without duplicating it',async()=>{
  const groupId='ec47684d-4e4b-3f12-ba38-01509619c415';let docs:any[]=[];let payload:any;let writeUrl='';
  const s=new MendeleyService(store(),{},async(u,init)=>{
@@ -48,24 +56,29 @@ test('lists groups and saves a DOI to a writable group without duplicating it',a
  assert.equal(new URL(writeUrl).searchParams.get('group_id'),groupId);assert.equal(payload.group_id,undefined);
  assert.equal((await s.saveDoi(doi,groupId)).status,'already_saved');
 });
+
 test('saves metadata whose Crossref publication date has an unknown component', async () => {
  const s=new MendeleyService(store(),{},async(_u,init)=>init?.method==='POST' ? json({id:'id1'}, {}, 201) : json([]),
   async()=>({message:{DOI:doi,title:['Verified title'],type:'journal-article',issued:{'date-parts':[[2024,null]]}}}));
  assert.equal((await s.saveDoi(doi)).status,'saved');
 });
+
 test('does not write to an inaccessible or read-only group',async()=>{
  const groupId='ec47684d-4e4b-3f12-ba38-01509619c415';let writes=0;
  const s=new MendeleyService(store(),{},async(_u,init)=>{if(init?.method==='POST')writes++;return json([{id:groupId,name:'Read only',role:'follower'}]);},metadata);
  await assert.rejects(s.saveDoi(doi,groupId),/solo lectura/);assert.equal(writes,0);
 });
+
 test('does not send a token to a malicious pagination origin',async()=>{
  let calls=0;const s=new MendeleyService(store(),{},async()=>{calls++;return json([],{link:'<https://evil.example/documents>; rel="next"'});},metadata);
  await assert.rejects(s.saveDoi(doi),/Ruta Mendeley/);assert.equal(calls,1);
 });
+
 test('mismatched DOI stops before writing',async()=>{
  let writes=0;const s=new MendeleyService(store(),{},async(_u,init)=>{if(init?.method==='POST')writes++;return json([]);},async()=>({message:{DOI:'10.1234/other',title:['wrong'],type:'journal-article'}}));
  await assert.rejects(s.saveDoi(doi),/no coincide/);assert.equal(writes,0);
 });
+
 test('saves a reference without DOI to a writable group and detects its URL on a later page',async()=>{
  const groupId='ec47684d-4e4b-3f12-ba38-01509619c415';
  const url='https://revistas.uh.cu/revflacso/article/view/7514';
@@ -84,12 +97,14 @@ test('saves a reference without DOI to a writable group and detects its URL on a
  assert.equal(writes,1);assert.equal(docs[0].websites[0],url);assert.equal(docs[0].group_id,undefined);
  assert.equal(docs[0].identifiers,undefined);
 });
+
 test('rejects unsafe reference URLs before writing',async()=>{
  let writes=0;const s=new MendeleyService(store(),{},async(_u,init)=>{if(init?.method==='POST')writes++;return json([]);});
  await assert.rejects(s.saveReference({url:'http://example.org/article',title:'Article'}),/HTTPS/);
  await assert.rejects(s.saveReference({url:'https://person:secret@example.org/article',title:'Article'}),/credenciales/);
  assert.equal(writes,0);
 });
+
 test('refreshes and persists rotated tokens before API request',async()=>{
  const st=store(true);const s=new MendeleyService(st,{MENDELEY_CLIENT_ID:'id',MENDELEY_CLIENT_SECRET:'secret'},async(u,init)=>{
   if(String(u).endsWith('/oauth/token'))return json({access_token:'new',refresh_token:'rotated',expires_in:3600});
@@ -97,6 +112,7 @@ test('refreshes and persists rotated tokens before API request',async()=>{
  });
  await s.list();assert.equal((await st.load()).refresh_token,'rotated');
 });
+
 test('concurrent expired-token reads share one rotating-token refresh',async()=>{
  const token:MendeleyTokens={access_token:'old',refresh_token:'refresh',expires_at:0};
  let loads=0,refreshes=0;
@@ -110,6 +126,7 @@ test('concurrent expired-token reads share one rotating-token refresh',async()=>
  // token between the preflight check and the OAuth exchange.
  assert.equal(loads,3);assert.equal(refreshes,1);
 });
+
 test('authorization fails before library operations and save is annotated as a write',async()=>{
  const tools=new Map<string,any>();registerMendeleyTools({registerTool:(n:any,s:any,h:any)=>tools.set(n,{s,h})} as any,{authorize:()=>false,service:{} as any});
  assert.equal(tools.get('campus_mendeley_save_doi').s.annotations.readOnlyHint,false);
@@ -117,4 +134,39 @@ test('authorization fails before library operations and save is annotated as a w
  assert.equal(tools.get('campus_mendeley_list_groups').s.annotations.readOnlyHint,true);
  await assert.rejects(tools.get('campus_mendeley_save_doi').h({doi}),/No autorizado/);
  await assert.rejects(tools.get('campus_mendeley_save_reference').h({url:'https://example.org',title:'Article',type:'journal'}),/No autorizado/);
+});
+
+test('library listings identify records as metadata without processed document evidence',async()=>{
+ const s=new MendeleyService(store(),{},async()=>json([{id:'record-1',title:'Catalog record'}]));
+ const listed=await s.list();
+ assert.equal(listed.documents.length,1);
+ assert.equal(listed.documentRead,false);
+ assert.equal(listed.citationReady,false);
+});
+
+test('Mendeley lists only safe source URL candidates and exposes them as MCP links',async()=>{
+ const s=new MendeleyService(store(),{},async()=>json([
+  {id:'doi-record',title:'DOI record',identifiers:{doi:'10.1234/ABC'},websites:['http://example.org/unsafe']},
+  {id:'website-record',title:'Website record',websites:['https://127.0.0.1/private','https://journal.example.edu/article']},
+  {id:'invalid-record',title:'Invalid record',identifiers:{doi:'not-a-doi'},websites:['https://localhost/private']},
+ ]));
+ const listed=await s.list();
+ assert.equal(listed.documents[0].sourceUrlCandidate,'https://doi.org/10.1234/abc');
+ assert.equal(listed.documents[0].sourceUrlBasis,'unverified_library_doi');
+ assert.deepEqual(listed.documents[0].websites,[]);
+ assert.equal(listed.documents[1].sourceUrlCandidate,'https://journal.example.edu/article');
+ assert.equal(listed.documents[1].sourceUrlBasis,'unverified_library_website');
+ assert.deepEqual(listed.documents[1].websites,['https://journal.example.edu/article']);
+ assert.equal(listed.documents[2].sourceUrlCandidate,null);
+ assert.deepEqual(listed.documents[2].websites,[]);
+ assert.equal(listed.documents[2].sourceUrlVerified,false);
+ assert.equal(listed.citationReady,false);
+ const tools=new Map<string,any>();
+ registerMendeleyTools({registerTool:(n:any,_schema:any,h:any)=>tools.set(n,h)} as any,
+  {authorize:()=>true,service:s});
+ const response=await tools.get('campus_mendeley_list')({limit:3});
+ const links=response.content.filter((item:any)=>item.type==='resource_link').map((item:any)=>item.uri);
+ assert.deepEqual(links,['https://doi.org/10.1234/abc','https://journal.example.edu/article']);
+ assert.equal(response.content[0].type,'text');
+ assert.equal(JSON.parse(response.content[0].text).citationReady,false);
 });

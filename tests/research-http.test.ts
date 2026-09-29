@@ -6,7 +6,7 @@ import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
 import { researchDownload, researchJson, resolvedPublicHttpsUrl, ResearchHttpError } from '../src/providers/academic/research-http.js';
 
-function mockHttp(t: TestContext, responses: Array<{ status: number; location?: string; body?: string; length?: string }>) {
+function mockHttp(t: TestContext, responses: Array<{ status: number; location?: string; body?: string; length?: string; retryAfter?: string; rateRemaining?: string }>) {
   const requests: Array<{ url: URL; options: any }> = [];
   t.mock.method(https, 'request', ((url: URL, options: any, callback: (response: any) => void) => {
     requests.push({ url, options });
@@ -16,7 +16,7 @@ function mockHttp(t: TestContext, responses: Array<{ status: number; location?: 
     req.end = () => {
       const res = Readable.from([Buffer.from(config.body ?? '')]) as any;
       res.statusCode = config.status;
-      res.headers = { location: config.location, 'content-length': config.length, 'content-type': 'application/json' };
+      res.headers = { location: config.location, 'content-length': config.length, 'content-type': 'application/json', 'retry-after': config.retryAfter, 'x-ratelimit-remaining': config.rateRemaining };
       queueMicrotask(() => callback(res));
     };
     return req;
@@ -120,4 +120,48 @@ test('the journal temporary 403 request limit is recognized by its bounded respo
   mockHttp(t, [{ status: 403, body: 'Acceso denegado temporalmente por exceso de peticiones.' }]);
   await assert.rejects(researchDownload('https://revistas.uh.cu/revflacso/article/view/7514'),
     (error: unknown) => error instanceof ResearchHttpError && error.rateLimited === true);
+});
+
+test('document Accept header follows a public redirect without forwarding credentials', async t => {
+  t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
+  const requests = mockHttp(t, [
+    { status: 302, location: 'https://cdn.example.edu/article.html' },
+    { status: 200, body: '<html>Public article</html>' },
+  ]);
+  const result = await researchDownload('https://publisher.example.edu/article', {
+    accept: 'text/html', redirects: 4,
+  });
+  assert.equal(result.url, 'https://cdn.example.edu/article.html');
+  assert.equal(requests.length, 2);
+  assert.equal(requests[1].options.headers.Accept, 'text/html');
+  assert.equal(requests[1].options.headers.Authorization, undefined);
+});
+
+test('metadata fetch retries one short provider cooldown and one transient 503', async t => {
+  t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
+  const requests = mockHttp(t, [
+    { status: 429, retryAfter: '0' }, { status: 200, body: '{"source":"openalex"}' },
+    { status: 503 }, { status: 200, body: '{"source":"crossref"}' },
+  ]);
+  assert.deepEqual(await researchJson('https://example.edu/openalex'), { source: 'openalex' });
+  assert.deepEqual(await researchJson('https://example.edu/crossref'), { source: 'crossref' });
+  assert.equal(requests.length, 4);
+});
+
+test('metadata fetch respects a long Retry-After without retrying', async t => {
+  t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
+  const requests = mockHttp(t, [{ status: 429, retryAfter: '60' }]);
+  await assert.rejects(researchJson('https://example.edu/openalex'), /límite/);
+  assert.equal(requests.length, 1);
+});
+
+test('OpenAlex retries one 429 without Retry-After only while its reported budget remains', async t => {
+  t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
+  const requests = mockHttp(t, [
+    { status: 429, rateRemaining: '3' }, { status: 200, body: '{"results":[]}' },
+    { status: 429, rateRemaining: '0' },
+  ]);
+  assert.deepEqual(await researchJson('https://api.openalex.org/works?search=test'), { results: [] });
+  await assert.rejects(researchJson('https://api.openalex.org/works?search=test'), /límite/);
+  assert.equal(requests.length, 3);
 });
