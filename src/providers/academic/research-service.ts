@@ -191,6 +191,13 @@ function publicSourceUrl(value?: string | null): string | null {
   } catch { return null; }
 }
 
+function openalexLandingPageUrl(value?: string | null): string | null {
+  const safe = publicSourceUrl(value);
+  if (!safe) return null;
+  const pathname = new URL(safe).pathname.replace(/%2f/ig, '/');
+  return /(?:^|\/)(?:licen[cs]e|copyright|readme)\.(?:txt|md)$/i.test(pathname) ? null : safe;
+}
+
 type ResearchText = (url: string) => Promise<string>;
 type ResearchPause = (milliseconds: number) => Promise<void>;
 const researchText: ResearchText = async url => (await researchDownload(url, {
@@ -494,7 +501,7 @@ function crossrefSource(work: z.infer<typeof crossrefWork>, expectedTitle?: stri
 }
 
 function safeOpenalexLocation(location: z.infer<typeof locationSchema>) {
-  return { ...location, landing_page_url: publicSourceUrl(location.landing_page_url),
+  return { ...location, landing_page_url: openalexLandingPageUrl(location.landing_page_url),
     pdf_url: publicSourceUrl(location.pdf_url) };
 }
 
@@ -640,14 +647,14 @@ export class ResearchService {
       for (const location of work.locations ?? []) {
         add(location.pdf_url, 'pdf', 'openalex_location', work.display_name,
           location.version ?? null, location.license ?? null, location.source?.type ?? null);
-        add(location.landing_page_url, 'landing_page', 'openalex_location', work.display_name,
+        add(openalexLandingPageUrl(location.landing_page_url), 'landing_page', 'openalex_location', work.display_name,
           location.version ?? null, location.license ?? null, location.source?.type ?? null);
       }
       if (!work.locations?.length && work.primary_location) {
         const location = work.primary_location;
         add(location.pdf_url, 'pdf', 'openalex_primary_location', work.display_name,
           location.version ?? null, location.license ?? null, location.source?.type ?? null);
-        add(location.landing_page_url, 'landing_page', 'openalex_primary_location', work.display_name,
+        add(openalexLandingPageUrl(location.landing_page_url), 'landing_page', 'openalex_primary_location', work.display_name,
           location.version ?? null, location.license ?? null, location.source?.type ?? null);
       }
     } catch (error) {

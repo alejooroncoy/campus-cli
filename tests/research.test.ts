@@ -70,6 +70,17 @@ test('OpenAlex returns repository version and license separately from peer revie
   assert.equal(new URL(result.requestUrl).searchParams.get('api_key'), null);
 });
 
+test('OpenAlex omits license and README files advertised as article landing pages', async () => {
+  const service = new ResearchService(async () => ({ meta: { count: 1 }, results: [{
+    id: 'https://openalex.org/W123', display_name: 'Evidence study', doi: 'https://doi.org/10.1234/evidence',
+    locations: [{ source: { type: 'repository', display_name: 'Institutional repository' },
+      landing_page_url: 'https://repository.example.edu/123/licence.txt', pdf_url: null }],
+  }] }));
+  const source = (await service.search({ query: '10.1234/evidence', provider: 'openalex' })).results[0] as any;
+  assert.equal(source.locations[0].landing_page_url, null);
+  assert.equal(source.url, 'https://doi.org/10.1234/evidence');
+});
+
 test('Scopus fails explicitly without credentials and never calls the API', async () => {
   const service = new ResearchService(async () => { assert.fail('network must not run'); }, {});
   await assert.rejects(service.search({ query: 'education', provider: 'scopus' }), /SCOPUS_API_KEY/);
@@ -1934,6 +1945,8 @@ test('exact DOI resolution connects a catalog record to versioned PDF candidates
       locations: [
         { pdf_url: 'https://repository.example.edu/evidence.pdf', version: 'acceptedVersion',
           license: 'cc-by', source: { type: 'repository' } },
+        { landing_page_url: 'https://repository.example.edu/12859/8/licence.txt',
+          source: { type: 'repository' } },
         { pdf_url: 'https://127.0.0.1/private.pdf', source: { type: 'repository' } },
       ],
     };
@@ -1950,6 +1963,7 @@ test('exact DOI resolution connects a catalog record to versioned PDF candidates
   assert.deepEqual(result.results.filter(item => item.kind === 'pdf').map(item => item.url), [
     'https://publisher.example.edu/evidence.pdf', 'https://repository.example.edu/evidence.pdf',
   ]);
+  assert.ok(!result.results.some(item => item.url.includes('/licence.txt')));
   assert.equal(result.results[1].version, 'acceptedVersion');
   assert.equal(result.results[1].locationType, 'repository');
   assert.equal(result.results[1].documentAccess, 'candidate_unverified');
