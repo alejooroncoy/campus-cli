@@ -242,7 +242,7 @@ function arxivIdSearchQuery(value: string): string | null {
   const doi = doiSearchQuery(trimmed);
   if (/^https?:\/\//i.test(trimmed)) {
     const urlId = arxivIdFromUrl(trimmed);
-    return urlId?.toLowerCase() ?? null;
+    if (urlId) return urlId.toLowerCase();
   }
   let id = doi && /^10\.48550\/arxiv\./i.test(doi)
     ? doi.replace(/^10\.48550\/arxiv\./i, '') : trimmed;
