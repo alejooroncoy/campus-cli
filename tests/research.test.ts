@@ -600,6 +600,8 @@ test('DOI normalization accepts resolver tracking URLs and rejects untrusted URL
   assert.equal(normalizeDoi('doi:10.1234/ABC'), '10.1234/abc');
   assert.equal(normalizeDoi('https://doi.org/10.1234/ABC?utm_source=library#citation'), '10.1234/abc');
   assert.equal(normalizeDoi('http://dx.doi.org/10.1234/ABC?ref=browser'), '10.1234/abc');
+  assert.equal(normalizeDoi('https://doi.org/10.1234%2FABC?ref=browser'), '10.1234/abc');
+  assert.equal(normalizeDoi('https://doi.org/10.1234%2FABC%3Fedition%231'), '10.1234/abc?edition#1');
   for (const value of [
     'https://evil.example/10.1234/abc', 'https://doi.org.attacker.example/10.1234/abc',
     'https://user@doi.org/10.1234/abc', 'https://doi.org:8443/10.1234/abc',
@@ -1400,7 +1402,7 @@ test('Crossref and ACM DOI queries use exact DOI filters and fail closed on mism
       return collection([exactWork]);
     });
     for (const query of [doi, `doi:${doi}`, `https://doi.org/${doi}`,
-      `https://doi.org/${doi}?utm_source=campus#citation`]) {
+      `https://doi.org/${doi}?utm_source=campus#citation`, `https://doi.org/${doi.replace('/', '%2F')}`]) {
       const result = await service.search({ query, provider });
       assert.equal(result.total, 1, `${provider} query: ${query}`);
       assert.equal(result.results.length, 1, `${provider} query: ${query}`);
