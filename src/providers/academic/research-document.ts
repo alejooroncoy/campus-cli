@@ -82,14 +82,19 @@ function htmlText(value: string): string {
 
 function xmlText(value: string): string {
   if (/<PubmedArticle\b/i.test(value)) return pubmedXmlText(value);
+  const articleDois = [...value.matchAll(/<article-id\b(?=[^>]*\bpub-id-type=["']doi["'])[^>]*>([\s\S]*?)<\/article-id>/gi)]
+    .map(match => normalizeText(match[1]!.replace(/<[^>]+>/g, ' ')))
+    .filter(Boolean);
   const cdata: string[] = [];
   const marker = `__CAMPUS_CDATA_${randomUUID()}_`;
   const protectedText = value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, (_match, payload: string) => {
     const index = cdata.push(payload) - 1;
     return `${marker}${index}__`;
   });
-  return htmlText(protectedText.replace(/<[^>]+(?:\/|)>/g, tag => /<(?:p|title|sec|abstract|body|article-title|chapter)\b/i.test(tag) ? '\n\n' : ' '))
+  const text = htmlText(protectedText.replace(/<[^>]+(?:\/|)>/g, tag => /<(?:p|title|sec|abstract|body|article-title|chapter)\b/i.test(tag) ? '\n\n' : ' '))
     .replace(new RegExp(`${marker}(\\d+)__`, 'g'), (_match, index: string) => cdata[Number(index)] ?? '');
+  const doiMetadata = [...new Set(articleDois)].map(doi => `DOI: ${doi}`).join('\n');
+  return doiMetadata ? `${doiMetadata}\n\n${text}` : text;
 }
 
 function archiveXmlText(bytes: Uint8Array): string {

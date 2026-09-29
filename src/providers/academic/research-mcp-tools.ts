@@ -277,7 +277,7 @@ export function registerResearchTools(server: McpServer, options: {
     inputSchema: { doi: z.string().min(6).max(350) }, annotations,
   }, ({ doi }) => run(() => service.verifyDoi(doi), undefined, true));
   server.registerTool('campus_research_resolve_document', {
-    description: 'Resolve an exact DOI from a Scopus, Web of Science or other catalog record into public Crossref/DataCite, OpenAlex and matching Zenodo record file or landing-page candidates. Zenodo formatHint identifies PDF, HTML, text, XML, DOCX and EPUB readers. Candidate URLs are unverified until the file is read and its title, DOI, hash and supporting passage are checked.',
+    description: 'Resolve an exact DOI from a Scopus, Web of Science or other catalog record into public Crossref/DataCite, OpenAlex, Europe PMC full-text XML and matching Zenodo record file or landing-page candidates. Europe PMC and Zenodo files are included only when their records match the exact DOI. Candidate URLs are unverified until the file is read and its title, DOI, hash and supporting passage are checked.',
     inputSchema: documentResolutionInput.shape, annotations,
   }, input => run(() => service.resolveDocument(input), undefined, true));
   server.registerTool('campus_research_verify_citation', {
