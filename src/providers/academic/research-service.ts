@@ -860,7 +860,8 @@ export class ResearchService {
         }
       }
     } else if (provider === 'europe_pmc') {
-      const terms = query.replace(/["\\]/g, ' ').trim();
+      const exactDoi = doiSearchQuery(query);
+      const terms = exactDoi ? `DOI:${exactDoi}` : query.replace(/["\\]/g, ' ').trim();
       if (!terms) throw new Error('La búsqueda debe contener texto.');
       const dateTerms = yearFrom || yearTo
         ? ` AND FIRST_PDATE:[${yearFrom ?? 1500}-01-01 TO ${yearTo ?? new Date().getUTCFullYear()}-12-31]` : '';
@@ -890,6 +891,9 @@ export class ResearchService {
           documentFormat: pmcid ? 'xml' : null,
           openAccess: record.isOpenAccess === 'Y' || record.isOpenAccess === true };
       });
+      if (exactDoi && (results as Array<{ doi: string | null }>).some(record => record.doi !== exactDoi)) {
+        throw new Error('Europe PMC devolvió un registro con DOI distinto a la búsqueda exacta.');
+      }
     } else if (provider === 'semantic_scholar') {
       const terms = query.replace(/["\\]/g, ' ').trim();
       if (!terms) throw new Error('La búsqueda debe contener texto.');

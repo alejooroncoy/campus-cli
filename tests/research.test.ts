@@ -1536,6 +1536,23 @@ test('Europe PMC search preserves biomedical IDs, DOI and public record URL', as
   assert.equal(source.documentAccess, 'document_candidate_unverified');
 });
 
+test('Europe PMC DOI searches use the DOI field and reject records with another DOI', async () => {
+  const exactDoi = '10.1371/journal.pone.0000308';
+  const service = new ResearchService(async url => {
+    const parsed = new URL(url);
+    assert.equal(parsed.searchParams.get('query'), `DOI:${exactDoi}`);
+    return { hitCount: 1, resultList: { result: [{ pmid: '17375194', doi: exactDoi,
+      title: 'Sharing detailed research data is associated with increased citation rate.' }] } };
+  });
+  const result = await service.search({ query: `https://doi.org/${exactDoi}`, provider: 'europe_pmc' });
+  assert.equal((result.results[0] as any).doi, exactDoi);
+
+  const incorrectRecord = new ResearchService(async () => ({ hitCount: 1, resultList: { result: [
+    { pmid: '42054306', doi: '10.1371/journal.pone.0347931', title: 'Unrelated result' },
+  ] } }));
+  await assert.rejects(incorrectRecord.search({ query: exactDoi, provider: 'europe_pmc' }), /DOI distinto/);
+});
+
 test('Europe PMC rejects malformed identifiers and falls back to a canonical DOI URL', async () => {
   const service = new ResearchService(async () => ({ hitCount: 2, resultList: { result: [
     { id: 'not-a-pmid', pmid: 'abc', pmcid: 'PMC-nope', title: 'DOI only', doi: '10.1234/doi-only' },
