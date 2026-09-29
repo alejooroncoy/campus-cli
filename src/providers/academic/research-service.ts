@@ -593,9 +593,9 @@ export class ResearchService {
       for (const identifier of registered.alternateIdentifiers ?? []) {
         if (!/^arxiv$/i.test(identifier.alternateIdentifierType ?? '')) continue;
         const arxivId = identifier.alternateIdentifier.trim().replace(/^arxiv:/i, '');
-        if (!/^\d{4}\.\d{4,5}(?:v\d+)?$/i.test(arxivId)) continue;
+        if (!/^(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[a-z]{2})?\/\d{7})(?:v\d+)?$/i.test(arxivId)) continue;
         const version = arxivId.match(/v\d+$/i)?.[0] ?? null;
-        add(`https://arxiv.org/pdf/${encodeURIComponent(arxivId)}`, 'pdf', 'datacite_arxiv_identifier', title,
+        add(`https://arxiv.org/pdf/${arxivId.split('/').map(encodeURIComponent).join('/')}`, 'pdf', 'datacite_arxiv_identifier', title,
           version, null, 'repository', 'pdf');
       }
     }
@@ -1019,8 +1019,13 @@ export class ResearchService {
         const categories = [...entry.matchAll(/<(?:[\w.-]+:)?(?:primary_category|category)\b[^>]*>/gi)]
           .map(match => xmlAttribute(match[0], 'term')).filter((category): category is string => Boolean(category));
         const doi = optionalDoi(xmlTagText(entry, 'doi'));
+        const arxivDoiCandidate = entryId
+          ? `10.48550/arxiv.${entryId.replace(/v\d+$/i, '').toLowerCase()}` : null;
         return { id: entryId ? `arxiv:${entryId}` : null, arxivId: entryId,
-          doi, title, authors, year: published ? Number(/^\d{4}/.exec(published)?.[0] ?? NaN) || null : null,
+          doi, arxivDoiCandidate, arxivDoiVerified: false,
+          doiVersionScope: doi === null ? 'not_provided'
+            : doi === arxivDoiCandidate ? 'this_arxiv_preprint' : 'other_version_or_publication',
+          title, authors, year: published ? Number(/^\d{4}/.exec(published)?.[0] ?? NaN) || null : null,
           date: published, updatedAt: updated, type: 'preprint', venue: xmlTagText(entry, 'journal_ref'),
           abstract: xmlTagText(entry, 'summary'), categories,
           indexedIn: 'arxiv', peerReview: 'unknown', retractionStatus: 'not_checked',

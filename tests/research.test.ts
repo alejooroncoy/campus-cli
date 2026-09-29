@@ -1739,6 +1739,9 @@ test('arXiv Atom search preserves the e-print ID, DOI, version and matching PDF 
   assert.equal(source.id, 'arxiv:2505.01648v1');
   assert.equal(source.arxivId, '2505.01648v1');
   assert.equal(source.doi, '10.1145/3757486');
+  assert.equal(source.arxivDoiCandidate, '10.48550/arxiv.2505.01648');
+  assert.equal(source.arxivDoiVerified, false);
+  assert.equal(source.doiVersionScope, 'other_version_or_publication');
   assert.equal(source.title, 'A & B: robust research systems');
   assert.deepEqual(source.authors, ['Ada Lovelace', 'Grace Hopper']);
   assert.equal(source.year, 2025);
@@ -3422,7 +3425,7 @@ test('DataCite arXiv DOI matches the arXiv identifier printed on a versioned PDF
   const wrongArxivId = await verifyResearchDocumentIdentity({ ...base,
     expectedDoi: '10.48550/arXiv.2102.05095' }, { readPdf: readPdf as any });
   assert.equal(wrongArxivId.identityAllowed, false);
-  assert.equal(wrongArxivId.reason, 'doi_not_found_in_document');
+  assert.equal(wrongArxivId.reason, 'doi_does_not_identify_arxiv_file');
 });
 
 test('post-abstract self-citation can identify its own PDF only with title, authors and year', async () => {
@@ -4223,6 +4226,9 @@ test('arXiv DOI identity requires the same arXiv id in the PDF URL and first pag
   assert.equal(matching.identityBasis, 'title_arxiv_identifier_and_hash');
   const wrongFile = await verify('https://arxiv.org/pdf/1706.03763v1');
   assert.equal(wrongFile.identityAllowed, false);
+  const mirrorWithIdentifier = await verify('https://repository.example.edu/attention.pdf');
+  assert.equal(mirrorWithIdentifier.identityAllowed, false);
+  assert.equal(mirrorWithIdentifier.reason, 'doi_not_found_in_document');
   const missingMarker = await verify('https://arxiv.org/pdf/1706.03762v7', page.replace('arXiv:1706.03762v7', 'arXiv:1706.03763v1'));
   assert.equal(missingMarker.identityAllowed, false);
 });
@@ -4250,4 +4256,49 @@ test('unheaded section quote is accepted when the immediately preceding section 
     verifyEvidence: ((raw: any) => verifyResearchEvidence(raw, { readDocument })) as any });
   assert.equal(result.verbatimCitationAllowed, true, JSON.stringify(result));
   assert.equal(result.evidence?.precedingSections.at(-1).section, 2);
+});
+
+test('legacy arXiv IDs resolve a PDF and bind its DOI to the official first page', async () => {
+  const doi = '10.48550/arxiv.hep-th/9901001';
+  const pdfUrl = 'https://arxiv.org/pdf/hep-th/9901001';
+  const service = new ResearchService(async url => {
+    if (url.includes('crossref.org')) throw new ResearchHttpError(404);
+    if (url.includes('api.datacite.org')) return { data: { id: doi, attributes: { doi,
+      titles: [{ title: 'String Junctions and Their Duals in Heterotic String Theory' }],
+      creators: [{ name: 'Yosuke Imamura' }], publicationYear: 1999,
+      publisher: 'arXiv', types: { resourceTypeGeneral: 'Preprint' },
+      url: 'https://arxiv.org/abs/hep-th/9901001', alternateIdentifiers: [
+        { alternateIdentifierType: 'arXiv', alternateIdentifier: 'hep-th/9901001' },
+      ] } } };
+    if (url.includes('api.openalex.org')) throw new ResearchHttpError(404);
+    assert.fail(`Unexpected metadata URL: ${url}`);
+  });
+  const resolved = await service.resolveDocument({ doi });
+  assert.ok(resolved.results.some(candidate => candidate.kind === 'pdf'
+    && candidate.url === pdfUrl && candidate.discoveredVia === 'datacite_arxiv_identifier'));
+  const page = 'arXiv:hep-th/9901001v3\nString Junctions and Their Duals in Heterotic String Theory\nYosuke Imamura\nAbstract\nWe explore string junctions.';
+  const sha256 = createHash('sha256').update(page).digest('hex');
+  const verify = (resolvedUrl: string, text = page) => verifyResearchDocumentIdentity({
+    url: pdfUrl, format: 'pdf', expectedSha256: sha256,
+    expectedTitle: 'String Junctions and Their Duals in Heterotic String Theory', expectedDoi: doi,
+  }, { readPdf: (async () => ({ requestedUrl: pdfUrl, resolvedUrl,
+    retrievedAt: '2026-09-29T00:00:00.000Z', sha256, totalPages: 1,
+    pages: [{ page: 1, text, truncated: false, needsOcr: false }], nextPage: null, guidance: [],
+  })) as any });
+  const matching = await verify(pdfUrl);
+  assert.equal(matching.identityAllowed, true);
+  assert.equal(matching.identityBasis, 'title_arxiv_identifier_and_hash');
+  assert.equal((await verify('https://repository.example.edu/legacy.pdf')).identityAllowed, false);
+  assert.equal((await verify(pdfUrl, page.replace('9901001v3', '9901002v1'))).identityAllowed, false);
+  const journalDoi = await verifyResearchDocumentIdentity({
+    url: pdfUrl, format: 'pdf', expectedSha256: sha256,
+    expectedTitle: 'String Junctions and Their Duals in Heterotic String Theory',
+    expectedDoi: '10.1143/ptp.101.1155',
+  }, { readPdf: (async () => ({ requestedUrl: pdfUrl, resolvedUrl: pdfUrl,
+    retrievedAt: '2026-09-29T00:00:00.000Z', sha256, totalPages: 1,
+    pages: [{ page: 1, text: `${page}\nDOI: 10.1143/ptp.101.1155`, truncated: false, needsOcr: false }],
+    nextPage: null, guidance: [],
+  })) as any });
+  assert.equal(journalDoi.identityAllowed, false);
+  assert.equal(journalDoi.reason, 'doi_does_not_identify_arxiv_file');
 });

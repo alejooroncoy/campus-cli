@@ -19,7 +19,7 @@ const INSTRUCTIONS = `
 campus-cli conecta el campus universitario del estudiante con su agente de IA.
 
 Para investigación académica usa campus_research_search (Crossref, OpenAlex,
-ACM, Scopus y Web of Science),
+PubMed, Europe PMC, OpenAIRE, Semantic Scholar, arXiv, ACM, Scopus y Web of Science),
 campus_research_search_databases para buscar en las tres bases usando el rango
 o cantidad de años que indique el estudiante, campus_research_verify_doi y
 campus_research_verify_citation antes de redactar una referencia, y
@@ -63,6 +63,9 @@ combina registro, identidad del archivo y oración completa en la página en un
 único comprobante. Un fragmento de oración queda parcial porque puede omitir
 una negación. verbatimCitationAllowed solo cubre esas palabras exactas; revisa
 también el contexto y no extiendas el comprobante a una paráfrasis.
+En arXiv, el DOI publicado en revista puede identificar otra versión distinta
+del PDF del preprint. arxivDoiCandidate no está verificado: consulta ese DOI
+en DataCite antes de citar el PDF arXiv o busca el PDF editorial del DOI de revista.
 Google Académico usa campus_research_google_scholar mediante SerpApi si está configurado;
 de lo contrario devuelve solo un enlace de búsqueda manual, sin resultados.
 La indexación y el DOI no prueban revisión por pares ni validez científica.

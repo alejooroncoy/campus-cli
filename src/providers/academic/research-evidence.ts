@@ -133,12 +133,7 @@ function doiAppearsInText(text: string, doi: string): boolean {
     .join('\\s{0,4}');
   // Permit line wraps inside a DOI and punctuation after it, but never accept a
   // longer DOI whose suffix merely starts with the expected value.
-  if (new RegExp(`(?:^|[^a-z0-9])${literal}(?=$|\\s|[.,;:!?)](?:\\s|$))`, 'i').test(text)) return true;
-  // DataCite registers arXiv deposits as 10.48550/arxiv.<id>, while the paper
-  // itself prints its canonical arXiv identifier (often with a version suffix).
-  const arxivDoi = /^10\.48550\/arxiv\.(\d{4}\.\d{4,5})(?:v\d+)?$/i.exec(doi);
-  if (!arxivDoi) return false;
-  return new RegExp(`(?:^|[^a-z0-9])ar\\s?xiv\\s*:\\s*${arxivDoi[1]}(?:v\\d+)?(?=$|[^a-z0-9])`, 'i').test(text);
+  return new RegExp(`(?:^|[^a-z0-9])${literal}(?=$|\\s|[.,;:!?)](?:\\s|$))`, 'i').test(text);
 }
 
 const REFERENCE_SECTION_NAME = '(?:references?(?:\\s+(?:and|&)\\s+(?:notes|sources))?|bibliograph(?:y|ies|ie)|bibliograf[ií]as?|bibliograf[ií]es?|bibliografie|bibliografija|referencias?|referências?|riferimenti(?:\\s+bibliografici)?|literaturverzeichnis|works cited|cited works|literature cited|список\\s+литературы|библиограф(?:ия|ический\\s+список)|références bibliographiques|références|引用文献|参考文献|参考资料|參考文獻|참고문헌|kaynakça|lähdeluettelo|literaturliste|المراجع|संदर्भ)';
@@ -291,6 +286,17 @@ export async function verifyResearchDocumentIdentity(
   if (input.expectedSha256.toLowerCase() !== document.sha256.toLowerCase()) {
     return { status: 'rejected', identityAllowed: false, reason: 'document_hash_mismatch', proof };
   }
+  if (doi) {
+    const resolved = new URL(document.resolvedUrl);
+    const arxivPdfId = ['arxiv.org', 'www.arxiv.org'].includes(resolved.hostname.toLowerCase())
+      ? /^\/pdf\/((?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[a-z]{2})?\/\d{7}))(?:v\d+)?(?:\.pdf)?$/i
+        .exec(resolved.pathname.replace(/%2f/ig, '/'))?.[1]?.toLowerCase() : null;
+    if (arxivPdfId && doi !== `10.48550/arxiv.${arxivPdfId}`) {
+      return { status: 'partial', identityAllowed: false,
+        reason: 'doi_does_not_identify_arxiv_file', proof,
+        guidance: 'Este PDF es un preprint arXiv. El DOI solicitado identifica otra versión o publicación; verifica el DOI del preprint o lee el archivo editorial correspondiente.' };
+    }
+  }
   const segments = 'pages' in document
     ? document.pages.map(page => ({ locator: page.page, text: page.text }))
     : document.sections.map(section => ({ locator: section.section,
@@ -356,16 +362,18 @@ export async function verifyResearchDocumentIdentity(
         || new RegExp(`(?:^|\\D)${input.expectedYear}(?:\\D|$)`).test(frontText);
       return distance <= 8 && Boolean(authorsMatch) && yearMatch;
     }));
-  const arxivId = doi?.match(/^10\.48550\/arxiv\.(\d{4}\.\d{4,5})$/i)?.[1];
+  const arxivId = doi?.match(/^10\.48550\/arxiv\.((?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[a-z]{2})?\/\d{7}))$/i)?.[1];
+  const escapedArxivId = arxivId?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const arxivUrlMatches = arxivId && (() => {
     const parsed = new URL(document.resolvedUrl);
     return parsed.hostname === 'arxiv.org'
-      && new RegExp(`^/pdf/${arxivId.replace('.', '\\.')}v?\\d*(?:\\.pdf)?$`, 'i').test(parsed.pathname);
+      && new RegExp(`^/pdf/${escapedArxivId}v?\\d*(?:\\.pdf)?$`, 'i')
+        .test(parsed.pathname.replace(/%2f/ig, '/'));
   })();
   const arxivDoiOnFirstPage = doi !== null && arxivId && arxivUrlMatches && 'pages' in document
     && document.pages.some(page => page.page === 1
       && !page.text.toLowerCase().includes(doi)
-      && new RegExp(`\\barxiv\\s*:\\s*${arxivId.replace('.', '\\.')}v?\\d*\\b`, 'i').test(page.text));
+      && new RegExp(`\\barxiv\\s*:\\s*${escapedArxivId}v?\\d*\\b`, 'i').test(page.text));
   const doiInFrontMatter = doi === null || doiSegments.some(segment => doiAppearsInText(segment.text, doi))
     || arxivDoiOnFirstPage;
   const doiInSelfCitation = !doiInFrontMatter && doi !== null && 'pages' in document
