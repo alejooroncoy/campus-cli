@@ -596,9 +596,15 @@ test('Crossref absence is not labelled fake, while upstream failure is not absen
   await assert.rejects(mismatch.verifyDoi(work.DOI), /no coincide/);
 });
 
-test('DOI normalization rejects URLs and malformed values without guessing', () => {
+test('DOI normalization accepts resolver tracking URLs and rejects untrusted URLs', () => {
   assert.equal(normalizeDoi('doi:10.1234/ABC'), '10.1234/abc');
-  for (const value of ['https://evil.example/10.1234/abc', 'not a doi', '10.1234/a?query=yes']) {
+  assert.equal(normalizeDoi('https://doi.org/10.1234/ABC?utm_source=library#citation'), '10.1234/abc');
+  assert.equal(normalizeDoi('http://dx.doi.org/10.1234/ABC?ref=browser'), '10.1234/abc');
+  for (const value of [
+    'https://evil.example/10.1234/abc', 'https://doi.org.attacker.example/10.1234/abc',
+    'https://user@doi.org/10.1234/abc', 'https://doi.org:8443/10.1234/abc',
+    'not a doi', '10.1234/a?query=yes', 'doi:10.1234/a?query=yes',
+  ]) {
     assert.throws(() => normalizeDoi(value));
   }
 });
@@ -1393,7 +1399,8 @@ test('Crossref and ACM DOI queries use exact DOI filters and fail closed on mism
       assert.match(parsed.pathname, provider === 'crossref' ? /\/works$/ : /\/prefixes\/10\.1145\/works$/);
       return collection([exactWork]);
     });
-    for (const query of [doi, `doi:${doi}`, `https://doi.org/${doi}`]) {
+    for (const query of [doi, `doi:${doi}`, `https://doi.org/${doi}`,
+      `https://doi.org/${doi}?utm_source=campus#citation`]) {
       const result = await service.search({ query, provider });
       assert.equal(result.total, 1, `${provider} query: ${query}`);
       assert.equal(result.results.length, 1, `${provider} query: ${query}`);

@@ -54,7 +54,19 @@ export const documentResolutionInput = z.object({
 });
 
 export function normalizeDoi(value: string): string {
-  const doi = value.trim().replace(/^https?:\/\/(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '').toLowerCase();
+  const trimmed = value.trim();
+  let identifier: string;
+  if (/^https?:\/\//i.test(trimmed)) {
+    let url: URL;
+    try { url = new URL(trimmed); } catch { throw new Error('DOI inválido.'); }
+    if (!['doi.org', 'dx.doi.org'].includes(url.hostname.toLowerCase())
+      || url.username || url.password || url.port) throw new Error('DOI inválido.');
+    // Resolver query parameters and fragments describe the URL, not the DOI.
+    identifier = url.pathname.replace(/^\/+/, '');
+  } else {
+    identifier = trimmed.replace(/^doi:\s*/i, '');
+  }
+  const doi = identifier.toLowerCase();
   if (!/^10\.\d{4,9}\/[^\s?#]+$/.test(doi) || doi.length > 300) throw new Error('DOI inválido.');
   return doi;
 }
