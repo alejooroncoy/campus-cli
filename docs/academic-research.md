@@ -6,13 +6,16 @@ Las herramientas recuperan registros bibliográficos y evidencia de documentos r
 
 | Herramienta | Función |
 |---|---|
-| `campus_research_search` | Búsqueda paginada en Crossref, OpenAlex, ACM, Scopus o Web of Science, con años, DOI, autores y procedencia. |
+| `campus_research_search` | Búsqueda paginada en Crossref, OpenAlex, PubMed, Europe PMC, OpenAIRE, Semantic Scholar, arXiv, ACM, Scopus o Web of Science, con DOI, URL y procedencia cuando el proveedor los entrega. |
 | `campus_research_search_databases` | Busca en ACM, Scopus y Web of Science durante el período indicado por el estudiante. |
 | `campus_research_google_scholar` | Búsqueda en Google Académico mediante SerpApi opcional; sin clave devuelve solo un enlace manual, identificado como tal. |
-| `campus_research_verify_doi` | Consulta exacta en Crossref y comprobación de avisos de corrección/retractación relacionados con ese DOI. |
+| `campus_research_verify_doi` | Consulta exacta en Crossref y, cuando procede, DataCite; devuelve avisos editoriales disponibles. |
+| `campus_research_resolve_document` | Obtiene candidatos de archivo y página para un DOI, incluidos enlaces de OpenAlex, arXiv o Zenodo cuando corresponden al registro. |
 | `campus_research_verify_citation` | Compara el título descubierto con el registro DOI exacto y bloquea la cita ante diferencias o metadatos canónicos incompletos. |
 | `campus_research_read_pdf` | Texto de un PDF HTTPS público, separado por páginas, con URL final, fecha de lectura y SHA-256. |
-| `campus_research_read_document` | Evidencia por secciones desde PDF, HTML, texto, Markdown, XML/JATS, DOCX o EPUB públicos. Los ZIP requieren indicar `docx` o `epub`. |
+| `campus_research_read_document` | Evidencia por secciones desde PDF, HTML, texto, Markdown, XML/JATS, DOCX, EPUB, CSV o XLSX públicos. Los ZIP requieren indicar `docx`, `epub` o `xlsx`. |
+| `campus_research_verify_document_identity` | Compara título, DOI y SHA-256 del registro con el archivo procesado. |
+| `campus_research_verify_quote` | Vincula la cita literal con bibliografía, archivo, huella y página o sección; rechaza fragmentos ausentes o de referencias. |
 | `campus_research_verify_evidence` | Comprueba que un fragmento aparezca en la página o sección indicada y que la huella SHA-256 siga siendo la misma; devuelve un `evidenceId` estable. |
 | `campus_research_verify_quotes` | Coteja hasta ocho citas literales previstas para una respuesta contra las páginas de un PDF ya indexado. Devuelve el estado de cada cita; no evalúa si sostiene la afirmación. |
 | `campus_research_index_pdf` | Inicia en segundo plano la extracción única de un PDF público extenso y devuelve un `documentId`. |
@@ -63,9 +66,30 @@ Buscar en las tres bases disponibles para los últimos tres años:
 
 Usa `campus_research_search_databases`. `recentYears=3` consulta, en 2026, los años calendario 2024, 2025 y 2026. Si la consigna solicita un rango exacto, usa por ejemplo `yearFrom=2020` y `yearTo=2023`; ambos límites se incluyen. El estudiante debe indicar una de las dos modalidades y la herramienta rechaza períodos ausentes, incompletos o contradictorios. La respuesta conserva un bloque por proveedor con `status=ok` o `status=unavailable`, de modo que una clave faltante no oculta los resultados obtenidos en otras bases. Elimina duplicados por DOI antes de contar estudios.
 
+Para comparar las diez fuentes implementadas en una sola solicitud, indica `providers` explícitamente:
+
+```json
+{"query":"online learning accessibility","providers":["crossref","openalex","pubmed","europe_pmc","openaire","semantic_scholar","arxiv","acm_dl","scopus","web_of_science"],"recentYears":3}
+```
+
+Los proveedores con clave ausente, tasa límite o error upstream conservan su propio `status=unavailable`; no se representan como cero resultados. La herramienta limita la concurrencia HTTP global a cinco solicitudes y los proveedores con cuota especial mantienen su propio ritmo.
+
 También se puede consultar cada base con `campus_research_search` y uno de estos valores en `provider`:
 
 - `acm_dl`: publicaciones del prefijo ACM `10.1145` obtenidas mediante Crossref; no equivale a consultar directamente el buscador interno de ACM DL.
+- `pubmed`: PubMed mediante NCBI E-utilities; conserva PMID, DOI cuando existe y URL pública del registro.
+- `europe_pmc`: Europe PMC mediante su API pública; conserva PMID/PMCID, DOI cuando existe y URL propia del registro.
+- `openaire`: OpenAIRE Graph API v3; conserva DOI/PMID/PMCID cuando existen, URL del registro y enlaces de archivo por instancia. El estado de revisión se conserva por instancia; el agregado permanece `unknown`.
+- `semantic_scholar`: Semantic Scholar Academic Graph API; conserva su ID de artículo, DOI/PMID si existen, URL propia y un PDF abierto candidato si la API lo declara.
+- `arxiv`: API Atom oficial de arXiv; conserva ID y versión del e-print, DOI y enlaces de registro/PDF de la misma entrada. Es un repositorio de preprints: `peerReview=unknown`, aunque el resultado incluya referencia a una publicación.
+
+Europe PMC puede devolver un `documentUrl` XML/JATS cuando el resultado incluye PMCID. Esa URL es solo un candidato hasta que `campus_research_read_document` descarga el archivo y `campus_research_verify_document_identity` confirma título, DOI y SHA-256; el registro de Europe PMC por sí solo no autoriza una cita.
+
+Semantic Scholar puede consultarse sin clave, sujeto a límites compartidos y posibles restricciones temporales; para Railway se puede configurar `SEMANTIC_SCHOLAR_API_KEY`. Su campo `openAccessPdf` produce solo un candidato público sin verificar. La búsqueda por relevancia devuelve como máximo 1,000 resultados; la respuesta marca `paginationLimited=true` cuando el total supera ese techo y no ofrece páginas posteriores. La propia documentación oficial recomienda respetar límites y no trata su etiqueta de acceso abierto como verificación de los bytes del PDF.
+
+OpenAIRE consulta el endpoint estable Graph API v3, sin clave adicional. Cada URL de archivo proviene de una instancia del registro y es solo un candidato: sigue siendo necesario leer el archivo y validar identidad, DOI y SHA-256. La revisión por pares puede variar entre instancias, por lo que no se infiere un estado único del artículo. `paginationLimited=true` avisa cuando el total excede el rango recorrible (hasta 10,000 resultados de la API y 100 páginas del tamaño solicitado). Consulta la [documentación oficial de OpenAIRE Graph API](https://graph.openaire.eu/docs/11.3.0/apis/graph-api/quickstart/).
+
+arXiv usa su API Atom sin clave. El adaptador conserva el ID con versión, toma el PDF solo del enlace de la misma entrada y aplica la pausa de tres segundos recomendada por arXiv entre consultas. La API admite páginas mayores, pero el MCP limita la búsqueda a 25 resultados por página y 100 páginas; `paginationLimited=true` avisa si quedan resultados fuera de ese rango. El PDF se debe leer y asociar al DOI y título canónicos: un preprint puede diferir de la versión editorial. Consulta el [manual oficial de la API de arXiv](https://info.arxiv.org/help/api/user-manual.html).
 - `scopus`: Scopus Search API; requiere una clave Elsevier con acceso correspondiente.
 - `web_of_science`: Web of Science Starter API, limitada a Core Collection (`db=WOS`); requiere `WOS_API_KEY`.
 
@@ -99,7 +123,7 @@ Luego pasa una URL PDF devuelta por el catálogo a `campus_research_read_pdf`, c
 
 1. Define pregunta, términos, años y criterios de inclusión/exclusión.
 2. Busca en más de un catálogo cuando corresponda y agrupa coincidencias por DOI; no cuentes duplicados como estudios independientes.
-3. Comprueba DOI, título, autores, año y versión. `not_found_in_crossref` no significa falso: podría pertenecer a otra agencia registradora, como DataCite, que esta herramienta no consulta.
+3. Comprueba DOI, título, autores, año y versión. Tras un 404 o un 429/503 temporal de Crossref se consulta DataCite; si Crossref estaba indisponible y DataCite devuelve 404, se conserva el error de Crossref en lugar de afirmar ausencia en ambas agencias. `not_found_in_crossref_or_datacite` tampoco demuestra que el DOI sea falso.
 4. Revisa los avisos de actualización y la página editorial. `no_notice_found_in_crossref` no garantiza ausencia de retractaciones. `unknown` indica que la comprobación no se completó; nunca lo conviertas en “sin retractación”.
 5. Verifica revisión por pares mediante evidencia editorial independiente. Las herramientas dejan `peerReview=unknown`: no la infieren de Google, Scopus, un DOI, una tesis o un repositorio.
 6. Lee el texto completo y extrae pregunta, método, muestra, instrumentos, resultados y limitaciones, con páginas concretas. El resumen del buscador no sustituye esta lectura.
@@ -109,7 +133,7 @@ El lector devuelve evidencia para que el agente analice; no genera una revisión
 
 Para un PDF extenso, inicia `campus_research_index_pdf` con su URL y conserva los dos IDs devueltos: `documentId` identifica la copia extraída y `analysisId` identifica esta consulta, incluso cuando la copia se reutiliza. Pasa ambos a `campus_research_index_status` hasta obtener `status=ready` y `coverage=N/N`, y luego a `campus_research_search_index` y `campus_research_read_indexed_pdf`. El estado distingue `indexedPages` (páginas extraídas), `readPages` (páginas entregadas para este análisis) y `verifiedEvidence` (IDs de fragmentos cotejados para este análisis). Sin `analysisId`, el registro es acumulativo durante la vida del índice y no prueba qué leyó una respuesta concreta. La búsqueda es léxica: un resultado indica coincidencia de palabras, no que la página sostenga una conclusión. Para un resumen de todo el documento, revisa todas las secciones pertinentes y señala cualquier página `needsOcr` o `truncated`; el índice por sí mismo no equivale a una lectura interpretativa integral.
 
-La primera versión admite PDF públicos de hasta 20 MB y 500 páginas. Extrae texto en un worker con límite de memoria y 180 segundos; el índice se guarda solo en memoria, separado por cuenta, por una hora de inactividad, con hasta ocho documentos por proceso, dos por cuenta y dos análisis simultáneos. Una cuenta no puede expulsar el índice de otra; cuando el proceso está lleno, una nueva preparación informa que debe intentarse más tarde. Un reinicio o una solicitud que llegue a otra instancia puede perderlo: en ese caso vuelve a iniciarlo. No ejecuta OCR ni reconstruye tablas, fórmulas o imágenes. Para citas de un PDF indexado, pasa `documentId`, `analysisId`, la URL original, página, fragmento y `expectedSha256` a `campus_research_verify_evidence`: coteja el texto y la huella de la copia indexada sin otra descarga. Sin `documentId`, la verificación obtiene de nuevo la fuente para comprobar su versión actual; una copia indexada puede quedar obsoleta si el origen cambia después de prepararla.
+La primera versión admite PDF públicos de hasta 20 MB y 500 páginas. Extrae texto en un worker con límite de memoria y 180 segundos; el índice se guarda solo en memoria, separado por cuenta, por una hora de inactividad, con hasta ocho documentos por proceso, cuatro por cuenta y dos análisis simultáneos. Una cuenta no puede expulsar el índice de otra; cuando el proceso está lleno, una nueva preparación informa que debe intentarse más tarde. Un reinicio o una solicitud que llegue a otra instancia puede perderlo: en ese caso vuelve a iniciarlo. No ejecuta OCR ni reconstruye tablas, fórmulas o imágenes. Para citas de un PDF indexado, pasa `documentId`, `analysisId`, la URL original, página, fragmento y `expectedSha256` a `campus_research_verify_evidence`: coteja el texto y la huella de la copia indexada sin otra descarga. Sin `documentId`, la verificación obtiene de nuevo la fuente para comprobar su versión actual; una copia indexada puede quedar obsoleta si el origen cambia después de prepararla.
 
 Si la respuesta incluirá varias citas literales del mismo PDF, `campus_research_verify_quotes` acepta hasta ocho pares de página y fragmento en una sola llamada. `allExcerptsLocated` solo significa que todos esos textos aparecieron en las páginas indicadas; una cita rechazada o inconclusa debe omitirse o corregirse. No se puede extender un fragmento verificado con palabras que quedaron fuera de él, ni presentar el cotejo literal como evaluación del argumento.
 
@@ -130,7 +154,9 @@ Las conexiones externas usan HTTPS con verificación de DNS y dirección públic
 ## Documentación de proveedores
 
 - [Crossref REST API](https://www.crossref.org/documentation/retrieve-metadata/rest-api/) y [filtros de actualización](https://www.crossref.org/documentation/retrieve-metadata/rest-api/rest-api-filters/).
+- [DataCite REST API para recuperar un DOI](https://support.datacite.org/docs/api-get-doi).
 - [OpenAlex: ubicaciones y versiones](https://help.openalex.org/data/locations/) y [autenticación](https://help.openalex.org/api/authentication/).
+- [Semantic Scholar Academic Graph API](https://api.semanticscholar.org/api-docs/) y [recomendaciones de uso y cuotas](https://www.semanticscholar.org/product/api).
 - [Scopus Search API](https://dev.elsevier.com/documentation/SCOPUSSearchAPI.wadl) y [autenticación Elsevier](https://dev.elsevier.com/tecdoc_api_authentication.html).
 - [Web of Science Starter API](https://developer.clarivate.com/apis/wos-starter).
 - [ACM Digital Library](https://dl.acm.org/) y búsqueda de metadatos ACM mediante [Crossref REST API](https://www.crossref.org/documentation/retrieve-metadata/rest-api/).
@@ -142,6 +168,19 @@ Las conexiones externas usan HTTPS con verificación de DNS y dirección públic
 `campus_mendeley_list` reads the connected user's private library.
 `campus_mendeley_list_groups` lists groups available to that user, and
 `campus_mendeley_list_group_documents` reads one selected group.
+These are bibliographic records, not processed article files. Listing and saving
+return `documentRead=false` and `citationReady=false`; saving a DOI marks
+`retractionStatus=not_checked`. Read the actual source with the research tools,
+verify its identity and passage, and check editorial notices before using it to
+support a claim.
+Listed documents include `sourceUrlCandidate` from a syntactically valid library
+DOI, or from a public HTTPS `websites` entry when no valid DOI is present. The
+candidate is also exposed as an MCP `resource_link`. `sourceUrlBasis` identifies
+the library field and `sourceUrlVerified=false` means the URL and metadata have
+not been checked against a DOI registry or an article file. Malformed DOI values
+and private or insecure website URLs produce no candidate link; unsafe `websites`
+entries are omitted from the returned JSON as well. Use
+`campus_research_verify_citation` and the document reader before citing it.
 `campus_mendeley_save_doi` verifies exact Crossref metadata, scans every page in
 the selected destination for the DOI, and saves one reference either privately
 or in a writable group selected with `groupId`. It preserves separate author
@@ -169,6 +208,12 @@ use the founder's local library: hosted student access still needs its own OAuth
 callback and per-user encrypted token store before this connector is offered
 there. Duplicate saves are serialized within a service instance; different
 processes writing simultaneously are not covered by that lock.
+For a read-only production smoke check, run `npm run build && railway run node
+scripts/mendeley-source-check.cjs`. It checks MCP source links, compares the
+first five records with Crossref, and attempts one DOI-to-public-PDF identity
+chain. The report omits library titles, DOI values and tokens; it never saves or
+edits a Mendeley record. A successful file identity still requires a separate
+passage check before citation.
 
 Official protocol: https://dev.mendeley.com/reference/topics/authorization_auth_code.html
 and https://dev.mendeley.com/methods/#documents.

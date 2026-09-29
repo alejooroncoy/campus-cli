@@ -11,16 +11,18 @@ const MAX_ARCHIVE_FILES = 200;
 const MAX_ARCHIVE_TEXT_BYTES = 4 * 1024 * 1024;
 const MAX_DOCUMENT_SECTIONS = 50_000;
 
-export const documentFormat = z.enum(['auto', 'html', 'text', 'markdown', 'xml', 'jats', 'docx', 'epub']);
+export const documentFormat = z.enum(['auto', 'html', 'text', 'markdown', 'xml', 'jats', 'docx', 'epub', 'csv', 'xlsx']);
 export const documentInput = z.object({
   url: z.string().url().max(4000),
-  format: documentFormat.default('auto').describe('Use auto for HTML, text, XML and PDF. For a ZIP file, specify docx or epub explicitly.'),
+  format: documentFormat.default('auto').describe('Use auto for HTML, text, XML, CSV and PDF. For a ZIP file, specify docx, epub or xlsx explicitly.'),
   startSection: z.number().int().min(1).default(1),
   sectionCount: z.number().int().min(1).max(20).default(8),
 });
 
 type Section = { section: number; heading: string | null; text: string; truncated: boolean };
-type TextDocument = { format: Exclude<z.infer<typeof documentFormat>, 'auto'>; totalSections: number; sections: Section[]; nextSection: number | null };
+type TextDocument = { format: Exclude<z.infer<typeof documentFormat>, 'auto'>; totalSections: number;
+  sections: Section[]; nextSection: number | null;
+  textCoverage: 'complete' | 'first_100000_characters_only' };
 
 function decodeEntities(value: string): string {
   return decodeHTML(value).replace(/\u00a0/g, ' ');
@@ -34,9 +36,44 @@ function normalizeWhitespace(value: string): string {
   return value.replace(/\r/g, '').replace(/[\t ]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
+function extractHtmlElement(value: string, tagName: string, matchesOpeningTag: (tag: string) => boolean): string | null {
+  const tags = new RegExp(`</${tagName}\\s*>|<${tagName}\\b[^>]*>`, 'gi');
+  let opening: RegExpExecArray | null;
+  while ((opening = tags.exec(value))) {
+    if (opening[0][1] === '/' || !matchesOpeningTag(opening[0])) continue;
+    let depth = 1;
+    let next: RegExpExecArray | null;
+    while ((next = tags.exec(value))) {
+      if (next[0][1] === '/') depth--;
+      else if (!/\/\s*>$/.test(next[0])) depth++;
+      if (depth === 0) return value.slice(opening.index, tags.lastIndex);
+    }
+    return null;
+  }
+  return null;
+}
+
+function plosArticleText(value: string): string | null {
+  const clean = value.replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1>/gi, '');
+  const titleAndAuthors = extractHtmlElement(clean, 'div', tag =>
+    /\bclass\s*=\s*["'][^"']*\btitle-authors\b[^"']*["']/i.test(tag));
+  const dateAndDoi = extractHtmlElement(clean, 'ul', tag =>
+    /\bclass\s*=\s*["'][^"']*\bdate-doi\b[^"']*["']/i.test(tag));
+  const articleBody = extractHtmlElement(clean, 'div', tag =>
+    /\bid\s*=\s*["']artText["']/i.test(tag));
+  return titleAndAuthors && dateAndDoi && articleBody
+    ? [titleAndAuthors, dateAndDoi, articleBody].join('\n\n') : null;
+}
+
 function htmlText(value: string): string {
+  const plos = plosArticleText(value);
+  if (plos) return normalizeText(plos.replace(/<\/?(?:article|section|div|p|br|li|h[1-6]|table|tr|blockquote)\b[^>]*>/gi, '\n')
+    .replace(/<[^>]+>/g, ' '));
+  const main = value.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1];
+  const content = main && main.length >= 100 ? main : value;
   const superscriptDigits = '⁰¹²³⁴⁵⁶⁷⁸⁹';
-  const clean = value.replace(/<!--[\s\S]*?-->/g, '').replace(/<sup\b[^>]*>([0-9]+)<\/sup>/gi, (_match, digits: string) =>
+  const clean = content.replace(/<!--[\s\S]*?-->/g, '').replace(/<sup\b[^>]*>([0-9]+)<\/sup>/gi, (_match, digits: string) =>
     [...digits].map(digit => superscriptDigits[Number(digit)]).join(''))
     .replace(/<(script|style|noscript|svg|template)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '')
     .replace(/<\/?(?:article|section|div|p|br|li|h[1-6]|table|tr|blockquote)\b[^>]*>/gi, '\n');
@@ -44,6 +81,7 @@ function htmlText(value: string): string {
 }
 
 function xmlText(value: string): string {
+  if (/<PubmedArticle\b/i.test(value)) return pubmedXmlText(value);
   const cdata: string[] = [];
   const marker = `__CAMPUS_CDATA_${randomUUID()}_`;
   const protectedText = value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, (_match, payload: string) => {
@@ -56,6 +94,78 @@ function xmlText(value: string): string {
 
 function archiveXmlText(bytes: Uint8Array): string {
   return decodeTextDocument(bytes, 'application/xml');
+}
+
+function xmlElementText(value: string, tagName: string): string[] {
+  const pattern = new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}\\s*>`, 'gi');
+  return [...value.matchAll(pattern)]
+    .map(match => normalizeText(match[1].replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ')).filter(Boolean);
+}
+
+function xmlElements(value: string, tagName: string): string[] {
+  const pattern = new RegExp(`<${tagName}\\b[^>]*>[\\s\\S]*?<\\/${tagName}\\s*>`, 'gi');
+  return [...value.matchAll(pattern)].map(match => match[0]);
+}
+
+/** Keep PubMed citation metadata, abstract and references in separate source regions. */
+function pubmedXmlText(value: string): string {
+  const records = xmlElements(value, 'PubmedArticle');
+  if (records.length !== 1) {
+    throw new Error('El XML contiene varios registros PubMed. Lee un PMID por URL para mantener la identidad de la fuente.');
+  }
+  const record = records[0];
+  const article = xmlElements(record, 'Article')[0] ?? record;
+  const title = xmlElementText(article, 'ArticleTitle')[0];
+  const journal = xmlElementText(article, 'Title')[0];
+  const volume = xmlElementText(article, 'Volume')[0];
+  const issue = xmlElementText(article, 'Issue')[0];
+  const pages = xmlElementText(article, 'MedlinePgn')[0];
+  const pubDate = xmlElements(article, 'PubDate')[0] ?? article;
+  const year = xmlElementText(pubDate, 'Year')[0]
+    ?? /\b(19|20)\d{2}\b/.exec(xmlElementText(pubDate, 'MedlineDate')[0] ?? '')?.[0];
+  const articleIds = xmlElements(record, 'ArticleIdList')[0] ?? '';
+  const doiBlock = [...articleIds.matchAll(/<ArticleId\b([^>]*)>([\s\S]*?)<\/ArticleId\s*>/gi)]
+    .find(match => /\bIdType\s*=\s*["']doi["']/i.test(match[1]));
+  const doi = doiBlock ? normalizeText(doiBlock[2].replace(/<[^>]+>/g, ' ')) : null;
+  const pmid = xmlElementText(record, 'PMID')[0];
+  const authors = xmlElements(xmlElements(article, 'AuthorList')[0] ?? '', 'Author')
+    .map(author => {
+      const collective = xmlElementText(author, 'CollectiveName')[0];
+      const given = xmlElementText(author, 'ForeName')[0] ?? xmlElementText(author, 'Initials')[0];
+      const family = xmlElementText(author, 'LastName')[0];
+      return collective ?? [given, family].filter(Boolean).join(' ');
+    }).filter(Boolean);
+
+  const sections: string[] = [];
+  if (title || journal || doi || pmid || authors.length) {
+    sections.push(['Bibliographic record', title ? `Title: ${title}` : '',
+      authors.length ? `Authors: ${authors.join('; ')}` : '',
+      journal ? `Journal: ${journal}${year ? ` (${year})` : ''}${volume ? `; ${volume}` : ''}${issue ? `(${issue})` : ''}${pages ? `:${pages}` : ''}` : '',
+      doi ? `DOI: ${doi}` : '', pmid ? `PMID: ${pmid}` : ''].filter(Boolean).join('\n'));
+  }
+
+  const abstract = xmlElements(article, 'Abstract')[0];
+  if (abstract) {
+    const abstractParts = [...abstract.matchAll(/<AbstractText\b([^>]*)>([\s\S]*?)<\/AbstractText\s*>/gi)]
+      .map(match => {
+        const label = /\bLabel\s*=\s*["']([^"']+)["']/i.exec(match[1])?.[1];
+        const text = normalizeText(match[2].replace(/<[^>]+>/g, ' '));
+        return text ? `${label ? `${normalizeText(label)}: ` : ''}${text}` : '';
+      }).filter(Boolean);
+    if (abstractParts.length) sections.push(`Abstract\n${abstractParts.join('\n\n')}`);
+  }
+
+  const referenceList = xmlElements(record, 'ReferenceList')[0];
+  if (referenceList) {
+    const references = xmlElements(referenceList, 'Reference').map(reference => {
+      const citation = xmlElementText(reference, 'Citation')[0];
+      const ids = [...reference.matchAll(/<ArticleId\b([^>]*)>([\s\S]*?)<\/ArticleId\s*>/gi)]
+        .map(match => normalizeText(match[2].replace(/<[^>]+>/g, ' ')));
+      return [citation, ...ids].filter(Boolean).join('\n');
+    }).filter(Boolean);
+    if (references.length) sections.push(`References\n${references.join('\n\n')}`);
+  }
+  return sections.length ? sections.join('\n\n').trim() : htmlText(value.replace(/<[^>]+(?:\/|)>/g, ' '));
 }
 
 function docxText(files: Record<string, Uint8Array>): string {
@@ -119,7 +229,116 @@ function epubText(files: Record<string, Uint8Array>): string {
   return chapterNames.map(name => htmlText(archiveXmlText(files[name]))).filter(Boolean).join('\n\n');
 }
 
-function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
+
+function xlsxText(files: Record<string, Uint8Array>): string {
+  const workbookBytes = files['xl/workbook.xml'];
+  const relationBytes = files['xl/_rels/workbook.xml.rels'];
+  if (!workbookBytes || !relationBytes) throw new Error('El XLSX no contiene un libro OOXML válido.');
+  const workbook = archiveXmlText(workbookBytes);
+  const relations = archiveXmlText(relationBytes);
+  const targets = new Map<string, string>();
+  for (const match of relations.matchAll(/<Relationship\b([^>]*?)(?:\/>|>)/gi)) {
+    const id = xmlAttribute(match[0], 'Id');
+    const target = xmlAttribute(match[0], 'Target');
+    if (id && target) targets.set(id, target.replace(/^\//, '').startsWith('xl/')
+      ? target.replace(/^\//, '') : `xl/${target.replace(/^\//, '')}`);
+  }
+  const strings = files['xl/sharedStrings.xml']
+    ? [...archiveXmlText(files['xl/sharedStrings.xml']).matchAll(/<si\b[^>]*>([\s\S]*?)<\/si\s*>/gi)]
+      .map(item => [...item[1].matchAll(/<t\b[^>]*>([\s\S]*?)<\/t\s*>/gi)]
+        .map(token => decodeEntities(token[1])).join(''))
+    : [];
+  const sheets = [...workbook.matchAll(/<sheet\b[^>]*\/?\s*>/gi)];
+  if (!sheets.length) throw new Error('El XLSX no contiene hojas legibles.');
+  const output: string[] = [];
+  for (const sheet of sheets) {
+    const name = decodeEntities(xmlAttribute(sheet[0], 'name') ?? 'Unnamed');
+    const target = targets.get(xmlAttribute(sheet[0], 'r:id') ?? '');
+    if (!target || target.split('/').includes('..')) throw new Error('El XLSX contiene una relación de hoja no válida.');
+    const bytes = files[target];
+    if (!bytes) throw new Error(`El XLSX no contiene la hoja ${name}.`);
+    const xml = archiveXmlText(bytes);
+    for (const row of xml.matchAll(/<row\b[^>]*>[\s\S]*?<\/row\s*>/gi)) {
+      const rowTag = /^<row\b[^>]*>/i.exec(row[0])?.[0] ?? '';
+      const rowNumber = xmlAttribute(rowTag, 'r') ?? '?';
+      const cells = [...row[0].matchAll(/<c\b([^>]*?)(?:>([\s\S]*?)<\/c\s*>|\/>)/gi)]
+        .flatMap(cell => {
+          const attributes = cell[1];
+          const ref = xmlAttribute(`<c ${attributes}>`, 'r');
+          if (!ref) return [];
+          const type = xmlAttribute(`<c ${attributes}>`, 't');
+          const body = cell[2] ?? '';
+          const rawValue = type === 'inlineStr'
+            ? [...body.matchAll(/<t\b[^>]*>([\s\S]*?)<\/t\s*>/gi)].map(token => decodeEntities(token[1])).join('')
+            : /<v\b[^>]*>([\s\S]*?)<\/v\s*>/i.exec(body)?.[1] ?? '';
+          const formula = /<f\b[^>]*>[\s\S]*?<\/f\s*>/i.test(body);
+          if (!rawValue && !formula) return [];
+          if (!rawValue && formula) return [`${ref}="[formula result unavailable]"`];
+          let value = decodeEntities(rawValue);
+          if (type === 's') {
+            const index = Number(rawValue);
+            value = Number.isInteger(index) && index >= 0 && index < strings.length
+              ? strings[index] : '[shared string missing]';
+          } else if (type === 'b') value = rawValue === '1' ? 'TRUE' : 'FALSE';
+          else if (type === 'e') value = `[spreadsheet error: ${rawValue}]`;
+          return [`${ref}${formula ? ' (cached formula result)' : ''}=${JSON.stringify(value)}`];
+        });
+      if (cells.length) output.push(`Sheet ${JSON.stringify(name)}, row ${rowNumber}: ${cells.join('; ')}`);
+    }
+  }
+  if (!output.length) throw new Error('El XLSX no contiene celdas con valores legibles.');
+  return output.join('\n\n');
+}
+
+function csvText(bytes: Uint8Array): string {
+  let input: string;
+  try { input = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+  catch { throw new Error('El CSV no está codificado en UTF-8 válido. Convierte el archivo conservando los datos antes de citarlo.'); }
+  input = input.replace(/^\uFEFF/, '');
+  const firstLine = input.split(/\r?\n/, 1)[0];
+  let delimiter = ',';
+  let bestCount = -1;
+  for (const candidate of [',', ';', '\t', '|']) {
+    let quoted = false;
+    let count = 0;
+    for (let index = 0; index < firstLine.length; index++) {
+      if (firstLine[index] === '"' && quoted && firstLine[index + 1] === '"') index++;
+      else if (firstLine[index] === '"') quoted = !quoted;
+      else if (!quoted && firstLine[index] === candidate) count++;
+    }
+    if (count > bestCount) { bestCount = count; delimiter = candidate; }
+  }
+  if (bestCount < 1) throw new Error('No se pudo detectar la separación de columnas del CSV.');
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let quoted = false;
+  for (let index = 0; index < input.length; index++) {
+    const character = input[index];
+    if (character === '"') {
+      if (quoted && input[index + 1] === '"') { cell += '"'; index++; }
+      else quoted = !quoted;
+    } else if (!quoted && character === delimiter) { row.push(cell); cell = ''; }
+    else if (!quoted && (character === '\n' || character === '\r')) {
+      if (character === '\r' && input[index + 1] === '\n') index++;
+      row.push(cell); cell = '';
+      if (row.some(value => value.length)) rows.push(row);
+      row = [];
+    } else {
+      cell += character === '\r' ? '\n' : character;
+      if (quoted && character === '\r' && input[index + 1] === '\n') index++;
+    }
+  }
+  if (quoted) throw new Error('El CSV termina dentro de una celda entrecomillada.');
+  row.push(cell);
+  if (row.some(value => value.length)) rows.push(row);
+  if (!rows.length) throw new Error('El CSV no contiene filas legibles.');
+  const headers = rows[0].map((value, index) => value.trim() || `column ${index + 1}`);
+  return rows.map((values, index) => `Row ${index + 1}: ${values.map((value, column) =>
+    `${headers[column] ?? `column ${column + 1}`}=${JSON.stringify(value)}`).join('; ')}`).join('\n\n');
+}
+
+function archiveText(bytes: Uint8Array, format: 'docx' | 'epub' | 'xlsx'): string {
   let selected = 0;
   let entries = 0;
   let originalBytes = 0;
@@ -130,7 +349,8 @@ function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
       entries++;
       if (entries > MAX_ARCHIVE_FILES) throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
       const wanted = format === 'docx' ? /^(?:word\/(?:document|footnotes|endnotes)\.xml)$/.test(file.name)
-        : !file.name.endsWith('/');
+        : format === 'xlsx' ? file.name === 'xl/workbook.xml' || file.name === 'xl/_rels/workbook.xml.rels'
+            || file.name === 'xl/sharedStrings.xml' || /^xl\/worksheets\/sheet\d+\.xml$/i.test(file.name) : !file.name.endsWith('/');
       if (!wanted) return false;
       if (format === 'epub' && file.originalSize > MAX_ARCHIVE_TEXT_BYTES)
         throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
@@ -145,10 +365,10 @@ function archiveText(bytes: Uint8Array, format: 'docx' | 'epub'): string {
     if (error instanceof Error && /ruta no permitida|límite de análisis seguro/.test(error.message)) throw error;
     throw new Error('No se pudo abrir el archivo ZIP. Puede estar dañado o protegido.');
   }
-  return format === 'docx' ? docxText(files) : epubText(files);
+  return format === 'docx' ? docxText(files) : format === 'epub' ? epubText(files) : xlsxText(files);
 }
 
-function splitSections(text: string, startSection: number, sectionCount: number): Omit<TextDocument, 'format'> {
+function splitSections(text: string, startSection: number, sectionCount: number): Pick<TextDocument, 'totalSections' | 'sections' | 'nextSection'> {
   let totalSections = 0;
   const sections: Section[] = [];
 
@@ -240,13 +460,13 @@ function detectedFormat(bytes: Uint8Array, contentType: string, requested: z.inf
   }
   const zipSignature = bytes[0] === 0x50 && bytes[1] === 0x4b && ((bytes[2] === 0x03 && bytes[3] === 0x04) || (bytes[2] === 0x05 && bytes[3] === 0x06) || (bytes[2] === 0x07 && bytes[3] === 0x08));
   if (zipSignature) {
-    if (requested === 'auto') throw new Error('El archivo ZIP puede ser DOCX o EPUB. Indica format="docx" o format="epub".');
-    if (requested !== 'docx' && requested !== 'epub') {
-      throw new Error('Formato inválido: el archivo es ZIP. Indica format="docx" o format="epub".');
+    if (requested === 'auto') throw new Error('El archivo ZIP puede ser DOCX, EPUB o XLSX. Indica format="docx" o format="epub" o format="xlsx".');
+    if (requested !== 'docx' && requested !== 'epub' && requested !== 'xlsx') {
+      throw new Error('Formato inválido: el archivo es ZIP. Indica format="docx" o format="epub" o format="xlsx".');
     }
     return requested;
   }
-  if (requested === 'docx' || requested === 'epub') {
+  if (requested === 'docx' || requested === 'epub' || requested === 'xlsx') {
     throw new Error(`Formato inválido: el archivo no es un contenedor ${requested.toUpperCase()} válido.`);
   }
   if (requested !== 'auto') return requested;
@@ -255,6 +475,7 @@ function detectedFormat(bytes: Uint8Array, contentType: string, requested: z.inf
   const decoded = decodeTextDocument(bytes, contentType);
   const prefix = decoded.slice(0, 500);
   const type = contentType.toLowerCase();
+  if (type.includes('csv')) return 'csv' as const;
   if (type.includes('html') || /^\s*<!doctype html|^\s*<html\b/i.test(prefix)) return 'html' as const;
   const root = prefix.match(/^\s*<([A-Za-z_][\w.:-]*)(?:\s[^>]*)?>/);
   const hasClosingRoot = root && new RegExp(`</${root[1]!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*>`, 'i').test(decoded);
@@ -266,14 +487,14 @@ export function extractDocumentBytes(bytes: Uint8Array, requested: z.infer<typeo
   if (bytes.length > MAX_DOCUMENT_BYTES) throw new Error('El documento supera el tamaño permitido (20 MB).');
   const format = detectedFormat(bytes, contentType, requested);
   if (format === 'pdf') return { format: 'pdf', delegated: true };
-  const raw = format === 'docx' || format === 'epub' ? archiveText(bytes, format) : decodeTextDocument(bytes, contentType);
-  const text = format === 'docx' || format === 'epub' ? normalizeWhitespace(raw)
+  const raw = format === 'docx' || format === 'epub' || format === 'xlsx' ? archiveText(bytes, format) : format === 'csv' ? csvText(bytes) : decodeTextDocument(bytes, contentType);
+  const text = format === 'docx' || format === 'epub' || format === 'xlsx' ? normalizeWhitespace(raw)
     : format === 'html' ? htmlText(raw) : format === 'xml' || format === 'jats' ? xmlText(raw) : normalizeWhitespace(raw);
   // Preserve the full section index so a later request can reach material
   // after the response-size boundary (for example, methods or references).
   // Each returned section remains bounded in splitSections.
   const result = splitSections(text, startSection, sectionCount);
-  return { format, ...result };
+  return { format, ...result, textCoverage: 'complete' as const };
 }
 
 export async function readResearchDocument(raw: z.input<typeof documentInput>, dependencies: {
@@ -285,7 +506,7 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
   const sourceUrl = alternate?.url ?? input.url;
   const download = dependencies.download ?? researchDownload;
   const options = { maxBytes: MAX_DOCUMENT_BYTES, redirects: 4,
-    headers: { Accept: 'application/pdf, application/epub+zip, application/vnd.openxmlformats-officedocument.wordprocessingml.document, text/html, application/xhtml+xml, application/xml, text/plain, text/markdown;q=0.9' } };
+    headers: { Accept: 'application/pdf, application/epub+zip, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv, application/csv, text/html, application/xhtml+xml, application/xml, text/plain, text/markdown;q=0.9, */*;q=0.1' } };
   let downloaded;
   try {
     downloaded = await download(sourceUrl, options);
@@ -326,6 +547,9 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
       'Texto extraído de un documento público para análisis; no verifica la identidad bibliográfica ni la revisión por pares.',
       'Cita la URL y el número o encabezado de sección devuelto. No atribuyas resultados a partes no leídas.',
       'HTML dinámico, tablas, imágenes, ecuaciones y diseños complejos pueden perderse. Revisa la fuente original antes de citar.',
+      ...(extracted.format === 'csv' || extracted.format === 'xlsx' ? [
+        'En CSV/XLSX, cada cita de datos debe conservar la fila, hoja y coordenada o nombre de columna; el texto extraído no valida por sí solo unidades, fórmulas, filtros ni la interpretación estadística. Las fórmulas XLSX no se ejecutan; se muestra el valor almacenado por el archivo.',
+      ] : []),
       'Para DOCX y EPUB se procesa solo el texto del archivo público. No se siguen enlaces ni instrucciones incluidas en el documento.',
       'Si el formato no es compatible, comparte una URL pública del texto, una versión HTML/XML o un PDF accesible; Campus no evade paywalls ni inicios de sesión.',
     ] };
