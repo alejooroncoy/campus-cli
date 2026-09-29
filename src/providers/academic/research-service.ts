@@ -1132,7 +1132,9 @@ export class ResearchService {
       const exactDoi = doiSearchQuery(query);
       const terms = query.replace(/[{}"\\]/g, ' ').trim();
       if (!terms) throw new Error('La búsqueda debe contener texto.');
-      let expression = exactDoi ? `DOI("${exactDoi}")` : `TITLE-ABS-KEY({${terms}})`;
+      // Bare Scopus terms are combined as keywords; braces would require an exact
+      // phrase and silently miss records when the user's words are non-contiguous.
+      let expression = exactDoi ? `DOI("${exactDoi}")` : `TITLE-ABS-KEY(${terms})`;
       if (yearFrom) expression += ` AND PUBYEAR > ${yearFrom - 1}`;
       if (yearTo) expression += ` AND PUBYEAR < ${yearTo + 1}`;
       requestUrl = endpoint('https://api.elsevier.com/content/search/scopus', {
