@@ -1019,8 +1019,13 @@ export class ResearchService {
         const categories = [...entry.matchAll(/<(?:[\w.-]+:)?(?:primary_category|category)\b[^>]*>/gi)]
           .map(match => xmlAttribute(match[0], 'term')).filter((category): category is string => Boolean(category));
         const doi = optionalDoi(xmlTagText(entry, 'doi'));
+        const arxivDoiCandidate = entryId
+          ? `10.48550/arxiv.${entryId.replace(/v\d+$/i, '').toLowerCase()}` : null;
         return { id: entryId ? `arxiv:${entryId}` : null, arxivId: entryId,
-          doi, title, authors, year: published ? Number(/^\d{4}/.exec(published)?.[0] ?? NaN) || null : null,
+          doi, arxivDoiCandidate, arxivDoiVerified: false,
+          doiVersionScope: doi === null ? 'not_provided'
+            : doi === arxivDoiCandidate ? 'this_arxiv_preprint' : 'other_version_or_publication',
+          title, authors, year: published ? Number(/^\d{4}/.exec(published)?.[0] ?? NaN) || null : null,
           date: published, updatedAt: updated, type: 'preprint', venue: xmlTagText(entry, 'journal_ref'),
           abstract: xmlTagText(entry, 'summary'), categories,
           indexedIn: 'arxiv', peerReview: 'unknown', retractionStatus: 'not_checked',

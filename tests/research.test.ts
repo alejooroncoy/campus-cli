@@ -1739,6 +1739,9 @@ test('arXiv Atom search preserves the e-print ID, DOI, version and matching PDF 
   assert.equal(source.id, 'arxiv:2505.01648v1');
   assert.equal(source.arxivId, '2505.01648v1');
   assert.equal(source.doi, '10.1145/3757486');
+  assert.equal(source.arxivDoiCandidate, '10.48550/arxiv.2505.01648');
+  assert.equal(source.arxivDoiVerified, false);
+  assert.equal(source.doiVersionScope, 'other_version_or_publication');
   assert.equal(source.title, 'A & B: robust research systems');
   assert.deepEqual(source.authors, ['Ada Lovelace', 'Grace Hopper']);
   assert.equal(source.year, 2025);
@@ -3422,7 +3425,7 @@ test('DataCite arXiv DOI matches the arXiv identifier printed on a versioned PDF
   const wrongArxivId = await verifyResearchDocumentIdentity({ ...base,
     expectedDoi: '10.48550/arXiv.2102.05095' }, { readPdf: readPdf as any });
   assert.equal(wrongArxivId.identityAllowed, false);
-  assert.equal(wrongArxivId.reason, 'doi_not_found_in_document');
+  assert.equal(wrongArxivId.reason, 'doi_does_not_identify_arxiv_file');
 });
 
 test('post-abstract self-citation can identify its own PDF only with title, authors and year', async () => {
@@ -4287,4 +4290,15 @@ test('legacy arXiv IDs resolve a PDF and bind its DOI to the official first page
   assert.equal(matching.identityBasis, 'title_arxiv_identifier_and_hash');
   assert.equal((await verify('https://repository.example.edu/legacy.pdf')).identityAllowed, false);
   assert.equal((await verify(pdfUrl, page.replace('9901001v3', '9901002v1'))).identityAllowed, false);
+  const journalDoi = await verifyResearchDocumentIdentity({
+    url: pdfUrl, format: 'pdf', expectedSha256: sha256,
+    expectedTitle: 'String Junctions and Their Duals in Heterotic String Theory',
+    expectedDoi: '10.1143/ptp.101.1155',
+  }, { readPdf: (async () => ({ requestedUrl: pdfUrl, resolvedUrl: pdfUrl,
+    retrievedAt: '2026-09-29T00:00:00.000Z', sha256, totalPages: 1,
+    pages: [{ page: 1, text: `${page}\nDOI: 10.1143/ptp.101.1155`, truncated: false, needsOcr: false }],
+    nextPage: null, guidance: [],
+  })) as any });
+  assert.equal(journalDoi.identityAllowed, false);
+  assert.equal(journalDoi.reason, 'doi_does_not_identify_arxiv_file');
 });

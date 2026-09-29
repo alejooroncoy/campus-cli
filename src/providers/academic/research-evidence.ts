@@ -286,6 +286,17 @@ export async function verifyResearchDocumentIdentity(
   if (input.expectedSha256.toLowerCase() !== document.sha256.toLowerCase()) {
     return { status: 'rejected', identityAllowed: false, reason: 'document_hash_mismatch', proof };
   }
+  if (doi) {
+    const resolved = new URL(document.resolvedUrl);
+    const arxivPdfId = ['arxiv.org', 'www.arxiv.org'].includes(resolved.hostname.toLowerCase())
+      ? /^\/pdf\/((?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[a-z]{2})?\/\d{7}))(?:v\d+)?(?:\.pdf)?$/i
+        .exec(resolved.pathname.replace(/%2f/ig, '/'))?.[1]?.toLowerCase() : null;
+    if (arxivPdfId && doi !== `10.48550/arxiv.${arxivPdfId}`) {
+      return { status: 'partial', identityAllowed: false,
+        reason: 'doi_does_not_identify_arxiv_file', proof,
+        guidance: 'Este PDF es un preprint arXiv. El DOI solicitado identifica otra versión o publicación; verifica el DOI del preprint o lee el archivo editorial correspondiente.' };
+    }
+  }
   const segments = 'pages' in document
     ? document.pages.map(page => ({ locator: page.page, text: page.text }))
     : document.sections.map(section => ({ locator: section.section,
