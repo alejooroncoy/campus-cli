@@ -4121,6 +4121,37 @@ test('direct quote receipt checks the preceding context at unheaded document sec
   assert.equal(structuralHeading.verbatimCitationAllowed, true);
 });
 
+test('direct quote receipt recognizes structural headings exposed as prior XML sections', async () => {
+  const title = 'A Structured XML Citation Study';
+  const doi = '10.1234/XML-HEADING';
+  const quote = 'The intervention reduced readmission risk by 18 percent.';
+  const url = 'https://archive.example.edu/fulltext.xml';
+  const sha256 = 'a'.repeat(64);
+  const service = new ResearchService(async requestUrl => requestUrl.includes('/works/')
+    ? { message: { ...work, DOI: doi, title: [title] } } : collection([]));
+  const verifyWithPriorSection = (text: string) => verifyResearchQuote({
+    doi, expectedTitle: title, url, format: 'xml', section: 9,
+    expectedSha256: sha256, quote,
+  }, {
+    service,
+    verifyIdentity: (async () => ({ identityAllowed: true, status: 'verified' })) as any,
+    verifyEvidence: (async () => ({ status: 'verified', evidenceAllowed: true,
+      sourceRegion: 'body_or_unknown', sectionStartsWithExcerpt: true,
+      precedingSections: [{ section: 8, heading: null, text, truncated: false }],
+      precedingSectionsInspected: [8], surroundingText: quote, truncatedAtLocator: false,
+      proof: { requestedUrl: url, resolvedUrl: url, retrievedAt: '2026-09-29T00:00:00.000Z',
+        documentSha256: sha256, locatorType: 'section', locator: 9, heading: null },
+    })) as any,
+  });
+
+  const afterHeading = await verifyWithPriorSection('Principal Findings');
+  assert.equal(afterHeading.status, 'verified');
+  assert.equal(afterHeading.verbatimCitationAllowed, true);
+  const ambiguous = await verifyWithPriorSection('Prior words without sentence boundary');
+  assert.equal(ambiguous.status, 'partial');
+  assert.equal(ambiguous.reason, 'section_boundary_context_unverified');
+});
+
 test('direct quote receipt verifies exact HTML, text, Markdown, DOCX and EPUB passages', async () => {
   const title = 'A Cross-Format Verifiable Research Study';
   const quote = 'The treatment did not improve outcomes in this sample.';

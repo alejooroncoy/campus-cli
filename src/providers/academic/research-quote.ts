@@ -52,7 +52,7 @@ function isStructuralSectionHeading(value: string | null | undefined): boolean {
   if (!value) return false;
   const heading = value.normalize('NFKC').trim().replace(/^\d+(?:\.\d+)*[.)]?\s*/, '')
     .replace(/:$/, '').trim().toLocaleLowerCase();
-  return /^(?:abstract|resumen|summary|introduction|introducci[oó]n|background|antecedentes|literature review|revisi[oó]n de literatura|related work|trabajos relacionados|materials and methods|methods|methodology|m[eé]todos|metodolog[ií]a|results|resultados|findings|hallazgos|discussion|discusi[oó]n|conclusion|conclusions|conclusi[oó]n|conclusiones|limitations|limitaciones|future work|trabajo futuro|data availability|disponibilidad de datos|acknowledg(?:e)?ments|agradecimientos|keywords|palabras clave|references|referencias|bibliography|bibliograf[ií]a)$/u.test(heading);
+  return /^(?:abstract|resumen|summary|introduction|introducci[oó]n|background|antecedentes|literature review|revisi[oó]n de literatura|related work|trabajos relacionados|materials and methods|methods|methodology|m[eé]todos|metodolog[ií]a|results|resultados|findings|principal findings|principal results|hallazgos|discussion|discusi[oó]n|conclusion|conclusions|conclusi[oó]n|conclusiones|limitations|limitaciones|future work|trabajo futuro|data availability|disponibilidad de datos|acknowledg(?:e)?ments|agradecimientos|keywords|palabras clave|references|referencias|bibliography|bibliograf[ií]a)$/u.test(heading);
 }
 
 function completeSentenceInContext(quote: string, surroundingText: string): boolean {
@@ -165,12 +165,17 @@ export async function verifyResearchQuote(raw: z.input<typeof quoteVerificationI
     && evidence.precedingSectionsInspected?.includes(previousSection.section)
     && endsSentence(normalizedQuote(previousSection.text))
     && !endsWithAbbreviation(normalizedQuote(previousSection.text));
+  const precedingSectionHeadingBoundary = previousSection
+    && previousSection.section === input.section! - 1 && !previousSection.truncated
+    && evidence.precedingSectionsInspected?.includes(previousSection.section)
+    && isStructuralSectionHeading(previousSection.text);
   const verifiedFrontMatterBoundary = startsAfterVerifiedDocumentFrontMatter(input.quote, evidence,
     bibliography.citationRecord.title!, bibliography.citationRecord.doi,
     bibliography.citationRecord.authors.map(author => author.name), bibliography.citationRecord.year);
   if (input.section !== undefined && input.section > 1
     && evidence.sectionStartsWithExcerpt && !verifiedFrontMatterBoundary
-    && !isStructuralSectionHeading(evidenceHeading) && !precedingSectionSentenceBoundary) {
+    && !isStructuralSectionHeading(evidenceHeading) && !precedingSectionSentenceBoundary
+    && !precedingSectionHeadingBoundary) {
     return { status: 'partial', verbatimCitationAllowed: false, stage: 'context',
       reason: 'section_boundary_context_unverified', bibliography, identity, evidence,
       guidance: 'La cita empieza al inicio de una sección sin encabezado. Comprueba la sección anterior para confirmar que la oración no comenzó antes del corte.' };
@@ -180,6 +185,8 @@ export async function verifyResearchQuote(raw: z.input<typeof quoteVerificationI
       && !endsWithAbbreviation(normalizedQuote(input.quote)))
     || verifiedFrontMatterBoundary
     || (evidence.sectionStartsWithExcerpt && precedingSectionSentenceBoundary
+      && endsSentence(normalizedQuote(input.quote)) && !endsWithAbbreviation(normalizedQuote(input.quote)))
+    || (evidence.sectionStartsWithExcerpt && precedingSectionHeadingBoundary
       && endsSentence(normalizedQuote(input.quote)) && !endsWithAbbreviation(normalizedQuote(input.quote)))
     || (input.section !== undefined && evidence.sectionStartsWithExcerpt
       && isStructuralSectionHeading(evidenceHeading) && endsSentence(normalizedQuote(input.quote))
