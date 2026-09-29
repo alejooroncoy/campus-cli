@@ -593,9 +593,9 @@ export class ResearchService {
       for (const identifier of registered.alternateIdentifiers ?? []) {
         if (!/^arxiv$/i.test(identifier.alternateIdentifierType ?? '')) continue;
         const arxivId = identifier.alternateIdentifier.trim().replace(/^arxiv:/i, '');
-        if (!/^\d{4}\.\d{4,5}(?:v\d+)?$/i.test(arxivId)) continue;
+        if (!/^(?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[a-z]{2})?\/\d{7})(?:v\d+)?$/i.test(arxivId)) continue;
         const version = arxivId.match(/v\d+$/i)?.[0] ?? null;
-        add(`https://arxiv.org/pdf/${encodeURIComponent(arxivId)}`, 'pdf', 'datacite_arxiv_identifier', title,
+        add(`https://arxiv.org/pdf/${arxivId.split('/').map(encodeURIComponent).join('/')}`, 'pdf', 'datacite_arxiv_identifier', title,
           version, null, 'repository', 'pdf');
       }
     }

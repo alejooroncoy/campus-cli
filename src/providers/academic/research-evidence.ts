@@ -351,16 +351,18 @@ export async function verifyResearchDocumentIdentity(
         || new RegExp(`(?:^|\\D)${input.expectedYear}(?:\\D|$)`).test(frontText);
       return distance <= 8 && Boolean(authorsMatch) && yearMatch;
     }));
-  const arxivId = doi?.match(/^10\.48550\/arxiv\.(\d{4}\.\d{4,5})$/i)?.[1];
+  const arxivId = doi?.match(/^10\.48550\/arxiv\.((?:\d{4}\.\d{4,5}|[a-z-]+(?:\.[a-z]{2})?\/\d{7}))$/i)?.[1];
+  const escapedArxivId = arxivId?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const arxivUrlMatches = arxivId && (() => {
     const parsed = new URL(document.resolvedUrl);
     return parsed.hostname === 'arxiv.org'
-      && new RegExp(`^/pdf/${arxivId.replace('.', '\\.')}v?\\d*(?:\\.pdf)?$`, 'i').test(parsed.pathname);
+      && new RegExp(`^/pdf/${escapedArxivId}v?\\d*(?:\\.pdf)?$`, 'i')
+        .test(parsed.pathname.replace(/%2f/ig, '/'));
   })();
   const arxivDoiOnFirstPage = doi !== null && arxivId && arxivUrlMatches && 'pages' in document
     && document.pages.some(page => page.page === 1
       && !page.text.toLowerCase().includes(doi)
-      && new RegExp(`\\barxiv\\s*:\\s*${arxivId.replace('.', '\\.')}v?\\d*\\b`, 'i').test(page.text));
+      && new RegExp(`\\barxiv\\s*:\\s*${escapedArxivId}v?\\d*\\b`, 'i').test(page.text));
   const doiInFrontMatter = doi === null || doiSegments.some(segment => doiAppearsInText(segment.text, doi))
     || arxivDoiOnFirstPage;
   const doiInSelfCitation = !doiInFrontMatter && doi !== null && 'pages' in document
