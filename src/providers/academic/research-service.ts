@@ -215,6 +215,22 @@ function arxivIdFromUrl(value: string): string | null {
   } catch { return null; }
 }
 
+function arxivIdSearchQuery(value: string): string | null {
+  const trimmed = value.trim();
+  const doi = doiSearchQuery(trimmed);
+  if (/^https?:\/\//i.test(trimmed)) {
+    const urlId = arxivIdFromUrl(trimmed);
+    return urlId?.toLowerCase() ?? null;
+  }
+  let id = doi && /^10\.48550\/arxiv\./i.test(doi)
+    ? doi.replace(/^10\.48550\/arxiv\./i, '') : trimmed;
+  if (doi && !/^10\.48550\/arxiv\./i.test(doi)) return null;
+  id = id.replace(/^arxiv:\s*/i, '');
+  id = id.replace(/\.pdf$/i, '');
+  return /^(?:\d{4}\.\d{4,5}|[a-z][a-z0-9.-]+\/\d{7})(?:v[1-9]\d*)?$/i.test(id)
+    ? id.toLowerCase() : null;
+}
+
 function arxivUrl(value: string | null, type: 'abs' | 'pdf', expectedId?: string): string | null {
   if (!value) return null;
   const id = arxivIdFromUrl(value);
@@ -1057,14 +1073,19 @@ export class ResearchService {
         throw new Error('OpenAIRE devolvió un registro con DOI distinto a la búsqueda exacta.');
       }
     } else if (provider === 'arxiv') {
+      const exactId = arxivIdSearchQuery(query);
       const terms = query.replace(/["\\]/g, ' ').replace(/\s+/g, ' ').trim();
-      if (!terms) throw new Error('La búsqueda debe contener texto.');
+      if (!exactId && !terms) throw new Error('La búsqueda debe contener texto.');
       const dateFilter = yearFrom || yearTo
-        ? ` AND submittedDate:[${yearFrom ?? 1500}01010000 TO ${yearTo ?? new Date().getUTCFullYear()}12312359]` : '';
-      const searchQuery = `all:"${terms}"${dateFilter}`;
-      requestUrl = endpoint('https://export.arxiv.org/api/query', {
-        search_query: searchQuery, start: offset, max_results: limit,
-      });
+        ? `submittedDate:[${yearFrom ?? 1500}01010000 TO ${yearTo ?? new Date().getUTCFullYear()}12312359]` : '';
+      const params: Record<string, string | number> = { start: offset, max_results: limit };
+      if (exactId) {
+        params.id_list = exactId;
+        if (dateFilter) params.search_query = dateFilter;
+      } else {
+        params.search_query = `all:"${terms}"${dateFilter ? ` AND ${dateFilter}` : ''}`;
+      }
+      requestUrl = endpoint('https://export.arxiv.org/api/query', params);
       const feed = arxivEntries(await this.arxivFeed(requestUrl));
       total = feed.total;
       results = feed.entries.map((entry, index) => {
