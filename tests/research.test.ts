@@ -1601,6 +1601,34 @@ test('Semantic Scholar preserves source identity, open PDF candidates, date boun
   assert.ok(!JSON.stringify(result).includes('must-not-appear'));
 });
 
+test('Semantic Scholar resolves an exact DOI by identifier and fails closed on mismatches', async () => {
+  const doi = '10.1371/journal.pone.0000308';
+  let requested = '';
+  let requestHeaders: Record<string, string> | undefined;
+  const paper = { paperId: 'paper-123', title: 'Sharing detailed research data',
+    externalIds: { DOI: doi }, year: 2007 };
+  const service = new ResearchService(async (url, headers) => {
+    requested = url;
+    requestHeaders = headers as Record<string, string> | undefined;
+    return paper;
+  }, { SEMANTIC_SCHOLAR_API_KEY: 'private-s2-key' });
+  const result = await service.search({ query: `https://doi.org/${doi}`, provider: 'semantic_scholar' });
+  assert.equal(new URL(requested).pathname, `/graph/v1/paper/${encodeURIComponent(`DOI:${doi}`)}`);
+  assert.equal(new URL(requested).searchParams.get('query'), null);
+  assert.equal(requestHeaders?.['x-api-key'], 'private-s2-key');
+  assert.equal(result.total, 1);
+  assert.equal((result.results[0] as any).doi, doi);
+  assert.ok(!JSON.stringify(result).includes('private-s2-key'));
+
+  const mismatched = new ResearchService(async () => ({ ...paper, externalIds: { DOI: '10.1234/unrelated' } }));
+  await assert.rejects(mismatched.search({ query: doi, provider: 'semantic_scholar' }), /DOI distinto/);
+
+  const missing = new ResearchService(async () => { throw new ResearchHttpError(404); });
+  const absent = await missing.search({ query: doi, provider: 'semantic_scholar' });
+  assert.equal(absent.total, 0);
+  assert.deepEqual(absent.results, []);
+});
+
 test('Semantic Scholar caps pagination at the 1000 relevance-search result ceiling', async () => {
   const service = new ResearchService(async url => ({ total: 20_000,
     offset: Number(new URL(url).searchParams.get('offset')), next: null, data: [] }));
