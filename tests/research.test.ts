@@ -1548,6 +1548,50 @@ test('PubMed retries a long title with explicit Title field terms when automatic
   assert.match(result.requestUrl, /Transformation%5BTitle%5D/);
 });
 
+test('PubMed prefers title-field matches when automatic mapping returns unrelated hits', async () => {
+  const requestedTerms: string[] = [];
+  const title = 'Sharing Detailed Research Data Is Associated with Increased Citation Rate';
+  const doi = '10.1371/journal.pone.0000308';
+  const service = new ResearchService(async url => {
+    const parsed = new URL(url);
+    if (parsed.pathname.endsWith('/esearch.fcgi')) {
+      const term = parsed.searchParams.get('term')!;
+      requestedTerms.push(term);
+      if (requestedTerms.length === 1) return { esearchresult: { count: '4', idlist: ['999'] } };
+      assert.equal(term, 'Sharing[Title] AND Detailed[Title] AND Research[Title] AND Data[Title] AND Associated[Title] AND Increased[Title] AND Citation[Title] AND Rate[Title]');
+      return { esearchresult: { count: '1', idlist: ['17375194'] } };
+    }
+    const id = new URL(url).searchParams.get('id');
+    return { result: { uids: [id], [id!]: { uid: id,
+      title: id === '17375194' ? `${title.toLowerCase()}.` : 'Unrelated PubMed record',
+      articleids: [{ idtype: 'doi', value: id === '17375194' ? doi : '10.1234/unrelated' }] } } };
+  });
+  const result = await service.search({ query: title, provider: 'pubmed', limit: 10 });
+  assert.equal(requestedTerms.length, 2);
+  assert.equal(result.total, 1);
+  assert.match(result.requestUrl, /Sharing%5BTitle%5D/);
+  assert.equal((result.results[0] as any).doi, doi);
+});
+
+test('PubMed keeps valid automatic-mapping results if the optional title refinement fails', async () => {
+  const requestedTerms: string[] = [];
+  const service = new ResearchService(async url => {
+    const parsed = new URL(url);
+    if (parsed.pathname.endsWith('/esearch.fcgi')) {
+      const term = parsed.searchParams.get('term')!;
+      requestedTerms.push(term);
+      if (requestedTerms.length === 1) return { esearchresult: { count: '1', idlist: ['123'] } };
+      throw new ResearchHttpError(503);
+    }
+    return { result: { uids: ['123'], '123': { uid: '123', title: 'A valid PubMed result',
+      articleids: [{ idtype: 'doi', value: '10.1234/valid' }] } } };
+  });
+  const result = await service.search({ query: 'A Long Valid PubMed Article Title for Search', provider: 'pubmed' });
+  assert.equal(requestedTerms.length, 2);
+  assert.ok(!new URL(result.requestUrl).searchParams.get('term')!.includes('[Title]'));
+  assert.equal((result.results[0] as any).doi, '10.1234/valid');
+});
+
 test('PubMed serializes concurrent E-utilities requests and keeps an optional API key out of results', async () => {
   const requestedUrls: string[] = [];
   const delays: number[] = [];

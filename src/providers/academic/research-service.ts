@@ -897,11 +897,28 @@ export class ResearchService {
         .filter(token => !titleStopWords.has(token.toLocaleLowerCase()));
       const looksLikeTitle = !exactDoi && query.length >= 30 && titleTokens.length >= 5
         && !/[()[\]]|\b(?:AND|OR|NOT)\b/.test(query);
-      if (!exactDoi && Number(searched.count) === 0 && looksLikeTitle) {
+      if (!exactDoi && looksLikeTitle) {
         const titleTerms = titleTokens.map(token => `${token}[Title]`).join(' AND ');
-        requestUrl = searchPubMed(titleTerms);
-        searched = pubmedSearchResponse.parse(await this.pubmedJson(requestUrl)).esearchresult;
-        if (searched.ERROR) throw new Error(`PubMed no pudo completar la búsqueda por título: ${searched.ERROR}`);
+        const titleRequestUrl = searchPubMed(titleTerms);
+        let titleSearch: typeof searched | null = null;
+        try {
+          titleSearch = pubmedSearchResponse.parse(await this.pubmedJson(titleRequestUrl)).esearchresult;
+          if (titleSearch.ERROR) throw new Error(`PubMed no pudo completar la búsqueda por título: ${titleSearch.ERROR}`);
+          if (!titleSearch.count || !titleSearch.idlist) {
+            throw new Error('PubMed devolvió una respuesta sin total o identificadores para la búsqueda por título.');
+          }
+        } catch (error) {
+          // A title-field refinement is a relevance improvement. Keep valid
+          // automatic-mapping results if only this optional refinement failed.
+          if (Number(searched.count) === 0) throw error;
+        }
+        if (titleSearch && Number(titleSearch.count) > 0) {
+          requestUrl = titleRequestUrl;
+          searched = titleSearch;
+        } else if (Number(searched.count) === 0 && titleSearch) {
+          requestUrl = titleRequestUrl;
+          searched = titleSearch;
+        }
       }
       if (!searched.count || !searched.idlist) throw new Error('PubMed devolvió una respuesta sin total o identificadores.');
       total = Number(searched.count);
