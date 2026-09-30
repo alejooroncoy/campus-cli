@@ -70,13 +70,14 @@ test('lists group folders and paginates folder document IDs without crossing gro
    return json([{id:folderId,name:'Pregunta 1',group_id:groupId},{id:childId,name:'Subcarpeta',parent_id:folderId,group_id:groupId}]);
   }
   assert.equal((init?.headers as any).Accept,'application/vnd.mendeley-document.1+json');
-  return url.includes('marker=next')?json([{id:documentId}]):json([],{link:`<https://api.mendeley.com/folders/${folderId}/documents?limit=1&marker=next>; rel="next"`});
+  return url.includes('marker=next')?json([documentId]):json([{id:documentId}],{link:`<https://api.mendeley.com/folders/${folderId}/documents?limit=1&marker=next>; rel="next"`});
  });
  const folders=await s.listFolders(groupId,100);
  assert.equal(new URL(urls[0]).searchParams.get('group_id'),groupId);
  assert.equal(folders.folders[1].parent_id,folderId);
  const first=await s.listFolderDocuments(folderId,1);
  assert.equal(first.hasMore,true);
+ assert.deepEqual(first.documentIds,[documentId]);
  const second=await s.listFolderDocuments(folderId,1,first.nextCursor!);
  assert.deepEqual(second.documentIds,[documentId]);
  await assert.rejects(s.listFolderDocuments(childId,1,first.nextCursor!),/Cursor Mendeley no permitido/);
