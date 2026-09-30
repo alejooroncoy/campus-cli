@@ -84,8 +84,11 @@ Para guardar referencias usa campus_mendeley_list, campus_mendeley_list_groups,
 campus_mendeley_list_group_documents, campus_mendeley_save_doi y
 campus_mendeley_save_reference para fuentes sin DOI confirmado. Cada operación
 usa la cuenta Mendeley conectada por el estudiante. Antes de guardar en un grupo,
-lista los grupos y utiliza exactamente su ID; no subas PDFs ni contenido del
-editor mediante estas herramientas.
+lista los grupos y utiliza exactamente su ID. campus_mendeley_raw_api permite
+operaciones adicionales de la API oficial, incluidas carpetas, documentos y
+archivos PDF. Para subir un PDF usa bodyBase64 o sourceUrl HTTPS público,
+contentType application/pdf y los encabezados Link/Content-Disposition que
+exija el endpoint. Las escrituras requieren confirmación directa del cliente MCP.
 Para ver la organización de un grupo usa campus_mendeley_list_folders con groupId;
 parent_id permite reconstruir subcarpetas. campus_mendeley_list_folder_documents
 devuelve IDs de referencias de una carpeta; cruza esos IDs con la lista del grupo

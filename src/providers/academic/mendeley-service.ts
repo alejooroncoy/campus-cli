@@ -5,12 +5,58 @@ import { randomUUID } from 'node:crypto';
 import lockfile from 'proper-lockfile';
 import { z } from 'zod';
 import { normalizeDoi } from './research-service.js';
-import { publicHttpsUrl, researchJson } from './research-http.js';
+import { publicHttpsUrl, researchDownload, researchJson } from './research-http.js';
 
 const origin = 'https://api.mendeley.com';
 const mime = 'application/vnd.mendeley-document.1+json';
 const groupMime = 'application/vnd.mendeley-group.1+json';
 const folderMime = 'application/vnd.mendeley-folder.1+json';
+const rawMaxBytes = 20 * 1024 * 1024;
+const rawHeaders = new Set(['accept','content-type','if-match','if-none-match','if-unmodified-since','content-disposition','link']);
+const forbiddenQuery = /^(?:access_?token|refresh_?token|client_secret|authorization|password|code)$/i;
+export type MendeleyRawRequest = {
+  method:'GET'|'HEAD'|'POST'|'PUT'|'PATCH'|'DELETE'; path:string; query?:string;
+  body?:string; bodyBase64?:string; sourceUrl?:string; contentType?:string;
+  accept?:string; headers?:Record<string,string>;
+};
+function rawMediaType(pathname:string):string {
+  if(/^\/folders\/[^/]+\/documents(?:\/|$)/.test(pathname)) return mime;
+  const root=pathname.split('/')[1];
+  return ({documents:mime,folders:folderMime,groups:groupMime,annotations:'application/vnd.mendeley-annotation.1+json',files:'application/vnd.mendeley-file.1+json',profiles:'application/vnd.mendeley-profile.1+json'} as Record<string,string>)[root]||'application/json';
+}
+function rawUrl(path:string,query?:string):URL {
+  if(!path.startsWith('/')||path.startsWith('//')||path.length>2048||/[\\?#\r\n]/.test(path)) throw new Error('Ruta Mendeley inválida. Usa una ruta relativa sin query.');
+  const segments=path.split('/');
+  for(const segment of segments) {
+    let decoded:string;
+    try{decoded=decodeURIComponent(segment);}catch{throw new Error('Ruta Mendeley inválida.');}
+    if(decoded==='.'||decoded==='..'||decoded.includes('/')||decoded.includes('\\')) throw new Error('Ruta Mendeley no permitida.');
+  }
+  const url=new URL(path,origin);
+  if(url.origin!==origin||decodeURIComponent(segments[1]||'').toLowerCase()==='oauth') throw new Error('Ruta Mendeley no permitida; OAuth se administra por separado.');
+  if(query){
+    if(query.length>8000||query.startsWith('?')||query.includes('#')) throw new Error('Query Mendeley inválida.');
+    const params=new URLSearchParams(query);
+    for(const key of params.keys()) if(forbiddenQuery.test(key)) throw new Error('No pases credenciales en la query Mendeley.');
+    url.search=params.toString();
+  }
+  return url;
+}
+function rawHeaderValue(value:string):string {
+  if(value.length>1000||/[\r\n\0]/.test(value)) throw new Error('Cabecera Mendeley inválida.');
+  return value;
+}
+async function rawResponseBytes(response:Response):Promise<Buffer> {
+  if(Number(response.headers.get('content-length'))>rawMaxBytes) throw new Error('La respuesta Mendeley supera 20 MB.');
+  if(!response.body) return Buffer.alloc(0);
+  const parts:Buffer[]=[];let size=0;
+  for await(const part of response.body){
+    const bytes=Buffer.from(part);size+=bytes.length;
+    if(size>rawMaxBytes){await response.body.cancel().catch(()=>undefined);throw new Error('La respuesta Mendeley supera 20 MB.');}
+    parts.push(bytes);
+  }
+  return Buffer.concat(parts,size);
+}
 const tokensSchema = z.object({ access_token: z.string().min(1), refresh_token: z.string().min(1), expires_at: z.number() });
 export type MendeleyTokens = z.infer<typeof tokensSchema>;
 export interface MendeleyTokenStore { load(): Promise<MendeleyTokens>; save(tokens: MendeleyTokens): Promise<void>; withRefreshLock?<T>(action:()=>Promise<T>):Promise<T> }
@@ -124,6 +170,66 @@ export class MendeleyService {
     return {documents:z.array(documentSchema).parse(r.data).map(withSourceCandidate),documentRead:false,citationReady:false,hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null,groupId:id};
   }
   async get(id:string){z.string().uuid().parse(id);return {...withSourceCandidate(documentSchema.parse((await this.api('/documents/'+id)).data)),documentRead:false,citationReady:false};}
+  rawApi(input:MendeleyRawRequest) {
+    const run=()=>this.rawRequest(input);
+    if(input.method==='GET'||input.method==='HEAD') return run();
+    const result=this.queue.then(run);this.queue=result.catch(()=>undefined);return result;
+  }
+  private async rawRequest(input:MendeleyRawRequest) {
+    const method=z.enum(['GET','HEAD','POST','PUT','PATCH','DELETE']).parse(input.method);
+    const url=rawUrl(input.path,input.query);
+    const sources=[input.body,input.bodyBase64,input.sourceUrl].filter(value=>value!==undefined);
+    if(sources.length>1) throw new Error('Elige solo un origen para el cuerpo Mendeley.');
+    if((method==='GET'||method==='HEAD')&&sources.length) throw new Error('GET y HEAD no aceptan cuerpo.');
+    const headers:Record<string,string>={Accept:rawHeaderValue(input.accept||rawMediaType(url.pathname))};
+    for(const [key,value] of Object.entries(input.headers||{})) {
+      const lower=key.toLowerCase();
+      if(!rawHeaders.has(lower)) throw new Error('Cabecera Mendeley no permitida: '+key);
+      headers[lower]=rawHeaderValue(value);
+    }
+    let bytes:Buffer|undefined;
+    if(input.body!==undefined) {
+      bytes=Buffer.from(input.body,'utf8');
+    } else if(input.bodyBase64!==undefined) {
+      if(!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(input.bodyBase64)) throw new Error('Cuerpo base64 Mendeley inválido.');
+      bytes=Buffer.from(input.bodyBase64,'base64');
+    } else if(input.sourceUrl!==undefined) {
+      const downloaded=await researchDownload(input.sourceUrl,{maxBytes:rawMaxBytes,redirects:4,accept:'application/pdf, application/octet-stream;q=0.8'});
+      bytes=downloaded.bytes;
+      if(!input.contentType&&!headers['content-type']) headers['content-type']=rawHeaderValue(downloaded.contentType.split(';')[0]||'application/octet-stream');
+    }
+    if(bytes && bytes.length>rawMaxBytes) throw new Error('El cuerpo Mendeley supera 20 MB.');
+    if(bytes&&!headers['content-type']) headers['content-type']=rawHeaderValue(input.contentType||((input.body!==undefined)?rawMediaType(url.pathname):'application/octet-stream'));
+    if(input.contentType) headers['content-type']=rawHeaderValue(input.contentType);
+    if(bytes&&/^application\/pdf(?:;|$)/i.test(headers['content-type'])&&bytes.subarray(0,1024).indexOf('%PDF-')<0) throw new Error('El archivo indicado no contiene una cabecera PDF.');
+    const request=async(retry:boolean):Promise<Response>=>{
+      const token=await this.accessToken();
+      let response:Response;
+      try {response=await this.request(url,{method,redirect:'manual',signal:AbortSignal.timeout(30_000),headers:{...headers,Authorization:'Bearer '+token},...(bytes?{body:new Uint8Array(bytes)}:{})});}
+      catch {throw new Error('Error de conexión Mendeley. Comprueba el resultado antes de reintentar una escritura.');}
+      if(response.status===401&&retry){await this.accessToken(true);return request(false);}
+      return response;
+    };
+    const response=await request(true);
+    if(response.status===429) throw new Error('Mendeley HTTP 429; espera antes de reintentar.');
+    if(!response.ok&&response.status!==303) throw new Error('Mendeley HTTP '+response.status+'.');
+    const location=response.headers.get('location');
+    const safeLocation=location?publicHttpsUrl(new URL(location,url).toString()).toString():null;
+    const type=response.headers.get('content-type')||'';
+    const raw=response.status===303?Buffer.alloc(0):await rawResponseBytes(response);
+    let data:unknown=null;
+    if(raw.length){
+      if(/(?:^|\/)\w+(?:[.+-]\w+)*\+json|\/json(?:;|$)/i.test(type)) {
+        try{data=JSON.parse(raw.toString('utf8'));}catch{data=raw.toString('utf8');}
+      } else if(/^text\//i.test(type)) data=raw.toString('utf8');
+      else data={base64:raw.toString('base64'),encoding:'base64'};
+    }
+    const next=response.headers.get('link')?.match(/<([^>]+)>;\s*rel="next"/)?.[1];
+    let nextPath:string|null=null,nextQuery:string|null=null;
+    if(next){const nextUrl=new URL(next,url);if(nextUrl.origin===origin){nextPath=nextUrl.pathname;nextQuery=nextUrl.search.slice(1)||null;}}
+    return {status:response.status,contentType:type||null,data,location:safeLocation,nextPath,nextQuery,
+      etag:response.headers.get('etag'),lastModified:response.headers.get('last-modified')};
+  }
   saveDoi(doi:string,groupId?:string) {
     const result=this.queue.then(()=>this.saveVerified(doi,groupId));this.queue=result.catch(()=>undefined);return result;
   }
