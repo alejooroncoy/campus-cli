@@ -199,3 +199,76 @@ test('Mendeley lists only safe source URL candidates and exposes them as MCP lin
  assert.equal(response.content[0].type,'text');
  assert.equal(JSON.parse(response.content[0].text).citationReady,false);
 });
+
+test('raw API adds a document to a folder with the connected account and returns the provider status',async()=>{
+ const folderId='123e4567-e89b-12d3-a456-426614174000';
+ const documentId='123e4567-e89b-12d3-a456-426614174001';
+ let calls=0;
+ const s=new MendeleyService(store(),{},async(u,init)=>{
+  calls++;assert.equal(String(u),`https://api.mendeley.com/folders/${folderId}/documents`);
+  assert.equal(init?.method,'POST');
+  assert.equal((init?.headers as any).Authorization,'Bearer private');
+  assert.equal((init?.headers as any)['content-type'],'application/vnd.mendeley-document.1+json');
+  assert.equal(Buffer.from(init?.body as Uint8Array).toString(),JSON.stringify({id:documentId}));
+  return new Response(null,{status:201});
+ });
+ const result=await s.rawApi({method:'POST',path:`/folders/${folderId}/documents`,body:JSON.stringify({id:documentId})});
+ assert.equal(result.status,201);assert.equal(calls,1);
+});
+
+test('raw API returns a reusable, same-host pagination path and query',async()=>{
+ const s=new MendeleyService(store(),{},async()=>new Response('[]',{status:200,headers:{
+  'content-type':'application/vnd.mendeley-folder.1+json',
+  link:'<https://api.mendeley.com/folders?limit=2&marker=next>; rel="next"',
+ }}));
+ const result=await s.rawApi({method:'GET',path:'/folders',query:'limit=2'});
+ assert.equal(result.nextPath,'/folders');
+ assert.equal(result.nextQuery,'limit=2&marker=next');
+ assert.deepEqual(result.data,[]);
+});
+
+test('raw API sends PDF bytes, returns a signed download redirect, and rejects unsafe routes',async()=>{
+ let calls=0;
+ const s=new MendeleyService(store(),{},async(u,init)=>{
+  calls++;
+  if(init?.method==='GET') {
+   assert.equal(String(u),'https://api.mendeley.com/files/file-id');
+   return new Response(null,{status:303,headers:{location:'https://files.example.org/document.pdf?signature=temporary'}});
+  }
+  assert.equal(String(u),'https://api.mendeley.com/files');
+  assert.equal((init?.headers as any)['content-type'],'application/pdf');
+  assert.equal(Buffer.from(init?.body as Uint8Array).toString(),'%PDF-1.7\nexample');
+  return new Response(null,{status:201,headers:{location:'https://api.mendeley.com/files/file-id'}});
+ });
+ const result=await s.rawApi({method:'POST',path:'/files',bodyBase64:Buffer.from('%PDF-1.7\nexample').toString('base64'),contentType:'application/pdf'});
+ assert.equal(result.status,201);
+ assert.equal(result.location,'https://api.mendeley.com/files/file-id');
+ const downloaded=await s.rawApi({method:'GET',path:'/files/file-id'});
+ assert.equal(downloaded.location,'https://files.example.org/document.pdf?signature=temporary');
+ await assert.rejects(s.rawApi({method:'GET',path:'//evil.example/files'}),/Ruta Mendeley/);
+ await assert.rejects(s.rawApi({method:'POST',path:'/oauth/token',body:'x'}),/OAuth/);
+ await assert.rejects(s.rawApi({method:'GET',path:'/documents',headers:{Authorization:'stolen'}}),/Cabecera Mendeley no permitida/);
+ await assert.rejects(s.rawApi({method:'POST',path:'/files',bodyBase64:Buffer.from('not a PDF').toString('base64'),contentType:'application/pdf'}),/cabecera PDF/);
+ assert.equal(calls,2);
+});
+
+test('raw API write tool requires direct confirmation and GET does not',async()=>{
+ const tools=new Map<string,any>();let confirmed=0;let invoked=0;
+ registerMendeleyTools({registerTool:(name:any,_config:any,handler:any)=>tools.set(name,handler)} as any,{
+  authorize:()=>true,
+  service:{rawApi:async()=>{invoked++;return {status:204};}} as any,
+  confirmWrite:async()=>{confirmed++;},
+ });
+ const raw=tools.get('campus_mendeley_raw_api');
+ assert.notEqual((await raw({method:'GET',path:'/folders'})).isError,true);
+ assert.equal(confirmed,0);
+ assert.notEqual((await raw({method:'DELETE',path:'/folders/123e4567-e89b-12d3-a456-426614174000'})).isError,true);
+ assert.equal(confirmed,1);assert.equal(invoked,2);
+ const denied=new Map<string,any>();
+ registerMendeleyTools({registerTool:(name:any,_config:any,handler:any)=>denied.set(name,handler)} as any,{
+  authorize:()=>true,service:{rawApi:async()=>{throw new Error('must not run');}} as any,
+ });
+ const response=await denied.get('campus_mendeley_raw_api')({method:'POST',path:'/folders',body:'{}'});
+ assert.equal(response.isError,true);
+ assert.match(response.content[0].text,/confirmación directa/);
+});

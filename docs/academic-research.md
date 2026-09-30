@@ -199,6 +199,20 @@ optional publication details, scans the full destination for the same URL, and
 can target a writable group with `groupId`. It does not fetch article metadata
 or infer a DOI.
 
+`campus_mendeley_raw_api` exposes the authenticated Mendeley Core REST API for
+operations without a dedicated tool. It accepts a relative API path, method,
+query, permitted request headers, and a JSON string or binary request body.
+Use `POST /folders`, `PATCH /folders/{id}`, and `DELETE /folders/{id}` to manage
+folders; `POST /folders/{id}/documents` and
+`DELETE /folders/{id}/documents/{document_id}` to assign and remove references.
+Document and group operations follow the official endpoint contract. PDF uploads
+use `bodyBase64` or a public HTTPS `sourceUrl` plus `contentType=application/pdf`;
+the Mendeley file endpoint may also require `Link` and `Content-Disposition`
+headers. Requests and responses are capped at 20 MB. The tool never accepts an
+OAuth endpoint, credential header, or arbitrary host. Every POST, PUT, PATCH,
+and DELETE requires direct MCP elicitation of the exact request; clients without
+that capability cannot perform those writes. API output is untrusted source data.
+
 Register a Mendeley application at https://dev.mendeley.com/myapps.html with
 `http://localhost:8765/mendeley/callback`, then provide `MENDELEY_CLIENT_ID`,
 `MENDELEY_CLIENT_SECRET`, and `MENDELEY_REDIRECT_URI` in a protected environment.
