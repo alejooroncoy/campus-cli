@@ -57,6 +57,32 @@ test('lists groups and saves a DOI to a writable group without duplicating it',a
  assert.equal((await s.saveDoi(doi,groupId)).status,'already_saved');
 });
 
+test('lists group folders and paginates folder document IDs without crossing groups or folders',async()=>{
+ const groupId='ec47684d-4e4b-3f12-ba38-01509619c415';
+ const folderId='123e4567-e89b-12d3-a456-426614174000';
+ const childId='123e4567-e89b-12d3-a456-426614174001';
+ const documentId='123e4567-e89b-12d3-a456-426614174002';
+ const urls:string[]=[];
+ const s=new MendeleyService(store(),{},async(u,init)=>{
+  const url=String(u);urls.push(url);
+  if(url.includes('/folders?')){
+   assert.equal((init?.headers as any).Accept,'application/vnd.mendeley-folder.1+json');
+   return json([{id:folderId,name:'Pregunta 1',group_id:groupId},{id:childId,name:'Subcarpeta',parent_id:folderId,group_id:groupId}]);
+  }
+  assert.equal((init?.headers as any).Accept,'application/vnd.mendeley-document.1+json');
+  return url.includes('marker=next')?json([{id:documentId}]):json([],{link:`<https://api.mendeley.com/folders/${folderId}/documents?limit=1&marker=next>; rel="next"`});
+ });
+ const folders=await s.listFolders(groupId,100);
+ assert.equal(new URL(urls[0]).searchParams.get('group_id'),groupId);
+ assert.equal(folders.folders[1].parent_id,folderId);
+ const first=await s.listFolderDocuments(folderId,1);
+ assert.equal(first.hasMore,true);
+ const second=await s.listFolderDocuments(folderId,1,first.nextCursor!);
+ assert.deepEqual(second.documentIds,[documentId]);
+ await assert.rejects(s.listFolderDocuments(childId,1,first.nextCursor!),/Cursor Mendeley no permitido/);
+ await assert.rejects(s.listFolders(undefined,1,Buffer.from(`https://api.mendeley.com/folders?group_id=${groupId}&limit=1`).toString('base64url')),/Cursor Mendeley no permitido/);
+});
+
 test('saves metadata whose Crossref publication date has an unknown component', async () => {
  const s=new MendeleyService(store(),{},async(_u,init)=>init?.method==='POST' ? json({id:'id1'}, {}, 201) : json([]),
   async()=>({message:{DOI:doi,title:['Verified title'],type:'journal-article',issued:{'date-parts':[[2024,null]]}}}));
@@ -132,6 +158,8 @@ test('authorization fails before library operations and save is annotated as a w
  assert.equal(tools.get('campus_mendeley_save_doi').s.annotations.readOnlyHint,false);
  assert.equal(tools.get('campus_mendeley_save_reference').s.annotations.readOnlyHint,false);
  assert.equal(tools.get('campus_mendeley_list_groups').s.annotations.readOnlyHint,true);
+ assert.equal(tools.get('campus_mendeley_list_folders').s.annotations.readOnlyHint,true);
+ assert.equal(tools.get('campus_mendeley_list_folder_documents').s.annotations.readOnlyHint,true);
  await assert.rejects(tools.get('campus_mendeley_save_doi').h({doi}),/No autorizado/);
  await assert.rejects(tools.get('campus_mendeley_save_reference').h({url:'https://example.org',title:'Article',type:'journal'}),/No autorizado/);
 });
