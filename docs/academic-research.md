@@ -170,6 +170,11 @@ Las conexiones externas usan HTTPS con verificación de DNS y dirección públic
 `campus_mendeley_list` reads the connected user's private library.
 `campus_mendeley_list_groups` lists groups available to that user, and
 `campus_mendeley_list_group_documents` reads one selected group.
+`campus_mendeley_list_folders` lists personal folders or, with `groupId`, all
+folders in a group. Use `parent_id` to reconstruct nested folders.
+`campus_mendeley_list_folder_documents` returns the document IDs assigned to
+one folder; match those IDs to the group's document listing to show titles.
+Follow `nextCursor` for complete folder and document coverage.
 These are bibliographic records, not processed article files. Listing and saving
 return `documentRead=false` and `citationReady=false`; saving a DOI marks
 `retractionStatus=not_checked`. Read the actual source with the research tools,

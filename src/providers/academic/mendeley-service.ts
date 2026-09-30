@@ -10,6 +10,7 @@ import { publicHttpsUrl, researchJson } from './research-http.js';
 const origin = 'https://api.mendeley.com';
 const mime = 'application/vnd.mendeley-document.1+json';
 const groupMime = 'application/vnd.mendeley-group.1+json';
+const folderMime = 'application/vnd.mendeley-folder.1+json';
 const tokensSchema = z.object({ access_token: z.string().min(1), refresh_token: z.string().min(1), expires_at: z.number() });
 export type MendeleyTokens = z.infer<typeof tokensSchema>;
 export interface MendeleyTokenStore { load(): Promise<MendeleyTokens>; save(tokens: MendeleyTokens): Promise<void>; withRefreshLock?<T>(action:()=>Promise<T>):Promise<T> }
@@ -30,6 +31,8 @@ export class LocalMendeleyTokenStore implements MendeleyTokenStore {
 }
 const documentSchema = z.object({ id:z.string(), title:z.string().optional(), websites:z.array(z.string()).optional(), identifiers:z.object({doi:z.string().optional()}).passthrough().optional() }).passthrough();
 const groupSchema = z.object({ id:z.string().uuid(), name:z.string().min(1), role:z.string().optional() }).passthrough();
+const folderSchema = z.object({ id:z.string().uuid(), name:z.string().min(1), parent_id:z.string().nullable().optional(), group_id:z.string().uuid().nullable().optional() }).passthrough();
+const documentIdSchema = z.object({ id:z.string().uuid() }).passthrough();
 const crossrefSchema = z.object({message:z.object({DOI:z.string(),title:z.array(z.string()).min(1),type:z.string(),author:z.array(z.object({given:z.string().optional(),family:z.string().optional(),name:z.string().optional()})).optional(),issued:z.object({'date-parts':z.array(z.array(z.number().nullable()))}).optional(),'container-title':z.array(z.string()).optional(),volume:z.string().optional(),issue:z.string().optional(),page:z.string().optional()})});
 const referenceSchema = z.object({url:z.url().max(5000),title:z.string().trim().min(1).max(500),type:z.enum(['journal','book','generic','book_section','conference_proceedings','working_paper','report','web_page','thesis','magazine_article','newspaper_article']).default('journal'),source:z.string().trim().min(1).max(255).optional(),year:z.number().int().min(1000).max(3000).optional(),authors:z.array(z.object({first_name:z.string().trim().max(255).optional(),last_name:z.string().trim().min(1).max(255)})).max(100).optional(),groupId:z.string().uuid().optional()});
 export type MendeleyReference = z.input<typeof referenceSchema>;
@@ -91,10 +94,11 @@ export class MendeleyService {
     const parsed=new URL(url,origin);
     const documents=/^\/documents(?:\/|$)/.test(parsed.pathname);
     const groups=method==='GET' && /^\/groups(?:\/|$)/.test(parsed.pathname);
-    if(parsed.origin!==origin || (!documents&&!groups)) throw new Error('Ruta Mendeley no permitida.');
+    const folders=method==='GET' && /^\/folders(?:\/|$)/.test(parsed.pathname);
+    if(parsed.origin!==origin || (!documents&&!groups&&!folders)) throw new Error('Ruta Mendeley no permitida.');
     const token=await this.accessToken();
     let r:Response;
-    const responseMime=groups?groupMime:mime;
+    const responseMime=groups?groupMime:folders && !parsed.pathname.endsWith('/documents')?folderMime:mime;
     try {r=await this.request(parsed.toString(),{method,redirect:'error',signal:AbortSignal.timeout(20000),headers:{Authorization:'Bearer '+token,Accept:responseMime,...(body?{'Content-Type':mime}:{})},...(body?{body:JSON.stringify(body)}:{})});} catch {throw new Error('Error de conexión Mendeley; comprueba la biblioteca antes de reintentar guardar.');}
     if(r.status===401&&retry){await this.accessToken(true);return this.api(url,method,body,false);}
     if(!r.ok) throw new Error('Mendeley HTTP '+r.status+(r.status===429?'; espera antes de reintentar.':'.'));
@@ -103,6 +107,17 @@ export class MendeleyService {
   }
   async list(limit=20,cursor?:string) {z.number().int().min(1).max(100).parse(limit);const r=await this.api(cursor?decodeCursor(cursor,'/documents'):'/documents?limit='+limit);return {documents:z.array(documentSchema).parse(r.data).map(withSourceCandidate),documentRead:false,citationReady:false,hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};}
   async listGroups(limit=20,cursor?:string) {z.number().int().min(1).max(100).parse(limit);const r=await this.api(cursor?decodeCursor(cursor,'/groups'):'/groups?limit='+limit);return {groups:z.array(groupSchema).parse(r.data),hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};}
+  async listFolders(groupId?:string,limit=20,cursor?:string) {
+    const id=groupId?z.string().uuid().parse(groupId):undefined;z.number().int().min(1).max(100).parse(limit);
+    const r=await this.api(cursor?decodeCursor(cursor,'/folders',id):'/folders?'+new URLSearchParams({...id?{group_id:id}:{},limit:String(limit)}));
+    return {folders:z.array(folderSchema).parse(r.data),groupId:id??null,hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};
+  }
+  async listFolderDocuments(folderId:string,limit=20,cursor?:string) {
+    const id=z.string().uuid().parse(folderId);z.number().int().min(1).max(100).parse(limit);
+    const path='/folders/'+id+'/documents';
+    const r=await this.api(cursor?decodeCursor(cursor,path):path+'?limit='+limit);
+    return {documentIds:z.array(documentIdSchema).parse(r.data).map(d=>d.id),folderId:id,hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};
+  }
   async listGroupDocuments(groupId:string,limit=20,cursor?:string) {
     const id=z.string().uuid().parse(groupId);z.number().int().min(1).max(100).parse(limit);
     const r=await this.api(cursor?decodeCursor(cursor,'/documents',id):'/documents?'+new URLSearchParams({group_id:id,limit:String(limit)}));

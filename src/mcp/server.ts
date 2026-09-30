@@ -86,6 +86,11 @@ campus_mendeley_save_reference para fuentes sin DOI confirmado. Cada operación
 usa la cuenta Mendeley conectada por el estudiante. Antes de guardar en un grupo,
 lista los grupos y utiliza exactamente su ID; no subas PDFs ni contenido del
 editor mediante estas herramientas.
+Para ver la organización de un grupo usa campus_mendeley_list_folders con groupId;
+parent_id permite reconstruir subcarpetas. campus_mendeley_list_folder_documents
+devuelve IDs de referencias de una carpeta; cruza esos IDs con la lista del grupo
+para obtener los títulos. Recorre todas las páginas antes de afirmar que una
+carpeta está vacía o que faltan referencias.
 
 Blackboard Learn (Aula Virtual) es la plataforma de cursos implementada;
 sus herramientas llevan el prefijo blackboard_*. Antes de usar las herramientas
