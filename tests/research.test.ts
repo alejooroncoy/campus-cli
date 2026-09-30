@@ -2142,6 +2142,51 @@ test('exact DOI resolution adds only Europe PMC full text that confirms the DOI'
   assert.ok(calls.some(url => new URL(url).hostname === 'www.ebi.ac.uk'));
 });
 
+test('exact DOI resolution includes the official PLOS PDF discovered through OpenAIRE', async () => {
+  const doi = '10.1371/journal.pone.0000308';
+  const pdf = `https://journals.plos.org/plosone/article/file?id=${doi}&type=printable`;
+  const service = new ResearchService(async url => {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'api.openaire.eu') {
+      assert.equal(parsed.searchParams.get('pid'), doi);
+      return { header: { numFound: 1 }, results: [{ id: 'plos-record', mainTitle: 'PLOS study',
+        pids: [{ scheme: 'doi', value: doi }], instances: [{ urls: [pdf],
+          accessRight: { label: 'OPEN' } }] }] };
+    }
+    if (parsed.pathname.includes('/works/https://doi.org/')) return {
+      id: 'https://openalex.org/W123', doi, display_name: 'PLOS study', locations: [],
+    };
+    if (parsed.pathname.endsWith('/search')) return { hitCount: 0, resultList: { result: [] } };
+    if (url.includes('filter=updates%3A')) return collection([]);
+    return { message: { ...work, DOI: doi, link: [] } };
+  });
+  const discovered = await service.search({ query: doi, provider: 'openaire' });
+  assert.equal((discovered.results[0] as any).documentUrl, pdf);
+  const resolved = await service.resolveDocument({ doi });
+  assert.equal(resolved.openAireStatus, 'found');
+  assert.equal(resolved.pdfCandidates, 1);
+  assert.ok(resolved.results.some(candidate => candidate.url === pdf && candidate.kind === 'pdf'
+    && candidate.discoveredVia === 'openaire_exact_doi' && candidate.documentAccess === 'candidate_unverified'));
+});
+
+test('DOI resolution rejects OpenAIRE files whose record belongs to another DOI', async () => {
+  const doi = '10.1371/journal.pone.0000308';
+  const service = new ResearchService(async url => {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'api.openaire.eu') return { header: { numFound: 1 }, results: [{
+      id: 'wrong-record', pids: [{ scheme: 'doi', value: '10.1371/journal.pone.0000309' }],
+      instances: [{ urls: ['https://publisher.example.edu/wrong.pdf'] }],
+    }] };
+    if (parsed.pathname.includes('/works/https://doi.org/')) throw new ResearchHttpError(404);
+    if (parsed.pathname.endsWith('/search')) return { hitCount: 0, resultList: { result: [] } };
+    if (url.includes('filter=updates%3A')) return collection([]);
+    return { message: { ...work, DOI: doi, link: [] } };
+  });
+  const result = await service.resolveDocument({ doi });
+  assert.equal(result.openAireStatus, 'unavailable');
+  assert.equal(result.results.some(candidate => candidate.url.endsWith('/wrong.pdf')), false);
+});
+
 test('Europe PMC DOI mismatches and rate limits never contribute unverified files', async () => {
   for (const europePmcResponse of [
     { hitCount: 1, resultList: { result: [{ doi: '10.1234/wrong', pmcid: 'PMC9999999' }] } },
