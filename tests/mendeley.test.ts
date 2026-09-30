@@ -252,23 +252,21 @@ test('raw API sends PDF bytes, returns a signed download redirect, and rejects u
  assert.equal(calls,2);
 });
 
-test('raw API write tool requires direct confirmation and GET does not',async()=>{
- const tools=new Map<string,any>();let confirmed=0;let invoked=0;
- registerMendeleyTools({registerTool:(name:any,_config:any,handler:any)=>tools.set(name,handler)} as any,{
+test('raw API writes work without MCP elicitation and still require account authorization',async()=>{
+ const tools=new Map<string,any>();let invoked=0;let annotations:any;
+ registerMendeleyTools({registerTool:(name:any,config:any,handler:any)=>{tools.set(name,handler);if(name==='campus_mendeley_raw_api')annotations=config.annotations;}} as any,{
   authorize:()=>true,
   service:{rawApi:async()=>{invoked++;return {status:204};}} as any,
-  confirmWrite:async()=>{confirmed++;},
  });
  const raw=tools.get('campus_mendeley_raw_api');
  assert.notEqual((await raw({method:'GET',path:'/folders'})).isError,true);
- assert.equal(confirmed,0);
+ assert.equal(annotations.destructiveHint,true);
+ assert.notEqual((await raw({method:'POST',path:'/files',bodyBase64:'JVBERi0=',contentType:'application/pdf'})).isError,true);
  assert.notEqual((await raw({method:'DELETE',path:'/folders/123e4567-e89b-12d3-a456-426614174000'})).isError,true);
- assert.equal(confirmed,1);assert.equal(invoked,2);
+ assert.equal(invoked,3);
  const denied=new Map<string,any>();
  registerMendeleyTools({registerTool:(name:any,_config:any,handler:any)=>denied.set(name,handler)} as any,{
-  authorize:()=>true,service:{rawApi:async()=>{throw new Error('must not run');}} as any,
+  authorize:()=>false,service:{rawApi:async()=>{throw new Error('must not run');}} as any,
  });
- const response=await denied.get('campus_mendeley_raw_api')({method:'POST',path:'/folders',body:'{}'});
- assert.equal(response.isError,true);
- assert.match(response.content[0].text,/confirmación directa/);
+ await assert.rejects(denied.get('campus_mendeley_raw_api')({method:'POST',path:'/folders',body:'{}'}),/No autorizado/);
 });

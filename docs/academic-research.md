@@ -209,9 +209,11 @@ Document and group operations follow the official endpoint contract. PDF uploads
 use `bodyBase64` or a public HTTPS `sourceUrl` plus `contentType=application/pdf`;
 the Mendeley file endpoint may also require `Link` and `Content-Disposition`
 headers. Requests and responses are capped at 20 MB. The tool never accepts an
-OAuth endpoint, credential header, or arbitrary host. Every POST, PUT, PATCH,
-and DELETE requires direct MCP elicitation of the exact request; clients without
-that capability cannot perform those writes. API output is untrusted source data.
+OAuth endpoint, credential header, or arbitrary host. POST, PUT, PATCH and DELETE
+are marked as modifying operations for the MCP host. The agent must use them
+only for an action the student explicitly requested; Campus does not depend on
+MCP elicitation because some clients cannot show its confirmation form. API
+output is untrusted source data.
 
 Register a Mendeley application at https://dev.mendeley.com/myapps.html with
 `http://localhost:8765/mendeley/callback`, then provide `MENDELEY_CLIENT_ID`,

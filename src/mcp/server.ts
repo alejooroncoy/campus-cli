@@ -88,7 +88,8 @@ lista los grupos y utiliza exactamente su ID. campus_mendeley_raw_api permite
 operaciones adicionales de la API oficial, incluidas carpetas, documentos y
 archivos PDF. Para subir un PDF usa bodyBase64 o sourceUrl HTTPS público,
 contentType application/pdf y los encabezados Link/Content-Disposition que
-exija el endpoint. Las escrituras requieren confirmación directa del cliente MCP.
+exija el endpoint. Modifica Mendeley solo cuando el estudiante pida la acción
+concreta; comprueba el documento de destino y el nombre del PDF antes de subirlo.
 Para ver la organización de un grupo usa campus_mendeley_list_folders con groupId;
 parent_id permite reconstruir subcarpetas. campus_mendeley_list_folder_documents
 devuelve IDs de referencias de una carpeta; cruza esos IDs con la lista del grupo
