@@ -10,12 +10,12 @@
 No confundir con: el paquete `campus-cli` de PyPI (Python, gestión de notebooks de Jupyter, proyecto no relacionado) ni con otras plataformas de "IA para programadores" o "resolver tareas con IA" que usan nombres parecidos — este proyecto es específicamente la integración de Blackboard con asistentes de IA vía MCP.
 
 ```bash
-npx campus-cli@2.0.0 account login
+npx campus-cli@2.2.3 account login
 campus courses list
 campus assignments list --pending
 ```
 
-**English summary** — `campus-cli` is an unofficial **Blackboard MCP server** and CLI for students. It exposes Blackboard Learn (currently UPC Aula Virtual, Peru) to any Model Context Protocol client — Claude Desktop, Claude Code, Cursor, GitHub Copilot, Codex CLI, Windsurf — so an AI assistant can read your courses, assignments, due dates, grades, instructor feedback, announcements and course materials, and download files, without you copying anything by hand. Unlike institutional Blackboard integrations, it needs **no OAuth developer key from your university**: it uses the student's own SSO session, locally. Run it with `npx campus-cli@2.0.0 mcp` (stdio). Canvas and Moodle are on the roadmap.
+**English summary** — `campus-cli` is an unofficial **Blackboard MCP server** and CLI for students. It exposes Blackboard Learn (currently UPC Aula Virtual, Peru) to any Model Context Protocol client — Claude Desktop, Claude Code, Cursor, GitHub Copilot, Codex CLI, Windsurf — so an AI assistant can read your courses, assignments, due dates, grades, instructor feedback, announcements and course materials, and download files, without you copying anything by hand. Unlike institutional Blackboard integrations, it needs **no OAuth developer key from your university**: it uses the student's own SSO session, locally. Run it with `npx campus-cli@2.2.3 mcp` (stdio). Canvas and Moodle are on the roadmap.
 
 ## Qué puedes hacer
 
@@ -51,13 +51,13 @@ Si estudias en una universidad con Canvas o Moodle y quieres ayudar a probar o i
 ### Usar sin instalar
 
 ```bash
-npx campus-cli@2.0.0 account login
+npx campus-cli@2.2.3 account login
 ```
 
 ### Instalar globalmente
 
 ```bash
-npm install -g campus-cli@2.0.0
+npm install -g campus-cli@2.2.3
 campus account login
 ```
 
@@ -196,7 +196,7 @@ Puedes usar ambos modos con la misma sesión. Primero ejecuta `campus login`; lu
 `campus-cli` incluye un servidor MCP estándar. Corre por `stdio` con:
 
 ```bash
-npx campus-cli@2.0.0 mcp
+npx campus-cli@2.2.3 mcp
 ```
 
 Eso permite conectar tu campus a clientes como Claude, Cursor, GitHub Copilot, OpenAI Codex CLI, Windsurf y otros clientes compatibles con Model Context Protocol.
@@ -212,7 +212,7 @@ Agrega esto a `.mcp.json`:
   "mcpServers": {
     "campus": {
       "command": "npx",
-      "args": ["campus-cli@2.0.0", "mcp"]
+      "args": ["campus-cli@2.2.3", "mcp"]
     }
   }
 }
@@ -227,7 +227,7 @@ Edita `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "campus": {
       "command": "npx",
-      "args": ["campus-cli@2.0.0", "mcp"]
+      "args": ["campus-cli@2.2.3", "mcp"]
     }
   }
 }
@@ -242,7 +242,7 @@ Usa `Settings -> MCP -> Add new MCP server`, o edita `~/.cursor/mcp.json`:
   "mcpServers": {
     "campus": {
       "command": "npx",
-      "args": ["campus-cli@2.0.0", "mcp"]
+      "args": ["campus-cli@2.2.3", "mcp"]
     }
   }
 }
@@ -258,7 +258,7 @@ Crea `.vscode/mcp.json`:
     "campus": {
       "type": "stdio",
       "command": "npx",
-      "args": ["campus-cli@2.0.0", "mcp"]
+      "args": ["campus-cli@2.2.3", "mcp"]
     }
   }
 }
@@ -271,7 +271,7 @@ Agrega esto a `~/.codex/config.toml`:
 ```toml
 [mcp_servers.campus]
 command = "npx"
-args = ["campus-cli@2.0.0", "mcp"]
+args = ["campus-cli@2.2.3", "mcp"]
 ```
 
 ### Windsurf
@@ -283,13 +283,13 @@ Edita `~/.codeium/windsurf/mcp_config.json`:
   "mcpServers": {
     "campus": {
       "command": "npx",
-      "args": ["campus-cli@2.0.0", "mcp"]
+      "args": ["campus-cli@2.2.3", "mcp"]
     }
   }
 }
 ```
 
-Si instalaste el paquete globalmente con `npm install -g campus-cli@2.0.0`, puedes reemplazar `npx campus-cli@2.0.0` por la ruta absoluta de `campus`.
+Si instalaste el paquete globalmente con `npm install -g campus-cli@2.2.3`, puedes reemplazar `npx campus-cli@2.2.3` por la ruta absoluta de `campus`.
 
 ### Configuración mínima
 
@@ -298,7 +298,7 @@ Todos los clientes MCP terminan usando la misma idea:
 ```json
 {
   "command": "npx",
-  "args": ["campus-cli@2.0.0", "mcp"]
+  "args": ["campus-cli@2.2.3", "mcp"]
 }
 ```
 
