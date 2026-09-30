@@ -265,6 +265,23 @@ function pdfSelfCitationAfterAbstract(text: string, title: string, doi: string,
   });
 }
 
+function pdfAcmReferenceFormatSelfCitation(text: string, title: string, doi: string,
+  authors: string[] | undefined, year: number | undefined): boolean {
+  if (!authors || authors.length < 2 || authors.length > 4 || year === undefined) return false;
+  const beforeReferences = pdfTextBeforeReferences(text);
+  const abstract = /(?:^|\r?\n)\s*Abstract\s*(?:\r?\n|$)/im.exec(beforeReferences);
+  const marker = /(?:^|\r?\n)\s*ACM Reference Format\s*:\s*(?:\r?\n|$)/im.exec(beforeReferences);
+  if (!abstract || !marker || marker.index <= abstract.index) return false;
+  const afterMarker = beforeReferences.slice(marker.index + marker[0].length, marker.index + marker[0].length + 1_800);
+  const nextSection = /(?:^|\r?\n)\s*\d+(?:\.\d+)*\s+[A-Z][^\r\n]{2,80}(?:\r?\n|$)/m.exec(afterMarker);
+  const citation = nextSection ? afterMarker.slice(0, nextSection.index) : afterMarker;
+  const normalized = normalizedIdentityText(citation);
+  return doiAppearsInText(citation, doi)
+    && normalized.includes(normalizedExpectedTitle(title))
+    && new RegExp(`(?:^|\\D)${year}(?:\\D|$)`).test(citation)
+    && authors.every(author => normalized.includes(normalizedIdentityText(author)));
+}
+
 export async function verifyResearchDocumentIdentity(
   raw: z.input<typeof documentIdentityInput>,
   dependencies: EvidenceDependencies = {},
@@ -377,8 +394,11 @@ export async function verifyResearchDocumentIdentity(
   const doiInFrontMatter = doi === null || doiSegments.some(segment => doiAppearsInText(segment.text, doi))
     || arxivDoiOnFirstPage;
   const doiInSelfCitation = !doiInFrontMatter && doi !== null && 'pages' in document
-    && document.pages.some(page => page.page === 1 && pdfSelfCitationAfterAbstract(page.text,
-      input.expectedTitle, doi, input.expectedAuthors, input.expectedYear));
+    && document.pages.some(page => page.page === 1
+      && (pdfSelfCitationAfterAbstract(page.text,
+        input.expectedTitle, doi, input.expectedAuthors, input.expectedYear)
+        || pdfAcmReferenceFormatSelfCitation(page.text,
+          input.expectedTitle, doi, input.expectedAuthors, input.expectedYear)));
   const doiFound = doiInFrontMatter || doiInSelfCitation;
   if (!doiFound) {
     return { status: 'partial', identityAllowed: false, reason: 'doi_not_found_in_document', proof,
