@@ -32,7 +32,7 @@ export class LocalMendeleyTokenStore implements MendeleyTokenStore {
 const documentSchema = z.object({ id:z.string(), title:z.string().optional(), websites:z.array(z.string()).optional(), identifiers:z.object({doi:z.string().optional()}).passthrough().optional() }).passthrough();
 const groupSchema = z.object({ id:z.string().uuid(), name:z.string().min(1), role:z.string().optional() }).passthrough();
 const folderSchema = z.object({ id:z.string().uuid(), name:z.string().min(1), parent_id:z.string().nullable().optional(), group_id:z.string().uuid().nullable().optional() }).passthrough();
-const documentIdSchema = z.object({ id:z.string().uuid() }).passthrough();
+const documentIdSchema = z.union([z.string().uuid(),z.object({ id:z.string().uuid() }).passthrough()]);
 const crossrefSchema = z.object({message:z.object({DOI:z.string(),title:z.array(z.string()).min(1),type:z.string(),author:z.array(z.object({given:z.string().optional(),family:z.string().optional(),name:z.string().optional()})).optional(),issued:z.object({'date-parts':z.array(z.array(z.number().nullable()))}).optional(),'container-title':z.array(z.string()).optional(),volume:z.string().optional(),issue:z.string().optional(),page:z.string().optional()})});
 const referenceSchema = z.object({url:z.url().max(5000),title:z.string().trim().min(1).max(500),type:z.enum(['journal','book','generic','book_section','conference_proceedings','working_paper','report','web_page','thesis','magazine_article','newspaper_article']).default('journal'),source:z.string().trim().min(1).max(255).optional(),year:z.number().int().min(1000).max(3000).optional(),authors:z.array(z.object({first_name:z.string().trim().max(255).optional(),last_name:z.string().trim().min(1).max(255)})).max(100).optional(),groupId:z.string().uuid().optional()});
 export type MendeleyReference = z.input<typeof referenceSchema>;
@@ -116,7 +116,7 @@ export class MendeleyService {
     const id=z.string().uuid().parse(folderId);z.number().int().min(1).max(100).parse(limit);
     const path='/folders/'+id+'/documents';
     const r=await this.api(cursor?decodeCursor(cursor,path):path+'?limit='+limit);
-    return {documentIds:z.array(documentIdSchema).parse(r.data).map(d=>d.id),folderId:id,hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};
+    return {documentIds:z.array(documentIdSchema).parse(r.data).map(d=>typeof d==='string'?d:d.id),folderId:id,hasMore:!!r.next,nextCursor:r.next?encodeCursor(r.next):null};
   }
   async listGroupDocuments(groupId:string,limit=20,cursor?:string) {
     const id=z.string().uuid().parse(groupId);z.number().int().min(1).max(100).parse(limit);
