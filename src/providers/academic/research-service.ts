@@ -306,7 +306,11 @@ function doiSourceUrl(doi: string | null): string | null {
 function pdfCandidateLink(url: string, contentType?: string): boolean {
   if (/pdf/i.test(contentType ?? '')) return true;
   try {
-    const path = new URL(url).pathname;
+    const parsed = new URL(url);
+    const path = parsed.pathname;
+    if (parsed.hostname === 'journals.plos.org'
+      && /^\/[^/]+\/article\/file$/i.test(path)
+      && parsed.searchParams.get('type') === 'printable') return true;
     return /\.pdf$/i.test(path) || /(?:^|\/)pdf(?:\/|$)/i.test(path);
   } catch { return false; }
 }
@@ -713,6 +717,26 @@ export class ResearchService {
           ? `OpenAlex HTTP ${error.status}` : 'OpenAlex no pudo verificar este DOI.';
       }
     }
+    let openAireStatus: 'found' | 'not_found' | 'unavailable' = 'not_found';
+    let openAireError: string | null = null;
+    try {
+      const response = await this.search({ query: doi, provider: 'openaire', limit: 5 });
+      const exactRecords = response.results as Array<{ doi?: string | null; title?: string | null;
+        fullTextLinks?: Array<{ URL: string; accessRight?: string | null }> }>;
+      for (const record of exactRecords) {
+        if (optionalDoi(record.doi) !== doi) continue;
+        openAireStatus = 'found';
+        for (const link of record.fullTextLinks ?? []) {
+          if (!pdfCandidateLink(link.URL)) continue;
+          add(link.URL, 'pdf', 'openaire_exact_doi', record.title ?? title,
+            null, null, null, 'pdf');
+        }
+      }
+    } catch (error) {
+      openAireStatus = 'unavailable';
+      openAireError = error instanceof ResearchHttpError && error.status
+        ? `OpenAIRE HTTP ${error.status}` : 'OpenAIRE no pudo verificar este DOI.';
+    }
     let europePmcStatus: 'found' | 'not_found' | 'unavailable' = 'not_found';
     let europePmcError: string | null = null;
     try {
@@ -746,7 +770,8 @@ export class ResearchService {
     return { doi, registryStatus: verification.status, registrySource: registered,
       europePmcStatus, europePmcError,
       zenodoStatus, zenodoError,
-      openalexStatus, openalexError, openalexUrl, retrievedAt: new Date().toISOString(),
+      openalexStatus, openalexError, openalexUrl,
+      openAireStatus, openAireError, retrievedAt: new Date().toISOString(),
       results: candidates, pdfCandidates: candidates.filter(candidate => candidate.kind === 'pdf').length,
       documentCandidates: candidates.filter(candidate => candidate.kind === 'document').length,
       guidance: 'Estas URLs son candidatos de catálogo; pueden requerir acceso o apuntar a otra versión. Lee el archivo, comprueba DOI/título y conserva hash y página/sección antes de citar. Si no hay PDF, abre la página de registro para buscar el archivo pertinente.' };

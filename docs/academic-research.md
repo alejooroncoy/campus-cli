@@ -10,7 +10,7 @@ Las herramientas recuperan registros bibliográficos y evidencia de documentos r
 | `campus_research_search_databases` | Busca en ACM, Scopus y Web of Science durante el período indicado por el estudiante. |
 | `campus_research_google_scholar` | Búsqueda en Google Académico mediante SerpApi opcional; sin clave devuelve solo un enlace manual, identificado como tal. |
 | `campus_research_verify_doi` | Consulta exacta en Crossref y, cuando procede, DataCite; devuelve avisos editoriales disponibles. |
-| `campus_research_resolve_document` | Obtiene candidatos de archivo y página para un DOI, incluidos enlaces de OpenAlex, texto completo XML de Europe PMC y archivos de Zenodo cuando sus registros confirman el mismo DOI. |
+| `campus_research_resolve_document` | Obtiene candidatos de archivo y página para un DOI, incluidos enlaces de OpenAlex y OpenAIRE, texto completo XML de Europe PMC y archivos de Zenodo cuando sus registros confirman el mismo DOI. |
 | `campus_research_verify_citation` | Compara el título descubierto con el registro DOI exacto y bloquea la cita ante diferencias o metadatos canónicos incompletos. |
 | `campus_research_read_pdf` | Texto de un PDF HTTPS público, separado por páginas, con URL final, fecha de lectura y SHA-256. |
 | `campus_research_read_document` | Evidencia por secciones desde PDF, HTML, texto, Markdown, XML/JATS, DOCX, EPUB, CSV o XLSX públicos. Los ZIP requieren indicar `docx`, `epub` o `xlsx`. |
