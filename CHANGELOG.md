@@ -4,6 +4,27 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
+## [2.2.3] — 2026-09-29
+
+La versión 2.2.2 se usó como paquete integrado en Railway y no se publicó en npm.
+
+### Security
+- Actualizadas las dependencias transitivas `hono` a 4.13.11 e `ip-address` a 10.7.2 para corregir los avisos de parseo de solicitudes y clasificación IPv6; `npm audit` queda sin vulnerabilidades.
+
+### Added
+- Búsqueda académica ampliada a PubMed, Europe PMC, OpenAIRE, Semantic Scholar y arXiv, con URLs de registro, candidatos de archivo y errores de acceso diferenciados por proveedor. Google Académico admite búsqueda opcional mediante SerpApi.
+- Resolución de DOI hacia copias públicas, incluidos XML de Europe PMC, archivos de Zenodo y PDF de OpenAIRE cuando el registro confirma el DOI exacto.
+- Lectura e indexación de PDF extensos con cobertura por análisis, búsqueda de páginas y verificación por lote de hasta ocho citas literales; lectura de archivos adjuntos y de documentos públicos CSV/XLSX.
+- Guardado de referencias de Mendeley por URL cuando no existe DOI.
+
+### Fixed
+- La verificación de citas vincula metadatos, DOI, título, autoría, año, archivo, SHA-256 y página o sección. Bloquea archivos discordantes, retractaciones, correcciones y citas textuales inexistentes.
+- Los DOI de arXiv se cotejan con el identificador del PDF; las coincidencias exactas de título se priorizan en arXiv y PubMed.
+- El PDF `type=printable` de PLOS se reconoce como candidato real; las autocitas `ACM Reference Format` después del resumen se validan con título, autores completos, año y DOI.
+- Las fuentes que deniegan lectura o limitan consultas se informan como indisponibles, sin presentarlas como resultados vacíos ni atribuirles evidencia no leída.
+
+---
+
 ## [2.2.1] — 2026-09-19
 
 ### Fixed
