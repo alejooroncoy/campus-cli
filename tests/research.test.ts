@@ -3766,6 +3766,35 @@ test('post-abstract self-citation can identify its own PDF only with title, auth
   assert.equal(citedInReferences.identityAllowed, false);
 });
 
+test('ACM Reference Format binds a post-abstract DOI to the matching title and authors', async () => {
+  const base = { url: 'https://repository.example.edu/acm-paper.pdf', format: 'pdf' as const,
+    expectedSha256: 'e'.repeat(64), expectedTitle: 'An empirical study to understand how students use ChatGPT for writing essays and how it affects their ownership',
+    expectedDoi: '10.1145/3690712.3690720', expectedAuthors: ['Andrew Jelson', 'Sang Won Lee'],
+    expectedYear: 2024 };
+  const page = 'An empirical study to understand how students use ChatGPT for\nwriting essays and how it affects their ownership\nAndrew Jelson\nSang Won Lee\nAbstract\nThis paper describes a proposed study.\nACM Reference Format:\nAndrew Jelson and Sang Won Lee. 2024. An empirical study to understand how students use ChatGPT for writing essays and how it affects their ownership. In The Third Workshop on Intelligent and Interactive Writing Assistants. https://doi.org/10.1145/3690712.3690720\n1 Introduction\nThe project is described here.';
+  const readPdf = (async () => ({ requestedUrl: base.url, resolvedUrl: base.url,
+    retrievedAt: '2026-09-30T00:00:00.000Z', sha256: base.expectedSha256, totalPages: 1,
+    pages: [{ page: 1, text: page, truncated: false, needsOcr: false }],
+    nextPage: null, guidance: [] })) as any;
+  const verified = await verifyResearchDocumentIdentity(base, { readPdf });
+  assert.equal(verified.identityAllowed, true);
+  assert.equal(verified.identityBasis, 'title_authors_year_self_citation_doi_and_hash');
+  for (const altered of [
+    { expectedAuthors: undefined }, { expectedAuthors: ['Andrew Jelson', 'Another Lee'] },
+    { expectedYear: 2023 },
+  ]) {
+    const result = await verifyResearchDocumentIdentity({ ...base, ...altered }, { readPdf });
+    assert.equal(result.identityAllowed, false);
+  }
+  const unrelated = await verifyResearchDocumentIdentity(base, { readPdf: (async () => ({
+    ...await readPdf(), pages: [{ page: 1,
+      text: page.replace('ACM Reference Format:\nAndrew Jelson and Sang Won Lee. 2024. An empirical study to understand how students use ChatGPT for writing essays and how it affects their ownership.',
+        'ACM Reference Format:\nAndrew Jelson and Sang Won Lee. 2024. A different paper.'),
+      truncated: false, needsOcr: false }],
+  })) as any });
+  assert.equal(unrelated.identityAllowed, false);
+});
+
 test('document identity handles HTML without DOI and fails closed on an unrelated page', async () => {
   const readDocument = async () => ({ requestedUrl: 'https://journal.example.edu/article',
     resolvedUrl: 'https://journal.example.edu/article', retrievedAt: '2026-09-26T00:00:00.000Z',

@@ -119,6 +119,8 @@ Solo `status=verified` y `citeAllowed=true` autorizan a construir una referencia
 
 Luego pasa una URL PDF devuelta por el catálogo a `campus_research_read_pdf`, con `startPage=1` y `pageCount=5`. Continúa desde `nextPage` para leer el resto. La lectura no descarga archivos permanentes: procesa los bytes en memoria. No accede a PDF privados de Blackboard, archivos locales, páginas de login o documentos detrás de suscripciones.
 
+Si un PDF ACM coloca el DOI después del resumen bajo `ACM Reference Format`, proporciona a `campus_research_verify_document_identity` la lista completa de autores y el año canónicos. El verificador exige que esa autocita repita título, autores, año y DOI antes de asociar el archivo al registro; una referencia a otro trabajo no basta.
+
 ## Cómo elaborar una investigación con evidencia
 
 1. Define pregunta, términos, años y criterios de inclusión/exclusión.
