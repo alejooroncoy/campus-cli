@@ -340,7 +340,7 @@ Las herramientas de Aula Virtual usan el prefijo `blackboard_`; `banner_get_week
 | `blackboard_upload_attempt_file` | Subir un archivo local; el cliente MCP pide confirmación directa |
 | `blackboard_save_attempt_draft` | Guardar texto/archivos en un intento SIN enviarlo (queda abierto para seguir editando) |
 | `blackboard_submit_attempt` | Entregar tarea; el cliente MCP pide confirmación directa |
-| `blackboard_get_assignment_feedback` | Comentarios y feedback del profesor |
+| `blackboard_get_assignment_feedback` | Comentarios generales y por criterio de rúbrica, puntajes, niveles de logro y archivos del profesor (incluye entregas grupales) |
 | `blackboard_system_version` | Versión del servidor Blackboard |
 | `blackboard_list_people` | Docentes y compañeros del curso; resuelve un id interno a un nombre |
 | `blackboard_download_file_url` | Descargar un archivo desde una URL bbcswebdav |
@@ -351,6 +351,8 @@ Las herramientas de Aula Virtual usan el prefijo `blackboard_`; `banner_get_week
 | `uclass_list_recordings` | Grabaciones publicadas de UPC Class para un curso Blackboard |
 | `uclass_search_transcript` | Fragmentos con contexto y marcas de tiempo de una transcripción de Class |
 | `uclass_read_transcript` | Transcripción estructurada completa de una grabación de Class |
+
+Para leer los comentarios por criterio desde la terminal: `campus assignments feedback <courseId> <columnId>` (opciones: `--json`, `--attempt <attemptId>`). En MCP, aparecen en `attempt.rubricFeedback.rubrics[].criteria[].criterionComments`, junto con el puntaje y el nivel de logro. Si `rubricFeedback.status` es `restricted` o `unavailable`, no se pudieron consultar; no equivale a ausencia de comentarios.
 
 Las descargas MCP nunca escriben fuera de `~/Downloads/campus-cli`, no sobrescriben archivos y aplican límites de 100 MB por archivo y 500 MB para la raíz completa. Puedes elegir otra raíz al iniciar el servidor con `CAMPUS_DOWNLOAD_DIR=/ruta/segura`; el argumento `outputDir` de las tools solo crea subdirectorios relativos dentro de ella. Las subidas, entregas finales y llamadas raw que modifican datos requieren que el cliente soporte MCP elicitation; si no la soporta, la operación falla sin ejecutarse.
 

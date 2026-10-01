@@ -4,6 +4,14 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
+## [Unreleased]
+
+### Added
+- La retroalimentación de Blackboard incluye comentarios por criterio de rúbrica, puntajes, pesos y niveles de logro, también en entregas grupales. Distingue rúbricas sin evaluación de lecturas restringidas o indisponibles.
+
+### Fixed
+- La retroalimentación obtiene el puntaje y la fecha desde el intento de Ultra cuando el listado público los omite, y prioriza los comentarios del profesor sobre el texto de la nota.
+
 ## [2.2.3] — 2026-09-29
 
 La versión 2.2.2 se usó como paquete integrado en Railway y no se publicó en npm.

@@ -10,9 +10,11 @@ import {
   listPublishedAssignments,
   listAttempts,
   getAttempt,
+  getAssignment,
   uploadFile,
   submitAttempt,
 } from '../api/assignments.js';
+import { getAttemptFeedback } from '../api/feedback.js';
 import { track } from '../../../analytics.js';
 
 function requireSession() {
@@ -310,6 +312,51 @@ export function assignmentsCommand(program: Command) {
         track('attempts_view_error', { success: false, error_type: err?.name ?? 'AttemptsError' });
         spinner.fail(err.message);
         process.exit(1);
+      }
+    });
+
+  // ── FEEDBACK ─────────────────────────────────────────────────────────────
+  assignments
+    .command('feedback <courseId> <columnId>')
+    .description('Read instructor feedback and rubric criterion comments, including group submissions')
+    .option('--attempt <attemptId>', 'Read a specific submission attempt')
+    .option('--json', 'Output structured JSON')
+    .action(async (courseId, columnId, opts) => {
+      const client = createClient(requireSession());
+      const spinner = ora({ text: 'Fetching feedback...', stream: process.stderr }).start();
+      try {
+        const column = await getAssignment(client, courseId, columnId);
+        const attempt = opts.attempt
+          ? await getAttempt(client, courseId, columnId, opts.attempt)
+          : (await listAttempts(client, courseId, columnId)).sort((a, b) =>
+            (b.attemptDate ?? b.created ?? b.modified ?? '').localeCompare(a.attemptDate ?? a.created ?? a.modified ?? '')
+          )[0];
+        if (!attempt) { spinner.succeed('No submission attempts found.'); return; }
+        const feedback = await getAttemptFeedback(client, courseId, columnId, attempt);
+        spinner.succeed('Feedback loaded');
+        const result = {
+          assignment: column.name, columnId, due: column.grading?.due, maxScore: column.score?.possible,
+          attempt: { id: attempt.id, status: attempt.status, ...feedback },
+        };
+        if (opts.json) { console.log(JSON.stringify(result, null, 2)); return; }
+        console.log(`\n${chalk.bold(column.name)}`);
+        console.log(`Nota: ${feedback.score ?? 'sin nota'} / ${column.score?.possible ?? '?'}`);
+        if (column.grading?.due) console.log(`Entrega: ${formatDate(column.grading.due)}`);
+        if (feedback.instructorFeedback) console.log(`\nComentarios generales:\n${feedback.instructorFeedback}`);
+        console.log(`\nRúbrica: ${feedback.rubricFeedback.status}`);
+        for (const rubric of feedback.rubricFeedback.rubrics) {
+          console.log(`\n${chalk.bold(rubric.title)} (${rubric.scope})`);
+          for (const criterion of rubric.criteria) {
+            console.log(`\n${chalk.cyan(criterion.name)}`);
+            console.log(`${criterion.score ?? 'sin nota'} / ${criterion.maxScore ?? '?'}${criterion.weightPercent != null ? ` (${criterion.weightPercent}%)` : ''}`);
+            if (criterion.achievementLevel) console.log(criterion.achievementLevel);
+            if (criterion.achievementDescription) console.log(criterion.achievementDescription);
+            if (criterion.criterionComments) console.log(`Comentarios de criterio:\n${criterion.criterionComments}`);
+          }
+        }
+      } catch (err: any) {
+        spinner.fail(err.message);
+        process.exitCode = 1;
       }
     });
 

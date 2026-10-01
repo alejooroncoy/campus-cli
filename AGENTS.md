@@ -32,9 +32,11 @@ The read-only `campus_apa7_guidance` tool is the exception to the Blackboard-ses
 ### Feedback workflow
 
 ```
-1. blackboard_get_assignment_feedback <courseId>    → scores + instructor comments + feedback files for all assignments
+1. blackboard_get_assignment_feedback <courseId>    → scores + instructor comments + rubric criterion comments + feedback files for all assignments
 2. blackboard_download_feedback_file <ids>          → download an annotated file the professor attached to the grade
 ```
+
+La retroalimentación incluye `attempt.rubricFeedback`: revisa `status` y muestra los `criterionComments` junto al criterio y su puntaje. `restricted`/`unavailable` indica que no se pudo leer la rúbrica; no significa que el profesor no comentó.
 
 ## Agent behavior rules
 
