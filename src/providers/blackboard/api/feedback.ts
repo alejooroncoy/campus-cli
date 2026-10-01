@@ -14,6 +14,7 @@ interface Evaluation {
   id: string;
   rubricAssociationId: string;
   completed?: boolean;
+  submitted?: string;
   totalScore?: number;
   maxScore?: number;
   cells?: Array<{ rubricRowId: string; rubricCellId?: string; selectedPercent?: number; selectedScore?: number; feedback?: RichText }>;
@@ -118,7 +119,12 @@ export async function getAttemptFeedback(client: AxiosInstance, courseId: string
       if (association.displayGraded === false || column.gradesReleased === false) {
         rubricFeedback.status = 'restricted'; continue;
       }
-      if (evaluation.completed === false) continue;
+      // Ultra can leave the rubric's completed flag false after posting the
+      // attempt grade. The submitted evaluation and its cells are still shown
+      // in the student's graded submission (including group attempts).
+      const postedEvaluation = attempt.status === 'Completed'
+        && Boolean(evaluation.submitted) && Boolean(evaluation.cells?.length);
+      if (evaluation.completed === false && !postedEvaluation) continue;
       rubricFeedback.rubrics.push(mapEvaluation(association, evaluation, scope));
     }
     if (rubricFeedback.rubrics.length) rubricFeedback.status = 'available';
