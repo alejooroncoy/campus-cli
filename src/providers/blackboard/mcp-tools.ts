@@ -22,6 +22,7 @@ import {
   getSystemVersion,
 } from './api/courses.js';
 import { listAssignments, listPublishedAssignments, listAttempts, submitAttempt, uploadFile, getAttemptFiles } from './api/assignments.js';
+import { getAttemptFeedback } from './api/feedback.js';
 import { track } from '../../analytics.js';
 import { downloadRoot, resolveDownloadDir, safeNewFilePath, writeNamedDownload } from '../../security/files.js';
 import { extractEmbeddedFiles, type EmbeddedFile } from './embedded-files.js';
@@ -945,11 +946,13 @@ export function registerBlackboardTools(server: McpServer) {
     {
       description:
         'Get professor feedback and scores for all assignments in a course. ' +
-        'For each graded submission, shows score, instructor comments, and any feedback files attached by the professor.',
+        'For each submission, shows score, instructor comments, feedback files, and rubric feedback by criterion ' +
+        '(criterionComments, criterion score/maxScore, weight, and achievement level), including group submissions. ' +
+        'Check rubricFeedback.status: restricted/unavailable means comments could not be read, not that there are none.',
       inputSchema: { courseId: blackboardId('courseId').describe('Blackboard course ID') },
     },
     async ({ courseId }) => {
-      const { client, session } = await getClient();
+      const { client } = await getClient();
 
       const assignments = await listAssignments(client, courseId);
 
@@ -965,14 +968,16 @@ export function registerBlackboardTools(server: McpServer) {
 
             // Most recent attempt first
             const latest = attempts.sort((a, b) =>
-              (b.attemptDate ?? b.modified ?? '').localeCompare(a.attemptDate ?? a.modified ?? '')
+              (b.attemptDate ?? b.created ?? b.modified ?? '').localeCompare(a.attemptDate ?? a.created ?? a.modified ?? '')
             )[0];
+
+            const feedback = await getAttemptFeedback(client, courseId, col.id, latest);
 
             // Try to get feedback files (professor may have attached annotated docs)
             let feedbackFiles: any[] = [];
             try {
               feedbackFiles = await getAttemptFiles(client, courseId, col.id, latest.id);
-            } catch {}
+            } catch (error) { rethrowExpiredSession(error); }
 
             return {
               assignment: col.name,
@@ -983,12 +988,7 @@ export function registerBlackboardTools(server: McpServer) {
               attempt: {
                 id: latest.id,
                 status: latest.status,
-                score: latest.score,
-                grade: latest.displayGrade?.text,
-                submittedAt: latest.attemptDate ?? latest.modified,
-                // Professor feedback — field name varies by BB version
-                instructorFeedback:
-                  latest.text ?? latest.instructorFeedback ?? latest.feedback ?? null,
+                ...feedback,
                 studentComments: latest.studentComments ?? null,
                 feedbackFiles: feedbackFiles.map((f) => ({
                   id: f.id,
@@ -998,7 +998,8 @@ export function registerBlackboardTools(server: McpServer) {
                 })),
               },
             };
-          } catch {
+          } catch (error) {
+            rethrowExpiredSession(error);
             return { assignment: col.name, columnId: col.id, status: 'error_fetching' };
           }
         },
