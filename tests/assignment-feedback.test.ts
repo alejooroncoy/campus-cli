@@ -107,3 +107,35 @@ test('rejects path injection before making any request', async () => {
   await assert.rejects(getAttemptFeedback(client, courseId, columnId, { ...attempt, id: '../other' }), /attemptId/);
   assert.equal(paths.length, 0);
 });
+
+
+test('posted group evaluation remains readable when Ultra leaves completed false', async () => {
+  const posted = { ...evaluation, completed: false, submitted: '2026-09-28T14:28:15Z', totalScore: 13.9,
+    cells: evaluation.cells.map(cell => cell.rubricRowId === '_6_1'
+      ? { ...cell, selectedPercent: 0.8666666666666,
+          feedback: { rawText: '<p>Precisar la población y universidad seleccionados.</p>' } }
+      : cell) };
+  const { client } = clientFor({ id: '_3_1', groupAttemptId: '_11_1', displayGrade: { score: 13.9 } },
+    { id: '_11_1', rubricEvaluation: posted });
+  const result = await getAttemptFeedback(client, courseId, columnId, attempt);
+  assert.equal(result.score, 13.9);
+  assert.equal(result.rubricFeedback.status, 'available');
+  const rubric = result.rubricFeedback.rubrics[0];
+  assert.equal(rubric.scope, 'group');
+  assert.equal(rubric.totalScore, 13.9);
+  assert.equal(rubric.criteria[0].score, 2.6);
+  assert.equal(rubric.criteria[0].criterionComments, 'Precisar la población y universidad seleccionados.');
+});
+
+test('incomplete evaluations without a posted attempt, submission date or cells remain ungraded', async () => {
+  for (const scenario of [
+    { status: 'NeedsGrading', submitted: '2026-09-28T14:28:15Z', cells: evaluation.cells },
+    { status: 'Completed', submitted: undefined, cells: evaluation.cells },
+    { status: 'Completed', submitted: '2026-09-28T14:28:15Z', cells: [] },
+  ]) {
+    const { client } = clientFor({ id: '_3_1', rubricEvaluation: { ...evaluation, completed: false,
+      submitted: scenario.submitted, cells: scenario.cells } });
+    const result = await getAttemptFeedback(client, courseId, columnId, { ...attempt, status: scenario.status });
+    assert.deepEqual(result.rubricFeedback, { status: 'not_graded', rubrics: [] });
+  }
+});
