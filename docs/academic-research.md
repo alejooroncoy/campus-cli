@@ -271,3 +271,17 @@ Después del análisis del cliente, pasa cada fragmento a `campus_research_verif
 ```json
 {"url":"https://repositorio.example.edu/articulo.pdf","page":8,"format":"pdf","excerpt":"Fragmento seleccionado por la IA cliente","expectedSha256":"[sha256 devuelto por la lectura]"}
 ```
+
+## HTML y visores de PDF
+
+`campus_research_read_document` procesa el texto HTML por secciones. También
+detecta referencias de PDF en metadatos, enlaces alternativos y elementos
+`iframe`, `embed` u `object`; esos enlaces son candidatos, no evidencia leída.
+Cuando el cuerpo HTML está vacío y contiene un único PDF embebido, los lectores
+de documentos/PDF y el indexador siguen ese enlace una sola vez con el mismo
+descargador seguro. No ejecutan JavaScript ni adivinan rutas.
+
+La lectura conserva la URL del visor, la URL final del PDF y hashes separados.
+Si el PDF embebido falla, el lector de documentos devuelve `viewer_only`, sin
+secciones del estudio y con la causa del fallo. Un artículo HTML con texto se
+lee como HTML; no se reemplaza por otra versión PDF automáticamente.
