@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { researchDownload, ResearchHttpError } from './research-http.js';
 import { readResearchPdfBytes } from './research-pdf.js';
 import { officialResearchAlternate } from './research-official-sources.js';
+import { resolveResearchHtmlPdf, type NavigatedResearchDownload } from './research-html.js';
 
 const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024;
 const MAX_ARCHIVE_FILES = 200;
@@ -512,7 +513,7 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
   const download = dependencies.download ?? researchDownload;
   const options = { maxBytes: MAX_DOCUMENT_BYTES, redirects: 4,
     headers: { Accept: 'application/pdf, application/epub+zip, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv, application/csv, text/html, application/xhtml+xml, application/xml, text/plain, text/markdown;q=0.9, */*;q=0.1' } };
-  let downloaded;
+  let downloaded: NavigatedResearchDownload;
   try {
     downloaded = await download(sourceUrl, options);
   } catch (error) {
@@ -523,13 +524,23 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
     await new Promise(resolve => setTimeout(resolve, 1_500));
     downloaded = await download(sourceUrl, options);
   }
+  downloaded = await resolveResearchHtmlPdf(downloaded, options, download);
+  const navigation = downloaded.htmlNavigation ? { sourceNavigation: downloaded.htmlNavigation } : {};
   if (alternate?.scope === 'full_report' || alternate?.scope === 'full_article') {
     if (!downloaded.bytes.subarray(0, 5).equals(Buffer.from('%PDF-'))) {
       throw new Error('La ruta oficial del informe no devolvió un PDF válido.');
     }
     return { ...await readResearchPdfBytes(downloaded.bytes,
       { requestedUrl: input.url, resolvedUrl: downloaded.url }, input.startSection, input.sectionCount),
-      accessScope: alternate.scope, sourceRoute: 'official_alternate' as const };
+      accessScope: alternate.scope, sourceRoute: 'official_alternate' as const, ...navigation };
+  }
+  if (downloaded.htmlNavigation?.role === 'embedded_document_viewer'
+    && downloaded.htmlNavigation.linkedDocument?.status !== 'retrieved') {
+    return { requestedUrl: input.url, resolvedUrl: downloaded.url, retrievedAt: new Date().toISOString(),
+      sha256: createHash('sha256').update(downloaded.bytes).digest('hex'), format: 'html' as const,
+      totalSections: 0, sections: [], nextSection: null, textCoverage: 'complete' as const,
+      accessScope: 'viewer_only' as const, evidenceAllowed: false, ...navigation,
+      guidance: ['Solo se obtuvo el visor HTML; no se leyó el documento embebido. Conserva el fallo de sourceNavigation y no atribuyas métodos o resultados a este visor.'] };
   }
   // ISO's catalog has a large navigation shell. Restrict evidence to the
   // published description when its semantic field is present.
@@ -537,13 +548,13 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
     ? downloaded.bytes.toString('utf8').match(/<div\s+itemprop="description"[^>]*>([\s\S]*?)<\/div>/i)?.[1]
     : undefined;
   const evidenceBytes = catalogDescription ? Buffer.from(catalogDescription, 'utf8') : downloaded.bytes;
-  const extracted = extractDocumentBytes(evidenceBytes, alternate?.scope === 'public_catalog' ? 'html' : input.format,
+  const extracted = extractDocumentBytes(evidenceBytes, alternate?.scope === 'public_catalog' ? 'html' : downloaded.htmlNavigation?.linkedDocument?.status === 'retrieved' ? 'auto' : input.format,
     input.startSection, input.sectionCount, downloaded.contentType);
   if (extracted.format === 'pdf') {
-    return readResearchPdfBytes(downloaded.bytes, { requestedUrl: input.url, resolvedUrl: downloaded.url }, input.startSection, input.sectionCount);
+    return { ...await readResearchPdfBytes(downloaded.bytes, { requestedUrl: input.url, resolvedUrl: downloaded.url }, input.startSection, input.sectionCount), ...navigation };
   }
   return { requestedUrl: input.url, resolvedUrl: downloaded.url, retrievedAt: new Date().toISOString(),
-    sha256: createHash('sha256').update(downloaded.bytes).digest('hex'), ...extracted,
+    sha256: createHash('sha256').update(downloaded.bytes).digest('hex'), ...extracted, ...navigation,
     ...(alternate?.scope === 'public_catalog' ? { accessScope: 'public_catalog' as const,
       sourceRoute: 'official_alternate' as const } : {}),
     guidance: [

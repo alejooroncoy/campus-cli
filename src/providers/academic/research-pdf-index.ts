@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { publicHttpsUrl, researchDownload } from './research-http.js';
 import { officialResearchPdf } from './research-official-sources.js';
+import { resolveResearchHtmlPdf, type NavigatedResearchDownload } from './research-html.js';
 import { extractPdfIndexBytes, type IndexedPdfPage } from './research-pdf.js';
 import { evidenceVerificationInput, verifyResearchEvidence } from './research-evidence.js';
 
@@ -44,6 +45,7 @@ type IndexRecord = {
   resolvedUrl?: string;
   sha256?: string;
   retrievedAt?: string;
+  sourceNavigation?: NavigatedResearchDownload['htmlNavigation'];
   status: 'downloading' | 'indexing' | 'ready' | 'failed';
   totalPages: number | null;
   indexedPages: number;
@@ -125,6 +127,7 @@ export class ResearchPdfIndex {
       documentId: record.id, status: record.status,
       requestedUrl: record.requestedUrl, resolvedUrl: record.resolvedUrl ?? null,
       retrievedAt: record.retrievedAt ?? null, sha256: record.sha256 ?? null,
+      ...(record.sourceNavigation ? { sourceNavigation: record.sourceNavigation } : {}),
       totalPages: record.totalPages, indexedPages: record.indexedPages,
       coverage: record.totalPages === null ? 'unknown' : `${record.indexedPages}/${record.totalPages}`,
       needsOcrPages, truncatedPages, outline: record.outline,
@@ -169,9 +172,15 @@ export class ResearchPdfIndex {
 
   private async prepare(record: IndexRecord): Promise<void> {
     try {
-      const downloaded = await (this.dependencies.download ?? researchDownload)(officialResearchPdf(record.requestedUrl) ?? record.requestedUrl,
-        { maxBytes: 20 * 1024 * 1024, redirects: 4 });
+      const download = this.dependencies.download ?? researchDownload;
+      const options = { maxBytes: 20 * 1024 * 1024, redirects: 4 };
+      const downloaded = await resolveResearchHtmlPdf(await download(officialResearchPdf(record.requestedUrl) ?? record.requestedUrl, options), options, download);
+      record.sourceNavigation = downloaded.htmlNavigation;
       record.resolvedUrl = downloaded.url;
+      if (downloaded.htmlNavigation && downloaded.bytes.subarray(0, 5).toString() !== '%PDF-') {
+        throw new Error(downloaded.htmlNavigation.linkedDocument?.reason
+          ?? 'La URL devolvió HTML. Usa campus_research_read_document para leer sus secciones; no es un índice PDF.');
+      }
       record.retrievedAt = new Date().toISOString();
       record.sha256 = createHash('sha256').update(downloaded.bytes).digest('hex');
       record.status = 'indexing';
