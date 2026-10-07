@@ -15,7 +15,7 @@ const MAX_DOCUMENT_SECTIONS = 50_000;
 export const documentFormat = z.enum(['auto', 'html', 'text', 'markdown', 'xml', 'jats', 'docx', 'epub', 'csv', 'xlsx']);
 export const documentInput = z.object({
   url: z.string().url().max(4000),
-  format: documentFormat.default('auto').describe('Use auto for HTML, text, XML, CSV and PDF. For a ZIP file, specify docx, epub or xlsx explicitly.'),
+  format: documentFormat.default('auto').describe('Use auto to detect PDF, HTML, text, XML, CSV and supported DOCX, EPUB or XLSX containers from their contents. Archive format hints never override the detected document type.'),
   startSection: z.number().int().min(1).default(1),
   sectionCount: z.number().int().min(1).max(20).default(8),
 });
@@ -456,6 +456,31 @@ function decodeTextDocument(bytes: Uint8Array, contentType: string): string {
   return new TextDecoder(encoding).decode(bytes);
 }
 
+/** Inspect ZIP names without inflating any entry. The parser applies its
+ * existing decompression limits after one unambiguous document type is found. */
+function detectedArchiveFormat(bytes: Uint8Array): 'docx' | 'epub' | 'xlsx' | undefined {
+  const names = new Set<string>();
+  let entries = 0;
+  try {
+    unzipSync(bytes, { filter: file => {
+      if (file.name.includes('..') || file.name.length > 500) throw new Error('El archivo contiene una ruta no permitida.');
+      if (++entries > MAX_ARCHIVE_FILES) throw new Error('El contenido descomprimido supera el límite de análisis seguro.');
+      names.add(file.name);
+      return false;
+    } });
+  } catch (error) {
+    if (error instanceof Error && /ruta no permitida|límite de análisis seguro/.test(error.message)) throw error;
+    throw new Error('No se pudo abrir el archivo ZIP. Puede estar dañado o protegido.');
+  }
+  const candidates = [
+    ...(names.has('word/document.xml') ? ['docx' as const] : []),
+    ...(names.has('xl/workbook.xml') ? ['xlsx' as const] : []),
+    ...(names.has('META-INF/container.xml') ? ['epub' as const] : []),
+  ];
+  if (candidates.length > 1) throw new Error('Formato inválido: el ZIP contiene varios tipos de documento y no puede identificarse de forma inequívoca.');
+  return candidates[0];
+}
+
 function detectedFormat(bytes: Uint8Array, contentType: string, requested: z.infer<typeof documentFormat>) {
   const binaryPrefix = Buffer.from(bytes.subarray(0, 8)).toString('utf8');
   if (binaryPrefix.startsWith('%PDF-')) {
@@ -466,10 +491,12 @@ function detectedFormat(bytes: Uint8Array, contentType: string, requested: z.inf
   }
   const zipSignature = bytes[0] === 0x50 && bytes[1] === 0x4b && ((bytes[2] === 0x03 && bytes[3] === 0x04) || (bytes[2] === 0x05 && bytes[3] === 0x06) || (bytes[2] === 0x07 && bytes[3] === 0x08));
   if (zipSignature) {
-    if (requested === 'auto') throw new Error('El archivo ZIP puede ser DOCX, EPUB o XLSX. Indica format="docx" o format="epub" o format="xlsx".');
-    if (requested !== 'docx' && requested !== 'epub' && requested !== 'xlsx') {
+    if (requested !== 'auto' && requested !== 'docx' && requested !== 'epub' && requested !== 'xlsx') {
       throw new Error('Formato inválido: el archivo es ZIP. Indica format="docx" o format="epub" o format="xlsx".');
     }
+    const detected = detectedArchiveFormat(bytes);
+    if (detected) return detected;
+    if (requested === 'auto') throw new Error('El archivo ZIP no identifica un DOCX, EPUB o XLSX compatible. Indica format="docx" o format="epub" o format="xlsx" solo si corresponde a su contenido.');
     return requested;
   }
   if (requested === 'docx' || requested === 'epub' || requested === 'xlsx') {
@@ -512,7 +539,7 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
   const sourceUrl = alternate?.url ?? input.url;
   const download = dependencies.download ?? researchDownload;
   const options = { maxBytes: MAX_DOCUMENT_BYTES, redirects: 4,
-    headers: { Accept: 'application/pdf, application/epub+zip, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv, application/csv, text/html, application/xhtml+xml, application/xml, text/plain, text/markdown;q=0.9, */*;q=0.1' } };
+    headers: { Accept: 'application/pdf, application/epub+zip, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv, application/csv, text/html, application/xhtml+xml, application/xml, application/json, text/plain, text/markdown;q=0.9, */*;q=0.1' } };
   let downloaded: NavigatedResearchDownload;
   try {
     downloaded = await download(sourceUrl, options);
@@ -555,6 +582,7 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
   }
   return { requestedUrl: input.url, resolvedUrl: downloaded.url, retrievedAt: new Date().toISOString(),
     sha256: createHash('sha256').update(downloaded.bytes).digest('hex'), ...extracted, ...navigation,
+    ...(input.format !== 'auto' && input.format !== extracted.format ? { requestedFormat: input.format } : {}),
     ...(alternate?.scope === 'public_catalog' ? { accessScope: 'public_catalog' as const,
       sourceRoute: 'official_alternate' as const } : {}),
     guidance: [

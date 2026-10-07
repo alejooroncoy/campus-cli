@@ -37,9 +37,15 @@ test('academic document reader keeps ordinary PK-prefixed text', () => {
   assert.match(result.sections[0]!.text, /PK modeling/);
 });
 
-test('academic document reader requires an explicit format for ZIP containers', () => {
-  const zip = zipSync({ 'word/document.xml': strToU8('<w:document/>') });
-  assert.throws(() => extractDocumentBytes(zip, 'auto'), /format="docx"/);
+test('academic document reader identifies DOCX contents automatically without trusting a format hint', () => {
+  const zip = zipSync({ 'word/document.xml': strToU8('<w:document><w:p><w:t>Document evidence.</w:t></w:p></w:document>') });
+  for (const hint of ['auto', 'epub', 'xlsx'] as const) {
+    const result = text(extractDocumentBytes(zip, hint));
+    assert.equal(result.format, 'docx');
+    assert.match(result.sections[0].text, /Document evidence/);
+  }
+  assert.throws(() => extractDocumentBytes(zipSync({ 'data.bin': strToU8('unknown') }), 'auto'), /no identifica.*DOCX, EPUB o XLSX/);
+  assert.throws(() => extractDocumentBytes(zipSync({ 'word/document.xml': strToU8('<w:document/>'), 'xl/workbook.xml': strToU8('<workbook/>') }), 'auto'), /varios tipos de documento/);
 });
 
 test('academic document reader extracts DOCX footnotes and endnotes', () => {
@@ -210,6 +216,27 @@ test('HTML reader accepts a public repository file served only for wildcard Acce
   assert.match(result.sections[0].text, /Repository article/);
 });
 
+test('document reader negotiates public JSON API responses instead of receiving an unsupported-media error', async t => {
+  t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
+  let requests = 0;
+  t.mock.method(https, 'request', ((_url: URL, options: any, callback: (response: any) => void) => {
+    requests++;
+    const accepted = options.headers.Accept.split(',').some((value: string) => value.trim() === 'application/json');
+    const request = new EventEmitter() as any;
+    request.end = () => {
+      const response = Readable.from([Buffer.from('{"files":[{"key":"data.csv"}]}')]) as any;
+      response.statusCode = accepted ? 200 : 415;
+      response.headers = { 'content-type': 'application/json' };
+      queueMicrotask(() => callback(response));
+    };
+    return request;
+  }) as typeof https.request);
+  const result = await readResearchDocument({ url: 'https://repository.example.edu/api/record' });
+  assert.equal(result.format, 'text');
+  assert.match(result.sections[0].text, /data\.csv/);
+  assert.equal(requests, 1);
+});
+
 test('HTML reader prioritizes the article main element over repeated site navigation', () => {
   const markup = `<html><body><nav>${'<p>Site navigation</p>'.repeat(300)}</nav><main>
     <h1>A documented study of learning</h1><p>The study included 42 students and measured reading outcomes.</p>
@@ -296,19 +323,29 @@ test('CSV reading keeps each row and quoted cell together, including semicolon a
   assert.throws(() => extractDocumentBytes(Buffer.from('a,b\n"unfinished,x'), 'csv'), /entrecomillada/);
 });
 
-test('XLSX reading keeps worksheet, row, cell coordinates, shared strings and numeric values', () => {
+test('XLSX reading detects actual workbook contents, preserving coordinates even with a DOCX hint', async () => {
   const xlsx = zipSync({
     'xl/workbook.xml': strToU8('<workbook xmlns:r="x"><sheets><sheet name="World Bank data" sheetId="1" r:id="rId1"/></sheets></workbook>'),
     'xl/_rels/workbook.xml.rels': strToU8('<Relationships><Relationship Id="rId1" Target="worksheets/sheet1.xml" Type="worksheet"/></Relationships>'),
     'xl/sharedStrings.xml': strToU8('<sst><si><t>Country</t></si><si><t>Year</t></si><si><t>Population</t></si><si><t>Peru</t></si></sst>'),
     'xl/worksheets/sheet1.xml': strToU8('<worksheet><sheetData><row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c><c r="C1" t="s"><v>2</v></c></row><row r="2"><c r="A2" t="s"><v>3</v></c><c r="B2"><v>2023</v></c><c r="C2"><v>33845617</v></c></row></sheetData></worksheet>'),
   });
-  assert.throws(() => extractDocumentBytes(xlsx, 'auto'), /DOCX, EPUB o XLSX/);
+  for (const hint of ['auto', 'docx', 'epub'] as const) {
+    const detected = text(extractDocumentBytes(xlsx, hint));
+    assert.equal(detected.format, 'xlsx');
+    assert.match(detected.sections.map(section => section.text).join(' '), /C2="33845617"/);
+  }
   const result = text(extractDocumentBytes(xlsx, 'xlsx'));
   const content = result.sections.map(section => `${section.heading ?? ''} ${section.text}`).join('\n');
   assert.equal(result.format, 'xlsx');
   assert.match(content, /Sheet "World Bank data", row 1: A1="Country"; B1="Year"; C1="Population"/);
   assert.match(content, /Sheet "World Bank data", row 2: A2="Peru"; B2="2023"; C2="33845617"/);
+  const downloaded = await readResearchDocument({ url: 'https://repository.example.edu/table.docx', format: 'docx' }, {
+    download: async () => ({ bytes: Buffer.from(xlsx), url: 'https://repository.example.edu/table.docx', contentType: 'application/octet-stream' }),
+  });
+  assert.equal(downloaded.format, 'xlsx');
+  assert.equal((downloaded as { requestedFormat?: string }).requestedFormat, 'docx');
+  assert.equal(downloaded.sha256, createHash('sha256').update(xlsx).digest('hex'));
 });
 
 test('redirected PDF is downloaded once and its exact bytes become the citation hash', async t => {
