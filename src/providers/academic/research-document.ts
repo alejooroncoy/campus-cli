@@ -539,7 +539,8 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
   const sourceUrl = alternate?.url ?? input.url;
   const download = dependencies.download ?? researchDownload;
   const options = { maxBytes: MAX_DOCUMENT_BYTES, redirects: 4,
-    headers: { Accept: 'application/pdf, application/epub+zip, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv, application/csv, text/html, application/xhtml+xml, application/xml, application/json, text/plain, text/markdown;q=0.9, */*;q=0.1' } };
+    headers: { Accept: 'application/pdf, application/epub+zip, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv, application/csv, text/html, application/xhtml+xml, application/xml, '
+      + (input.format === 'auto' ? 'application/json, ' : '') + 'text/plain, text/markdown;q=0.9, */*;q=0.1' } };
   let downloaded: NavigatedResearchDownload;
   try {
     downloaded = await download(sourceUrl, options);

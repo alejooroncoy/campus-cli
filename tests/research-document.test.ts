@@ -237,6 +237,19 @@ test('document reader negotiates public JSON API responses instead of receiving 
   assert.equal(requests, 1);
 });
 
+test('document reader keeps explicit text and markdown requests from preferring a JSON representation', async () => {
+  for (const format of ['text', 'markdown'] as const) {
+    const result = await readResearchDocument({ url: 'https://repository.example.edu/article', format }, {
+      download: async (url, options) => {
+        assert.doesNotMatch(options.headers!.Accept, /application\/json/);
+        return { url, bytes: Buffer.from('Document evidence.'), contentType: format === 'text' ? 'text/plain' : 'text/markdown' };
+      },
+    });
+    assert.equal(result.format, format);
+    assert.equal(result.sections[0].text, 'Document evidence.');
+  }
+});
+
 test('HTML reader prioritizes the article main element over repeated site navigation', () => {
   const markup = `<html><body><nav>${'<p>Site navigation</p>'.repeat(300)}</nav><main>
     <h1>A documented study of learning</h1><p>The study included 42 students and measured reading outcomes.</p>
