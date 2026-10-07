@@ -4,7 +4,7 @@ import { unzipSync } from 'fflate';
 import { z } from 'zod';
 import { researchDownload, ResearchHttpError } from './research-http.js';
 import { readResearchPdfBytes } from './research-pdf.js';
-import { officialResearchAlternate } from './research-official-sources.js';
+import { officialResearchAlternate, officialResearchPdf } from './research-official-sources.js';
 import { resolveResearchHtmlPdf, type NavigatedResearchDownload } from './research-html.js';
 
 const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024;
@@ -536,7 +536,8 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
   const input = documentInput.parse(raw);
   const alternate = (input.format === 'auto' || input.format === 'html')
     ? officialResearchAlternate(input.url) : null;
-  const sourceUrl = alternate?.url ?? input.url;
+  const sourceUrl = alternate?.url ?? (input.format === 'auto' || input.format === 'html'
+    ? officialResearchPdf(input.url) : null) ?? input.url;
   const download = dependencies.download ?? researchDownload;
   const options = { maxBytes: MAX_DOCUMENT_BYTES, redirects: 4,
     headers: { Accept: 'application/pdf, application/epub+zip, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv, application/csv, text/html, application/xhtml+xml, application/xml, '
