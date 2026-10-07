@@ -290,7 +290,7 @@ export function registerResearchTools(server: McpServer, options: {
     annotations,
   }, input => run(() => service.googleScholar(input), undefined, true));
   server.registerTool('campus_research_read_document', {
-    description: 'Read a public HTTPS academic document in PDF, HTML, plain text, Markdown, XML/JATS, DOCX, EPUB, CSV or XLSX into bounded section-based evidence. CSV rows and XLSX sheet, row and cell coordinates are preserved; formulas are not recalculated. PDF is routed to the specialised page reader. ZIP files require format=docx, epub or xlsx. Maximum 20 MB; does not bypass paywalls, logins or DRM.',
+    description: 'Read a public HTTPS academic document in PDF, HTML, plain text, Markdown, XML/JATS, DOCX, EPUB, CSV or XLSX into bounded section-based evidence. CSV rows and XLSX sheet, row and cell coordinates are preserved; formulas are not recalculated. PDF is routed to the specialised page reader. Supported ZIP document types are detected from their contents, including when the archive format hint is wrong; preserve the returned actual format and requestedFormat. Maximum 20 MB; does not bypass paywalls, logins or DRM.',
     inputSchema: documentInput.shape, annotations,
   }, input => run(() => (options.readDocument ?? readResearchDocument)(input), {
     url: input.url, name: 'Documento académico sin procesar',
