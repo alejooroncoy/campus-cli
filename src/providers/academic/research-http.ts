@@ -1,6 +1,13 @@
 import { lookup } from 'node:dns/promises';
 import { request } from 'node:https';
 import ipaddr from 'ipaddr.js';
+import { officialResearchHttpsRedirect } from './research-official-sources.js';
+
+export class ResearchBrowserAccessError extends Error {
+  constructor() {
+    super('La fuente redirige a una comprobación de acceso del proveedor que Campus no puede completar.');
+  }
+}
 
 export class ResearchHttpError extends Error {
   constructor(public readonly status: number, authenticated = false, public readonly rateLimited = false,
@@ -176,7 +183,14 @@ export async function researchDownload(value: string, options: {
       if (hasSensitiveHeaders(options.headers) || hop >= (options.redirects ?? 0) || !response.location) {
         throw new Error('Redirección del proveedor no permitida.');
       }
-      url = publicHttpsUrl(new URL(response.location, url).toString());
+      const target = publicHttpsUrl(officialResearchHttpsRedirect(url, new URL(response.location, url)).toString());
+      // Nature's access challenge requires browser cookies/scripts. Stop before
+      // it loops or returns challenge HTML as if it were article evidence.
+      if (['www.nature.com', 'nature.com'].includes(url.hostname)
+        && target.hostname === 'idp.nature.com' && target.pathname === '/authorize') {
+        throw new ResearchBrowserAccessError();
+      }
+      url = target;
     }
   });
 }

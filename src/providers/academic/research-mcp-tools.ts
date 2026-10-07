@@ -5,7 +5,7 @@ import { pdfInput, readResearchPdf, readResearchSourceFile, sourceFilePdfInput }
 import { documentInput, readResearchDocument } from './research-document.js';
 import { officialResearchPdf } from './research-official-sources.js';
 import { documentIdentityInput, verifyResearchDocumentIdentity, evidenceVerificationInput, verifyResearchEvidence } from './research-evidence.js';
-import { publicHttpsUrl, resolvedPublicHttpsUrl, ResearchHttpError } from './research-http.js';
+import { publicHttpsUrl, resolvedPublicHttpsUrl, ResearchHttpError, ResearchBrowserAccessError } from './research-http.js';
 import { pdfIndexAuditInput, pdfIndexInput, pdfIndexReadInput, pdfIndexSearchInput, pdfIndexStatusInput, pdfIndexQuotesInput,
   researchPdfIndex, type ResearchPdfIndex } from './research-pdf-index.js';
 
@@ -220,6 +220,16 @@ export function registerResearchTools(server: McpServer, options: {
       const message = error instanceof ResearchToolInputError ? error.message
         : error instanceof z.ZodError ? 'Entrada o respuesta del proveedor con formato inesperado.'
         : error instanceof Error ? error.message : 'No se pudo completar la consulta académica.';
+      if (resource && error instanceof ResearchBrowserAccessError) {
+        const link = await safeResourceLink(resource.url, resource.name, resource.mimeType,
+          options.validateResourceUrl ?? resolvedPublicHttpsUrl);
+        if (!link) return { isError: true, content: [{ type: 'text' as const, text: message }] };
+        return { content: [
+          { type: 'text' as const, text: JSON.stringify({ status: 'resource_link',
+            evidenceAllowed: false, reason: 'source_browser_verification_required', url: resource.url,
+            guidance: `${message} No se leyó el documento. Busca una copia pública accesible; no atribuyas afirmaciones a esta comprobación de acceso.` }) }, link,
+        ] };
+      }
       if (resource && error instanceof ResearchHttpError && (error.status === 401 || error.status === 403 || error.status === 404)) {
         const link = await safeResourceLink(resource.url, resource.name, resource.mimeType,
           options.validateResourceUrl ?? resolvedPublicHttpsUrl);

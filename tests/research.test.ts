@@ -10,7 +10,7 @@ import { ResearchPdfIndex, pdfIndexQuoteBatchInput } from '../src/providers/acad
 import { registerResearchTools as actualRegisterResearchTools } from '../src/providers/academic/research-mcp-tools.js';
 import { verifyResearchEvidence, verifyResearchDocumentIdentity } from '../src/providers/academic/research-evidence.js';
 import { readResearchDocument, extractDocumentBytes } from '../src/providers/academic/research-document.js';
-import { officialResearchAlternate } from '../src/providers/academic/research-official-sources.js';
+import { officialResearchAlternate, officialResearchPdf } from '../src/providers/academic/research-official-sources.js';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { strToU8, zipSync } from 'fflate';
@@ -786,6 +786,40 @@ test('the ISO alternate exposes only the public catalog, not the paid standard',
   assert.match(result.sections[0].text, /Public ISO catalog abstract/);
   assert.doesNotMatch(result.sections[0].text, /Unrelated links/);
   assert.match(result.guidance.join(' '), /texto íntegro.*requiere acceso autorizado/);
+});
+
+test('MIT PDF reads and indexes use the published content endpoint with the same asset identity', async () => {
+  const bitstream = '5364890d-c951-4998-9635-d043933de060';
+  const requestedUrl = `https://dspace.mit.edu/bitstreams/${bitstream}/download`;
+  const content = `https://dspace.mit.edu/server/api/core/bitstreams/${bitstream}/content`;
+  const bytes = pdfFixture();
+  const download = async (url: string) => {
+    assert.equal(url, content);
+    return { bytes, url, contentType: 'application/pdf' };
+  };
+  const read = await readResearchDocument({ url: requestedUrl, sectionCount: 1 }, { download });
+  assert.ok('pages' in read);
+  assert.equal(read.requestedUrl, requestedUrl);
+  assert.equal(read.resolvedUrl, content);
+  assert.equal(read.sha256, createHash('sha256').update(bytes).digest('hex'));
+  assert.match(read.pages[0].text, /Academic evidence/);
+  const index = new ResearchPdfIndex({ download });
+  const started = index.start('mit-reader', { url: requestedUrl });
+  let result = index.status('mit-reader', { documentId: started.documentId });
+  for (let attempt = 0; attempt < 100 && result.status !== 'ready'; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 20));
+    result = index.status('mit-reader', { documentId: started.documentId });
+  }
+  assert.equal(result.status, 'ready');
+  assert.equal(result.requestedUrl, requestedUrl);
+  assert.equal(result.resolvedUrl, content);
+  assert.equal(result.sha256, read.sha256);
+  for (const url of [requestedUrl.replace('dspace.mit.edu', 'other.example.edu'),
+    requestedUrl.replace('dspace.mit.edu', 'dspace.mit.edu:8443'), `${requestedUrl}?token=private`,
+    requestedUrl.replace('/download', '/metadata'), requestedUrl.replace(bitstream, 'not-a-uuid')]) {
+    assert.equal(officialResearchPdf(url), null);
+  }
+  assert.equal(officialResearchAlternate('https://www.weforum.org:8443/publications/the-future-of-jobs-report-2025/'), null);
 });
 
 test('the intermittently blocked journal gets one bounded retry', async () => {

@@ -4,7 +4,7 @@ import dns from 'node:dns/promises';
 import https from 'node:https';
 import { EventEmitter } from 'node:events';
 import { Readable } from 'node:stream';
-import { researchDownload, researchJson, resolvedPublicHttpsUrl, ResearchHttpError } from '../src/providers/academic/research-http.js';
+import { researchDownload, researchJson, resolvedPublicHttpsUrl, ResearchHttpError, ResearchBrowserAccessError } from '../src/providers/academic/research-http.js';
 
 function mockHttp(t: TestContext, responses: Array<{ status: number; location?: string; body?: string; length?: string; retryAfter?: string; rateRemaining?: string }>) {
   const requests: Array<{ url: URL; options: any }> = [];
@@ -86,6 +86,65 @@ test('an ordinary Accept header may follow a public redirect', async t => {
   assert.equal(result.bytes.toString(), '<article>public</article>');
   assert.equal(requests.length, 2);
   assert.equal(requests[1].options.headers.Accept, 'application/xml');
+});
+
+test('the UPCH legacy redirect reaches the same bitstream entirely over HTTPS', async t => {
+  const bitstream = '51bad407-ef26-4045-949c-8bb6ff6b08e0';
+  const content = `https://repositorio.upch.edu.pe/server/api/core/bitstreams/${bitstream}/content`;
+  const lookups: string[] = [];
+  t.mock.method(dns, 'lookup', async (host: string) => {
+    lookups.push(host); return [{ address: '8.8.8.8', family: 4 }];
+  });
+  const requests = mockHttp(t, [
+    { status: 301, location: `http://repositorio.upch.edu.pe/bitstreams/${bitstream}/download` },
+    { status: 302, location: content },
+    { status: 200, body: '%PDF-public-bitstream' },
+  ]);
+  const result = await researchDownload('https://repositorio.upch.edu.pe/bitstream/20.500.12866/15479/1/thesis.pdf', { redirects: 4 });
+  assert.equal(result.url, content);
+  assert.equal(result.bytes.toString(), '%PDF-public-bitstream');
+  assert.equal(requests.length, 3);
+  assert.equal(lookups.length, 3, 'each upgraded/redirected hop must be revalidated');
+  assert.ok(requests.every(request => request.url.protocol === 'https:' && !request.options.headers.Cookie));
+});
+
+test('UPCH recovery never upgrades other hosts, paths, credential URLs or custom ports', async t => {
+  t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
+  const bitstream = '/bitstreams/51bad407-ef26-4045-949c-8bb6ff6b08e0/download';
+  const targets = [
+    `http://other.example.edu${bitstream}`, `http://repositorio.upch.edu.pe.evil.example${bitstream}`,
+    'http://repositorio.upch.edu.pe/login', `http://user:secret@repositorio.upch.edu.pe${bitstream}`,
+    `http://repositorio.upch.edu.pe:8080${bitstream}`, `http://repositorio.upch.edu.pe${bitstream}?token=secret`,
+  ];
+  const requests = mockHttp(t, targets.map(location => ({ status: 301, location })));
+  for (const _target of targets) await assert.rejects(researchDownload('https://repositorio.upch.edu.pe/old.pdf', { redirects: 4 }), /HTTPS pública/);
+  assert.equal(requests.length, targets.length);
+});
+
+test('a verified UPCH HTTPS upgrade still rejects private DNS answers and credential redirects', async t => {
+  const location = 'http://repositorio.upch.edu.pe/bitstreams/51bad407-ef26-4045-949c-8bb6ff6b08e0/download';
+  let lookups = 0;
+  t.mock.method(dns, 'lookup', async () => [{ address: ++lookups === 2 ? '10.0.0.8' : '8.8.8.8', family: 4 }]);
+  const requests = mockHttp(t, [{ status: 301, location }, { status: 301, location }]);
+  await assert.rejects(researchDownload('https://repositorio.upch.edu.pe/old.pdf', { redirects: 4 }), /privadas/);
+  assert.equal(requests.length, 1);
+  await assert.rejects(researchDownload('https://repositorio.upch.edu.pe/api', {
+    headers: { 'X-Api-Key': 'secret' }, redirects: 4,
+  }), /Redirección/);
+  assert.equal(requests.length, 2);
+});
+
+test('Nature PDF and HTML access challenges stop before cookies or script-dependent pages', async t => {
+  t.mock.method(dns, 'lookup', async () => [{ address: '8.8.8.8', family: 4 }]);
+  const requests = mockHttp(t, [
+    { status: 303, location: 'https://idp.nature.com/authorize?redirect_uri=https%3A%2F%2Fwww.nature.com' },
+    { status: 303, location: 'https://idp.nature.com/authorize' },
+  ]);
+  for (const path of ['/articles/s41597-026-08240-w.pdf', '/articles/s41597-026-08240-w']) {
+    await assert.rejects(researchDownload(`https://www.nature.com${path}`, { redirects: 4 }), ResearchBrowserAccessError);
+  }
+  assert.equal(requests.length, 2);
+  assert.ok(requests.every(request => request.url.hostname === 'www.nature.com'));
 });
 
 test('HTTP enforces size caps both with and without Content-Length', async t => {
