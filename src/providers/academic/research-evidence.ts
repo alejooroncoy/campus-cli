@@ -116,6 +116,8 @@ export const documentIdentityInput = z.object({
   expectedDoi: z.string().trim().min(6).max(350).optional(),
   expectedAuthors: z.array(z.string().trim().min(2).max(300)).min(2).max(100).optional(),
   expectedYear: z.number().int().min(1000).max(3000).optional(),
+  expectedVenue: z.string().trim().min(3).max(500).optional()
+    .describe('Canonical journal name. Together with authors and year, permits checking a supported MDPI publication footer on the first PDF page.'),
   format: evidenceFormat.default('auto'),
 });
 
@@ -282,6 +284,26 @@ function pdfAcmReferenceFormatSelfCitation(text: string, title: string, doi: str
     && authors.every(author => normalized.includes(normalizedIdentityText(author)));
 }
 
+function pdfMdpiPublicationFooterDoi(text: string, doi: string, authors: string[] | undefined,
+  year: number | undefined, venue: string | undefined): boolean {
+  if (!doi.startsWith('10.3390/') || !authors || year === undefined || !venue) return false;
+  const journals: Record<string, string> = { 'applied sciences': 'Appl\\.\\s+Sci\\.', informatics: 'Informatics' };
+  const journal = journals[normalizedIdentityText(venue)];
+  if (!journal) return false;
+  const front = normalizedIdentityText(pdfFrontMatter(text));
+  const matchingAuthors = new Set(authors.map(normalizedIdentityText).filter(author => front.includes(author)));
+  if (matchingAuthors.size < 2) return false;
+  const beforeReferences = pdfTextBeforeReferences(text);
+  if (!new RegExp(`Copyright:\\s*©\\s*${year}\\s+by the authors\\.`, 'i').test(beforeReferences)
+    || !/Licensee\s+MDPI,\s+Basel,\s+Switzerland\./i.test(beforeReferences)) return false;
+  // The article's publication line must end the first page. A DOI in the
+  // abstract, prose or bibliography is not a publication footer.
+  const footer = new RegExp(`(?:^|\\n)\\s*${journal}\\s+${year},\\s+\\d+,\\s+\\d+\\s+https://doi\\.org/([^\\s]+)\\s*$`, 'i')
+    .exec(text);
+  if (!footer || footer.index >= beforeReferences.length) return false;
+  try { return normalizeDoi(footer[1]) === doi; } catch { return false; }
+}
+
 export async function verifyResearchDocumentIdentity(
   raw: z.input<typeof documentIdentityInput>,
   dependencies: EvidenceDependencies = {},
@@ -399,7 +421,10 @@ export async function verifyResearchDocumentIdentity(
         input.expectedTitle, doi, input.expectedAuthors, input.expectedYear)
         || pdfAcmReferenceFormatSelfCitation(page.text,
           input.expectedTitle, doi, input.expectedAuthors, input.expectedYear)));
-  const doiFound = doiInFrontMatter || doiInSelfCitation;
+  const doiInPublicationFooter = !doiInFrontMatter && !doiInSelfCitation && doi !== null && 'pages' in document
+    && document.pages.some(page => page.page === 1
+      && pdfMdpiPublicationFooterDoi(page.text, doi, input.expectedAuthors, input.expectedYear, input.expectedVenue));
+  const doiFound = doiInFrontMatter || doiInSelfCitation || doiInPublicationFooter;
   if (!doiFound) {
     return { status: 'partial', identityAllowed: false, reason: 'doi_not_found_in_document', proof,
       titleFound: true, doiFound: false, titleLocators: matchingTitleSegments.map(segment => segment.locator),
@@ -410,6 +435,7 @@ export async function verifyResearchDocumentIdentity(
     titleLocators: matchingTitleSegments.map(segment => segment.locator),
     identityBasis: doi === null ? 'title_and_hash'
       : doiInSelfCitation ? 'title_authors_year_self_citation_doi_and_hash'
+        : doiInPublicationFooter ? 'title_authors_journal_year_publisher_footer_doi_and_hash'
         : arxivDoiOnFirstPage ? 'title_arxiv_identifier_and_hash' : 'title_doi_and_hash',
     guidance: doiInSelfCitation
       ? 'El DOI aparece en la cita sugerida tras el resumen, vinculada por título, autores y año a la portada. Revisa visualmente esta disposición editorial antes de atribuir una afirmación.'
