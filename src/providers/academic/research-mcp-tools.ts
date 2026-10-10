@@ -237,6 +237,8 @@ export function registerResearchTools(server: McpServer, options: {
         return { content: [
           { type: 'text' as const, text: JSON.stringify({ status: 'resource_link',
             evidenceAllowed: false, httpStatus: error.status,
+            failureLayer: 'source_http', sourceHost: error.sourceHost ?? new URL(resource.url).hostname,
+            failureMessage: message,
             reason: error.status === 404 ? 'source_not_found' : error.rateLimited ? 'source_rate_limited'
               : error.status === 401 ? 'source_login_required' : 'source_access_denied',
             url: resource.url, guidance: `${message} No se leyó el archivo. Abre esta fuente en el cliente o busca una copia pública accesible; no atribuyas afirmaciones sin leerla.` }) },
@@ -328,7 +330,7 @@ export function registerResearchTools(server: McpServer, options: {
   },
     { url: input.url, name: 'Fuente académica verificada', mimeType: input.format === 'pdf' || input.page ? 'application/pdf' : 'application/octet-stream' }));
   server.registerTool('campus_research_verify_document_identity', {
-    description: 'Check that the already-read file, identified by its required SHA-256, contains the expected bibliographic title and DOI (when provided) in its first pages or sections. For a PDF whose DOI occurs only in a self-citation after the abstract, pass canonical expectedAuthors and expectedYear; only a matching short author list, title, year and exact DOI can establish identity. Fails closed on a mismatch. Does not judge scientific claims.',
+    description: 'Check that the already-read file, identified by its required SHA-256, contains the expected bibliographic title and DOI (when provided) in its first pages or sections. For a PDF whose DOI occurs only in a self-citation after the abstract, pass canonical expectedAuthors and expectedYear; only a matching short author list, title, year and exact DOI can establish identity. For a supported MDPI publication footer (Applied Sciences, Informatics), also pass canonical expectedAuthors, expectedYear and expectedVenue; require matching title, two distinct front-matter authors, journal/year, MDPI copyright and exact footer DOI. Fails closed on a mismatch. Does not judge scientific claims.',
     inputSchema: documentIdentityInput.shape, annotations,
   }, input => run(() => (options.verifyDocumentIdentity ?? verifyResearchDocumentIdentity)(input),
     { url: input.url, name: 'Documento académico identificado', mimeType: input.format === 'pdf' ? 'application/pdf' : 'application/octet-stream' }));

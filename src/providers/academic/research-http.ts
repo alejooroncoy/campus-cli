@@ -11,14 +11,15 @@ export class ResearchBrowserAccessError extends Error {
 
 export class ResearchHttpError extends Error {
   constructor(public readonly status: number, authenticated = false, public readonly rateLimited = false,
-    public readonly retryAfterMs: number | null = null, public readonly rateLimitRemaining: number | null = null) {
+    public readonly retryAfterMs: number | null = null, public readonly rateLimitRemaining: number | null = null,
+    public readonly sourceHost?: string) {
     super(status === 429 || rateLimited ? 'El proveedor alcanzó su límite de consultas; intenta más tarde.'
       : status === 401 ? authenticated
         ? 'El proveedor rechazó la clave: verifica que copiaste la API key correcta y completa.'
         : 'La fuente requiere iniciar sesión; Campus no puede leerla desde el servidor.'
       : status === 403 ? authenticated
         ? 'La cuenta asociada a la clave no tiene permisos para esta consulta.'
-        : 'La fuente denegó la lectura automática desde el servidor.'
+        : `El servidor de ${sourceHost ?? 'la fuente'} rechazó la lectura automática solicitada por Campus (HTTP 403). La respuesta no especifica la causa del rechazo ni demuestra que el artículo sea de pago.`
       : `El proveedor respondió HTTP ${status}.`);
   }
 }
@@ -145,19 +146,19 @@ export async function researchDownload(value: string, options: {
                 detail += chunk.toString('utf8');
                 if (detail.length > 512) {
                   res.destroy();
-                  reject(new ResearchHttpError(status, authenticated));
+                  reject(new ResearchHttpError(status, authenticated, false, null, null, url.hostname));
                 }
               });
-              res.on('error', () => reject(new ResearchHttpError(status, authenticated)));
+              res.on('error', () => reject(new ResearchHttpError(status, authenticated, false, null, null, url.hostname)));
               res.on('end', () => reject(new ResearchHttpError(status, authenticated,
-                /acceso denegado temporalmente por exceso de peticiones/i.test(detail))));
+                /acceso denegado temporalmente por exceso de peticiones/i.test(detail), null, null, url.hostname)));
               return;
             }
             const retryAfterMs = retryAfterMilliseconds(res.headers['retry-after']);
             const remaining = res.headers['x-ratelimit-remaining'];
             const remainingText = Array.isArray(remaining) ? remaining[0] : remaining;
             const rateLimitRemaining = remainingText && /^\d+$/.test(remainingText) ? Number(remainingText) : null;
-            res.destroy(); reject(new ResearchHttpError(status, authenticated, false, retryAfterMs, rateLimitRemaining)); return;
+            res.destroy(); reject(new ResearchHttpError(status, authenticated, false, retryAfterMs, rateLimitRemaining, url.hostname)); return;
           }
           const max = options.maxBytes ?? 4 * 1024 * 1024;
           if (Number(res.headers['content-length']) > max) {

@@ -289,3 +289,7 @@ La lectura conserva la URL del visor, la URL final del PDF y hashes separados.
 Si el PDF embebido falla, el lector de documentos devuelve `viewer_only`, sin
 secciones del estudio y con la causa del fallo. Un artículo HTML con texto se
 lee como HTML; no se reemplaza por otra versión PDF automáticamente.
+
+Las fichas y rutas `/pdf` sin parámetros de los DOI `10.3390/informatics13020019` (Netinant et al.) y `10.3390/app16188936` (Lee et al.) se resuelven a sus PDF editoriales públicos en `mdpi-res.com`, comprobados el 10 de octubre de 2026. La ruta funciona en lectura de documentos, lectura PDF e indexación; conserva URL solicitada, URL final, páginas y SHA-256. No sustituye rutas de versiones específicas. En Lee, el DOI aparece al pie de la primera página después del resumen: la verificación exige título principal, al menos dos autores distintos, año, revista canónica (`expectedVenue=Applied Sciences`), aviso editorial MDPI y DOI exacto en la línea de publicación final. Un DOI en referencias o en el cuerpo no basta.
+
+Un rechazo HTTP 403 se explica como una respuesta del servidor de la fuente a la lectura automática de Campus; no acredita la causa del rechazo ni que el artículo sea de pago. Las respuestas conservan `httpStatus`, `reason`, `failureLayer=source_http` y `sourceHost`, con el host efectivo cuando hubo redirecciones. Para estos dos artículos se utiliza la ruta editorial pública directa; no hace falta abrir una sesión Browserbase.

@@ -121,6 +121,8 @@ export async function verifyResearchQuote(raw: z.input<typeof quoteVerificationI
       ? { expectedAuthors: bibliography.citationRecord.authors.map(author => author.name) } : {}),
     ...(bibliography.citationRecord.year !== null
       ? { expectedYear: bibliography.citationRecord.year } : {}),
+    ...(bibliography.citationRecord.venue
+      ? { expectedVenue: bibliography.citationRecord.venue } : {}),
   });
   if (!identity.identityAllowed) {
     return { status: 'rejected', verbatimCitationAllowed: false, stage: 'document_identity',
