@@ -330,10 +330,9 @@ para recuperar la auditoría detallada de una sección. La IA aplica esos criter
 al trabajo proporcionado y entrega hallazgos `cumple`, `corregir` o
 `no verificable`, con ubicación, corrección y fuente. Los archivos de la habilidad
 se incluyen en el paquete; no requiere una sesión de Blackboard. La cobertura
-guardada es una captura, no consulta en vivo. Incluye el complemento jurídico
-colombiano de 20 páginas y las actualizaciones APA de IA de septiembre de 2025;
-queda pendiente auditar íntegramente el manual externo de 451 páginas, por lo que
-no declara el 100 % de todos los recursos normativos. Cargar la habilidad no
+guardada es una captura, no consulta en vivo. Su alcance es la guía UPC:
+los recursos externos quedan registrados como apoyo y su lectura íntegra no
+es requisito para completar la extracción institucional. Cargar la habilidad no
 constituye una revisión del documento. Las pruebas detectan bloques ausentes,
 evidencia sin mapear y afirmaciones de cobertura completa con fuentes pendientes.
 

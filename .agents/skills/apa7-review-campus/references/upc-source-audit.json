@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "checkedOn": "2026-10-10",
-  "scope": "Toda la guía UPC de APA, su guía jurídica vinculada y enlaces normativos; excluye lectura completa de obras usadas solo como ejemplos.",
-  "method": "Revisión de texto completo, pestañas ocultas, notas, tablas HTML, cursivas HTML e imágenes. Unidades incluyen ejemplos y tablas; las huellas inventarían evidencia, no certifican conformidad del trabajo del alumno. Mapeo por bloque a sección; no atribuye una regla nueva a cada unidad.",
+  "scope": "Guía UPC de citas y referencias APA 7 y sus páginas jurídicas vinculadas: páginas, bloques, notas, ejemplos, imágenes y enlaces registrados. La lectura íntegra de libros o manuales externos no forma parte del alcance solicitado.",
+  "method": "Revisión de texto completo, pestañas ocultas, notas, tablas HTML, cursivas HTML e imágenes. Unidades incluyen ejemplos y tablas; las huellas registran evidencia, no certifican conformidad del trabajo del alumno. Mapeo por bloque a sección; no atribuye una regla nueva a cada unidad.",
   "pages": [
     {
       "sectionId": "legal-presentation",
@@ -7827,7 +7827,8 @@
       "criteria": [
         "La entrada de 2023 está archivada desde septiembre de 2025 y remite a nuevas instrucciones. Conserva su procedencia histórica, pero no la presentes como orientación APA vigente."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "apa-ai-references",
@@ -7842,7 +7843,8 @@
         "Código, tablas, figuras y uso con participantes requieren decisión contextual; declara IA en notas visuales y conserva datos sin revelar chats confidenciales.",
         "Verifica fecha/modelo externamente; la sugerencia de preguntarlos a la IA no prueba exactitud de la respuesta."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "apa-ai-search",
@@ -7853,7 +7855,8 @@
         "IA integrada en programas de uso común normalmente no requiere cita adicional, según APA; la política del curso puede exigir declaración.",
         "Excepciones: estrategia de búsqueda en revisiones o metaanálisis y equipos especializados con IA pueden necesitar descripción y referencia para reproducibilidad."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "apa-ai-policy",
@@ -7865,7 +7868,8 @@
         "Evalúa confidencialidad, datos, derechos y políticas de revisión antes de compartir material. No extrapoles la política de revistas APA a todo trabajo estudiantil.",
         "Los estudios citados se presentan como ejemplos y evidencia, no como reglas de formato ni conclusiones universales."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "apa-archival",
@@ -7879,7 +7883,8 @@
         "Entrevista archivada o transcripción: entrevistado como autor, entrevistador en descripción. Microfilm añade medio e identificación; fotos y manuscritos describen tipo y localizadores.",
         "Documento disponible en web o base sigue su perfil del capítulo 10. Esta orientación web no está íntegra en el manual séptimo."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "apa-online-courses",
@@ -7890,7 +7895,8 @@
         "Lección: instructor propio como autor; todos los docentes del curso en función de contenedor. Enlace al curso principal si la lección exige matrícula.",
         "Se aproxima a formato audiovisual/episodio; no atribuyas autoría a la plataforma por defecto."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "doi-shortening",
@@ -7899,7 +7905,8 @@
       "criteria": [
         "El servicio oficial crea o recupera un alias del DOI existente; doi.org lo resuelve al mismo objeto. Verifica la correspondencia antes de usarlo."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "colombian-legal-guide",
@@ -7914,14 +7921,16 @@
         "Textual menor de 40 entre comillas; 40 o más en bloque. Los encabezados de ejemplos dicen más de 40, pero el esquema general incluye exactamente 40.",
         "Figuras y tablas explican correspondencia y validación de la guía; no son requisitos nuevos para todos los trabajos. Comprueba contenido legal en documento original."
       ],
-      "detail": "20 páginas de texto leídas; tablas y figura normativa inspeccionadas; se guarda síntesis y huellas, no PDF en npm."
+      "detail": "20 páginas de texto leídas; tablas y figura normativa inspeccionadas; se guarda síntesis y huellas, no PDF en npm.",
+      "requiredForRequestedScope": false
     },
     {
       "id": "manual-catalog",
       "url": "https://catalogo.upc.edu.pe/permalink/51UPC_INST/18sd6pj/alma991195607403391",
       "status": "partial",
       "criteria": [],
-      "detail": "Registro del catálogo leído: traducción española cuarta edición de APA séptima, 2021. eLibro permite abrir el visor de 451 páginas. No se ha completado su auditoría página a página; el catálogo no equivale a lectura íntegra del manual."
+      "detail": "El registro bibliográfico se consultó. La lectura íntegra del manual externo no forma parte de la extracción de la guía UPC y no bloquea su cobertura. No se afirma haber leído el libro completo.",
+      "requiredForRequestedScope": false
     },
     {
       "id": "spanish-publisher",
@@ -7930,7 +7939,8 @@
       "criteria": [
         "Portal editorial distingue ediciones tercera y cuarta. Para APA séptima corresponde la cuarta española; el material complementario incluye la adaptación colombiana."
       ],
-      "detail": "Redirige a recursos.manualmoderno.com/apa/; acceso al complemento verificado."
+      "detail": "Redirige a recursos.manualmoderno.com/apa/; acceso al complemento verificado.",
+      "requiredForRequestedScope": false
     },
     {
       "id": "mef-instruments",
@@ -7939,7 +7949,8 @@
       "criteria": [
         "Índice de normativa peruana por instrumento: leyes, tipos de decretos, resoluciones y directivas. Sirve para identificar tipos, no define estilo de citación APA ni certifica vigencia de normas."
       ],
-      "detail": "Página visible revisada en navegador; búsqueda/listados enlazados no son reglas de estilo."
+      "detail": "Página visible revisada en navegador; búsqueda/listados enlazados no son reglas de estilo.",
+      "requiredForRequestedScope": false
     }
   ],
   "brokenLinks": [
@@ -8905,12 +8916,17 @@
     "uniqueImages": 14,
     "upcStatus": "reviewed-snapshot",
     "normativeExternalStatus": "partial",
-    "allRequestedSourcesComplete": false,
+    "allRequestedSourcesComplete": true,
     "sourceAuditFile": "references/upc-source-audit.json",
     "snapshotOnly": true,
     "normativeSources": 11,
     "normativeSourcesReviewed": 10,
     "registeredContentLinks": 98,
+    "pendingSourceIds": [],
+    "requestedScope": "upc-guide",
+    "supportingPendingSourceIds": [
+      "manual-catalog"
+    ],
     "criteria": 179
   },
   "externalDocuments": [

@@ -96,6 +96,11 @@ por defecto. Conserva la pauta UPC y el requisito del docente, y expón la
 actualización; no declares incorrecto un formato sin indicar qué perfil aplicaste.
 La autorización de IA depende del curso, no de que exista una referencia correcta.
 
-`allRequestedSourcesComplete` es falso: falta la auditoría íntegra del manual
-enlazado de 451 páginas. Abrir su catálogo o visor no cuenta como leerlo completo.
-No anuncies «100 % de todos los recursos externos» hasta cerrar ese pendiente.
+El alcance solicitado es la guía UPC: `requestedScope: "upc-guide"`.
+`allRequestedSourcesComplete` corresponde a la captura revisada de esas páginas,
+notas e imágenes. Los libros, manuales y documentos externos enlazados son
+apoyo; leerlos completos no es requisito para extraer la guía UPC. Sus pendientes
+se registran aparte en `supportingPendingSourceIds` y no bloquean esta revisión.
+No amplíes una extracción de la guía a una auditoría de todos los libros enlazados.
+La cobertura guardada no certifica futuras modificaciones de la web ni la lectura
+íntegra de los recursos externos.

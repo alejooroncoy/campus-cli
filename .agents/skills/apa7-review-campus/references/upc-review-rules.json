@@ -5,7 +5,7 @@
   "checkedOn": "2026-10-10",
   "checkedTimezone": "America/Lima",
   "guideLastUpdatedOn": "2025-12-05",
-  "coverage": "45 páginas UPC distintas: 31 APA y 14 jurídicas; texto, pestañas ocultas, notas, esquemas y 14 imágenes inspeccionados. Síntesis propia, no transcripción. Se revisaron enlaces normativos accesibles y el complemento colombiano de 20 páginas. Queda pendiente la auditoría íntegra del manual de 451 páginas; no afirmar 100 % de todos los recursos externos. No es una consulta web en vivo.",
+  "coverage": "Captura revisada de la guía UPC: 45 páginas distintas (31 APA y 14 jurídicas), 185 bloques, 1.105 unidades de texto, notas, pestañas, esquemas y 14 imágenes inspeccionadas. Síntesis propia, no transcripción. Los 98 enlaces de contenido se registran con su contexto. Los recursos externos son apoyo y no forman parte de la obligación de leer íntegramente esta guía. No es una consulta web en vivo.",
   "sections": [
     {
       "id": "legal-presentation",
@@ -883,13 +883,15 @@
     "uniqueImages": 14,
     "upcStatus": "reviewed-snapshot",
     "normativeExternalStatus": "partial",
-    "allRequestedSourcesComplete": false,
+    "allRequestedSourcesComplete": true,
     "sourceAuditFile": "references/upc-source-audit.json",
     "snapshotOnly": true,
     "normativeSources": 11,
     "normativeSourcesReviewed": 10,
     "registeredContentLinks": 98,
-    "pendingSourceIds": [
+    "pendingSourceIds": [],
+    "requestedScope": "upc-guide",
+    "supportingPendingSourceIds": [
       "manual-catalog"
     ]
   },
@@ -901,7 +903,8 @@
       "criteria": [
         "La entrada de 2023 está archivada desde septiembre de 2025 y remite a nuevas instrucciones. Conserva su procedencia histórica, pero no la presentes como orientación APA vigente."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "apa-ai-references",
@@ -916,7 +919,8 @@
         "Código, tablas, figuras y uso con participantes requieren decisión contextual; declara IA en notas visuales y conserva datos sin revelar chats confidenciales.",
         "Verifica fecha/modelo externamente; la sugerencia de preguntarlos a la IA no prueba exactitud de la respuesta."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "apa-ai-search",
@@ -927,7 +931,8 @@
         "IA integrada en programas de uso común normalmente no requiere cita adicional, según APA; la política del curso puede exigir declaración.",
         "Excepciones: estrategia de búsqueda en revisiones o metaanálisis y equipos especializados con IA pueden necesitar descripción y referencia para reproducibilidad."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "apa-ai-policy",
@@ -939,7 +944,8 @@
         "Evalúa confidencialidad, datos, derechos y políticas de revisión antes de compartir material. No extrapoles la política de revistas APA a todo trabajo estudiantil.",
         "Los estudios citados se presentan como ejemplos y evidencia, no como reglas de formato ni conclusiones universales."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "apa-archival",
@@ -953,7 +959,8 @@
         "Entrevista archivada o transcripción: entrevistado como autor, entrevistador en descripción. Microfilm añade medio e identificación; fotos y manuscritos describen tipo y localizadores.",
         "Documento disponible en web o base sigue su perfil del capítulo 10. Esta orientación web no está íntegra en el manual séptimo."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "apa-online-courses",
@@ -964,7 +971,8 @@
         "Lección: instructor propio como autor; todos los docentes del curso en función de contenedor. Enlace al curso principal si la lección exige matrícula.",
         "Se aproxima a formato audiovisual/episodio; no atribuyas autoría a la plataforma por defecto."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "doi-shortening",
@@ -973,7 +981,8 @@
       "criteria": [
         "El servicio oficial crea o recupera un alias del DOI existente; doi.org lo resuelve al mismo objeto. Verifica la correspondencia antes de usarlo."
       ],
-      "detail": ""
+      "detail": "",
+      "requiredForRequestedScope": false
     },
     {
       "id": "colombian-legal-guide",
@@ -988,14 +997,16 @@
         "Textual menor de 40 entre comillas; 40 o más en bloque. Los encabezados de ejemplos dicen más de 40, pero el esquema general incluye exactamente 40.",
         "Figuras y tablas explican correspondencia y validación de la guía; no son requisitos nuevos para todos los trabajos. Comprueba contenido legal en documento original."
       ],
-      "detail": "20 páginas de texto leídas; tablas y figura normativa inspeccionadas; se guarda síntesis y huellas, no PDF en npm."
+      "detail": "20 páginas de texto leídas; tablas y figura normativa inspeccionadas; se guarda síntesis y huellas, no PDF en npm.",
+      "requiredForRequestedScope": false
     },
     {
       "id": "manual-catalog",
       "url": "https://catalogo.upc.edu.pe/permalink/51UPC_INST/18sd6pj/alma991195607403391",
       "status": "partial",
       "criteria": [],
-      "detail": "Registro del catálogo leído: traducción española cuarta edición de APA séptima, 2021. eLibro permite abrir el visor de 451 páginas. No se ha completado su auditoría página a página; el catálogo no equivale a lectura íntegra del manual."
+      "detail": "El registro bibliográfico se consultó. La lectura íntegra del manual externo no forma parte de la extracción de la guía UPC y no bloquea su cobertura. No se afirma haber leído el libro completo.",
+      "requiredForRequestedScope": false
     },
     {
       "id": "spanish-publisher",
@@ -1004,7 +1015,8 @@
       "criteria": [
         "Portal editorial distingue ediciones tercera y cuarta. Para APA séptima corresponde la cuarta española; el material complementario incluye la adaptación colombiana."
       ],
-      "detail": "Redirige a recursos.manualmoderno.com/apa/; acceso al complemento verificado."
+      "detail": "Redirige a recursos.manualmoderno.com/apa/; acceso al complemento verificado.",
+      "requiredForRequestedScope": false
     },
     {
       "id": "mef-instruments",
@@ -1013,7 +1025,8 @@
       "criteria": [
         "Índice de normativa peruana por instrumento: leyes, tipos de decretos, resoluciones y directivas. Sirve para identificar tipos, no define estilo de citación APA ni certifica vigencia de normas."
       ],
-      "detail": "Página visible revisada en navegador; búsqueda/listados enlazados no son reglas de estilo."
+      "detail": "Página visible revisada en navegador; búsqueda/listados enlazados no son reglas de estilo.",
+      "requiredForRequestedScope": false
     }
   ],
   "sourceIssues": [

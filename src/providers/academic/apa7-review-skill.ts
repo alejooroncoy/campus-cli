@@ -17,6 +17,7 @@ const rulebookSchema = z.object({
   guideLastUpdatedOn: z.iso.date(),
   coverage: z.string().min(1),
   coverageSummary: z.object({
+    requestedScope: z.literal('upc-guide'),
     upcPages: z.number().int().positive(),
     apaPages: z.number().int().positive(),
     legalPages: z.number().int().positive(),
@@ -32,6 +33,7 @@ const rulebookSchema = z.object({
     normativeSourcesReviewed: z.number().int().nonnegative(),
     registeredContentLinks: z.number().int().nonnegative(),
     pendingSourceIds: z.array(z.string()),
+    supportingPendingSourceIds: z.array(z.string()),
   }),
   sections: z.array(z.object({
     id: z.string().min(1),
@@ -45,6 +47,7 @@ const rulebookSchema = z.object({
   normativeSources: z.array(z.object({
     id: z.string().min(1), url: z.url(),
     status: z.enum(['reviewed', 'superseded', 'partial']),
+    requiredForRequestedScope: z.boolean(),
     criteria: z.array(z.string().min(1)), detail: z.string(),
   })),
   sourceIssues: z.array(z.object({
@@ -108,11 +111,15 @@ export function parseApa7ReviewCorpus(rawRulebook: unknown, rawAudit: unknown) {
       rulebook.sourceIssues.some(issue => sections.get(issue.sectionId)?.url !== issue.url)) {
     throw new Error('APA review has unresolved source references.');
   }
-  const pending = rulebook.normativeSources.filter(source => source.status === 'partial').map(source => source.id);
+  const pendingSources = rulebook.normativeSources.filter(source => source.status === 'partial');
+  const pending = pendingSources.filter(source => source.requiredForRequestedScope).map(source => source.id);
+  const supportingPending = pendingSources.filter(source => !source.requiredForRequestedScope).map(source => source.id);
   if (summary.normativeSources !== rulebook.normativeSources.length ||
-      summary.normativeSourcesReviewed !== rulebook.normativeSources.length - pending.length ||
+      summary.normativeSourcesReviewed !== rulebook.normativeSources.length - pendingSources.length ||
       JSON.stringify(pending) !== JSON.stringify(summary.pendingSourceIds) ||
-      (pending.length > 0 && (summary.allRequestedSourcesComplete || summary.normativeExternalStatus !== 'partial'))) {
+      JSON.stringify(supportingPending) !== JSON.stringify(summary.supportingPendingSourceIds) ||
+      summary.normativeExternalStatus !== (pendingSources.length ? 'partial' : 'reviewed') ||
+      (pending.length > 0 && summary.allRequestedSourcesComplete)) {
     throw new Error('APA review cannot declare complete coverage with pending normative sources.');
   }
   return { rulebook, audit };

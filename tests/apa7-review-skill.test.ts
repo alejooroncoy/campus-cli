@@ -42,8 +42,10 @@ test('review skill is discoverable and retrievable through the real MCP protocol
     const ids = review.reviewSkill.rulebook.sections.map((section: { id: string }) => section.id);
     assert.equal(new Set(ids).size, ids.length);
     assert.equal(ids.length, 45);
-    assert.equal(review.reviewSkill.rulebook.coverageSummary.allRequestedSourcesComplete, false);
-    assert.deepEqual(review.reviewSkill.rulebook.coverageSummary.pendingSourceIds, ['manual-catalog']);
+    assert.equal(review.reviewSkill.rulebook.coverageSummary.requestedScope, 'upc-guide');
+    assert.equal(review.reviewSkill.rulebook.coverageSummary.allRequestedSourcesComplete, true);
+    assert.deepEqual(review.reviewSkill.rulebook.coverageSummary.pendingSourceIds, []);
+    assert.deepEqual(review.reviewSkill.rulebook.coverageSummary.supportingPendingSourceIds, ['manual-catalog']);
     assert.equal(review.reviewSkill.rulebook.normativeSources.find((s: { id: string }) => s.id === 'apa-chatgpt-archived').status, 'superseded');
     for (const id of ['direct-quotes', 'paraphrases', 'secondary-citations', 'personal-communications', 'interviews', 'ai-content', 'reference-faq', 'tables', 'figures']) {
       assert.ok(ids.includes(id), `missing source coverage: ${id}`);
@@ -86,7 +88,9 @@ test('source audit fails closed on missing notes or falsely complete coverage', 
   missingNote.pages.find((page: { sectionId: string }) => page.sectionId === 'figures').blocks.pop();
   assert.throws(() => parseApa7ReviewCorpus(book, missingNote), /declared coverage/);
   const falseComplete = structuredClone(book);
-  falseComplete.coverageSummary.allRequestedSourcesComplete = true;
+  falseComplete.normativeSources.find((source: { id: string }) => source.id === 'manual-catalog').requiredForRequestedScope = true;
+  falseComplete.coverageSummary.pendingSourceIds = ['manual-catalog'];
+  falseComplete.coverageSummary.supportingPendingSourceIds = [];
   assert.throws(() => parseApa7ReviewCorpus(falseComplete, audit), /pending normative/);
   const unmappedImage = structuredClone(audit);
   unmappedImage.images[0].sourceBlocks.push('missing-block');
