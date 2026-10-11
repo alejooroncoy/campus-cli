@@ -41,7 +41,19 @@ import AppShell from "../../../layouts/AppShell.astro";
       <div class="app-profile-row"><span>Plan actual</span><p data-app-plan>Por comprobar</p></div>
       <div class="app-profile-row"><span>Consultas de Profes</span><p data-app-usage>Comprobando tu uso…</p></div>
       <div class="app-profile-row"><span>Matrícula (Banner)</span><p data-app-banner-status>Por comprobar</p></div>
+      <div class="app-profile-row" id="miupc" hidden>
+        <span>Notas actuales · Mi UPC</span>
+        <p data-miupc-status aria-live="polite">Conecta Mi UPC una vez para consultar tus notas actuales desde Profes.</p>
+        <div class="app-actions">
+          <button class="app-button app-button--secondary" type="button" data-miupc-connect>Conectar Mi UPC</button>
+          <a class="app-text-link" data-miupc-login target="_blank" rel="noopener noreferrer" hidden>Abrir acceso seguro ↗</a>
+        </div>
+      </div>
       <div class="app-actions"><button class="app-button app-button--secondary" type="button" data-app-logout hidden>Cerrar sesión</button></div>
     </section><aside class="app-panel"><p class="app-kicker">Una sola cuenta</p><h2>Tu Campus, conectado.</h2><p>Usa la misma cuenta que vinculaste en WhatsApp para consultar tu plan.</p><ul class="app-info-list"><li>Tu identidad en Campus</li><li>Tu plan Free o Plus</li><li>Tu uso de Profes</li><li>Tu horario y matrícula de Banner</li></ul><a class="app-text-link" href="/#plan-plus">Conocer Campus Plus →</a></aside></div>
   </div>
 </AppShell>
+
+<script>
+  import "../../../scripts/miupc-profile";
+</script>
