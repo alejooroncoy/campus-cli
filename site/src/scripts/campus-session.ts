@@ -92,3 +92,8 @@ export function clearCampusSession(): void {
     sessionStorage.removeItem("campus_ui_profile");
   } catch { /* Storage is optional. */ }
 }
+
+export function canConnectMiupc(session: CampusSession): boolean {
+  return session.authenticated && session.universityConfirmed === true
+    && session.profesAvailable !== false && session.university?.shortName === "UPC";
+}

@@ -1,4 +1,4 @@
-import { getCampusSession, clearCampusSession, getCampusProfilePreview, type CampusProfilePreview, type CampusSession } from "./campus-session";
+import { getCampusSession, canConnectMiupc, clearCampusSession, getCampusProfilePreview, type CampusProfilePreview, type CampusSession } from "./campus-session";
 
 const UI_CACHE_KEY = "campus_ui_profile";
 
@@ -205,6 +205,8 @@ function initPage() {
     if (email) email.textContent = value.email ?? "Inicia sesión con tu cuenta Campus.";
     const universityName = document.querySelector("[data-app-university-name]");
     if (universityName) universityName.textContent = value.university?.shortName ? `${value.university.shortName} — ${value.university.name}` : value.university?.name ?? "Sin universidad";
+    const miupcConnector = document.querySelector<HTMLElement>("#miupc");
+    if (miupcConnector) miupcConnector.hidden = !canConnectMiupc(value);
     const coverage = document.querySelector<HTMLElement>("[data-app-profile-coverage]");
     if (coverage) coverage.hidden = !value.universityConfirmed || value.profesAvailable !== false;
     const usage = document.querySelector("[data-app-usage]");

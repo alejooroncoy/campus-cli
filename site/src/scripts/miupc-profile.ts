@@ -1,3 +1,5 @@
+import { getCampusSession, canConnectMiupc } from "./campus-session";
+
 // University login stays in the owner's temporary Browserbase view. Only its
 // private, short-lived link reaches the browser; it is never saved locally.
 function initMiupcProfile() {
@@ -18,6 +20,7 @@ function initMiupcProfile() {
     not_configured: 'La conexión con Mi UPC todavía no está disponible.',
     expired: 'El enlace venció. Puedes volver a conectar Mi UPC.',
     failed: 'No pudimos guardar la conexión. Inténtalo de nuevo.',
+    not_supported: 'Mi UPC está disponible solo para estudiantes de UPC.',
     not_connected: 'Conecta Mi UPC una vez para consultar tus notas actuales desde Profes.',
   };
   const update = (data: { status: string; loginUrl?: string }) => {
@@ -37,6 +40,7 @@ function initMiupcProfile() {
   const poll = async () => {
     const current = revision;
     try {
+      if (!canConnectMiupc(await getCampusSession())) return;
       const response = await fetch('/api/app/miupc/connect/', { cache: 'no-store', signal: AbortSignal.timeout(50_000) });
       const data = response.ok ? await response.json() : { status: 'failed' };
       if (current === revision) update(data);

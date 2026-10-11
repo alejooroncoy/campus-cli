@@ -18,6 +18,9 @@ try {
   globalThis.window = { __campusSessionBootstrap: { promise: Promise.resolve(signedIn) } };
   let api = await load();
   assert.deepEqual(await api.getCampusSession(), signedIn);
+  const upc = { ...signedIn, universityConfirmed: true, profesAvailable: true, university: { shortName: "UPC" } };
+  assert.equal(api.canConnectMiupc(upc), true);
+  for (const session of [guest, signedIn, { ...upc, universityConfirmed: false }, { ...upc, profesAvailable: false }, { ...upc, university: { shortName: "UNMSM" } }]) assert.equal(api.canConnectMiupc(session), false);
   assert.equal(calls, 0, 'Reuse the head request instead of fetching twice');
 
   globalThis.window = {};
