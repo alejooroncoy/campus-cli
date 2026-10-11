@@ -10,8 +10,8 @@
   ],
   "rewrites": [
     {
-      "source": "/api/app/:path*",
-      "destination": "https://profes.campuscli.com/api/app/:path*"
+      "source": "/api/app/:path*/",
+      "destination": "https://profes.campuscli.com/api/app/:path*/"
     },
     {
       "source": "/app/profes/c/:id([0-9a-fA-F-]{36})/",
