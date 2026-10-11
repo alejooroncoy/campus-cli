@@ -335,6 +335,14 @@ los recursos externos quedan registrados como apoyo y su lectura íntegra no
 es requisito para completar la extracción institucional. Cargar la habilidad no
 constituye una revisión del documento. Las pruebas detectan bloques ausentes,
 evidencia sin mapear y afirmaciones de cobertura completa con fuentes pendientes.
+Para comprobar si la web sigue coincidiendo con el inventario, usa
+`scripts/apa7-audit-upc.py --output .codex-tmp/apa7-recheck` y luego
+`scripts/apa7-verify-upc.py --capture .codex-tmp/apa7-recheck/source-audit.json --output output/apa7-upc/recheck.json`
+(con Python, `requests` y `beautifulsoup4`). El verificador compara páginas,
+bloques, unidades de texto, enlaces y archivos de imagen; documenta el FAQ antiguo
+que devuelve 404 y falla ante omisiones, cambios o errores nuevos. La comprobación
+acredita cobertura de captura en esa consulta; no certifica automáticamente la
+equivalencia semántica de cada ejemplo con los criterios sintetizados.
 
 | Herramienta | Descripción |
 |---|---|
