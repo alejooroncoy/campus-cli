@@ -2,10 +2,10 @@
   "authority": "Biblioteca de la Universidad Peruana de Ciencias Aplicadas",
   "guideUrl": "https://biblioteca.upc.edu.pe/citas-referencias-APA7",
   "entryUrl": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/citas",
-  "checkedOn": "2026-10-10",
+  "checkedOn": "2026-10-11",
   "checkedTimezone": "America/Lima",
   "guideLastUpdatedOn": "2025-12-05",
-  "coverage": "Captura revisada de la guía UPC: 45 páginas distintas (31 APA y 14 jurídicas), 185 bloques, 1.105 unidades de texto, notas, pestañas, esquemas y 14 imágenes inspeccionadas. Síntesis propia, no transcripción. Los 98 enlaces de contenido se registran con su contexto. Los recursos externos son apoyo y no forman parte de la obligación de leer íntegramente esta guía. No es una consulta web en vivo.",
+  "coverage": "Revisión por unidad de la guía UPC: 45 páginas (31 APA y 14 jurídicas), 185 bloques, 1.105 unidades de texto, 82 etiquetas de apartados/pestañas, 14 imágenes y 98 enlaces de contenido. Cada unidad tiene destino explícito y los 187 criterios enlazan a evidencia concreta; 24 discrepancias o ambigüedades de la fuente se registran por separado. Síntesis propia, no transcripción. La prueba de comportamiento se informa por sus casos y no garantiza infalibilidad universal. Los libros externos no requieren lectura íntegra para este alcance.",
   "sections": [
     {
       "id": "legal-presentation",
@@ -126,7 +126,8 @@
       "criteria": [
         "La adaptación UPC reconoce diferencias entre sistemas jurídicos y remite al capítulo 11 del manual y a la guía colombiana.",
         "Las decisiones se clasifican como expediente, casación, acuerdo plenario, laudo o jurisprudencia extranjera; selecciona el perfil real del documento.",
-        "El enlace al MEF ayuda a identificar instrumentos; no es una regla de estilo APA ni valida el contenido de una sentencia."
+        "El enlace al MEF ayuda a identificar instrumentos; no es una regla de estilo APA ni valida el contenido de una sentencia.",
+        "La definición introductoria presenta la jurisprudencia como estudio y criterios de fallos judiciales aplicables a casos semejantes. Conserva esa explicación como contexto; una revisión APA no puede inferir que cualquier sentencia tenga fuerza obligatoria en un caso concreto."
       ],
       "aliases": [],
       "sourceBlockIds": [
@@ -186,7 +187,7 @@
       "url": "https://biblioteca.upc.edu.pe/Documentos_Juridicos/NormasJuridicas",
       "locator": "s-lg-content-74003518; s-lg-content-73849569",
       "criteria": [
-        "La guía distingue normas generales obligatorias de los documentos jurisprudenciales.",
+        "La guía distingue normas generales obligatorias de los documentos jurisprudenciales. Describe las normas como mandatos legítimos para sus destinatarios, respaldados por el Estado y por sanciones coercitivas; es contexto de clasificación, no una regla nueva de citación ni una certificación de vigencia.",
         "Identifica constitución, ley, decreto, código o tratado antes de elegir el esquema.",
         "La adaptación UPC combina APA, la guía colombiana y casos de Derecho UPC; su alcance es institucional y jurisdiccional."
       ],
@@ -232,7 +233,7 @@
       "locator": "s-lg-content-75564229; s-lg-content-75564230; s-lg-content-75564231; s-lg-content-75564232; s-lg-content-75564233",
       "criteria": [
         "La guía reúne estructuras, ejemplos y consideraciones para trabajos académicos UPC, basadas en APA 7 en inglés y cuarta edición en español.",
-        "Para citar esta guía usa autor Universidad Peruana de Ciencias Aplicadas, fecha diciembre de 2025, título en cursiva, Guías Temáticas UPC y URL.",
+        "El modelo UPC para citar esta guía usa Universidad Peruana de Ciencias Aplicadas, noviembre de 2021, título Citas y referencias en APA 7 en cursiva, descriptor [Guías Temáticas UPC] y URL. Las citas usan 2021. No reemplaces esa fecha por la última actualización del sitio.",
         "Las personas redactoras no reemplazan al autor institucional indicado por la propia guía. La bibliografía es contextual; no acredita lectura completa del manual."
       ],
       "aliases": [
@@ -253,7 +254,7 @@
       "locator": "s-lg-content-79522293; s-lg-content-79717352; s-lg-content-79586760",
       "criteria": [
         "Explica el uso de IA en Métodos o sección equivalente; en ensayos o revisiones bibliográficas, en la introducción.",
-        "Identifica la solicitud y la respuesta usada. La transcripción completa puede incluirse en un anexo.",
+        "Identifica la solicitud y la respuesta usada, y declara qué texto, figura, imagen o código se generó con IA. La transcripción completa, enlace o capturas pueden incluirse en un anexo; documenta la respuesta concreta porque puede variar entre sesiones.",
         "Referencia el desarrollador corporativo, año de lanzamiento de la versión usada, nombre del modelo en cursiva, versión, descripción del modelo entre corchetes y URL.",
         "El año corresponde a la versión utilizada; no lo sustituyas por el año actual. Una URL a la respuesta compartida puede facilitar su recuperación."
       ],
@@ -295,7 +296,7 @@
         "Álbum: responsable, año, título en cursiva, [Álbum] y discográfica. Para clásica acredita intérprete y publicación original; cita años original/grabación.",
         "Pódcast: anfitrión o productor con función, fechas de emisión, título en cursiva, descriptor audio/video, productora y URL.",
         "Serie continua: inicio–presente; terminada: inicio–fin; un solo año si coincide. Episodio: anfitrión, fecha, título sin cursiva y número, descriptor, En serie en cursiva, productora y URL.",
-        "URL de música solo si necesaria para recuperarla; en aplicación de pódcast omite URL desconocida. Distingue obra completa de parte."
+        "Incluye URL de canción o álbum solo si es su único medio de recuperación, como una publicación exclusiva en web. En pódcast de aplicación, omite la URL si no se conoce. Distingue obra independiente de una parte o episodio."
       ],
       "aliases": [],
       "sourceBlockIds": [
@@ -333,7 +334,8 @@
         "Incluye la fecha del original solo si se conoce; referencia únicamente la fuente secundaria efectivamente consultada.",
         "Usa este recurso con moderación cuando el original no está disponible o no se comprende su idioma.",
         "Para cita textual secundaria, el localizador pertenece a la fuente consultada; respeta el esquema corto o en bloque.",
-        "La narrativa UPC con fecha original separa año y como se cita en mediante punto y coma."
+        "La narrativa UPC con fecha original separa año y como se cita en mediante punto y coma.",
+        "Mantén la regla de cantidad de autores al nombrar la fuente original: tres o más requieren et al. también en narrativa; el ejemplo de Plaza abrevia de forma inconsistente y no establece una excepción."
       ],
       "aliases": [],
       "sourceBlockIds": [
@@ -371,8 +373,9 @@
         "Menos de 40 palabras: comillas e integración en el párrafo; la puntuación final de la oración va después de la cita parentética.",
         "40 palabras o más: bloque nuevo sin comillas, sangría izquierda de 1,27 cm; el punto precede a la cita parentética y no se añade otro después.",
         "Los párrafos adicionales del bloque tienen otra sangría de 1,27 cm en su primera línea.",
-        "Incluye autor, año y localizador: p. para una página, pp. para varias; sin paginación, párrafo o sección real.",
-        "No agregues puntos suspensivos al comienzo o al final si no pertenecen al original."
+        "Incluye autor, año y localizador: p. para una página, pp. para varias; intervalos continuos con guion y páginas discontinuas separadas por coma. Sin paginación, usa párrafo o sección real.",
+        "No agregues puntos suspensivos al comienzo o al final si no pertenecen al original.",
+        "Una cita directa puede reproducir palabras de otra persona o de una obra propia publicada. Se recomienda para definiciones, conceptos, declaraciones exactas y pasajes especialmente memorables; no convierte esos usos recomendados en los únicos usos permitidos."
       ],
       "aliases": [],
       "sourceBlockIds": [
@@ -432,7 +435,8 @@
         "Contribución: autores, fechas del evento completo, título en cursiva, descriptor flexible, nombre del evento, lugar y URL cuando conste.",
         "Incluye a todos los autores aunque no asistieran. La fecha puede abarcar varios días, no solo el de la ponencia.",
         "Simposio: título de contribución, moderador o presidente con función, título del simposio como contenedor, evento, lugar y URL.",
-        "Si se publicó como libro o artículo, utiliza ese perfil de publicación. La nota remite al manual, sección 10.5, sin incorporar su texto íntegro."
+        "Si se publicó como libro o artículo, utiliza ese perfil de publicación. La nota remite al manual, sección 10.5, sin incorporar su texto íntegro.",
+        "La cursiva del título de una contribución de simposio es inconsistente entre el esquema y su ejemplo: el esquema la marca y el ejemplo reserva cursiva al título del simposio. Señala el contraste y aplica el perfil exigido por el docente; no presentes una variante como inequívoca sin explicar la fuente."
       ],
       "aliases": [],
       "sourceBlockIds": [
@@ -448,7 +452,7 @@
       "locator": "s-lg-content-75564309; s-lg-content-75564310; s-lg-content-75564337",
       "criteria": [
         "Curso: instructores, año de creación si consta o s.f., título en cursiva, [Curso en línea/MOOC], plataforma y URL.",
-        "Lección: instructor de la lección, fecha, título sin cursiva y descriptor; En todos los docentes del curso y título del curso en cursiva, plataforma, URL accesible para el lector.",
+        "Lección: instructor de la lección, fecha, número de episodio y título sin cursiva cuando consten, y descriptor; En todos los docentes del curso y título del curso en cursiva, plataforma, URL accesible para el lector.",
         "No confundas plataforma con autor. Si la lección exige matrícula, puede enlazarse la página principal del curso. La estructura de lección se aproxima a episodio de pódcast."
       ],
       "aliases": [],
@@ -466,7 +470,8 @@
       "criteria": [
         "Referencia: responsables, año, título en cursiva, descriptor del conjunto entre corchetes, editor o repositorio, DOI o URL.",
         "El descriptor es flexible y debe identificar el recurso. Para datos que cambian, añade fecha de recuperación.",
-        "Referencia el conjunto efectivamente utilizado; no sustituyas repositorio por autor sin evidencia."
+        "Referencia el conjunto efectivamente utilizado; no sustituyas repositorio por autor sin evidencia.",
+        "Los datasets son colecciones de datos tabulados procesables con programas de análisis. La guía señala repositorios públicos peruanos, estadounidenses y europeos y un buscador de datos; se registran como recursos de consulta, no como autores ni como fuentes usadas automáticamente."
       ],
       "aliases": [],
       "sourceBlockIds": [
@@ -500,11 +505,12 @@
         "Al introducir una sigla institucional, usa nombre completo y sigla: corchetes en parentética, paréntesis en narrativa; después puede usarse la sigla.",
         "Distingue obras del mismo autor y año con letras coherentes en citas y referencias; sin fecha: s.f.-a, s.f.-b.",
         "Sin autor usa el título: cursiva si la referencia lo lleva, comillas en caso contrario. Anónimo solo si aparece como firma.",
-        "Para traducciones o reediciones, cita año original/año de la edición usada. El año solo puede omitirse en menciones narrativas posteriores del mismo párrafo.",
+        "Para traducciones, reimpresiones, republicaciones o reediciones, cita año original/año de la edición usada, en ese orden y separados por barra.",
         "Coteja la cita literal con el original; señala errores confusos con [sic]. Omisiones internas, inserciones y énfasis añadido requieren indicación.",
         "Para primeros autores diferentes del mismo apellido y distintas iniciales, incorpora iniciales; no las exijas a coautores del mismo apellido de una única obra.",
         "Sin explicación: ajustar primera mayúscula, puntuación terminal o tipo de comillas sin alterar significado. Omisión interna: puntos espaciados; cuatro si incluye fin de oración; añadido entre corchetes; cursiva más [énfasis añadido].",
-        "Primeros autores con igual apellido e iguales iniciales mantienen autor-fecha; si las iniciales difieren, inclúyelas. Ante error confuso, puede preferirse paráfrasis."
+        "Primeros autores con igual apellido e iguales iniciales mantienen autor-fecha; si las iniciales difieren, inclúyelas. Ante error confuso, puede preferirse paráfrasis.",
+        "El FAQ UPC indica omitir el año en citas narrativas subsecuentes del mismo párrafo. Conserva los datos completos en la primera narrativa y en las parentéticas; no extiendas la omisión a otros párrafos o a citas parentéticas."
       ],
       "aliases": [],
       "sourceBlockIds": [
@@ -559,14 +565,15 @@
       "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/figuras",
       "locator": "s-lg-content-75572635; s-lg-content-75572636; s-lg-content-75572637; s-lg-content-75572638; s-lg-content-75572641; s-lg-content-75572642; s-lg-content-75572639; s-lg-content-75572640; s-lg-content-75572643; s-lg-content-75572644; s-lg-content-75572645; s-lg-content-75564245; s-lg-content-75564250",
       "criteria": [
-        "Fotografías, mapas, gráficos y capturas se consideran figuras; número en negrita, título debajo en cursiva y nota de procedencia cuando corresponda.",
-        "Distingue reproducción, adaptación y elaboración a partir de fuentes. La creación propia no requiere atribución externa.",
+        "Gráficos, fotografías, diagramas, mapas, ilustraciones y capturas se consideran figuras. Enumera según aparición; número en negrita y alineado a la izquierda, título en la línea inferior en cursiva, cuerpo y nota cuando corresponda.",
+        "Distingue reproducción, adaptación y elaboración a partir de fuentes. Una figura propia no requiere atribución externa; indicar elaboración propia es opcional según las consideraciones UPC.",
         "Para mapas sin título, usa una descripción entre corchetes; el ejemplo de mapa dinámico incluye fecha de recuperación.",
         "La exigencia de infografías editables y título iniciado con Infografía es específica de Arquitectura.",
-        "El caso de documentación empresarial privada no lleva referencia recuperable; si la información es pública en la web, sí se cita y referencia.",
+        "La documentación empresarial privada no lleva referencia recuperable. En la atribución utiliza el nombre de la empresa y, opcionalmente, el área autora del documento interno. Si la información es pública en la web, sí se cita y referencia.",
         "En figuras compuestas identifica paneles con letras o superíndices y vincula cada uno a fuente específica; UPC omite Nota en las atribuciones particulares de esos paneles.",
-        "Mapas dinámicos requieren recuperación; las letras s.f.-a/b diferencian obras del mismo autor, no se agregan mecánicamente si solo hay una.",
-        "Las indicaciones de usar tabla del procesador aparecen también en esta página: no las conviertas en obligación de crear toda figura como tabla."
+        "Los mapas dinámicos requieren recuperación. La página de figuras inicia sus ejemplos con s.f.-a y propone continuar las letras; el FAQ las exige para distinguir varias obras del mismo autor y fecha. Explica ese contraste y no deduzcas una ambigüedad bibliográfica cuando solo hay una obra, salvo una pauta docente explícita.",
+        "Las indicaciones de usar tabla del procesador aparecen también en esta página: no las conviertas en obligación de crear toda figura como tabla.",
+        "La nota descriptiva es opcional y antecede a la atribución de derechos cuando ambas se usan. La atribución de una fuente identifica título, autor, año y fuente o URL, después de De, Adaptado de o Elaborado a partir de según el uso real."
       ],
       "aliases": [],
       "sourceBlockIds": [
@@ -649,7 +656,7 @@
       "criteria": [
         "Obra de museo: artista, año, título en cursiva o descripción sin título entre corchetes, formato, museo, ubicación y URL.",
         "Imagen de stock, infografía o fotografía: autor, fecha, título en cursiva, descriptor, sitio y URL; para reproducir revisa licencia o permiso además de citar.",
-        "Clip art incorporado a Word o PowerPoint puede no requerir cita; no extiendas esta excepción a imágenes externas.",
+        "Según UPC, el clip art incorporado a Microsoft Word o PowerPoint no necesita cita, permiso ni atribución de derechos. Esa excepción corresponde al material incluido en el programa; no se extiende a imágenes externas añadidas al documento.",
         "Mapa estático: autor, año, título en cursiva, editor y URL. Mapa dinámico: autor, s.f., descripción entre corchetes SIN cursiva, recuperación y URL.",
         "Diapositivas: autor, año, título en cursiva, [Diapositivas de PowerPoint], sitio y URL; verifica recuperabilidad del material."
       ],
@@ -725,7 +732,7 @@
       "criteria": [
         "Publicación: autor real, usuario entre corchetes si corresponde, fecha completa, primeras 20 palabras en cursiva, descriptor, plataforma y URL.",
         "Si solo consta usuario, úsalo como autor. Conserva ortografía y mayúsculas originales; hashtags, emojis y URL cuentan como una palabra, pero no llevan cursiva.",
-        "Emoji no reproducible: nombre entre corchetes. Describe foto, vídeo u otro adjunto entre corchetes.",
+        "Emoji no reproducible: nombre entre corchetes. Describe entre corchetes adjuntos como foto, GIF, vídeo, cuestionario, enlaces a fuentes externas o contenido de otra publicación, además del descriptor del tipo de publicación.",
         "Facebook distingue publicación y página; Instagram distingue foto/vídeo, historias destacadas y perfil; X distingue publicación y perfil; foro usa publicación y plataforma.",
         "Páginas, perfiles y destacados cambiantes: s.f., título de pestaña pertinente y recuperación. Publicaciones fechadas no exigen recuperación.",
         "Si descubriste una obra por una red, cita la obra original cuando la consultaste, sin añadir la red como intermediario."
@@ -783,7 +790,7 @@
       "locator": "s-lg-content-75564729; s-lg-content-75564763",
       "criteria": [
         "Referencia: responsables, año, nombre en cursiva, versión disponible sin cursiva, descriptor entre corchetes, desarrollador o tienda y URL.",
-        "Omite editor o tienda repetidos cuando coinciden con autor. Comprueba qué entidad desarrolló el programa.",
+        "Evita duplicar autor y fuente cuando sean la misma entidad. La nota UPC menciona coincidencia entre autor y nombre del software, mientras sus ejemplos omiten fuentes coincidentes con el autor; registra esa ambigüedad. No elimines un desarrollador distinto sin comprobar los datos y el perfil exigido.",
         "El uso común de software no requiere siempre referencia. Citar o parafrasear información específica de él sí puede requerirla.",
         "La excepción de programas comunes no sustituye las reglas específicas de IA y políticas del curso."
       ],
@@ -799,7 +806,7 @@
       "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/tablas",
       "locator": "s-lg-content-75868835; s-lg-content-75868836; s-lg-content-75868837; s-lg-content-75868829; s-lg-content-75868830; s-lg-content-75868831; s-lg-content-75868826; s-lg-content-75868827; s-lg-content-75868828; s-lg-content-75868832; s-lg-content-75868833; s-lg-content-75868834; s-lg-content-75868841; s-lg-content-75868842; s-lg-content-75868843; s-lg-content-75868838; s-lg-content-75868839; s-lg-content-75868840; s-lg-content-75564192; s-lg-content-75564193",
       "criteria": [
-        "Número en negrita y alineado a la izquierda; título debajo en cursiva, cuerpo y nota cuando corresponda.",
+        "Enumera las tablas según aparición; número en negrita y alineado a la izquierda, título en la línea inferior en cursiva, cuerpo y nota cuando corresponda.",
         "Para atribuir procedencia, distingue De, Adaptado de y Elaborado a partir de. Identifica título, autor, año y fuente.",
         "Una tabla propia no requiere una nota de atribución externa; las notas que aclaran su contenido pueden ser necesarias.",
         "Las fuentes usadas en una tabla deben tener la referencia correspondiente, salvo una excepción aplicable.",
@@ -841,7 +848,7 @@
         "Repositorio: autor, año, título en cursiva, tipo de grado o trabajo e institución entre corchetes, repositorio y URL.",
         "Base de datos: misma identificación del trabajo, institución y nombre de base; no inventes URL ni datos ausentes.",
         "Inédito: título en cursiva, descriptor de tesis/trabajo inédito entre corchetes y universidad como fuente.",
-        "Incluye tesis, suficiencia profesional, investigaciones y grados correspondientes. Un ejemplar impreso conservado y recuperable no se vuelve comunicación personal por no estar en línea."
+        "La categoría incluye tesis, trabajos de investigación o bachiller, tesinas y trabajos equivalentes; en ciertos países disertación designa una tesis. UPC distingue publicación digital en repositorios, bases o web de los trabajos inéditos consultables en una biblioteca o archivo. Un ejemplar impreso recuperable no se convierte por ello en comunicación personal."
       ],
       "aliases": [],
       "sourceBlockIds": [
@@ -861,7 +868,8 @@
         "TED en sitio oficial: conferenciante como autor; en YouTube: cuenta que publicó. Usa fecha de publicación del vídeo, no fecha supuesta de grabación.",
         "Vídeo en línea: autor/cuenta responsable, fecha completa, título en cursiva, [Vídeo], plataforma y URL.",
         "Película: director con función, año, título en cursiva, descriptor y productoras; si falta director, identifica función de otro responsable acreditado.",
-        "Puede describirse formato/versión y añadirse traducción del título entre corchetes. Acredita todas las productoras cuando corresponda."
+        "Puede describirse formato o versión entre corchetes tras Película y punto y coma. Para un título en otro idioma, UPC indica añadir su traducción entre corchetes. Acredita las productoras que consten, separadas por punto y coma si son varias.",
+        "Distingue el nombre personal y el nombre de usuario o canal cuando aparezcan ambos; el esquema UPC puede presentarlos como Apellido, Inicial [Nombre del canal]. No atribuyas automáticamente la referencia a la persona que aparece en el vídeo si fue publicado por otra cuenta."
       ],
       "aliases": [],
       "sourceBlockIds": [
@@ -893,7 +901,8 @@
     "requestedScope": "upc-guide",
     "supportingPendingSourceIds": [
       "manual-catalog"
-    ]
+    ],
+    "pageLabels": 82
   },
   "normativeSources": [
     {
@@ -1134,6 +1143,69 @@
       "url": "https://biblioteca.upc.edu.pe/Documentos_Juridicos",
       "detail": "Guía colombiana exige URL y usa institución autora, mientras UPC usa identificador legal y URL opcional.",
       "decision": "No mezcles jurisdicciones o perfiles; aplica pauta UPC para trabajos UPC y explica contraste."
+    },
+    {
+      "id": "secondary-narrative-authorship",
+      "sectionId": "secondary-citations",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/citadecita",
+      "detail": "Los ejemplos parentéticos de Plaza usan et al., pero las narrativas de la misma obra lo omiten.",
+      "decision": "Aplicar primer apellido y et al. si la obra original tiene tres o más autores; verificar la autoría original antes de completar datos."
+    },
+    {
+      "id": "software-omission-condition",
+      "sectionId": "software",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/software-aplicaciones",
+      "detail": "La nota pide omitir desarrollador/tienda cuando coinciden autor y nombre del software, pero el ejemplo Doom omite la entidad desarrolladora coincidente con el autor, aunque su título difiere.",
+      "decision": "Distinguir autor, título y desarrollador. Evitar repetir la fuente que coincide con el autor; no inferir la omisión de una entidad distinta a partir de una redacción ambigua. Explicar el contraste cuando afecte la revisión."
+    },
+    {
+      "id": "secondary-block-punctuation",
+      "sectionId": "secondary-citations",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/citadecita",
+      "detail": "Los ejemplos de cita de cita larga presentan la puntuación terminal después del paréntesis y omiten el punto antes de la atribución, frente a la regla explícita de Citas directas.",
+      "decision": "Aplicar puntuación final del bloque antes de la atribución y no agregar otro punto después del paréntesis; la cita secundaria no cambia esa regla."
+    },
+    {
+      "id": "symposium-title-italics",
+      "sectionId": "conferences",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/conferencias",
+      "detail": "El esquema marca el título de la contribución de simposio en cursiva, pero el ejemplo deja esa contribución sin cursiva y usa cursiva en el título del simposio.",
+      "decision": "Distinguir contribución y contenedor; explicar la inconsistencia y aplicar el perfil solicitado por el docente cuando corresponda."
+    },
+    {
+      "id": "web-retrieval-condition",
+      "sectionId": "webpages",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/sitios-web",
+      "detail": "Los esquemas de páginas web y un ejemplo fechado incluyen recuperación, mientras la nota exige recuperación solo para contenido cambiante y no archivado.",
+      "decision": "Aplicar la condición explícita de la nota; no exigir recuperación a toda página web por copiar mecánicamente el esquema."
+    },
+    {
+      "id": "social-orphan-citation",
+      "sectionId": "social-media",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/redes-sociales",
+      "detail": "El ejemplo de citas de X añade Crónica de San Francisco, 2021, sin proporcionar una entrada de referencia correspondiente en ese apartado.",
+      "decision": "No inventar sus metadatos. Si aparece en un trabajo, comprobar que exista una referencia de la fuente realmente consultada o pedirla antes de completar la entrada."
+    },
+    {
+      "id": "table-quote-locators",
+      "sectionId": "tables",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/tablas",
+      "detail": "El ejemplo de notas específicas usa p. 31 y p. 79 para artículos cuyas referencias muestran rangos 12–19 y 403–414, respectivamente. Puede haber error de metadatos o distinta paginación; no queda aclarado en la guía.",
+      "decision": "Comparar localizador, edición y paginación con el original. No validar automáticamente el número ni sustituirlo por un número inventado; explicar la discrepancia si no se puede resolver."
+    },
+    {
+      "id": "map-date-suffix",
+      "sectionId": "figures",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/figuras",
+      "detail": "La nota de mapas prescribe comenzar con s.f.-a, mientras el FAQ condiciona las letras a varias obras del mismo autor y fecha.",
+      "decision": "Usar letras coherentes cuando haya obras distintas que distinguir; explicar la diferencia de redacción y respetar una instrucción docente explícita, sin generar una segunda obra ficticia."
+    },
+    {
+      "id": "reference-image-author",
+      "sectionId": "references",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/referencias",
+      "detail": "La imagen de ejemplo escribe Gaete, R., mientras el apartado Artículos presenta el mismo título y URL con Gaete Quezada, R.",
+      "decision": "Conservar apellidos del documento original y hacerlos coincidir en citas y referencias; no decidir la autoría por una variante de la imagen."
     }
   ]
 }

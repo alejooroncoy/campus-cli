@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "checkedOn": "2026-10-10",
+  "checkedOn": "2026-10-11",
   "scope": "Guía UPC de citas y referencias APA 7 y sus páginas jurídicas vinculadas: páginas, bloques, notas, ejemplos, imágenes y enlaces registrados. La lectura íntegra de libros o manuales externos no forma parte del alcance solicitado.",
-  "method": "Revisión de texto completo, pestañas ocultas, notas, tablas HTML, cursivas HTML e imágenes. Unidades incluyen ejemplos y tablas; las huellas registran evidencia, no certifican conformidad del trabajo del alumno. Mapeo por bloque a sección; no atribuye una regla nueva a cada unidad.",
+  "method": "Revisión de texto, pestañas ocultas, notas, tablas HTML, cursivas e imágenes. Incluye etiquetas de pestañas y apartados fuera de los bloques. Las huellas registran evidencia de captura; la correspondencia semántica por unidad se entrega por separado.",
   "pages": [
     {
       "sectionId": "legal-presentation",
@@ -135,6 +135,14 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-presentation:label-1",
+          "tag": "h2",
+          "text": "Presentación",
+          "sha256": "6bbcd2f13499932bc81ab530b204add7682abe569c4d33d20f238bd31fc65ec5"
+        }
       ]
     },
     {
@@ -199,6 +207,14 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-plenary:label-1",
+          "tag": "h2",
+          "text": "Jurisprudencia",
+          "sha256": "024b3af3227ff70d2acb6cc0c5be044db16f35efa35cc7fa4604c1bfa9fb8920"
+        }
       ]
     },
     {
@@ -262,6 +278,14 @@
             }
           ],
           "imageIds": []
+        }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-cassation:label-1",
+          "tag": "h2",
+          "text": "Jurisprudencia",
+          "sha256": "024b3af3227ff70d2acb6cc0c5be044db16f35efa35cc7fa4604c1bfa9fb8920"
         }
       ]
     },
@@ -336,6 +360,14 @@
             }
           ],
           "imageIds": []
+        }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-codes:label-1",
+          "tag": "h2",
+          "text": "Normas jurídicas",
+          "sha256": "c662f2cc1a2de71bd6991faabe4141fa151ce6b9f8d7db4d6db6dd1503c7cae8"
         }
       ]
     },
@@ -445,6 +477,26 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-constitutions:label-1",
+          "tag": "h2",
+          "text": "Normas jurídicas",
+          "sha256": "c662f2cc1a2de71bd6991faabe4141fa151ce6b9f8d7db4d6db6dd1503c7cae8"
+        },
+        {
+          "labelId": "legal-constitutions:label-2",
+          "tag": "a",
+          "text": "Constitución nacional",
+          "sha256": "be00428ea2bf53908126d520a14f663d04b79690d1682bb980b38eae9569bb4e"
+        },
+        {
+          "labelId": "legal-constitutions:label-3",
+          "tag": "a",
+          "text": "Constitución extranjera",
+          "sha256": "3dea794446d2e9e0dc5c3d240b18650975cda5663723fd449cfef8c7192a0d48"
+        }
       ]
     },
     {
@@ -513,6 +565,14 @@
             }
           ],
           "imageIds": []
+        }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-decrees:label-1",
+          "tag": "h2",
+          "text": "Normas jurídicas",
+          "sha256": "c662f2cc1a2de71bd6991faabe4141fa151ce6b9f8d7db4d6db6dd1503c7cae8"
         }
       ]
     },
@@ -637,6 +697,26 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-files:label-1",
+          "tag": "h2",
+          "text": "Jurisprudencia",
+          "sha256": "024b3af3227ff70d2acb6cc0c5be044db16f35efa35cc7fa4604c1bfa9fb8920"
+        },
+        {
+          "labelId": "legal-files:label-2",
+          "tag": "a",
+          "text": "Expedientes",
+          "sha256": "155eb147545143c258b5e3e58aa9cba1047dec5dc60a6f50c2418c1f27ceb963"
+        },
+        {
+          "labelId": "legal-files:label-3",
+          "tag": "a",
+          "text": "Voto singular",
+          "sha256": "332a283a163f9eed2ebef76455b877574b7f2077fffe3616c221df8082666348"
+        }
       ]
     },
     {
@@ -701,6 +781,20 @@
             }
           ],
           "imageIds": []
+        }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-jurisprudence:label-1",
+          "tag": "h2",
+          "text": "Jurisprudencia",
+          "sha256": "024b3af3227ff70d2acb6cc0c5be044db16f35efa35cc7fa4604c1bfa9fb8920"
+        },
+        {
+          "labelId": "legal-jurisprudence:label-2",
+          "tag": "h2",
+          "text": "Consideraciones",
+          "sha256": "60c94cd082c5b3dc90186c49795fef9485dce206f4c08ebcd57d8019327889eb"
         }
       ]
     },
@@ -770,6 +864,14 @@
             }
           ],
           "imageIds": []
+        }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-foreign-cases:label-1",
+          "tag": "h2",
+          "text": "Jurisprudencia",
+          "sha256": "024b3af3227ff70d2acb6cc0c5be044db16f35efa35cc7fa4604c1bfa9fb8920"
         }
       ]
     },
@@ -844,6 +946,14 @@
             }
           ],
           "imageIds": []
+        }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-arbitration:label-1",
+          "tag": "h2",
+          "text": "Jurisprudencia",
+          "sha256": "024b3af3227ff70d2acb6cc0c5be044db16f35efa35cc7fa4604c1bfa9fb8920"
         }
       ]
     },
@@ -978,6 +1088,26 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-statutes:label-1",
+          "tag": "h2",
+          "text": "Normas jurídicas",
+          "sha256": "c662f2cc1a2de71bd6991faabe4141fa151ce6b9f8d7db4d6db6dd1503c7cae8"
+        },
+        {
+          "labelId": "legal-statutes:label-2",
+          "tag": "a",
+          "text": "Leyes nacionales",
+          "sha256": "00aa3712a6817b655eb971c6250427844d2a6d5dc36e10eb1a1bad6ea80829f2"
+        },
+        {
+          "labelId": "legal-statutes:label-3",
+          "tag": "a",
+          "text": "Leyes de otros países",
+          "sha256": "7b68570bec3be4d49238fd3ea19fadbcdcdca94bbf1298829bb46ef4f4a69ab3"
+        }
       ]
     },
     {
@@ -1042,6 +1172,20 @@
             }
           ],
           "imageIds": []
+        }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-norms:label-1",
+          "tag": "h2",
+          "text": "Normas jurídicas",
+          "sha256": "c662f2cc1a2de71bd6991faabe4141fa151ce6b9f8d7db4d6db6dd1503c7cae8"
+        },
+        {
+          "labelId": "legal-norms:label-2",
+          "tag": "h2",
+          "text": "Consideraciones",
+          "sha256": "60c94cd082c5b3dc90186c49795fef9485dce206f4c08ebcd57d8019327889eb"
         }
       ]
     },
@@ -1112,6 +1256,14 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-resolutions:label-1",
+          "tag": "h2",
+          "text": "Normas jurídicas",
+          "sha256": "c662f2cc1a2de71bd6991faabe4141fa151ce6b9f8d7db4d6db6dd1503c7cae8"
+        }
       ]
     },
     {
@@ -1180,6 +1332,14 @@
             }
           ],
           "imageIds": []
+        }
+      ],
+      "labels": [
+        {
+          "labelId": "legal-treaties:label-1",
+          "tag": "h2",
+          "text": "Normas jurídicas",
+          "sha256": "c662f2cc1a2de71bd6991faabe4141fa151ce6b9f8d7db4d6db6dd1503c7cae8"
         }
       ]
     },
@@ -1355,7 +1515,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "ai-content",
@@ -1487,7 +1648,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "periodicals",
@@ -1730,6 +1892,32 @@
             }
           ],
           "imageIds": []
+        }
+      ],
+      "labels": [
+        {
+          "labelId": "periodicals:label-1",
+          "tag": "a",
+          "text": "Revistas en línea",
+          "sha256": "e3aa7dcd7e4d0da29e0e3e601193ade95896bfa79f99865516e2a9a8eb00c8e8"
+        },
+        {
+          "labelId": "periodicals:label-2",
+          "tag": "a",
+          "text": "Revistas impresas",
+          "sha256": "5ca485babd22640f60e426f73afdc31dd10c8d56beb05e8616e4fc74f1ad7099"
+        },
+        {
+          "labelId": "periodicals:label-3",
+          "tag": "a",
+          "text": "Periódicos en línea",
+          "sha256": "dee32a73af4a56d8f58c5642a3750d4d9c2c1e0768cece18637238479684ddc6"
+        },
+        {
+          "labelId": "periodicals:label-4",
+          "tag": "a",
+          "text": "Periódicos impresos",
+          "sha256": "3126fc2bc444c120db7914d2871a6e3c410a2c9fb7be88be0f2009648d4c954f"
         }
       ]
     },
@@ -2041,6 +2229,32 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "audio:label-1",
+          "tag": "a",
+          "text": "Canción o pista",
+          "sha256": "99447ce8e40b6e54953763a74c01f866ae4d909a6be2fe97d43e731f9e5c8646"
+        },
+        {
+          "labelId": "audio:label-2",
+          "tag": "a",
+          "text": "Álbum de música",
+          "sha256": "fb7f5153f90aca5a95ffc1e1fae64a6534b9c1b75630e079d6a94c1d2f0a1420"
+        },
+        {
+          "labelId": "audio:label-3",
+          "tag": "a",
+          "text": "Podcast",
+          "sha256": "27a723d62938b46828aa98bd1216d9a729c71fa0fcd0ae2c5b4f4d57d624c634"
+        },
+        {
+          "labelId": "audio:label-4",
+          "tag": "a",
+          "text": "Episodio de un Podcast",
+          "sha256": "826f3325802305f8a0ccf92da0f388c038a70719b21850b2b31b1a247c031a09"
+        }
       ]
     },
     {
@@ -2148,7 +2362,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "secondary-citations",
@@ -2399,6 +2614,20 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "secondary-citations:label-1",
+          "tag": "a",
+          "text": "Cita de cita directa",
+          "sha256": "4c59502a53cb13483fdce6d5845d7db8369e1506eb75cd9ed5a9381b022b0cdd"
+        },
+        {
+          "labelId": "secondary-citations:label-2",
+          "tag": "a",
+          "text": "Cita de cita de paráfrasis",
+          "sha256": "ef6215a02da26d1626c7bcb703560dda03e6f7568c6b4ee62832a59f5bc18a97"
+        }
       ]
     },
     {
@@ -2490,7 +2719,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "direct-quotes",
@@ -2716,6 +2946,20 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "direct-quotes:label-1",
+          "tag": "a",
+          "text": "Cita directa corta (menos de 40 palabras)",
+          "sha256": "1dd4cf376effa90b777cdb3ef0b869b4f418c9107669462a7538c93c5ccc0a61"
+        },
+        {
+          "labelId": "direct-quotes:label-2",
+          "tag": "a",
+          "text": "Cita directa larga (de 40 palabras a más)",
+          "sha256": "2bf1bc4a92d6029bfe9a3975c545fd28cbf3dbf4fa20ecb57731c8f854ea2223"
+        }
       ]
     },
     {
@@ -2848,7 +3092,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "personal-communications",
@@ -3080,6 +3325,26 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "personal-communications:label-1",
+          "tag": "a",
+          "text": "Comunicaciones personales",
+          "sha256": "a1c3202546c552eba56b9e01444cb99b2f7adb87502b78ad04f90cb81e6a390b"
+        },
+        {
+          "labelId": "personal-communications:label-2",
+          "tag": "a",
+          "text": "Tradiciones orales",
+          "sha256": "96044c344b8f950ab661617bf431a8fd67637edb94c67edd5f46042960ab603e"
+        },
+        {
+          "labelId": "personal-communications:label-3",
+          "tag": "a",
+          "text": "Información privada",
+          "sha256": "1d86218eb377dd3eb25b03520a27a0d9fe58ce2135c9811260abb9b75abfc544"
+        }
       ]
     },
     {
@@ -3242,6 +3507,20 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "conferences:label-1",
+          "tag": "a",
+          "text": "Conferencias y congresos",
+          "sha256": "7d344783193d9395bf7b7a9059d75ad057966f8b22a5ed5484fb3c55944a6274"
+        },
+        {
+          "labelId": "conferences:label-2",
+          "tag": "a",
+          "text": "Simposios y conversatorios",
+          "sha256": "be5848f750f4f8a79f1f426fdc6280326ab52a314fe6b561430a224be1056633"
+        }
       ]
     },
     {
@@ -3364,6 +3643,20 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "online-courses:label-1",
+          "tag": "a",
+          "text": "Curso online o curso online masivo abierto (MOOC)",
+          "sha256": "28f29d9bf314e72d61f13458e039151d7e343da318dde94c1db1a4fcd46935d2"
+        },
+        {
+          "labelId": "online-courses:label-2",
+          "tag": "a",
+          "text": "Conferencia de un curso en línea o MOOC",
+          "sha256": "5ada291997905d32a38a202a8757b2bb010b288405559065462fc5d016f4c0c9"
+        }
       ]
     },
     {
@@ -3472,7 +3765,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "interviews",
@@ -3550,7 +3844,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "citation-faq",
@@ -3952,7 +4247,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "reference-faq",
@@ -4314,7 +4610,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "figures",
@@ -4773,6 +5070,44 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "figures:label-1",
+          "tag": "a",
+          "text": "Fotografía",
+          "sha256": "0f54e01c64116f8317fe4d7bfd1da00ef96f53aca2c6027322921a66071fa99e"
+        },
+        {
+          "labelId": "figures:label-2",
+          "tag": "a",
+          "text": "Google Maps",
+          "sha256": "2923740fe800e25051a3e72f4b740f831509971c4ff88247af6516c1594effcb"
+        },
+        {
+          "labelId": "figures:label-3",
+          "tag": "a",
+          "text": "Infografía",
+          "sha256": "330dc289b1349762bf007a94c092f060caf3c44b3bc12273e2f403c1043bfdaa"
+        },
+        {
+          "labelId": "figures:label-4",
+          "tag": "a",
+          "text": "Figura de cita adaptada",
+          "sha256": "1e9616368906e0fbed28999751ad0e002d4ceb98bd84260accf254ab1327a6d9"
+        },
+        {
+          "labelId": "figures:label-5",
+          "tag": "a",
+          "text": "Figura de cita múltiple",
+          "sha256": "773d3391457d63a13694b00c8b270f2ce770140d52b169662e03c42cd14ac582"
+        },
+        {
+          "labelId": "figures:label-6",
+          "tag": "a",
+          "text": "Figura con información privada",
+          "sha256": "c291ed2f795f9985892da4d6b6dfae2e2a153e143db343d38a3f95c576ecfe45"
+        }
       ]
     },
     {
@@ -4861,7 +5196,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "books",
@@ -5215,6 +5551,38 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "books:label-1",
+          "tag": "a",
+          "text": "Libro impreso",
+          "sha256": "f2e5dd31ccab9bc724b7aeb0d560b50efa222bc90beb4b1b7465cefa8f9dba41"
+        },
+        {
+          "labelId": "books:label-2",
+          "tag": "a",
+          "text": "Libro en línea",
+          "sha256": "ad28e145435a5dd6a7528a7bb4e1a571cc76db3f578a9751c2600620311daf3b"
+        },
+        {
+          "labelId": "books:label-3",
+          "tag": "a",
+          "text": "Capítulo de libro",
+          "sha256": "21c97df542cea4a9f5b5b04dfbf6c9215b547cc67b68dd886488e70ee6cb431b"
+        },
+        {
+          "labelId": "books:label-4",
+          "tag": "a",
+          "text": "Libro con edición",
+          "sha256": "09805cbd79e0b7e96c60dca37bdb0db11df9a9884adb67576847e2dd79c9e074"
+        },
+        {
+          "labelId": "books:label-5",
+          "tag": "a",
+          "text": "Libro con 2 o más editoriales",
+          "sha256": "1ed6a9f8074276c4ef5eaffd6230598b2e1953fe1cd471c43265c3247b9552ad"
+        }
       ]
     },
     {
@@ -5317,7 +5685,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "visual-media",
@@ -5680,6 +6049,44 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "visual-media:label-1",
+          "tag": "a",
+          "text": "Obras de arte en un museo",
+          "sha256": "57e1e51f4209ad0635fac720eefca311c8e19a1c7b7ad115ff337c09cbb47d8a"
+        },
+        {
+          "labelId": "visual-media:label-2",
+          "tag": "a",
+          "text": "Clip art",
+          "sha256": "61c68dc7b86dcbbb6c63068ae7611580c451ea50a7023961aec711e48a85e9f0"
+        },
+        {
+          "labelId": "visual-media:label-3",
+          "tag": "a",
+          "text": "lnfografía",
+          "sha256": "b2ea520c9e8de01283fdf630d4a216215c2141df7445e5071771a8082899939b"
+        },
+        {
+          "labelId": "visual-media:label-4",
+          "tag": "a",
+          "text": "Mapa",
+          "sha256": "d2f671e0a6015903bd0f68e2e2092cc901cf89e0ebf2966e9febe73e1faae135"
+        },
+        {
+          "labelId": "visual-media:label-5",
+          "tag": "a",
+          "text": "Fotografía",
+          "sha256": "0f54e01c64116f8317fe4d7bfd1da00ef96f53aca2c6027322921a66071fa99e"
+        },
+        {
+          "labelId": "visual-media:label-6",
+          "tag": "a",
+          "text": "Diapositivas de PowerPoint",
+          "sha256": "6980dc4eb9bbfb4b91d09117ea658410e556fa6d9dc085cc15b0b1b3234ffee5"
+        }
       ]
     },
     {
@@ -5851,6 +6258,26 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "standards:label-1",
+          "tag": "a",
+          "text": "ISO",
+          "sha256": "6dc87bf3ac7649b799be35cdd8b3a0bdae66a0447c69c286e01df5c87c589859"
+        },
+        {
+          "labelId": "standards:label-2",
+          "tag": "a",
+          "text": "NTP",
+          "sha256": "0a88a0706ea90eee5f75cccbca0e61aef91f4bc55904ae6b16133def6e9f2a60"
+        },
+        {
+          "labelId": "standards:label-3",
+          "tag": "a",
+          "text": "NIIF",
+          "sha256": "bba322c26aab47bfb484cd4a08c550f73fa3d9482516795cf4a84a4f5d5355af"
+        }
       ]
     },
     {
@@ -5993,6 +6420,20 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "reference-works:label-1",
+          "tag": "a",
+          "text": "Impreso",
+          "sha256": "912f2873f92d4de9bf738466b618606b40a8d8d4f6d5010583fd3cd843d1d672"
+        },
+        {
+          "labelId": "reference-works:label-2",
+          "tag": "a",
+          "text": "En línea",
+          "sha256": "19162fce02947f7d1b6fb477d1cc270fd17461e8a56553e83df23d866e161d3f"
+        }
       ]
     },
     {
@@ -6110,7 +6551,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "social-media",
@@ -6435,6 +6877,32 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "social-media:label-1",
+          "tag": "a",
+          "text": "Facebook",
+          "sha256": "d41f5b4977ee05c6b61b3b5f054784628f5cd1cbe06a82a5484d1e6de6eefe85"
+        },
+        {
+          "labelId": "social-media:label-2",
+          "tag": "a",
+          "text": "Instagram",
+          "sha256": "bad57ef7837c8e6bf99c2a5935cc9d6fe5324a53d88744ad5551db0e46b03cd6"
+        },
+        {
+          "labelId": "social-media:label-3",
+          "tag": "a",
+          "text": "X (Twitter)",
+          "sha256": "89c9b65356e34ac9ef7aa2344b92ec887f52e606e2575f631d91052e10738ee7"
+        },
+        {
+          "labelId": "social-media:label-4",
+          "tag": "a",
+          "text": "Foros",
+          "sha256": "6eec3fba3f087fa32c2ae56de04d25a783f98efaf9eae7cdec53c98768e01f68"
+        }
       ]
     },
     {
@@ -6528,7 +6996,8 @@
             "image-14"
           ]
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "webpages",
@@ -6680,6 +7149,20 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "webpages:label-1",
+          "tag": "a",
+          "text": "Autor personal",
+          "sha256": "559c557b0bd42a23412463d90f5a7af5f7296ea4f06a38673dc6ea9c9646ca27"
+        },
+        {
+          "labelId": "webpages:label-2",
+          "tag": "a",
+          "text": "Autor institucional",
+          "sha256": "df5c2cc090d70361d22fe4a87a759f708b98c7b448294cdb527abd6c77c681bd"
+        }
       ]
     },
     {
@@ -6778,7 +7261,8 @@
           ],
           "imageIds": []
         }
-      ]
+      ],
+      "labels": []
     },
     {
       "sectionId": "tables",
@@ -7203,6 +7687,44 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "tables:label-1",
+          "tag": "a",
+          "text": "Tabla de cita textual 1",
+          "sha256": "b75f9d368eece1f18c798a88e28a121c65bae6c8ce10885730072571c0538429"
+        },
+        {
+          "labelId": "tables:label-2",
+          "tag": "a",
+          "text": "Tabla de cita textual 2",
+          "sha256": "0e95922fce6ce027a35d863f68cc8b4a9f797ef9b1b87f09c81788e35c3d3f78"
+        },
+        {
+          "labelId": "tables:label-3",
+          "tag": "a",
+          "text": "Tabla de cita adaptada",
+          "sha256": "c38da6aef36ab581e414496237afcf8cc78cd4c6adc1c55839d2a4c5ac2e8159"
+        },
+        {
+          "labelId": "tables:label-4",
+          "tag": "a",
+          "text": "Tabla de cita múltiple 1",
+          "sha256": "f4a73a2dd483ce413d219cf6425c52bcaef48b800d7182c404ddb9e3817ed4e8"
+        },
+        {
+          "labelId": "tables:label-5",
+          "tag": "a",
+          "text": "Tabla de cita múltiple 2",
+          "sha256": "290d41a76ce54fff33bc0d7dd2cab7422e33a1b3af614dbf72d433938f895e34"
+        },
+        {
+          "labelId": "tables:label-6",
+          "tag": "a",
+          "text": "Tabla de cita múltiple 3",
+          "sha256": "1fc2eeaaeea310b109d4c5a2b0b2073c14effc1c213df27d249dafafba097ff4"
+        }
       ]
     },
     {
@@ -7388,6 +7910,26 @@
             }
           ],
           "imageIds": []
+        }
+      ],
+      "labels": [
+        {
+          "labelId": "theses:label-1",
+          "tag": "a",
+          "text": "Repositorio",
+          "sha256": "85477234e6b322bbd74ee5a810b2f261e97b209c877904d12df4fc6f26b53a38"
+        },
+        {
+          "labelId": "theses:label-2",
+          "tag": "a",
+          "text": "Base de datos",
+          "sha256": "096e3b013afaca74459577f8921a8a945d072bb3c57137694a8e3895065f3596"
+        },
+        {
+          "labelId": "theses:label-3",
+          "tag": "a",
+          "text": "Inédita",
+          "sha256": "91c6957494cc4bffb437f87fe5645793b713828075990735227d244d1792a85f"
         }
       ]
     },
@@ -7674,6 +8216,32 @@
           ],
           "imageIds": []
         }
+      ],
+      "labels": [
+        {
+          "labelId": "video:label-1",
+          "tag": "a",
+          "text": "Webinar",
+          "sha256": "83584124b5786126acf82423d73f4b89b1c1b413e29ba28ca09458164dc1d1e5"
+        },
+        {
+          "labelId": "video:label-2",
+          "tag": "a",
+          "text": "TED",
+          "sha256": "0665fb3c9b40a6ac961f41492e26686aa50540caa10460cba7dcc1412859ec9d"
+        },
+        {
+          "labelId": "video:label-3",
+          "tag": "a",
+          "text": "Youtube",
+          "sha256": "1c919af1ee39359466900b6d8580b7fed34227322fffbdf01593a1c5d3e7b385"
+        },
+        {
+          "labelId": "video:label-4",
+          "tag": "a",
+          "text": "Película",
+          "sha256": "25d5871e866b72c0736eff4a873033e5bf206a9942e44d9ffe71e037e8025f1c"
+        }
       ]
     }
   ],
@@ -7683,7 +8251,7 @@
       "url": "https://d2jv02qf7xgjwx.cloudfront.net/customers/8161/images/Banner_GT_CitasyReferenciasDocumentosJuridicosAPA7_870x274.png",
       "sha256": "9c958c3c3da31456b4bc240f9e29f1455288c297e12a8d79ea97c05be7279c97",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Banner jurídico, sin reglas adicionales.",
+      "assessment": "Banner de presentación jurídica; no contiene reglas de formato adicionales.",
       "sourceBlocks": [
         "s-lg-content-73849407"
       ]
@@ -7693,7 +8261,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258865/images/_APA_7_documentos_jurídicos_jurisprudencia.png",
       "sha256": "ed6adc93e311fc4b8696f367c1109419b83e96c632193174e543aaf61a1d95ec",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Clasificación de jurisprudencia, cubierta por los perfiles jurídicos.",
+      "assessment": "Clasifica expedientes, casación, acuerdo plenario y laudo; el último nodo usa el término genérico jurisprudencia. La navegación identifica el perfil de otros países.",
       "sourceBlocks": [
         "s-lg-content-74003940"
       ]
@@ -7703,7 +8271,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258865/images/_APA_7_documentos_jurídicos_Normas.png",
       "sha256": "7e5356b40b5be850a2be9725e3d1bf3fa24a81fcc95e333d46a0d4df73f2c1f0",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Clasificación de normas, cubierta por los perfiles jurídicos.",
+      "assessment": "Diagrama de constitución, leyes, decretos, códigos y tratados; sus perfiles se tratan por separado.",
       "sourceBlocks": [
         "s-lg-content-74003518"
       ]
@@ -7713,7 +8281,7 @@
       "url": "https://d2jv02qf7xgjwx.cloudfront.net/customers/8161/images/Banner_GT_CitasyReferenciasAPA7_870x274.png",
       "sha256": "24172355093b2b1c7266809bc72840d5c5a47fcbfa479fcaf594e4186d6a3184",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Banner APA, sin reglas adicionales.",
+      "assessment": "Banner APA; no contiene reglas adicionales.",
       "sourceBlocks": [
         "s-lg-content-75564229"
       ]
@@ -7723,7 +8291,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258882/images/CITAS__2_.png",
       "sha256": "6a7a7dc2baafbaeaf5d6b40d5d5503192c7afbea5dfd32d2bbfeef2608c8bcec",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Árbol de tipos: textual corta menor de 40, bloque desde 40 y paráfrasis.",
+      "assessment": "Distingue textual y paráfrasis; textual corta por debajo de 40 y larga desde 40 inclusive.",
       "sourceBlocks": [
         "s-lg-content-75564253"
       ]
@@ -7733,7 +8301,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258882/images/fotografia.PNG",
       "sha256": "420efa87b015746156726d71959069996e3303d7f6989ff51e5e8e3baa1257b8",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Fotografía: contenido ilustrativo; nota y referencia se verifican aparte.",
+      "assessment": "Fotografía ilustrativa. La nota y referencia tienen discrepancias de título, tratadas en figure-title; no inferir derechos o fecha solo por los píxeles.",
       "sourceBlocks": [
         "s-lg-content-75572635"
       ]
@@ -7743,7 +8311,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258862/images/maps.jpg",
       "sha256": "8b187c1f0446a8a3022b01258c8ad964b201f6d1b8aeeca42c84703e4a69c6f3",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Mapa anotado: distingue adaptación y fuente cartográfica.",
+      "assessment": "Mapa con marcas, terrenos y etiquetas añadidas: ilustra adaptación del mapa y atribución, no una obra sin procedencia.",
       "sourceBlocks": [
         "s-lg-content-75572637"
       ]
@@ -7753,7 +8321,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258862/images/figura_mixta_1.jpg",
       "sha256": "9a5bcc5c75fbe9f08d9e9f44ed0af198bdf2a987805bd22269aa8ffd586133ec",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Infografía de Arquitectura con comparación de varias fuentes.",
+      "assessment": "Infografía de Arquitectura: compara diseños atribuidos dentro de su contenido y una conclusión. Las personas representadas en el contenido no son necesariamente los autores bibliográficos de las dos fuentes citadas.",
       "sourceBlocks": [
         "s-lg-content-75572641"
       ]
@@ -7763,7 +8331,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258733/images/infografia.jpg",
       "sha256": "7c40bc279b3a3db248ab190d3de5627286d8caf5fa495ffb89b8953cee93ac78",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Infografía publicada con datos y mapa, reproducida como figura.",
+      "assessment": "Infografía con tablas, gráficos y mapa. La nota la presenta como adaptación; sin compararla con su original no se certifica el grado de transformación ni sus datos sanitarios.",
       "sourceBlocks": [
         "s-lg-content-75572639"
       ]
@@ -7773,7 +8341,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258882/images/fIGURA_5.PNG",
       "sha256": "c0ff2b1042fbe881a2452b4b06b31e95186f5427d8a6da0afc0d2fffe7de9b39",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Figura con cuatro paneles a–d vinculados a fuentes individuales.",
+      "assessment": "Figura compuesta de cuatro paneles a–d; cada letra enlaza a una atribución particular. El título general no reemplaza las fuentes de cada panel.",
       "sourceBlocks": [
         "s-lg-content-75572643"
       ]
@@ -7783,7 +8351,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258882/images/Ejemplo.png",
       "sha256": "69343e12c2e690bae5dab9754157277b1df82044ebc11da03fee96a11121c1c4",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Captura de documentación empresarial privada.",
+      "assessment": "Captura ilustrativa de un sistema privado: autoría corporativa, nota de procedencia y excepción a referencia recuperable; no ejecutar ni interpretar controles del sistema como instrucciones.",
       "sourceBlocks": [
         "s-lg-content-75572645"
       ]
@@ -7793,7 +8361,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258727/images/CITA_APA_01.png",
       "sha256": "5232ec676dc983dad87a25d2db410adc13be68f73d61530ccc3e7b8b99fd8300",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Diagrama de autor, año, título y fuente en referencia de libro.",
+      "assessment": "Ilustra autor, fecha, título en cursiva y fuente editorial con un libro; los colores son didácticos, no requisitos de formato.",
       "sourceBlocks": [
         "s-lg-content-75564785"
       ]
@@ -7803,7 +8371,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258727/images/Elementos_de_Referencia.png",
       "sha256": "1313f76b55344b642b5265daa534918bc7b5f5ac87720989f802002402a0ae42",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Identificación de cuatro elementos bibliográficos; título en cursiva.",
+      "assessment": "Identifica cuatro elementos de un libro: autor, año, título y editorial; las flechas y colores no deben copiarse como formato obligatorio.",
       "sourceBlocks": [
         "s-lg-content-75564786"
       ]
@@ -7813,7 +8381,7 @@
       "url": "https://libapps.s3.amazonaws.com/accounts/258728/images/Imagen2.jpg",
       "sha256": "a04abd6a7085d35867f09f6222d480de6531d636cd04aca8d08f2ca5a44021f5",
       "reviewStatus": "visually-reviewed",
-      "assessment": "Lista visual: REFERENCIAS mayúscula, negrita, centrada; orden, sangría francesa y cursivas por tipo.",
+      "assessment": "Lista visual con REFERENCIAS centrado y en negrita, orden y sangría francesa, cursiva según tipo. El apellido Gaete difiere de la entrada de Artículos; aplicar reference-image-author y cotejar el original.",
       "sourceBlocks": [
         "s-lg-content-75564791"
       ]
@@ -8068,6 +8636,69 @@
       "url": "https://biblioteca.upc.edu.pe/Documentos_Juridicos",
       "detail": "Guía colombiana exige URL y usa institución autora, mientras UPC usa identificador legal y URL opcional.",
       "decision": "No mezcles jurisdicciones o perfiles; aplica pauta UPC para trabajos UPC y explica contraste."
+    },
+    {
+      "id": "secondary-narrative-authorship",
+      "sectionId": "secondary-citations",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/citadecita",
+      "detail": "Los ejemplos parentéticos de Plaza usan et al., pero las narrativas de la misma obra lo omiten.",
+      "decision": "Aplicar primer apellido y et al. si la obra original tiene tres o más autores; verificar la autoría original antes de completar datos."
+    },
+    {
+      "id": "software-omission-condition",
+      "sectionId": "software",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/software-aplicaciones",
+      "detail": "La nota pide omitir desarrollador/tienda cuando coinciden autor y nombre del software, pero el ejemplo Doom omite la entidad desarrolladora coincidente con el autor, aunque su título difiere.",
+      "decision": "Distinguir autor, título y desarrollador. Evitar repetir la fuente que coincide con el autor; no inferir la omisión de una entidad distinta a partir de una redacción ambigua. Explicar el contraste cuando afecte la revisión."
+    },
+    {
+      "id": "secondary-block-punctuation",
+      "sectionId": "secondary-citations",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/citadecita",
+      "detail": "Los ejemplos de cita de cita larga presentan la puntuación terminal después del paréntesis y omiten el punto antes de la atribución, frente a la regla explícita de Citas directas.",
+      "decision": "Aplicar puntuación final del bloque antes de la atribución y no agregar otro punto después del paréntesis; la cita secundaria no cambia esa regla."
+    },
+    {
+      "id": "symposium-title-italics",
+      "sectionId": "conferences",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/conferencias",
+      "detail": "El esquema marca el título de la contribución de simposio en cursiva, pero el ejemplo deja esa contribución sin cursiva y usa cursiva en el título del simposio.",
+      "decision": "Distinguir contribución y contenedor; explicar la inconsistencia y aplicar el perfil solicitado por el docente cuando corresponda."
+    },
+    {
+      "id": "web-retrieval-condition",
+      "sectionId": "webpages",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/sitios-web",
+      "detail": "Los esquemas de páginas web y un ejemplo fechado incluyen recuperación, mientras la nota exige recuperación solo para contenido cambiante y no archivado.",
+      "decision": "Aplicar la condición explícita de la nota; no exigir recuperación a toda página web por copiar mecánicamente el esquema."
+    },
+    {
+      "id": "social-orphan-citation",
+      "sectionId": "social-media",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/redes-sociales",
+      "detail": "El ejemplo de citas de X añade Crónica de San Francisco, 2021, sin proporcionar una entrada de referencia correspondiente en ese apartado.",
+      "decision": "No inventar sus metadatos. Si aparece en un trabajo, comprobar que exista una referencia de la fuente realmente consultada o pedirla antes de completar la entrada."
+    },
+    {
+      "id": "table-quote-locators",
+      "sectionId": "tables",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/tablas",
+      "detail": "El ejemplo de notas específicas usa p. 31 y p. 79 para artículos cuyas referencias muestran rangos 12–19 y 403–414, respectivamente. Puede haber error de metadatos o distinta paginación; no queda aclarado en la guía.",
+      "decision": "Comparar localizador, edición y paginación con el original. No validar automáticamente el número ni sustituirlo por un número inventado; explicar la discrepancia si no se puede resolver."
+    },
+    {
+      "id": "map-date-suffix",
+      "sectionId": "figures",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/figuras",
+      "detail": "La nota de mapas prescribe comenzar con s.f.-a, mientras el FAQ condiciona las letras a varias obras del mismo autor y fecha.",
+      "decision": "Usar letras coherentes cuando haya obras distintas que distinguir; explicar la diferencia de redacción y respetar una instrucción docente explícita, sin generar una segunda obra ficticia."
+    },
+    {
+      "id": "reference-image-author",
+      "sectionId": "references",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/referencias",
+      "detail": "La imagen de ejemplo escribe Gaete, R., mientras el apartado Artículos presenta el mismo título y URL con Gaete Quezada, R.",
+      "decision": "Conservar apellidos del documento original y hacerlos coincidir en citas y referencias; no decidir la autoría por una variante de la imagen."
     }
   ],
   "links": [
@@ -8927,7 +9558,8 @@
     "supportingPendingSourceIds": [
       "manual-catalog"
     ],
-    "criteria": 179
+    "criteria": 187,
+    "pageLabels": 82
   },
   "externalDocuments": [
     {

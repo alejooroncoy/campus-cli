@@ -14,7 +14,7 @@ from pathlib import Path
 from urllib.parse import urldefrag, urljoin, urlparse, parse_qs, parse_qsl, urlencode, urlunparse
 
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 
 ENTRY = 'https://biblioteca.upc.edu.pe/citas-referencias-APA7/citas'
 
@@ -66,12 +66,22 @@ def inventory_page(url, html):
         embeds = [urljoin(url, node['src']) for node in block.select('iframe[src],embed[src]')]
         blocks.append({'blockId': block['id'], 'text': text, 'sha256': digest(str(block)),
                        'units': units, 'links': links, 'images': images, 'embeds': embeds})
+    labels = []
+    for node in main.find_all(string=True):
+        if isinstance(node, Comment) or not str(node).strip():
+            continue
+        if any(parent.name in {'script', 'style'} for parent in node.parents):
+            continue
+        if any(parent.get('id', '').startswith('s-lg-content-') for parent in node.parents if parent != main):
+            continue
+        value = str(node).strip()
+        labels.append({'tag': node.parent.name, 'text': value, 'sha256': digest(value)})
     links = [canonical_link(urljoin(url, a['href'])) for a in soup.select('a[href]')]
     updated = soup.select_one('#s-lg-guide-header-updated')
     return {'url': url, 'title': title.get_text(' ', strip=True) if title else url,
             'htmlSha256': digest(html), 'mainSha256': digest(str(main)),
             'lastUpdated': updated.get_text(' ', strip=True) if updated else None,
-            'blocks': blocks, 'guideLinks': sorted(set(filter(guide_link, links)))}
+            'blocks': blocks, 'labels': labels, 'guideLinks': sorted(set(filter(guide_link, links)))}
 
 
 def main():

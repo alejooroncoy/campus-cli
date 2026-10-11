@@ -25,6 +25,7 @@ test('review skill is discoverable and retrievable through the real MCP protocol
     assert.ok(guidance);
     assert.equal(guidance.annotations?.readOnlyHint, true);
     assert.ok((guidance.inputSchema.properties?.topic as { enum: string[] }).enum.includes('review'));
+    assert.ok(guidance.inputSchema.properties?.reviewSectionId);
 
     const result = await client.callTool({ name: 'campus_apa7_guidance', arguments: { topic: 'review' } });
     assert.ok(!result.isError);
@@ -83,18 +84,19 @@ test('MCP retrieves all notes and visual evidence for a selected UPC section', a
 test('source audit fails closed on missing notes or falsely complete coverage', async () => {
   const book = JSON.parse(await readFile('.agents/skills/apa7-review-campus/references/upc-review-rules.json', 'utf8'));
   const audit = JSON.parse(await readFile('.agents/skills/apa7-review-campus/references/upc-source-audit.json', 'utf8'));
-  assert.doesNotThrow(() => parseApa7ReviewCorpus(book, audit));
+  const semantic = JSON.parse(await readFile('.agents/skills/apa7-review-campus/references/upc-semantic-coverage.json', 'utf8'));
+  assert.doesNotThrow(() => parseApa7ReviewCorpus(book, audit, semantic));
   const missingNote = structuredClone(audit);
   missingNote.pages.find((page: { sectionId: string }) => page.sectionId === 'figures').blocks.pop();
-  assert.throws(() => parseApa7ReviewCorpus(book, missingNote), /declared coverage/);
+  assert.throws(() => parseApa7ReviewCorpus(book, missingNote, semantic), /declared coverage/);
   const falseComplete = structuredClone(book);
   falseComplete.normativeSources.find((source: { id: string }) => source.id === 'manual-catalog').requiredForRequestedScope = true;
   falseComplete.coverageSummary.pendingSourceIds = ['manual-catalog'];
   falseComplete.coverageSummary.supportingPendingSourceIds = [];
-  assert.throws(() => parseApa7ReviewCorpus(falseComplete, audit), /pending normative/);
+  assert.throws(() => parseApa7ReviewCorpus(falseComplete, audit, semantic), /pending normative/);
   const unmappedImage = structuredClone(audit);
   unmappedImage.images[0].sourceBlocks.push('missing-block');
-  assert.throws(() => parseApa7ReviewCorpus(book, unmappedImage), /unresolved source/);
+  assert.throws(() => parseApa7ReviewCorpus(book, unmappedImage, semantic), /unresolved source/);
 });
 
 test('review retains entitlement enforcement and validates incompatible selectors over MCP', async () => {
@@ -119,4 +121,59 @@ test('review retains entitlement enforcement and validates incompatible selector
 test('npm publishes the resources that the compiled MCP review loader needs', async () => {
   const pkg = JSON.parse(await readFile('package.json', 'utf8'));
   assert.ok(pkg.files.includes('.agents/skills/apa7-review-campus'));
+});
+
+test('semantic coverage rejects omissions, stale rules, unsupported mappings and pending review', async () => {
+  const prefix = '.agents/skills/apa7-review-campus/references/';
+  const book = JSON.parse(await readFile(`${prefix}upc-review-rules.json`, 'utf8'));
+  const audit = JSON.parse(await readFile(`${prefix}upc-source-audit.json`, 'utf8'));
+  const semantic = JSON.parse(await readFile(`${prefix}upc-semantic-coverage.json`, 'utf8'));
+  assert.doesNotThrow(() => parseApa7ReviewCorpus(book, audit, semantic));
+  const missingUnit = structuredClone(semantic);
+  missingUnit.units.pop();
+  assert.throws(() => parseApa7ReviewCorpus(book, audit, missingUnit), /semantic coverage/);
+  const staleUnit = structuredClone(semantic);
+  staleUnit.units[0].sha256 = '0'.repeat(64);
+  assert.throws(() => parseApa7ReviewCorpus(book, audit, staleUnit), /changed or unresolved unit/);
+  const wrongRule = structuredClone(book);
+  wrongRule.sections.find((section: { id: string }) => section.id === 'presentation').criteria[1] = 'Usar 2025 como fecha bibliográfica.';
+  assert.throws(() => parseApa7ReviewCorpus(wrongRule, audit, semantic), /no matching evidence/);
+  const unsupportedRule = structuredClone(semantic);
+  unsupportedRule.units.find((unit: { kind: string }) => unit.kind === 'rule').criterionRefs = [];
+  assert.throws(() => parseApa7ReviewCorpus(book, audit, unsupportedRule), /unresolved criteria/);
+  const unresolvedReference = structuredClone(semantic);
+  unresolvedReference.units[0].criterionRefs = ['unknown:1'];
+  assert.throws(() => parseApa7ReviewCorpus(book, audit, unresolvedReference), /unresolved criteria/);
+  const missingLabel = structuredClone(semantic);
+  missingLabel.labels.pop();
+  assert.throws(() => parseApa7ReviewCorpus(book, audit, missingLabel), /semantic coverage/);
+  const pending = structuredClone(semantic);
+  pending.units[0].status = 'pending';
+  assert.throws(() => parseApa7ReviewCorpus(book, audit, pending));
+  const inventedEvidence = structuredClone(semantic);
+  inventedEvidence.criterionEvidence[0].sourceUnitIds = ['missing-note'];
+  assert.throws(() => parseApa7ReviewCorpus(book, audit, inventedEvidence), /no matching evidence/);
+});
+
+test('every UPC section is retrievable with complete semantic evidence and resolved cross-section criteria', async () => {
+  const { client, close } = await connectAcademicClient(() => true);
+  try {
+    const prefix = '.agents/skills/apa7-review-campus/references/';
+    const corpus = JSON.parse(await readFile(`${prefix}upc-semantic-coverage.json`, 'utf8'));
+    const book = JSON.parse(await readFile(`${prefix}upc-review-rules.json`, 'utf8'));
+    for (const section of book.sections) {
+      const result = await client.callTool({ name: 'campus_apa7_guidance', arguments: { topic: 'review', reviewSectionId: section.id } });
+      assert.ok(!result.isError, section.id);
+      const review = JSON.parse((result.content as Array<{ text: string }>)[0].text).reviewSkill;
+      assert.equal(review.semanticAudit.status, 'complete');
+      assert.deepEqual(review.semanticAudit.units, corpus.units.filter((unit: { sectionId: string }) => unit.sectionId === section.id));
+      assert.deepEqual(review.semanticAudit.labels, corpus.labels.filter((label: { sectionId: string }) => label.sectionId === section.id));
+      for (const evidence of [...review.semanticAudit.units, ...review.semanticAudit.labels, ...review.semanticAudit.images]) {
+        assert.ok(evidence.criterionRefs.every((ref: string) => review.semanticAudit.criteria.some((criterion: { criterionRef: string }) => criterion.criterionRef === ref)));
+      }
+      if (section.id === 'ai-references') {
+        assert.ok(review.semanticAudit.criteria.some((criterion: { criterionRef: string }) => criterion.criterionRef === 'ai-content:1'), 'method disclosure must be available even when stored in a related section');
+      }
+    }
+  } finally { await close(); }
 });

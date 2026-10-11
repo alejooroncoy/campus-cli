@@ -21,7 +21,12 @@ Cuando esta habilidad ya llegó por esa llamada, úsala directamente.
 Consulta en el archivo de reglas únicamente las secciones pertinentes. Para el
 detalle de una sección usa `topic: "review", reviewSectionId: "figures"` (o un
 ID de `reviewSkill.catalog`): devuelve reglas y auditoría de bloques, notas,
-imágenes y enlaces. [El inventario de fuentes](references/upc-source-audit.json)
+imágenes y enlaces. `semanticAudit` relaciona cada unidad y cada imagen con los
+criterios que conserva; incluye criterios de otras secciones cuando una nota los
+necesita. Usa esos criterios relacionados para no perder excepciones al consultar
+solo una sección. [La matriz semántica](references/upc-semantic-coverage.json)
+distingue contenido explícito, ejemplos, salvaguardas derivadas y apoyo normativo.
+[El inventario de fuentes](references/upc-source-audit.json)
 registra huellas y cobertura sin redistribuir los textos ni imágenes originales.
 Para ampliar un caso no cubierto, pide al mismo MCP `topic: "reference"`
 con `sourceType`, `caseId` o `referenceRuleId`; para una regla puntual de cita,
@@ -80,7 +85,9 @@ No envíes el trabajo a Blackboard como parte de esta revisión.
 ## Cobertura y discrepancias de la fuente
 
 La captura revisada contiene 45 páginas UPC (31 APA y 14 jurídicas), 185 bloques,
-1.105 unidades de texto y 14 imágenes inspeccionadas. Las unidades incluyen
+1.105 unidades de texto, 82 etiquetas de pestañas/apartados y 14 imágenes
+inspeccionadas. Su revisión por unidad se conserva en la matriz semántica, con
+187 criterios y 24 discrepancias o ambigüedades registradas. Las unidades incluyen
 ejemplos, esquemas y notas; no equivalen a 1.105 reglas independientes. Se
 registran 98 enlaces de contenido. La guía colombiana complementaria se leyó
 en sus 20 páginas, pero es otra jurisdicción: no sustituye los perfiles UPC.
@@ -95,6 +102,11 @@ de 2025 distinguen chat compartido de herramienta general y dejan de exigir vers
 por defecto. Conserva la pauta UPC y el requisito del docente, y expón la
 actualización; no declares incorrecto un formato sin indicar qué perfil aplicaste.
 La autorización de IA depende del curso, no de que exista una referencia correcta.
+
+Para referenciar esta guía sigue su modelo bibliográfico: noviembre de 2021, no
+la fecha de actualización del sitio. Distingue los contrastes de cursiva en
+simposios, de recuperación web y de los sufijos de mapas sin fecha; no resuelvas
+una fuente ambigua inventando una condición universal.
 
 El alcance solicitado es la guía UPC: `requestedScope: "upc-guide"`.
 `allRequestedSourcesComplete` corresponde a la captura revisada de esas páginas,

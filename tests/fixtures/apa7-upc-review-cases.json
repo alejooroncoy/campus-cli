@@ -1,0 +1,1143 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Evaluación de decisiones y correcciones con casos sintéticos UPC; no son referencias reales para entregar.",
+  "instructions": "Evaluar exclusivamente la propiedad solicitada. evidence contiene datos confirmados para la simulación; sin evidence no inventar datos. Cumple significa que la propiedad solicitada no presenta error, no certificación global del documento.",
+  "cases": [
+    {
+      "sectionId": "direct-quotes",
+      "request": "Certifica que la cita literal coincide con la fuente.",
+      "material": "\"Texto literal\" (Serrano, 2022, p. 19).",
+      "evidence": "No se proporciona fuente original ni transcripción confirmada.",
+      "expected": {
+        "status": "no verificable",
+        "criterionRefs": [
+          "direct-quotes:4"
+        ],
+        "repair": "Pedir original o pasaje; no afirmar fidelidad por la forma."
+      },
+      "id": "case-001"
+    },
+    {
+      "sectionId": "references",
+      "request": "Revisa el alcance de la lista.",
+      "material": "Añadí diez obras que no cité porque las leí para conocer el tema.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "references:1"
+        ],
+        "repair": "Lista de referencias solo con fuentes citadas, salvo instrucción docente distinta."
+      },
+      "id": "case-002"
+    },
+    {
+      "sectionId": "reference-faq",
+      "request": "Revisa la convención UPC para fecha desconocida.",
+      "material": "Serrano, A. (s. f.). Título confirmado.",
+      "evidence": "No hay fecha localizable; se evalúa solo el elemento fecha.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "reference-faq:4"
+        ],
+        "repair": "s.f., sin espacios."
+      },
+      "id": "case-003"
+    },
+    {
+      "sectionId": "figures",
+      "request": "Revisa atribuciones en una figura compuesta.",
+      "material": "Cuatro paneles de cuatro fuentes diferentes, pero solo una fuente identificada en la nota.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "figures:6"
+        ],
+        "repair": "Identificar y relacionar a–d con sus cuatro fuentes; no inventar las que no se aportaron."
+      },
+      "id": "case-004"
+    },
+    {
+      "sectionId": "references",
+      "request": "Comprueba sangría y cursiva del documento.",
+      "material": "Se aporta únicamente texto plano de una lista.",
+      "evidence": "",
+      "expected": {
+        "status": "no verificable",
+        "criterionRefs": [
+          "references:2"
+        ],
+        "repair": "No inferir propiedades visuales a partir de texto plano."
+      },
+      "id": "case-005"
+    },
+    {
+      "sectionId": "video",
+      "request": "Revisa fecha de vídeo en línea.",
+      "material": "Se usó 2020, año de grabación, aunque el vídeo consultado se subió en 2021.",
+      "evidence": "Subida confirmada: 19 de julio de 2021; grabación 2020.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "video:3"
+        ],
+        "repair": "Fecha de publicación/subida del vídeo consultado."
+      },
+      "id": "case-006"
+    },
+    {
+      "sectionId": "reference-faq",
+      "request": "Revisa solo la cantidad y orden de autores.",
+      "material": "Referencia de 21 autores: se presentan los 21, con & antes del último.",
+      "evidence": "Lista y orden de los 21 autores confirmados.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "reference-faq:1"
+        ],
+        "repair": "Primeros 19, puntos suspensivos y autor 21, sin &."
+      },
+      "id": "case-007"
+    },
+    {
+      "sectionId": "citation-faq",
+      "request": "Revisa la cita de una reedición.",
+      "material": "(Solís, 2019).",
+      "evidence": "Obra original de 1980 y reedición consultada de 2019.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "citation-faq:5"
+        ],
+        "repair": "(Solís, 1980/2019)."
+      },
+      "id": "case-008"
+    },
+    {
+      "sectionId": "software",
+      "request": "Revisa omisión del desarrollador.",
+      "material": "Autor = título del programa, pero el desarrollador/editor es una entidad distinta. Se eliminó ese desarrollador por la nota UPC.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "software:2"
+        ],
+        "repair": "No omitir una entidad distinta automáticamente; explicar la ambigüedad y conservar datos verificados."
+      },
+      "id": "case-009"
+    },
+    {
+      "sectionId": "legal-codes",
+      "request": "Revisa elemento fuente/identificador.",
+      "material": "El código fue identificado por título y año, pero se omitió la ley o decreto que lo aprueba en la referencia.",
+      "evidence": "Instrumento de aprobación disponible y confirmado en el documento.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-codes:1",
+          "legal-codes:3"
+        ],
+        "repair": "Conservar el identificador confirmado del instrumento de aprobación."
+      },
+      "id": "case-010"
+    },
+    {
+      "sectionId": "datasets",
+      "request": "Revisa recuperación de datos.",
+      "material": "Dataset mutable sin archivo de versiones: referencia con año y URL, sin recuperación.",
+      "evidence": "Dataset diseñado para cambiar; consulta real 12 de agosto de 2024.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "datasets:2"
+        ],
+        "repair": "Añadir fecha real de recuperación."
+      },
+      "id": "case-011"
+    },
+    {
+      "sectionId": "paraphrases",
+      "request": "Revisa si hay que repetir la cita en cada oración.",
+      "material": "Serrano (2022) presenta tres etapas. En ese mismo modelo, la segunda etapa amplía la participación.",
+      "evidence": "Ambas oraciones fieles; mismo párrafo y fuente inequívoca.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "paraphrases:3"
+        ],
+        "repair": ""
+      },
+      "id": "case-012"
+    },
+    {
+      "sectionId": "online-courses",
+      "request": "Revisa autor de una lección.",
+      "material": "La plataforma Coursera aparece como autora, aunque consta la profesora responsable.",
+      "evidence": "Responsable confirmada de la lección: Ana Solís.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "online-courses:3"
+        ],
+        "repair": "Usar autora de la lección; plataforma como fuente."
+      },
+      "id": "case-013"
+    },
+    {
+      "sectionId": "ai-references",
+      "request": "Completa versión y fecha de lanzamiento.",
+      "material": "Se usó una herramienta de IA, pero no se sabe qué versión.",
+      "evidence": "",
+      "expected": {
+        "status": "no verificable",
+        "criterionRefs": [
+          "ai-references:2"
+        ],
+        "repair": "No inventar versión ni año de lanzamiento."
+      },
+      "id": "case-014"
+    },
+    {
+      "sectionId": "direct-quotes",
+      "request": "Revisa el localizador de páginas discontinuas.",
+      "material": "\"Fragmento literal\" (Serrano, 2022, pp. 8-11).",
+      "evidence": "Se reproducen pasajes de las páginas 8 y 11, no un intervalo continuo.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "direct-quotes:4"
+        ],
+        "repair": "Usar pp. 8, 11, pues no se citan las páginas intermedias."
+      },
+      "id": "case-015"
+    },
+    {
+      "sectionId": "software",
+      "request": "Revisa la necesidad de referencia.",
+      "material": "En métodos se dice que se procesaron datos con SPSS; no se cita contenido del programa. No hay referencia de SPSS.",
+      "evidence": "",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "software:3"
+        ],
+        "repair": ""
+      },
+      "id": "case-016"
+    },
+    {
+      "sectionId": "direct-quotes",
+      "request": "Revisa delimitación y formato de la cita; la transcripción es exacta.",
+      "material": "En un párrafo normal y entre comillas: \"palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra\" (Serrano, 2022, p. 8).",
+      "evidence": "Texto de 40 palabras y página 8 confirmados.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "direct-quotes:2"
+        ],
+        "repair": "Pasar a bloque de 40 palabras, sin comillas, sangría y punto antes de la atribución."
+      },
+      "id": "case-017"
+    },
+    {
+      "sectionId": "citations",
+      "request": "Revisa solo los componentes de esta cita.",
+      "material": "La idea procede de esa investigación (Serrano).",
+      "evidence": "Fuente consultada: Serrano, publicada en 2022.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "citations:1"
+        ],
+        "repair": "Añadir 2022, no un año conjeturado."
+      },
+      "id": "case-018"
+    },
+    {
+      "sectionId": "references",
+      "request": "Revisa solo el título de la lista según UPC.",
+      "material": "La lista tiene el título REFERENCIAS, centrado y en negrita.",
+      "evidence": "",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "references:4"
+        ],
+        "repair": ""
+      },
+      "id": "case-019"
+    },
+    {
+      "sectionId": "conferences",
+      "request": "Revisa autores y fechas del evento.",
+      "material": "Se excluyó a la coautora que no asistió y se usó solo el día de la exposición.",
+      "evidence": "Dos autores verificados. Evento 3–5 de julio de 2024; exposición el día 4.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "conferences:2"
+        ],
+        "repair": "Incluir ambos autores y fechas completas del congreso."
+      },
+      "id": "case-020"
+    },
+    {
+      "sectionId": "direct-quotes",
+      "request": "Revisa delimitación y puntuación final.",
+      "material": "\"palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra palabra\" (Serrano, 2022, p. 8).",
+      "evidence": "Exactitud y p. 8 confirmadas; 39 palabras en un párrafo ordinario.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "direct-quotes:1"
+        ],
+        "repair": ""
+      },
+      "id": "case-021"
+    },
+    {
+      "sectionId": "legal-jurisprudence",
+      "request": "Revisa la selección de perfil.",
+      "material": "Un laudo arbitral se referenció usando el esquema de ley con institución autora.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-jurisprudence:2",
+          "legal-arbitration:1"
+        ],
+        "repair": "Usar perfil de laudo, con partes, año y datos del laudo."
+      },
+      "id": "case-022"
+    },
+    {
+      "sectionId": "paraphrases",
+      "request": "Revisa cómo clasificar esta traducción propia.",
+      "material": "Traduje yo un texto inglés y lo presenté como cita textual exacta, entre comillas.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "paraphrases:2"
+        ],
+        "repair": "Tratar la traducción propia como paráfrasis con autor y año; no como literal del original."
+      },
+      "id": "case-023"
+    },
+    {
+      "sectionId": "legal-norms",
+      "request": "Revisa la elección de categoría.",
+      "material": "Se clasificó un código como jurisprudencia solo porque es una fuente jurídica.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-norms:2"
+        ],
+        "repair": "Código pertenece al perfil de normas jurídicas/códigos, no al de una sentencia."
+      },
+      "id": "case-024"
+    },
+    {
+      "sectionId": "legal-presentation",
+      "request": "Revisa el perfil jurisdiccional.",
+      "material": "El trabajo UPC peruano reemplazó las estructuras de la guía jurídica por Bluebook estadounidense sin indicación docente.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-presentation:1"
+        ],
+        "repair": "Aplicar adaptación UPC peruana; no trasplantar Bluebook automáticamente."
+      },
+      "id": "case-025"
+    },
+    {
+      "sectionId": "standards",
+      "request": "Revisa abreviatura del autor y número de norma.",
+      "material": "INACAL. (2016). Título (NTP 201.003:2012). URL confirmada.",
+      "evidence": "Se verifica 2016 y el número indicado para la edición usada; no corregir años por conjetura.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "standards:3",
+          "reference-faq:2"
+        ],
+        "repair": "Nombre institucional completo en referencia; conservar número de norma."
+      },
+      "id": "case-026"
+    },
+    {
+      "sectionId": "legal-decrees",
+      "request": "Revisa la denominación del instrumento.",
+      "material": "Una ordenanza municipal se trató como artículo de periódico por haber sido publicada en un diario oficial.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-decrees:2"
+        ],
+        "repair": "Perfil jurídico de ordenanza; no artículo periodístico por su canal de publicación."
+      },
+      "id": "case-027"
+    },
+    {
+      "sectionId": "legal-cassation",
+      "request": "Revisa año de la pieza procesal.",
+      "material": "Casación 145-2015/Lambayeque. (2015). Título e institución confirmados.",
+      "evidence": "Año de la sentencia consultada confirmado: 2020.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-cassation:2"
+        ],
+        "repair": "Año 2020 de la pieza consultada, conservando 2015 dentro del identificador."
+      },
+      "id": "case-028"
+    },
+    {
+      "sectionId": "ai-references",
+      "request": "Revisa fecha de la versión según el perfil UPC.",
+      "material": "Se registró 2026 solo porque es el año actual.",
+      "evidence": "Versión usada y lanzamiento confirmados: 2023.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "ai-references:1",
+          "ai-references:2"
+        ],
+        "repair": "Usar año confirmado de la versión utilizada y declarar el perfil UPC."
+      },
+      "id": "case-029"
+    },
+    {
+      "sectionId": "figures",
+      "request": "Revisa si debe aplicarse la pauta de Arquitectura.",
+      "material": "Trabajo de Psicología: figura no editable y título sin la palabra Infografía.",
+      "evidence": "La única cuestión es si la pauta específica de Arquitectura es exigible a este programa.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "figures:4"
+        ],
+        "repair": ""
+      },
+      "id": "case-030"
+    },
+    {
+      "sectionId": "periodicals",
+      "request": "Revisa el eLocator.",
+      "material": "Una revista usa Artículo e12345, pero en la referencia se omitió porque no es número de página.",
+      "evidence": "e12345 es el identificador verificado del artículo.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "periodicals:4"
+        ],
+        "repair": "Conservar el identificador de artículo en lugar de páginas."
+      },
+      "id": "case-031"
+    },
+    {
+      "sectionId": "theses",
+      "request": "Revisa clasificación de una tesis impresa recuperable.",
+      "material": "Tesis inédita conservada en biblioteca: se clasificó como comunicación personal y no se referenció.",
+      "evidence": "Ejemplar catalogado y consultable en biblioteca.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "theses:3",
+          "theses:4"
+        ],
+        "repair": "Referencia de tesis inédita con universidad como fuente, no comunicación personal."
+      },
+      "id": "case-032"
+    },
+    {
+      "sectionId": "citation-faq",
+      "request": "Revisa cantidad de autores.",
+      "material": "Paredes (2023) explica los resultados.",
+      "evidence": "La obra tiene cuatro autores; Paredes es el primero.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "citation-faq:1"
+        ],
+        "repair": "Paredes et al. (2023)."
+      },
+      "id": "case-033"
+    },
+    {
+      "sectionId": "multiple-citations",
+      "request": "Revisa orden y separadores.",
+      "material": "La idea está compartida (Zamora, 2020, Almeida, 2021).",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "multiple-citations:1"
+        ],
+        "repair": "Orden Almeida antes de Zamora y punto y coma."
+      },
+      "id": "case-034"
+    },
+    {
+      "sectionId": "social-media",
+      "request": "Revisa autor desconocido en foro.",
+      "material": "Solo consta el usuario sendero77; se escribió [sendero77] como único elemento autor.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "social-media:2"
+        ],
+        "repair": "Usuario como autor, sin corchetes si no se conoce el nombre real."
+      },
+      "id": "case-035"
+    },
+    {
+      "sectionId": "interviews",
+      "request": "Revisa el tratamiento de participantes propios.",
+      "material": "Entrevistado P07 dijo \"me resultó útil\". No hay cita de comunicación personal ni entrada de referencia.",
+      "evidence": "P07 es participante de la investigación propia; transcripción exacta y autorización de uso confirmadas.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "interviews:3"
+        ],
+        "repair": ""
+      },
+      "id": "case-036"
+    },
+    {
+      "sectionId": "legal-constitutions",
+      "request": "Corrige el artículo que corresponde al pasaje.",
+      "material": "El pasaje se atribuye al artículo 24; no se aporta el original.",
+      "evidence": "",
+      "expected": {
+        "status": "no verificable",
+        "criterionRefs": [
+          "legal-constitutions:2",
+          "legal-constitutions:3"
+        ],
+        "repair": "Señalar necesidad de cotejo; no inventar artículo correcto."
+      },
+      "id": "case-037"
+    },
+    {
+      "sectionId": "figures",
+      "request": "Revisa si falta una referencia de material privado.",
+      "material": "Figura de documento interno de empresa: atribución con empresa, título y año; sin referencia.",
+      "evidence": "Documento no público/no recuperable y uso autorizado; metadatos confirmados.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "figures:5"
+        ],
+        "repair": ""
+      },
+      "id": "case-038"
+    },
+    {
+      "sectionId": "reference-works",
+      "request": "Revisa la fecha de recuperación.",
+      "material": "Una enciclopedia continuamente actualizada, sin versiones archivadas, se referencia con s.f. y sin recuperación.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "reference-works:2"
+        ],
+        "repair": "Añadir la fecha real de recuperación, no la fecha actual supuesta."
+      },
+      "id": "case-039"
+    },
+    {
+      "sectionId": "legal-files",
+      "request": "Revisa tipo de localizador.",
+      "material": "El original usa folios; la cita usa p. 12.",
+      "evidence": "El folio 12 del documento consultado está confirmado.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-files:2"
+        ],
+        "repair": "f. 12, no p. 12."
+      },
+      "id": "case-040"
+    },
+    {
+      "sectionId": "citation-faq",
+      "request": "Revisa abreviatura institucional en primera cita.",
+      "material": "(OMS, 2020), primera y única mención de esa institución.",
+      "evidence": "Autor confirmado: Organización Mundial de la Salud.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "citation-faq:2"
+        ],
+        "repair": "Primera cita: nombre completo y sigla entre corchetes."
+      },
+      "id": "case-041"
+    },
+    {
+      "sectionId": "personal-communications",
+      "request": "Revisa la exigencia de referencia recuperable.",
+      "material": "Incluí una comunicación personal por una carta digitalizada de un archivo público.",
+      "evidence": "La carta tiene un registro público estable y accesible para el lector.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "personal-communications:2"
+        ],
+        "repair": "Usar perfil de material de archivo recuperable, no comunicación personal."
+      },
+      "id": "case-042"
+    },
+    {
+      "sectionId": "video",
+      "request": "Revisa autoría de TED en YouTube.",
+      "material": "Se usó a la conferenciante como autora del vídeo que publicó la cuenta TED en YouTube.",
+      "evidence": "Fuente consultada: vídeo de YouTube de la cuenta TED, no el sitio TED.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "video:2"
+        ],
+        "repair": "Acreditar la cuenta TED que publicó ese vídeo."
+      },
+      "id": "case-043"
+    },
+    {
+      "sectionId": "figures",
+      "request": "Comprueba si la nota debe decir De o Adaptado de.",
+      "material": "Figura aportada con una fuente citada, pero sin original ni descripción de cambios.",
+      "evidence": "",
+      "expected": {
+        "status": "no verificable",
+        "criterionRefs": [
+          "figures:2"
+        ],
+        "repair": "No certificar reproducción o adaptación sin comparación o evidencia de transformación."
+      },
+      "id": "case-044"
+    },
+    {
+      "sectionId": "secondary-citations",
+      "request": "Revisa correspondencia con las referencias.",
+      "material": "Cita: (Serrano, 1998, como se cita en Lima, 2023). Lista: Serrano (1998) y Lima (2023).",
+      "evidence": "Solo se consultó Lima; no se leyó la obra de Serrano.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "secondary-citations:2"
+        ],
+        "repair": "Referenciar solo Lima, que es la fuente efectivamente consultada."
+      },
+      "id": "case-045"
+    },
+    {
+      "sectionId": "reference-faq",
+      "request": "Revisa si es necesaria una letra sin fecha.",
+      "material": "Una única obra de Serrano se cita (Serrano, s.f.) y se referencia con (s.f.).",
+      "evidence": "",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "reference-faq:4",
+          "citation-faq:3"
+        ],
+        "repair": ""
+      },
+      "id": "case-046"
+    },
+    {
+      "sectionId": "books",
+      "request": "Completa año y DOI de esta obra.",
+      "material": "Serrano. Título incompleto.",
+      "evidence": "",
+      "expected": {
+        "status": "no verificable",
+        "criterionRefs": [
+          "books:1"
+        ],
+        "repair": "Solicitar metadatos o consultar fuente verificable; no completar año o DOI por conjetura."
+      },
+      "id": "case-047"
+    },
+    {
+      "sectionId": "tables",
+      "request": "Corrige el número de página de una cita cuando no coincide con el rango de la referencia.",
+      "material": "Cita p. 79; referencia pp. 403–414; original no disponible.",
+      "evidence": "",
+      "expected": {
+        "status": "no verificable",
+        "criterionRefs": [
+          "tables:6",
+          "direct-quotes:4"
+        ],
+        "repair": "Detectar discrepancia y pedir original/edición; no cambiar p. 79 por una página inventada."
+      },
+      "id": "case-048"
+    },
+    {
+      "sectionId": "legal-plenary",
+      "request": "Revisa localizador preciso.",
+      "material": "La cita literal usa p. 24, pero el 24 designa el fundamento jurídico, no una página.",
+      "evidence": "El fundamento jurídico 24 está cotejado con el documento.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-plenary:2"
+        ],
+        "repair": "fundamento jurídico 24, no p. 24."
+      },
+      "id": "case-049"
+    },
+    {
+      "sectionId": "visual-media",
+      "request": "Revisa cursiva y recuperación en mapa dinámico sin título.",
+      "material": "La descripción entre corchetes de un mapa dinámico está en cursiva y no hay recuperación.",
+      "evidence": "Mapa sin título estable; fecha real de consulta 9 de mayo de 2024.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "visual-media:4"
+        ],
+        "repair": "Descripción sin cursiva y recuperación real."
+      },
+      "id": "case-050"
+    },
+    {
+      "sectionId": "legal-treaties",
+      "request": "Revisa fecha de un tratado.",
+      "material": "La referencia utiliza la fecha de consulta en lugar de la fecha de firma.",
+      "evidence": "Firma confirmada: 10 de diciembre de 1948; consulta en 2024.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-treaties:1",
+          "legal-treaties:2"
+        ],
+        "repair": "Fecha completa de firma, no consulta."
+      },
+      "id": "case-051"
+    },
+    {
+      "sectionId": "reference-faq",
+      "request": "Revisa autor institucional de la referencia.",
+      "material": "OMS. (2020). Título confirmado.",
+      "evidence": "Autor: Organización Mundial de la Salud; solo se evalúa el elemento autor.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "reference-faq:2"
+        ],
+        "repair": "Nombre institucional completo, no sigla."
+      },
+      "id": "case-052"
+    },
+    {
+      "sectionId": "social-media",
+      "request": "Revisa extensión del título de un post.",
+      "material": "Se transcribieron 30 palabras del post como título.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "social-media:1"
+        ],
+        "repair": "Limitar a las primeras 20 palabras; conservar los adjuntos en descriptor cuando corresponda."
+      },
+      "id": "case-053"
+    },
+    {
+      "sectionId": "ai-content",
+      "request": "Revisa declaración del uso de IA.",
+      "material": "Se usó IA para elaborar una figura en un ensayo, pero no se explicó su uso porque no generó texto.",
+      "evidence": "El uso de IA está permitido por el docente.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "ai-content:1",
+          "ai-content:2"
+        ],
+        "repair": "Declarar uso en introducción o sección equivalente e identificar figura generada."
+      },
+      "id": "case-054"
+    },
+    {
+      "sectionId": "citation-faq",
+      "request": "Revisa uso de iniciales para coautores.",
+      "material": "(Gómez & Gómez, 2021).",
+      "evidence": "Una única obra de dos coautores diferentes con el mismo apellido; no hay otra obra ambigua.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "citation-faq:7"
+        ],
+        "repair": ""
+      },
+      "id": "case-055"
+    },
+    {
+      "sectionId": "legal-resolutions",
+      "request": "Revisa localizador de una cita textual.",
+      "material": "Cita literal de resolución con identificador y año, pero sin página ni otro localizador.",
+      "evidence": "Página 4 y texto original cotejados.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-resolutions:3"
+        ],
+        "repair": "Añadir p. 4, que está confirmada."
+      },
+      "id": "case-056"
+    },
+    {
+      "sectionId": "secondary-citations",
+      "request": "Revisa la atribución del localizador y la referencia.",
+      "material": "\"Fragmento\" (Serrano, como se cita en Lima, 2023, p. 19). Referencias: solo Lima (2023).",
+      "evidence": "Año original desconocido; p. 19 corresponde a Lima y la cita fue contrastada.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "secondary-citations:2",
+          "secondary-citations:4"
+        ],
+        "repair": ""
+      },
+      "id": "case-057"
+    },
+    {
+      "sectionId": "legal-arbitration",
+      "request": "Revisa localizador en este laudo.",
+      "material": "Se escribió p. 36 para el número 36 que antecede a un párrafo; las páginas se repiten.",
+      "evidence": "Número 36 es de párrafo; paginación irregular comprobada.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-arbitration:2",
+          "legal-arbitration:3"
+        ],
+        "repair": "Utilizar el número de párrafo del perfil UPC, no llamarlo página."
+      },
+      "id": "case-058"
+    },
+    {
+      "sectionId": "interviews",
+      "request": "Revisa clasificación de fuente.",
+      "material": "Una entrevista publicada en un periódico se registró como comunicación personal y se excluyó de Referencias.",
+      "evidence": "Entrevista publicada y recuperable; el texto fue consultado.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "interviews:1"
+        ],
+        "repair": "Citar y referenciar como artículo de periódico."
+      },
+      "id": "case-059"
+    },
+    {
+      "sectionId": "multiple-citations",
+      "request": "Revisa si el orden alfabético es obligatorio aquí.",
+      "material": "Zamora (2020) y Almeida (2021) coinciden.",
+      "evidence": "",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "multiple-citations:2"
+        ],
+        "repair": ""
+      },
+      "id": "case-060"
+    },
+    {
+      "sectionId": "audio",
+      "request": "Revisa autoría de una grabación clásica.",
+      "material": "La referencia acredita solo al pianista que grabó una obra clásica de un compositor conocido.",
+      "evidence": "Compositor e intérprete están confirmados y son personas diferentes.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "audio:1",
+          "audio:2"
+        ],
+        "repair": "Compositor como autor; intérprete en descriptor de grabación cuando corresponda."
+      },
+      "id": "case-061"
+    },
+    {
+      "sectionId": "presentation",
+      "request": "Revisa fecha y autor de la referencia a la propia guía UPC.",
+      "material": "Universidad Peruana de Ciencias Aplicadas. (2025, diciembre). Citas y referencias en APA 7 [Guías Temáticas UPC]. URL oficial.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "presentation:2"
+        ],
+        "repair": "Modelo de la guía: (2021, noviembre); citas de 2021. No usar última actualización como fecha bibliográfica."
+      },
+      "id": "case-062"
+    },
+    {
+      "sectionId": "legal-foreign-cases",
+      "request": "Revisa el país en jurisprudencia extranjera.",
+      "material": "Institución: Corte Suprema; no hay país en ningún otro elemento.",
+      "evidence": "Institución y país de la resolución: Corte Suprema, Chile.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-foreign-cases:1",
+          "legal-foreign-cases:2"
+        ],
+        "repair": "Agregar país confirmado entre paréntesis."
+      },
+      "id": "case-063"
+    },
+    {
+      "sectionId": "citations",
+      "request": "Revisa solo los componentes de la cita narrativa.",
+      "material": "Serrano (2022) explica la idea.",
+      "evidence": "",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "citations:1"
+        ],
+        "repair": ""
+      },
+      "id": "case-064"
+    },
+    {
+      "sectionId": "tables",
+      "request": "Revisa si una tabla propia necesita atribución externa.",
+      "material": "Todos los datos y el análisis son originales; la tabla no lleva nota de procedencia.",
+      "evidence": "Creación propia confirmada; no hay fuentes externas.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "tables:3"
+        ],
+        "repair": ""
+      },
+      "id": "case-065"
+    },
+    {
+      "sectionId": "paraphrases",
+      "request": "Revisa si es obligatorio el número de página en esta paráfrasis.",
+      "material": "Serrano (2022) plantea la importancia del aprendizaje situado.",
+      "evidence": "La paráfrasis fue comparada con la fuente y es fiel.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "paraphrases:1"
+        ],
+        "repair": ""
+      },
+      "id": "case-066"
+    },
+    {
+      "sectionId": "personal-communications",
+      "request": "Revisa si falta una entrada bibliográfica.",
+      "material": "(A. Solís, comunicación personal, 9 de junio de 2024). Sin entrada en Referencias.",
+      "evidence": "Correo privado no recuperable; persona y fecha confirmadas.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "personal-communications:1",
+          "personal-communications:2"
+        ],
+        "repair": ""
+      },
+      "id": "case-067"
+    },
+    {
+      "sectionId": "citation-faq",
+      "request": "Revisa autor desconocido frente a Anónimo.",
+      "material": "(Anónimo, 2020).",
+      "evidence": "Artículo sin firma; título confirmado: Aprendizaje cotidiano; no consta Anónimo.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "citation-faq:4"
+        ],
+        "repair": "Usar el título en lugar de autor; Anónimo solo si está firmado así."
+      },
+      "id": "case-068"
+    },
+    {
+      "sectionId": "audio",
+      "request": "Revisa URL de un pódcast.",
+      "material": "Se escuchó desde una aplicación; no se conoce URL y no se inventó ninguna.",
+      "evidence": "Se evalúa solo si la ausencia de URL es un error.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "audio:5"
+        ],
+        "repair": ""
+      },
+      "id": "case-069"
+    },
+    {
+      "sectionId": "legal-constitutions",
+      "request": "Revisa la obligación de URL.",
+      "material": "Referencia de constitución peruana con nombre, año e institución; sin URL.",
+      "evidence": "Metadatos confirmados; solo se evalúa si URL es obligatoria.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "legal-constitutions:1"
+        ],
+        "repair": ""
+      },
+      "id": "case-070"
+    },
+    {
+      "sectionId": "patents",
+      "request": "Revisa el elemento fecha.",
+      "material": "La referencia usa 2018 porque fue el año de solicitud.",
+      "evidence": "Solicitud 2018; expedición de la patente consultada en 2021.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "patents:2"
+        ],
+        "repair": "Año de concesión/emisión: 2021."
+      },
+      "id": "case-071"
+    },
+    {
+      "sectionId": "books",
+      "request": "Revisa si corresponde el perfil de capítulo independiente.",
+      "material": "Se referenció un capítulo de un libro íntegramente escrito por los mismos dos autores como si tuviera autoría independiente.",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "books:3"
+        ],
+        "repair": "Referenciar el libro y localizar la parte usada en la cita cuando corresponda."
+      },
+      "id": "case-072"
+    },
+    {
+      "sectionId": "grey-literature",
+      "request": "Revisa la recuperabilidad de esta fuente.",
+      "material": "Un informe técnico público se excluyó de referencias por ser literatura gris.",
+      "evidence": "Informe público realmente consultado; metadatos confirmados.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "grey-literature:4"
+        ],
+        "repair": "La literatura gris pública y recuperable se referencia con su perfil."
+      },
+      "id": "case-073"
+    },
+    {
+      "sectionId": "webpages",
+      "request": "Revisa clasificación y fecha.",
+      "material": "Un PDF de artículo de revista se trató como sitio web y se tomó el año del copyright del portal.",
+      "evidence": "Artículo publicado en 2021; portal muestra copyright 2026.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "webpages:1",
+          "webpages:3"
+        ],
+        "repair": "Usar perfil de artículo y fecha del artículo, no copyright del sitio."
+      },
+      "id": "case-074"
+    },
+    {
+      "sectionId": "books",
+      "request": "Revisa tratamiento de editoriales.",
+      "material": "Autor verificado; después del título aparecen Editorial A; Editorial B, en el orden de la obra.",
+      "evidence": "Ambas editoriales están indicadas en la obra y no coinciden con el autor.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "books:5"
+        ],
+        "repair": ""
+      },
+      "id": "case-075"
+    },
+    {
+      "sectionId": "visual-media",
+      "request": "Revisa si corresponde exigir cita y permiso.",
+      "material": "Se usó únicamente un clip art incluido en PowerPoint.",
+      "evidence": "Material integrado del programa, sin imágenes externas.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "visual-media:3"
+        ],
+        "repair": ""
+      },
+      "id": "case-076"
+    },
+    {
+      "sectionId": "webpages",
+      "request": "Revisa si debe exigirse recuperación.",
+      "material": "Artículo web fechado y estable, archivado, sin fecha de recuperación.",
+      "evidence": "Se evalúa únicamente la necesidad de recuperación; título, fecha y URL confirmados.",
+      "expected": {
+        "status": "cumple",
+        "criterionRefs": [
+          "webpages:4"
+        ],
+        "repair": ""
+      },
+      "id": "case-077"
+    },
+    {
+      "sectionId": "tables",
+      "request": "Revisa procedencia de una tabla.",
+      "material": "La tabla se transformó sustancialmente a partir de una fuente, pero la nota dice De.",
+      "evidence": "Comparación con original confirma adaptación, no reproducción idéntica.",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "tables:2"
+        ],
+        "repair": "Usar Adaptado de, conservando metadatos confirmados."
+      },
+      "id": "case-078"
+    },
+    {
+      "sectionId": "legal-statutes",
+      "request": "Revisa país en ley extranjera.",
+      "material": "Institución: Congreso de la República de Colombia (Colombia).",
+      "evidence": "",
+      "expected": {
+        "status": "corregir",
+        "criterionRefs": [
+          "legal-statutes:2"
+        ],
+        "repair": "El país entre paréntesis se omite si ya está en el nombre institucional."
+      },
+      "id": "case-079"
+    },
+    {
+      "sectionId": "conferences",
+      "request": "Decide de forma inequívoca si la contribución de simposio debe llevar cursiva según esta guía.",
+      "material": "Solo se aporta la guía UPC; no existe pauta docente.",
+      "evidence": "",
+      "expected": {
+        "status": "no verificable",
+        "criterionRefs": [
+          "conferences:5"
+        ],
+        "repair": "Explicar contradicción entre esquema y ejemplo; no atribuir unanimidad a la fuente."
+      },
+      "id": "case-080"
+    }
+  ]
+}

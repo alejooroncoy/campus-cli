@@ -47,6 +47,10 @@ def verify(capture, audit, rules):
             problems.append({'kind': 'unregistered-page', 'url': page['url']})
             continue
         section_id = expected['sectionId']
+        expected_labels = [{key: label[key] for key in ('tag', 'text', 'sha256')}
+                           for label in expected.get('labels', [])]
+        if page.get('labels', []) != expected_labels:
+            problems.append({'kind': 'page-labels-changed', 'url': page['url']})
         expected_blocks = {block['blockId']: block for block in expected['blocks']}
         actual_blocks = {block['blockId']: block for block in page['blocks']}
         if set(expected_blocks) != set(actual_blocks):
@@ -74,6 +78,7 @@ def verify(capture, audit, rules):
             'url': expected['url'], 'blocks': len(page['blocks']),
             'textUnits': sum(len(b['units']) for b in page['blocks']),
             'imageReferences': sum(len(b['images']) for b in page['blocks']),
+            'pageLabels': len(page.get('labels', [])),
             'matchesStoredBlocksAndUnits': not changed and set(expected_blocks) == set(actual_blocks),
             'mainSha256': page['mainSha256'],
         }
@@ -96,6 +101,7 @@ def verify(capture, audit, rules):
         'legalPages': sum(s.startswith('legal-') for s in rows),
         'contentBlocks': sum(row['blocks'] for row in rows.values()),
         'textUnits': sum(row['textUnits'] for row in rows.values()),
+        'pageLabels': sum(row['pageLabels'] for row in rows.values()),
         'uniqueImages': len(images), 'registeredContentLinks': len(links),
         'knownBrokenLinks': known_failures, 'problems': problems,
         'pages': list(rows.values()),
@@ -148,6 +154,14 @@ def main():
     result['problems'].extend(check_html(args.capture.parent, len(json.loads(args.capture.read_text())['pages'])))
     result['checkedAtUtc'] = datetime.now(timezone.utc).isoformat()
     result['sourceAuditSha256'] = hashlib.sha256(audit_path.read_bytes()).hexdigest()
+    semantic_path = REFS / 'upc-semantic-coverage.json'
+    if semantic_path.exists():
+        semantic = json.loads(semantic_path.read_text())
+        result['manualSemanticReview'] = {
+            'sha256': hashlib.sha256(semantic_path.read_bytes()).hexdigest(),
+            'status': semantic['status'], 'summary': semantic['summary'],
+            'note': 'La matriz registra la revisión por unidad. La comprobación automática de sus relaciones se ejecuta en el loader y las pruebas MCP; no es una certificación automática de interpretación.',
+        }
     result['imageChecks'] = []
     session = requests.Session()
     for image in audit['images']:
