@@ -22,7 +22,7 @@ const context = {
     open: async () => cache,
     // A stale private HTML entry must never be returned by the fallback.
     match: async () => new Response('private stale data'),
-    keys: async () => ['campus-shell-v2', 'campus-shell-v3', 'another-app'],
+    keys: async () => ['campus-shell-v2', 'campus-shell-v3', 'campus-shell-v4', 'another-app'],
     delete: async name => deleted.push(name),
   },
   fetch: async request => {
@@ -50,7 +50,7 @@ for (const path of precached) await access(new URL(`../public${path.split('?')[0
 assert(precached.some(path => path.endsWith('Regular.woff2')));
 assert(precached.some(path => path.endsWith('SemiBold.woff2')));
 await lifecycle('activate');
-assert.deepEqual(deleted, ['campus-shell-v2']);
+assert.deepEqual(deleted, ['campus-shell-v2', 'campus-shell-v3']);
 
 const path = '/app/profes/c/d65145e9-0504-4e42-852f-0581930025d2/';
 const failed = await request(path, 'navigate');
