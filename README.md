@@ -319,6 +319,24 @@ Cada cliente tiene su guía con la ruta exacta del archivo, cómo verificar la c
 
 Las herramientas de Aula Virtual usan el prefijo `blackboard_`; `banner_get_weekly_schedule` consulta la matrícula en Banner UPC. Las de UPC Class usan `uclass_`: entregan fuentes estructuradas para que la IA conectada (Codex, Claude, ChatGPT, etc.) las interprete, sin enviar la grabación a una IA propia del CLI.
 
+En los hosts que habilitan `campus_apa7_guidance` para cuentas autorizadas, una
+revisión se inicia con `{"topic":"review"}`. La respuesta carga la habilidad
+`apa7-review-campus` y una síntesis de 45 páginas oficiales de Biblioteca UPC
+(31 de APA y 14 jurídicas), con enlaces, apartados y fechas de consulta. Se
+inspeccionaron 185 bloques, 1.105 unidades de texto y 14 imágenes; el inventario
+registra 98 enlaces de contenido, erratas y discrepancias normativas. Usa
+`{"topic":"review","reviewSectionId":"figures"}` (o un ID del catálogo)
+para recuperar la auditoría detallada de una sección. La IA aplica esos criterios
+al trabajo proporcionado y entrega hallazgos `cumple`, `corregir` o
+`no verificable`, con ubicación, corrección y fuente. Los archivos de la habilidad
+se incluyen en el paquete; no requiere una sesión de Blackboard. La cobertura
+guardada es una captura, no consulta en vivo. Incluye el complemento jurídico
+colombiano de 20 páginas y las actualizaciones APA de IA de septiembre de 2025;
+queda pendiente auditar íntegramente el manual externo de 451 páginas, por lo que
+no declara el 100 % de todos los recursos normativos. Cargar la habilidad no
+constituye una revisión del documento. Las pruebas detectan bloques ausentes,
+evidencia sin mapear y afirmaciones de cobertura completa con fuentes pendientes.
+
 | Herramienta | Descripción |
 |---|---|
 | `blackboard_whoami` | Usuario autenticado |
