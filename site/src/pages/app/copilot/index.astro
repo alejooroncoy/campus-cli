@@ -1,0 +1,101 @@
+---
+import AppShell from "../../../layouts/AppShell.astro";
+const connectorName = "Campus";
+const connectorUrl = "https://mcp.campuscli.com/mcp";
+const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&connectorName=${encodeURIComponent(connectorName)}&connectorUrl=${encodeURIComponent(connectorUrl)}#settings/customize-connectors`;
+---
+<AppShell title="Copilot" active="copilot">
+  <section class="app-page-heading app-page-heading--compact">
+    <p class="app-kicker">Copilot</p>
+    <h1>Conecta Campus con tu asistente.</h1>
+    <p>Elige Claude, ChatGPT o Gemini Spark. Configura Campus una vez y pregunta por tus cursos, tareas y notas desde allí.</p>
+  </section>
+
+  <section class="app-connector-help" aria-label="Ayuda por WhatsApp">
+    <div class="app-connector-help__content">
+      <span class="app-connector-help__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><use href="/assets/lucide.svg#message-circle"></use></svg>
+      </span>
+      <div>
+        <h2>¿Tienes dudas o no sabes cómo conectarlo?</h2>
+        <p>Escríbenos directamente y te guiamos paso a paso por WhatsApp.</p>
+      </div>
+    </div>
+    <a
+      class="app-button app-button--whatsapp"
+      href="https://wa.me/51946189585?text=Hola,%20tengo%20una%20duda%20para%20conectar%20Campus%20Copilot"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Contactar a soporte por WhatsApp"
+    >
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="/assets/lucide.svg#message-circle"></use></svg>
+      <span>Escribir a soporte</span>
+    </a>
+  </section>
+
+  <section class="app-connector-bar" aria-labelledby="connector-values-title">
+    <div>
+      <h2 id="connector-values-title">Los datos de tu conector</h2>
+      <p>Claude abre los datos ya completados. Para ChatGPT puedes copiarlos aquí; al abrir Gemini intentaremos copiar la URL por ti.</p>
+    </div>
+    <div class="app-connector-values">
+      <div class="app-connector-value">
+        <div><span>Nombre del conector</span><strong>{connectorName}</strong></div>
+        <button type="button" data-copy-value={connectorName} data-copy-label="Nombre" aria-label="Copiar nombre del conector">Copiar</button>
+      </div>
+      <div class="app-connector-value">
+        <div><span>URL del servidor</span><code>{connectorUrl}</code></div>
+        <button type="button" data-copy-value={connectorUrl} data-copy-label="URL" aria-label="Copiar URL del servidor">Copiar</button>
+      </div>
+    </div>
+    <p class="app-connector-bar__status" data-app-status role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="app-connector-grid" aria-label="Elige tu asistente">
+    <article class="app-connector-card">
+      <div class="app-connector-card__top">
+        <span class="app-provider-icon app-provider-icon--claude"><img src="/assets/claude-mark.svg" width="23" height="23" alt="" /></span>
+        <h2>Claude</h2>
+        <a class="app-provider-link" href={claudeConnectorUrl} target="_blank" rel="noopener noreferrer" aria-label="Conectar Campus en Claude en otra pestaña">Conectar <span aria-hidden="true">↗</span></a>
+      </div>
+      <ol class="app-connector-steps">
+        <li><strong>Inicia sesión en Claude</strong><p>La conexión personalizada también funciona con su plan gratuito.</p></li>
+        <li><strong>Abre el conector</strong><p>Pulsa “Conectar”. Claude abrirá el formulario con Campus y su URL ya completados.</p></li>
+        <li><strong>Revisa y añade</strong><p>Comprueba los datos de arriba y confirma la incorporación del conector.</p></li>
+        <li><strong>Autoriza y empieza</strong><p>Conecta tu cuenta Campus y prueba “Muéstrame mis cursos”.</p></li>
+      </ol>
+      <p class="app-connector-card__note">¿No se abre el formulario? Ve a Personalizar → Conectores → Añadir conector personalizado y pega los datos manualmente.</p>
+    </article>
+
+    <article class="app-connector-card">
+      <div class="app-connector-card__top">
+        <span class="app-provider-icon app-provider-icon--chatgpt"><img src="/assets/openai-mark.svg" width="23" height="23" alt="" /></span>
+        <h2>ChatGPT</h2>
+        <a class="app-provider-link" href="https://chatgpt.com/plugins#settings/Connectors?create-connector=true&amp;redirectAfter=%2Fplugins" target="_blank" rel="noopener noreferrer" aria-label="Crear conector de Campus en ChatGPT en otra pestaña">Conectar <span aria-hidden="true">↗</span></a>
+      </div>
+      <ol class="app-connector-steps">
+        <li><strong>Inicia sesión en ChatGPT</strong><p>Puedes comenzar con la cuenta que ya usas, incluso Free.</p></li>
+        <li><strong>Abre el formulario</strong><p>Pulsa “Conectar” para ir directamente a la creación del conector. Si ChatGPT no abre el formulario, entra a Plugins y pulsa “+”.</p></li>
+        <li><strong>Introduce los datos</strong><p>Usa el nombre y la URL de Campus que aparecen arriba.</p></li>
+        <li><strong>Autoriza y empieza</strong><p>Conecta tu cuenta Campus, actívalo en un chat y prueba “Muéstrame mis cursos”.</p></li>
+      </ol>
+      <p class="app-connector-card__note">Si no aparece la opción de añadir, revisa el modo desarrollador en la configuración de ChatGPT.</p>
+    </article>
+
+    <article class="app-connector-card">
+      <div class="app-connector-card__top">
+        <span class="app-provider-icon app-provider-icon--gemini"><img src="https://www.gstatic.com/lamda/images/gemini_sparkle_aurora_33f86dc0c0257da337c63.svg" width="24" height="24" alt="" /></span>
+        <h2>Gemini Spark</h2>
+        <a class="app-provider-link" href="https://gemini.google.com/spark/apps?hl=es_419" target="_blank" rel="noopener noreferrer" data-copy-connector-url={connectorUrl} aria-label="Copiar URL de Campus y abrir Gemini Spark Apps en otra pestaña">Copiar URL y abrir <span aria-hidden="true">↗</span></a>
+      </div>
+      <ol class="app-connector-steps">
+        <li><strong>Ve a Apps personalizadas</strong><p>Pulsa “Copiar URL y abrir” y, en la página de Gemini, selecciona “Apps personalizadas”.</p></li>
+        <li><strong>Pega la URL de Campus</strong><p>En “Agrega un vínculo a una app personalizada”, pega la URL y pulsa “Siguiente”. Si no se copió, usa el botón “Copiar” de arriba.</p></li>
+        <li><strong>Prueba en Spark</strong><p>Autoriza Campus y pregunta “Muéstrame mis cursos”.</p></li>
+      </ol>
+      <p class="app-connector-card__note">Disponibilidad limitada: Google exige una cuenta personal elegible en EE. UU. y uso en inglés. <a href="/blog/conectar-blackboard-gemini-spark-campus/">Ver guía →</a></p>
+    </article>
+  </section>
+
+  <p class="app-connector-footnote">Tu Aula Virtual se autoriza en el asistente. Campus nunca necesita que escribas tu contraseña universitaria aquí.</p>
+</AppShell>

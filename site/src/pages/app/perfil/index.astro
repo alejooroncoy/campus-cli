@@ -1,0 +1,47 @@
+---
+import AppShell from "../../../layouts/AppShell.astro";
+---
+<AppShell title="Mi perfil" active="perfil">
+  <section class="app-profile-loading" data-app-profile-loading aria-live="polite">Comprobando tu cuenta…</section>
+
+  <section class="app-profile-entry" data-app-profile-guest hidden>
+    <div class="app-profile-entry__content">
+      <p class="app-profile-entry__eyebrow">TU CUENTA CAMPUS</p>
+      <h1>Entra a tu Campus.</h1>
+      <p class="app-profile-entry__lead">Consulta Profes, revisa tu plan y mira cuántas consultas te quedan desde una sola cuenta.</p>
+      <a class="app-button app-profile-entry__button" data-app-login href="/api/app/auth/start?return=%2Fapp%2Fperfil%2F">Continuar con Campus <span aria-hidden="true">→</span></a>
+      <p class="app-profile-entry__first-time">¿Primera vez? Crearemos tu cuenta al entrar.</p>
+      <p class="app-profile-entry__note">Tu conversación de Profes se guarda en tu cuenta para que puedas retomarla después.</p>
+      <p class="app-profile-entry__status" data-app-status role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="app-profile-university" data-app-profile-university hidden>
+    <button class="app-profile-university__cancel" type="button" data-app-cancel-university hidden><span aria-hidden="true">←</span> Volver a mi perfil</button>
+    <p class="app-profile-entry__eyebrow">TU UNIVERSIDAD</p>
+    <h1>¿En qué universidad estudias?</h1>
+    <p>Así te mostramos información de tu universidad y sabemos dónde llevar Campus después. Profes está disponible por ahora para UPC.</p>
+    <form data-app-university-form>
+      <label for="app-university">Tu universidad</label>
+      <input id="app-university" name="university" list="app-university-options" autocomplete="off" placeholder="Escribe UPC o el nombre de tu universidad" required />
+      <datalist id="app-university-options" data-app-university-options></datalist>
+      <button class="app-button" type="submit">Guardar y continuar <span aria-hidden="true">→</span></button>
+    </form>
+    <p class="app-profile-university__note">Elige una de las universidades de la lista. Podrás cambiarla después en tu perfil.</p>
+    <p class="app-profile-university__status" data-app-university-status role="status" aria-live="polite"></p>
+  </section>
+
+  <div data-app-profile-authenticated hidden>
+    <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">Mi perfil</p><h1>Tu cuenta Campus.</h1><p>Tu plan y tu uso, en un solo lugar.</p></section>
+    <div class="app-split"><section class="app-panel">
+      <h2>Cuenta y uso</h2>
+      <div class="app-profile-row"><span>Correo de tu cuenta</span><p data-app-email>Comprobando tu sesión…</p></div>
+      <div class="app-profile-row"><span>Universidad</span><p data-app-university-name>Por comprobar</p><button class="app-profile-change-university" type="button" data-app-change-university>Cambiar universidad</button></div>
+      <p class="app-profile-coverage" data-app-profile-coverage hidden>Profes todavía no está disponible para tu universidad. La registramos para saber dónde ampliar la cobertura.</p>
+      <div class="app-profile-row"><span>Plan actual</span><p data-app-plan>Por comprobar</p></div>
+      <div class="app-profile-row"><span>Consultas de Profes</span><p data-app-usage>Comprobando tu uso…</p></div>
+      <div class="app-profile-row"><span>Matrícula (Banner)</span><p data-app-banner-status>Por comprobar</p></div>
+      <div class="app-actions"><button class="app-button app-button--secondary" type="button" data-app-logout hidden>Cerrar sesión</button></div>
+    </section><aside class="app-panel"><p class="app-kicker">Una sola cuenta</p><h2>Tu Campus, conectado.</h2><p>Usa la misma cuenta que vinculaste en WhatsApp para consultar tu plan.</p><ul class="app-info-list"><li>Tu identidad en Campus</li><li>Tu plan Free o Plus</li><li>Tu uso de Profes</li><li>Tu horario y matrícula de Banner</li></ul><a class="app-text-link" href="/#plan-plus">Conocer Campus Plus →</a></aside></div>
+  </div>
+</AppShell>

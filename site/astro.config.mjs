@@ -2,6 +2,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
+import react from "@astrojs/react";
 
 /**
  * Real modification dates for the sitemap.
@@ -28,6 +29,7 @@ for (const file of readdirSync("./src/content/blog")) {
 
 // Everything else is rendered from a body of html, so the file's own mtime is
 // the honest answer to "when did this page last change".
+/** @param {string} route @param {string} path */
 const fromFile = (route, path) => {
   try {
     lastmod.set(route, statSync(path).mtime.toISOString().slice(0, 10));
@@ -65,6 +67,7 @@ export default defineConfig({
   trailingSlash: "always",
   build: { format: "directory" },
   integrations: [
+    react(),
     sitemap({
       // A sitemap has no line breaks, so a browser shows one unreadable run of
       // text and the file looks broken even when it validates. Crawlers ignore

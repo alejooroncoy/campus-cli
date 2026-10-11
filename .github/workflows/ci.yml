@@ -46,3 +46,5 @@ jobs:
       - run: npm --prefix site ci
       - run: npm --prefix site audit --audit-level=high
       - run: npm --prefix site run build
+      - run: npm --prefix site run check
+      - run: npm --prefix site run test:app
