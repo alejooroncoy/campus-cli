@@ -5,15 +5,27 @@
   "scripts": {
     "css": "esbuild public/styles.css --minify --outfile=public/styles.min.css --allow-overwrite",
     "dev": "npm run css && astro dev",
-    "build": "npm run css && astro build",
+    "build": "npm run css && astro build && node scripts/externalize-app-scripts.mjs",
+    "check": "astro check",
     "preview": "astro preview",
-    "test:agent-discovery": "node scripts/verify-agent-discovery.mjs"
+    "test:agent-discovery": "node scripts/verify-agent-discovery.mjs",
+    "test:offline": "node scripts/verify-offline-shell.mjs",
+    "test:app": "node scripts/verify-session-cache.mjs && node scripts/verify-conversation-cache.mjs && node scripts/verify-offline-shell.mjs && node scripts/externalize-app-scripts.test.mjs"
   },
   "dependencies": {
+    "@ai-sdk/react": "^4.0.116",
+    "@astrojs/react": "^7.0.0",
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^7.3.2"
+    "ai": "^7.0.113",
+    "astro": "^7.3.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "esbuild": "^0.28.2"
+    "@astrojs/check": "^0.9.10",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^6.0.3"
   }
 }
