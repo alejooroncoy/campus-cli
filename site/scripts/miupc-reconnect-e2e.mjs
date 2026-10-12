@@ -203,7 +203,7 @@ try{
   await fetch(`${base}/__e2e/near-deadline`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(()=>{window.open=()=>null;});const page=await context.newPage();let polls=0;
   await page.route('**/api/app/miupc/connect/',route=>{if(route.request().method()!=='GET')return route.continue();polls++;return route.fulfill({status:503,body:'temporary'});});
   try{
-   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});await input.fill('Mis notas actuales');await input.press('Enter');const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();await notice.getByText('La ventana de verificación venció. Vuelve a conectar Mi UPC.',{exact:true}).waitFor();assert.equal(await page.evaluate(()=>Object.keys(sessionStorage).filter(k=>k.startsWith('campus-miupc-attempt:')).length),0);await page.reload();await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).waitFor();assert.equal(polls,1);
+   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});await input.fill('Mis notas actuales');await input.press('Enter');const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();await notice.getByText('La ventana de verificación venció. Vuelve a conectar Mi UPC.',{exact:true}).waitFor();assert.equal(await page.evaluate(()=>Object.keys(sessionStorage).filter(k=>k.startsWith('campus-miupc-attempt:')).length),0);await page.reload();await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).waitFor();assert.equal(polls,2);
    console.log(JSON.stringify({mode:'failed-expiry',expiredAttemptForgotten:true,reloadOffersCleanRetry:true}));
   }finally{await context.close();}
  }
@@ -340,6 +340,19 @@ try{
    await page.route('**/api/app/miupc/connect/',route=>{reads++;return mode==='failed'?route.fulfill({status:503,body:'temporary'}):route.fulfill({json:{status:'busy'}});});
    try{
     await page.goto(base+path);const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.getByText('La ventana de verificación venció. Vuelve a conectar Mi UPC.',{exact:true}).waitFor({timeout:5000});assert.equal(await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).isEnabled(),true);const ended=reads;await page.waitForTimeout(1600);assert.equal(reads,ended);assert.equal(await page.evaluate(()=>sessionStorage.getItem('campus-miupc-attempt:11111111-1111-4111-8111-111111111111')),null);if(mode==='past')assert.equal(reads,0);console.log(JSON.stringify({mode:'restore-expiry',response:mode,stoppedAtKnownExpiry:true,retryEnabled:true}));
+   }finally{await context.close();}
+  }
+ }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='external-verification'){
+  for(const mode of ['pending','connected','historic']){
+   await fetch(`${base}/__e2e/normal`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(()=>sessionStorage.setItem('campus-miupc-reconnect:11111111-1111-4111-8111-111111111111','1'));const page=await context.newPage();let posts=0,reads=0;
+   const attemptId='77777777-7777-4777-8777-777777777777';
+   await page.route('**/api/app/miupc/connect/',route=>{if(route.request().method()==='POST'){posts++;return route.abort('failed');}reads++;return route.fulfill({json:mode==='historic'?{status:'connected'}:{status:mode==='pending'?'pending_login':'connected',attemptId,expiresAt:Date.now()+60000,...(mode==='pending'?{loginUrl:'https://www.browserbase.com/e2e/external'}:{})}});});
+   try{
+    await page.goto(base+path);const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});
+    if(mode==='pending'){await notice.getByRole('link',{name:'Abrir ventana de verificación'}).waitFor();assert.equal(await notice.getByRole('button').isDisabled(),true);}
+    else{await notice.getByText('Comprueba tus notas',{exact:true}).waitFor();assert.equal(await notice.getByText('Conexión restablecida. Ya puedes seguir preguntando en este chat.',{exact:true}).count(),0);}
+    await fetch(`${base}/__e2e/connected`,{method:'POST'});await input.fill('Vuelve a consultar mis notas actuales');await input.press('Enter');await page.getByText('Notas actuales recuperadas.',{exact:true}).last().waitFor();await notice.waitFor({state:'hidden'});assert.equal(posts,0);assert.ok(reads>=1);assert.equal(page.url(),base+path);assert.equal(await page.evaluate(()=>Object.keys(sessionStorage).filter(k=>k.startsWith('campus-miupc-reconnect:')).length),0);console.log(JSON.stringify({mode:'external-verification',state:mode,discoveredWithoutLocalAttempt:true,noNewPost:true,clearedOnlyAfterGradeProof:true}));
    }finally{await context.close();}
   }
  }

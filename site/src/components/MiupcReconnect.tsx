@@ -24,6 +24,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   const restoringRequest=useRef(false);
   const [error,setError] = useState('');
   const [accessReady,setAccessReady]=useState(false);
+  const [checkGrades,setCheckGrades]=useState(false);
   const [checkingAccess,setCheckingAccess]=useState(false);
   const accessRequest=useRef(false);
   const accessRestored=useRef(onUpcAccessRestored);accessRestored.current=onUpcAccessRestored;
@@ -50,15 +51,15 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     if(upcRequired&&newNotice&&starting)uncertainStart.current=true;
     if(upcRequired&&newNotice)forgetMiupcAttempt(conversationId);
     if(popup.current&&(upcRequired||!navigated.current)){try{popup.current.close();}catch{/* Isolated windows may sever the handle. */}popup.current=null;}
-    setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setError('');
+    setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setCheckGrades(false);setError('');
   },[noticeRevision]);
-  async function request(start:boolean,signal:AbortSignal,allowHistoric=false) {
+  async function request(start:boolean,signal:AbortSignal,allowHistoric:boolean|'discover'=false) {
     const response = await fetch(endpoint,{method:start?'POST':'GET',credentials:'same-origin',cache:'no-store',
       ...(start?{headers:{'content-type':'application/json'},body:'{}'}:{}),
       signal:AbortSignal.any([signal,AbortSignal.timeout(50_000)])});
     if(!response.ok)throw new ConnectionRequestError(response.status===401?'Inicia sesión en Campus para reconectar.':'No pudimos comprobar la conexión. Inténtalo de nuevo.',response.status>=500||[408,429].includes(response.status));
     const data=await response.json();
-    if(allowHistoric&&data?.status==='connected'&&!data.attemptId)return {status:'not_connected'} as MiupcConnection;
+    if(allowHistoric&&data?.status==='connected'&&!data.attemptId)return {status:allowHistoric==='discover'?'connected':'not_connected'} as MiupcConnection;
     try{return parseMiupcConnection(data);}catch(cause){throw new ConnectionRequestError(cause instanceof Error?cause.message:'No pudimos confirmar esta verificación.',false);}
   }
   function update(data:MiupcConnection,current:number,signal:AbortSignal,attemptId?:string,expiresAt?:number) {
@@ -104,24 +105,39 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   }
   useEffect(()=>{
     const saved=savedMiupcAttempt(conversationId);
-    if(!saved||upcRequired)return;
+    if(upcRequired)return;
     const current=generation.current;const controller=new AbortController();abort.current=controller;
-    restoringRequest.current=true;setRestoring(true);
-    const retryUntil=saved.expiresAt;
-    const settled=()=>{restoringRequest.current=false;if(current===generation.current)setRestoring(false);};
+    let retryUntil=saved?.expiresAt??0;
+    const settled=()=>{if(current===generation.current){restoringRequest.current=false;setRestoring(false);}};
     const restore=()=>{
       if(current!==generation.current||controller.signal.aborted){settled();return;}
       if(Date.now()>=retryUntil){update({status:'expired'},current,controller.signal);settled();return;}
       const readSignal=AbortSignal.any([controller.signal,AbortSignal.timeout(Math.max(1,retryUntil-Date.now()))]);
-      void request(false,readSignal).then(data=>{
-      if(data.status==='busy'&&current===generation.current&&!controller.signal.aborted&&Date.now()<retryUntil){timer.current=setTimeout(restore,Math.min(3000,Math.max(1,retryUntil-Date.now())));return;}
+      void request(false,readSignal,saved?false:'discover').then(data=>{
+      if(current!==generation.current||controller.signal.aborted){settled();return;}
+      if(!saved&&data.status==='connected'){
+        // A connection made elsewhere is only a candidate: reading grades
+        // provides the fresh proof, not an uncorrelated cached SDK flag.
+        setCheckGrades(true);settled();return;
+      }
+      if(saved&&data.status==='busy'&&current===generation.current&&!controller.signal.aborted&&Date.now()<retryUntil){timer.current=setTimeout(restore,Math.min(3000,Math.max(1,retryUntil-Date.now())));return;}
       if((data.status==='busy'&&Date.now()>=retryUntil)||(data.status==='pending_login'&&data.expiresAt&&Date.now()>=data.expiresAt))data={status:'expired'};
-      update(data,current,controller.signal,saved.attemptId,saved.expiresAt);settled();
+      update(data,current,controller.signal,saved?.attemptId,saved?.expiresAt);settled();
     }).catch(cause=>{
       if(current!==generation.current||controller.signal.aborted){settled();return;}
-      if((cause instanceof ConnectionRequestError&&!cause.retryable)||Date.now()>=retryUntil){const expired=Date.now()>=retryUntil;update({status:expired?'expired':'failed'},current,controller.signal);if(!expired)setError(cause instanceof ConnectionRequestError?cause.message:'No pudimos recuperar la verificación. Puedes volver a conectar Mi UPC.');settled();return;}
+      if(!saved||(cause instanceof ConnectionRequestError&&!cause.retryable)||Date.now()>=retryUntil){const expired=Date.now()>=retryUntil;update({status:expired?'expired':'failed'},current,controller.signal);if(!expired)setError(cause instanceof ConnectionRequestError?cause.message:'No pudimos recuperar la verificación. Puedes volver a conectar Mi UPC.');settled();return;}
       setError('La conexión está tardando. Seguimos recuperando tu verificación…');timer.current=setTimeout(restore,Math.min(3000,Math.max(1,retryUntil-Date.now())));
-    });};restore();
+    });};
+    const beginRestore=()=>{
+      if(current!==generation.current||controller.signal.aborted||restoringRequest.current)return;
+      if(!saved&&savedMiupcAttempt(conversationId))return;
+      if(!saved)retryUntil=Date.now()+50_000;
+      restoringRequest.current=true;setRestoring(true);setCheckGrades(false);restore();
+    };
+    if(saved||noticeRevision===0)beginRestore();
+    const returned=()=>{if(document.visibilityState==='visible')beginRestore();};
+    if(!saved){window.addEventListener('focus',returned);document.addEventListener('visibilitychange',returned);}
+    return()=>{window.removeEventListener('focus',returned);document.removeEventListener('visibilitychange',returned);};
   },[]);
   async function reconcileStart(signal:AbortSignal,waitForActive=false){
     const deadline=Date.now()+120_000;
@@ -234,14 +250,14 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     return()=>{window.removeEventListener('focus',returned);document.removeEventListener('visibilitychange',returned);};
   },[connection?.status,disabled]);
   const waiting=starting||restoring||connection?.status==='pending_login'||connection?.status==='saving';
-  const done=connection?.status==='connected'||accessReady;
+  const done=connection?.status==='connected'||accessReady||checkGrades;
   const needsUpcAccess=connection?.status==='upc_reconnect_required'||connection?.status==='reconnect_required';
   return <aside className="app-miupc-reconnect" aria-label="Reconexión de Mi UPC">
-    <div><strong>{accessReady?'Acceso UPC actualizado':done?'Mi UPC está conectado':needsUpcAccess?'Actualiza tu acceso UPC':'Mi UPC necesita verificar tu acceso'}</strong>
-      <p role="status" aria-live="polite">{accessReady?'Ya puedes volver a preguntar por tus notas en esta conversación.':restoring?'Recuperando la verificación…':checkingAccess?'Comprobando tu acceso UPC…':starting?'Preparando la ventana segura…':error||(connection?copy[connection.status]:'Reconecta para consultar tus notas. Tu conversación y lo que estás escribiendo se conservan.')}</p>
+    <div><strong>{checkGrades?'Comprueba tus notas':accessReady?'Acceso UPC actualizado':done?'Mi UPC está conectado':needsUpcAccess?'Actualiza tu acceso UPC':'Mi UPC necesita verificar tu acceso'}</strong>
+      <p role="status" aria-live="polite">{checkGrades?'Campus tiene una conexión guardada. Vuelve a preguntar por tus notas para comprobar el acceso actual.':accessReady?'Ya puedes volver a preguntar por tus notas en esta conversación.':restoring?'Recuperando la verificación…':checkingAccess?'Comprobando tu acceso UPC…':starting?'Preparando la ventana segura…':error||(connection?copy[connection.status]:'Reconecta para consultar tus notas. Tu conversación y lo que estás escribiendo se conservan.')}</p>
     </div>
     <div className="app-miupc-reconnect__actions">
-      {needsUpcAccess?<a href="https://profes.campuscli.com/?conectar=banner" target="_blank" rel="noopener noreferrer">Actualizar acceso UPC ↗</a>:done?<button type="button" onClick={onDismiss}>Listo</button>:<button type="button" onClick={()=>void start()} disabled={disabled||waiting}>{restoring?'Recuperando…':starting?'Preparando…':waiting?'Esperando verificación…':'Reconectar Mi UPC'}</button>}
+      {needsUpcAccess?<a href="https://profes.campuscli.com/?conectar=banner" target="_blank" rel="noopener noreferrer">Actualizar acceso UPC ↗</a>:done?<button type="button" onClick={onDismiss}>{checkGrades?'Seguir en el chat':'Listo'}</button>:<button type="button" onClick={()=>void start()} disabled={disabled||waiting}>{restoring?'Recuperando…':starting?'Preparando…':waiting?'Esperando verificación…':'Reconectar Mi UPC'}</button>}
       {needsUpcAccess?<button type="button" onClick={()=>void checkAuthorization()} disabled={disabled||checkingAccess}>{checkingAccess?'Comprobando…':'Ya actualicé mi acceso'}</button>:null}
       {connection?.loginUrl?<a href={connection.loginUrl} target="_blank" rel="noopener noreferrer">Abrir ventana de verificación ↗</a>:null}
     </div>

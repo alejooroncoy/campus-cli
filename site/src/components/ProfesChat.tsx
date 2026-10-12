@@ -587,6 +587,7 @@ function profesTransport(
   getConversationId: () => string | null,
   onConversationCreated: (id: string, title?: string) => void,
   onMiupcReconnect: (conversationId: string | null,upcRequired:boolean) => void,
+  onMiupcRestored: () => void,
 ): ChatTransport<UIMessage> {
   return {
     async sendMessages({ messages, abortSignal }) {
@@ -626,14 +627,16 @@ function profesTransport(
       let convTitle: string | undefined;
       let miupcReconnectRequired = false;
       let upcReconnectRequired=false;
+      let miupcConnectionRestored=false;
       const readEvent = (line: string) => {
-        const event = JSON.parse(line) as { type: string; activity?: string; answer?: string; usage?: CampusSession["usage"]; error?: string; conversationId?: string; title?: string; miupcReconnectRequired?: boolean; upcReconnectRequired?:boolean };
+        const event = JSON.parse(line) as { type: string; activity?: string; answer?: string; usage?: CampusSession["usage"]; error?: string; conversationId?: string; title?: string; miupcReconnectRequired?: boolean; upcReconnectRequired?:boolean; miupcConnectionRestored?:boolean };
         if (event.type === "status" && event.activity && activityLabels[event.activity]) onActivity(event.activity);
         if (event.type === "answer") {
           answer = event.answer ?? "";
           usage = event.usage;
           miupcReconnectRequired = event.miupcReconnectRequired === true;
           upcReconnectRequired=event.upcReconnectRequired===true;
+          miupcConnectionRestored=event.miupcConnectionRestored===true;
           if (event.conversationId) {
             convId = event.conversationId;
             convTitle = event.title;
@@ -657,6 +660,7 @@ function profesTransport(
       onUsage(usage);
       if (convId) onConversationCreated(convId, convTitle);
       if (miupcReconnectRequired || upcReconnectRequired) onMiupcReconnect(convId ?? activeConvId,upcReconnectRequired);
+      else if(miupcConnectionRestored)onMiupcRestored();
 
       // The existing Profes API returns one completed answer; adapt it to AI SDK UI's
       // message protocol without pretending that the agent streams partial tokens.
@@ -813,6 +817,7 @@ export default function ProfesChat() {
     () => currentConversationIdRef.current,
     handleConversationCreated,
     handleMiupcReconnect,
+    ()=>{clearMiupcReconnectNotices();setMiupcReconnectRequired(false);setUpcReconnectRequired(false);},
   ), [handleConversationCreated,handleMiupcReconnect]);
   const { messages, setMessages, sendMessage, status, error, stop } = useChat({ transport });
   const messagesHandler = useRef(setMessages);
