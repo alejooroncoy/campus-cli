@@ -332,4 +332,15 @@ try{
    console.log(JSON.stringify({mode:'aborted-reconciliation',uncertainStartRetained:true,originalAttemptRecovered:true,noSecondPost:true}));
   }finally{releasePost();releaseRead();await context.close();}
  }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='restore-expiry'){
+  for(const mode of ['busy','failed','past']){
+   await fetch(`${base}/__e2e/normal`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(mode=>{
+    const id='11111111-1111-4111-8111-111111111111';sessionStorage.setItem('campus-miupc-reconnect:'+id,'1');sessionStorage.setItem('campus-miupc-attempt:'+id,JSON.stringify({attemptId:'77777777-7777-4777-8777-777777777777',expiresAt:Date.now()+(mode==='past'?-1000:1500)}));window.open=()=>null;
+   },mode);const page=await context.newPage();let reads=0;
+   await page.route('**/api/app/miupc/connect/',route=>{reads++;return mode==='failed'?route.fulfill({status:503,body:'temporary'}):route.fulfill({json:{status:'busy'}});});
+   try{
+    await page.goto(base+path);const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.getByText('La ventana de verificación venció. Vuelve a conectar Mi UPC.',{exact:true}).waitFor({timeout:5000});assert.equal(await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).isEnabled(),true);const ended=reads;await page.waitForTimeout(1600);assert.equal(reads,ended);assert.equal(await page.evaluate(()=>sessionStorage.getItem('campus-miupc-attempt:11111111-1111-4111-8111-111111111111')),null);if(mode==='past')assert.equal(reads,0);console.log(JSON.stringify({mode:'restore-expiry',response:mode,stoppedAtKnownExpiry:true,retryEnabled:true}));
+   }finally{await context.close();}
+  }
+ }
 }finally{await browser.close();}

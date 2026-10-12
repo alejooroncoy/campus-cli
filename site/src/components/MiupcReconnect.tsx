@@ -107,15 +107,20 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     if(!saved||upcRequired)return;
     const current=generation.current;const controller=new AbortController();abort.current=controller;
     restoringRequest.current=true;setRestoring(true);
-    const retryUntil=Math.max(saved.expiresAt,Date.now()+120_000);
+    const retryUntil=saved.expiresAt;
     const settled=()=>{restoringRequest.current=false;if(current===generation.current)setRestoring(false);};
-    const restore=()=>{void request(false,controller.signal).then(data=>{
-      if(data.status==='busy'&&current===generation.current&&!controller.signal.aborted&&Date.now()<retryUntil){timer.current=setTimeout(restore,3000);return;}
+    const restore=()=>{
+      if(current!==generation.current||controller.signal.aborted){settled();return;}
+      if(Date.now()>=retryUntil){update({status:'expired'},current,controller.signal);settled();return;}
+      const readSignal=AbortSignal.any([controller.signal,AbortSignal.timeout(Math.max(1,retryUntil-Date.now()))]);
+      void request(false,readSignal).then(data=>{
+      if(data.status==='busy'&&current===generation.current&&!controller.signal.aborted&&Date.now()<retryUntil){timer.current=setTimeout(restore,Math.min(3000,Math.max(1,retryUntil-Date.now())));return;}
+      if((data.status==='busy'&&Date.now()>=retryUntil)||(data.status==='pending_login'&&data.expiresAt&&Date.now()>=data.expiresAt))data={status:'expired'};
       update(data,current,controller.signal,saved.attemptId,saved.expiresAt);settled();
     }).catch(cause=>{
       if(current!==generation.current||controller.signal.aborted){settled();return;}
-      if((cause instanceof ConnectionRequestError&&!cause.retryable)||Date.now()>=retryUntil){update({status:'failed'},current,controller.signal);setError(cause instanceof ConnectionRequestError?cause.message:'No pudimos recuperar la verificación. Puedes volver a conectar Mi UPC.');settled();return;}
-      setError('La conexión está tardando. Seguimos recuperando tu verificación…');timer.current=setTimeout(restore,3000);
+      if((cause instanceof ConnectionRequestError&&!cause.retryable)||Date.now()>=retryUntil){const expired=Date.now()>=retryUntil;update({status:expired?'expired':'failed'},current,controller.signal);if(!expired)setError(cause instanceof ConnectionRequestError?cause.message:'No pudimos recuperar la verificación. Puedes volver a conectar Mi UPC.');settled();return;}
+      setError('La conexión está tardando. Seguimos recuperando tu verificación…');timer.current=setTimeout(restore,Math.min(3000,Math.max(1,retryUntil-Date.now())));
     });};restore();
   },[]);
   async function reconcileStart(signal:AbortSignal,waitForActive=false){
