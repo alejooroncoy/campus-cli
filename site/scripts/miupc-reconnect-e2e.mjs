@@ -131,4 +131,17 @@ try{
   }finally{await context.close();}
  }
  }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='categories'){
+ for(const firstUpc of [false,true]){
+  await fetch(`${base}/__e2e/normal`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});const page=await context.newPage();
+  await context.addInitScript(firstUpc=>{sessionStorage.setItem('campus-miupc-reconnect:11111111-1111-4111-8111-111111111111',firstUpc?'upc':'1');sessionStorage.setItem('campus-miupc-reconnect:22222222-2222-4222-8222-222222222222',firstUpc?'1':'upc');},firstUpc);
+  try{
+   await page.goto(base+path);const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});
+   const action=upc=>upc?notice.getByRole('link',{name:'Actualizar acceso UPC'}):notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true});
+   await action(firstUpc).waitFor();await page.getByRole('button',{name:/^Consulta sin aviso/}).click();await action(!firstUpc).waitFor();assert.equal(await action(firstUpc).count(),0);
+   await page.getByRole('button',{name:/^Consulta E2E/}).click();await action(firstUpc).waitFor();assert.equal(await action(!firstUpc).count(),0);
+   console.log(JSON.stringify({firstUpc,conversationNoticeCategoryCorrect:true}));
+  }finally{await context.close();}
+ }
+ }
 }finally{await browser.close();}

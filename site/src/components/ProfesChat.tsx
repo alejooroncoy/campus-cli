@@ -723,6 +723,7 @@ export default function ProfesChat() {
   const [usage, setUsage] = useState<CampusSession["usage"]>();
   const [activity, setActivity] = useState("connecting");
   const [miupcReconnectRequired,setMiupcReconnectRequired] = useState(false);
+  const [miupcReconnectConversationId,setMiupcReconnectConversationId] = useState<string|null>(null);
   const [miupcReconnectRevision,setMiupcReconnectRevision] = useState(0);
   const [upcReconnectRequired,setUpcReconnectRequired] = useState(false);
   const [accessNote, setAccessNote] = useState("");
@@ -827,12 +828,14 @@ export default function ProfesChat() {
 
   useEffect(()=>{
     const needsReconnect=authenticated&&hasMiupcReconnectNotice(currentConversationId);
+    setMiupcReconnectConversationId(currentConversationId);
     setMiupcReconnectRequired(needsReconnect);
     setUpcReconnectRequired(needsReconnect&&requiresUpcReconnect(currentConversationId));
   },[authenticated,currentConversationId]);
 
   const handleMiupcReconnect = useCallback((id:string|null,upcRequired:boolean)=>{
     rememberMiupcReconnect(id,upcRequired);
+    setMiupcReconnectConversationId(id);
     setUpcReconnectRequired(upcRequired);
     setMiupcReconnectRequired(true);
     setMiupcReconnectRevision(value=>value+1);
@@ -1452,7 +1455,7 @@ export default function ProfesChat() {
               )}
             </article>
           ))}
-          {authenticated && miupcReconnectRequired ? <MiupcReconnect key={currentConversationId} conversationId={currentConversationId} noticeRevision={miupcReconnectRevision} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{clearMiupcReconnectNotices("upc");setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
+          {authenticated && miupcReconnectRequired && miupcReconnectConversationId===currentConversationId ? <MiupcReconnect key={currentConversationId} conversationId={currentConversationId} noticeRevision={miupcReconnectRevision} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{clearMiupcReconnectNotices("upc");setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
           {busy ? (
             <div className="app-profes-ai__thinking" role="status" aria-label={activityLabels[activity] ?? activityLabels.connecting}>
               <span className="app-profes-ai__thinking-icon" aria-hidden="true">
