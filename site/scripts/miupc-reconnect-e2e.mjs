@@ -314,4 +314,22 @@ try{
    const reconciling=page.waitForResponse(response=>reads>=2&&response.url().endsWith('/api/app/miupc/connect/')&&response.request().method()==='GET');await notice.getByRole('button',{name:'Ya actualicé mi acceso',exact:true}).click();await reconciling;await page.evaluate(()=>{const original=Date.now;Date.now=()=>original()+125000;});await notice.getByText('Acceso UPC actualizado',{exact:true}).waitFor();assert.equal(await notice.getByText('Mi UPC está conectado',{exact:true}).count(),0);await notice.getByRole('button',{name:'Listo',exact:true}).click();await notice.waitFor({state:'hidden'});console.log(JSON.stringify({mode:'cancelled-start',authorizationRestoredAfterBoundedReconciliation:true,noFalseMicrosoftConfirmation:true,noticeDismissible:true}));
   }finally{release();await context.close();}
  }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='aborted-reconciliation'){
+  await fetch(`${base}/__e2e/normal`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(()=>{window.open=()=>null;});const page=await context.newPage();let active,posts=0,authorized=false,reads=0,recover=false;
+  let releasePost,releaseRead,postReady,readReady;const postPaused=new Promise(r=>{releasePost=r;});const readPaused=new Promise(r=>{releaseRead=r;});const submitted=new Promise(r=>{postReady=r;});const reconciling=new Promise(r=>{readReady=r;});
+  await page.route('**/api/app/miupc/connect/',async route=>{
+   if(route.request().method()==='POST'){posts++;if(posts>1)return route.abort('failed');const response=await route.fetch();active=await response.json();postReady();await postPaused;return route.fulfill({response}).catch(()=>{});}
+   if(authorized){reads++;if(reads===2){readReady();await readPaused;}}
+   return route.fulfill({json:authorized?(recover?active:{status:'not_connected'}):{status:'upc_reconnect_required'}}).catch(()=>{});
+  });
+  try{
+   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});
+   await input.fill('Mis notas actuales');await input.press('Enter');await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();await submitted;
+   await fetch(`${base}/__e2e/upc`,{method:'POST'});await input.fill('Vuelve a consultar mis notas actuales');await input.press('Enter');await notice.getByRole('link',{name:'Actualizar acceso UPC'}).waitFor();releasePost();authorized=true;
+   await notice.getByRole('button',{name:'Ya actualicé mi acceso',exact:true}).click();await reconciling;
+   await fetch(`${base}/__e2e/normal`,{method:'POST'});await input.fill('Consulta otra vez mis notas actuales');await input.press('Enter');await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).waitFor();recover=true;releaseRead();
+   await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();await notice.getByRole('link',{name:'Abrir ventana de verificación'}).waitFor();assert.equal(posts,1,'An aborted reconciliation must not permit a duplicate POST');assert.ok(reads>=3);assert.equal(page.url(),base+path);
+   console.log(JSON.stringify({mode:'aborted-reconciliation',uncertainStartRetained:true,originalAttemptRecovered:true,noSecondPost:true}));
+  }finally{releasePost();releaseRead();await context.close();}
+ }
 }finally{await browser.close();}

@@ -158,14 +158,20 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     setStarting(true);setConnection(null);setError('');
     try{
       let data:MiupcConnection;
-      try{data=await request(true,controller.signal);}
+      const reconcileOnly=uncertainStart.current;
+      try{
+        // A superseded POST can still materialize remotely. Reconcile it
+        // before any replacement request, even after a notice transition.
+        data=reconcileOnly?await reconcileStart(controller.signal,true):await request(true,controller.signal);
+        if(current===generation.current&&!controller.signal.aborted&&!['busy','upc_reconnect_required','reconnect_required'].includes(data.status))uncertainStart.current=false;
+      }
       catch(cause){
         // The POST may have created a login before its response was lost.
         // Discover the owner's existing attempt instead of starting another.
         if(controller.signal.aborted||(cause instanceof ConnectionRequestError&&!cause.retryable))throw cause;
         data=await reconcileStart(controller.signal);
       }
-      if(data.status==='busy')data=await reconcileStart(controller.signal,true);
+      if(data.status==='busy'&&!reconcileOnly)data=await reconcileStart(controller.signal,true);
       if(current!==generation.current||controller.signal.aborted)return;
       if(data.loginUrl&&popup.current&&!popup.current.closed){popup.current.location.replace(data.loginUrl);navigated.current=true;}
       else{popup.current?.close();popup.current=null;}
@@ -190,13 +196,14 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       if(data&&['connected','not_connected','pending_login','saving'].includes(data.status)){
         if(uncertainStart.current){
           if(!['pending_login','saving'].includes(data.status)){
-            try{data=await reconcileStart(controller.signal,true);}
-            finally{uncertainStart.current=false;}
+            data=await reconcileStart(controller.signal,true);
+            if(current!==generation.current||controller.signal.aborted)return;
             if(data.status==='busy')data=await request(false,controller.signal,true);
-          }else uncertainStart.current=false;
+          }
           if(current!==generation.current||controller.signal.aborted)return;
           const recovered=parseMiupcConnection(data);
           if(['upc_reconnect_required','reconnect_required'].includes(recovered.status)){update(recovered,current,controller.signal);return;}
+          uncertainStart.current=false;
           if(['pending_login','saving','busy'].includes(recovered.status)){
             rememberMiupcReconnect(conversationId,false);accessRestored.current();update(recovered,current,controller.signal);return;
           }
@@ -213,7 +220,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
         setConnection(null);setAccessReady(true);accessRestored.current();
       }else setError(data?.status==='upc_reconnect_required'||data?.status==='reconnect_required'?'Tu acceso UPC aún no se ha actualizado. Completa la conexión en la otra pestaña.':'No pudimos comprobar el acceso UPC. Inténtalo de nuevo.');
     }catch(cause){if(current===generation.current&&!controller.signal.aborted)setError('No pudimos comprobar el acceso UPC. Inténtalo de nuevo.');}
-    finally{accessRequest.current=false;if(current===generation.current)setCheckingAccess(false);}
+    finally{if(current===generation.current){accessRequest.current=false;setCheckingAccess(false);}}
   }
   useEffect(()=>{
     if(!['upc_reconnect_required','reconnect_required'].includes(connection?.status??''))return;
