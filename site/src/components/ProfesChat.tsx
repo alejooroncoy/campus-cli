@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import MiupcReconnect from "./MiupcReconnect";
-import {rememberMiupcReconnect,hasMiupcReconnectNotice,clearMiupcReconnectNotices} from "../scripts/miupc-reconnect";
+import {rememberMiupcReconnect,hasMiupcReconnectNotice,requiresUpcReconnect,clearMiupcReconnectNotices} from "../scripts/miupc-reconnect";
 import { useChat } from "@ai-sdk/react";
 import type { ChatTransport, UIMessage, UIMessageChunk } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactElement } from "react";
@@ -624,7 +624,7 @@ function profesTransport(
   onGuestLimit: () => void,
   getConversationId: () => string | null,
   onConversationCreated: (id: string, title?: string) => void,
-  onMiupcReconnect: (conversationId: string | null) => void,
+  onMiupcReconnect: (conversationId: string | null,upcRequired:boolean) => void,
 ): ChatTransport<UIMessage> {
   return {
     async sendMessages({ messages, abortSignal }) {
@@ -663,13 +663,15 @@ function profesTransport(
       let convId: string | undefined;
       let convTitle: string | undefined;
       let miupcReconnectRequired = false;
+      let upcReconnectRequired=false;
       const readEvent = (line: string) => {
-        const event = JSON.parse(line) as { type: string; activity?: string; answer?: string; usage?: CampusSession["usage"]; error?: string; conversationId?: string; title?: string; miupcReconnectRequired?: boolean };
+        const event = JSON.parse(line) as { type: string; activity?: string; answer?: string; usage?: CampusSession["usage"]; error?: string; conversationId?: string; title?: string; miupcReconnectRequired?: boolean; upcReconnectRequired?:boolean };
         if (event.type === "status" && event.activity && activityLabels[event.activity]) onActivity(event.activity);
         if (event.type === "answer") {
           answer = event.answer ?? "";
           usage = event.usage;
           miupcReconnectRequired = event.miupcReconnectRequired === true;
+          upcReconnectRequired=event.upcReconnectRequired===true;
           if (event.conversationId) {
             convId = event.conversationId;
             convTitle = event.title;
@@ -692,7 +694,7 @@ function profesTransport(
       if (!answer.trim()) throw new Error("Campus no devolvió una respuesta.");
       onUsage(usage);
       if (convId) onConversationCreated(convId, convTitle);
-      if (miupcReconnectRequired) onMiupcReconnect(convId ?? activeConvId);
+      if (miupcReconnectRequired || upcReconnectRequired) onMiupcReconnect(convId ?? activeConvId,upcReconnectRequired);
 
       // The existing Profes API returns one completed answer; adapt it to AI SDK UI's
       // message protocol without pretending that the agent streams partial tokens.
@@ -722,6 +724,7 @@ export default function ProfesChat() {
   const [activity, setActivity] = useState("connecting");
   const [miupcReconnectRequired,setMiupcReconnectRequired] = useState(false);
   const [miupcReconnectRevision,setMiupcReconnectRevision] = useState(0);
+  const [upcReconnectRequired,setUpcReconnectRequired] = useState(false);
   const [accessNote, setAccessNote] = useState("");
   const [historyError, setHistoryError] = useState("");
   const [quotaDialogOpen, setQuotaDialogOpen] = useState(false);
@@ -823,12 +826,14 @@ export default function ProfesChat() {
   }, []);
 
   useEffect(()=>{
-    if(!authenticated){setMiupcReconnectRequired(false);return;}
-    if(hasMiupcReconnectNotice(currentConversationId))setMiupcReconnectRequired(true);
+    const needsReconnect=authenticated&&hasMiupcReconnectNotice(currentConversationId);
+    setMiupcReconnectRequired(needsReconnect);
+    setUpcReconnectRequired(needsReconnect&&requiresUpcReconnect(currentConversationId));
   },[authenticated,currentConversationId]);
 
-  const handleMiupcReconnect = useCallback((id:string|null)=>{
-    rememberMiupcReconnect(id);
+  const handleMiupcReconnect = useCallback((id:string|null,upcRequired:boolean)=>{
+    rememberMiupcReconnect(id,upcRequired);
+    setUpcReconnectRequired(upcRequired);
     setMiupcReconnectRequired(true);
     setMiupcReconnectRevision(value=>value+1);
   },[]);
@@ -1447,7 +1452,7 @@ export default function ProfesChat() {
               )}
             </article>
           ))}
-          {authenticated && miupcReconnectRequired ? <MiupcReconnect key={miupcReconnectRevision} disabled={busy} onConnected={clearMiupcReconnectNotices} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
+          {authenticated && miupcReconnectRequired ? <MiupcReconnect key={`${currentConversationId}:${miupcReconnectRevision}`} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
           {busy ? (
             <div className="app-profes-ai__thinking" role="status" aria-label={activityLabels[activity] ?? activityLabels.connecting}>
               <span className="app-profes-ai__thinking-icon" aria-hidden="true">

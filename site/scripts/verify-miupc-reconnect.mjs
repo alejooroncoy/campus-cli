@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 const {outputFiles}=await build({entryPoints:[new URL('../src/scripts/miupc-reconnect.ts',import.meta.url).pathname],bundle:true,platform:'node',format:'esm',write:false});
-const {parseMiupcConnection,rememberMiupcReconnect,hasMiupcReconnectNotice,clearMiupcReconnectNotices}=await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
+const {parseMiupcConnection,rememberMiupcReconnect,hasMiupcReconnectNotice,requiresUpcReconnect,clearMiupcReconnectNotices}=await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
 const attemptId='f56be447-5c2c-4e22-80d8-e5a211bcb6af';
 const pending={status:'pending_login',attemptId,expiresAt:Date.now()+420000,loginUrl:'https://www.browserbase.com/e2e/verify?private=capability'};
 assert.deepEqual(parseMiupcConnection({...pending,cookies:['secret'],contextId:'private-id'}),pending);
@@ -11,6 +11,7 @@ assert.deepEqual(parseMiupcConnection({status:'connected',attemptId,expiresAt:pe
 globalThis.sessionStorage={setItem(k,v){this[k]=v;},getItem(k){return this[k]??null;},removeItem(k){delete this[k];}};
 rememberMiupcReconnect(attemptId);assert.equal(hasMiupcReconnectNotice(attemptId),true);
 assert.ok(!JSON.stringify(sessionStorage).includes('browserbase'));
+rememberMiupcReconnect(attemptId,true);assert.equal(requiresUpcReconnect(attemptId),true);assert.equal(hasMiupcReconnectNotice(attemptId),true);
 sessionStorage.setItem('campus-question','Borrador');clearMiupcReconnectNotices();
 assert.equal(hasMiupcReconnectNotice(attemptId),false);assert.equal(sessionStorage.getItem('campus-question'),'Borrador');
 globalThis.sessionStorage={setItem(){throw Error('blocked');},getItem(){throw Error('blocked');},removeItem(){throw Error('blocked');}};

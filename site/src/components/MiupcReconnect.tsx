@@ -8,13 +8,14 @@ const copy: Record<MiupcConnection['status'], string> = {
   expired:'La ventana de verificación venció. Vuelve a conectar Mi UPC.',
   failed:'No pudimos completar la conexión. Puedes volver a intentarlo.',
   not_connected:'Vuelve a conectar Mi UPC para consultar tus notas.',
+  upc_reconnect_required:'Actualiza tu acceso institucional UPC en otra pestaña. Tu conversación seguirá aquí.',
   reconnect_required:'Primero hay que actualizar tu acceso UPC. Ábrelo en otra pestaña; este chat seguirá aquí.',
   not_configured:'La reconexión no está disponible en este momento. Inténtalo más tarde.',
   busy:'Hay una consulta de Mi UPC en curso. Espera a que termine y vuelve a intentarlo.',
   not_supported:'Esta conexión está disponible para estudiantes de UPC.',
 };
-export default function MiupcReconnect({disabled,onConnected,onDismiss}:{disabled:boolean;onConnected:()=>void;onDismiss:()=>void}) {
-  const [connection,setConnection] = useState<MiupcConnection | null>(null);
+export default function MiupcReconnect({disabled,upcRequired,onConnected,onDismiss}:{disabled:boolean;upcRequired:boolean;onConnected:()=>void;onDismiss:()=>void}) {
+  const [connection,setConnection] = useState<MiupcConnection | null>(upcRequired?{status:'upc_reconnect_required'}:null);
   const [starting,setStarting] = useState(false);
   const [error,setError] = useState('');
   const popup = useRef<Window | null>(null);
@@ -47,9 +48,13 @@ export default function MiupcReconnect({disabled,onConnected,onDismiss}:{disable
     const deadline=data.expiresAt??expiresAt;
     timer.current=setTimeout(async()=>{
       if(current!==generation.current||signal.aborted)return;
-      if(deadline&&Date.now()>=deadline){setConnection({status:'expired'});return;}
-      try{update(await request(false,signal),current,signal,data.attemptId??attemptId,deadline);}
-      catch(cause){if(current===generation.current&&!signal.aborted){setConnection({status:'failed'});setError(cause instanceof Error?cause.message:copy.failed);}}
+      try{
+        const next=await request(false,signal);
+        if(current!==generation.current||signal.aborted)return;
+        if(next.status==='pending_login'&&next.expiresAt&&Date.now()>=next.expiresAt){setConnection({status:'expired'});return;}
+        update(next,current,signal,data.attemptId??attemptId,deadline);
+      }
+      catch(cause){if(current===generation.current&&!signal.aborted){setConnection({status:deadline&&Date.now()>=deadline?'expired':'failed'});setError(deadline&&Date.now()>=deadline?'':cause instanceof Error?cause.message:copy.failed);}}
     },3000);
   }
   async function start() {
@@ -77,14 +82,14 @@ export default function MiupcReconnect({disabled,onConnected,onDismiss}:{disable
   }
   const waiting=starting||connection?.status==='pending_login'||connection?.status==='saving';
   const done=connection?.status==='connected';
+  const needsUpcAccess=connection?.status==='upc_reconnect_required'||connection?.status==='reconnect_required';
   return <aside className="app-miupc-reconnect" aria-label="Reconexión de Mi UPC">
-    <div><strong>{done?'Mi UPC está conectado':'Mi UPC necesita verificar tu acceso'}</strong>
+    <div><strong>{done?'Mi UPC está conectado':needsUpcAccess?'Actualiza tu acceso UPC':'Mi UPC necesita verificar tu acceso'}</strong>
       <p role="status" aria-live="polite">{starting?'Preparando la ventana segura…':error||(connection?copy[connection.status]:'Reconecta para consultar tus notas. Tu conversación y lo que estás escribiendo se conservan.')}</p>
     </div>
     <div className="app-miupc-reconnect__actions">
-      {done?<button type="button" onClick={onDismiss}>Listo</button>:<button type="button" onClick={()=>void start()} disabled={disabled||waiting}>{starting?'Preparando…':waiting?'Esperando verificación…':'Reconectar Mi UPC'}</button>}
+      {needsUpcAccess?<a href="https://profes.campuscli.com/?conectar=banner" target="_blank" rel="noopener noreferrer">Actualizar acceso UPC ↗</a>:done?<button type="button" onClick={onDismiss}>Listo</button>:<button type="button" onClick={()=>void start()} disabled={disabled||waiting}>{starting?'Preparando…':waiting?'Esperando verificación…':'Reconectar Mi UPC'}</button>}
       {connection?.loginUrl?<a href={connection.loginUrl} target="_blank" rel="noopener noreferrer">Abrir ventana de verificación ↗</a>:null}
-      {connection?.status==='reconnect_required'?<a href="/app/perfil/" target="_blank" rel="noopener noreferrer">Actualizar acceso UPC ↗</a>:null}
     </div>
   </aside>;
 }
