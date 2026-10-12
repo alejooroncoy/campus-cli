@@ -37,8 +37,9 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   // Repeated tool notices must keep the current window and poll alive. A new
   // notice can reset a completed/failed card without unmounting an active login.
   useLayoutEffect(()=>{
-    if(starting||restoring||checkingAccess||['pending_login','saving'].includes(connection?.status??''))return;
+    if(starting||restoring||['pending_login','saving'].includes(connection?.status??''))return;
     generation.current++;if(timer.current)clearTimeout(timer.current);abort.current?.abort();
+    accessRequest.current=false;setCheckingAccess(false);
     setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setError('');
   },[noticeRevision]);
   async function request(start:boolean,signal:AbortSignal) {

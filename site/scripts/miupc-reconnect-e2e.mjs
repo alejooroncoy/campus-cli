@@ -144,4 +144,16 @@ try{
   }finally{await context.close();}
  }
  }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='access-race'){
+  await fetch(`${base}/__e2e/upc`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});const page=await context.newPage();
+  let release;const paused=new Promise(resolve=>{release=resolve;});let requested;const started=new Promise(resolve=>{requested=resolve;});
+  await page.route('**/api/app/miupc/connect/',async route=>{if(route.request().method()!=='GET')return route.continue();requested();await paused;await route.fulfill({contentType:'application/json',body:JSON.stringify({status:'not_connected'})}).catch(()=>{});});
+  try{
+   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});await input.fill('Mis notas actuales');await input.press('Enter');
+   const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.getByRole('button',{name:'Ya actualicé mi acceso',exact:true}).click();await started;
+   await fetch(`${base}/__e2e/normal`,{method:'POST'});await input.fill('Vuelve a consultar mis notas actuales');await input.press('Enter');await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).waitFor();
+   release();await input.fill('Borrador durante comprobación');await page.waitForTimeout(100);assert.equal(await notice.getByText('Acceso UPC actualizado',{exact:true}).count(),0);assert.equal(await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).isEnabled(),true);assert.equal(await input.inputValue(),'Borrador durante comprobación');
+   console.log(JSON.stringify({mode:'access-race',latestReconnectNoticePreserved:true,staleAuthorizationIgnored:true,draftPreserved:true}));
+  }finally{release();await context.close();}
+ }
 }finally{await browser.close();}
