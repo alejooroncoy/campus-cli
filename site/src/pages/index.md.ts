@@ -18,7 +18,7 @@ export const GET: APIRoute = () => {
     "",
     "Fuente: https://campuscli.com/",
     "Campus CLI: https://campuscli.com/campus-cli/",
-    "Campus: https://campuscli.com/profes/",
+    "Opiniones de profesores: https://campuscli.com/profes/",
     "Texto completo del sitio: https://campuscli.com/llms-full.txt",
     "",
     "---",

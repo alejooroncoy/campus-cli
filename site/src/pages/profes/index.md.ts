@@ -8,9 +8,9 @@ import { htmlToMarkdown } from "../../lib/html-to-markdown";
  */
 export const GET: APIRoute = () => {
   const markdown = [
-    "# Campus",
+    "# Opiniones de profesores en Campus",
     "",
-    "> Calificaciones, comentarios de otros alumnos y horarios de profesores, directo desde WhatsApp.",
+    "> Consulta y comparte opiniones de profesores desde Campus. El asistente web y el conector MCP comparten cuenta y plan. También disponible por WhatsApp.",
     "",
     "Fuente: https://campuscli.com/profes/",
     "",
