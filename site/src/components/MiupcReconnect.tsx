@@ -44,7 +44,8 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     if((starting||restoring||['pending_login','saving'].includes(connection?.status??''))&&!upcRequired)return;
     generation.current++;if(timer.current)clearTimeout(timer.current);abort.current?.abort();
     accessRequest.current=false;setCheckingAccess(false);restoringRequest.current=false;setRestoring(false);setStarting(false);
-    if(popup.current&&!navigated.current){popup.current.close();popup.current=null;}
+    if(upcRequired)forgetMiupcAttempt(conversationId);
+    if(popup.current&&(upcRequired||!navigated.current)){try{popup.current.close();}catch{/* Isolated windows may sever the handle. */}popup.current=null;}
     setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setError('');
   },[noticeRevision]);
   async function request(start:boolean,signal:AbortSignal) {
@@ -113,7 +114,11 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   async function reconcileStart(signal:AbortSignal){
     const deadline=Date.now()+120_000;
     for(;;){
-      try{return await request(false,AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,deadline-Date.now()))]));}
+      try{
+        const data=await request(false,AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,deadline-Date.now()))]));
+        if(data.status==='connected')throw new ConnectionRequestError('No pudimos confirmar esta nueva verificación. Vuelve a consultar tus notas o reconecta Mi UPC.',false);
+        return data;
+      }
       catch(cause){
         if(signal.aborted||(cause instanceof ConnectionRequestError&&!cause.retryable)||Date.now()>=deadline)throw cause;
         await new Promise<void>((resolve,reject)=>{
