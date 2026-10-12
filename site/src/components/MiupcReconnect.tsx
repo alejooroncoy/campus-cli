@@ -105,7 +105,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   }
   useEffect(()=>{
     const saved=savedMiupcAttempt(conversationId);
-    if(upcRequired)return;
+    if(upcRequired||starting||restoring||['pending_login','saving'].includes(connection?.status??''))return;
     const current=generation.current;const controller=new AbortController();abort.current=controller;
     let retryUntil=saved?.expiresAt??0;
     const settled=()=>{if(current===generation.current){restoringRequest.current=false;setRestoring(false);}};
@@ -138,7 +138,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     const returned=()=>{if(document.visibilityState==='visible')beginRestore();};
     if(!saved){window.addEventListener('focus',returned);document.addEventListener('visibilitychange',returned);}
     return()=>{window.removeEventListener('focus',returned);document.removeEventListener('visibilitychange',returned);};
-  },[]);
+  },[noticeRevision]);
   async function reconcileStart(signal:AbortSignal,waitForActive=false){
     const deadline=Date.now()+120_000;
     for(;;){
