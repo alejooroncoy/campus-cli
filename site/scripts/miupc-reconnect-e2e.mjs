@@ -77,7 +77,8 @@ try{
   assert.equal(await link.getAttribute('href'),'https://profes.campuscli.com/?conectar=banner');assert.equal(await link.getAttribute('target'),'_blank');assert.equal(await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).count(),0);
   await input.fill('Borrador de acceso UPC');const state=await(await fetch(`${base}/__e2e/state`)).json();
   await page.reload();await link.waitFor();assert.equal(await input.inputValue(),'Borrador de acceso UPC');assert.equal(page.url(),base+path);
-  assert.equal((await(await fetch(`${base}/__e2e/state`)).json()).starts,state.starts);authorizationRestored=true;await notice.getByRole('button',{name:'Ya actualicé mi acceso',exact:true}).click();await notice.getByText('Acceso UPC actualizado',{exact:true}).waitFor();
+  assert.equal((await(await fetch(`${base}/__e2e/state`)).json()).starts,state.starts);await page.evaluate(()=>{sessionStorage.setItem('campus-miupc-reconnect:22222222-2222-4222-8222-222222222222','upc');sessionStorage.setItem('campus-miupc-reconnect:33333333-3333-4333-8333-333333333333','1');});authorizationRestored=true;await notice.getByRole('button',{name:'Ya actualicé mi acceso',exact:true}).click();await notice.getByText('Acceso UPC actualizado',{exact:true}).waitFor();
+  assert.deepEqual(await page.evaluate(()=>[sessionStorage.getItem('campus-miupc-reconnect:22222222-2222-4222-8222-222222222222'),sessionStorage.getItem('campus-miupc-reconnect:33333333-3333-4333-8333-333333333333')]),[null,'1']);
   await notice.getByRole('button',{name:'Listo',exact:true}).click();await notice.waitFor({state:'hidden'});
   await page.reload();await input.waitFor();assert.equal(await notice.count(),0);assert.equal(await input.inputValue(),'Borrador de acceso UPC');
   console.log(JSON.stringify({mode:'upc',noUnusableBrowserbaseAction:true,authorizationNoticeCleared:true,conversationPreserved:true,draftPreserved:true}));
