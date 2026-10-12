@@ -423,20 +423,20 @@ function provideWebMcpContext() {
   if (!modelContext) return;
 
   const sections = {
-    inicio: { href: "/", label: "Campus Plus" },
-    profesores: { href: "/profes/", label: "Campus Profes" },
+    inicio: { href: "/", label: "Campus" },
+    profesores: { href: "/profes/", label: "Opiniones de profesores" },
     blackboard: { href: "/blackboard-mcp/", label: "Blackboard MCP" },
   };
 
   const tools = [
       {
         name: "campus_get_overview",
-        description: "Obtiene una descripción breve de Campus Plus, Campus Profes y Blackboard MCP para UPC.",
+        description: "Describe Campus: asistente web y conector MCP con la misma cuenta, plan y saldo.",
         inputSchema: { type: "object", properties: {}, additionalProperties: false },
         execute: () => ({
           content: [{
             type: "text",
-            text: "Campus reúne Campus Profes para comparar docentes y horarios antes de matricularte, y Blackboard MCP para consultar cursos, tareas, notas y materiales con la propia sesión universitaria del estudiante.",
+            text: "Campus conecta profesores, cursos, tareas, notas y materiales universitarios. Usa su asistente web o el conector MCP para tu IA con una sola cuenta, plan y saldo. Calcula cuánto necesitas para aprobar con tus notas y pesos publicados de Mi UPC. La conexión requiere tu propia sesión universitaria.",
           }],
         }),
       },
