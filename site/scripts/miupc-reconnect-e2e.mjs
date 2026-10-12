@@ -63,10 +63,11 @@ async function scenario(mode,blocked=false,mobile=false){
  }finally{await context.close();}
 }
 try{
- if(process.env.CAMPUS_RECONNECT_E2E_CASE!=='upc'){
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE){
  await scenario('normal');await scenario('normal',true,true);await scenario('near-deadline',true);
  for(const mode of ['busy','failed','unsafe','expired','restart'])await scenario(mode,true);
  }
+ if(process.env.CAMPUS_RECONNECT_E2E_CASE!=='terminals'){
  await fetch(`${base}/__e2e/upc`,{method:'POST'});
  const context=await browser.newContext({serviceWorkers:'block'});const page=await context.newPage();let authorizationRestored=false;
  await page.route('**/api/app/miupc/connect/',route=>route.request().method()==='GET'?route.fulfill({contentType:'application/json',body:JSON.stringify({status:authorizationRestored?'not_connected':'upc_reconnect_required'})}):route.continue());
@@ -83,4 +84,21 @@ try{
   await page.reload();await input.waitFor();assert.equal(await notice.count(),0);assert.equal(await input.inputValue(),'Borrador de acceso UPC');
   console.log(JSON.stringify({mode:'upc',noUnusableBrowserbaseAction:true,authorizationNoticeCleared:true,conversationPreserved:true,draftPreserved:true}));
  }finally{await context.close();}
+ }
+ if(process.env.CAMPUS_RECONNECT_E2E_CASE!=='upc'){
+ for(const terminal of ['expired','failed','upc_reconnect_required']){
+  await fetch(`${base}/__e2e/normal`,{method:'POST'});
+  const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(()=>{window.open=()=>null;});const page=await context.newPage();
+  await page.route('**/api/app/miupc/connect/',route=>route.request().method()==='GET'?route.fulfill({contentType:'application/json',body:JSON.stringify({status:terminal})}):route.continue());
+  try{
+   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});await input.fill('Mis notas actuales');await input.press('Enter');
+   const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.waitFor();await input.fill('Borrador de respuesta terminal');
+   await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();
+   if(terminal==='upc_reconnect_required')await notice.getByRole('link',{name:'Actualizar acceso UPC'}).waitFor();
+   else await notice.getByText(terminal==='expired'?'La ventana de verificación venció. Vuelve a conectar Mi UPC.':'No pudimos completar la conexión. Puedes volver a intentarlo.',{exact:true}).waitFor();
+   assert.equal(page.url(),base+path);assert.equal(await input.inputValue(),'Borrador de respuesta terminal');assert.equal(await notice.getByRole('link',{name:'Abrir ventana de verificación'}).count(),0);
+   console.log(JSON.stringify({terminal,correctRecoveryGuidance:true,conversationPreserved:true,draftPreserved:true}));
+  }finally{await context.close();}
+ }
+ }
 }finally{await browser.close();}

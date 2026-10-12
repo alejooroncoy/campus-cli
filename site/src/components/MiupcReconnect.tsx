@@ -43,7 +43,7 @@ export default function MiupcReconnect({disabled,upcRequired,onConnected,onUpcAc
     if(current!==generation.current||signal.aborted)return;
     // A durable "connected" flag from an earlier login is not confirmation of
     // this verification. A worker restart must not silently mark it complete.
-    if(attemptId && data.attemptId!==attemptId){setConnection({status:'failed'});setError('Se interrumpió la verificación. Vuelve a conectar Mi UPC.');return;}
+    if(attemptId && ['pending_login','saving','connected'].includes(data.status) && data.attemptId!==attemptId){setConnection({status:'failed'});setError('Se interrumpió la verificación. Vuelve a conectar Mi UPC.');return;}
     setConnection(data);setError('');
     if(data.status==='connected'){
       popup.current?.close();popup.current=null;connected.current();return;
