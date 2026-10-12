@@ -91,6 +91,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       try{
         const next=await request(false,signal);
         if(current!==generation.current||signal.aborted)return;
+        if(next.status==='busy'&&retryUntil&&Date.now()<retryUntil){setError('Hay una consulta en curso. Seguimos comprobando tu verificación…');poll();return;}
         if(next.status==='pending_login'&&next.expiresAt&&Date.now()>=next.expiresAt){update({status:'expired'},current,signal);return;}
         update(next,current,signal,data.attemptId??attemptId,deadline);
       }
@@ -109,6 +110,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     const retryUntil=Math.max(saved.expiresAt,Date.now()+120_000);
     const settled=()=>{restoringRequest.current=false;if(current===generation.current)setRestoring(false);};
     const restore=()=>{void request(false,controller.signal).then(data=>{
+      if(data.status==='busy'&&current===generation.current&&!controller.signal.aborted&&Date.now()<retryUntil){timer.current=setTimeout(restore,3000);return;}
       update(data,current,controller.signal,saved.attemptId,saved.expiresAt);settled();
     }).catch(cause=>{
       if(current!==generation.current||controller.signal.aborted){settled();return;}
