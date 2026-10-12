@@ -67,7 +67,7 @@ try{
  await scenario('normal');await scenario('normal',true,true);await scenario('near-deadline',true);
  for(const mode of ['busy','failed','unsafe','expired','restart'])await scenario(mode,true);
  }
- if(process.env.CAMPUS_RECONNECT_E2E_CASE!=='terminals'){
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='upc'){
  await fetch(`${base}/__e2e/upc`,{method:'POST'});
  const context=await browser.newContext({serviceWorkers:'block'});const page=await context.newPage();let authorizationRestored=false;
  await page.route('**/api/app/miupc/connect/',route=>route.request().method()==='GET'?route.fulfill({contentType:'application/json',body:JSON.stringify({status:authorizationRestored?'not_connected':'upc_reconnect_required'})}):route.continue());
@@ -85,7 +85,7 @@ try{
   console.log(JSON.stringify({mode:'upc',noUnusableBrowserbaseAction:true,authorizationNoticeCleared:true,conversationPreserved:true,draftPreserved:true}));
  }finally{await context.close();}
  }
- if(process.env.CAMPUS_RECONNECT_E2E_CASE!=='upc'){
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='terminals'){
  for(const terminal of ['expired','failed','upc_reconnect_required']){
   await fetch(`${base}/__e2e/normal`,{method:'POST'});
   const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(()=>{window.open=()=>null;});const page=await context.newPage();
@@ -100,5 +100,19 @@ try{
    console.log(JSON.stringify({terminal,correctRecoveryGuidance:true,conversationPreserved:true,draftPreserved:true}));
   }finally{await context.close();}
  }
+ }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='active'){
+  await fetch(`${base}/__e2e/normal`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(()=>{window.open=()=>null;});const page=await context.newPage();
+  try{
+   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});await input.fill('Mis notas actuales');await input.press('Enter');
+   const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();
+   const link=notice.getByRole('link',{name:'Abrir ventana de verificación'});await link.waitFor();const live=await link.getAttribute('href');const state=await(await fetch(`${base}/__e2e/state`)).json();
+   const responses=await page.getByText('Necesitas volver a verificar tu acceso a Mi UPC.',{exact:true}).count();
+   await input.fill('Otra pregunta sobre mis notas actuales');await input.press('Enter');await page.waitForFunction(count=>Array.from(document.querySelectorAll('.app-profes-ai__text-block')).filter(el=>el.textContent==='Necesitas volver a verificar tu acceso a Mi UPC.').length>count,responses);
+   await input.fill('Borrador durante verificación');assert.equal(await link.getAttribute('href'),live);assert.equal(await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).count(),0);
+   assert.equal((await(await fetch(`${base}/__e2e/state`)).json()).starts,state.starts);
+   await fetch(`${base}/__e2e/connected`,{method:'POST'});await notice.getByText('Conexión restablecida. Ya puedes seguir preguntando en este chat.',{exact:true}).waitFor();
+   assert.equal(page.url(),base+path);assert.equal(await input.inputValue(),'Borrador durante verificación');console.log(JSON.stringify({mode:'active',repeatedNoticePreservesAttempt:true,completedOriginalAttempt:true,conversationPreserved:true,draftPreserved:true}));
+  }finally{await context.close();}
  }
 }finally{await browser.close();}

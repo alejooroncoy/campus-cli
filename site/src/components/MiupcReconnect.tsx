@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {parseMiupcConnection, type MiupcConnection} from '../scripts/miupc-reconnect';
 
 const endpoint = '/api/app/miupc/connect/';
@@ -14,7 +14,7 @@ const copy: Record<MiupcConnection['status'], string> = {
   busy:'Hay una consulta de Mi UPC en curso. Espera a que termine y vuelve a intentarlo.',
   not_supported:'Esta conexión está disponible para estudiantes de UPC.',
 };
-export default function MiupcReconnect({disabled,upcRequired,onConnected,onUpcAccessRestored,onDismiss}:{disabled:boolean;upcRequired:boolean;onConnected:()=>void;onUpcAccessRestored:()=>void;onDismiss:()=>void}) {
+export default function MiupcReconnect({disabled,upcRequired,noticeRevision,onConnected,onUpcAccessRestored,onDismiss}:{disabled:boolean;upcRequired:boolean;noticeRevision:number;onConnected:()=>void;onUpcAccessRestored:()=>void;onDismiss:()=>void}) {
   const [connection,setConnection] = useState<MiupcConnection | null>(upcRequired?{status:'upc_reconnect_required'}:null);
   const [starting,setStarting] = useState(false);
   const [error,setError] = useState('');
@@ -32,6 +32,13 @@ export default function MiupcReconnect({disabled,upcRequired,onConnected,onUpcAc
     generation.current++; if(timer.current)clearTimeout(timer.current); abort.current?.abort();
     if(popup.current&&!navigated.current)popup.current.close();
   },[]);
+  // Repeated tool notices must keep the current window and poll alive. A new
+  // notice can reset a completed/failed card without unmounting an active login.
+  useLayoutEffect(()=>{
+    if(starting||checkingAccess||['pending_login','saving'].includes(connection?.status??''))return;
+    generation.current++;if(timer.current)clearTimeout(timer.current);abort.current?.abort();
+    setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setError('');
+  },[noticeRevision]);
   async function request(start:boolean,signal:AbortSignal) {
     const response = await fetch(endpoint,{method:start?'POST':'GET',credentials:'same-origin',cache:'no-store',
       ...(start?{headers:{'content-type':'application/json'},body:'{}'}:{}),
