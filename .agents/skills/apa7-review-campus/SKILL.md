@@ -107,7 +107,7 @@ ejemplos, esquemas y notas; no equivalen a 1.105 reglas independientes. Se
 registran 98 enlaces de contenido. La guía colombiana complementaria se leyó
 en sus 20 páginas, pero es otra jurisdicción: no sustituye los perfiles UPC.
 
-Las consideraciones desarrollan 436 indicaciones en 399 unidades: 76 esquemas,
+Las consideraciones desarrollan 437 indicaciones en 399 unidades: 76 esquemas,
 246 unidades de consideraciones, 16 notas incrustadas, 42 contextos/definiciones
 y 19 remisiones normativas. Incluyen todas las 316 unidades clasificadas como
 reglas en la matriz. Las otras 706 unidades tienen disposición no normativa:

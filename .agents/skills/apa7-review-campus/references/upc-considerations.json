@@ -1460,7 +1460,8 @@
       "sha256": "05fbf1f4038c1a6e04f4f465ffc10da9afc252b81574e7f3678e3d079215a181",
       "kind": "schema",
       "guidance": [
-        "Lección de curso/MOOC: responsable de la lección, fecha, número/título de episodio cuando consten, descriptor; En docentes y curso como contenedor en cursiva, plataforma y URL accesible para el lector."
+        "Lección de curso/MOOC: responsable de la lección, fecha, número/título de episodio cuando consten, descriptor; En docentes y curso como contenedor en cursiva, plataforma y URL accesible para el lector.",
+        "Los docentes del contenedor se enumeran sin añadir (Ed.) ni un rótulo de función que el esquema no exige; una misma persona puede ser responsable de la lección y docente del curso."
       ],
       "criterionRefs": [
         "online-courses:2"
