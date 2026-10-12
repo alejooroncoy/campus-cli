@@ -6831,6 +6831,53 @@
       ],
       "condition": "Una referencia de película termina en productoras y omite el punto final.",
       "application": "Añade el punto que cierra las productoras cuando ese es el último componente; no añadas punto después de DOI o URL. Esta corrección no determina el año de una edición ni acredita la grafía de una productora: verifica esos datos antes de modificarlos."
+    },
+    {
+      "id": "observation-56",
+      "sectionId": "conferences",
+      "classification": "client-evidence-mismatch",
+      "sourceUnitIds": [
+        "s-lg-content-75564921:3",
+        "s-lg-content-75564921:5"
+      ],
+      "sourceImageIds": [],
+      "criterionRefs": [
+        "conferences:1"
+      ],
+      "condition": "Se explica la falta de contenedor de una conferencia asignándole una modalidad no acreditada.",
+      "application": "Salvaguarda de aplicación del cliente, no error confirmado de la fuente UPC: registra cada entrada por separado. Un descriptor Conferencia y la ausencia del evento no prueban que fuera independiente. Conserva el contenedor acreditado de otra contribución; para la entrada incompleta, solicita la evidencia de modalidad/evento antes de añadir u omitir ese campo."
+    },
+    {
+      "id": "observation-57",
+      "sectionId": "citation-faq",
+      "classification": "client-evidence-mismatch",
+      "sourceUnitIds": [
+        "s-lg-content-75564720:7",
+        "s-lg-content-75564720:9"
+      ],
+      "sourceImageIds": [],
+      "criterionRefs": [
+        "citation-faq:8",
+        "direct-quotes:1",
+        "direct-quotes:2"
+      ],
+      "condition": "Al aplicar omisión o énfasis añadido, se identifica el pasaje con datos de otro ejemplo.",
+      "application": "Salvaguarda de aplicación del cliente: vincula la intervención al fragmento concreto aportado y comprueba allí autor, año y localizador. Conserva esos datos en la reparación; no reutilices el responsable, página o párrafo de otro pasaje al aplicar una regla del FAQ. Sin omisión o énfasis declarado, no agregues señales al original. Si no se sabe qué palabras cambian, deja pendiente ese tramo."
+    },
+    {
+      "id": "observation-58",
+      "sectionId": "reference-faq",
+      "classification": "client-evidence-mismatch",
+      "sourceUnitIds": [
+        "s-lg-content-75564022:2",
+        "s-lg-content-75564022:3"
+      ],
+      "sourceImageIds": [],
+      "criterionRefs": [
+        "reference-faq:3"
+      ],
+      "condition": "Al retirar Anónimo de un supuesto sin firma, la reparación cambia el título, fecha o editorial por los de otro libro.",
+      "application": "Salvaguarda de aplicación del cliente: cambia únicamente la atribución que la condición del supuesto modifica y mueve el título de esa misma obra a posición de autor, conservando su formato y demás datos acreditados. No completes la reparación con otro ejemplo de libro sin autor. Si la variante no confirma qué obra conserva o qué datos aporta, formula la corrección condicional y solicita los datos de la obra realmente citada."
     }
   ]
 }

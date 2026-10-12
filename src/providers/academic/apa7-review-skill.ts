@@ -116,7 +116,7 @@ const considerationsSchema = z.object({
   })),
   nonNormativeUnitIds: z.array(z.string()),
   warnings: z.array(z.object({
-    id: z.string(), sectionId: z.string(), classification: z.enum(['rule-conflict', 'needs-original', 'extraction-artifact', 'incomplete-example']),
+    id: z.string(), sectionId: z.string(), classification: z.enum(['rule-conflict', 'needs-original', 'extraction-artifact', 'incomplete-example', 'client-evidence-mismatch']),
     sourceUnitIds: z.array(z.string()), sourceImageIds: z.array(z.string()), criterionRefs: z.array(z.string()),
     condition: z.string().min(1), application: z.string().min(1),
   })),

@@ -51,6 +51,11 @@ explica la adaptación institucional y aplica la prioridad indicada.
 2. Declara la cobertura: fragmento o documento completo, páginas leídas y elementos
    visuales inspeccionados. El texto extraído no demuestra márgenes, interlineado,
    sangría ni cursiva; marca esas propiedades como no verificables sin el formato.
+   Antes de valorar cada caso, identifica su fragmento y registra los datos
+   pertinentes que contiene: autor/responsable, fecha, título, localizador y
+   fuente, con la unidad, página o panel de donde proceden. Mantén separado ese
+   registro de los ejemplos que solo enseñan una regla. Si hay varios pasajes o
+   entradas, vuelve al fragmento concreto antes de nombrar su obra o responsable.
 3. Distingue cita textual, paráfrasis, traducción propia y contenido generado con
    IA. Comprueba autor, año, localizador cuando corresponda, puntuación, cantidad
    de autores y correspondencia con la lista de referencias. Cuenta solo las
@@ -85,6 +90,15 @@ explica la adaptación institucional y aplica la prioridad indicada.
    más repetida. Comprueba el formato visible: espacios introducidos entre spans
    por un extractor no prueban una errata en la web. Distingue autores de una
    fuente y nombres de objetos representados antes de objetar la atribución.
+   Antes de entregar una reparación, coteja sus datos con el registro del mismo
+   caso. Conserva los que no cambian por la corrección; un supuesto sin firma
+   no autoriza sustituir su libro, año o editorial por los de otro ejemplo.
+   Si la variante no identifica la obra o el cambio exacto, explica la reparación
+   condicional y pide ese dato en lugar de completar una entrada distinta.
+   La ausencia de un campo no demuestra una modalidad: si una conferencia no
+   identifica evento contenedor, deja pendiente si era independiente o parte de
+   un evento. No uses esa incertidumbre para eliminar un contenedor acreditado
+   de otra entrada.
 
 ## Formato de los ejemplos y datos de la obra
 
@@ -176,8 +190,11 @@ comportamiento del agente.
 
 Consulta `sourceIssues` y las salvaguardas de la sección antes de corregir: hay
 contrastes de formato, inconsistencias internas y datos que necesitan el original.
-Las 55 observaciones agrupadas se conservan como salvaguardas condicionales;
-no equivalen a 55 errores confirmados. La separación aparente C/asación se
+Las 58 observaciones agrupadas se conservan como salvaguardas condicionales;
+no equivalen a 58 errores confirmados. Tres proceden de fallos de aplicación del
+agente detectados en una revisión independiente: confundir pasajes, inferir una
+modalidad sin evidencia y trasladar datos de otra obra. No se atribuyen a la UPC
+como reglas nuevas ni como errores de sus ejemplos. La separación aparente C/asación se
 reclasificó como artefacto de extracción. Los ejemplos de la guía no permiten
 certificar los metadatos de otra obra. Explica los
 contrastes (incluida la capitalización UPC de REFERENCIAS) cuando sean relevantes.
