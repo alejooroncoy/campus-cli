@@ -1239,7 +1239,11 @@
   }
 }
 .app-profes-ai.has-messages {
-  min-height: calc(100dvh - 164px);
+  min-height: calc(100dvh - 92px);
+  padding-bottom: 0;
+}
+.app-main--profes:has(.app-profes-ai.has-messages) {
+  padding-bottom: 0;
 }
 .app-profes-ai__conversation {
   flex: 1;
@@ -1287,8 +1291,11 @@
   cursor: wait;
 }
 @media (max-width: 700px) {
+  .app-main--profes:has(.app-profes-ai.has-messages) {
+    padding-bottom: var(--app-mobile-nav-height);
+  }
   .app-profes-ai.has-messages {
-    min-height: calc(100dvh - 220px);
+    min-height: calc(100dvh - 92px - var(--app-mobile-nav-height));
   }
 }
 
