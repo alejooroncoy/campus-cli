@@ -1,4 +1,6 @@
 import { createPortal } from "react-dom";
+import MiupcReconnect from "./MiupcReconnect";
+import {rememberMiupcReconnect,hasMiupcReconnectNotice,clearMiupcReconnectNotices} from "../scripts/miupc-reconnect";
 import { useChat } from "@ai-sdk/react";
 import type { ChatTransport, UIMessage, UIMessageChunk } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactElement } from "react";
@@ -622,6 +624,7 @@ function profesTransport(
   onGuestLimit: () => void,
   getConversationId: () => string | null,
   onConversationCreated: (id: string, title?: string) => void,
+  onMiupcReconnect: (conversationId: string | null) => void,
 ): ChatTransport<UIMessage> {
   return {
     async sendMessages({ messages, abortSignal }) {
@@ -659,12 +662,14 @@ function profesTransport(
       let usage: CampusSession["usage"];
       let convId: string | undefined;
       let convTitle: string | undefined;
+      let miupcReconnectRequired = false;
       const readEvent = (line: string) => {
-        const event = JSON.parse(line) as { type: string; activity?: string; answer?: string; usage?: CampusSession["usage"]; error?: string; conversationId?: string; title?: string };
+        const event = JSON.parse(line) as { type: string; activity?: string; answer?: string; usage?: CampusSession["usage"]; error?: string; conversationId?: string; title?: string; miupcReconnectRequired?: boolean };
         if (event.type === "status" && event.activity && activityLabels[event.activity]) onActivity(event.activity);
         if (event.type === "answer") {
           answer = event.answer ?? "";
           usage = event.usage;
+          miupcReconnectRequired = event.miupcReconnectRequired === true;
           if (event.conversationId) {
             convId = event.conversationId;
             convTitle = event.title;
@@ -687,6 +692,7 @@ function profesTransport(
       if (!answer.trim()) throw new Error("Campus no devolvió una respuesta.");
       onUsage(usage);
       if (convId) onConversationCreated(convId, convTitle);
+      if (miupcReconnectRequired) onMiupcReconnect(convId ?? activeConvId);
 
       // The existing Profes API returns one completed answer; adapt it to AI SDK UI's
       // message protocol without pretending that the agent streams partial tokens.
@@ -714,6 +720,8 @@ export default function ProfesChat() {
   const [input, setInput] = useState("");
   const [usage, setUsage] = useState<CampusSession["usage"]>();
   const [activity, setActivity] = useState("connecting");
+  const [miupcReconnectRequired,setMiupcReconnectRequired] = useState(false);
+  const [miupcReconnectRevision,setMiupcReconnectRevision] = useState(0);
   const [accessNote, setAccessNote] = useState("");
   const [historyError, setHistoryError] = useState("");
   const [quotaDialogOpen, setQuotaDialogOpen] = useState(false);
@@ -814,6 +822,17 @@ export default function ProfesChat() {
     });
   }, []);
 
+  useEffect(()=>{
+    if(!authenticated){setMiupcReconnectRequired(false);return;}
+    if(hasMiupcReconnectNotice(currentConversationId))setMiupcReconnectRequired(true);
+  },[authenticated,currentConversationId]);
+
+  const handleMiupcReconnect = useCallback((id:string|null)=>{
+    rememberMiupcReconnect(id);
+    setMiupcReconnectRequired(true);
+    setMiupcReconnectRevision(value=>value+1);
+  },[]);
+
   const transport = useMemo(() => profesTransport(
     value => {
       usageHandler.current(value);
@@ -823,7 +842,8 @@ export default function ProfesChat() {
     () => guestLimitHandler.current(),
     () => currentConversationIdRef.current,
     handleConversationCreated,
-  ), [handleConversationCreated]);
+    handleMiupcReconnect,
+  ), [handleConversationCreated,handleMiupcReconnect]);
   const { messages, setMessages, sendMessage, status, error, stop } = useChat({ transport });
   const messagesHandler = useRef(setMessages);
   messagesHandler.current = setMessages;
@@ -1427,6 +1447,7 @@ export default function ProfesChat() {
               )}
             </article>
           ))}
+          {authenticated && miupcReconnectRequired ? <MiupcReconnect key={miupcReconnectRevision} disabled={busy} onConnected={clearMiupcReconnectNotices} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
           {busy ? (
             <div className="app-profes-ai__thinking" role="status" aria-label={activityLabels[activity] ?? activityLabels.connecting}>
               <span className="app-profes-ai__thinking-icon" aria-hidden="true">

@@ -10,7 +10,8 @@
     "preview": "astro preview",
     "test:agent-discovery": "node scripts/verify-agent-discovery.mjs",
     "test:offline": "node scripts/verify-offline-shell.mjs",
-    "test:app": "node scripts/verify-session-cache.mjs && node scripts/verify-conversation-cache.mjs && node scripts/verify-offline-shell.mjs && node scripts/externalize-app-scripts.test.mjs"
+    "test:app": "node scripts/verify-session-cache.mjs && node scripts/verify-conversation-cache.mjs && node scripts/verify-offline-shell.mjs && node scripts/externalize-app-scripts.test.mjs && node scripts/verify-miupc-reconnect.mjs",
+    "test:miupc-reconnect": "node scripts/miupc-reconnect-e2e.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.116",

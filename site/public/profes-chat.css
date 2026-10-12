@@ -1301,3 +1301,14 @@
 .app-academic-period[open] > div { padding-top: 12px; display: grid; gap: 10px; }
 .app-academic-table:focus-visible, .app-academic-period summary:focus-visible { outline: 2px solid var(--app-link); outline-offset: 3px; }
 .app-academic-history-note { padding-top: 16px; }
+
+.app-miupc-reconnect { margin: 24px 0 140px; scroll-margin-block: 100px 180px; padding: 20px; border: 1px solid var(--app-border, #cbdce4); border-radius: 16px; background: #fff; color: var(--app-text, #102a3a); }
+.app-miupc-reconnect strong { font-size: 1rem; }
+.app-miupc-reconnect p { margin: 8px 0 0; line-height: 1.5; color: var(--app-muted, #506e80); }
+.app-miupc-reconnect__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 16px; }
+.app-miupc-reconnect button { min-height: 44px; padding: 10px 16px; border: 0; border-radius: 10px; background: #102a3a; color: #fff; font: inherit; font-weight: 600; cursor: pointer; touch-action: manipulation; }
+.app-miupc-reconnect button:hover:not(:disabled) { background: #21485d; }
+.app-miupc-reconnect button:disabled { opacity: .6; cursor: default; }
+.app-miupc-reconnect a { min-height: 44px; display: inline-flex; align-items: center; color: #007fa6; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.app-miupc-reconnect a:hover { color: #102a3a; }
+.app-miupc-reconnect :is(button,a):focus-visible { outline: 3px solid #00afe5; outline-offset: 3px; }

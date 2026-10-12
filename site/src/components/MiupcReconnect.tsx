@@ -1,0 +1,90 @@
+import {useEffect, useRef, useState} from 'react';
+import {parseMiupcConnection, type MiupcConnection} from '../scripts/miupc-reconnect';
+
+const endpoint = '/api/app/miupc/connect/';
+const copy: Record<MiupcConnection['status'], string> = {
+  pending_login:'Completa la verificación en la ventana segura. Este chat seguirá aquí.',
+  saving:'Guardando tu conexión…', connected:'Conexión restablecida. Ya puedes seguir preguntando en este chat.',
+  expired:'La ventana de verificación venció. Vuelve a conectar Mi UPC.',
+  failed:'No pudimos completar la conexión. Puedes volver a intentarlo.',
+  not_connected:'Vuelve a conectar Mi UPC para consultar tus notas.',
+  reconnect_required:'Primero hay que actualizar tu acceso UPC. Ábrelo en otra pestaña; este chat seguirá aquí.',
+  not_configured:'La reconexión no está disponible en este momento. Inténtalo más tarde.',
+  busy:'Hay una consulta de Mi UPC en curso. Espera a que termine y vuelve a intentarlo.',
+  not_supported:'Esta conexión está disponible para estudiantes de UPC.',
+};
+export default function MiupcReconnect({disabled,onConnected,onDismiss}:{disabled:boolean;onConnected:()=>void;onDismiss:()=>void}) {
+  const [connection,setConnection] = useState<MiupcConnection | null>(null);
+  const [starting,setStarting] = useState(false);
+  const [error,setError] = useState('');
+  const popup = useRef<Window | null>(null);
+  const navigated = useRef(false);
+  const generation = useRef(0);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const abort = useRef<AbortController | null>(null);
+  const connected = useRef(onConnected); connected.current = onConnected;
+  useEffect(()=>()=>{
+    generation.current++; if(timer.current)clearTimeout(timer.current); abort.current?.abort();
+    if(popup.current&&!navigated.current)popup.current.close();
+  },[]);
+  async function request(start:boolean,signal:AbortSignal) {
+    const response = await fetch(endpoint,{method:start?'POST':'GET',credentials:'same-origin',cache:'no-store',
+      ...(start?{headers:{'content-type':'application/json'},body:'{}'}:{}),
+      signal:AbortSignal.any([signal,AbortSignal.timeout(50_000)])});
+    if(!response.ok)throw Error(response.status===401?'Inicia sesión en Campus para reconectar.':'No pudimos comprobar la conexión. Inténtalo de nuevo.');
+    return parseMiupcConnection(await response.json());
+  }
+  function update(data:MiupcConnection,current:number,signal:AbortSignal,attemptId?:string,expiresAt?:number) {
+    if(current!==generation.current||signal.aborted)return;
+    // A durable "connected" flag from an earlier login is not confirmation of
+    // this verification. A worker restart must not silently mark it complete.
+    if(attemptId && data.attemptId!==attemptId){setConnection({status:'failed'});setError('Se interrumpió la verificación. Vuelve a conectar Mi UPC.');return;}
+    setConnection(data);setError('');
+    if(data.status==='connected'){
+      popup.current?.close();popup.current=null;connected.current();return;
+    }
+    if(!['pending_login','saving'].includes(data.status))return;
+    const deadline=data.expiresAt??expiresAt;
+    timer.current=setTimeout(async()=>{
+      if(current!==generation.current||signal.aborted)return;
+      if(deadline&&Date.now()>=deadline){setConnection({status:'expired'});return;}
+      try{update(await request(false,signal),current,signal,data.attemptId??attemptId,deadline);}
+      catch(cause){if(current===generation.current&&!signal.aborted){setConnection({status:'failed'});setError(cause instanceof Error?cause.message:copy.failed);}}
+    },3000);
+  }
+  async function start() {
+    if(starting||disabled)return;
+    const current=++generation.current;
+    if(timer.current)clearTimeout(timer.current);abort.current?.abort();
+    const controller=new AbortController();abort.current=controller;
+    // Open during the user gesture so browsers do not block a later async open.
+    // The blank window has no access back to Campus when it reaches Browserbase.
+    popup.current=window.open('about:blank','_blank');navigated.current=false;
+    if(popup.current)popup.current.opener=null;
+    setStarting(true);setConnection(null);setError('');
+    try{
+      const data=await request(true,controller.signal);
+      if(current!==generation.current||controller.signal.aborted)return;
+      if(data.loginUrl&&popup.current&&!popup.current.closed){popup.current.location.replace(data.loginUrl);navigated.current=true;}
+      else{popup.current?.close();popup.current=null;}
+      update(data,current,controller.signal);
+    }catch(cause){
+      if(current===generation.current&&!controller.signal.aborted){
+        if(!navigated.current)popup.current?.close();popup.current=null;
+        setConnection({status:'failed'});setError(cause instanceof Error?cause.message:copy.failed);
+      }
+    }finally{if(current===generation.current)setStarting(false);}
+  }
+  const waiting=starting||connection?.status==='pending_login'||connection?.status==='saving';
+  const done=connection?.status==='connected';
+  return <aside className="app-miupc-reconnect" aria-label="Reconexión de Mi UPC">
+    <div><strong>{done?'Mi UPC está conectado':'Mi UPC necesita verificar tu acceso'}</strong>
+      <p role="status" aria-live="polite">{starting?'Preparando la ventana segura…':error||(connection?copy[connection.status]:'Reconecta para consultar tus notas. Tu conversación y lo que estás escribiendo se conservan.')}</p>
+    </div>
+    <div className="app-miupc-reconnect__actions">
+      {done?<button type="button" onClick={onDismiss}>Listo</button>:<button type="button" onClick={()=>void start()} disabled={disabled||waiting}>{starting?'Preparando…':waiting?'Esperando verificación…':'Reconectar Mi UPC'}</button>}
+      {connection?.loginUrl?<a href={connection.loginUrl} target="_blank" rel="noopener noreferrer">Abrir ventana de verificación ↗</a>:null}
+      {connection?.status==='reconnect_required'?<a href="/app/perfil/" target="_blank" rel="noopener noreferrer">Actualizar acceso UPC ↗</a>:null}
+    </div>
+  </aside>;
+}
