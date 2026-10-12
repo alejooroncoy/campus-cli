@@ -60,8 +60,8 @@ try{
   }
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'No horizontal page overflow');
   assert.deepEqual(errors,[]);
-  await reply.scrollIntoViewIfNeeded();
-  await page.screenshot({path:`/tmp/campus-grades-${viewport.width<700?'mobile':'desktop'}.png`,fullPage:true});
+  await reply.locator('.app-chat-table-section').first().scrollIntoViewIfNeeded();
+  await page.screenshot({path:`/tmp/campus-grades-${viewport.width<700?'mobile':'desktop'}.png`,fullPage:false});
   console.log(JSON.stringify({viewport:viewport.width,tables:3,adjacentHeadings:true,zero:true,lists:true,safeMarkup:true,overflow:false,result:'passed'}));
   await context.close();
  }
