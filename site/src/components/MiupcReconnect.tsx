@@ -14,10 +14,14 @@ const copy: Record<MiupcConnection['status'], string> = {
   busy:'Hay una consulta de Mi UPC en curso. Espera a que termine y vuelve a intentarlo.',
   not_supported:'Esta conexión está disponible para estudiantes de UPC.',
 };
-export default function MiupcReconnect({disabled,upcRequired,onConnected,onDismiss}:{disabled:boolean;upcRequired:boolean;onConnected:()=>void;onDismiss:()=>void}) {
+export default function MiupcReconnect({disabled,upcRequired,onConnected,onUpcAccessRestored,onDismiss}:{disabled:boolean;upcRequired:boolean;onConnected:()=>void;onUpcAccessRestored:()=>void;onDismiss:()=>void}) {
   const [connection,setConnection] = useState<MiupcConnection | null>(upcRequired?{status:'upc_reconnect_required'}:null);
   const [starting,setStarting] = useState(false);
   const [error,setError] = useState('');
+  const [accessReady,setAccessReady]=useState(false);
+  const [checkingAccess,setCheckingAccess]=useState(false);
+  const accessRequest=useRef(false);
+  const accessRestored=useRef(onUpcAccessRestored);accessRestored.current=onUpcAccessRestored;
   const popup = useRef<Window | null>(null);
   const navigated = useRef(false);
   const generation = useRef(0);
@@ -80,15 +84,38 @@ export default function MiupcReconnect({disabled,upcRequired,onConnected,onDismi
       }
     }finally{if(current===generation.current)setStarting(false);}
   }
+  async function checkAuthorization(){
+    if(accessRequest.current||disabled)return;
+    accessRequest.current=true;setCheckingAccess(true);setError('');
+    const current=generation.current;const controller=new AbortController();abort.current=controller;
+    try{
+      const response=await fetch(endpoint,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(50_000)])});
+      const data=response.ok?await response.json():null;
+      if(current!==generation.current||controller.signal.aborted)return;
+      // This checks the live UPC grant, not completion of a Browserbase login.
+      // A durable connected flag must never pretend this verification finished.
+      if(data&&['connected','not_connected','pending_login','saving'].includes(data.status)){
+        setConnection(null);setAccessReady(true);accessRestored.current();
+      }else setError(data?.status==='upc_reconnect_required'||data?.status==='reconnect_required'?'Tu acceso UPC aún no se ha actualizado. Completa la conexión en la otra pestaña.':'No pudimos comprobar el acceso UPC. Inténtalo de nuevo.');
+    }catch(cause){if(current===generation.current&&!controller.signal.aborted)setError('No pudimos comprobar el acceso UPC. Inténtalo de nuevo.');}
+    finally{accessRequest.current=false;if(current===generation.current)setCheckingAccess(false);}
+  }
+  useEffect(()=>{
+    if(!['upc_reconnect_required','reconnect_required'].includes(connection?.status??''))return;
+    const returned=()=>{if(document.visibilityState==='visible')void checkAuthorization();};
+    window.addEventListener('focus',returned);document.addEventListener('visibilitychange',returned);
+    return()=>{window.removeEventListener('focus',returned);document.removeEventListener('visibilitychange',returned);};
+  },[connection?.status,disabled]);
   const waiting=starting||connection?.status==='pending_login'||connection?.status==='saving';
-  const done=connection?.status==='connected';
+  const done=connection?.status==='connected'||accessReady;
   const needsUpcAccess=connection?.status==='upc_reconnect_required'||connection?.status==='reconnect_required';
   return <aside className="app-miupc-reconnect" aria-label="Reconexión de Mi UPC">
-    <div><strong>{done?'Mi UPC está conectado':needsUpcAccess?'Actualiza tu acceso UPC':'Mi UPC necesita verificar tu acceso'}</strong>
-      <p role="status" aria-live="polite">{starting?'Preparando la ventana segura…':error||(connection?copy[connection.status]:'Reconecta para consultar tus notas. Tu conversación y lo que estás escribiendo se conservan.')}</p>
+    <div><strong>{accessReady?'Acceso UPC actualizado':done?'Mi UPC está conectado':needsUpcAccess?'Actualiza tu acceso UPC':'Mi UPC necesita verificar tu acceso'}</strong>
+      <p role="status" aria-live="polite">{accessReady?'Ya puedes volver a preguntar por tus notas en esta conversación.':checkingAccess?'Comprobando tu acceso UPC…':starting?'Preparando la ventana segura…':error||(connection?copy[connection.status]:'Reconecta para consultar tus notas. Tu conversación y lo que estás escribiendo se conservan.')}</p>
     </div>
     <div className="app-miupc-reconnect__actions">
       {needsUpcAccess?<a href="https://profes.campuscli.com/?conectar=banner" target="_blank" rel="noopener noreferrer">Actualizar acceso UPC ↗</a>:done?<button type="button" onClick={onDismiss}>Listo</button>:<button type="button" onClick={()=>void start()} disabled={disabled||waiting}>{starting?'Preparando…':waiting?'Esperando verificación…':'Reconectar Mi UPC'}</button>}
+      {needsUpcAccess?<button type="button" onClick={()=>void checkAuthorization()} disabled={disabled||checkingAccess}>{checkingAccess?'Comprobando…':'Ya actualicé mi acceso'}</button>:null}
       {connection?.loginUrl?<a href={connection.loginUrl} target="_blank" rel="noopener noreferrer">Abrir ventana de verificación ↗</a>:null}
     </div>
   </aside>;

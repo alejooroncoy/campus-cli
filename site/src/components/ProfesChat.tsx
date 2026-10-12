@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import MiupcReconnect from "./MiupcReconnect";
-import {rememberMiupcReconnect,hasMiupcReconnectNotice,requiresUpcReconnect,clearMiupcReconnectNotices} from "../scripts/miupc-reconnect";
+import {rememberMiupcReconnect,hasMiupcReconnectNotice,requiresUpcReconnect,forgetMiupcReconnectNotice,clearMiupcReconnectNotices} from "../scripts/miupc-reconnect";
 import { useChat } from "@ai-sdk/react";
 import type { ChatTransport, UIMessage, UIMessageChunk } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactElement } from "react";
@@ -1452,7 +1452,7 @@ export default function ProfesChat() {
               )}
             </article>
           ))}
-          {authenticated && miupcReconnectRequired ? <MiupcReconnect key={`${currentConversationId}:${miupcReconnectRevision}`} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
+          {authenticated && miupcReconnectRequired ? <MiupcReconnect key={`${currentConversationId}:${miupcReconnectRevision}`} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{forgetMiupcReconnectNotice(currentConversationId);setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
           {busy ? (
             <div className="app-profes-ai__thinking" role="status" aria-label={activityLabels[activity] ?? activityLabels.connecting}>
               <span className="app-profes-ai__thinking-icon" aria-hidden="true">

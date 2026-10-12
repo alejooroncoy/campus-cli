@@ -7,7 +7,7 @@ const path='/app/profes/c/11111111-1111-4111-8111-111111111111/';
 const browser=await chromium.launch({headless:true});
 async function scenario(mode,blocked=false,mobile=false){
  await fetch(`${base}/__e2e/${mode}`,{method:'POST'});
- const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1100,height:800}});
+ const context=await browser.newContext({serviceWorkers:'block',viewport:mobile?{width:390,height:844}:{width:1100,height:800}});
  await context.route('https://www.browserbase.com/**',route=>route.fulfill({contentType:'text/html',body:'<h1>Verificación Microsoft simulada</h1>'}));
  if(blocked)await context.addInitScript(()=>{window.open=()=>null;});
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -63,17 +63,23 @@ async function scenario(mode,blocked=false,mobile=false){
  }finally{await context.close();}
 }
 try{
+ if(process.env.CAMPUS_RECONNECT_E2E_CASE!=='upc'){
  await scenario('normal');await scenario('normal',true,true);await scenario('near-deadline',true);
  for(const mode of ['busy','failed','unsafe','expired','restart'])await scenario(mode,true);
+ }
  await fetch(`${base}/__e2e/upc`,{method:'POST'});
- const context=await browser.newContext();const page=await context.newPage();
+ const context=await browser.newContext({serviceWorkers:'block'});const page=await context.newPage();let authorizationRestored=false;
+ await page.route('**/api/app/miupc/connect/',route=>route.request().method()==='GET'?route.fulfill({contentType:'application/json',body:JSON.stringify({status:authorizationRestored?'not_connected':'upc_reconnect_required'})}):route.continue());
  try{
   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});
   await input.fill('Mis notas actuales');await input.press('Enter');
   const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});const link=notice.getByRole('link',{name:'Actualizar acceso UPC'});await link.waitFor();
-  assert.equal(await link.getAttribute('href'),'https://profes.campuscli.com/?conectar=banner');assert.equal(await link.getAttribute('target'),'_blank');assert.equal(await notice.getByRole('button').count(),0);
+  assert.equal(await link.getAttribute('href'),'https://profes.campuscli.com/?conectar=banner');assert.equal(await link.getAttribute('target'),'_blank');assert.equal(await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).count(),0);
   await input.fill('Borrador de acceso UPC');const state=await(await fetch(`${base}/__e2e/state`)).json();
   await page.reload();await link.waitFor();assert.equal(await input.inputValue(),'Borrador de acceso UPC');assert.equal(page.url(),base+path);
-  assert.equal((await(await fetch(`${base}/__e2e/state`)).json()).starts,state.starts);console.log(JSON.stringify({mode:'upc',noUnusableBrowserbaseAction:true,conversationPreserved:true,draftPreserved:true}));
+  assert.equal((await(await fetch(`${base}/__e2e/state`)).json()).starts,state.starts);authorizationRestored=true;await notice.getByRole('button',{name:'Ya actualicé mi acceso',exact:true}).click();await notice.getByText('Acceso UPC actualizado',{exact:true}).waitFor();
+  await notice.getByRole('button',{name:'Listo',exact:true}).click();await notice.waitFor({state:'hidden'});
+  await page.reload();await input.waitFor();assert.equal(await notice.count(),0);assert.equal(await input.inputValue(),'Borrador de acceso UPC');
+  console.log(JSON.stringify({mode:'upc',noUnusableBrowserbaseAction:true,authorizationNoticeCleared:true,conversationPreserved:true,draftPreserved:true}));
  }finally{await context.close();}
 }finally{await browser.close();}

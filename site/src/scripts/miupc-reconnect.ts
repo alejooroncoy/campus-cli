@@ -34,6 +34,9 @@ export function requiresUpcReconnect(conversationId:string|null){
 export function hasMiupcReconnectNotice(conversationId: string | null) {
   try { return Boolean(conversationId && ['1','upc'].includes(sessionStorage.getItem(noticePrefix + conversationId)??'')); } catch { return false; }
 }
+export function forgetMiupcReconnectNotice(conversationId:string|null){
+  try{if(conversationId)sessionStorage.removeItem(noticePrefix+conversationId);}catch{/* Optional storage. */}
+}
 export function clearMiupcReconnectNotices() {
   try { for (const key of Object.keys(sessionStorage)) if (key.startsWith(noticePrefix)) sessionStorage.removeItem(key); } catch { /* Private browsing. */ }
 }
