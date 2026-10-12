@@ -7,8 +7,8 @@ const { active } = Astro.props;
 
 const nav = [
   { id: "inicio", label: "Inicio", href: "/app/", icon: "book-open" },
-  { id: "profes", label: "Profes", href: "/app/profes/", icon: "users" },
-  { id: "copilot", label: "Copilot", href: "/app/copilot/", icon: "sparkles" },
+  { id: "profes", label: "Asistente", href: "/app/profes/", icon: "users" },
+  { id: "copilot", label: "Conectar IA", href: "/app/copilot/", icon: "sparkles" },
   { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "book-open" },
 ];
 ---
@@ -80,10 +80,10 @@ const nav = [
   <!-- Sidebar Footer -->
   <div class="sidebar-footer sidebar-footer--guest" data-app-sidebar-footer>
     <div class="sidebar-plan-card" data-app-plan-card hidden>
-      <strong class="sidebar-plan-title" data-app-plan-card-title>Campus Free</strong>
+      <strong class="sidebar-plan-title" data-app-plan-card-title>Campus</strong>
       <span class="sidebar-plan-description" data-app-plan-card-desc>Consultas disponibles</span>
-      <a href="/#plan-plus" class="sidebar-plan-action" data-app-plan-card-btn>
-        <span>Ver Campus Plus</span>
+      <a href="/app/perfil/" class="sidebar-plan-action" data-app-plan-card-btn>
+        <span>Ver mi plan</span>
         <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
           <path d="M5 12h14M12 5l7 7-7 7" />
         </svg>
@@ -119,11 +119,11 @@ const nav = [
           <span>Ver mi perfil</span>
         </a>
 
-        <a href="/#plan-plus" class="sidebar-dropdown__item" role="menuitem" data-app-sidebar-auth-only hidden>
+        <a href="/app/perfil/" class="sidebar-dropdown__item" role="menuitem" data-app-sidebar-auth-only hidden>
           <svg viewBox="0 0 24 24" class="sidebar-dropdown__icon sidebar-dropdown__icon--accent" aria-hidden="true">
             <use href="/assets/lucide.svg#sparkles" />
           </svg>
-          <span data-app-sidebar-upgrade-label>Mejorar a Plus</span>
+          <span data-app-sidebar-upgrade-label>Ver mi plan</span>
         </a>
 
         <div class="sidebar-dropdown__separator" data-app-sidebar-auth-only hidden></div>

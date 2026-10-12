@@ -11,16 +11,16 @@ readingMinutes: 5
 author: "Alejandro Oroncoy"
 faq:
   - q: "¿Campus Profes es lo mismo que Campus para Blackboard?"
-    a: "Campus Profes es la parte de Campus Plus enfocada en elegir profesor y sección antes de matricularte. La conexión con Blackboard UPC es otra parte de Campus Plus."
+    a: "Las opiniones de profesores son una función de Campus. El asistente web y el conector MCP comparten cuenta y plan."
   - q: "¿Cuánto cuesta Campus Profes?"
-    a: "Campus Plus ofrece acceso fundador de S/5 el primer mes para los primeros 25 miembros. El precio regular anunciado es S/19.90 al mes."
+    a: "Campus ofrece acceso fundador de S/5 el primer mes para los primeros 25 miembros. El precio regular anunciado es S/19.90 al mes."
   - q: "¿De dónde salen las calificaciones de los profesores?"
     a: "De alumnos que ya llevaron el curso y califican después de terminarlo. No es un formulario anónimo abierto a cualquiera ni información inventada."
 summary:
   - "Acabo de lanzar **Campus Profes**, un bot de WhatsApp para consultar calificaciones, comentarios y horarios de profesores antes de matricularte."
   - "Nace del mismo problema de siempre en época de matrícula: elegir profesor a ciegas, preguntando en tres grupos de WhatsApp distintos y confiando en la primera respuesta que llega."
   - "Sirve para comparar secciones del mismo curso antes de matricular, armar tu horario sin cruces comparando quién enseña mejor en cada bloque, y dejar tu propia calificación para el que pregunte después."
-  - "Campus Profes vuelve como parte de **Campus Plus**: solicita acceso fundador y consulta por WhatsApp antes de matricularte."
+  - "Las opiniones de profesores vuelven a **Campus**: solicita acceso fundador y consulta por WhatsApp antes de matricularte."
 ---
 Cada ciclo pasa lo mismo en época de matrícula. Entras a elegir horario, ves cuatro o cinco secciones del mismo curso, cada una con un profesor distinto, y no tienes ninguna forma de saber, desde el sistema de matrícula, cuál es cuál. Así que abres WhatsApp y preguntas en dos o tres grupos a la vez: "¿alguien sabe cómo es el profesor de Gerencia de Proyectos?". Decides con la primera respuesta que te llega, venga de quien venga, y a veces ni siquiera es de alguien que lo llevó de verdad. Ese momento, repetido ciclo tras ciclo, es la razón por la que construí Campus Profes.
 
@@ -46,8 +46,8 @@ Con Campus para Blackboard, la respuesta fue conectar el Aula Virtual a un asist
 
 ## Por qué sigue creciendo con la participación de los alumnos
 
-Campus Profes ya ayudó a más de 350 estudiantes a decidir antes de su matrícula. Ahora vuelve como parte de Campus Plus, junto con horarios y Blackboard UPC conectado. Pero a diferencia de Blackboard, esto no funciona solo con que yo escriba código: la calidad de cada respuesta depende de que más alumnos califiquen a sus profesores después de llevarlos. Si lo pruebas, cuando termines un curso vuelve y deja tu calificación. Es lo que hace que la próxima persona que pregunte reciba una respuesta real y no un silencio.
+Campus Profes ya ayudó a más de 350 estudiantes a decidir antes de su matrícula. Ahora se puede consultar junto con tus cursos y notas en Campus. Pero a diferencia de Blackboard, esto no funciona solo con que yo escriba código: la calidad de cada respuesta depende de que más alumnos califiquen a sus profesores después de llevarlos. Si lo pruebas, cuando termines un curso vuelve y deja tu calificación. Es lo que hace que la próxima persona que pregunte reciba una respuesta real y no un silencio.
 
 ## Cómo empezar
 
-Campus Profes forma parte de Campus Plus. Puedes solicitar el acceso fundador en [la página de Campus Profes](https://campuscli.com/profes/) y recibir acompañamiento para empezar a consultar por WhatsApp antes de tu matrícula. El acceso fundador cuesta S/5 el primer mes para los primeros 25 miembros; el precio regular anunciado es S/19.90 al mes.
+Las opiniones de profesores y la conexión con tu IA se usan desde la misma cuenta Campus. Puedes solicitar el acceso fundador en [la página de Campus Profes](https://campuscli.com/profes/) y recibir acompañamiento para empezar a consultar por WhatsApp antes de tu matrícula. El acceso fundador cuesta S/5 el primer mes para los primeros 25 miembros; el precio regular anunciado es S/19.90 al mes.

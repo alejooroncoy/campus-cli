@@ -3,12 +3,12 @@ import body from "../../html/profes/index.html?raw";
 import { htmlToMarkdown } from "../../lib/html-to-markdown";
 
 /**
- * The Markdown twin of the Campus Profes page. See the homepage's endpoint
+ * The Markdown twin of the Campus page. See the homepage's endpoint
  * for why the pillar pages carry one.
  */
 export const GET: APIRoute = () => {
   const markdown = [
-    "# Campus Profes",
+    "# Campus",
     "",
     "> Calificaciones, comentarios de otros alumnos y horarios de profesores, directo desde WhatsApp.",
     "",

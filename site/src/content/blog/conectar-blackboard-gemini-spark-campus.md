@@ -36,10 +36,10 @@ faq:
   - q: "¿Dónde funciona una aplicación personalizada de Gemini?"
     a: "Google indica que estas conexiones se configuran desde Gemini en la web y se utilizan dentro de tareas de Gemini Spark. Su disponibilidad puede depender de la cuenta, el idioma y el despliegue de la función."
   - q: "¿Puedo probar Campus en Gemini Spark sin pagar?"
-    a: "Sí. Puedes conectar Campus y realizar 5 consultas gratis. Cuando las termines, necesitas activar Campus Plus por S/5 para continuar usando el servidor alojado."
+    a: "Sí. Puedes conectar Campus y realizar consultas del mismo saldo que en la web. Cuando las termines, necesitas activar Campus por S/5 para continuar usando el servidor alojado."
 summary:
   - "La URL que debes pegar es **https://mcp.campuscli.com/mcp**; escribir solo el dominio no conecta el servidor MCP."
-  - "Puedes empezar con **5 consultas gratuitas**; después necesitas Campus Plus por S/5 para continuar usando la conexión alojada."
+  - "Puedes empezar con **consultas compartidas con la web**; después necesitas Campus por S/5 para continuar usando la conexión alojada."
   - "Campus admite el **registro automático OAuth** de Gemini: no necesitas crear ni copiar un Client ID o Client secret."
   - "Después de autorizar tu cuenta puedes preguntar por **cursos, tareas, fechas, notas, anuncios y materiales** de Blackboard UPC desde una tarea de Spark."
   - "La advertencia de Google es normal para una app personalizada: verifica el dominio y recuerda que **ninguna entrega se envía sin tu confirmación**."
@@ -56,7 +56,7 @@ Necesitas tres cosas:
 - Acceso activo a tu cuenta de **Blackboard UPC**.
 - La URL oficial del servidor MCP de Campus: `https://mcp.campuscli.com/mcp`.
 
-No necesitas Campus Plus para empezar: cada cuenta puede conectar el servidor alojado y realizar **5 consultas gratis**. Cuando las termines, deberás [activar Campus Plus por S/5](https://campuscli.com/campus-cli/#acceso-anticipado) para continuar usando Campus desde Gemini Spark.
+Puedes empezar gratis: cada cuenta puede conectar el servidor alojado y realizar **consultas del mismo saldo que en la web**. Cuando las termines, deberás [activar Campus por S/5](https://campuscli.com/campus-cli/#acceso-anticipado) para continuar usando Campus desde Gemini Spark.
 
 Google mantiene Gemini Spark y sus aplicaciones personalizadas como una función de disponibilidad limitada. Si no ves «Spark» o «Custom apps for Spark» en tu cuenta, todavía no puedes completar esta configuración desde ella. La [guía oficial de Google para aplicaciones personalizadas](https://support.google.com/gemini/answer/17209137) contiene los requisitos y restricciones vigentes.
 

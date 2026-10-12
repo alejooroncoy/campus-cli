@@ -1267,8 +1267,8 @@ export default function ProfesChat() {
           : `${usage.remaining} de 5 consultas de prueba restantes`
         : "5 consultas de prueba gratis"
       : plan === "plus"
-        ? usage ? `${usage.remaining} consultas disponibles hoy` : "Campus Plus"
-        : usage ? `${usage.remaining} de ${usage.limit} consultas disponibles` : "Campus Free";
+        ? usage ? `${usage.remaining} consultas disponibles hoy` : "Campus"
+        : usage ? `${usage.remaining} de ${usage.limit} consultas disponibles` : "Campus";
 
   const studentName = session
     ? formatStudentName(session.authenticated ? session.banner?.fullName || session.email?.split("@")[0] || "" : "")
@@ -1341,7 +1341,7 @@ export default function ProfesChat() {
             {historyContent}
           </div>
         </dialog>
-    <section className={`app-profes-ai${messages.length || currentConversationId ? " has-messages" : ""}${isGuestLimit ? " is-guest-limited" : ""}`} aria-label="Asistente de Profes y cursos">
+    <section className={`app-profes-ai${messages.length || currentConversationId ? " has-messages" : ""}${isGuestLimit ? " is-guest-limited" : ""}`} aria-label="Asistente de Campus">
 
       {/* Top Toolbar for Profes */}
       <div className="app-profes-toolbar">
@@ -1550,7 +1550,7 @@ export default function ProfesChat() {
       ) : (
         <div className="app-profes-ai__composer-dock">
           <form className="app-profes-ai__composer" onSubmit={submit}>
-            <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta sobre profesores o tus cursos</label>
+            <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta a Campus</label>
             <textarea
               id="profes-message"
               ref={textarea}
