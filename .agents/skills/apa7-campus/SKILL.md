@@ -25,6 +25,14 @@ Las guías resumidas pueden simplificar o adaptar reglas para español. Si difie
 5. Entrega el resultado en este orden: formato solicitado listo para copiar; desglose breve de los campos; advertencias o datos por confirmar; y una mini-explicación de la regla si la persona está aprendiendo.
 6. Al revisar un texto, distingue siempre entre `cumple`, `corregir` y `no verificable con la información disponible`. Nunca atribuyas a la fuente algo que no esté en ella.
 
+Para una revisión APA de un trabajo UPC, usa `campus_apa7_guidance` con
+`topic: "review"`: entrega la habilidad `apa7-review-campus`, reglas verificadas
+por sección, enlaces oficiales y fecha de consulta. Si no hay MCP disponible,
+lee [la habilidad de revisión](../apa7-review-campus/SKILL.md). La IA revisa el
+material proporcionado; cargar las reglas no significa haber leído el trabajo.
+En revisiones UPC, la guía institucional usa `s.f.` sin espacios y
+`s.f.-a`/`s.f.-b` para distinguir obras sin fecha del mismo autor.
+
 No hagas el trabajo intelectual del estudiante ni fabriques citas textuales, páginas, DOI, autores o fechas. Puedes explicar, corregir forma y proponer una plantilla con marcadores claros.
 
 ## Uso con Blackboard

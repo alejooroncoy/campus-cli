@@ -24,6 +24,7 @@
   "files": [
     "dist",
     ".agents/skills/apa7-campus",
+    ".agents/skills/apa7-review-campus",
     "run.js",
     "README.md",
     "docs/academic-research.md",

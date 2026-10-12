@@ -20,6 +20,7 @@ import { biasFreeLanguageRuleId, biasFreeLanguageRules, getBiasFreeLanguageRule,
 import { mechanicsRuleId, mechanicsRules, getMechanicsRule, type MechanicsRuleId } from './apa7-mechanics-rules.js';
 import { publicationRuleId, publicationRules, getPublicationRule, type PublicationRuleId } from './apa7-publication-rules.js';
 import { principlesEthicsRuleId, principlesEthicsRules, getPrinciplesEthicsRule, type PrinciplesEthicsRuleId } from './apa7-principles-ethics-rules.js';
+import { loadApa7ReviewSkill } from './apa7-review-skill.js';
 
 const topic = z.enum(['principles-ethics', 'citation', 'reference', 'format', 'reporting', 'writing-style', 'bias-free-language', 'mechanics', 'table-figure', 'legal', 'publication', 'review', 'course-requirements']);
 const sourceType = z.enum([
@@ -155,7 +156,7 @@ const allowedSelectorsByTopic: Record<z.infer<typeof topic>, readonly string[]> 
   'table-figure': ['tableFigureRuleId'],
   legal: ['legalRuleId', 'peruLegalCaseId'],
   publication: ['publicationRuleId'],
-  review: [],
+  review: ['reviewSectionId'],
   'course-requirements': [],
 };
 
@@ -397,7 +398,7 @@ function guidanceFor(selectedTopic: z.infer<typeof topic>, selectedSourceType?: 
         ...base,
         checklist: [
           'Separa hallazgos en: cumple, corregir y no verificable.',
-          'Comprueba correspondencia bidireccional: cada cita tiene referencia y cada referencia está citada.',
+          'Comprueba correspondencia entre citas y referencias, respetando las excepciones de comunicaciones personales, participantes propios y citas secundarias.',
           'Una revisión APA no detecta ni determina plagio; solo puede señalar problemas de atribución visibles.',
         ],
       };
@@ -425,9 +426,10 @@ export function registerAcademicTools(
   options: { authorize: () => boolean | Promise<boolean> },
 ) {
   server.registerTool('campus_apa7_guidance', {
-    description: 'Get reliable Spanish APA 7 guidance, templates and review checklists for citations, references, manuscript format, research reporting, tables/figures, legal materials or Blackboard course requirements. Does not require Blackboard login and never invents metadata.',
+    description: 'Get Spanish APA 7 guidance and templates. For reviewing or correcting a UPC paper, use topic=review: it loads the apa7-review-campus skill with official Biblioteca UPC criteria, source URLs and verification dates for the client agent to apply to the supplied paper. Does not require Blackboard login and never invents metadata.',
     inputSchema: {
-      topic: topic.describe('The APA 7 help needed'),
+      topic: topic.describe('The APA 7 help needed; review loads a source-grounded review skill for the client agent, not an automatic verdict on a document'),
+      reviewSectionId: z.string().min(1).max(80).optional().describe('With topic=review only: select a UPC section id from reviewSkill.catalog to retrieve its rules and detailed source audit, including notes, image assessments and links'),
       sourceType: sourceType.optional().describe('Source type for a reference template; citation requests specialize personal communications and otherwise use caseId or citationRuleId'),
       caseId: verifiedCaseId.optional().describe('Verified APA 7 case; use this instead of guessing a specialized format'),
       citationRuleId: citationRuleId.optional().describe('Verified APA 7 citation rule from chapter 8; use this for exact quotation and attribution behavior'),
@@ -444,19 +446,21 @@ export function registerAcademicTools(
       principlesEthicsRuleId: principlesEthicsRuleId.optional().describe('Verified APA 7 writing, publication-ethics and professional rule from chapter 1'),
     },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-  }, async ({ topic, sourceType, caseId, citationRuleId, referenceRuleId, formatRuleId, reportingRuleId, writingStyleRuleId, biasFreeLanguageRuleId, mechanicsRuleId, tableFigureRuleId, legalRuleId, peruLegalCaseId, publicationRuleId, principlesEthicsRuleId }) => {
+  }, async ({ topic, reviewSectionId, sourceType, caseId, citationRuleId, referenceRuleId, formatRuleId, reportingRuleId, writingStyleRuleId, biasFreeLanguageRuleId, mechanicsRuleId, tableFigureRuleId, legalRuleId, peruLegalCaseId, publicationRuleId, principlesEthicsRuleId }) => {
     if (!options?.authorize) {
       throw new Error('APA 7 guidance unavailable: this host has not configured authorization.');
     }
     if (!(await options.authorize())) {
       throw new Error('Not authorized for APA 7 guidance: this account does not have the required entitlement. Signing in again does not grant access; verify the Campus plan or contact support.');
     }
-    const selectors = { sourceType, caseId, citationRuleId, referenceRuleId, formatRuleId, reportingRuleId, writingStyleRuleId, biasFreeLanguageRuleId, mechanicsRuleId, tableFigureRuleId, legalRuleId, peruLegalCaseId, publicationRuleId, principlesEthicsRuleId };
+    const selectors = { reviewSectionId, sourceType, caseId, citationRuleId, referenceRuleId, formatRuleId, reportingRuleId, writingStyleRuleId, biasFreeLanguageRuleId, mechanicsRuleId, tableFigureRuleId, legalRuleId, peruLegalCaseId, publicationRuleId, principlesEthicsRuleId };
     validateSelectors(topic, selectors);
     const hasSelectedRule = Object.values(selectors).some(value => value !== undefined);
+    const reviewSkill = topic === 'review' ? await loadApa7ReviewSkill(reviewSectionId) : undefined;
     return {
       content: [{ type: 'text', text: JSON.stringify({
       ...guidanceFor(topic, sourceType, caseId, citationRuleId, referenceRuleId, formatRuleId, reportingRuleId, writingStyleRuleId, biasFreeLanguageRuleId, mechanicsRuleId, tableFigureRuleId, legalRuleId, peruLegalCaseId, publicationRuleId, principlesEthicsRuleId),
+      ...(reviewSkill ? { sourceGuide: reviewSkill.rulebook.entryUrl, reviewSkill } : {}),
       ...(hasSelectedRule ? {} : availableSelectorsForTopic(topic)),
       }) }],
     };

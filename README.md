@@ -319,6 +319,46 @@ Cada cliente tiene su guía con la ruta exacta del archivo, cómo verificar la c
 
 Las herramientas de Aula Virtual usan el prefijo `blackboard_`; `banner_get_weekly_schedule` consulta la matrícula en Banner UPC. Las de UPC Class usan `uclass_`: entregan fuentes estructuradas para que la IA conectada (Codex, Claude, ChatGPT, etc.) las interprete, sin enviar la grabación a una IA propia del CLI.
 
+En los hosts que habilitan `campus_apa7_guidance` para cuentas autorizadas, una
+revisión se inicia con `{"topic":"review"}`. La respuesta carga la habilidad
+`apa7-review-campus` y una síntesis de 45 páginas oficiales de Biblioteca UPC
+(31 de APA y 14 jurídicas), con enlaces, apartados y fechas de consulta. Se
+inspeccionaron 185 bloques, 1.105 unidades de texto, 82 etiquetas de apartados
+y 14 imágenes; el inventario registra 98 enlaces de contenido. La matriz
+semántica conserva las decisiones por unidad y la evidencia de 187 criterios,
+con 24 erratas o ambigüedades documentadas. Usa
+`{"topic":"review","reviewSectionId":"figures"}` (o un ID del catálogo)
+para recuperar la auditoría detallada de una sección. La IA aplica esos criterios
+al trabajo proporcionado y entrega hallazgos `cumple`, `corregir` o
+`no verificable`, con ubicación, corrección y fuente. Los archivos de la habilidad
+se incluyen en el paquete; no requiere una sesión de Blackboard. La cobertura
+guardada es una captura, no consulta en vivo. Su alcance es la guía UPC:
+los recursos externos quedan registrados como apoyo y su lectura íntegra no
+es requisito para completar la extracción institucional. Cargar la habilidad no
+constituye una revisión del documento. Las pruebas detectan bloques ausentes,
+evidencia sin mapear y afirmaciones de cobertura completa con fuentes pendientes.
+Para comprobar si la web sigue coincidiendo con el inventario, usa
+`scripts/apa7-audit-upc.py --output .codex-tmp/apa7-recheck` y luego
+`scripts/apa7-verify-upc.py --capture .codex-tmp/apa7-recheck/source-audit.json --output output/apa7-upc/recheck.json`
+(con Python, `requests` y `beautifulsoup4`). El verificador compara páginas,
+bloques, unidades de texto, enlaces y archivos de imagen; documenta el FAQ antiguo
+que devuelve 404 y falla ante omisiones, cambios o errores nuevos. La comprobación
+acredita cobertura de captura en esa consulta; no certifica automáticamente la
+equivalencia semántica de cada ejemplo con los criterios sintetizados. Esa
+revisión se registra por separado en `upc-semantic-coverage.json`; el cargador
+rechaza unidades pendientes, evidencia ausente y criterios cuyo texto cambió
+sin actualizar su evidencia. La respuesta seleccionada incluye criterios de
+otras secciones cuando las notas los necesitan.
+
+`scripts/apa7-export-upc.py --output output/apa7-upc/guia-upc.md` exporta los
+criterios y sus fuentes. `tests/fixtures/apa7-upc-review-cases.json` contiene
+80 casos de evaluación que cubren las 45 secciones. Entrega al evaluador solo
+las entradas, sin las respuestas esperadas, y puntúa sus resultados mediante
+`scripts/apa7-score-review.py --cases tests/fixtures/apa7-upc-review-cases.json --results resultados.json --rules .agents/skills/apa7-review-campus/references/upc-review-rules.json --output evaluacion.json`.
+El puntaje de clasificación no certifica la corrección propuesta: esa decisión
+requiere leer y registrar cada resultado, con `--adjudication adjudicacion.json`.
+Los resultados de esta muestra no garantizan la exactitud de futuras revisiones.
+
 | Herramienta | Descripción |
 |---|---|
 | `blackboard_whoami` | Usuario autenticado |

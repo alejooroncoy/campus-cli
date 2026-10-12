@@ -2,6 +2,12 @@
 
 Esta ficha guía la respuesta, pero no reemplaza las instrucciones del docente ni la guía vigente de Biblioteca UPC. Se sintetizó a partir de las siguientes fuentes consultadas durante su preparación; los manuales y PDF fuente no se distribuyen con este paquete:
 
+Para revisar trabajos UPC, usa primero
+[las reglas institucionales verificadas](../../apa7-review-campus/references/upc-review-rules.json)
+y [la habilidad de revisión](../../apa7-review-campus/SKILL.md), disponibles desde
+`campus_apa7_guidance` con `topic: "review"`. La convención UPC para fechas
+ausentes es `s.f.` sin espacios, y `s.f.-a`/`s.f.-b` al distinguir obras.
+
 - Guía de normas APA 7 de Universidad Central (2019): citación, referencias y adaptación al español.
 - Manual de normas APA consultado para formato de trabajos, títulos, tablas/figuras, citación y referencias.
 - Guía temática **Citas y referencias en APA 7**, Biblioteca UPC: <https://biblioteca.upc.edu.pe/citas-referencias-APA7>.
@@ -31,7 +37,7 @@ Esta ficha guía la respuesta, pero no reemplaza las instrucciones del docente n
 | Tres o más autores | `Apellido et al. (2024)`; `(Apellido et al., 2024)` |
 | Autor corporativo | `(Organización, 2024)`; la primera mención puede introducir una sigla útil |
 | Sin autor | `("Título abreviado", 2024)` para artículo; `(*Título abreviado*, 2024)` para página web u otra obra independiente |
-| Sin fecha | `(Apellido, s. f.)` |
+| Sin fecha (UPC) | `(Apellido, s.f.)` |
 | Dos fuentes en un paréntesis | `(Apellido, 2020; Apellido, 2024)` en orden alfabético |
 | Mismo autor, años distintos | `(Apellido, 2019, 2024)` |
 | Mismo autor y año | `(Apellido, 2024a, 2024b)` |
@@ -67,7 +73,7 @@ Usa cursiva donde se indica mediante asteriscos. Ajusta mayúsculas, edición, n
 ## Datos incompletos
 
 - Autor ausente: empieza por el título.
-- Fecha ausente: usa `(s. f.)` cuando no se puede recuperar; busca primero dentro del documento, metadatos o registro editorial.
+- Fecha ausente: en UPC usa `(s.f.)` cuando no se puede recuperar; busca primero dentro del documento, metadatos o registro editorial.
 - Título ausente: usa una descripción entre corchetes, por ejemplo, `[Fotografía de ...]`.
 - Fuente ausente: no sustituyas información perdida con una conjetura. Busca otra fuente o entrega una referencia provisional marcada.
 
