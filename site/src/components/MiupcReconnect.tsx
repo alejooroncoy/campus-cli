@@ -134,7 +134,8 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
         return data;
       }
       catch(cause){
-        if(signal.aborted||(cause instanceof ConnectionRequestError&&!cause.retryable)||Date.now()>=deadline)throw cause;
+        if(signal.aborted||(cause instanceof ConnectionRequestError&&!cause.retryable))throw cause;
+        if(Date.now()>=deadline){if(waitForActive)return {status:'busy'} as MiupcConnection;throw cause;}
         await new Promise<void>((resolve,reject)=>{
           const cancelled=()=>{if(timer.current)clearTimeout(timer.current);reject(new DOMException('Aborted','AbortError'));};
           signal.addEventListener('abort',cancelled,{once:true});
@@ -188,11 +189,19 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       // A durable connected flag must never pretend this verification finished.
       if(data&&['connected','not_connected','pending_login','saving'].includes(data.status)){
         if(uncertainStart.current){
-          if(!['pending_login','saving'].includes(data.status))data=await reconcileStart(controller.signal,true);
+          if(!['pending_login','saving'].includes(data.status)){
+            try{data=await reconcileStart(controller.signal,true);}
+            finally{uncertainStart.current=false;}
+            if(data.status==='busy')data=await request(false,controller.signal,true);
+          }else uncertainStart.current=false;
           if(current!==generation.current||controller.signal.aborted)return;
           const recovered=parseMiupcConnection(data);
           if(['upc_reconnect_required','reconnect_required'].includes(recovered.status)){update(recovered,current,controller.signal);return;}
-          uncertainStart.current=false;rememberMiupcReconnect(conversationId,false);accessRestored.current();update(recovered,current,controller.signal);return;
+          if(['pending_login','saving','busy'].includes(recovered.status)){
+            rememberMiupcReconnect(conversationId,false);accessRestored.current();update(recovered,current,controller.signal);return;
+          }
+          // With no attempt after the bound, the fresh owner-bound read proves
+          // authorization only. It must not claim Microsoft verification done.
         }
         if(['pending_login','saving'].includes(data.status)){
           // A cancelled POST may still have created a remote login. Once UPC

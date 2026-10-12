@@ -306,4 +306,12 @@ try{
   }finally{await context.close();}
  }
  }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='cancelled-start'){
+  await fetch(`${base}/__e2e/normal`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(()=>{window.open=()=>null;});const page=await context.newPage();let authorized=false,reads=0;let release;const paused=new Promise(resolve=>{release=resolve;});let ready;const submitted=new Promise(resolve=>{ready=resolve;});
+  await page.route('**/api/app/miupc/connect/',async route=>{if(route.request().method()==='POST'){ready();await paused;return route.abort('failed').catch(()=>{});}if(authorized)reads++;return route.fulfill({contentType:'application/json',body:JSON.stringify({status:authorized?'not_connected':'upc_reconnect_required'})});});
+  try{
+   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});await input.fill('Mis notas actuales');await input.press('Enter');const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();await submitted;await fetch(`${base}/__e2e/upc`,{method:'POST'});await input.fill('Vuelve a consultar mis notas actuales');await input.press('Enter');await notice.getByRole('link',{name:'Actualizar acceso UPC'}).waitFor();release();authorized=true;
+   const reconciling=page.waitForResponse(response=>reads>=2&&response.url().endsWith('/api/app/miupc/connect/')&&response.request().method()==='GET');await notice.getByRole('button',{name:'Ya actualicé mi acceso',exact:true}).click();await reconciling;await page.evaluate(()=>{const original=Date.now;Date.now=()=>original()+125000;});await notice.getByText('Acceso UPC actualizado',{exact:true}).waitFor();assert.equal(await notice.getByText('Mi UPC está conectado',{exact:true}).count(),0);await notice.getByRole('button',{name:'Listo',exact:true}).click();await notice.waitFor({state:'hidden'});console.log(JSON.stringify({mode:'cancelled-start',authorizationRestoredAfterBoundedReconciliation:true,noFalseMicrosoftConfirmation:true,noticeDismissible:true}));
+  }finally{release();await context.close();}
+ }
 }finally{await browser.close();}
