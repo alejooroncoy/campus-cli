@@ -200,6 +200,10 @@ function initPage() {
         : el.tagName === "A" ? "Iniciar sesión" : "Prueba gratis (5 consultas)";
     });
 
+    document.querySelectorAll<HTMLElement>("[data-app-activate]").forEach(el => {
+      el.hidden = !value.authenticated || value.plan === "plus" || value.accessBlocked === true;
+    });
+
     const email = document.querySelector("[data-app-email]");
     if (email) email.textContent = value.email ?? "Inicia sesión con tu cuenta Campus.";
     const universityName = document.querySelector("[data-app-university-name]");

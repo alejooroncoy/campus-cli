@@ -3,6 +3,7 @@ export type CampusSession = {
   email?: string;
   plan?: string;
   aiReady: boolean;
+  accessBlocked?: boolean;
   university?: { id: number; name: string; shortName: string | null } | null;
   universityConfirmed?: boolean;
   profesAvailable?: boolean;
