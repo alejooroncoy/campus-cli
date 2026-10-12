@@ -59,14 +59,18 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     if(current!==generation.current||signal.aborted)return;
     // A durable "connected" flag from an earlier login is not confirmation of
     // this verification. A worker restart must not silently mark it complete.
-    if(attemptId && ['pending_login','saving','connected'].includes(data.status) && data.attemptId!==attemptId){setConnection({status:'failed'});setError('Se interrumpió la verificación. Vuelve a conectar Mi UPC.');return;}
+    if(attemptId && ['pending_login','saving','connected'].includes(data.status) && data.attemptId!==attemptId){update({status:'failed'},current,signal);setError('Se interrumpió la verificación. Vuelve a conectar Mi UPC.');return;}
     if(data.status==='saving'){
       savingDeadline.current??=Date.now()+120_000;
       if(Date.now()>=savingDeadline.current){update({status:'failed'},current,signal);setError('La conexión no terminó de guardarse. Vuelve a comprobar Mi UPC.');return;}
     }else savingDeadline.current=null;
     setConnection(data);setError('');
     if(['pending_login','saving'].includes(data.status))rememberMiupcAttempt(conversationId,data);
-    else forgetMiupcAttempt(conversationId);
+    else {
+      forgetMiupcAttempt(conversationId);
+      try{popup.current?.close();}catch{/* Browser isolation can sever this handle. */}
+      popup.current=null;
+    }
     if(['upc_reconnect_required','reconnect_required'].includes(data.status))rememberMiupcReconnect(conversationId,true);
     if(data.status==='connected'){
       popup.current?.close();popup.current=null;connected.current();return;
