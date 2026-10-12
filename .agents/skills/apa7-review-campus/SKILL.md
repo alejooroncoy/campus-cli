@@ -53,7 +53,8 @@ explica la adaptación institucional y aplica la prioridad indicada.
    sangría ni cursiva; marca esas propiedades como no verificables sin el formato.
 3. Distingue cita textual, paráfrasis, traducción propia y contenido generado con
    IA. Comprueba autor, año, localizador cuando corresponda, puntuación, cantidad
-   de autores y correspondencia con la lista de referencias. La traducción propia
+   de autores y correspondencia con la lista de referencias. Cuenta solo las
+   palabras del pasaje citado, excluyendo introducción y atribución. La traducción propia
    sigue las reglas de paráfrasis, no las de cita textual del original.
 4. Comprueba referencias por su tipo real, no solo porque tengan URL. Verifica
    metadatos en la obra o registro editorial disponible. Aplica las excepciones:
@@ -71,7 +72,10 @@ explica la adaptación institucional y aplica la prioridad indicada.
 7. Si no puedes comparar con la fuente, puedes corregir forma, pero no certificar
    la fidelidad de una paráfrasis o cita textual, el localizador, la existencia de
    la obra o sus metadatos. No inventes citas, DOI, fechas, páginas ni referencias.
-   Una revisión APA no determina plagio ni el valor científico de una fuente.
+   Si el texto visible de un enlace difiere de su destino, usa el `href` acreditado:
+   no reconstruyas una URL desde una etiqueta truncada ni certifiques el destino
+   sin comprobarlo. Una revisión APA no determina plagio ni el valor científico
+   de una fuente.
 8. Ante una discrepancia del ejemplo, aplica la regla y sus condiciones al trabajo.
    Los nombres, años, páginas y títulos ilustrativos no son respuestas esperadas.
    Una inconsistencia de metadatos permite señalar la duda, no elegir la variante
