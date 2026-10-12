@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<rect width="1200" height="630" fill="#112633"/>
+<g font-family="Arial, sans-serif">
+<rect x="64" y="56" width="10" height="36" rx="5" fill="#d9f1e8"/>
+<text x="90" y="84" fill="#ffffff" font-size="30" font-weight="700">Campus</text>
+<text x="64" y="163" fill="#a4c6cf" font-size="19" letter-spacing="2">SERVICIO ONLINE EN PERÚ</text>
+<text x="60" y="249" fill="#ffffff" font-size="72" font-weight="700">Turnitin</text>
+<text x="60" y="327" fill="#ffffff" font-size="72" font-weight="700">en Perú.</text>
+<text x="64" y="390" fill="#d9f1e8" font-size="29">Informes de similitud + IA</text>
+<text x="64" y="455" fill="#a4c6cf" font-size="21">Pago por documento · Yape o Plin</text>
+<text x="64" y="565" fill="#ffffff" font-size="21">campuscli.com/turnitin</text>
+<rect x="733" y="74" width="403" height="482" rx="24" fill="#d9f1e8"/>
+<text x="770" y="139" fill="#087f5b" font-size="17" font-weight="700" letter-spacing="1">PROMOCIÓN DE LANZAMIENTO</text>
+<text x="770" y="302" fill="#112633" font-size="148" font-weight="700" letter-spacing="-6">S/8</text>
+<text x="779" y="351" fill="#315565" font-size="23">por documento</text>
+<line x1="779" y1="382" x2="1085" y2="382" stroke="#b4cfc3"/>
+<text x="779" y="428" fill="#315565" font-size="24">Regular S/10</text>
+<text x="779" y="492" fill="#087f5b" font-size="27" font-weight="700">Ahorras S/2 · 20%</text>
+</g></svg>
