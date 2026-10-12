@@ -56,8 +56,10 @@ explica la adaptación institucional y aplica la prioridad indicada.
    de autores y correspondencia con la lista de referencias. Cuenta solo las
    palabras del pasaje citado, excluyendo introducción y atribución. La traducción propia
    sigue las reglas de paráfrasis, no las de cita textual del original.
-4. Comprueba referencias por su tipo real, no solo porque tengan URL. Verifica
-   metadatos en la obra o registro editorial disponible. Aplica las excepciones:
+4. Comprueba referencias por su tipo real, no solo porque tengan URL. Usa los
+   datos de la obra que el estudiante está citando. Si la revisión requiere
+   comprobar su exactitud, consulta la obra o registro editorial disponible;
+   no conviertas ese cotejo en requisito para evaluar solo el formato. Aplica las excepciones:
    comunicaciones personales, participantes de investigación propia y fuente
    primaria no consultada en una cita secundaria no necesitan una entrada propia.
 5. Para la UPC, escribe `s.f.` sin espacios; distingue obras sin fecha del mismo
@@ -82,6 +84,55 @@ explica la adaptación institucional y aplica la prioridad indicada.
    más repetida. Comprueba el formato visible: espacios introducidos entre spans
    por un extractor no prueban una errata en la web. Distingue autores de una
    fuente y nombres de objetos representados antes de objetar la atribución.
+
+## Formato de los ejemplos y datos de la obra
+
+Al comprobar ejemplos didácticos UPC, evalúa el esquema y todas sus condiciones:
+orden, puntuación, cursiva, autoría, localizadores y elementos exigidos u omitidos.
+Los años y demás datos ilustrativos no son valores que otro trabajo deba copiar.
+No rebajes un formato a `no verificable` por no cotejar esos datos con una obra
+externa; registra ese cotejo como fuera del alcance de la prueba de formato.
+Una inconsistencia del ejemplo puede enseñar la regla de correspondencia entre
+cita y referencia, sin exigir averiguar cuál variante es verdadera.
+
+Sí evalúa las reglas sobre la fecha: año o fecha completa según el tipo de fuente,
+intervalos y versiones cuando correspondan, `s.f.`, sufijos y recuperación según
+las condiciones de cada página. El FAQ UPC permite `s.f.` cuando la fecha se
+desconoce o no se puede ubicar; no exige probar que la obra nunca tuvo fecha.
+Distingue esa condición de omitir la búsqueda o de no cotejar un año ya aportado:
+no sustituyas ese año por `s.f.` ni copies `s.f.` de un ejemplo sin aplicar la regla.
+En el trabajo real, aplica el formato a los datos de la obra consultada; si faltan
+datos necesarios para decidir una condición, señala ese pendiente concreto.
+
+Esta separación del formato y del cotejo externo es un criterio de la auditoría,
+no una excepción UPC a la exactitud de los datos de un trabajo real. Su fundamento
+es distinguir los apartados «Esquema», «Referencia» y «Cita en el texto» de
+[Libros](https://biblioteca.upc.edu.pe/citas-referencias-APA7/libros), y aplicar la
+fecha de la fuente indicada en [Citas](https://biblioteca.upc.edu.pe/citas-referencias-APA7/citas).
+Para `s.f.` usa el [FAQ de referencias](https://biblioteca.upc.edu.pe/citas-referencias-APA7/faq-referencias),
+incluidos sus casos sin fecha; para recuperación y precisión de fecha, las
+consideraciones de [Sitios web](https://biblioteca.upc.edu.pe/citas-referencias-APA7/sitios-web).
+No conviertas nuestra interpretación en una regla atribuida literalmente a UPC.
+
+Separa el estado del formato de la comprobación factual. `Formato: cumple;
+metadatos: no contrastados` no es un error APA. Reserva `no verificable` para
+propiedades o condiciones necesarias que no puedan decidirse con el material
+aportado; no asignes ese estado a toda una entrada por un cotejo externo no pedido.
+
+## Inspección de figuras
+
+Recupera la sección `figures` y sus secciones relacionadas. Abre la imagen o la
+página renderizada para comprobar número, título, cuerpo y atribuciones visibles;
+el OCR o una transcripción no prueban cursiva, negrita, posición ni correspondencia
+visual de paneles. En una figura compuesta revisa cada panel y su llamada a fuente.
+Separa esa comprobación de la procedencia: decide De, Adaptado de o Elaborado a
+partir de según el uso acreditado; si falta el original o la descripción del uso,
+señala solo esa condición pendiente. No inventes autor, fecha, licencia o permiso.
+Una captura no acredita que una infografía sea editable: para Arquitectura
+comprueba el archivo editable o declara pendiente esa propiedad. Una figura
+propia no exige fuente externa ni declaración de elaboración propia; tampoco
+exijas nota descriptiva si no hace falta. Aplica las condiciones específicas de
+mapas y documentación privada de la [página UPC de Figuras](https://biblioteca.upc.edu.pe/citas-referencias-APA7/figuras).
 
 ## Resultado
 
