@@ -20,11 +20,20 @@ Cuando esta habilidad ya llegó por esa llamada, úsala directamente.
 
 Consulta en el archivo de reglas únicamente las secciones pertinentes. Para el
 detalle de una sección usa `topic: "review", reviewSectionId: "figures"` (o un
-ID de `reviewSkill.catalog`): devuelve reglas y auditoría de bloques, notas,
-imágenes y enlaces. `semanticAudit` relaciona cada unidad y cada imagen con los
+ID de `reviewSkill.catalog`): devuelve reglas, `considerations.items`,
+`considerations.warnings` y auditoría de bloques, notas, imágenes y enlaces.
+Lee todas las indicaciones de `considerations.items` de las secciones pertinentes:
+conservan esquemas, condiciones, alternativas y notas incrustadas, incluso cuando
+no tienen ejemplo. No sustituyas esas indicaciones por los criterios resumidos ni
+por una coincidencia con un modelo. [Las consideraciones y salvaguardas](references/upc-considerations.json)
+separan pautas explícitas de advertencias condicionales sobre las discrepancias.
+`semanticAudit` relaciona cada unidad y cada imagen con los
 criterios que conserva; incluye criterios de otras secciones cuando una nota los
-necesita. Usa esos criterios relacionados para no perder excepciones al consultar
-solo una sección. [La matriz semántica](references/upc-semantic-coverage.json)
+necesita. `relatedSectionIds` identifica las secciones relacionadas: recupera sus
+consideraciones cuando el caso requiera ese detalle. Incluye los FAQ de citas y
+referencias cuando revises autoría, ausencia de fecha o autor y casos especiales.
+Usa esos criterios relacionados para no perder excepciones al consultar solo una
+sección. [La matriz semántica](references/upc-semantic-coverage.json)
 distingue contenido explícito, ejemplos, salvaguardas derivadas y apoyo normativo.
 [El inventario de fuentes](references/upc-source-audit.json)
 registra huellas y cobertura sin redistribuir los textos ni imágenes originales.
@@ -44,7 +53,8 @@ explica la adaptación institucional y aplica la prioridad indicada.
    sangría ni cursiva; marca esas propiedades como no verificables sin el formato.
 3. Distingue cita textual, paráfrasis, traducción propia y contenido generado con
    IA. Comprueba autor, año, localizador cuando corresponda, puntuación, cantidad
-   de autores y correspondencia con la lista de referencias. La traducción propia
+   de autores y correspondencia con la lista de referencias. Cuenta solo las
+   palabras del pasaje citado, excluyendo introducción y atribución. La traducción propia
    sigue las reglas de paráfrasis, no las de cita textual del original.
 4. Comprueba referencias por su tipo real, no solo porque tengan URL. Verifica
    metadatos en la obra o registro editorial disponible. Aplica las excepciones:
@@ -62,7 +72,16 @@ explica la adaptación institucional y aplica la prioridad indicada.
 7. Si no puedes comparar con la fuente, puedes corregir forma, pero no certificar
    la fidelidad de una paráfrasis o cita textual, el localizador, la existencia de
    la obra o sus metadatos. No inventes citas, DOI, fechas, páginas ni referencias.
-   Una revisión APA no determina plagio ni el valor científico de una fuente.
+   Si el texto visible de un enlace difiere de su destino, usa el `href` acreditado:
+   no reconstruyas una URL desde una etiqueta truncada ni certifiques el destino
+   sin comprobarlo. Una revisión APA no determina plagio ni el valor científico
+   de una fuente.
+8. Ante una discrepancia del ejemplo, aplica la regla y sus condiciones al trabajo.
+   Los nombres, años, páginas y títulos ilustrativos no son respuestas esperadas.
+   Una inconsistencia de metadatos permite señalar la duda, no elegir la variante
+   más repetida. Comprueba el formato visible: espacios introducidos entre spans
+   por un extractor no prueban una errata en la web. Distingue autores de una
+   fuente y nombres de objetos representados antes de objetar la atribución.
 
 ## Resultado
 
@@ -92,9 +111,20 @@ ejemplos, esquemas y notas; no equivalen a 1.105 reglas independientes. Se
 registran 98 enlaces de contenido. La guía colombiana complementaria se leyó
 en sus 20 páginas, pero es otra jurisdicción: no sustituye los perfiles UPC.
 
-Consulta `sourceIssues` antes de corregir: hay erratas de años, autores, títulos,
-localizadores y puntuación. La fuente oficial es autoridad institucional, pero
-sus ejemplos no permiten certificar los metadatos de otra obra. Explica los
+Las consideraciones desarrollan 437 indicaciones en 399 unidades: 76 esquemas,
+246 unidades de consideraciones, 16 notas incrustadas, 42 contextos/definiciones
+y 19 remisiones normativas. Incluyen todas las 316 unidades clasificadas como
+reglas en la matriz. Las otras 706 unidades tienen disposición no normativa:
+ejemplos y sus datos concretos, encabezados, créditos y apoyos sin instrucciones.
+Estos recuentos describen la captura, no reglas independientes ni pruebas de
+comportamiento del agente.
+
+Consulta `sourceIssues` y las salvaguardas de la sección antes de corregir: hay
+contrastes de formato, inconsistencias internas y datos que necesitan el original.
+Las 51 observaciones agrupadas se conservan como salvaguardas condicionales;
+no equivalen a 51 errores confirmados. La separación aparente C/asación se
+reclasificó como artefacto de extracción. Los ejemplos de la guía no permiten
+certificar los metadatos de otra obra. Explica los
 contrastes (incluida la capitalización UPC de REFERENCIAS) cuando sean relevantes.
 
 La página APA sobre ChatGPT de 2023 está archivada. Las instrucciones de septiembre

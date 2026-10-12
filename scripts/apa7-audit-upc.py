@@ -14,7 +14,7 @@ from pathlib import Path
 from urllib.parse import urldefrag, urljoin, urlparse, parse_qs, parse_qsl, urlencode, urlunparse
 
 import requests
-from bs4 import BeautifulSoup, Comment
+from bs4 import BeautifulSoup, Comment, NavigableString
 
 ENTRY = 'https://biblioteca.upc.edu.pe/citas-referencias-APA7/citas'
 
@@ -37,6 +37,30 @@ def canonical_link(url):
     return urlunparse(parsed._replace(query=query))
 
 
+def display_text(node):
+    """Preserve inline adjacency; separate structural blocks, not every span.
+
+    This is a reading aid, not proof of visual styling. Keep legacy text/hash
+    normalization unchanged so a parser improvement is not a source change.
+    """
+    block_tags = {'p', 'div', 'li', 'table', 'tr', 'td', 'th', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'}
+
+    def collect(current):
+        parts = []
+        for child in current.children:
+            if isinstance(child, Comment):
+                continue
+            if isinstance(child, NavigableString):
+                parts.append(str(child))
+            elif child.name not in {'script', 'style'}:
+                value = collect(child)
+                parts.append('\n' if child.name == 'br' else
+                             '\n' + value + '\n' if child.name in block_tags else value)
+        return ''.join(parts)
+
+    return ' '.join(collect(node).split())
+
+
 def inventory_page(url, html):
     soup = BeautifulSoup(html, 'html.parser')
     main = soup.select_one('#s-lg-guide-main')
@@ -55,10 +79,10 @@ def inventory_page(url, html):
             if not value:
                 continue
             units.append({'unitId': f'{block["id"]}:{len(units) + 1}',
-                          'tag': node.name, 'text': value, 'sha256': digest(value)})
+                          'tag': node.name, 'text': value, 'displayText': display_text(node), 'sha256': digest(value)})
         if text and not units:
             units.append({'unitId': f'{block["id"]}:1', 'tag': 'text',
-                          'text': text, 'sha256': digest(text)})
+                          'text': text, 'displayText': display_text(block), 'sha256': digest(text)})
         links = [{'url': urljoin(url, anchor['href']), 'label': anchor.get_text(' ', strip=True)}
                  for anchor in block.select('a[href]')]
         images = [{'url': urljoin(url, image.get('src') or image.get('data-src', '')),

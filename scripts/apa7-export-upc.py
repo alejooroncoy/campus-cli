@@ -15,6 +15,7 @@ def main():
     book = json.loads((REFS / 'upc-review-rules.json').read_text())
     audit = json.loads((REFS / 'upc-source-audit.json').read_text())
     semantic = json.loads((REFS / 'upc-semantic-coverage.json').read_text())
+    considerations = json.loads((REFS / 'upc-considerations.json').read_text())
     first = ['citations', 'direct-quotes', 'paraphrases', 'multiple-citations',
              'secondary-citations', 'personal-communications', 'interviews', 'ai-content',
              'citation-faq', 'references', 'reference-faq', 'books']
@@ -42,6 +43,16 @@ def main():
             ids = [*evidence['sourceUnitIds'], *evidence['sourceLabelIds'], *evidence['sourceImageIds']]
             lines.append(f"{i}. {criterion}")
             lines.append(f"   Evidencia: `{', '.join(ids)}`. Base: `{evidence['basis']}`.")
+        notes = [item for item in considerations['considerations'] if item['sectionId'] == section['id']]
+        if notes:
+            lines += ['', '### Esquemas y consideraciones completas', '']
+            for item in notes:
+                lines.append(f"- **{item['sourceUnitId']}** ({item['kind']}): {' '.join(item['guidance'])}")
+        warnings = [item for item in considerations['warnings'] if item['sectionId'] == section['id']]
+        if warnings:
+            lines += ['', '### Salvaguardas ante discrepancias de los ejemplos', '']
+            for item in warnings:
+                lines.append(f"- **{item['id']}** ({item['classification']}): {item['condition']} {item['application']}")
         images = [image for image in audit['images'] if blocks.intersection(image['sourceBlocks'])]
         if images:
             lines += ['', '### Información de las imágenes', '']
@@ -57,7 +68,9 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text('\n'.join(lines) + '\n')
     print(json.dumps({'output': str(args.output.resolve()), 'sections': len(sections),
-                      'criteria': count, 'semanticStatus': semantic['status']}))
+                      'criteria': count, 'normativeUnits': len(considerations['considerations']),
+                      'guidanceItems': sum(len(item['guidance']) for item in considerations['considerations']),
+                      'warnings': len(considerations['warnings']), 'semanticStatus': semantic['status']}))
 
 
 if __name__ == '__main__':

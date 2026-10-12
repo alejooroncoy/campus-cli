@@ -1,11 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { registerAcademicTools } from '../src/providers/academic/apa7-mcp-tools.js';
-import { parseApa7ReviewCorpus } from '../src/providers/academic/apa7-review-skill.js';
+import { parseApa7ReviewCorpus as parseCorpus } from '../src/providers/academic/apa7-review-skill.js';
+
+const considerations = JSON.parse(readFileSync('.agents/skills/apa7-review-campus/references/upc-considerations.json', 'utf8'));
+function parseApa7ReviewCorpus(book: unknown, audit: unknown, semantic: unknown) {
+  return parseCorpus(book, audit, semantic, considerations);
+}
 
 async function connectAcademicClient(authorize: () => boolean | Promise<boolean>) {
   const server = new McpServer({ name: 'apa7-review-test', version: '1.0.0' });
@@ -37,6 +43,9 @@ test('review skill is discoverable and retrievable through the real MCP protocol
     assert.equal(review.reviewSkill.instructions, await readFile('.agents/skills/apa7-review-campus/SKILL.md', 'utf8'));
     assert.deepEqual(review.reviewSkill.rulebook, JSON.parse(await readFile('.agents/skills/apa7-review-campus/references/upc-review-rules.json', 'utf8')));
     assert.equal(review.findings, undefined, 'loading instructions must not claim the document has been reviewed');
+    assert.equal(review.reviewSkill.considerations.summary.dispositions, 1105);
+    assert.equal(review.reviewSkill.considerations.summary.normativeUnits, considerations.considerations.length);
+    assert.equal(review.reviewSkill.considerations.items, undefined, 'section detail is retrieved progressively');
     assert.equal(review.reviewSkill.rulebook.checkedTimezone, 'America/Lima');
     assert.notEqual(review.reviewSkill.rulebook.checkedOn, review.reviewSkill.rulebook.guideLastUpdatedOn);
 
@@ -168,12 +177,39 @@ test('every UPC section is retrievable with complete semantic evidence and resol
       assert.equal(review.semanticAudit.status, 'complete');
       assert.deepEqual(review.semanticAudit.units, corpus.units.filter((unit: { sectionId: string }) => unit.sectionId === section.id));
       assert.deepEqual(review.semanticAudit.labels, corpus.labels.filter((label: { sectionId: string }) => label.sectionId === section.id));
-      for (const evidence of [...review.semanticAudit.units, ...review.semanticAudit.labels, ...review.semanticAudit.images]) {
+      assert.deepEqual(review.considerations.items, considerations.considerations.filter((item: { sectionId: string }) => item.sectionId === section.id));
+      assert.deepEqual(review.considerations.warnings, considerations.warnings.filter((item: { sectionId: string }) => item.sectionId === section.id));
+      for (const evidence of [...review.semanticAudit.units, ...review.semanticAudit.labels, ...review.semanticAudit.images, ...review.considerations.items, ...review.considerations.warnings]) {
         assert.ok(evidence.criterionRefs.every((ref: string) => review.semanticAudit.criteria.some((criterion: { criterionRef: string }) => criterion.criterionRef === ref)));
       }
       if (section.id === 'ai-references') {
         assert.ok(review.semanticAudit.criteria.some((criterion: { criterionRef: string }) => criterion.criterionRef === 'ai-content:1'), 'method disclosure must be available even when stored in a related section');
+        assert.ok(review.relatedSectionIds.includes('ai-content'), 'related considerations must be discoverable');
       }
     }
   } finally { await close(); }
+});
+
+test('considerations reject a dropped condition, changed evidence and unresolved warning', async () => {
+  const prefix = '.agents/skills/apa7-review-campus/references/';
+  const book = JSON.parse(await readFile(`${prefix}upc-review-rules.json`, 'utf8'));
+  const audit = JSON.parse(await readFile(`${prefix}upc-source-audit.json`, 'utf8'));
+  const semantic = JSON.parse(await readFile(`${prefix}upc-semantic-coverage.json`, 'utf8'));
+  const missing = structuredClone(considerations);
+  missing.considerations.pop();
+  assert.throws(() => parseCorpus(book, audit, semantic, missing), /every source unit/);
+  const hiddenRule = structuredClone(considerations);
+  const ruleId = semantic.units.find((unit: { kind: string }) => unit.kind === 'rule').unitId;
+  hiddenRule.considerations = hiddenRule.considerations.filter((item: { sourceUnitId: string }) => item.sourceUnitId !== ruleId);
+  hiddenRule.nonNormativeUnitIds.push(ruleId);
+  assert.throws(() => parseCorpus(book, audit, semantic, hiddenRule), /explicit rule/);
+  const changed = structuredClone(considerations);
+  changed.considerations[0].sha256 = '0'.repeat(64);
+  assert.throws(() => parseCorpus(book, audit, semantic, changed), /changed or unresolved/);
+  const unsupported = structuredClone(considerations);
+  unsupported.warnings[0].sourceUnitIds = ['missing-unit'];
+  assert.throws(() => parseCorpus(book, audit, semantic, unsupported), /warning has unresolved/);
+  const empty = structuredClone(considerations);
+  empty.considerations[0].guidance = [];
+  assert.throws(() => parseCorpus(book, audit, semantic, empty));
 });

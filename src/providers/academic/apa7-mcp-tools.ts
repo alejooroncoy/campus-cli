@@ -429,7 +429,7 @@ export function registerAcademicTools(
     description: 'Get Spanish APA 7 guidance and templates. For reviewing or correcting a UPC paper, use topic=review: it loads the apa7-review-campus skill with official Biblioteca UPC criteria, source URLs and verification dates for the client agent to apply to the supplied paper. Does not require Blackboard login and never invents metadata.',
     inputSchema: {
       topic: topic.describe('The APA 7 help needed; review loads a source-grounded review skill for the client agent, not an automatic verdict on a document'),
-      reviewSectionId: z.string().min(1).max(80).optional().describe('With topic=review only: select a UPC section id from reviewSkill.catalog to retrieve its rules and detailed source audit, including notes, image assessments and links'),
+      reviewSectionId: z.string().min(1).max(80).optional().describe('With topic=review only: select a UPC section id from reviewSkill.catalog to retrieve all its schemas, considerations, exceptions and conditional safeguards, including notes without examples, plus detailed source evidence'),
       sourceType: sourceType.optional().describe('Source type for a reference template; citation requests specialize personal communications and otherwise use caseId or citationRuleId'),
       caseId: verifiedCaseId.optional().describe('Verified APA 7 case; use this instead of guessing a specialized format'),
       citationRuleId: citationRuleId.optional().describe('Verified APA 7 citation rule from chapter 8; use this for exact quotation and attribution behavior'),
