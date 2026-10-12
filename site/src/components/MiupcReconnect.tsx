@@ -172,6 +172,13 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       // This checks the live UPC grant, not completion of a Browserbase login.
       // A durable connected flag must never pretend this verification finished.
       if(data&&['connected','not_connected','pending_login','saving'].includes(data.status)){
+        if(['pending_login','saving'].includes(data.status)){
+          // A cancelled POST may still have created a remote login. Once UPC
+          // authorization is valid again, discover and resume that same attempt.
+          const active=parseMiupcConnection(data);
+          rememberMiupcReconnect(conversationId,false);accessRestored.current();
+          update(active,current,controller.signal);return;
+        }
         setConnection(null);setAccessReady(true);accessRestored.current();
       }else setError(data?.status==='upc_reconnect_required'||data?.status==='reconnect_required'?'Tu acceso UPC aún no se ha actualizado. Completa la conexión en la otra pestaña.':'No pudimos comprobar el acceso UPC. Inténtalo de nuevo.');
     }catch(cause){if(current===generation.current&&!controller.signal.aborted)setError('No pudimos comprobar el acceso UPC. Inténtalo de nuevo.');}
