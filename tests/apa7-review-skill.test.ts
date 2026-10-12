@@ -90,6 +90,37 @@ test('MCP retrieves all notes and visual evidence for a selected UPC section', a
   } finally { await close(); }
 });
 
+test('new safeguards reach the relevant MCP sections with their actual source evidence', async () => {
+  const { client, close } = await connectAcademicClient(() => true);
+  try {
+    const expected = new Map([
+      ['figures', ['observation-52', 'observation-53']],
+      ['legal-arbitration', ['observation-54']],
+      ['video', ['observation-55']],
+    ]);
+    for (const [sectionId, ids] of expected) {
+      const response = await client.callTool({ name: 'campus_apa7_guidance', arguments: { topic: 'review', reviewSectionId: sectionId } });
+      assert.ok(!response.isError);
+      const skill = JSON.parse((response.content as Array<{ text: string }>)[0].text).reviewSkill;
+      for (const id of ids) {
+        const warning = skill.considerations.warnings.find((item: { id: string }) => item.id === id);
+        assert.ok(warning, `${sectionId}: ${id}`);
+        for (const unitId of warning.sourceUnitIds) {
+          assert.ok(skill.semanticAudit.units.some((unit: { unitId: string }) => unit.unitId === unitId));
+        }
+        for (const imageId of warning.sourceImageIds) {
+          assert.ok(skill.sourceAudit.images.some((image: { id: string }) => image.id === imageId));
+        }
+        assert.ok(warning.criterionRefs.every((ref: string) => skill.semanticAudit.criteria.some((criterion: { criterionRef: string }) => criterion.criterionRef === ref)));
+      }
+      const otherIds = [...expected].filter(([id]) => id !== sectionId).flatMap(([, values]) => values);
+      assert.ok(skill.considerations.warnings.every((item: { id: string }) => !otherIds.includes(item.id)));
+      assert.equal(skill.execution, 'client-agent');
+      assert.equal(skill.findings, undefined);
+    }
+  } finally { await close(); }
+});
+
 test('source audit fails closed on missing notes or falsely complete coverage', async () => {
   const book = JSON.parse(await readFile('.agents/skills/apa7-review-campus/references/upc-review-rules.json', 'utf8'));
   const audit = JSON.parse(await readFile('.agents/skills/apa7-review-campus/references/upc-source-audit.json', 'utf8'));
