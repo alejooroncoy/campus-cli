@@ -23,6 +23,7 @@
   --app-mint:#d9f1e8;
   --app-green:#087f5b;
   --app-danger:#b42318;
+  --app-mobile-nav-height:calc(67px + env(safe-area-inset-bottom));
 }
 * {
   box-sizing: border-box;
@@ -922,6 +923,7 @@ button:disabled {
     right: 0;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
+    height: var(--app-mobile-nav-height);
     padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
     background: var(--app-canvas);
     border-top: 1px solid var(--app-line);

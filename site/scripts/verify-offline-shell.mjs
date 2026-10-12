@@ -20,9 +20,15 @@ const context = {
   },
   caches: {
     open: async () => cache,
-    // A stale private HTML entry must never be returned by the fallback.
-    match: async () => new Response('private stale data'),
-    keys: async () => ['campus-shell-v2', 'campus-shell-v3', 'campus-shell-v4', 'another-app'],
+    match: async request => {
+      const url = new URL(request.url);
+      const path = url.pathname + url.search;
+      if (precached.includes(path)) return new Response(`asset:${path}`);
+      // A stale private HTML entry must never be returned by the fallback.
+      if (url.pathname.startsWith('/app/')) return new Response('private stale data');
+      return undefined;
+    },
+    keys: async () => ['campus-shell-v2', 'campus-shell-v3', 'campus-shell-v4', 'campus-shell-v5', 'another-app'],
     delete: async name => deleted.push(name),
   },
   fetch: async request => {
@@ -49,8 +55,16 @@ await lifecycle('install');
 for (const path of precached) await access(new URL(`../public${path.split('?')[0]}`, import.meta.url));
 assert(precached.some(path => path.endsWith('Regular.woff2')));
 assert(precached.some(path => path.endsWith('SemiBold.woff2')));
+const appShell = await readFile(new URL('../src/layouts/AppShell.astro', import.meta.url), 'utf8');
+const stylesheetUrls = [...appShell.matchAll(/href="(\/(?:app-dashboard|profes-chat)\.css\?v=\d+)"/g)].map(match => match[1]);
+assert.equal(stylesheetUrls.length, 2);
+for (const stylesheet of stylesheetUrls) {
+  assert(precached.includes(stylesheet), `Precache must include the current stylesheet URL: ${stylesheet}`);
+  const cachedCss = await request(stylesheet, 'cors');
+  assert.equal(await cachedCss.text(), `asset:${stylesheet}`, 'Styles remain available after network failure');
+}
 await lifecycle('activate');
-assert.deepEqual(deleted, ['campus-shell-v2', 'campus-shell-v3']);
+assert.deepEqual(deleted, ['campus-shell-v2', 'campus-shell-v3', 'campus-shell-v4']);
 
 const path = '/app/profes/c/d65145e9-0504-4e42-852f-0581930025d2/';
 const failed = await request(path, 'navigate');
