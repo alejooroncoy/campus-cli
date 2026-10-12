@@ -1312,3 +1312,39 @@
 .app-miupc-reconnect a { min-height: 44px; display: inline-flex; align-items: center; color: #007fa6; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
 .app-miupc-reconnect a:hover { color: #102a3a; }
 .app-miupc-reconnect :is(button,a):focus-visible { outline: 3px solid #00afe5; outline-offset: 3px; }
+
+/* Shared response typography, including tables next to course headings. */
+.app-profes-ai__text-block, .app-chat-markdown { min-width: 0; max-width: 100%; }
+.app-chat-markdown { color: var(--app-ink); line-height: 1.65; overflow-wrap: anywhere; }
+.app-chat-markdown > :first-child { margin-top: 0; }
+.app-chat-markdown > :last-child { margin-bottom: 0; }
+.app-chat-markdown p { margin: 0 0 14px; }
+.app-chat-markdown :is(h1,h2,h3,h4,h5,h6) { margin: 24px 0 10px; font-size: 1.05em; line-height: 1.4; font-weight: 650; text-wrap: pretty; }
+.app-chat-markdown :is(ul,ol) { margin: 10px 0 18px; padding-left: 24px; }
+.app-chat-markdown li + li { margin-top: 6px; }
+.app-chat-markdown li > p { margin-bottom: 6px; }
+.app-chat-markdown a { color: var(--app-link); text-decoration: underline; text-underline-offset: 3px; }
+.app-chat-markdown a:focus-visible { outline: 2px solid var(--app-link); outline-offset: 3px; }
+.app-chat-markdown blockquote { margin: 16px 0; padding-left: 16px; border-left: 3px solid var(--app-line); color: var(--app-muted); }
+.app-chat-markdown pre { max-width: 100%; overflow-x: auto; padding: 16px; border-radius: 10px; background: var(--app-paper); border: 1px solid var(--app-line); }
+.app-chat-markdown code { font-size: .88em; }
+.app-chat-markdown :not(pre) > code { padding: 2px 5px; border-radius: 4px; background: var(--app-paper); }
+.app-chat-markdown hr { margin: 24px 0; border: 0; border-top: 1px solid var(--app-line); }
+.app-chat-markdown .app-academic-table { margin: 10px 0 24px; }
+.app-chat-markdown .app-academic-table th { background: var(--app-canvas); }
+.app-chat-markdown .app-academic-table td { vertical-align: top; }
+.app-chat-markdown .app-academic-table td.is-pending { color: var(--app-muted); font-size: .92em; }
+@media (max-width: 700px) {
+  .app-chat-markdown .app-academic-table :is(th,td) { padding: 10px; }
+  .app-chat-markdown .app-academic-table table { font-size: 13px; }
+}
+
+.app-profes-ai__message .app-chat-markdown p { white-space: normal; }
+.app-chat-table-section { margin: 20px 0 28px; border: 1px solid var(--app-line); border-radius: 14px; background: var(--app-paper); overflow: hidden; }
+.app-chat-markdown .app-chat-table-section h3 { margin: 0; padding: 16px; font-size: 15px; border-bottom: 1px solid var(--app-line); }
+.app-chat-table-section h3 strong { font-weight: inherit; }
+.app-chat-markdown .app-chat-table-section .app-academic-table { margin: 0; border: 0; border-radius: 0; }
+.app-chat-markdown .app-chat-table-section .app-academic-table:focus-visible { outline-offset: -3px; }
+.app-chat-markdown .app-academic-table :is(th,td):not(:first-child) { white-space: nowrap; }
+.app-chat-markdown .app-academic-table td:first-child { min-width: 150px; }
+.app-chat-markdown .app-academic-table th { font-size: 12px; }

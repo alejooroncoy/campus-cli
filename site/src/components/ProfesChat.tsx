@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
 import MiupcReconnect from "./MiupcReconnect";
+import ChatMarkdown from "./ChatMarkdown";
 import {rememberMiupcReconnect,hasMiupcReconnectNotice,requiresUpcReconnect,clearMiupcReconnectNotices} from "../scripts/miupc-reconnect";
 import { useChat } from "@ai-sdk/react";
 import type { ChatTransport, UIMessage, UIMessageChunk } from "ai";
@@ -358,46 +359,7 @@ function renderInlineMarkdown(text: string, groupHistory = true): ReactElement[]
       }),
     ];
   }
-  const paragraphs = text.split(/\n{2,}/);
-  return paragraphs.map((para, pIdx) => {
-    const rawLines = para.split("\n").filter(l => l.trim().length > 0);
-    const splitCells = (line: string) => line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(cell => cell.trim());
-    if (rawLines.length >= 2 && rawLines[0].includes("|")
-      && splitCells(rawLines[1]).every(cell => /^:?-{3,}:?$/.test(cell))) {
-      const headers = splitCells(rawLines[0]);
-      return <div key={pIdx} className="app-academic-table" role="region" aria-label="Calificaciones" tabIndex={0}>
-        <table><thead><tr>{headers.map((cell, i) => <th key={i} scope="col">{renderFormattedTokens(cell)}</th>)}</tr></thead>
-          <tbody>{rawLines.slice(2).map((line, i) => <tr key={i}>{splitCells(line).slice(0, headers.length).map((cell, j) => <td key={j}>{renderFormattedTokens(cell)}</td>)}</tr>)}</tbody>
-        </table>
-      </div>;
-    }
-    if (rawLines.length === 1 && /^#{1,6}\s/.test(rawLines[0])) {
-      return <h3 key={pIdx} className="app-academic-heading">{renderFormattedTokens(rawLines[0].replace(/^#{1,6}\s+/, ""))}</h3>;
-    }
-    const isBulletList = rawLines.length > 0 && rawLines.every(l => /^(?:[\*\-•]|\d+\.)\s+/.test(l.trim()));
-
-    if (isBulletList) {
-      return (
-        <ul key={pIdx} className="app-profes-ai__list">
-          {rawLines.map((line, lIdx) => {
-            const clean = line.trim().replace(/^(?:[\*\-•]|\d+\.)\s+/, "");
-            return <li key={lIdx}>{renderFormattedTokens(clean)}</li>;
-          })}
-        </ul>
-      );
-    }
-
-    return (
-      <p key={pIdx} className="app-profes-ai__text-para">
-        {rawLines.map((line, lIdx) => (
-          <span key={lIdx}>
-            {renderFormattedTokens(line)}
-            {lIdx < rawLines.length - 1 ? <br /> : null}
-          </span>
-        ))}
-      </p>
-    );
-  });
+  return [<ChatMarkdown key="markdown" text={text} />];
 }
 
 function getInitials(name: string) {

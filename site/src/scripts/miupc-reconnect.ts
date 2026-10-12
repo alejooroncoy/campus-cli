@@ -25,10 +25,12 @@ export function parseMiupcConnection(value: unknown): MiupcConnection {
 const noticePrefix='campus-miupc-reconnect:';
 const attemptPrefix='campus-miupc-attempt:';
 type Attempt={attemptId:string;expiresAt:number};
-const memoryNotices=new Map<string,'1'|'upc'>();
+const memoryNotices=new Map<string,'1'|'upc'|null>();
 const memoryAttempts=new Map<string,Attempt>();
 function notice(conversationId:string|null){
   if(!conversationId)return null;
+  // The latest server signal wins even when storage writes are rejected.
+  if(memoryNotices.has(conversationId))return memoryNotices.get(conversationId)??null;
   try{const stored=sessionStorage.getItem(noticePrefix+conversationId);if(stored==='1'||stored==='upc')return stored;}catch{/* Memory fallback. */}
   return memoryNotices.get(conversationId)??null;
 }
@@ -40,10 +42,14 @@ export function rememberMiupcReconnect(conversationId:string|null,upcRequired=fa
 export function requiresUpcReconnect(conversationId:string|null){return notice(conversationId)==='upc';}
 export function hasMiupcReconnectNotice(conversationId:string|null){return notice(conversationId)!==null;}
 export function clearMiupcReconnectNotices(scope:'all'|'upc'='all'){
-  for(const [id,value] of memoryNotices)if(scope==='all'||value==='upc'){memoryNotices.delete(id);memoryAttempts.delete(id);}
+  const cleared=new Set<string>();
+  for(const [id,value] of memoryNotices)if(scope==='all'||value==='upc'){memoryNotices.set(id,null);memoryAttempts.delete(id);cleared.add(id);}
   if(scope==='all')memoryAttempts.clear();
   try{
-    for(const key of Object.keys(sessionStorage))if(key.startsWith(noticePrefix)&&(scope==='all'||sessionStorage.getItem(key)==='upc')){sessionStorage.removeItem(key);sessionStorage.removeItem(attemptPrefix+key.slice(noticePrefix.length));}
+    for(const key of Object.keys(sessionStorage))if(key.startsWith(noticePrefix)){
+      const id=key.slice(noticePrefix.length);
+      if(scope==='all'||cleared.has(id)||notice(id)==='upc'){memoryNotices.set(id,null);sessionStorage.removeItem(key);sessionStorage.removeItem(attemptPrefix+id);}
+    }
     if(scope==='all')for(const key of Object.keys(sessionStorage))if(key.startsWith(attemptPrefix))sessionStorage.removeItem(key);
   }catch{/* Memory was cleared even if storage is denied. */}
 }

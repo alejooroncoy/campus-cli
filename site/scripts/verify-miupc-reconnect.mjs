@@ -22,3 +22,13 @@ assert.equal(hasMiupcReconnectNotice(attemptId),false);assert.equal(sessionStora
 globalThis.sessionStorage={setItem(){throw Error('blocked');},getItem(){throw Error('blocked');},removeItem(){throw Error('blocked');}};
 assert.doesNotThrow(()=>rememberMiupcReconnect(attemptId));assert.equal(hasMiupcReconnectNotice(attemptId),true);rememberMiupcAttempt(attemptId,pending);assert.deepEqual(savedMiupcAttempt(other),{attemptId,expiresAt:pending.expiresAt});forgetMiupcAttempt(other);assert.equal(savedMiupcAttempt(attemptId),null);clearMiupcReconnectNotices();assert.equal(hasMiupcReconnectNotice(attemptId),false);
 console.log('Mi UPC reconnect: trusted URLs, verification identity, private storage and draft preservation passed.');
+
+// Storage may allow reads while rejecting writes (quota/private mode).
+globalThis.sessionStorage={setItem(k,v){this[k]=v;},getItem(k){return this[k]??null;},removeItem(k){delete this[k];}};
+rememberMiupcReconnect(attemptId);
+sessionStorage.setItem=()=>{throw Error('quota');};
+rememberMiupcReconnect(attemptId,true);
+assert.equal(sessionStorage.getItem('campus-miupc-reconnect:'+attemptId),'1');
+assert.equal(requiresUpcReconnect(attemptId),true,'Latest UPC requirement overrides stale storage');
+
+clearMiupcReconnectNotices('upc');assert.equal(hasMiupcReconnectNotice(attemptId),false,'Clearing must not resurrect the stale stored notice');
