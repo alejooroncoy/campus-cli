@@ -1,6 +1,6 @@
 ---
 interface Props {
-  active: "inicio" | "profes" | "copilot" | "perfil";
+  active: "inicio" | "profes" | "copilot" | "perfil" | "turnitin";
 }
 
 const { active } = Astro.props;
@@ -9,6 +9,7 @@ const nav = [
   { id: "inicio", label: "Inicio", href: "/app/", icon: "book-open" },
   { id: "profes", label: "Profes", href: "/app/profes/", icon: "users" },
   { id: "copilot", label: "Copilot", href: "/app/copilot/", icon: "sparkles" },
+  { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "book-open" },
 ];
 ---
 

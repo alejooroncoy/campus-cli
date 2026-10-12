@@ -1,0 +1,50 @@
+---
+import AppShell from '../../../layouts/AppShell.astro';
+---
+<AppShell title="Informes de Turnitin" active="turnitin">
+  <link rel="stylesheet" href="/turnitin.css" />
+  <div class="ti-order-shell">
+    <header class="ti-order-head">
+      <p class="eyebrow">Campus · Turnitin</p>
+      <h1>Revisa tu trabajo antes de entregar.</h1>
+      <p>Informes de similitud y detección de escritura con IA. Entrega de 10 minutos a 1 hora después de validar el pago. <a href="/turnitin/">Ver detalles del servicio →</a></p>
+    </header>
+    <p class="ti-status" data-ti-status role="status" aria-live="polite">Comprobando disponibilidad…</p>
+    <div class="ti-order-grid">
+      <section class="ti-panel">
+        <h2>Solicitar una revisión</h2>
+        <p class="ti-muted" data-ti-price>Precio de lanzamiento: S/8 por documento. Regular: S/10.</p>
+        <p data-ti-login hidden><a href="/api/app/auth/start?return=/app/turnitin/">Iniciar sesión en Campus →</a></p>
+        <form data-ti-form hidden>
+          <fieldset data-ti-fields style="border:0;padding:0;margin:0">
+            <label>1. Elige tu documento<input name="document" type="file" accept=".pdf,.docx" required /></label>
+            <p class="ti-muted">PDF con texto seleccionable o Word (.docx), hasta 10 MB. Para IA: entre 300 y 30 000 palabras de prosa.</p>
+            <div class="ti-payment">
+              <p>2. Paga por Yape o Plin</p>
+              <strong data-ti-amount>S/8</strong>
+              <dl><dt>Número</dt><dd data-ti-phone>—</dd><dt>Titular</dt><dd data-ti-holder>—</dd></dl>
+              <p class="ti-muted">Verifica el titular en tu aplicación antes de pagar.</p>
+            </div>
+            <label>Comprobante de pago<input name="receipt" type="file" accept=".png,.jpg,.jpeg,.pdf" required /></label>
+            <p class="ti-muted">PNG, JPG o PDF, hasta 5 MB. Revisaremos el comprobante antes de procesar el documento.</p>
+            <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo que Campus procese este documento con Turnitin para entregar los informes. He leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
+            <button class="app-button" type="submit">3. Enviar documento y comprobante</button>
+          </fieldset>
+        </form>
+        <noscript>Activa JavaScript para enviar tu documento y consultar los informes.</noscript>
+      </section>
+      <section class="ti-panel" aria-labelledby="ti-my-orders">
+        <h2 id="ti-my-orders">Mis pedidos</h2>
+        <button class="app-button app-button--secondary" type="button" data-ti-refresh hidden>Actualizar estado</button>
+        <div data-ti-orders><p class="ti-muted">Inicia sesión para consultar tus pedidos.</p></div>
+        <p class="ti-muted">Cuando el pedido esté listo, podrás descargar los dos informes aquí. Turnitin puede mostrar «*%» en el análisis de IA en lugar de un porcentaje exacto.</p>
+      </section>
+    </div>
+    <section class="ti-panel ti-admin" data-ti-admin hidden>
+      <h2>Administrar pedidos</h2>
+      <p class="ti-muted">Verifica cada comprobante en Yape/Plin antes de confirmar el pago. Después carga los dos informes PDF correspondientes al documento.</p>
+      <div data-ti-admin-orders></div>
+    </section>
+  </div>
+  <script src="../../../scripts/turnitin.ts"></script>
+</AppShell>

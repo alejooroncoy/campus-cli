@@ -186,7 +186,7 @@ function initPage() {
   if (login) login.href = loginUrl;
 
   getCampusSession().then(value => {
-    if (value.authenticated && !value.universityConfirmed && location.pathname !== "/app/perfil/") {
+    if (value.authenticated && !value.universityConfirmed && !["/app/perfil/", "/app/turnitin/"].includes(location.pathname)) {
       location.assign("/app/perfil/?universidad=pendiente");
       return;
     }
