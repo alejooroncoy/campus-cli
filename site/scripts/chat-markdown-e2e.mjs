@@ -5,6 +5,10 @@ const base=process.env.CAMPUS_RECONNECT_E2E_ORIGIN??'http://127.0.0.1:4330';
 const id='11111111-1111-4111-8111-111111111111';
 const answer=`Aquí tienes las notas de prueba del ciclo 202620.
 
+Campos de ejemplo:
+Curso: Software
+Profesor: Docente de prueba
+
 **Arquitecturas de Software (TEST101)**
 | Evaluación | Nota | Peso |
 | :--- | ---: | ---: |
@@ -21,6 +25,11 @@ Evaluaciones publicadas:
 
 • Primera observación
 • Segunda observación
+
+**Otro curso**
+| Evaluación | Calificación |
+| --- | ---: |
+| Trabajo | 17 |
 
 ### Siguientes pasos
 1. Revisa las evaluaciones pendientes.
@@ -45,10 +54,13 @@ try{
   await page.goto(`${base}/app/profes/c/${id}/`);
   const reply=page.locator('.app-profes-ai__message--assistant').last();
   await reply.getByRole('table').first().waitFor();
-  assert.equal(await reply.getByRole('table').count(),3,'Tables adjacent to headings and prose must render');
+  assert.equal(await reply.locator('p').filter({hasText:'Campos de ejemplo:'}).locator('br').count(),2,'Single line breaks must stay visible');
+  assert.equal(await reply.getByRole('table').count(),4,'Tables adjacent to headings and prose must render');
   assert.equal(await reply.getByRole('columnheader',{name:'Nota',exact:true}).count(),2);
   assert.equal(await reply.getByRole('cell',{name:'0',exact:true}).count(),1,'Zero must remain a published grade');
   assert.equal(await reply.locator('td.is-pending').count(),2);
+  assert.equal(await reply.getByRole('columnheader',{name:'Calificación',exact:true}).count(),1,'Academic tables must not become professor cards');
+  assert.equal(await reply.locator('.app-prof-card').count(),0);
   assert.equal(await reply.getByRole('heading',{name:'Siguientes pasos'}).count(),1);
   assert.equal(await reply.locator('ol > li').count(),2);
   assert.equal(await reply.locator('ol ul > li').count(),1);
@@ -66,7 +78,7 @@ try{
   assert.deepEqual(errors,[]);
   await reply.locator('.app-chat-table-section').first().scrollIntoViewIfNeeded();
   await page.screenshot({path:`/tmp/campus-grades-${viewport.width<700?'mobile':'desktop'}.png`,fullPage:false});
-  console.log(JSON.stringify({viewport:viewport.width,tables:3,adjacentHeadings:true,zero:true,lists:true,safeMarkup:true,overflow:false,result:'passed'}));
+  console.log(JSON.stringify({viewport:viewport.width,tables:4,adjacentHeadings:true,zero:true,lists:true,safeMarkup:true,overflow:false,result:'passed'}));
   await context.close();
  }
 }finally{await browser.close();}

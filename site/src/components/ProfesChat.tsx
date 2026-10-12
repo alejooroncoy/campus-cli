@@ -261,7 +261,7 @@ function parseMessageBlocks(content: string): MessageBlock[] {
       const candidateName = match[1].trim();
       const rest = match[2] || "";
       const lookahead = [rest, lines[i + 1] || "", lines[i + 2] || ""].join(" ");
-      const isProfCard = /(?:calificaci[o\u00f3]n|dificultad|reseñas|rese[\u00f1n]as|⭐|⚡|💬)/i.test(lookahead);
+      const isProfCard = !/^\s*\|?\s*:?-{3,}:?\s*\|/m.test([rest, lines[i + 1] || "", lines[i + 2] || "", lines[i + 3] || ""].join("\n")) && /(?:calificaci[o\u00f3]n|dificultad|reseñas|rese[\u00f1n]as|⭐|⚡|💬)/i.test(lookahead);
 
       if (isProfCard) {
         flushText();

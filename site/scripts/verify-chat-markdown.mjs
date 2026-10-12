@@ -21,6 +21,7 @@ assert.match(render('- Parent\n    • Child'),/<li>Parent\n<ul>\n<li>Child<\/li
 assert.match(render('• Parent\n\n    ```text\n    • Literal\n    ```\n\n    • Child'),/• Literal/);
 assert.match(render('    • Literal code'),/<pre><code>• Literal code/);
 assert.match(render('```text\n• Mantener literal\n```'),/• Mantener literal/);
+assert.match(render('Curso: X\nProfesor: Y'),/Curso: X<br\/>\nProfesor: Y/);
 const escaped=render('<script>alert(1)</script>\n\n[link](javascript:alert(1))\n![alt](https://example.invalid/private.png)');
 assert.doesNotMatch(escaped,/<script|<img|href="javascript:/);
 assert.match(render('| Nombre | Detalle |\n| --- | --- |\n| A \\| B | **Texto** |'),/A \| B/);

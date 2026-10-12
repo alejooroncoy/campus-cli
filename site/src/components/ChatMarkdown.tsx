@@ -1,5 +1,6 @@
 import Markdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import type { Root, Element } from "hast";
 
 function normalizeBullets(text: string) {
@@ -69,6 +70,6 @@ const components: Components = {
 
 export default function ChatMarkdown({ text }: { text: string }) {
   return <div className="app-chat-markdown">
-    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[tableSections]} components={components} skipHtml>{normalizeBullets(text)}</Markdown>
+    <Markdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[tableSections]} components={components} skipHtml>{normalizeBullets(text)}</Markdown>
   </div>;
 }
