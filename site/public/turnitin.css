@@ -83,6 +83,7 @@
 .ti-panel-head h2{margin:0 0 8px}
 .ti-panel-head p{margin:0 0 20px;font-size:14px}
 .ti-panel-head button{flex-shrink:0}
+.ti-panel .app-button--secondary{color:#102a3a}
 .ti-reviews .ti-order{margin-top:18px;padding:22px;border:1px solid #d4e1e6;border-radius:12px;background:#fff}
 .ti-reviews .ti-order>h3{font-size:19px;margin-bottom:10px}
 .ti-order[data-status="completed"] .ti-tag{background:#d9f1e8;color:#087f5b}

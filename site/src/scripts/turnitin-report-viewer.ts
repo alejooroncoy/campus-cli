@@ -55,6 +55,7 @@ export function setupTurnitinReportViewer() {
   async function renderPage() {
     if (!pdf || !dialog.open) return;
     const currentPdf = pdf;
+    retry.hidden = true;
     pageLabel.textContent = `Página ${pageNumber} de ${currentPdf.numPages}`;
     controls();
     const documentVersion = generation;
