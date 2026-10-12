@@ -24,7 +24,7 @@ function setupTurnitin() {
   let disposed = false;
   let statuses = new Map<string, string>();
   let poll: ReturnType<typeof setInterval> | undefined;
-  const announce = (message: string) => { status.textContent = message; };
+  const announce = (message: string, quiet = false) => { status.textContent = message; status.classList.toggle('ti-status--quiet', quiet); };
   async function api(path: string, input?: unknown) {
     const response = await fetch(`/api/app/turnitin/${path}`, { credentials: 'same-origin', cache: 'no-store',
       method: input === undefined ? 'GET' : 'POST',
@@ -70,13 +70,19 @@ function setupTurnitin() {
   }
   function renderOrders(orders: Order[], target: HTMLElement, admin = false) {
     target.replaceChildren();
-    if (!orders.length) { target.append(el('p', admin ? 'No hay pedidos para atender.' : 'Aquí aparecerán tus revisiones. Envía tu primer trabajo para empezar.', 'ti-muted')); return; }
+    if (!admin) document.querySelector<HTMLElement>('.ti-report-note')!.hidden = orders.length === 0;
+    if (!orders.length) {
+      const empty = el('div', '', 'ti-empty');
+      empty.append(el('h3', admin ? 'No hay pedidos pendientes' : 'Tu primera revisión empieza aquí'), el('p', admin ? 'Los pedidos nuevos aparecerán en este panel.' : 'Después de enviar tu trabajo, podrás seguir su estado y abrir o descargar los dos informes.', 'ti-muted'));
+      target.append(empty); return;
+    }
     for (const order of orders) {
       const card = el('article', '', 'ti-order');
       card.id = `ti-order-${order.id}`; card.dataset.status = order.status;
-      card.append(el('h3', order.documentName), el('span', labels[order.status] ?? order.status, 'ti-tag'));
-      card.append(el('p', `${money(order.amountCents)} · ${new Date(order.createdAt).toLocaleString('es-PE', { timeZone: 'America/Lima', dateStyle: 'short', timeStyle: 'short' })}`, 'ti-small'));
-      card.append(el('p', `Pedido ${order.id.slice(0,8)}`, 'ti-small'));
+      const head = el('div', '', 'ti-order-heading');
+      head.append(el('h3', order.documentName), el('span', labels[order.status] ?? order.status, 'ti-tag'));
+      card.append(head);
+      card.append(el('p', `${money(order.amountCents)} · ${new Date(order.createdAt).toLocaleString('es-PE', { timeZone: 'America/Lima', dateStyle: 'short', timeStyle: 'short' })} · Pedido ${order.id.slice(0,8)}`, 'ti-small'));
       if (order.note) card.append(el('p', order.note));
       if (order.status === 'processing' && order.paidAt) card.append(el('p', 'Entrega de 10 minutos a 1 hora desde la validación del pago.', 'ti-small'));
       if (order.status === 'completed') {
@@ -155,7 +161,15 @@ function setupTurnitin() {
   refresh.onclick = async () => {
     try { await loadOrders(); announce('Estado actualizado.'); } catch (error) { announce((error as Error).message); }
   };
-  form.addEventListener('change', () => { requestId = crypto.randomUUID(); });
+  const fileNames = Array.from(form.querySelectorAll<HTMLElement>('[data-ti-filename]')).map(node => ({ node, initial: node.textContent }));
+  form.addEventListener('change', () => {
+    requestId = crypto.randomUUID();
+    for (const { node, initial } of fileNames) {
+      const file = selected(form, node.dataset.tiFilename!);
+      node.textContent = file?.name ?? initial;
+      node.closest('.ti-upload')?.classList.toggle('ti-upload--selected', Boolean(file));
+    }
+  });
   form.onsubmit = async event => {
     event.preventDefault();
     if (fields.disabled || !form.reportValidity()) return;
@@ -163,7 +177,7 @@ function setupTurnitin() {
     try {
       await api('orders', { requestId, amountCents: config.amountCents, consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
         document: await encode(selected(form,'document'),config.maxDocumentBytes), receipt: await encode(selected(form,'receipt'),config.maxReceiptBytes) });
-      form.reset(); requestId = crypto.randomUUID();
+      form.reset(); for (const { node, initial } of fileNames) { node.textContent = initial; node.closest('.ti-upload')?.classList.remove('ti-upload--selected'); } requestId = crypto.randomUUID();
       announce('Pedido recibido. Tu comprobante está en revisión. Consulta el estado en Mis revisiones.');
       document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!.open = false;
       const reviewPanel = document.querySelector<HTMLElement>('[data-ti-my-orders-panel]')!;
@@ -179,7 +193,7 @@ function setupTurnitin() {
   void (async () => {
     try {
       config = await api('config');
-      document.querySelector<HTMLElement>('[data-ti-price]')!.textContent = config.amountCents === 800 ? 'Lanzamiento: S/8 por documento. Regular: S/10.' : 'S/10 por documento.';
+      document.querySelector<HTMLElement>('[data-ti-price]')!.textContent = config.amountCents === 800 ? 'S/8 · Lanzamiento' : `${money(config.amountCents)} por documento`;
       document.querySelector<HTMLElement>('[data-ti-amount]')!.textContent = money(config.amountCents);
       document.querySelector<HTMLElement>('[data-ti-phone]')!.textContent = config.phone;
       document.querySelector<HTMLElement>('[data-ti-holder]')!.textContent = config.holder;
@@ -201,7 +215,7 @@ function setupTurnitin() {
         if (!disposed && pendingOrders && !isAdmin && document.visibilityState === 'visible')
           void loadOrders().catch(() => {});
       }, 30000);
-      announce(statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.');
+      announce(statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
     } catch (error) { announce((error as Error).message); }
   })();
 }
