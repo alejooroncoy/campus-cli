@@ -23,6 +23,7 @@ async function scenario(mode,blocked=false,mobile=false){
   if(process.env.CAMPUS_RECONNECT_SCREENSHOT_DIR){await notice.scrollIntoViewIfNeeded();await page.screenshot({path:`${process.env.CAMPUS_RECONNECT_SCREENSHOT_DIR}/campus-miupc-reconnect-${mobile?'mobile':'desktop'}.png`});}
   const previous=await(await fetch(`${base}/__e2e/state`)).json();
   let popup;
+  const busyRead=mode==='busy'?page.waitForResponse(response=>response.url().endsWith('/api/app/miupc/connect/')&&response.request().method()==='GET'):null;
   if(mode==='normal'&&!blocked){const opened=page.waitForEvent('popup');await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();popup=await opened;await popup.waitForURL('https://www.browserbase.com/e2e/verification');assert.equal(await popup.evaluate(()=>window.opener),null);}
   else await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();
   if(['normal','near-deadline'].includes(mode)){
@@ -34,7 +35,7 @@ async function scenario(mode,blocked=false,mobile=false){
    if(popup&&!popup.isClosed())await popup.waitForEvent('close',{timeout:3000}).catch(()=>{});
    await notice.getByRole('button',{name:'Listo',exact:true}).click();
   }else{
-   if(mode==='busy')await page.evaluate(()=>{const original=Date.now;Date.now=()=>original()+125000;});
+   if(mode==='busy'){await busyRead;await page.evaluate(()=>{const original=Date.now;Date.now=()=>original()+125000;});}
    await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).waitFor({state:'visible'});
    await page.waitForFunction(()=>!document.querySelector('.app-miupc-reconnect button')?.disabled);
    assert.equal(await notice.getByRole('link').count(),0);
@@ -64,6 +65,7 @@ async function scenario(mode,blocked=false,mobile=false){
  }finally{await context.close();}
 }
 try{
+ if(process.env.CAMPUS_RECONNECT_E2E_CASE==='busy-bound')await scenario('busy',true);
  if(!process.env.CAMPUS_RECONNECT_E2E_CASE){
  await scenario('normal');await scenario('normal',true,true);await scenario('near-deadline',true);
  for(const mode of ['busy','failed','unsafe','expired','restart'])await scenario(mode,true);
