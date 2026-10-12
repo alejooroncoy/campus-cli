@@ -1086,13 +1086,17 @@
 .app-profes-ai__composer-footer {
   display: contents;
 }
-.app-profes-ai__composer-footer > span {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  width: 100%;
+.app-profes-ai__composer-dock {
+  background: var(--app-canvas);
+  padding: 12px 0 14px;
+}
+.app-profes-ai__composer-hint {
+  margin: 10px 12px 0;
+  color: var(--app-muted);
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 .app-profes-ai__send {
   border-radius: 50%;
@@ -1115,11 +1119,10 @@
   height: 15px;
   flex-basis: 15px;
 }
-.app-profes-ai.has-messages .app-profes-ai__composer {
+.app-profes-ai.has-messages .app-profes-ai__composer-dock {
   position: sticky;
-  bottom: 40px;
+  bottom: 0;
   z-index: 10;
-  margin-bottom: 28px;
 }
 .app-profes-history-dialog {
   position: fixed;
@@ -1223,8 +1226,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 2px 4px;
   }
-  .app-profes-ai.has-messages .app-profes-ai__composer {
-    bottom: 90px;
+  .app-profes-ai.has-messages .app-profes-ai__composer-dock {
+    bottom: var(--app-mobile-nav-height);
   }
 }
 .app-profes-history-dialog .app-profes-sidebar-search {

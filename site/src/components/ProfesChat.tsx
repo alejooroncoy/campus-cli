@@ -1548,36 +1548,38 @@ export default function ProfesChat() {
           <button ref={quotaReopen} type="button" className="app-guest-quota-reminder__button" onClick={reopenQuotaDialog}>Ver 25 consultas gratis</button>
         </div>
       ) : (
-        <form className="app-profes-ai__composer" onSubmit={submit}>
-          <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta sobre profesores o tus cursos</label>
-          <textarea
-            id="profes-message"
-            ref={textarea}
-            value={input}
-            onChange={event => setInput(event.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Pregunta a Campus…"
-            rows={1}
-            maxLength={2000}
-            disabled={busy || loadingConversation}
-          />
-          <div className="app-profes-ai__composer-footer">
-            <span>{hint}</span>
-            {busy ? (
-              <button type="button" onClick={stop} aria-label="Detener respuesta" title="Detener respuesta" className="app-profes-ai__send app-profes-ai__send--stop"><span aria-hidden="true" /></button>
-            ) : (
-              <button
-                type="submit"
-                disabled={!input.trim() || loadingConversation || access === "checking" || access === "unavailable" || access === "unsupported"}
-                aria-label={access === "setup" ? "Elegir universidad y preguntar" : "Enviar pregunta"}
-                title={access === "setup" ? "Elegir universidad y preguntar" : "Enviar pregunta"}
-                className="app-profes-ai__send"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-up-right" /></svg>
-              </button>
-            )}
-          </div>
-        </form>
+        <div className="app-profes-ai__composer-dock">
+          <form className="app-profes-ai__composer" onSubmit={submit}>
+            <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta sobre profesores o tus cursos</label>
+            <textarea
+              id="profes-message"
+              ref={textarea}
+              value={input}
+              onChange={event => setInput(event.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="Pregunta a Campus…"
+              rows={1}
+              maxLength={2000}
+              disabled={busy || loadingConversation}
+            />
+            <div className="app-profes-ai__composer-footer">
+              {busy ? (
+                <button type="button" onClick={stop} aria-label="Detener respuesta" title="Detener respuesta" className="app-profes-ai__send app-profes-ai__send--stop"><span aria-hidden="true" /></button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!input.trim() || loadingConversation || access === "checking" || access === "unavailable" || access === "unsupported"}
+                  aria-label={access === "setup" ? "Elegir universidad y preguntar" : "Enviar pregunta"}
+                  title={access === "setup" ? "Elegir universidad y preguntar" : "Enviar pregunta"}
+                  className="app-profes-ai__send"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-up-right" /></svg>
+                </button>
+              )}
+            </div>
+          </form>
+          <p className="app-profes-ai__composer-hint">{hint}</p>
+        </div>
       )}
 
       {(error || (historyError && !historyOpen)) && !isGuestLimit ? <p className="app-profes-ai__error" role="alert">{error?.message ?? historyError}</p> : null}
