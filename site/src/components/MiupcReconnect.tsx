@@ -78,7 +78,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       catch(cause){
         if(current!==generation.current||signal.aborted)return;
         if(retryUntil&&Date.now()<retryUntil){setError('La conexión está tardando. Seguimos comprobando tu verificación…');poll();return;}
-        setConnection({status:deadline&&Date.now()>=deadline?'expired':'failed'});setError(deadline&&Date.now()>=deadline?'':cause instanceof Error?cause.message:copy.failed);
+        update({status:deadline&&Date.now()>=deadline?'expired':'failed'},current,signal);setError(deadline&&Date.now()>=deadline?'':cause instanceof Error?cause.message:copy.failed);
       }
     },3000);};poll();
   }

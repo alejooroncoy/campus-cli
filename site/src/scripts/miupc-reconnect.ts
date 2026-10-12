@@ -35,7 +35,7 @@ export function hasMiupcReconnectNotice(conversationId: string | null) {
   try { return Boolean(conversationId && ['1','upc'].includes(sessionStorage.getItem(noticePrefix + conversationId)??'')); } catch { return false; }
 }
 export function clearMiupcReconnectNotices(scope:"all"|"upc"="all") {
-  try { for (const key of Object.keys(sessionStorage)) if (key.startsWith(noticePrefix) && (scope==='all'||sessionStorage.getItem(key)==='upc')) {sessionStorage.removeItem(key);sessionStorage.removeItem(attemptPrefix+key.slice(noticePrefix.length));} } catch { /* Private browsing. */ }
+  try { for (const key of Object.keys(sessionStorage)) if (key.startsWith(noticePrefix) && (scope==='all'||sessionStorage.getItem(key)==='upc')) {sessionStorage.removeItem(key);sessionStorage.removeItem(attemptPrefix+key.slice(noticePrefix.length));} if(scope==='all')for(const key of Object.keys(sessionStorage))if(key.startsWith(attemptPrefix))sessionStorage.removeItem(key); } catch { /* Private browsing. */ }
 }
 
 // Correlation metadata is not a login capability. Never retain the live URL.
@@ -45,9 +45,23 @@ export function rememberMiupcAttempt(conversationId:string|null,data:MiupcConnec
   try{sessionStorage.setItem(attemptPrefix+conversationId,JSON.stringify({attemptId:data.attemptId,expiresAt:data.expiresAt}));}catch{/* Optional storage. */}
 }
 export function savedMiupcAttempt(conversationId:string|null):{attemptId:string;expiresAt:number}|null{
+  if(!conversationId)return null;
   try{
-    const data=JSON.parse(sessionStorage.getItem(attemptPrefix+conversationId)??'null');
-    return data&&typeof data.attemptId==='string'&&/^[0-9a-f-]{36}$/i.test(data.attemptId)&&typeof data.expiresAt==='number'&&Number.isFinite(data.expiresAt)?{attemptId:data.attemptId,expiresAt:data.expiresAt}:null;
+    // Mi UPC verification belongs to the account. Every affected chat can
+    // resume the newest active attempt; each status read remains owner-bound.
+    const attempts=Object.keys(sessionStorage).filter(key=>key.startsWith(attemptPrefix)).flatMap(key=>{
+      try{
+        const data=JSON.parse(sessionStorage.getItem(key)??'null');
+        return data&&typeof data.attemptId==='string'&&/^[0-9a-f-]{36}$/i.test(data.attemptId)&&typeof data.expiresAt==='number'&&Number.isFinite(data.expiresAt)?[{attemptId:data.attemptId,expiresAt:data.expiresAt}]:[];
+      }catch{return [];}
+    });
+    return attempts.sort((a,b)=>b.expiresAt-a.expiresAt)[0]??null;
   }catch{return null;}
 }
-export function forgetMiupcAttempt(conversationId:string|null){try{if(conversationId)sessionStorage.removeItem(attemptPrefix+conversationId);}catch{/* Optional storage. */}}
+export function forgetMiupcAttempt(conversationId:string|null){
+  const attempt=savedMiupcAttempt(conversationId);
+  if(!attempt)return;
+  try{for(const key of Object.keys(sessionStorage))if(key.startsWith(attemptPrefix)){
+    try{if(JSON.parse(sessionStorage.getItem(key)??'null')?.attemptId===attempt.attemptId)sessionStorage.removeItem(key);}catch{/* Ignore malformed optional metadata. */}
+  }}catch{/* Optional storage. */}
+}

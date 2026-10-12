@@ -14,7 +14,7 @@ assert.ok(!JSON.stringify(sessionStorage).includes('browserbase'));
 rememberMiupcReconnect(attemptId,true);assert.equal(requiresUpcReconnect(attemptId),true);assert.equal(hasMiupcReconnectNotice(attemptId),true);
 sessionStorage.setItem('campus-question','Borrador');
 const other='22222222-2222-4222-8222-222222222222',browserNotice='33333333-3333-4333-8333-333333333333';
-rememberMiupcAttempt(attemptId,pending);assert.deepEqual(savedMiupcAttempt(attemptId),{attemptId,expiresAt:pending.expiresAt});assert.ok(!JSON.stringify(sessionStorage).includes('browserbase'));
+rememberMiupcAttempt(attemptId,pending);assert.deepEqual(savedMiupcAttempt(attemptId),{attemptId,expiresAt:pending.expiresAt});assert.ok(!JSON.stringify(sessionStorage).includes('browserbase'));assert.deepEqual(savedMiupcAttempt(browserNotice),{attemptId,expiresAt:pending.expiresAt});
 rememberMiupcReconnect(other,true);rememberMiupcReconnect(browserNotice);clearMiupcReconnectNotices('upc');
 assert.equal(hasMiupcReconnectNotice(attemptId),false);assert.equal(savedMiupcAttempt(attemptId),null);assert.equal(hasMiupcReconnectNotice(other),false);assert.equal(hasMiupcReconnectNotice(browserNotice),true);
 clearMiupcReconnectNotices();
