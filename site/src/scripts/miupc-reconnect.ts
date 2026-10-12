@@ -35,5 +35,19 @@ export function hasMiupcReconnectNotice(conversationId: string | null) {
   try { return Boolean(conversationId && ['1','upc'].includes(sessionStorage.getItem(noticePrefix + conversationId)??'')); } catch { return false; }
 }
 export function clearMiupcReconnectNotices(scope:"all"|"upc"="all") {
-  try { for (const key of Object.keys(sessionStorage)) if (key.startsWith(noticePrefix) && (scope==='all'||sessionStorage.getItem(key)==='upc')) sessionStorage.removeItem(key); } catch { /* Private browsing. */ }
+  try { for (const key of Object.keys(sessionStorage)) if (key.startsWith(noticePrefix) && (scope==='all'||sessionStorage.getItem(key)==='upc')) {sessionStorage.removeItem(key);sessionStorage.removeItem(attemptPrefix+key.slice(noticePrefix.length));} } catch { /* Private browsing. */ }
 }
+
+// Correlation metadata is not a login capability. Never retain the live URL.
+const attemptPrefix='campus-miupc-attempt:';
+export function rememberMiupcAttempt(conversationId:string|null,data:MiupcConnection){
+  if(!conversationId||!data.attemptId||!Number.isFinite(data.expiresAt))return;
+  try{sessionStorage.setItem(attemptPrefix+conversationId,JSON.stringify({attemptId:data.attemptId,expiresAt:data.expiresAt}));}catch{/* Optional storage. */}
+}
+export function savedMiupcAttempt(conversationId:string|null):{attemptId:string;expiresAt:number}|null{
+  try{
+    const data=JSON.parse(sessionStorage.getItem(attemptPrefix+conversationId)??'null');
+    return data&&typeof data.attemptId==='string'&&/^[0-9a-f-]{36}$/i.test(data.attemptId)&&typeof data.expiresAt==='number'&&Number.isFinite(data.expiresAt)?{attemptId:data.attemptId,expiresAt:data.expiresAt}:null;
+  }catch{return null;}
+}
+export function forgetMiupcAttempt(conversationId:string|null){try{if(conversationId)sessionStorage.removeItem(attemptPrefix+conversationId);}catch{/* Optional storage. */}}

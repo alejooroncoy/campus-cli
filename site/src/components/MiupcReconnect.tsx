@@ -1,5 +1,5 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {parseMiupcConnection, type MiupcConnection} from '../scripts/miupc-reconnect';
+import {parseMiupcConnection,rememberMiupcAttempt,savedMiupcAttempt,forgetMiupcAttempt,rememberMiupcReconnect,type MiupcConnection} from '../scripts/miupc-reconnect';
 
 const endpoint = '/api/app/miupc/connect/';
 const copy: Record<MiupcConnection['status'], string> = {
@@ -14,9 +14,11 @@ const copy: Record<MiupcConnection['status'], string> = {
   busy:'Hay una consulta de Mi UPC en curso. Espera a que termine y vuelve a intentarlo.',
   not_supported:'Esta conexión está disponible para estudiantes de UPC.',
 };
-export default function MiupcReconnect({disabled,upcRequired,noticeRevision,onConnected,onUpcAccessRestored,onDismiss}:{disabled:boolean;upcRequired:boolean;noticeRevision:number;onConnected:()=>void;onUpcAccessRestored:()=>void;onDismiss:()=>void}) {
+export default function MiupcReconnect({disabled,upcRequired,conversationId,noticeRevision,onConnected,onUpcAccessRestored,onDismiss}:{disabled:boolean;upcRequired:boolean;conversationId:string|null;noticeRevision:number;onConnected:()=>void;onUpcAccessRestored:()=>void;onDismiss:()=>void}) {
   const [connection,setConnection] = useState<MiupcConnection | null>(upcRequired?{status:'upc_reconnect_required'}:null);
   const [starting,setStarting] = useState(false);
+  const [restoring,setRestoring]=useState(false);
+  const restoringRequest=useRef(false);
   const [error,setError] = useState('');
   const [accessReady,setAccessReady]=useState(false);
   const [checkingAccess,setCheckingAccess]=useState(false);
@@ -35,7 +37,7 @@ export default function MiupcReconnect({disabled,upcRequired,noticeRevision,onCo
   // Repeated tool notices must keep the current window and poll alive. A new
   // notice can reset a completed/failed card without unmounting an active login.
   useLayoutEffect(()=>{
-    if(starting||checkingAccess||['pending_login','saving'].includes(connection?.status??''))return;
+    if(starting||restoring||checkingAccess||['pending_login','saving'].includes(connection?.status??''))return;
     generation.current++;if(timer.current)clearTimeout(timer.current);abort.current?.abort();
     setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setError('');
   },[noticeRevision]);
@@ -52,6 +54,9 @@ export default function MiupcReconnect({disabled,upcRequired,noticeRevision,onCo
     // this verification. A worker restart must not silently mark it complete.
     if(attemptId && ['pending_login','saving','connected'].includes(data.status) && data.attemptId!==attemptId){setConnection({status:'failed'});setError('Se interrumpió la verificación. Vuelve a conectar Mi UPC.');return;}
     setConnection(data);setError('');
+    if(['pending_login','saving'].includes(data.status))rememberMiupcAttempt(conversationId,data);
+    else forgetMiupcAttempt(conversationId);
+    if(['upc_reconnect_required','reconnect_required'].includes(data.status))rememberMiupcReconnect(conversationId,true);
     if(data.status==='connected'){
       popup.current?.close();popup.current=null;connected.current();return;
     }
@@ -68,8 +73,17 @@ export default function MiupcReconnect({disabled,upcRequired,noticeRevision,onCo
       catch(cause){if(current===generation.current&&!signal.aborted){setConnection({status:deadline&&Date.now()>=deadline?'expired':'failed'});setError(deadline&&Date.now()>=deadline?'':cause instanceof Error?cause.message:copy.failed);}}
     },3000);
   }
+  useEffect(()=>{
+    const saved=savedMiupcAttempt(conversationId);
+    if(!saved||upcRequired)return;
+    const current=generation.current;const controller=new AbortController();abort.current=controller;
+    restoringRequest.current=true;setRestoring(true);
+    void request(false,controller.signal).then(data=>update(data,current,controller.signal,saved.attemptId,saved.expiresAt)).catch(()=>{
+      if(current===generation.current&&!controller.signal.aborted){setError('No pudimos recuperar la verificación. Puedes volver a conectar Mi UPC.');}
+    }).finally(()=>{restoringRequest.current=false;if(current===generation.current)setRestoring(false);});
+  },[]);
   async function start() {
-    if(starting||disabled)return;
+    if(starting||restoringRequest.current||disabled)return;
     const current=++generation.current;
     if(timer.current)clearTimeout(timer.current);abort.current?.abort();
     const controller=new AbortController();abort.current=controller;
@@ -113,15 +127,15 @@ export default function MiupcReconnect({disabled,upcRequired,noticeRevision,onCo
     window.addEventListener('focus',returned);document.addEventListener('visibilitychange',returned);
     return()=>{window.removeEventListener('focus',returned);document.removeEventListener('visibilitychange',returned);};
   },[connection?.status,disabled]);
-  const waiting=starting||connection?.status==='pending_login'||connection?.status==='saving';
+  const waiting=starting||restoring||connection?.status==='pending_login'||connection?.status==='saving';
   const done=connection?.status==='connected'||accessReady;
   const needsUpcAccess=connection?.status==='upc_reconnect_required'||connection?.status==='reconnect_required';
   return <aside className="app-miupc-reconnect" aria-label="Reconexión de Mi UPC">
     <div><strong>{accessReady?'Acceso UPC actualizado':done?'Mi UPC está conectado':needsUpcAccess?'Actualiza tu acceso UPC':'Mi UPC necesita verificar tu acceso'}</strong>
-      <p role="status" aria-live="polite">{accessReady?'Ya puedes volver a preguntar por tus notas en esta conversación.':checkingAccess?'Comprobando tu acceso UPC…':starting?'Preparando la ventana segura…':error||(connection?copy[connection.status]:'Reconecta para consultar tus notas. Tu conversación y lo que estás escribiendo se conservan.')}</p>
+      <p role="status" aria-live="polite">{accessReady?'Ya puedes volver a preguntar por tus notas en esta conversación.':restoring?'Recuperando la verificación…':checkingAccess?'Comprobando tu acceso UPC…':starting?'Preparando la ventana segura…':error||(connection?copy[connection.status]:'Reconecta para consultar tus notas. Tu conversación y lo que estás escribiendo se conservan.')}</p>
     </div>
     <div className="app-miupc-reconnect__actions">
-      {needsUpcAccess?<a href="https://profes.campuscli.com/?conectar=banner" target="_blank" rel="noopener noreferrer">Actualizar acceso UPC ↗</a>:done?<button type="button" onClick={onDismiss}>Listo</button>:<button type="button" onClick={()=>void start()} disabled={disabled||waiting}>{starting?'Preparando…':waiting?'Esperando verificación…':'Reconectar Mi UPC'}</button>}
+      {needsUpcAccess?<a href="https://profes.campuscli.com/?conectar=banner" target="_blank" rel="noopener noreferrer">Actualizar acceso UPC ↗</a>:done?<button type="button" onClick={onDismiss}>Listo</button>:<button type="button" onClick={()=>void start()} disabled={disabled||waiting}>{restoring?'Recuperando…':starting?'Preparando…':waiting?'Esperando verificación…':'Reconectar Mi UPC'}</button>}
       {needsUpcAccess?<button type="button" onClick={()=>void checkAuthorization()} disabled={disabled||checkingAccess}>{checkingAccess?'Comprobando…':'Ya actualicé mi acceso'}</button>:null}
       {connection?.loginUrl?<a href={connection.loginUrl} target="_blank" rel="noopener noreferrer">Abrir ventana de verificación ↗</a>:null}
     </div>

@@ -115,4 +115,20 @@ try{
    assert.equal(page.url(),base+path);assert.equal(await input.inputValue(),'Borrador durante verificación');console.log(JSON.stringify({mode:'active',repeatedNoticePreservesAttempt:true,completedOriginalAttempt:true,conversationPreserved:true,draftPreserved:true}));
   }finally{await context.close();}
  }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='resume'){
+ for(const reopen of ['reload','switch']){
+  await fetch(`${base}/__e2e/normal`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(()=>{window.open=()=>null;});const page=await context.newPage();
+  try{
+   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});await input.fill('Mis notas actuales');await input.press('Enter');
+   const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();await notice.getByRole('link',{name:'Abrir ventana de verificación'}).waitFor();
+   await input.fill('Borrador de verificación recuperada');const state=await(await fetch(`${base}/__e2e/state`)).json();
+   if(reopen==='reload'){await page.reload();await notice.getByRole('link',{name:'Abrir ventana de verificación'}).waitFor();await fetch(`${base}/__e2e/connected`,{method:'POST'});}
+   else{await page.getByRole('button',{name:/^Consulta sin aviso/}).click();await notice.waitFor({state:'hidden'});await fetch(`${base}/__e2e/connected`,{method:'POST'});await page.getByRole('button',{name:/^Consulta E2E/}).click();}
+   await notice.getByText('Conexión restablecida. Ya puedes seguir preguntando en este chat.',{exact:true}).waitFor();
+   assert.equal(page.url(),base+path);assert.equal(await input.inputValue(),'Borrador de verificación recuperada');const after=await(await fetch(`${base}/__e2e/state`)).json();assert.equal(after.starts,state.starts);assert.equal(after.queries,state.queries);
+   const storage=await page.evaluate(()=>JSON.stringify({...sessionStorage,...localStorage}));assert.ok(!storage.includes('browserbase.com'));assert.ok(!storage.includes('campus-miupc-attempt:'));
+   console.log(JSON.stringify({reopen,resumedOriginalAttempt:true,noNewConnectRequest:true,conversationPreserved:true,draftPreserved:true,noLoginUrlInStorage:true}));
+  }finally{await context.close();}
+ }
+ }
 }finally{await browser.close();}

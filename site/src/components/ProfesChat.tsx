@@ -1452,7 +1452,7 @@ export default function ProfesChat() {
               )}
             </article>
           ))}
-          {authenticated && miupcReconnectRequired ? <MiupcReconnect key={currentConversationId} noticeRevision={miupcReconnectRevision} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{clearMiupcReconnectNotices("upc");setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
+          {authenticated && miupcReconnectRequired ? <MiupcReconnect key={currentConversationId} conversationId={currentConversationId} noticeRevision={miupcReconnectRevision} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{clearMiupcReconnectNotices("upc");setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
           {busy ? (
             <div className="app-profes-ai__thinking" role="status" aria-label={activityLabels[activity] ?? activityLabels.connecting}>
               <span className="app-profes-ai__thinking-icon" aria-hidden="true">
