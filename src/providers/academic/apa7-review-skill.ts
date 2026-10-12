@@ -107,7 +107,22 @@ const semanticSchema = z.object({
   }),
 });
 
-export function parseApa7ReviewCorpus(rawRulebook: unknown, rawAudit: unknown, rawSemantic: unknown) {
+const considerationsSchema = z.object({
+  schemaVersion: z.literal(1), sourceCheckedOn: z.iso.date(), method: z.string().min(1),
+  considerations: z.array(z.object({
+    sourceUnitId: z.string(), sectionId: z.string(), sha256: hash, kind: z.string().min(1),
+    guidance: z.array(z.string().min(1)).min(1), criterionRefs: z.array(z.string()),
+    requiresOriginal: z.boolean(),
+  })),
+  nonNormativeUnitIds: z.array(z.string()),
+  warnings: z.array(z.object({
+    id: z.string(), sectionId: z.string(), classification: z.enum(['rule-conflict', 'needs-original', 'extraction-artifact', 'incomplete-example']),
+    sourceUnitIds: z.array(z.string()), sourceImageIds: z.array(z.string()), criterionRefs: z.array(z.string()),
+    condition: z.string().min(1), application: z.string().min(1),
+  })),
+});
+
+export function parseApa7ReviewCorpus(rawRulebook: unknown, rawAudit: unknown, rawSemantic: unknown, rawConsiderations: unknown) {
   const rulebook = rulebookSchema.parse(rawRulebook);
   const audit = sourceAuditSchema.parse(rawAudit);
   const summary = rulebook.coverageSummary;
@@ -211,20 +226,46 @@ export function parseApa7ReviewCorpus(rawRulebook: unknown, rawAudit: unknown, r
       throw new Error(`APA semantic criterion has no matching evidence: ${ref}`);
     }
   }
-  return { rulebook, audit, semantic, criteria };
+  const considerations = considerationsSchema.parse(rawConsiderations);
+  const dispositionIds = [...considerations.considerations.map(item => item.sourceUnitId), ...considerations.nonNormativeUnitIds];
+  const normativeIds = new Set(considerations.considerations.map(item => item.sourceUnitId));
+  if (considerations.sourceCheckedOn !== rulebook.checkedOn || dispositionIds.length !== units.length ||
+      new Set(dispositionIds).size !== units.length || dispositionIds.some(id => !unitMap.has(id)) ||
+      semantic.units.some(unit => unit.kind === 'rule' && !normativeIds.has(unit.unitId)) ||
+      new Set(considerations.warnings.map(item => item.id)).size !== considerations.warnings.length) {
+    throw new Error('APA considerations do not account for every source unit and explicit rule.');
+  }
+  for (const item of considerations.considerations) {
+    const source = unitMap.get(item.sourceUnitId);
+    if (!source || source.sha256 !== item.sha256 || source.sectionId !== item.sectionId ||
+        item.criterionRefs.some(ref => !criteria.has(ref))) {
+      throw new Error(`APA consideration has changed or unresolved evidence: ${item.sourceUnitId}`);
+    }
+  }
+  for (const warning of considerations.warnings) {
+    const sectionBlocks = new Set(sections.get(warning.sectionId)?.sourceBlockIds ?? []);
+    if (!sections.has(warning.sectionId) || !warning.sourceUnitIds.length && !warning.sourceImageIds.length ||
+        warning.sourceUnitIds.some(id => unitMap.get(id)?.sectionId !== warning.sectionId) ||
+        warning.sourceImageIds.some(id => !imageMap.get(id)?.sourceBlocks.some(block => sectionBlocks.has(block))) ||
+        warning.criterionRefs.some(ref => !criteria.has(ref))) {
+      throw new Error(`APA review warning has unresolved evidence: ${warning.id}`);
+    }
+  }
+  return { rulebook, audit, semantic, criteria, considerations };
 }
 
 // Both src/ and dist/ have the same depth below the published package root.
 const skillDirectory = resolve(__dirname, '../../../.agents/skills/apa7-review-campus');
 
 export async function loadApa7ReviewSkill(reviewSectionId?: string) {
-  const [instructions, rawRulebook, rawAudit, rawSemantic] = await Promise.all([
+  const [instructions, rawRulebook, rawAudit, rawSemantic, rawConsiderations] = await Promise.all([
     readFile(resolve(skillDirectory, 'SKILL.md'), 'utf8'),
     readFile(resolve(skillDirectory, 'references/upc-review-rules.json'), 'utf8'),
     readFile(resolve(skillDirectory, 'references/upc-source-audit.json'), 'utf8'),
     readFile(resolve(skillDirectory, 'references/upc-semantic-coverage.json'), 'utf8'),
+    readFile(resolve(skillDirectory, 'references/upc-considerations.json'), 'utf8'),
   ]);
-  const { rulebook, audit, semantic, criteria } = parseApa7ReviewCorpus(JSON.parse(rawRulebook), JSON.parse(rawAudit), JSON.parse(rawSemantic));
+  const { rulebook, audit, semantic, criteria, considerations } = parseApa7ReviewCorpus(JSON.parse(rawRulebook), JSON.parse(rawAudit), JSON.parse(rawSemantic), JSON.parse(rawConsiderations));
   const section = reviewSectionId ? rulebook.sections.find(section => section.id === reviewSectionId) : undefined;
   if (reviewSectionId && !section) throw new Error(`Unknown UPC review section: ${reviewSectionId}`);
   const selectedPages = section ? audit.pages.filter(page => page.sectionId === section.id) : [];
@@ -233,7 +274,9 @@ export async function loadApa7ReviewSkill(reviewSectionId?: string) {
   const selectedLabels = semantic.labels.filter(label => label.sectionId === section?.id);
   const selectedImages = semantic.images.filter(image => audit.images.some(source =>
     source.id === image.imageId && source.sourceBlocks.some(id => selectedBlocks.has(id))));
-  const selectedCriteria = new Set([...selectedUnits, ...selectedLabels, ...selectedImages].flatMap(item => item.criterionRefs));
+  const selectedConsiderations = considerations.considerations.filter(item => item.sectionId === section?.id);
+  const selectedWarnings = considerations.warnings.filter(item => item.sectionId === section?.id);
+  const selectedCriteria = new Set([...selectedUnits, ...selectedLabels, ...selectedImages, ...selectedConsiderations, ...selectedWarnings].flatMap(item => item.criterionRefs));
   return {
     name: 'apa7-review-campus',
     execution: 'client-agent' as const,
@@ -241,6 +284,19 @@ export async function loadApa7ReviewSkill(reviewSectionId?: string) {
     rulebook: section ? { ...rulebook, sections: [section], sourceIssues: rulebook.sourceIssues.filter(issue => issue.sectionId === section.id) } : rulebook,
     catalog: rulebook.sections.map(({ id, title, url }) => ({ id, title, url })),
     selection: section?.id ?? 'all',
+    relatedSectionIds: [...new Set([...selectedCriteria].map(ref => criteria.get(ref)!.sectionId))]
+      .filter(id => id !== section?.id),
+    considerations: {
+      sha256: createHash('sha256').update(rawConsiderations).digest('hex'),
+      method: considerations.method,
+      summary: { dispositions: semantic.units.length, normativeUnits: considerations.considerations.length,
+        guidanceItems: considerations.considerations.reduce((count, item) => count + item.guidance.length, 0),
+        warnings: considerations.warnings.length },
+      catalog: rulebook.sections.map(({ id }) => ({ sectionId: id,
+        normativeUnits: considerations.considerations.filter(item => item.sectionId === id).length,
+        warnings: considerations.warnings.filter(item => item.sectionId === id).length })),
+      ...(section ? { items: selectedConsiderations, warnings: selectedWarnings } : {}),
+    },
     semanticAudit: {
       sha256: createHash('sha256').update(rawSemantic).digest('hex'),
       status: semantic.status, method: semantic.method, summary: semantic.summary,

@@ -326,9 +326,13 @@ revisión se inicia con `{"topic":"review"}`. La respuesta carga la habilidad
 inspeccionaron 185 bloques, 1.105 unidades de texto, 82 etiquetas de apartados
 y 14 imágenes; el inventario registra 98 enlaces de contenido. La matriz
 semántica conserva las decisiones por unidad y la evidencia de 187 criterios,
-con 24 erratas o ambigüedades documentadas. Usa
+con 24 contrastes iniciales documentados. Las consideraciones detalladas conservan
+condiciones, esquemas y excepciones por unidad, incluidas las notas sin ejemplo;
+51 observaciones adicionales se incorporan como salvaguardas condicionales,
+sin tratarlas como 51 errores confirmados. Usa
 `{"topic":"review","reviewSectionId":"figures"}` (o un ID del catálogo)
-para recuperar la auditoría detallada de una sección. La IA aplica esos criterios
+para recuperar la auditoría detallada y todas las consideraciones de una sección.
+La IA aplica esas reglas y condiciones
 al trabajo proporcionado y entrega hallazgos `cumple`, `corregir` o
 `no verificable`, con ubicación, corrección y fuente. Los archivos de la habilidad
 se incluyen en el paquete; no requiere una sesión de Blackboard. La cobertura
@@ -348,10 +352,15 @@ equivalencia semántica de cada ejemplo con los criterios sintetizados. Esa
 revisión se registra por separado en `upc-semantic-coverage.json`; el cargador
 rechaza unidades pendientes, evidencia ausente y criterios cuyo texto cambió
 sin actualizar su evidencia. La respuesta seleccionada incluye criterios de
-otras secciones cuando las notas los necesitan.
+otras secciones cuando las notas los necesitan. `upc-considerations.json`
+asigna un destino a cada una de las 1.105 unidades y desarrolla las indicaciones
+normativas; el cargador rechaza omisiones y referencias sin resolver. Los datos
+de los ejemplos no son respuestas esperadas: ante años, nombres o localizadores
+contradictorios se requiere la fuente original, y ante espacios sospechosos se
+comprueba el formato visible antes de objetar un artefacto del extractor.
 
 `scripts/apa7-export-upc.py --output output/apa7-upc/guia-upc.md` exporta los
-criterios y sus fuentes. `tests/fixtures/apa7-upc-review-cases.json` contiene
+criterios, consideraciones, salvaguardas y sus fuentes. `tests/fixtures/apa7-upc-review-cases.json` contiene
 80 casos de evaluación que cubren las 45 secciones. Entrega al evaluador solo
 las entradas, sin las respuestas esperadas, y puntúa sus resultados mediante
 `scripts/apa7-score-review.py --cases tests/fixtures/apa7-upc-review-cases.json --results resultados.json --rules .agents/skills/apa7-review-campus/references/upc-review-rules.json --output evaluacion.json`.
