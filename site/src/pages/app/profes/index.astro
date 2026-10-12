@@ -1,0 +1,15 @@
+---
+import AppShell from "../../../layouts/AppShell.astro";
+import ProfesChat from "../../../components/ProfesChat.tsx";
+---
+<AppShell title="Profes" active="profes">
+  <ProfesChat client:only="react">
+    <div slot="fallback" class="app-profes-layout">
+      <section class="app-profes-ai has-messages" aria-label="Asistente de Profes y cursos">
+        <div class="app-profes-ai__conversation-skeleton" role="status" aria-label="Cargando conversación">
+          <span></span><span></span><span></span>
+        </div>
+      </section>
+    </div>
+  </ProfesChat>
+</AppShell>

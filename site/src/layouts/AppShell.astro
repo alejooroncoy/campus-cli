@@ -1,0 +1,88 @@
+---
+import { ClientRouter } from "astro:transitions";
+import AppSidebar from "../components/AppSidebar.astro";
+
+interface Props {
+  title: string;
+  active: "inicio" | "profes" | "copilot" | "perfil";
+}
+
+const { title, active } = Astro.props;
+const nav = [
+  { id: "inicio", label: "Inicio", href: "/app/", icon: "book-open" },
+  { id: "profes", label: "Profes", href: "/app/profes/", icon: "users" },
+  { id: "copilot", label: "Copilot", href: "/app/copilot/", icon: "sparkles" },
+  { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "users" },
+];
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | Campus</title>
+    <meta name="description" content="Campus te ayuda a elegir profesores y consultar tu Aula Virtual desde tu asistente. Disponible inicialmente para UPC." />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#f4f8f8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Campus" />
+    <link rel="stylesheet" href="/app-dashboard.css?v=13" />
+    {active === "profes" && <link rel="stylesheet" href="/profes-chat.css?v=17" />}
+    <script is:inline async src="/campus-session-bootstrap.js?v=2"></script>
+    {active === "profes" && <script is:inline src="/campus-conversation-bootstrap.js?v=1" data-astro-rerun></script>}
+    {/* The mounted chat owns its conversation URLs and browser history. */}
+    {active !== "profes" && <ClientRouter />}
+  </head>
+  <body class="campus-app-body">
+    <a class="app-skip" href="#app-content">Saltar al contenido</a>
+    <div class="app-shell">
+      <AppSidebar active={active} />
+
+      <div class="app-workspace">
+        <header class="app-topbar">
+          <div class="app-breadcrumb">Campus <span>/</span><strong>{title}</strong></div>
+          <a class="app-mobile-brand" href="/app/" aria-label="Campus, inicio">
+            <img src="/assets/campus-logo.webp" width="36" height="36" alt="" />
+            <span>Campus</span>
+          </a>
+        </header>
+
+        <div id="app-pwa-banner" class="app-pwa-banner" hidden>
+          <div class="app-pwa-banner__content">
+            <span class="app-pwa-banner__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><use href="/assets/lucide.svg#sparkles"></use></svg>
+            </span>
+            <div class="app-pwa-banner__text">
+              <strong>Instala Campus</strong>
+              <p id="app-pwa-banner-msg">Agrégalo a tu pantalla de inicio para entrar directo al chat.</p>
+            </div>
+          </div>
+          <div class="app-pwa-banner__actions">
+            <button type="button" id="app-pwa-install-btn" class="app-button app-button--pwa">Instalar</button>
+            <button type="button" id="app-pwa-dismiss-btn" class="app-pwa-banner__close" aria-label="Cerrar invitación">✕</button>
+          </div>
+        </div>
+
+        <main id="app-content" class:list={["app-main", { "app-main--profes": active === "profes" }]} tabindex="-1">
+          <slot />
+        </main>
+      </div>
+
+      <nav class="app-mobile-nav" aria-label="Campus móvil" transition:persist="app-mobile-nav">
+        {nav.map((item) => (
+          <a href={item.href} class:list={{ "is-active": active === item.id }} aria-current={active === item.id ? "page" : undefined}>
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href={`/assets/lucide.svg#${item.icon}`}></use></svg>
+            <span>{item.label}</span>
+          </a>
+        ))}
+      </nav>
+    </div>
+    <script src="../scripts/campus-app.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,85 @@
+---
+import AppShell from "../../layouts/AppShell.astro";
+---
+<AppShell title="Inicio" active="inicio">
+  <section class="app-home" aria-labelledby="app-home-title" data-app-home>
+    <header class="app-home__heading">
+      <p class="app-home__greeting" data-home-greeting>Bienvenido a Campus</p>
+      <h1 id="app-home-title">¿Por dónde quieres empezar?</h1>
+      <p>Tu universidad, un poco más fácil.</p>
+    </header>
+
+    <nav class="app-home__actions" aria-label="Qué quieres hacer">
+      <a class="app-home__action" href="/app/profes/">
+        <span class="app-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#users"></use></svg></span>
+        <span><strong>Consultar profesores y cursos</strong><span>Opiniones de alumnos y cursos de tu carrera.</span></span>
+        <svg class="app-home__arrow" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg>
+      </a>
+      <a class="app-home__action" href="/app/copilot/">
+        <span class="app-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#sparkles"></use></svg></span>
+        <span><strong>Conectar mi Aula Virtual</strong><span>Tus tareas y notas desde tu asistente de IA.</span></span>
+        <svg class="app-home__arrow" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg>
+      </a>
+    </nav>
+
+    <section class="app-home__recent" aria-labelledby="app-home-recent-title" data-home-recent hidden>
+      <h2 id="app-home-recent-title">Tu última consulta</h2>
+      <a class="app-home__resume" href="/app/profes/" data-home-resume>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#message-circle"></use></svg>
+        <span data-home-conversation-title></span>
+        <span class="app-home__continue">Continuar <span aria-hidden="true">→</span></span>
+      </a>
+    </section>
+
+    <p class="app-home__note" data-home-note>Puedes explorar sin iniciar sesión.</p>
+  </section>
+</AppShell>
+
+<script>
+  import { getCampusSession, getCampusProfilePreview } from "../../scripts/campus-session";
+
+  function initHome() {
+    const home = document.querySelector<HTMLElement>("[data-app-home]");
+    if (!home) return;
+    const greeting = home.querySelector<HTMLElement>("[data-home-greeting]");
+    const note = home.querySelector<HTMLElement>("[data-home-note]");
+    const recent = home.querySelector<HTMLElement>("[data-home-recent]");
+    const resume = home.querySelector<HTMLAnchorElement>("[data-home-resume]");
+    const title = home.querySelector<HTMLElement>("[data-home-conversation-title]");
+
+    const previewName = getCampusProfilePreview()?.cleanName?.split(/\s+/)[0];
+    if (previewName && greeting) greeting.textContent = `Hola, ${previewName}.`;
+
+    // Keep the entry points usable while session and history load independently.
+    void getCampusSession().then(session => {
+      if (!home.isConnected) return;
+      if (session.authenticated) {
+        const rawName = session.banner?.fullName?.trim() ?? "";
+        const givenNames = rawName.includes(",") ? rawName.split(",")[1].trim() : rawName;
+        const firstName = givenNames.split(/\s+/)[0];
+        if (greeting) greeting.textContent = firstName
+          ? `Hola, ${firstName.charAt(0).toLocaleUpperCase("es")}${firstName.slice(1).toLocaleLowerCase("es")}.`
+          : "Bienvenido a Campus";
+        if (note) note.hidden = true;
+      } else {
+        if (greeting) greeting.textContent = "Bienvenido a Campus";
+        if (note) note.hidden = false;
+      }
+    }).catch(() => { /* The home links remain available without session data. */ });
+
+    // Wait for the shared request to establish the guest cookie on a first visit.
+    void getCampusSession().then(() => fetch("/api/app/profes/conversations", {
+      credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(6000),
+    })).then(async response => {
+      if (!response.ok) return;
+      const data = await response.json() as { conversations?: { id: string; title: string }[] };
+      const latest = data.conversations?.[0];
+      if (!home.isConnected || !latest || !resume || !title || !recent) return;
+      title.textContent = latest.title;
+      resume.href = `/app/profes/c/${encodeURIComponent(latest.id)}/`;
+      recent.hidden = false;
+    }).catch(() => { /* No empty history panel or blocking error on the home. */ });
+  }
+
+  document.addEventListener("astro:page-load", initHome);
+</script>
