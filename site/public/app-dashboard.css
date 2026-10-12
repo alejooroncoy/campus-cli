@@ -921,7 +921,7 @@ button:disabled {
     left: 0;
     right: 0;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
     background: var(--app-canvas);
     border-top: 1px solid var(--app-line);

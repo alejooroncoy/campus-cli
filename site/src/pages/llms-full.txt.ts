@@ -5,6 +5,7 @@ import { htmlToMarkdown } from "../lib/html-to-markdown";
 import homeBody from "../html/index.html?raw";
 import campusCliBody from "../html/campus-cli/index.html?raw";
 import profesBody from "../html/profes/index.html?raw";
+import turnitinBody from "../html/turnitin/index.html?raw";
 import blackboardUpcBody from "../html/blackboard-upc/index.html?raw";
 import chatgptBody from "../html/blackboard-chatgpt/index.html?raw";
 import mcpBody from "../html/blackboard-mcp/index.html?raw";
@@ -37,6 +38,12 @@ const section = (title: string, description: string, url: string, text: string) 
 
 export const GET: APIRoute = async () => {
   const products = [
+    {
+      title: "Turnitin: informes de similitud y escritura con IA",
+      description: "S/8 por lanzamiento, regular S/10 por documento. Entrega de 10 minutos a 1 hora tras validar el pago. Consulta disponibilidad en la app.",
+      url: "https://campuscli.com/turnitin/",
+      body: turnitinBody,
+    },
     {
       title: "Campus Plus: profes, horarios y Blackboard UPC conectado",
       description: "Una membresía para tu matrícula y tu ciclo universitario.",

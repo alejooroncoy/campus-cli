@@ -15,8 +15,8 @@ import Base from "../../layouts/Base.astro";
  */
 
 const url = "https://campuscli.com/privacidad/";
-const updated = "2026-08-22";
-const updatedLabel = "22 de agosto de 2026";
+const updated = "2026-10-12";
+const updatedLabel = "12 de octubre de 2026";
 
 const schemas = [
   {
@@ -67,7 +67,7 @@ const schemas = [
       <h2 id="resumen-title">En resumen</h2>
       <ul>
         <li><strong>Nunca vemos tu contraseña.</strong> Inicias sesión en la página de tu universidad, no en la nuestra.</li>
-        <li><strong>No guardamos el contenido de tus cursos</strong>, ni tus notas, ni tus archivos.</li>
+        <li>La conexión de Blackboard consulta tus cursos en el momento. Si solicitas el servicio de <strong>Turnitin</strong>, guardamos el documento que subes, el comprobante y los informes para atender tu pedido.</li>
         <li>Solo conservamos tu sesión <strong>si tú activas “Mantener conexión activa”</strong>, cifrada y por 90 días como máximo.</li>
         <li>Las métricas van <strong>seudonimizadas</strong>: un hash irreversible, sin contenido académico.</li>
         <li>Puedes <strong>revocar la conexión o eliminar tu cuenta</strong> desde Campus Mobile; también puedes escribir a <a class="prose-link" href="mailto:info@campuscli.com">info@campuscli.com</a>.</li>
@@ -149,7 +149,15 @@ const schemas = [
       <li><strong>Cuánto:</strong> se mantiene solo en memoria durante la ventana de control (una hora como máximo) y no se guarda en disco.</li>
     </ul>
 
-    <h2 id="que-no">3. Qué no tratamos, en ningún caso</h2>
+    <h3 id="turnitin">Pedidos de informes de Turnitin</h3>
+    <ul>
+      <li><strong>Qué:</strong> la cuenta Campus asociada al pedido, tu documento, el comprobante de Yape/Plin, el monto, las fechas, el estado y los informes entregados.</li>
+      <li><strong>Para qué:</strong> validar el pago, procesar el documento con Turnitin y permitirte descargar los informes desde tu cuenta. Al enviar el pedido autorizas expresamente ese procesamiento.</li>
+      <li><strong>Acceso:</strong> el equipo de Campus autorizado para atender los pedidos accede al documento y al comprobante. El documento se procesa con Turnitin; el comprobante no se envía a Turnitin. Los archivos se guardan cifrados en la base de datos y se descargan mediante una sesión autenticada.</li>
+      <li><strong>Conservación:</strong> los datos y archivos del pedido permanecen asociados a tu cuenta hasta su eliminación. Puedes solicitar su eliminación a <a class="prose-link" href="mailto:info@campuscli.com">info@campuscli.com</a>. La eliminación del registro de cuenta elimina también sus pedidos y archivos de esta base.</li>
+    </ul>
+
+    <h2 id="que-no">3. Datos que no guardamos mediante la conexión de Blackboard</h2>
     <ul>
       <li>
         <strong>Tu contraseña.</strong> El inicio de sesión ocurre en el
@@ -162,7 +170,7 @@ const schemas = [
         nuestros servidores.
       </li>
       <li>
-        <strong>Los archivos que descargas.</strong> Se entregan mediante un
+        <strong>Los archivos de Blackboard que descargas.</strong> Se entregan mediante un
         enlace de un solo uso que caduca a los 10 minutos y no conserva copia.
       </li>
       <li>
@@ -183,6 +191,9 @@ const schemas = [
       participan en la autenticación, infraestructura o seguridad del servicio:
     </p>
     <ul>
+      <li>
+        <strong>Turnitin</strong> — procesa el documento que eliges enviar cuando solicitas el servicio de informes. Ese procesamiento depende de su configuración y de las condiciones del proveedor.
+      </li>
       <li>
         <strong>PostHog</strong> (Estados Unidos) — recibe las métricas de uso
         seudonimizadas descritas arriba.
@@ -207,7 +218,7 @@ const schemas = [
     <p>
       Algunos de estos proveedores están fuera del Perú, así que existe un
       flujo transfronterizo de datos. Al aceptar esta política consientes esa
-      transferencia. Ninguno recibe contenido de tus cursos ni tu contraseña.
+      transferencia. Si solicitas Turnitin, el documento elegido se comparte para ese análisis. No compartimos tu contraseña universitaria.
     </p>
     <p>
       También podríamos entregar información si nos lo exige una autoridad

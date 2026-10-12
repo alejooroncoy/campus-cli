@@ -1,0 +1,21 @@
+---
+import Base from '../../layouts/Base.astro';
+import body from '../../html/turnitin/index.html?raw';
+const url = 'https://campuscli.com/turnitin/';
+const description = 'Servicio de Turnitin en Perú: informes de similitud y detección de IA. S/8 por lanzamiento, regular S/10. Entrega de 10 minutos a 1 hora tras validar el pago.';
+const schemas = [
+  { '@context': 'https://schema.org', '@type': 'Service', name: 'Informes de Turnitin con Campus',
+    url, description, serviceType: 'Revisión de similitud y detección de escritura con IA', areaServed: 'PE',
+    provider: { '@type': 'Organization', name: 'Campus', url: 'https://campuscli.com/' },
+    offers: { '@type': 'Offer', price: '8.00', priceCurrency: 'PEN', url,
+      description: 'Precio de lanzamiento por documento. Precio regular S/10.' } },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://campuscli.com/' },
+    { '@type': 'ListItem', position: 2, name: 'Turnitin', item: url } ] },
+];
+---
+<Base title="Turnitin Perú: informe de similitud e IA desde S/8 | Campus" description={description}
+  canonical={url} markdownUrl={`${url}index.md`} schemas={schemas}>
+  <link slot="head" rel="stylesheet" href="/turnitin.css" />
+  <Fragment set:html={body} />
+</Base>

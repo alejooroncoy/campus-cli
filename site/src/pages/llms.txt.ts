@@ -38,6 +38,7 @@ with Campus Profes.
 - Homepage (routes to both products): https://campuscli.com/ (Markdown: https://campuscli.com/index.md)
 - Campus CLI (product hub): https://campuscli.com/campus-cli/ (Markdown: https://campuscli.com/campus-cli/index.md)
 - Campus Profes: https://campuscli.com/profes/ (Markdown: https://campuscli.com/profes/index.md)
+- Turnitin reports in Peru: https://campuscli.com/turnitin/ (Markdown: https://campuscli.com/turnitin/index.md). S/8 launch price per document, regular S/10. Similarity and AI writing reports, delivered in 10 minutes to 1 hour after payment validation. Upload and Yape/Plin receipt through https://campuscli.com/app/turnitin/; check live availability there.
 - Blackboard UPC: tareas, notas y materiales con IA: https://campuscli.com/blackboard-upc/ (Markdown: https://campuscli.com/blackboard-upc/index.md)
 - Blackboard in ChatGPT, nothing to install (paid): https://campuscli.com/blackboard-chatgpt/ (Markdown: https://campuscli.com/blackboard-chatgpt/index.md)
 - Blackboard MCP: https://campuscli.com/blackboard-mcp/ (Markdown: https://campuscli.com/blackboard-mcp/index.md)

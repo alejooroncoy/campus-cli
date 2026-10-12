@@ -42,6 +42,7 @@ const fromFile = (route, path) => {
 fromFile("/", "./src/html/index.html");
 fromFile("/campus-cli/", "./src/html/campus-cli/index.html");
 fromFile("/profes/", "./src/html/profes/index.html");
+fromFile("/turnitin/", "./src/html/turnitin/index.html");
 fromFile("/blackboard-upc/", "./src/html/blackboard-upc/index.html");
 fromFile("/blackboard-chatgpt/", "./src/html/blackboard-chatgpt/index.html");
 fromFile("/blackboard-mcp/", "./src/html/blackboard-mcp/index.html");
@@ -69,6 +70,7 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
+      filter: (page) => !new URL(page).pathname.startsWith("/app/"),
       // A sitemap has no line breaks, so a browser shows one unreadable run of
       // text and the file looks broken even when it validates. Crawlers ignore
       // the stylesheet; it is there so a person can check the list.
