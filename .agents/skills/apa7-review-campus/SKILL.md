@@ -74,10 +74,11 @@ explica la adaptación institucional y aplica la prioridad indicada.
 7. Si no puedes comparar con la fuente, puedes corregir forma, pero no certificar
    la fidelidad de una paráfrasis o cita textual, el localizador, la existencia de
    la obra o sus metadatos. No inventes citas, DOI, fechas, páginas ni referencias.
-   Si el texto visible de un enlace difiere de su destino, usa el `href` acreditado:
-   no reconstruyas una URL desde una etiqueta truncada ni certifiques el destino
-   sin comprobarlo. Una revisión APA no determina plagio ni el valor científico
-   de una fuente.
+   Si una etiqueta está truncada, conserva el `href` literal sin reconstruirla.
+   Si etiqueta y destino identifican obras distintas, señala la discordancia:
+   el `href` no es automáticamente la dirección correcta. Comprueba el destino
+   de la obra declarada antes de cambiarlo; si no puedes, deja pendiente ese dato.
+   Una revisión APA no determina plagio ni el valor científico de una fuente.
 8. Ante una discrepancia del ejemplo, aplica la regla y sus condiciones al trabajo.
    Los nombres, años, páginas y títulos ilustrativos no son respuestas esperadas.
    Una inconsistencia de metadatos permite señalar la duda, no elegir la variante
@@ -124,7 +125,10 @@ aportado; no asignes ese estado a toda una entrada por un cotejo externo no pedi
 Recupera la sección `figures` y sus secciones relacionadas. Abre la imagen o la
 página renderizada para comprobar número, título, cuerpo y atribuciones visibles;
 el OCR o una transcripción no prueban cursiva, negrita, posición ni correspondencia
-visual de paneles. En una figura compuesta revisa cada panel y su llamada a fuente.
+visual de paneles. En una figura compuesta revisa cada panel, su llamada y la
+entrada correspondiente.
+Omitir «Nota» en una atribución particular no elimina la fuente de publicación;
+si falta, solicítala sin inventar revista, editorial o URL.
 Separa esa comprobación de la procedencia: decide De, Adaptado de o Elaborado a
 partir de según el uso acreditado; si falta el original o la descripción del uso,
 señala solo esa condición pendiente. No inventes autor, fecha, licencia o permiso.
@@ -157,7 +161,7 @@ No envíes el trabajo a Blackboard como parte de esta revisión.
 La captura revisada contiene 45 páginas UPC (31 APA y 14 jurídicas), 185 bloques,
 1.105 unidades de texto, 82 etiquetas de pestañas/apartados y 14 imágenes
 inspeccionadas. Su revisión por unidad se conserva en la matriz semántica, con
-187 criterios y 24 discrepancias o ambigüedades registradas. Las unidades incluyen
+187 criterios y 26 discrepancias o ambigüedades registradas. Las unidades incluyen
 ejemplos, esquemas y notas; no equivalen a 1.105 reglas independientes. Se
 registran 98 enlaces de contenido. La guía colombiana complementaria se leyó
 en sus 20 páginas, pero es otra jurisdicción: no sustituye los perfiles UPC.
@@ -172,8 +176,8 @@ comportamiento del agente.
 
 Consulta `sourceIssues` y las salvaguardas de la sección antes de corregir: hay
 contrastes de formato, inconsistencias internas y datos que necesitan el original.
-Las 51 observaciones agrupadas se conservan como salvaguardas condicionales;
-no equivalen a 51 errores confirmados. La separación aparente C/asación se
+Las 55 observaciones agrupadas se conservan como salvaguardas condicionales;
+no equivalen a 55 errores confirmados. La separación aparente C/asación se
 reclasificó como artefacto de extracción. Los ejemplos de la guía no permiten
 certificar los metadatos de otra obra. Explica los
 contrastes (incluida la capitalización UPC de REFERENCIAS) cuando sean relevantes.

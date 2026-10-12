@@ -6766,6 +6766,71 @@
       "sourceImageIds": [
         "image-14"
       ]
+    },
+    {
+      "id": "observation-52",
+      "sectionId": "figures",
+      "classification": "needs-original",
+      "sourceUnitIds": [
+        "s-lg-content-75572639:3",
+        "s-lg-content-75572640:2"
+      ],
+      "sourceImageIds": [
+        "image-09"
+      ],
+      "criterionRefs": [
+        "figures:9"
+      ],
+      "condition": "La URL visible de una infografía y su href apuntan a direcciones distintas.",
+      "application": "La divergencia del HTML es comprobable, pero el href no acredita la obra correcta. Comprueba el destino que corresponde a la obra declarada antes de cambiar el enlace; conserva solo una dirección literal verificada, sin reconstruir etiquetas truncadas ni inventar URL. Si no puede verificarse, señala la discordancia y deja pendiente solo el destino."
+    },
+    {
+      "id": "observation-53",
+      "sectionId": "figures",
+      "classification": "incomplete-example",
+      "sourceUnitIds": [
+        "s-lg-content-75572643:3",
+        "s-lg-content-75572644:2"
+      ],
+      "sourceImageIds": [
+        "image-10"
+      ],
+      "criterionRefs": [
+        "figures:6",
+        "figures:9"
+      ],
+      "condition": "Una figura de varios paneles tiene llamadas a fuentes, pero las entradas fotográficas no identifican la publicación recuperable.",
+      "application": "La omisión de Nota en atribuciones particulares no elimina su procedencia. Revisa cada panel y la entrada correspondiente; solicita la fuente de publicación efectivamente consultada si falta. No inventes revista, editorial o URL; una fuente impresa no requiere URL por esa sola condición."
+    },
+    {
+      "id": "observation-54",
+      "sectionId": "legal-arbitration",
+      "classification": "rule-conflict",
+      "sourceUnitIds": [
+        "s-lg-content-74088965:3",
+        "s-lg-content-74088965:5"
+      ],
+      "sourceImageIds": [],
+      "criterionRefs": [
+        "legal-arbitration:1"
+      ],
+      "condition": "Al seguir solo el criterio resumido, el número entre paréntesis de un laudo queda sin cursiva.",
+      "application": "Lee también las consideraciones del esquema: el HTML UPC marca en cursiva tanto el tipo de laudo como el número entre paréntesis, cuando ese número consta. El ejemplo Caravelí conserva ambas cursivas. La entrada de EPS Barranca no proporciona número: no lo completes por analogía ni inventes uno."
+    },
+    {
+      "id": "observation-55",
+      "sectionId": "video",
+      "classification": "rule-conflict",
+      "sourceUnitIds": [
+        "s-lg-content-75564438:5"
+      ],
+      "sourceImageIds": [],
+      "criterionRefs": [
+        "video:4",
+        "video:5"
+      ],
+      "condition": "Una referencia de película termina en productoras y omite el punto final.",
+      "application": "Añade el punto que cierra las productoras cuando ese es el último componente; no añadas punto después de DOI o URL. Esta corrección no determina el año de una edición ni acredita la grafía de una productora: verifica esos datos antes de modificarlos."
     }
   ]
 }

@@ -1057,8 +1057,8 @@
       "id": "video-year-mismatch",
       "sectionId": "video",
       "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/videos",
-      "detail": "Jackson figura con 2012 en referencia y 2001 en cita.",
-      "decision": "No heredes los años del ejemplo como metadatos del documento revisado."
+      "detail": "Jackson figura con 2012 en referencia y 2001 en cita. La entrada de Jackson también omite el punto final tras las productoras, sin cerrar con URL.",
+      "decision": "No heredes los años del ejemplo como metadatos del documento revisado. Corregir ese cierre de puntuación por separado, sin sustituir fecha, versión o grafía de productoras por memoria."
     },
     {
       "id": "article-authorship",
@@ -1206,6 +1206,20 @@
       "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/referencias",
       "detail": "La imagen de ejemplo escribe Gaete, R., mientras el apartado Artículos presenta el mismo título y URL con Gaete Quezada, R.",
       "decision": "Conservar apellidos del documento original y hacerlos coincidir en citas y referencias; no decidir la autoría por una variante de la imagen."
+    },
+    {
+      "id": "figure-link-destination",
+      "sectionId": "figures",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/figuras",
+      "detail": "La nota y referencia de la infografía de playas muestran una URL literal, pero el href contiene una dirección distinta, referida en su ruta a hallazgos chimú. La divergencia del HTML está comprobada; no acredita por sí sola el contenido del destino.",
+      "decision": "Distinguir etiqueta y destino. Verificar qué dirección corresponde a la obra declarada antes de corregir el enlace; no copiar ciegamente el href ni reconstruir una etiqueta truncada."
+    },
+    {
+      "id": "figure-panel-source",
+      "sectionId": "figures",
+      "url": "https://biblioteca.upc.edu.pe/citas-referencias-APA7/figuras",
+      "detail": "Las cuatro referencias fotográficas de Museos Europeos no explicitan una fuente de publicación recuperable; las llamadas a–d contienen localizadores que no completan ese componente bibliográfico.",
+      "decision": "Conservar las correspondencias de paneles y solicitar la fuente de publicación que conste para cada fotografía. No inventar revista, editorial o URL ni exigir URL a toda fuente impresa."
     }
   ]
 }
