@@ -110,6 +110,20 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       setError('La conexión está tardando. Seguimos recuperando tu verificación…');timer.current=setTimeout(restore,3000);
     });};restore();
   },[]);
+  async function reconcileStart(signal:AbortSignal){
+    const deadline=Date.now()+120_000;
+    for(;;){
+      try{return await request(false,AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,deadline-Date.now()))]));}
+      catch(cause){
+        if(signal.aborted||(cause instanceof ConnectionRequestError&&!cause.retryable)||Date.now()>=deadline)throw cause;
+        await new Promise<void>((resolve,reject)=>{
+          const cancelled=()=>{if(timer.current)clearTimeout(timer.current);reject(new DOMException('Aborted','AbortError'));};
+          signal.addEventListener('abort',cancelled,{once:true});
+          timer.current=setTimeout(()=>{signal.removeEventListener('abort',cancelled);resolve();},3000);
+        });
+      }
+    }
+  }
   async function start() {
     if(starting||restoringRequest.current||disabled)return;
     const current=++generation.current;
@@ -123,7 +137,14 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     if(popup.current)popup.current.opener=null;
     setStarting(true);setConnection(null);setError('');
     try{
-      const data=await request(true,controller.signal);
+      let data:MiupcConnection;
+      try{data=await request(true,controller.signal);}
+      catch(cause){
+        // The POST may have created a login before its response was lost.
+        // Discover the owner's existing attempt instead of starting another.
+        if(controller.signal.aborted||(cause instanceof ConnectionRequestError&&!cause.retryable))throw cause;
+        data=await reconcileStart(controller.signal);
+      }
       if(current!==generation.current||controller.signal.aborted)return;
       if(data.loginUrl&&popup.current&&!popup.current.closed){popup.current.location.replace(data.loginUrl);navigated.current=true;}
       else{popup.current?.close();popup.current=null;}
