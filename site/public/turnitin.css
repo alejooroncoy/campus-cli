@@ -75,3 +75,55 @@
 .ti-login-dialog::backdrop{background:#102a3a80;backdrop-filter:blur(5px)}.ti-login-body{position:relative;padding:32px}.ti-login-brand{display:flex;align-items:center;gap:10px;font-size:21px;font-weight:600;margin-bottom:30px}.ti-login-brand img{border-radius:7px}.ti-login-close{position:absolute;right:16px;top:12px;background:transparent;border:0;width:36px;height:36px;font-size:28px;color:#506d7f;cursor:pointer}.ti-login-eyebrow{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#087f5b;margin:0 0 12px}.ti-login-body h2{font-size:30px;font-weight:600;line-height:1.18;letter-spacing:-.02em;margin:0 0 16px}.ti-login-body p{line-height:1.6;color:#506d7f}.ti-login-offer{display:flex;gap:16px;align-items:center;padding:18px 20px;background:#eaf7f1;border:1px solid #c8dfd8;border-radius:10px;margin:24px 0}.ti-login-offer strong{font-size:40px;font-weight:600;line-height:1}.ti-login-offer span{font-size:14px;line-height:1.5}.ti-google-login{display:flex;align-items:center;justify-content:center;gap:12px;min-height:52px;padding:12px 16px;border:1px solid #cad9df;border-radius:9px;background:#fff;color:#102a3a;font-weight:600;text-decoration:none}.ti-google-login:hover{background:#f4f8f8;border-color:#7e9ba7}.ti-login-body .ti-login-note{font-size:13px;margin:16px 0 18px}.ti-login-later{display:block;margin:auto;border:0;padding:8px;background:transparent;color:#506d7f;font:inherit;font-size:14px;cursor:pointer}.ti-login-dialog a:focus-visible,.ti-login-dialog button:focus-visible{outline:2px solid #087f5b;outline-offset:3px}
 @media(max-width:450px){.ti-login-body{padding:28px 24px}.ti-login-body h2{font-size:28px}.ti-login-brand{margin-bottom:24px}}
 .ti-home-promo{margin:24px 0 0;max-width:510px}.ti-home-promo a{display:flex;gap:14px;align-items:center;padding:16px 18px;border:1px solid #bfdcd0;border-radius:10px;background:#eaf7f1;transition:border-color 160ms ease}.ti-home-promo a:hover{border-color:#087f5b}.ti-home-promo a:focus-visible{outline:2px solid #087f5b;outline-offset:3px}.ti-home-promo__badge{padding:5px 8px;border-radius:5px;background:#087f5b;color:#fff;font-size:12px;font-weight:600}.ti-home-promo strong{display:block;font-size:15px;font-weight:600}.ti-home-promo__detail{display:block;font-size:13px;margin-top:3px;color:#506d7f}
+
+/* Customer reviews and the private PDF reader use the app's Campus typeface. */
+.ti-order-layout{display:grid;gap:24px}
+.ti-reviews{scroll-margin-top:90px}
+.ti-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.ti-panel-head h2{margin:0 0 8px}
+.ti-panel-head p{margin:0 0 20px;font-size:14px}
+.ti-panel-head button{flex-shrink:0}
+.ti-reviews .ti-order{margin-top:18px;padding:22px;border:1px solid #d4e1e6;border-radius:12px;background:#fff}
+.ti-reviews .ti-order>h3{font-size:19px;margin-bottom:10px}
+.ti-order[data-status="completed"] .ti-tag{background:#d9f1e8;color:#087f5b}
+.ti-file-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:22px}
+.ti-file-card{padding:20px;border:1px solid #d4e1e6;border-radius:10px;background:#f4f8f8}
+.ti-file-label{color:#087f5b;font-size:11px;font-weight:600}
+.ti-file-card h4{font-size:18px;font-weight:600;margin:10px 0 8px}
+.ti-file-card p{font-size:13px;margin:0 0 18px}
+.ti-file-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.ti-file-actions button,.ti-file-actions a{margin:0;font-size:13px;min-height:44px}
+.ti-file-actions a.app-button--secondary{color:#102a3a;text-decoration:none}
+.ti-reviews .ti-report-note{font-size:12px;line-height:1.6;margin:22px 0 0;color:#506d7f}
+.ti-new-order summary{cursor:pointer;font-size:19px;font-weight:600;list-style:inside}
+.ti-new-order-hint{display:block;font-size:13px;font-weight:400;color:#506d7f;margin-top:6px;padding-left:20px}
+.ti-new-order-body{padding-top:24px}
+.ti-report-dialog{font-family:inherit;color:#102a3a;width:min(1080px,calc(100% - 32px));height:min(940px,calc(100dvh - 32px));max-height:calc(100dvh - 32px);padding:0;border:1px solid #d4e1e6;border-radius:16px;background:white;box-shadow:0 24px 80px #102a3a30;overflow:hidden}
+.ti-report-dialog[open]{display:flex;flex-direction:column}
+.ti-report-dialog::backdrop{background:#102a3a80;backdrop-filter:blur(4px)}
+.ti-report-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:20px 24px 16px;flex-shrink:0}
+.ti-report-header>div{min-width:0}
+.ti-report-header h2{font-size:24px;line-height:1.2;font-weight:600;margin:4px 0 6px}
+.ti-report-header p{font-size:12px;margin:0;color:#506d7f}
+.ti-report-header p:last-child{overflow-wrap:anywhere}
+.ti-report-close{flex:none;background:transparent;border:0;width:38px;height:38px;color:#506d7f;font:inherit;font-size:28px;cursor:pointer}
+.ti-report-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px 16px;flex-shrink:0}
+.ti-report-switch{display:flex;gap:4px;padding:4px;border:1px solid #d4e1e6;background:#f4f8f8;border-radius:9px}
+.ti-report-switch button{font:inherit;font-size:13px;border:0;border-radius:6px;padding:10px 18px;color:#506d7f;background:transparent;min-height:40px}
+.ti-report-switch button[aria-pressed="true"]{background:#102a3a;color:white;font-weight:600}
+.ti-report-toolbar .app-button{font-size:13px;min-height:44px}
+.ti-report-message{padding:8px 24px;margin:0;font-size:13px;background:#f4f8f8;border-top:1px solid #d4e1e6;color:#506d7f;flex-shrink:0}
+.ti-report-recovery{display:none}
+.ti-report-recovery:has(> :not([hidden])){display:flex;gap:12px;padding:10px 24px;background:#f4f8f8;flex-shrink:0}
+.ti-pdf-stage{background:#e5edf0;overflow:auto;flex:1;min-height:0;padding:16px;position:relative;overscroll-behavior:contain}
+.ti-pdf-stage canvas{display:block;margin-inline:auto;background:white;box-shadow:0 4px 18px #102a3a15}
+.ti-pdf-stage canvas[hidden]{display:none}
+.ti-pdf-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:normal}
+.ti-report-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;background:white;border-top:1px solid #d4e1e6;font-size:13px;flex-shrink:0}
+.ti-page-controls{display:flex;align-items:center;gap:16px}
+.ti-page-controls button{border:1px solid #d4e1e6;border-radius:7px;background:white;font:inherit;min-width:42px;min-height:42px;font-size:18px}
+.ti-report-footer label{display:flex;align-items:center;gap:8px}
+.ti-report-footer select{font:inherit;border:1px solid #d4e1e6;border-radius:7px;background:white;padding:10px;max-width:190px}
+.ti-report-dialog [hidden]{display:none!important}
+.ti-report-dialog a:focus-visible,.ti-report-dialog button:focus-visible,.ti-report-dialog select:focus-visible,.ti-pdf-stage:focus-visible{outline:2px solid #087f5b;outline-offset:3px}
+@media(max-width:650px){.ti-panel-head{flex-wrap:wrap;gap:0}.ti-panel-head button{margin-bottom:12px}.ti-reviews .ti-order{padding:16px}.ti-file-grid{grid-template-columns:1fr}.ti-file-card{padding:16px}.ti-report-dialog{width:calc(100% - 16px);height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);border-radius:12px}.ti-report-header{padding:16px;gap:10px}.ti-report-header h2{font-size:22px}.ti-report-header p:last-child{max-height:38px;overflow:hidden}.ti-report-toolbar{padding:0 16px 12px;gap:10px}.ti-report-switch button{padding:8px 12px;font-size:12px}.ti-report-toolbar .app-button{padding:10px 12px;font-size:12px}.ti-report-message{padding:8px 16px;font-size:12px}.ti-report-footer{flex-direction:column;gap:10px;padding:10px 16px}.ti-pdf-stage{padding:12px}.ti-report-recovery:has(> :not([hidden])){padding-inline:16px}}

@@ -1,6 +1,7 @@
 ---
 import AppShell from '../../../layouts/AppShell.astro';
 import TurnitinLogin from '../../../components/TurnitinLogin.astro';
+import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro';
 ---
 <AppShell title="Informes de Turnitin" active="turnitin">
   <link rel="stylesheet" href="/turnitin.css" />
@@ -11,9 +12,16 @@ import TurnitinLogin from '../../../components/TurnitinLogin.astro';
       <p>Informes de similitud y detección de escritura con IA. Entrega de 10 minutos a 1 hora después de validar el pago. <a href="/turnitin/">Ver detalles del servicio →</a></p>
     </header>
     <p class="ti-status" data-ti-status role="status" aria-live="polite">Comprobando disponibilidad…</p>
-    <div class="ti-order-grid">
-      <section class="ti-panel">
-        <h2>Solicitar una revisión</h2>
+    <div class="ti-order-layout">
+      <section class="ti-panel ti-reviews" aria-labelledby="ti-my-orders" data-ti-my-orders-panel>
+        <div class="ti-panel-head"><div><h2 id="ti-my-orders">Mis revisiones</h2><p>Abre tus informes de similitud e IA o descarga los PDF.</p></div><button class="app-button app-button--secondary" type="button" data-ti-refresh hidden>Actualizar estado</button></div>
+        <div data-ti-orders><p class="ti-muted">Inicia sesión para consultar tus revisiones.</p></div>
+        <p class="ti-muted ti-report-note">El resultado de IA puede mostrar «*%» en lugar de un porcentaje exacto. Encontrarás el resultado disponible dentro de tu informe.</p>
+      </section>
+
+      <details class="ti-panel ti-new-order" data-ti-new-order open>
+        <summary><span>Solicitar una revisión</span><span class="ti-new-order-hint">Sube tu documento y comprobante</span></summary>
+        <div class="ti-new-order-body">
         <p class="ti-muted" data-ti-price>Precio de lanzamiento: S/8 por documento. Regular: S/10.</p>
         <p data-ti-login hidden><a href="/api/app/auth/start?return=/app/turnitin/" data-ti-open-login>Revisar mi trabajo: iniciar sesión →</a></p>
         <form data-ti-form hidden>
@@ -33,13 +41,9 @@ import TurnitinLogin from '../../../components/TurnitinLogin.astro';
           </fieldset>
         </form>
         <noscript>Activa JavaScript para enviar tu documento y consultar los informes.</noscript>
-      </section>
-      <section class="ti-panel" aria-labelledby="ti-my-orders">
-        <h2 id="ti-my-orders">Mis pedidos</h2>
-        <button class="app-button app-button--secondary" type="button" data-ti-refresh hidden>Actualizar estado</button>
-        <div data-ti-orders><p class="ti-muted">Inicia sesión para consultar tus pedidos.</p></div>
-        <p class="ti-muted">Cuando el pedido esté listo, podrás descargar los dos informes aquí. Turnitin puede mostrar «*%» en el análisis de IA en lugar de un porcentaje exacto.</p>
-      </section>
+        </div>
+      </details>
+
     </div>
     <section class="ti-panel ti-admin" data-ti-admin hidden>
       <h2>Administrar pedidos</h2>
@@ -48,5 +52,6 @@ import TurnitinLogin from '../../../components/TurnitinLogin.astro';
     </section>
   </div>
   <TurnitinLogin />
+  <TurnitinReportViewer />
   <script src="../../../scripts/turnitin.ts"></script>
 </AppShell>

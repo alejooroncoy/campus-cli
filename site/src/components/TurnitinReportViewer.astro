@@ -1,0 +1,30 @@
+<dialog class="ti-report-dialog" data-ti-report-dialog aria-labelledby="ti-report-title" aria-describedby="ti-report-document">
+  <header class="ti-report-header">
+    <div><p>Tu revisión de Turnitin</p><h2 id="ti-report-title" data-ti-report-title>Informe de similitud</h2><p id="ti-report-document" data-ti-report-document></p></div>
+    <button type="button" class="ti-report-close" data-ti-report-close aria-label="Cerrar informe">×</button>
+  </header>
+  <div class="ti-report-toolbar">
+    <div class="ti-report-switch" role="group" aria-label="Elegir informe">
+      <button type="button" data-ti-report-kind="similarity" aria-pressed="true">Similitud</button>
+      <button type="button" data-ti-report-kind="ai" aria-pressed="false">IA</button>
+    </div>
+    <a class="app-button" data-ti-report-download download>Descargar PDF ↓</a>
+  </div>
+  <p class="ti-report-message" data-ti-report-message role="status" aria-live="polite">Cargando informe…</p>
+  <div class="ti-report-recovery">
+    <button class="app-button app-button--secondary" type="button" data-ti-report-retry hidden>Volver a intentar</button>
+    <a class="app-button" href="/api/app/auth/start?return=/app/turnitin/" data-ti-report-login hidden>Iniciar sesión</a>
+  </div>
+  <div class="ti-pdf-stage" data-ti-pdf-stage tabindex="0" role="region" aria-label="Contenido del informe">
+    <canvas data-ti-report-canvas aria-hidden="true" hidden></canvas>
+    <div class="ti-pdf-text" data-ti-report-text></div>
+  </div>
+  <footer class="ti-report-footer">
+    <div class="ti-page-controls" role="group" aria-label="Navegar por el informe">
+      <button type="button" data-ti-report-prev aria-label="Página anterior" disabled>←</button>
+      <span data-ti-report-page aria-live="polite">Página —</span>
+      <button type="button" data-ti-report-next aria-label="Página siguiente" disabled>→</button>
+    </div>
+    <label>Tamaño <select data-ti-report-zoom><option value="1">Ajustar al ancho</option><option value="1.5">Ampliar 150%</option><option value="2">Ampliar 200%</option></select></label>
+  </footer>
+</dialog>
