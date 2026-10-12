@@ -40,7 +40,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     if(starting||restoring||checkingAccess||['pending_login','saving'].includes(connection?.status??''))return;
     generation.current++;if(timer.current)clearTimeout(timer.current);abort.current?.abort();
     setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setError('');
-  },[noticeRevision,upcRequired]);
+  },[noticeRevision]);
   async function request(start:boolean,signal:AbortSignal) {
     const response = await fetch(endpoint,{method:start?'POST':'GET',credentials:'same-origin',cache:'no-store',
       ...(start?{headers:{'content-type':'application/json'},body:'{}'}:{}),
