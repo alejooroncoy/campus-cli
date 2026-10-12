@@ -15,6 +15,8 @@ assert.match(html,/<th scope="col" style="text-align:right">Nota<\/th>/);
 assert.match(html,/<td style="text-align:right">0<\/td>/);
 assert.match(html,/<td[^>]+class="is-pending">Pendiente<\/td>/);
 assert.match(html,/<ol>/);assert.match(html,/<a href="https:\/\/estudiante.upc.edu.pe\/">/);
+assert.match(render('• Primer curso\n• Segundo curso'),/<ul>\n<li>Primer curso<\/li>\n<li>Segundo curso<\/li>\n<\/ul>/);
+assert.match(render('```text\n• Mantener literal\n```'),/• Mantener literal/);
 const escaped=render('<script>alert(1)</script>\n\n[link](javascript:alert(1))\n![alt](https://example.invalid/private.png)');
 assert.doesNotMatch(escaped,/<script|<img|href="javascript:/);
 assert.match(render('| Nombre | Detalle |\n| --- | --- |\n| A \\| B | **Texto** |'),/A \| B/);

@@ -2,6 +2,20 @@ import Markdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Root, Element } from "hast";
 
+function normalizeBullets(text: string) {
+  let fence: string | null = null;
+  return text.split("\n").map(line => {
+    const marker = line.match(/^ {0,3}(`{3,}|~{3,})/);
+    if (fence) {
+      if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length
+        && !line.slice(marker[0].length).trim()) fence = null;
+      return line;
+    }
+    if (marker) { fence = marker[1]; return line; }
+    return line.replace(/^( {0,3})•\s+/, "$1- ");
+  }).join("\n");
+}
+
 // Keep a course/title and its table together, including older saved replies
 // whose title is bold text rather than a Markdown heading.
 function tableSections() {
@@ -45,6 +59,6 @@ const components: Components = {
 
 export default function ChatMarkdown({ text }: { text: string }) {
   return <div className="app-chat-markdown">
-    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[tableSections]} components={components} skipHtml>{text}</Markdown>
+    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[tableSections]} components={components} skipHtml>{normalizeBullets(text)}</Markdown>
   </div>;
 }

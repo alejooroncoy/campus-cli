@@ -19,6 +19,9 @@ Evaluaciones publicadas:
 | Práctica 1 | 15 | 10% |
 | Final | Pendiente | 20% |
 
+• Primera observación
+• Segunda observación
+
 ### Siguientes pasos
 1. Revisa las evaluaciones pendientes.
 2. Consulta el [portal oficial](https://estudiante.upc.edu.pe/).
@@ -49,6 +52,7 @@ try{
   assert.equal(await reply.getByRole('heading',{name:'Siguientes pasos'}).count(),1);
   assert.equal(await reply.locator('ol > li').count(),2);
   assert.equal(await reply.locator('ol ul > li').count(),1);
+  assert.equal(await reply.getByRole('listitem').filter({hasText:/^(Primera|Segunda) observación$/}).count(),2,'Unicode bullets remain semantic list items');
   assert.equal(await reply.getByRole('link',{name:'portal oficial'}).getAttribute('href'),'https://estudiante.upc.edu.pe/');
   assert.equal(await reply.locator('a[href^="javascript:"]').count(),0);
   assert.equal(await reply.locator('script,img').count(),0);
