@@ -72,7 +72,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       try{
         const next=await request(false,signal);
         if(current!==generation.current||signal.aborted)return;
-        if(next.status==='pending_login'&&next.expiresAt&&Date.now()>=next.expiresAt){setConnection({status:'expired'});return;}
+        if(next.status==='pending_login'&&next.expiresAt&&Date.now()>=next.expiresAt){update({status:'expired'},current,signal);return;}
         update(next,current,signal,data.attemptId??attemptId,deadline);
       }
       catch(cause){

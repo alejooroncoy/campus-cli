@@ -178,4 +178,13 @@ try{
    console.log(JSON.stringify({mode:'restore-race',latestAuthorizationNoticePreserved:true,staleRestorationIgnored:true,draftPreserved:true}));
   }finally{release();await context.close();}
  }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='retry-expiry'){
+  await fetch(`${base}/__e2e/normal`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(()=>{window.open=()=>null;});const page=await context.newPage();let polls=0;
+  await page.route('**/api/app/miupc/connect/',async route=>{if(route.request().method()!=='GET')return route.continue();if(++polls===1)return route.fulfill({status:503,body:'temporary'});const state=await(await fetch(`${base}/__e2e/state`)).json();return route.fulfill({contentType:'application/json',body:JSON.stringify({status:'pending_login',attemptId:state.attemptId,expiresAt:Date.now()-1})});});
+  try{
+   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});await input.fill('Mis notas actuales');await input.press('Enter');const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();
+   await notice.getByText('La conexión está tardando. Seguimos comprobando tu verificación…',{exact:true}).waitFor();await notice.getByText('La ventana de verificación venció. Vuelve a conectar Mi UPC.',{exact:true}).waitFor();assert.equal(await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).isEnabled(),true);assert.equal(await notice.getByText('La conexión está tardando. Seguimos comprobando tu verificación…',{exact:true}).count(),0);
+   assert.equal(await page.evaluate(()=>sessionStorage.getItem('campus-miupc-attempt:11111111-1111-4111-8111-111111111111')),null);await page.waitForTimeout(3200);assert.equal(polls,2);console.log(JSON.stringify({mode:'retry-expiry',correctExpiryGuidance:true,terminalPollStopped:true,attemptMetadataCleared:true}));
+  }finally{await context.close();}
+ }
 }finally{await browser.close();}
