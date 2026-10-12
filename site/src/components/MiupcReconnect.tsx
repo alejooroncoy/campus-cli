@@ -1,6 +1,9 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {parseMiupcConnection,rememberMiupcAttempt,savedMiupcAttempt,forgetMiupcAttempt,rememberMiupcReconnect,type MiupcConnection} from '../scripts/miupc-reconnect';
 
+class ConnectionRequestError extends Error {
+  constructor(message:string,readonly retryable:boolean){super(message);}
+}
 const endpoint = '/api/app/miupc/connect/';
 const copy: Record<MiupcConnection['status'], string> = {
   pending_login:'Completa la verificación en la ventana segura. Este chat seguirá aquí.',
@@ -28,6 +31,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   const navigated = useRef(false);
   const generation = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const savingDeadline=useRef<number|null>(null);
   const abort = useRef<AbortController | null>(null);
   const connected = useRef(onConnected); connected.current = onConnected;
   useEffect(()=>()=>{
@@ -47,14 +51,19 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     const response = await fetch(endpoint,{method:start?'POST':'GET',credentials:'same-origin',cache:'no-store',
       ...(start?{headers:{'content-type':'application/json'},body:'{}'}:{}),
       signal:AbortSignal.any([signal,AbortSignal.timeout(50_000)])});
-    if(!response.ok)throw Error(response.status===401?'Inicia sesión en Campus para reconectar.':'No pudimos comprobar la conexión. Inténtalo de nuevo.');
-    return parseMiupcConnection(await response.json());
+    if(!response.ok)throw new ConnectionRequestError(response.status===401?'Inicia sesión en Campus para reconectar.':'No pudimos comprobar la conexión. Inténtalo de nuevo.',response.status>=500||[408,429].includes(response.status));
+    const data=await response.json();
+    try{return parseMiupcConnection(data);}catch(cause){throw new ConnectionRequestError(cause instanceof Error?cause.message:'No pudimos confirmar esta verificación.',false);}
   }
   function update(data:MiupcConnection,current:number,signal:AbortSignal,attemptId?:string,expiresAt?:number) {
     if(current!==generation.current||signal.aborted)return;
     // A durable "connected" flag from an earlier login is not confirmation of
     // this verification. A worker restart must not silently mark it complete.
     if(attemptId && ['pending_login','saving','connected'].includes(data.status) && data.attemptId!==attemptId){setConnection({status:'failed'});setError('Se interrumpió la verificación. Vuelve a conectar Mi UPC.');return;}
+    if(data.status==='saving'){
+      savingDeadline.current??=Date.now()+120_000;
+      if(Date.now()>=savingDeadline.current){update({status:'failed'},current,signal);setError('La conexión no terminó de guardarse. Vuelve a comprobar Mi UPC.');return;}
+    }else savingDeadline.current=null;
     setConnection(data);setError('');
     if(['pending_login','saving'].includes(data.status))rememberMiupcAttempt(conversationId,data);
     else forgetMiupcAttempt(conversationId);
@@ -66,7 +75,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     const deadline=data.expiresAt??expiresAt;
     // A failed status read does not end the owner's live verification.
     // Keep its action disabled and retry within a bounded recovery window.
-    const retryUntil=data.status==='saving'?Math.max(deadline??0,Date.now()+120_000):deadline;
+    const retryUntil=data.status==='saving'?savingDeadline.current:deadline;
     const poll=()=>{timer.current=setTimeout(async()=>{
       if(current!==generation.current||signal.aborted)return;
       try{
@@ -77,7 +86,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       }
       catch(cause){
         if(current!==generation.current||signal.aborted)return;
-        if(retryUntil&&Date.now()<retryUntil){setError('La conexión está tardando. Seguimos comprobando tu verificación…');poll();return;}
+        if((!(cause instanceof ConnectionRequestError)||cause.retryable)&&retryUntil&&Date.now()<retryUntil){setError('La conexión está tardando. Seguimos comprobando tu verificación…');poll();return;}
         update({status:deadline&&Date.now()>=deadline?'expired':'failed'},current,signal);setError(deadline&&Date.now()>=deadline?'':cause instanceof Error?cause.message:copy.failed);
       }
     },3000);};poll();
@@ -87,9 +96,15 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     if(!saved||upcRequired)return;
     const current=generation.current;const controller=new AbortController();abort.current=controller;
     restoringRequest.current=true;setRestoring(true);
-    void request(false,controller.signal).then(data=>update(data,current,controller.signal,saved.attemptId,saved.expiresAt)).catch(()=>{
-      if(current===generation.current&&!controller.signal.aborted){setError('No pudimos recuperar la verificación. Puedes volver a conectar Mi UPC.');}
-    }).finally(()=>{restoringRequest.current=false;if(current===generation.current)setRestoring(false);});
+    const retryUntil=Math.max(saved.expiresAt,Date.now()+120_000);
+    const settled=()=>{restoringRequest.current=false;if(current===generation.current)setRestoring(false);};
+    const restore=()=>{void request(false,controller.signal).then(data=>{
+      update(data,current,controller.signal,saved.attemptId,saved.expiresAt);settled();
+    }).catch(cause=>{
+      if(current!==generation.current||controller.signal.aborted){settled();return;}
+      if((cause instanceof ConnectionRequestError&&!cause.retryable)||Date.now()>=retryUntil){update({status:'failed'},current,controller.signal);setError(cause instanceof ConnectionRequestError?cause.message:'No pudimos recuperar la verificación. Puedes volver a conectar Mi UPC.');settled();return;}
+      setError('La conexión está tardando. Seguimos recuperando tu verificación…');timer.current=setTimeout(restore,3000);
+    });};restore();
   },[]);
   async function start() {
     if(starting||restoringRequest.current||disabled)return;
