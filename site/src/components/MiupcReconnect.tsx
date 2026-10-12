@@ -95,7 +95,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       catch(cause){
         if(current!==generation.current||signal.aborted)return;
         if((!(cause instanceof ConnectionRequestError)||cause.retryable)&&retryUntil&&Date.now()<retryUntil){setError('La conexión está tardando. Seguimos comprobando tu verificación…');poll();return;}
-        update({status:deadline&&Date.now()>=deadline?'expired':'failed'},current,signal);setError(deadline&&Date.now()>=deadline?'':cause instanceof Error?cause.message:copy.failed);
+        update({status:deadline&&Date.now()>=deadline?'expired':'failed'},current,signal);setError(deadline&&Date.now()>=deadline?'':cause instanceof ConnectionRequestError?cause.message:copy.failed);
       }
     },3000);};poll();
   }
@@ -117,13 +117,16 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   async function reconcileStart(signal:AbortSignal,waitForActive=false){
     const deadline=Date.now()+120_000;
     for(;;){
-      if(waitForActive&&Date.now()>=deadline)return {status:'busy'} as MiupcConnection;
+      if(Date.now()>=deadline){
+        if(waitForActive)return {status:'busy'} as MiupcConnection;
+        throw new ConnectionRequestError('No pudimos confirmar esta nueva verificación. Vuelve a consultar tus notas o reconecta Mi UPC.',false);
+      }
       try{
-        const data=await request(false,AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,deadline-Date.now()))]),waitForActive);
+        const data=await request(false,AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,deadline-Date.now()))]),true);
         // Busy also covers grade readers. Their lease can coexist with an old
         // cached connected ID, so first observe an active verification ID.
-        if(data.status==='not_connected'||(waitForActive&&['busy','connected'].includes(data.status)))throw new ConnectionRequestError('Hay una conexión en curso.',true);
-        if(data.status==='connected')throw new ConnectionRequestError('No pudimos confirmar esta nueva verificación. Vuelve a consultar tus notas o reconecta Mi UPC.',false);
+        if(data.status==='not_connected'||(waitForActive&&data.status==='busy'))throw new ConnectionRequestError('Hay una conexión en curso.',true);
+        if(data.status==='connected')throw new ConnectionRequestError('No pudimos confirmar esta nueva verificación. Vuelve a consultar tus notas o reconecta Mi UPC.',true);
         return data;
       }
       catch(cause){
@@ -165,7 +168,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     }catch(cause){
       if(current===generation.current&&!controller.signal.aborted){
         if(!navigated.current)popup.current?.close();popup.current=null;
-        setConnection({status:'failed'});setError(cause instanceof Error?cause.message:copy.failed);
+        setConnection({status:'failed'});setError(cause instanceof ConnectionRequestError?cause.message:copy.failed);
       }
     }finally{if(current===generation.current)setStarting(false);}
   }
