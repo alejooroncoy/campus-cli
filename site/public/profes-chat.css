@@ -1088,7 +1088,6 @@
 }
 .app-profes-ai__composer-dock {
   background: var(--app-canvas);
-  padding: 12px 0 14px;
 }
 .app-profes-ai__composer-hint {
   margin: 10px 12px 0;
@@ -1107,7 +1106,7 @@
   justify-content: center;
   width: 100%;
   gap: 4px 10px;
-  margin-top: 44px;
+  margin-top: 16px;
 }
 .app-profes-ai__suggestions button {
   font-size: 12px;
@@ -1123,6 +1122,7 @@
   position: sticky;
   bottom: 0;
   z-index: 10;
+  padding: 12px 0 14px;
 }
 .app-profes-history-dialog {
   position: fixed;
