@@ -1,3 +1,4 @@
+import { setupTurnitinLogin } from './turnitin-login';
 type Order = {
   id: string; amountCents: number; status: string; documentName: string; note: string;
   createdAt: string; paidAt: string | null;
@@ -49,6 +50,7 @@ function setupTurnitin() {
     if (!orders.length) { target.append(el('p', 'Todavía no hay pedidos.', 'ti-muted')); return; }
     for (const order of orders) {
       const card = el('article', '', 'ti-order');
+      card.id = `ti-order-${order.id}`;
       card.append(el('h3', order.documentName), el('span', labels[order.status] ?? order.status, 'ti-tag'));
       card.append(el('p', `${money(order.amountCents)} · ${new Date(order.createdAt).toLocaleString('es-PE', { timeZone: 'America/Lima', dateStyle: 'short', timeStyle: 'short' })}`, 'ti-small'));
       card.append(el('p', `Pedido ${order.id.slice(0,8)}`, 'ti-small'));
@@ -101,6 +103,7 @@ function setupTurnitin() {
       renderOrders(result.orders, document.querySelector<HTMLElement>('[data-ti-orders]')!);
       document.querySelector<HTMLElement>('[data-ti-admin]')!.hidden = !isAdmin;
       if (isAdmin) renderOrders((await api('admin/orders')).orders, document.querySelector<HTMLElement>('[data-ti-admin-orders]')!, true);
+      if (/^#ti-order-[0-9a-f-]{36}$/i.test(location.hash)) document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'center' });
     } finally { refreshPending = false; refresh.disabled = false; }
   }
   refresh.onclick = async () => {
@@ -131,7 +134,12 @@ function setupTurnitin() {
       const response = await fetch('/api/app/session', { credentials: 'same-origin', cache: 'no-store' });
       if (!response.ok) throw new Error('No se pudo comprobar tu sesión.');
       const session = await response.json();
-      if (!session.authenticated) { document.querySelector<HTMLElement>('[data-ti-login]')!.hidden = false; announce(config.enabled ? 'Inicia sesión para enviar tu pedido y descargar tus informes.' : 'Los pedidos nuevos están pausados. Inicia sesión para consultar pedidos anteriores.'); return; }
+      if (!session.authenticated) {
+        document.querySelector<HTMLElement>('[data-ti-login]')!.hidden = false;
+        announce(config.enabled ? 'Inicia sesión para enviar tu pedido y descargar tus informes.' : 'Los pedidos nuevos están pausados. Inicia sesión para consultar pedidos anteriores.');
+        setupTurnitinLogin()?.open(config.amountCents);
+        return;
+      }
       await loadOrders(); form.hidden = !config.enabled; refresh.hidden = false;
       announce(config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.');
     } catch (error) { announce((error as Error).message); }

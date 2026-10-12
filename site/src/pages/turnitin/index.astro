@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import TurnitinLogin from '../../components/TurnitinLogin.astro';
 import body from '../../html/turnitin/index.html?raw';
 const url = 'https://campuscli.com/turnitin/';
 const description = 'Servicio de Turnitin en Perú: informes de similitud y detección de IA. S/8 por lanzamiento, regular S/10. Entrega de 10 minutos a 1 hora tras validar el pago.';
@@ -18,4 +19,5 @@ const schemas = [
   canonical={url} markdownUrl={`${url}index.md`} schemas={schemas}>
   <link slot="head" rel="stylesheet" href="/turnitin.css" />
   <Fragment set:html={body} />
+  <TurnitinLogin />
 </Base>
