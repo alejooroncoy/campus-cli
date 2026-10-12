@@ -6,7 +6,7 @@ const fallback = `# Página no encontrada | Campus
 La ruta solicitada no existe.
 
 - [Inicio](https://campuscli.com/)
-- [Campus Profes](https://campuscli.com/profes/)
+- [Opiniones de profesores en Campus](https://campuscli.com/profes/)
 - [Blackboard MCP](https://campuscli.com/blackboard-mcp/)
 - [Mapa del sitio](https://campuscli.com/sitemap.xml)
 - [Índice para agentes](https://campuscli.com/.well-known/ard.json)
