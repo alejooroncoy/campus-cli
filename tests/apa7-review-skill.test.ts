@@ -97,6 +97,9 @@ test('new safeguards reach the relevant MCP sections with their actual source ev
       ['figures', ['observation-52', 'observation-53']],
       ['legal-arbitration', ['observation-54']],
       ['video', ['observation-55']],
+      ['conferences', ['observation-56']],
+      ['citation-faq', ['observation-57']],
+      ['reference-faq', ['observation-58']],
     ]);
     for (const [sectionId, ids] of expected) {
       const response = await client.callTool({ name: 'campus_apa7_guidance', arguments: { topic: 'review', reviewSectionId: sectionId } });
@@ -105,6 +108,9 @@ test('new safeguards reach the relevant MCP sections with their actual source ev
       for (const id of ids) {
         const warning = skill.considerations.warnings.find((item: { id: string }) => item.id === id);
         assert.ok(warning, `${sectionId}: ${id}`);
+        if (['observation-56', 'observation-57', 'observation-58'].includes(id)) {
+          assert.equal(warning.classification, 'client-evidence-mismatch', 'client failures must not be reported as UPC source errors');
+        }
         for (const unitId of warning.sourceUnitIds) {
           assert.ok(skill.semanticAudit.units.some((unit: { unitId: string }) => unit.unitId === unitId));
         }
