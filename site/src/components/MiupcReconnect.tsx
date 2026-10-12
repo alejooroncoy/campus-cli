@@ -120,7 +120,9 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       if(waitForActive&&Date.now()>=deadline)return {status:'busy'} as MiupcConnection;
       try{
         const data=await request(false,AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,deadline-Date.now()))]),waitForActive);
-        if(waitForActive&&['busy','not_connected','connected'].includes(data.status))throw new ConnectionRequestError('Hay una conexión en curso.',true);
+        // Busy also covers grade readers. Their lease can coexist with an old
+        // cached connected ID, so first observe an active verification ID.
+        if(data.status==='not_connected'||(waitForActive&&['busy','connected'].includes(data.status)))throw new ConnectionRequestError('Hay una conexión en curso.',true);
         if(data.status==='connected')throw new ConnectionRequestError('No pudimos confirmar esta nueva verificación. Vuelve a consultar tus notas o reconecta Mi UPC.',false);
         return data;
       }
