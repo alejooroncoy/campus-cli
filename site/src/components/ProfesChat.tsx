@@ -799,7 +799,9 @@ export default function ProfesChat() {
     setUpcReconnectRequired(needsReconnect&&requiresUpcReconnect(currentConversationId));
   },[authenticated,currentConversationId]);
 
+  const freshMiupcNotice=useRef<string|null>(null);
   const handleMiupcReconnect = useCallback((id:string|null,upcRequired:boolean)=>{
+    freshMiupcNotice.current=id;
     rememberMiupcReconnect(id,upcRequired);
     setMiupcReconnectConversationId(id);
     setUpcReconnectRequired(upcRequired);
@@ -1422,7 +1424,7 @@ export default function ProfesChat() {
               )}
             </article>
           ))}
-          {authenticated && miupcReconnectRequired && miupcReconnectConversationId===currentConversationId ? <MiupcReconnect key={currentConversationId} conversationId={currentConversationId} noticeRevision={miupcReconnectRevision} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{clearMiupcReconnectNotices("upc");setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
+          {authenticated && miupcReconnectRequired && miupcReconnectConversationId===currentConversationId ? <MiupcReconnect key={currentConversationId} freshNotice={freshMiupcNotice.current===currentConversationId} onNoticeSeen={()=>{freshMiupcNotice.current=null;}} conversationId={currentConversationId} noticeRevision={miupcReconnectRevision} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{clearMiupcReconnectNotices("upc");setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
           {busy ? (
             <div className="app-profes-ai__thinking" role="status" aria-label={activityLabels[activity] ?? activityLabels.connecting}>
               <span className="app-profes-ai__thinking-icon" aria-hidden="true">

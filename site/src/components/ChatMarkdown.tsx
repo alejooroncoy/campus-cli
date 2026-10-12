@@ -4,15 +4,25 @@ import type { Root, Element } from "hast";
 
 function normalizeBullets(text: string) {
   let fence: string | null = null;
+  let listIndent: number | null = null;
+  let fenceIndent = 0;
   return text.split("\n").map(line => {
-    const marker = line.match(/^ {0,3}(`{3,}|~{3,})/);
+    const indent = line.match(/^[ \t]*/)?.[0].replace(/\t/g, "    ").length ?? 0;
+    const marker = line.match(/^[ \t]*(`{3,}|~{3,})/);
     if (fence) {
-      if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length
+      if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && indent <= fenceIndent + 3
         && !line.slice(marker[0].length).trim()) fence = null;
       return line;
     }
-    if (marker) { fence = marker[1]; return line; }
-    return line.replace(/^( {0,3})•\s+/, "$1- ");
+    if (marker && (indent <= 3 || listIndent !== null)) {
+      fence = marker[1]; fenceIndent = indent; if (indent <= 3) listIndent = null; return line;
+    }
+    const item = line.match(/^([ \t]*)(?:•|[-+*]|\d+[.)])\s+/);
+    if (item) {
+      if (indent <= 3) listIndent = indent;
+      if (listIndent !== null) return line.replace(/^([ \t]*)•\s+/, "$1- ");
+    } else if (line.trim() && listIndent !== null && indent <= listIndent) listIndent = null;
+    return line;
   }).join("\n");
 }
 

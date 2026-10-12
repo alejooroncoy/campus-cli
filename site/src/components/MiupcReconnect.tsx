@@ -17,7 +17,7 @@ const copy: Record<MiupcConnection['status'], string> = {
   busy:'Hay una consulta de Mi UPC en curso. Espera a que termine y vuelve a intentarlo.',
   not_supported:'Esta conexión está disponible para estudiantes de UPC.',
 };
-export default function MiupcReconnect({disabled,upcRequired,conversationId,noticeRevision,onConnected,onUpcAccessRestored,onDismiss}:{disabled:boolean;upcRequired:boolean;conversationId:string|null;noticeRevision:number;onConnected:()=>void;onUpcAccessRestored:()=>void;onDismiss:()=>void}) {
+export default function MiupcReconnect({disabled,upcRequired,conversationId,noticeRevision,freshNotice,onNoticeSeen,onConnected,onUpcAccessRestored,onDismiss}:{disabled:boolean;upcRequired:boolean;conversationId:string|null;noticeRevision:number;freshNotice:boolean;onNoticeSeen:()=>void;onConnected:()=>void;onUpcAccessRestored:()=>void;onDismiss:()=>void}) {
   const [connection,setConnection] = useState<MiupcConnection | null>(upcRequired?{status:'upc_reconnect_required'}:null);
   const [starting,setStarting] = useState(false);
   const [restoring,setRestoring]=useState(false);
@@ -44,6 +44,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   // Repeated tool notices must keep the current window and poll alive. A new
   // notice can reset a completed/failed card without unmounting an active login.
   useLayoutEffect(()=>{
+    onNoticeSeen();
     const newNotice=observedNotice.current!==noticeRevision;observedNotice.current=noticeRevision;
     if((starting||restoring||['pending_login','saving'].includes(connection?.status??''))&&!upcRequired)return;
     generation.current++;if(timer.current)clearTimeout(timer.current);abort.current?.abort();
@@ -134,7 +135,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       if(!saved)retryUntil=Date.now()+50_000;
       restoringRequest.current=true;setRestoring(true);setCheckGrades(false);restore();
     };
-    if(saved||noticeRevision===0)beginRestore();
+    if(saved||!freshNotice)beginRestore();
     const returned=()=>{if(document.visibilityState==='visible')beginRestore();};
     if(!saved){window.addEventListener('focus',returned);document.addEventListener('visibilitychange',returned);}
     return()=>{window.removeEventListener('focus',returned);document.removeEventListener('visibilitychange',returned);};
