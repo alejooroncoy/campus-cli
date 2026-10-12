@@ -37,9 +37,10 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   // Repeated tool notices must keep the current window and poll alive. A new
   // notice can reset a completed/failed card without unmounting an active login.
   useLayoutEffect(()=>{
-    if(starting||restoring||['pending_login','saving'].includes(connection?.status??''))return;
+    if((starting||restoring||['pending_login','saving'].includes(connection?.status??''))&&!upcRequired)return;
     generation.current++;if(timer.current)clearTimeout(timer.current);abort.current?.abort();
-    accessRequest.current=false;setCheckingAccess(false);
+    accessRequest.current=false;setCheckingAccess(false);restoringRequest.current=false;setRestoring(false);setStarting(false);
+    if(popup.current&&!navigated.current){popup.current.close();popup.current=null;}
     setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setError('');
   },[noticeRevision]);
   async function request(start:boolean,signal:AbortSignal) {
@@ -63,7 +64,10 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     }
     if(!['pending_login','saving'].includes(data.status))return;
     const deadline=data.expiresAt??expiresAt;
-    timer.current=setTimeout(async()=>{
+    // A failed status read does not end the owner's live verification.
+    // Keep its action disabled and retry within a bounded recovery window.
+    const retryUntil=data.status==='saving'?Math.max(deadline??0,Date.now()+120_000):deadline;
+    const poll=()=>{timer.current=setTimeout(async()=>{
       if(current!==generation.current||signal.aborted)return;
       try{
         const next=await request(false,signal);
@@ -71,8 +75,12 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
         if(next.status==='pending_login'&&next.expiresAt&&Date.now()>=next.expiresAt){setConnection({status:'expired'});return;}
         update(next,current,signal,data.attemptId??attemptId,deadline);
       }
-      catch(cause){if(current===generation.current&&!signal.aborted){setConnection({status:deadline&&Date.now()>=deadline?'expired':'failed'});setError(deadline&&Date.now()>=deadline?'':cause instanceof Error?cause.message:copy.failed);}}
-    },3000);
+      catch(cause){
+        if(current!==generation.current||signal.aborted)return;
+        if(retryUntil&&Date.now()<retryUntil){setError('La conexión está tardando. Seguimos comprobando tu verificación…');poll();return;}
+        setConnection({status:deadline&&Date.now()>=deadline?'expired':'failed'});setError(deadline&&Date.now()>=deadline?'':cause instanceof Error?cause.message:copy.failed);
+      }
+    },3000);};poll();
   }
   useEffect(()=>{
     const saved=savedMiupcAttempt(conversationId);

@@ -156,4 +156,26 @@ try{
    console.log(JSON.stringify({mode:'access-race',latestReconnectNoticePreserved:true,staleAuthorizationIgnored:true,draftPreserved:true}));
   }finally{release();await context.close();}
  }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='transient'){
+  await fetch(`${base}/__e2e/normal`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});await context.addInitScript(()=>{window.open=()=>null;});const page=await context.newPage();let failed=false;
+  await page.route('**/api/app/miupc/connect/',route=>{if(route.request().method()==='GET'&&!failed){failed=true;return route.fulfill({status:503,body:'temporary'});}return route.continue();});
+  try{
+   await page.goto(base+path);const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});await input.fill('Mis notas actuales');await input.press('Enter');const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});
+   await notice.getByRole('button',{name:'Reconectar Mi UPC',exact:true}).click();await notice.getByRole('link',{name:'Abrir ventana de verificación'}).waitFor();const before=await(await fetch(`${base}/__e2e/state`)).json();await input.fill('Borrador durante fallo temporal');
+   await notice.getByText('La conexión está tardando. Seguimos comprobando tu verificación…',{exact:true}).waitFor();assert.equal(await notice.getByRole('button').isDisabled(),true);
+   await fetch(`${base}/__e2e/connected`,{method:'POST'});await notice.getByText('Conexión restablecida. Ya puedes seguir preguntando en este chat.',{exact:true}).waitFor();assert.equal((await(await fetch(`${base}/__e2e/state`)).json()).starts,before.starts);assert.equal(await input.inputValue(),'Borrador durante fallo temporal');
+   console.log(JSON.stringify({mode:'transient',retriedOriginalPoll:true,noNewConnectRequest:true,draftPreserved:true}));
+  }finally{await context.close();}
+ }
+ if(!process.env.CAMPUS_RECONNECT_E2E_CASE||process.env.CAMPUS_RECONNECT_E2E_CASE==='restore-race'){
+  await fetch(`${base}/__e2e/upc`,{method:'POST'});const context=await browser.newContext({serviceWorkers:'block'});const page=await context.newPage();const attemptId='44444444-4444-4444-8444-444444444444';const expiresAt=Date.now()+60_000;
+  await context.addInitScript(({attemptId,expiresAt})=>{sessionStorage.setItem('campus-miupc-reconnect:11111111-1111-4111-8111-111111111111','1');sessionStorage.setItem('campus-miupc-attempt:11111111-1111-4111-8111-111111111111',JSON.stringify({attemptId,expiresAt}));},{attemptId,expiresAt});
+  let release;const paused=new Promise(resolve=>{release=resolve;});let requested;const started=new Promise(resolve=>{requested=resolve;});
+  await page.route('**/api/app/miupc/connect/',async route=>{requested();await paused;await route.fulfill({contentType:'application/json',body:JSON.stringify({status:'connected',attemptId,expiresAt})}).catch(()=>{});});
+  try{
+   await page.goto(base+path);await started;const input=page.getByRole('textbox',{name:'Escribe tu pregunta sobre profesores o tus cursos'});await input.fill('Mis notas actuales');await input.press('Enter');const notice=page.getByRole('complementary',{name:'Reconexión de Mi UPC'});await notice.getByRole('link',{name:'Actualizar acceso UPC'}).waitFor();
+   release();await input.fill('Borrador durante recuperación');await page.waitForTimeout(100);assert.equal(await notice.getByRole('link',{name:'Actualizar acceso UPC'}).count(),1);assert.equal(await notice.getByText('Mi UPC está conectado',{exact:true}).count(),0);assert.equal(await page.evaluate(()=>sessionStorage.getItem('campus-miupc-reconnect:11111111-1111-4111-8111-111111111111')),'upc');
+   console.log(JSON.stringify({mode:'restore-race',latestAuthorizationNoticePreserved:true,staleRestorationIgnored:true,draftPreserved:true}));
+  }finally{release();await context.close();}
+ }
 }finally{await browser.close();}
