@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+const {outputFiles}=await build({entryPoints:[new URL('../src/scripts/miupc-reconnect.ts',import.meta.url).pathname],bundle:true,platform:'node',format:'esm',write:false});
+const {parseMiupcConnection,rememberMiupcReconnect,hasMiupcReconnectNotice,requiresUpcReconnect,clearMiupcReconnectNotices,rememberMiupcAttempt,savedMiupcAttempt,forgetMiupcAttempt}=await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
+const attemptId='f56be447-5c2c-4e22-80d8-e5a211bcb6af';
+const pending={status:'pending_login',attemptId,expiresAt:Date.now()+420000,loginUrl:'https://www.browserbase.com/e2e/verify?private=capability'};
+assert.deepEqual(parseMiupcConnection({...pending,cookies:['secret'],contextId:'private-id'}),pending);
+for(const loginUrl of ['http://www.browserbase.com/a','https://www.browserbase.com.attacker.invalid/a','https://attacker.invalid/','https://user:password@www.browserbase.com/a','javascript:alert(1)'])assert.throws(()=>parseMiupcConnection({...pending,loginUrl}));
+for(const status of ['pending_login','saving','connected'])assert.throws(()=>parseMiupcConnection({status}),/confirmar/);
+assert.deepEqual(parseMiupcConnection({status:'connected',attemptId,expiresAt:pending.expiresAt,loginUrl:pending.loginUrl}),{status:'connected',attemptId,expiresAt:pending.expiresAt});
+globalThis.sessionStorage={setItem(k,v){this[k]=v;},getItem(k){return this[k]??null;},removeItem(k){delete this[k];}};
+rememberMiupcReconnect(attemptId);assert.equal(hasMiupcReconnectNotice(attemptId),true);
+assert.ok(!JSON.stringify(sessionStorage).includes('browserbase'));
+rememberMiupcReconnect(attemptId,true);assert.equal(requiresUpcReconnect(attemptId),true);assert.equal(hasMiupcReconnectNotice(attemptId),true);
+sessionStorage.setItem('campus-question','Borrador');
+const other='22222222-2222-4222-8222-222222222222',browserNotice='33333333-3333-4333-8333-333333333333';
+rememberMiupcAttempt(attemptId,pending);assert.deepEqual(savedMiupcAttempt(attemptId),{attemptId,expiresAt:pending.expiresAt});assert.ok(!JSON.stringify(sessionStorage).includes('browserbase'));assert.deepEqual(savedMiupcAttempt(browserNotice),{attemptId,expiresAt:pending.expiresAt});
+rememberMiupcReconnect(other,true);rememberMiupcReconnect(browserNotice);clearMiupcReconnectNotices('upc');
+assert.equal(hasMiupcReconnectNotice(attemptId),false);assert.equal(savedMiupcAttempt(attemptId),null);assert.equal(hasMiupcReconnectNotice(other),false);assert.equal(hasMiupcReconnectNotice(browserNotice),true);
+clearMiupcReconnectNotices();
+assert.equal(hasMiupcReconnectNotice(attemptId),false);assert.equal(sessionStorage.getItem('campus-question'),'Borrador');
+globalThis.sessionStorage={setItem(){throw Error('blocked');},getItem(){throw Error('blocked');},removeItem(){throw Error('blocked');}};
+assert.doesNotThrow(()=>rememberMiupcReconnect(attemptId));assert.equal(hasMiupcReconnectNotice(attemptId),true);rememberMiupcAttempt(attemptId,pending);assert.deepEqual(savedMiupcAttempt(other),{attemptId,expiresAt:pending.expiresAt});forgetMiupcAttempt(other);assert.equal(savedMiupcAttempt(attemptId),null);clearMiupcReconnectNotices();assert.equal(hasMiupcReconnectNotice(attemptId),false);
+console.log('Mi UPC reconnect: trusted URLs, verification identity, private storage and draft preservation passed.');
+
+// Storage may allow reads while rejecting writes (quota/private mode).
+globalThis.sessionStorage={setItem(k,v){this[k]=v;},getItem(k){return this[k]??null;},removeItem(k){delete this[k];}};
+rememberMiupcReconnect(attemptId);
+sessionStorage.setItem=()=>{throw Error('quota');};
+rememberMiupcReconnect(attemptId,true);
+assert.equal(sessionStorage.getItem('campus-miupc-reconnect:'+attemptId),'1');
+assert.equal(requiresUpcReconnect(attemptId),true,'Latest UPC requirement overrides stale storage');
+
+clearMiupcReconnectNotices('upc');assert.equal(hasMiupcReconnectNotice(attemptId),false,'Clearing must not resurrect the stale stored notice');

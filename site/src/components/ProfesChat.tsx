@@ -1,4 +1,7 @@
 import { createPortal } from "react-dom";
+import MiupcReconnect from "./MiupcReconnect";
+import ChatMarkdown from "./ChatMarkdown";
+import {rememberMiupcReconnect,hasMiupcReconnectNotice,requiresUpcReconnect,clearMiupcReconnectNotices} from "../scripts/miupc-reconnect";
 import { useChat } from "@ai-sdk/react";
 import type { ChatTransport, UIMessage, UIMessageChunk } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactElement } from "react";
@@ -258,7 +261,7 @@ function parseMessageBlocks(content: string): MessageBlock[] {
       const candidateName = match[1].trim();
       const rest = match[2] || "";
       const lookahead = [rest, lines[i + 1] || "", lines[i + 2] || ""].join(" ");
-      const isProfCard = /(?:calificaci[o\u00f3]n|dificultad|reseñas|rese[\u00f1n]as|⭐|⚡|💬)/i.test(lookahead);
+      const isProfCard = !/^\s*\|?\s*:?-{3,}:?\s*\|/m.test([rest, lines[i + 1] || "", lines[i + 2] || "", lines[i + 3] || ""].join("\n")) && /(?:calificaci[o\u00f3]n|dificultad|reseñas|rese[\u00f1n]as|⭐|⚡|💬)/i.test(lookahead);
 
       if (isProfCard) {
         flushText();
@@ -356,46 +359,7 @@ function renderInlineMarkdown(text: string, groupHistory = true): ReactElement[]
       }),
     ];
   }
-  const paragraphs = text.split(/\n{2,}/);
-  return paragraphs.map((para, pIdx) => {
-    const rawLines = para.split("\n").filter(l => l.trim().length > 0);
-    const splitCells = (line: string) => line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(cell => cell.trim());
-    if (rawLines.length >= 2 && rawLines[0].includes("|")
-      && splitCells(rawLines[1]).every(cell => /^:?-{3,}:?$/.test(cell))) {
-      const headers = splitCells(rawLines[0]);
-      return <div key={pIdx} className="app-academic-table" role="region" aria-label="Calificaciones" tabIndex={0}>
-        <table><thead><tr>{headers.map((cell, i) => <th key={i} scope="col">{renderFormattedTokens(cell)}</th>)}</tr></thead>
-          <tbody>{rawLines.slice(2).map((line, i) => <tr key={i}>{splitCells(line).slice(0, headers.length).map((cell, j) => <td key={j}>{renderFormattedTokens(cell)}</td>)}</tr>)}</tbody>
-        </table>
-      </div>;
-    }
-    if (rawLines.length === 1 && /^#{1,6}\s/.test(rawLines[0])) {
-      return <h3 key={pIdx} className="app-academic-heading">{renderFormattedTokens(rawLines[0].replace(/^#{1,6}\s+/, ""))}</h3>;
-    }
-    const isBulletList = rawLines.length > 0 && rawLines.every(l => /^(?:[\*\-•]|\d+\.)\s+/.test(l.trim()));
-
-    if (isBulletList) {
-      return (
-        <ul key={pIdx} className="app-profes-ai__list">
-          {rawLines.map((line, lIdx) => {
-            const clean = line.trim().replace(/^(?:[\*\-•]|\d+\.)\s+/, "");
-            return <li key={lIdx}>{renderFormattedTokens(clean)}</li>;
-          })}
-        </ul>
-      );
-    }
-
-    return (
-      <p key={pIdx} className="app-profes-ai__text-para">
-        {rawLines.map((line, lIdx) => (
-          <span key={lIdx}>
-            {renderFormattedTokens(line)}
-            {lIdx < rawLines.length - 1 ? <br /> : null}
-          </span>
-        ))}
-      </p>
-    );
-  });
+  return [<ChatMarkdown key="markdown" text={text} />];
 }
 
 function getInitials(name: string) {
@@ -622,6 +586,8 @@ function profesTransport(
   onGuestLimit: () => void,
   getConversationId: () => string | null,
   onConversationCreated: (id: string, title?: string) => void,
+  onMiupcReconnect: (conversationId: string | null,upcRequired:boolean) => void,
+  onMiupcRestored: () => void,
 ): ChatTransport<UIMessage> {
   return {
     async sendMessages({ messages, abortSignal }) {
@@ -659,12 +625,18 @@ function profesTransport(
       let usage: CampusSession["usage"];
       let convId: string | undefined;
       let convTitle: string | undefined;
+      let miupcReconnectRequired = false;
+      let upcReconnectRequired=false;
+      let miupcConnectionRestored=false;
       const readEvent = (line: string) => {
-        const event = JSON.parse(line) as { type: string; activity?: string; answer?: string; usage?: CampusSession["usage"]; error?: string; conversationId?: string; title?: string };
+        const event = JSON.parse(line) as { type: string; activity?: string; answer?: string; usage?: CampusSession["usage"]; error?: string; conversationId?: string; title?: string; miupcReconnectRequired?: boolean; upcReconnectRequired?:boolean; miupcConnectionRestored?:boolean };
         if (event.type === "status" && event.activity && activityLabels[event.activity]) onActivity(event.activity);
         if (event.type === "answer") {
           answer = event.answer ?? "";
           usage = event.usage;
+          miupcReconnectRequired = event.miupcReconnectRequired === true;
+          upcReconnectRequired=event.upcReconnectRequired===true;
+          miupcConnectionRestored=event.miupcConnectionRestored===true;
           if (event.conversationId) {
             convId = event.conversationId;
             convTitle = event.title;
@@ -687,6 +659,8 @@ function profesTransport(
       if (!answer.trim()) throw new Error("Campus no devolvió una respuesta.");
       onUsage(usage);
       if (convId) onConversationCreated(convId, convTitle);
+      if (miupcReconnectRequired || upcReconnectRequired) onMiupcReconnect(convId ?? activeConvId,upcReconnectRequired);
+      else if(miupcConnectionRestored)onMiupcRestored();
 
       // The existing Profes API returns one completed answer; adapt it to AI SDK UI's
       // message protocol without pretending that the agent streams partial tokens.
@@ -714,6 +688,10 @@ export default function ProfesChat() {
   const [input, setInput] = useState("");
   const [usage, setUsage] = useState<CampusSession["usage"]>();
   const [activity, setActivity] = useState("connecting");
+  const [miupcReconnectRequired,setMiupcReconnectRequired] = useState(false);
+  const [miupcReconnectConversationId,setMiupcReconnectConversationId] = useState<string|null>(null);
+  const [miupcReconnectRevision,setMiupcReconnectRevision] = useState(0);
+  const [upcReconnectRequired,setUpcReconnectRequired] = useState(false);
   const [accessNote, setAccessNote] = useState("");
   const [historyError, setHistoryError] = useState("");
   const [quotaDialogOpen, setQuotaDialogOpen] = useState(false);
@@ -814,6 +792,23 @@ export default function ProfesChat() {
     });
   }, []);
 
+  useEffect(()=>{
+    const needsReconnect=authenticated&&hasMiupcReconnectNotice(currentConversationId);
+    setMiupcReconnectConversationId(currentConversationId);
+    setMiupcReconnectRequired(needsReconnect);
+    setUpcReconnectRequired(needsReconnect&&requiresUpcReconnect(currentConversationId));
+  },[authenticated,currentConversationId]);
+
+  const freshMiupcNotice=useRef<string|null>(null);
+  const handleMiupcReconnect = useCallback((id:string|null,upcRequired:boolean)=>{
+    freshMiupcNotice.current=id;
+    rememberMiupcReconnect(id,upcRequired);
+    setMiupcReconnectConversationId(id);
+    setUpcReconnectRequired(upcRequired);
+    setMiupcReconnectRequired(true);
+    setMiupcReconnectRevision(value=>value+1);
+  },[]);
+
   const transport = useMemo(() => profesTransport(
     value => {
       usageHandler.current(value);
@@ -823,7 +818,9 @@ export default function ProfesChat() {
     () => guestLimitHandler.current(),
     () => currentConversationIdRef.current,
     handleConversationCreated,
-  ), [handleConversationCreated]);
+    handleMiupcReconnect,
+    ()=>{clearMiupcReconnectNotices();setMiupcReconnectRequired(false);setUpcReconnectRequired(false);},
+  ), [handleConversationCreated,handleMiupcReconnect]);
   const { messages, setMessages, sendMessage, status, error, stop } = useChat({ transport });
   const messagesHandler = useRef(setMessages);
   messagesHandler.current = setMessages;
@@ -1427,6 +1424,7 @@ export default function ProfesChat() {
               )}
             </article>
           ))}
+          {authenticated && miupcReconnectRequired && miupcReconnectConversationId===currentConversationId ? <MiupcReconnect key={currentConversationId} freshNotice={freshMiupcNotice.current===currentConversationId} onNoticeSeen={()=>{freshMiupcNotice.current=null;}} conversationId={currentConversationId} noticeRevision={miupcReconnectRevision} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{clearMiupcReconnectNotices("upc");setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
           {busy ? (
             <div className="app-profes-ai__thinking" role="status" aria-label={activityLabels[activity] ?? activityLabels.connecting}>
               <span className="app-profes-ai__thinking-icon" aria-hidden="true">
