@@ -113,6 +113,8 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     const controller=new AbortController();abort.current=controller;
     // Open during the user gesture so browsers do not block a later async open.
     // The blank window has no access back to Campus when it reaches Browserbase.
+    try{popup.current?.close();}catch{/* The browser may have severed the old window handle. */}
+    popup.current=null;
     popup.current=window.open('about:blank','_blank');navigated.current=false;
     if(popup.current)popup.current.opener=null;
     setStarting(true);setConnection(null);setError('');
