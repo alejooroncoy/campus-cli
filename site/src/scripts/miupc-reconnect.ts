@@ -21,47 +21,53 @@ export function parseMiupcConnection(value: unknown): MiupcConnection {
   }
   return result;
 }
-// Store only the notice category, scoped to an already saved conversation. Live login
-// capabilities, credentials and grade data never enter browser storage.
-const noticePrefix = 'campus-miupc-reconnect:';
-export function rememberMiupcReconnect(conversationId: string | null, upcRequired=false) {
-  if (!conversationId || !/^[0-9a-f-]{36}$/i.test(conversationId)) return;
-  try { sessionStorage.setItem(noticePrefix + conversationId, upcRequired?'upc':'1'); } catch { /* Notice still works in memory. */ }
-}
-export function requiresUpcReconnect(conversationId:string|null){
-  try{return Boolean(conversationId&&sessionStorage.getItem(noticePrefix+conversationId)==='upc');}catch{return false;}
-}
-export function hasMiupcReconnectNotice(conversationId: string | null) {
-  try { return Boolean(conversationId && ['1','upc'].includes(sessionStorage.getItem(noticePrefix + conversationId)??'')); } catch { return false; }
-}
-export function clearMiupcReconnectNotices(scope:"all"|"upc"="all") {
-  try { for (const key of Object.keys(sessionStorage)) if (key.startsWith(noticePrefix) && (scope==='all'||sessionStorage.getItem(key)==='upc')) {sessionStorage.removeItem(key);sessionStorage.removeItem(attemptPrefix+key.slice(noticePrefix.length));} if(scope==='all')for(const key of Object.keys(sessionStorage))if(key.startsWith(attemptPrefix))sessionStorage.removeItem(key); } catch { /* Private browsing. */ }
-}
-
-// Correlation metadata is not a login capability. Never retain the live URL.
+// Only notice categories and correlation IDs are retained, never live URLs.
+const noticePrefix='campus-miupc-reconnect:';
 const attemptPrefix='campus-miupc-attempt:';
+type Attempt={attemptId:string;expiresAt:number};
+const memoryNotices=new Map<string,'1'|'upc'>();
+const memoryAttempts=new Map<string,Attempt>();
+function notice(conversationId:string|null){
+  if(!conversationId)return null;
+  try{const stored=sessionStorage.getItem(noticePrefix+conversationId);if(stored==='1'||stored==='upc')return stored;}catch{/* Memory fallback. */}
+  return memoryNotices.get(conversationId)??null;
+}
+export function rememberMiupcReconnect(conversationId:string|null,upcRequired=false){
+  if(!conversationId||!/^[0-9a-f-]{36}$/i.test(conversationId))return;
+  const value=upcRequired?'upc':'1';memoryNotices.set(conversationId,value);
+  try{sessionStorage.setItem(noticePrefix+conversationId,value);}catch{/* Keep the notice in memory. */}
+}
+export function requiresUpcReconnect(conversationId:string|null){return notice(conversationId)==='upc';}
+export function hasMiupcReconnectNotice(conversationId:string|null){return notice(conversationId)!==null;}
+export function clearMiupcReconnectNotices(scope:'all'|'upc'='all'){
+  for(const [id,value] of memoryNotices)if(scope==='all'||value==='upc'){memoryNotices.delete(id);memoryAttempts.delete(id);}
+  if(scope==='all')memoryAttempts.clear();
+  try{
+    for(const key of Object.keys(sessionStorage))if(key.startsWith(noticePrefix)&&(scope==='all'||sessionStorage.getItem(key)==='upc')){sessionStorage.removeItem(key);sessionStorage.removeItem(attemptPrefix+key.slice(noticePrefix.length));}
+    if(scope==='all')for(const key of Object.keys(sessionStorage))if(key.startsWith(attemptPrefix))sessionStorage.removeItem(key);
+  }catch{/* Memory was cleared even if storage is denied. */}
+}
 export function rememberMiupcAttempt(conversationId:string|null,data:MiupcConnection){
   if(!conversationId||!data.attemptId||!Number.isFinite(data.expiresAt))return;
-  try{sessionStorage.setItem(attemptPrefix+conversationId,JSON.stringify({attemptId:data.attemptId,expiresAt:data.expiresAt}));}catch{/* Optional storage. */}
+  const attempt={attemptId:data.attemptId,expiresAt:data.expiresAt!};memoryAttempts.set(conversationId,attempt);
+  try{sessionStorage.setItem(attemptPrefix+conversationId,JSON.stringify(attempt));}catch{/* Memory fallback. */}
 }
-export function savedMiupcAttempt(conversationId:string|null):{attemptId:string;expiresAt:number}|null{
+export function savedMiupcAttempt(conversationId:string|null):Attempt|null{
   if(!conversationId)return null;
-  try{
-    // Mi UPC verification belongs to the account. Every affected chat can
-    // resume the newest active attempt; each status read remains owner-bound.
-    const attempts=Object.keys(sessionStorage).filter(key=>key.startsWith(attemptPrefix)).flatMap(key=>{
-      try{
-        const data=JSON.parse(sessionStorage.getItem(key)??'null');
-        return data&&typeof data.attemptId==='string'&&/^[0-9a-f-]{36}$/i.test(data.attemptId)&&typeof data.expiresAt==='number'&&Number.isFinite(data.expiresAt)?[{attemptId:data.attemptId,expiresAt:data.expiresAt}]:[];
-      }catch{return [];}
-    });
-    return attempts.sort((a,b)=>b.expiresAt-a.expiresAt)[0]??null;
-  }catch{return null;}
+  // Verification belongs to the account, so every affected chat can resume it.
+  const attempts=[...memoryAttempts.values()];
+  try{for(const key of Object.keys(sessionStorage))if(key.startsWith(attemptPrefix)){
+    try{
+      const data=JSON.parse(sessionStorage.getItem(key)??'null');
+      if(data&&typeof data.attemptId==='string'&&/^[0-9a-f-]{36}$/i.test(data.attemptId)&&typeof data.expiresAt==='number'&&Number.isFinite(data.expiresAt))attempts.push({attemptId:data.attemptId,expiresAt:data.expiresAt});
+    }catch{/* Ignore malformed optional metadata. */}
+  }}catch{/* Retain the in-memory candidates. */}
+  return attempts.sort((a,b)=>b.expiresAt-a.expiresAt)[0]??null;
 }
 export function forgetMiupcAttempt(conversationId:string|null){
-  const attempt=savedMiupcAttempt(conversationId);
-  if(!attempt)return;
+  const attempt=savedMiupcAttempt(conversationId);if(!attempt)return;
+  for(const [id,data] of memoryAttempts)if(data.attemptId===attempt.attemptId)memoryAttempts.delete(id);
   try{for(const key of Object.keys(sessionStorage))if(key.startsWith(attemptPrefix)){
-    try{if(JSON.parse(sessionStorage.getItem(key)??'null')?.attemptId===attempt.attemptId)sessionStorage.removeItem(key);}catch{/* Ignore malformed optional metadata. */}
-  }}catch{/* Optional storage. */}
+    try{if(JSON.parse(sessionStorage.getItem(key)??'null')?.attemptId===attempt.attemptId)sessionStorage.removeItem(key);}catch{/* Ignore malformed metadata. */}
+  }}catch{/* Memory was already cleared. */}
 }

@@ -48,12 +48,13 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     if(popup.current&&(upcRequired||!navigated.current)){try{popup.current.close();}catch{/* Isolated windows may sever the handle. */}popup.current=null;}
     setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setError('');
   },[noticeRevision]);
-  async function request(start:boolean,signal:AbortSignal) {
+  async function request(start:boolean,signal:AbortSignal,allowHistoric=false) {
     const response = await fetch(endpoint,{method:start?'POST':'GET',credentials:'same-origin',cache:'no-store',
       ...(start?{headers:{'content-type':'application/json'},body:'{}'}:{}),
       signal:AbortSignal.any([signal,AbortSignal.timeout(50_000)])});
     if(!response.ok)throw new ConnectionRequestError(response.status===401?'Inicia sesión en Campus para reconectar.':'No pudimos comprobar la conexión. Inténtalo de nuevo.',response.status>=500||[408,429].includes(response.status));
     const data=await response.json();
+    if(allowHistoric&&data?.status==='connected'&&!data.attemptId)return {status:'not_connected'} as MiupcConnection;
     try{return parseMiupcConnection(data);}catch(cause){throw new ConnectionRequestError(cause instanceof Error?cause.message:'No pudimos confirmar esta verificación.',false);}
   }
   function update(data:MiupcConnection,current:number,signal:AbortSignal,attemptId?:string,expiresAt?:number) {
@@ -111,11 +112,13 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
       setError('La conexión está tardando. Seguimos recuperando tu verificación…');timer.current=setTimeout(restore,3000);
     });};restore();
   },[]);
-  async function reconcileStart(signal:AbortSignal){
+  async function reconcileStart(signal:AbortSignal,waitForActive=false){
     const deadline=Date.now()+120_000;
     for(;;){
+      if(waitForActive&&Date.now()>=deadline)return {status:'busy'} as MiupcConnection;
       try{
-        const data=await request(false,AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,deadline-Date.now()))]));
+        const data=await request(false,AbortSignal.any([signal,AbortSignal.timeout(Math.max(1,deadline-Date.now()))]),waitForActive);
+        if(waitForActive&&['busy','not_connected','connected'].includes(data.status))throw new ConnectionRequestError('Hay una conexión en curso.',true);
         if(data.status==='connected')throw new ConnectionRequestError('No pudimos confirmar esta nueva verificación. Vuelve a consultar tus notas o reconecta Mi UPC.',false);
         return data;
       }
@@ -150,6 +153,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
         if(controller.signal.aborted||(cause instanceof ConnectionRequestError&&!cause.retryable))throw cause;
         data=await reconcileStart(controller.signal);
       }
+      if(data.status==='busy')data=await reconcileStart(controller.signal,true);
       if(current!==generation.current||controller.signal.aborted)return;
       if(data.loginUrl&&popup.current&&!popup.current.closed){popup.current.location.replace(data.loginUrl);navigated.current=true;}
       else{popup.current?.close();popup.current=null;}

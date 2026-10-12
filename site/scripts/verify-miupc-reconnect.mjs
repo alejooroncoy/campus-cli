@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 const {outputFiles}=await build({entryPoints:[new URL('../src/scripts/miupc-reconnect.ts',import.meta.url).pathname],bundle:true,platform:'node',format:'esm',write:false});
-const {parseMiupcConnection,rememberMiupcReconnect,hasMiupcReconnectNotice,requiresUpcReconnect,clearMiupcReconnectNotices,rememberMiupcAttempt,savedMiupcAttempt}=await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
+const {parseMiupcConnection,rememberMiupcReconnect,hasMiupcReconnectNotice,requiresUpcReconnect,clearMiupcReconnectNotices,rememberMiupcAttempt,savedMiupcAttempt,forgetMiupcAttempt}=await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
 const attemptId='f56be447-5c2c-4e22-80d8-e5a211bcb6af';
 const pending={status:'pending_login',attemptId,expiresAt:Date.now()+420000,loginUrl:'https://www.browserbase.com/e2e/verify?private=capability'};
 assert.deepEqual(parseMiupcConnection({...pending,cookies:['secret'],contextId:'private-id'}),pending);
@@ -20,5 +20,5 @@ assert.equal(hasMiupcReconnectNotice(attemptId),false);assert.equal(savedMiupcAt
 clearMiupcReconnectNotices();
 assert.equal(hasMiupcReconnectNotice(attemptId),false);assert.equal(sessionStorage.getItem('campus-question'),'Borrador');
 globalThis.sessionStorage={setItem(){throw Error('blocked');},getItem(){throw Error('blocked');},removeItem(){throw Error('blocked');}};
-assert.doesNotThrow(()=>rememberMiupcReconnect(attemptId));assert.equal(hasMiupcReconnectNotice(attemptId),false);
+assert.doesNotThrow(()=>rememberMiupcReconnect(attemptId));assert.equal(hasMiupcReconnectNotice(attemptId),true);rememberMiupcAttempt(attemptId,pending);assert.deepEqual(savedMiupcAttempt(other),{attemptId,expiresAt:pending.expiresAt});forgetMiupcAttempt(other);assert.equal(savedMiupcAttempt(attemptId),null);clearMiupcReconnectNotices();assert.equal(hasMiupcReconnectNotice(attemptId),false);
 console.log('Mi UPC reconnect: trusted URLs, verification identity, private storage and draft preservation passed.');
