@@ -31,6 +31,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   const navigated = useRef(false);
   const generation = useRef(0);
   const observedNotice=useRef(noticeRevision);
+  const uncertainStart=useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const savingDeadline=useRef<number|null>(null);
   const abort = useRef<AbortController | null>(null);
@@ -46,6 +47,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     if((starting||restoring||['pending_login','saving'].includes(connection?.status??''))&&!upcRequired)return;
     generation.current++;if(timer.current)clearTimeout(timer.current);abort.current?.abort();
     accessRequest.current=false;setCheckingAccess(false);restoringRequest.current=false;setRestoring(false);setStarting(false);
+    if(upcRequired&&newNotice&&starting)uncertainStart.current=true;
     if(upcRequired&&newNotice)forgetMiupcAttempt(conversationId);
     if(popup.current&&(upcRequired||!navigated.current)){try{popup.current.close();}catch{/* Isolated windows may sever the handle. */}popup.current=null;}
     setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setError('');
@@ -178,11 +180,18 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
     const current=generation.current;const controller=new AbortController();abort.current=controller;
     try{
       const response=await fetch(endpoint,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.any([controller.signal,AbortSignal.timeout(50_000)])});
-      const data=response.ok?await response.json():null;
+      let data=response.ok?await response.json():null;
       if(current!==generation.current||controller.signal.aborted)return;
       // This checks the live UPC grant, not completion of a Browserbase login.
       // A durable connected flag must never pretend this verification finished.
       if(data&&['connected','not_connected','pending_login','saving'].includes(data.status)){
+        if(uncertainStart.current){
+          if(!['pending_login','saving'].includes(data.status))data=await reconcileStart(controller.signal,true);
+          if(current!==generation.current||controller.signal.aborted)return;
+          const recovered=parseMiupcConnection(data);
+          if(['upc_reconnect_required','reconnect_required'].includes(recovered.status)){update(recovered,current,controller.signal);return;}
+          uncertainStart.current=false;rememberMiupcReconnect(conversationId,false);accessRestored.current();update(recovered,current,controller.signal);return;
+        }
         if(['pending_login','saving'].includes(data.status)){
           // A cancelled POST may still have created a remote login. Once UPC
           // authorization is valid again, discover and resume that same attempt.
