@@ -30,6 +30,7 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   const popup = useRef<Window | null>(null);
   const navigated = useRef(false);
   const generation = useRef(0);
+  const observedNotice=useRef(noticeRevision);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const savingDeadline=useRef<number|null>(null);
   const abort = useRef<AbortController | null>(null);
@@ -41,10 +42,11 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   // Repeated tool notices must keep the current window and poll alive. A new
   // notice can reset a completed/failed card without unmounting an active login.
   useLayoutEffect(()=>{
+    const newNotice=observedNotice.current!==noticeRevision;observedNotice.current=noticeRevision;
     if((starting||restoring||['pending_login','saving'].includes(connection?.status??''))&&!upcRequired)return;
     generation.current++;if(timer.current)clearTimeout(timer.current);abort.current?.abort();
     accessRequest.current=false;setCheckingAccess(false);restoringRequest.current=false;setRestoring(false);setStarting(false);
-    if(upcRequired)forgetMiupcAttempt(conversationId);
+    if(upcRequired&&newNotice)forgetMiupcAttempt(conversationId);
     if(popup.current&&(upcRequired||!navigated.current)){try{popup.current.close();}catch{/* Isolated windows may sever the handle. */}popup.current=null;}
     setConnection(upcRequired?{status:'upc_reconnect_required'}:null);setAccessReady(false);setError('');
   },[noticeRevision]);
