@@ -1,3 +1,6 @@
+export function turnitinLoginReturn(pathname: string, hash: string) {
+  return '/app/turnitin/' + (pathname === '/app/turnitin/' && /^#ti-order-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(hash) ? hash : '');
+}
 type TurnitinLogin = { open: (amountCents?: number) => void };
 const initialized = new WeakMap<HTMLDialogElement, TurnitinLogin>();
 export function setupTurnitinLogin(): TurnitinLogin | null {
@@ -8,6 +11,19 @@ export function setupTurnitinLogin(): TurnitinLogin | null {
   const controller = {
     open(amountCents?: number) {
       if (!dialog.isConnected) return;
+      const returnUrl = turnitinLoginReturn(location.pathname, location.hash);
+      const readingReports = returnUrl.includes('#');
+      const login = dialog.querySelector<HTMLAnchorElement>('[data-ti-google-login]')!;
+      login.href = '/api/app/auth/start?return=' + encodeURIComponent(returnUrl);
+      const title = dialog.querySelector<HTMLElement>('#ti-login-title')!;
+      const description = dialog.querySelector<HTMLElement>('#ti-login-description')!;
+      const note = dialog.querySelector<HTMLElement>('[data-ti-login-note]')!;
+      for (const node of [title, description, note]) node.dataset.defaultText ??= node.textContent!;
+      title.textContent = readingReports ? 'Inicia sesión para ver tus informes.' : title.dataset.defaultText!;
+      description.textContent = readingReports ? 'Tus informes de similitud e IA están en Campus. Entra con la misma cuenta con la que hiciste el pedido.' : description.dataset.defaultText!;
+      note.textContent = readingReports ? 'Volverás directamente a tu revisión para ver o descargar los PDF.' : note.dataset.defaultText!;
+      dialog.querySelector<HTMLElement>('.ti-login-offer')!.hidden = readingReports;
+
       if (amountCents !== undefined) dialog.querySelector<HTMLElement>('[data-ti-login-price]')!.textContent = `S/${amountCents / 100}`;
       if (!dialog.open) dialog.showModal();
       dialog.querySelector<HTMLAnchorElement>('[data-ti-google-login]')?.focus();
