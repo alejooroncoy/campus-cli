@@ -163,3 +163,11 @@
 .ti-order-layout>.ti-admin{margin-top:0}.ti-admin .ti-order>a{min-height:44px;display:inline-flex;align-items:center}
 
 .ti-login-dialog [hidden]{display:none!important}
+
+/* A searchable history, with each pair of reports kept beside its document. */
+.ti-history-tools{margin-bottom:6px}.ti-history-search{display:grid;gap:8px;font-size:12px;font-weight:600;color:#506d7f}.ti-history-search input{width:100%;min-height:46px;border:1px solid #cad9df;border-radius:9px;padding:12px 14px;font:inherit;font-size:14px;font-weight:400;color:#102a3a;background:#f8fbfc;box-sizing:border-box}
+.ti-history-filters{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 12px}.ti-history-filters button{display:flex;align-items:center;gap:8px;min-height:44px;padding:8px 12px;border:1px solid #d4e1e6;border-radius:8px;background:white;color:#506d7f;font:inherit;font-size:12px;cursor:pointer;transition:background-color 180ms ease,border-color 180ms ease}.ti-history-filters button[aria-pressed="true"]{background:#e2f6fb;border-color:#92cdda;color:#102a3a;font-weight:600}.ti-history-filters span{font-size:11px;border-radius:5px;background:#f4f8f8;padding:2px 5px}.ti-history-count{font-size:12px;color:#506d7f;margin:0 0 18px;line-height:1.6}.ti-panel .ti-history-more{display:flex;margin:20px auto 0;min-height:46px;font-size:13px}
+.ti-order-reports{margin-top:16px}.ti-order-reports summary{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;cursor:pointer;border:1px solid #d4e1e6;border-radius:9px;padding:10px 14px;min-height:44px;background:#f8fbfc;font-size:13px;font-weight:600;color:#087f5b}.ti-order-reports summary::-webkit-details-marker{display:none}.ti-order-reports[open] .ti-disclosure:after{display:none}.ti-order-reports .ti-file-grid{margin-top:12px}.ti-order[data-status="processing"] .ti-tag{background:#e2f6fb;color:#14617b}
+@media(hover:hover){.ti-history-filters button:hover{border-color:#92cdda;background:#f4f8f8}.ti-order-reports summary:hover{background:#eaf7f1}}
+@media(max-width:450px){.ti-history-filters{gap:6px}.ti-history-filters button{padding-inline:10px;font-size:11px}.ti-order-reports summary{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.ti-history-filters button{transition:none}}

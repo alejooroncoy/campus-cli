@@ -15,8 +15,20 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
     <p class="ti-status" data-ti-status role="status" aria-live="polite">Comprobando disponibilidad…</p>
     <div class="ti-order-layout">
       <section class="ti-panel ti-reviews" aria-labelledby="ti-my-orders" data-ti-my-orders-panel>
-        <div class="ti-panel-head"><div><h2 id="ti-my-orders">Mis revisiones</h2><p>Abre tus informes de similitud e IA o descarga los PDF.</p></div><button class="app-button app-button--secondary" type="button" data-ti-refresh hidden>Actualizar</button></div>
+        <div class="ti-panel-head"><div><h2 id="ti-my-orders">Mis revisiones</h2><p>Todos tus trabajos, sus estados y los dos informes en un solo lugar.</p></div><button class="app-button app-button--secondary" type="button" data-ti-refresh hidden>Actualizar</button></div>
+        <div class="ti-history-tools" data-ti-history-tools hidden>
+          <label class="ti-history-search">Buscar un trabajo<input type="search" placeholder="Nombre de tu documento" maxlength="180" data-ti-search /></label>
+          <div class="ti-history-filters" role="group" aria-label="Filtrar revisiones por estado">
+            <button type="button" data-ti-filter="all" aria-pressed="true">Todas <span data-ti-count="all">0</span></button>
+            <button type="button" data-ti-filter="completed" aria-pressed="false">Listas <span data-ti-count="completed">0</span></button>
+            <button type="button" data-ti-filter="processing" aria-pressed="false">En revisión <span data-ti-count="processing">0</span></button>
+            <button type="button" data-ti-filter="payment_review" aria-pressed="false">Validando pago <span data-ti-count="payment_review">0</span></button>
+            <button type="button" data-ti-filter="payment_rejected" aria-pressed="false">Pago observado <span data-ti-count="payment_rejected">0</span></button>
+          </div>
+          <p class="ti-history-count" data-ti-history-count role="status" aria-live="polite"></p>
+        </div>
         <div data-ti-orders><p class="ti-muted">Inicia sesión para consultar tus revisiones.</p></div>
+        <button class="app-button app-button--secondary ti-history-more" type="button" data-ti-more hidden>Ver más revisiones</button>
         <p class="ti-muted ti-report-note">El resultado de IA puede mostrar «*%» en lugar de un porcentaje exacto. Encontrarás el resultado disponible dentro de tu informe.</p>
       </section>
 

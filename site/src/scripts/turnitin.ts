@@ -25,6 +25,17 @@ function setupTurnitin() {
   let disposed = false;
   let statuses = new Map<string, string>();
   let poll: ReturnType<typeof setInterval> | undefined;
+  let historyOrders: Order[] = [];
+  let historyFilter = 'all';
+  let historySearch = '';
+  let nextCursor: string | null = null;
+  let historyVersion = 0;
+  let searchTimer: ReturnType<typeof setTimeout> | undefined;
+  let initialLinkHandled = false;
+  let linkUnavailable = false;
+  const openReports = new Set<string>();
+  const more = document.querySelector<HTMLButtonElement>('[data-ti-more]')!;
+  const historyCount = document.querySelector<HTMLElement>('[data-ti-history-count]')!;
   const announce = (message: string, quiet = false) => { status.textContent = message; status.classList.toggle('ti-status--quiet', quiet); };
   async function api(path: string, input?: unknown) {
     const response = await fetch(`/api/app/turnitin/${path}`, { credentials: 'same-origin', cache: 'no-store',
@@ -74,7 +85,8 @@ function setupTurnitin() {
     if (!admin) document.querySelector<HTMLElement>('.ti-report-note')!.hidden = orders.length === 0;
     if (!orders.length) {
       const empty = el('div', '', 'ti-empty');
-      empty.append(el('h3', admin ? 'No hay pedidos pendientes' : 'Tu primera revisión empieza aquí'), el('p', admin ? 'Los pedidos nuevos aparecerán en este panel.' : 'Después de enviar tu trabajo, podrás seguir su estado y abrir o descargar los dos informes.', 'ti-muted'));
+      const filtered = !admin && (historyFilter !== 'all' || Boolean(historySearch));
+      empty.append(el('h3', admin ? 'No hay pedidos pendientes' : filtered ? 'No encontramos revisiones con estos filtros' : 'Tu primera revisión empieza aquí'), el('p', admin ? 'Los pedidos nuevos aparecerán en este panel.' : filtered ? 'Prueba otro nombre o selecciona Todas para ver tus trabajos.' : 'Después de enviar tu trabajo, podrás seguir su estado y abrir o descargar los dos informes.', 'ti-muted'));
       target.append(empty); return;
     }
     for (const order of orders) {
@@ -89,7 +101,17 @@ function setupTurnitin() {
       if (order.status === 'completed') {
         const reports = el('div', '', 'ti-file-grid');
         reports.append(reportCard(order, 'similarity', admin), reportCard(order, 'ai', admin));
-        card.append(reports);
+        if (admin) card.append(reports);
+        else {
+          const details = el('details', '', 'ti-order-reports');
+          details.open = openReports.has(order.id);
+          const summary = el('summary');
+          summary.append(el('span', 'Ver informes de similitud e IA'), el('span', '', 'ti-disclosure'));
+          summary.lastElementChild!.setAttribute('aria-hidden', 'true');
+          details.append(summary, reports);
+          details.ontoggle = () => { if (details.open) openReports.add(order.id); else openReports.delete(order.id); };
+          card.append(details);
+        }
       } else if (!admin) {
         card.append(el('p', order.status === 'payment_rejected' ? 'Revisa la observación del pago antes de solicitar una nueva revisión.' : 'Tus informes de similitud e IA aparecerán aquí cuando la revisión esté lista.', 'ti-muted'));
       }
@@ -131,38 +153,100 @@ function setupTurnitin() {
       target.append(card);
     }
   }
-  async function loadOrders() {
-    if (refreshPending) return;
-    refreshPending = true; refresh.disabled = true;
+  async function loadOrders(append = false, reset = false) {
+    const version = ++historyVersion;
+    refreshPending = true; refresh.disabled = more.disabled = true;
+    more.textContent = append ? 'Cargando…' : 'Ver más revisiones';
+    const query = new URLSearchParams();
+    if (historyFilter !== 'all') query.set('status', historyFilter);
+    if (historySearch) query.set('search', historySearch);
+    if (append && nextCursor) query.set('cursor', nextCursor);
     try {
-      const result = await api('orders');
-      if (disposed) return;
+      const result = await api(`orders?${query}`);
+      if (disposed || version !== historyVersion) return;
       isAdmin = result.admin === true;
       const orders: Order[] = result.orders;
+      // Older pending orders may be outside the first page. Refresh only their
+      // metadata so a completion is visible without collapsing loaded history.
+      if (ordersLoaded && !append && !reset && historyFilter === 'all' && !historySearch) {
+        const olderPending = historyOrders.filter(order => ['payment_review','processing'].includes(order.status) && !orders.some(item => item.id === order.id)).slice(0,3);
+        const updates = await Promise.allSettled(olderPending.map(order => api(`orders/${order.id}`)));
+        if (disposed || version !== historyVersion) return;
+        for (const update of updates) if (update.status === 'fulfilled' && update.value.order) orders.push(update.value.order);
+      }
       if (ordersLoaded && orders.some(order => order.status === 'completed' && statuses.has(order.id) && statuses.get(order.id) !== 'completed'))
         announce('Tus informes ya están listos. Ábrelos en Mis revisiones.');
-      pendingOrders = orders.some(order => ['payment_review', 'processing'].includes(order.status));
-      statuses = new Map(orders.map(order => [order.id, order.status]));
+      for (const order of orders) statuses.set(order.id, order.status);
+      if (!ordersLoaded || reset || (!append && (historyFilter !== 'all' || Boolean(historySearch)))) historyOrders = orders;
+      else {
+        const merged = new Map(historyOrders.map(order => [order.id, order]));
+        for (const order of orders) merged.set(order.id, order);
+        historyOrders = [...merged.values()].sort((a,b) => b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id));
+      }
+      if (!ordersLoaded || reset || append || historyFilter !== 'all' || historySearch) nextCursor = result.nextCursor ?? null;
+      const counts: Record<string, number> = result.counts ?? {
+        all: historyOrders.length, ...Object.fromEntries(Object.keys(labels).map(key => [key, historyOrders.filter(order => order.status === key).length])),
+      };
+      pendingOrders = counts.payment_review > 0 || counts.processing > 0;
+      document.querySelector<HTMLElement>('[data-ti-history-tools]')!.hidden = false;
+      document.querySelectorAll<HTMLElement>('[data-ti-count]').forEach(node => { node.textContent = String(counts[node.dataset.tiCount!] ?? 0); });
+      const total = counts[historyFilter] ?? 0;
+      const updateHistoryCount = () => { historyCount.textContent = `${Math.min(historyOrders.length,total)} de ${total} ${total === 1 ? 'revisión' : 'revisiones'}${historySearch ? ' con este nombre' : ''} · Más recientes primero`; };
+      more.hidden = !nextCursor;
       if (!ordersLoaded) {
         const newOrder = document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!;
-        newOrder.open = orders.length === 0 && !isAdmin;
-        if (!orders.length && !isAdmin) newOrder.parentElement!.prepend(newOrder);
+        newOrder.open = counts.all === 0 && !isAdmin;
+        if (counts.all === 0 && !isAdmin) newOrder.parentElement!.prepend(newOrder);
+        const linkedId = /^#ti-order-([0-9a-f-]{36})$/i.exec(location.hash)?.[1];
+        if (linkedId && !historyOrders.some(order => order.id === linkedId)) {
+          try {
+            const linked = await api(`orders/${linkedId}`);
+            if (disposed || version !== historyVersion) return;
+            if (linked.order) historyOrders.unshift(linked.order);
+          } catch { linkUnavailable = true; }
+        }
+        if (linkedId) openReports.add(linkedId);
       }
       ordersLoaded = true;
-      renderOrders(orders, document.querySelector<HTMLElement>('[data-ti-orders]')!);
+      updateHistoryCount();
+      renderOrders(historyOrders, document.querySelector<HTMLElement>('[data-ti-orders]')!);
       document.querySelector<HTMLElement>('[data-ti-admin]')!.hidden = !isAdmin;
-      if (isAdmin) {
+      if (isAdmin && !append && !reset) {
         const adminOrders = await api('admin/orders');
-        if (disposed) return;
+        if (disposed || version !== historyVersion) return;
         renderOrders(adminOrders.orders, document.querySelector<HTMLElement>('[data-ti-admin-orders]')!, true);
         document.querySelector<HTMLElement>('.ti-order-layout')!.prepend(document.querySelector<HTMLElement>('[data-ti-admin]')!);
       }
-      if (/^#ti-order-[0-9a-f-]{36}$/i.test(location.hash)) document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'center' });
-    } finally { refreshPending = false; refresh.disabled = false; }
+      if (!initialLinkHandled && /^#ti-order-[0-9a-f-]{36}$/i.test(location.hash)) {
+        document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'center' });
+        initialLinkHandled = true;
+      }
+    } finally {
+      if (version === historyVersion) { refreshPending = false; refresh.disabled = more.disabled = false; more.textContent = 'Ver más revisiones'; }
+    }
   }
   refresh.onclick = async () => {
     try { await loadOrders(); announce('Estado actualizado.'); } catch (error) { announce((error as Error).message); }
   };
+  more.onclick = async () => {
+    if (!nextCursor || refreshPending) return;
+    try { await loadOrders(true); } catch (error) { announce((error as Error).message); }
+  };
+  document.querySelectorAll<HTMLButtonElement>('[data-ti-filter]').forEach(button => {
+    button.onclick = () => {
+      historyFilter = button.dataset.tiFilter!;
+      document.querySelectorAll<HTMLButtonElement>('[data-ti-filter]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      void loadOrders(false, true).catch(error => announce(error.message));
+    };
+  });
+  const search = document.querySelector<HTMLInputElement>('[data-ti-search]')!;
+  const searchHistory = () => {
+    clearTimeout(searchTimer);
+    historySearch = search.value.trim();
+    void loadOrders(false, true).catch(error => announce(error.message));
+  };
+  search.oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(searchHistory, 300); };
+  search.addEventListener('search', searchHistory);
   const uploads = setupTurnitinUploads(form, kind => kind === 'document' ? (config?.maxDocumentBytes ?? 10 * 1024 * 1024) : (config?.maxReceiptBytes ?? 5 * 1024 * 1024));
   const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
   const submitText = submit.querySelector<HTMLElement>('[data-ti-submit-text]')!;
@@ -182,11 +266,13 @@ function setupTurnitin() {
       const reviewPanel = document.querySelector<HTMLElement>('[data-ti-my-orders-panel]')!;
       reviewPanel.parentElement!.prepend(reviewPanel);
       reviewPanel.scrollIntoView({ block: 'start' });
-      try { await loadOrders(); } catch { announce('Tu pedido ya fue recibido. Usa Actualizar estado para consultar su avance.'); }
+      historyFilter = 'all'; historySearch = ''; search.value = '';
+      document.querySelectorAll<HTMLButtonElement>('[data-ti-filter]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.tiFilter === 'all')));
+      try { await loadOrders(false, true); } catch { announce('Tu pedido ya fue recibido. Usa Actualizar estado para consultar su avance.'); }
     } catch (error) { showSubmission((error as Error).message); announce((error as Error).message, true); }
     finally { fields.disabled = false; submit.removeAttribute('aria-busy'); submitText.textContent = 'Enviar a revisión'; }
   };
-  const cleanup = () => { disposed = true; clearInterval(poll); };
+  const cleanup = () => { disposed = true; clearInterval(poll); clearTimeout(searchTimer); };
   document.addEventListener('astro:before-swap', cleanup, { once: true });
   window.addEventListener('pagehide', cleanup, { once: true });
   void (async () => {
@@ -211,10 +297,10 @@ function setupTurnitin() {
       await loadOrders();
       // Keep pending customer reviews current without disturbing staff forms.
       poll = setInterval(() => {
-        if (!disposed && pendingOrders && !isAdmin && document.visibilityState === 'visible')
+        if (!disposed && !refreshPending && pendingOrders && !isAdmin && document.visibilityState === 'visible')
           void loadOrders().catch(() => {});
       }, 30000);
-      announce(isAdmin ? 'Revisa los pedidos en Administrar pedidos.' : statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
+      announce(linkUnavailable ? 'No pudimos abrir esa revisión. Comprueba que entraste con la cuenta del pedido.' : isAdmin ? 'Revisa los pedidos en Administrar pedidos.' : statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
     } catch (error) { announce((error as Error).message); }
   })();
 }
