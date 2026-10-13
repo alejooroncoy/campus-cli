@@ -161,3 +161,5 @@
 @media(prefers-reduced-motion:reduce){.ti-submit-action .app-button,.ti-submit-action .app-button>span[aria-hidden],.ti-panel .ti-upload{transition:none}.ti-submit-action .app-button:hover:not(:disabled),.ti-submit-action .app-button:hover:not(:disabled)>span[aria-hidden]{transform:none}}
 
 .ti-order-layout>.ti-admin{margin-top:0}.ti-admin .ti-order>a{min-height:44px;display:inline-flex;align-items:center}
+
+.ti-login-dialog [hidden]{display:none!important}
