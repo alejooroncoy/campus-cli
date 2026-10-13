@@ -6913,6 +6913,69 @@
       ],
       "condition": "Al reparar otra propiedad de una cita secundaria, se sustituye por coma el separador narrativo con fecha original del perfil UPC.",
       "application": "Salvaguarda de aplicación del cliente: consulta el esquema de la modalidad antes de entregar la reparación. La narrativa UPC con fecha original usa punto y coma entre el año original y como se cita en; la parentética usa coma. Mantén responsables, fechas y localizador acreditados de la fuente consultada, y referencia solo la obra efectivamente consultada. Si la fecha original se desconoce, aplica ese supuesto sin inventarla ni extender el separador de un esquema a todos los casos."
+    },
+    {
+      "id": "observation-61",
+      "sectionId": "audio",
+      "classification": "client-evidence-mismatch",
+      "sourceUnitIds": [
+        "s-lg-content-75564471:11"
+      ],
+      "sourceImageIds": [],
+      "criterionRefs": [
+        "audio:5"
+      ],
+      "condition": "Se valora como cumplida una exigencia indebida de URL porque el soporte físico, sin esa exigencia, sería válido.",
+      "application": "Salvaguarda de aplicación del cliente: evalúa la acción declarada, no un control sin el defecto. Si el supuesto impone URL aunque no sea el único medio de recuperación, esa exigencia requiere corrección; el soporte físico puede conservarse sin URL. Distingue de la variante donde el enlace es el único medio de recuperación y no inventes una dirección ausente. Estado, hallazgo y reparación deben referirse al mismo supuesto."
+    },
+    {
+      "id": "observation-62",
+      "sectionId": "audio",
+      "classification": "client-evidence-mismatch",
+      "sourceUnitIds": [
+        "s-lg-content-75564479:3",
+        "s-lg-content-75564474:5"
+      ],
+      "sourceImageIds": [],
+      "criterionRefs": [
+        "audio:4",
+        "audio:5"
+      ],
+      "condition": "Se declara que no hay episodio o anfitrión pese a que el registro aportado los identifica.",
+      "application": "Salvaguarda de aplicación del cliente: lee el registro concreto y sus partes antes de declarar ausencia. Identifica responsable y función, título y número del episodio, serie, fecha y plataforma con su procedencia. No basta copiar el registro entero sin reconocer esos datos. Si el anfitrión está aportado, usa esa identidad al reparar la autoría; conserva los demás campos del episodio y no conviertas la plataforma en autor por alojamiento."
+    },
+    {
+      "id": "observation-63",
+      "sectionId": "personal-communications",
+      "classification": "client-evidence-mismatch",
+      "sourceUnitIds": [
+        "s-lg-content-75572340:2",
+        "s-lg-content-75572340:4",
+        "s-lg-content-75572340:6",
+        "s-lg-content-75572340:8"
+      ],
+      "sourceImageIds": [],
+      "criterionRefs": [
+        "personal-communications:5"
+      ],
+      "condition": "Al restituir responsable, documento o fecha de una atribución privada, se reemplaza el pasaje por un resumen que pierde datos ajenos al defecto.",
+      "application": "Salvaguarda de aplicación del cliente: restaura la atribución del mismo documento dentro del pasaje existente. Conserva las demás oraciones y datos, incluidas cifras, porcentajes, comparación temporal y condiciones. Cambiar atribución no autoriza resumir o modificar las ideas. Puedes indicar el cambio localizado con su texto concreto, sin inventar información ni una referencia recuperable para material irrecuperable."
+    },
+    {
+      "id": "observation-64",
+      "sectionId": "citation-faq",
+      "classification": "client-evidence-mismatch",
+      "sourceUnitIds": [
+        "s-lg-content-75564719:4",
+        "s-lg-content-75564719:5"
+      ],
+      "sourceImageIds": [],
+      "criterionRefs": [
+        "citation-faq:6",
+        "citation-faq:9"
+      ],
+      "condition": "Se descarta la consideración de paráfrasis ante un error confuso porque el ejemplo es una cita textual.",
+      "application": "Salvaguarda de aplicación del cliente: una textual con error es precisamente el objeto de esa condición UPC. Valora el error acreditado y su posible confusión; aplica la pauta de paráfrasis con atribución cuando corresponda. La presencia de sic no vuelve irrelevante esa consideración. Si se conserva una transcripción, no corrijas el original silenciosamente; distingue errores originales de artefactos de extracción. No inventes un localizador ni certifiques fidelidad a una obra no aportada."
     }
   ]
 }
