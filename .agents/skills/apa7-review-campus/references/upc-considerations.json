@@ -6878,6 +6878,41 @@
       ],
       "condition": "Al retirar Anónimo de un supuesto sin firma, la reparación cambia el título, fecha o editorial por los de otro libro.",
       "application": "Salvaguarda de aplicación del cliente: cambia únicamente la atribución que la condición del supuesto modifica y mueve el título de esa misma obra a posición de autor, conservando su formato y demás datos acreditados. No completes la reparación con otro ejemplo de libro sin autor. Si la variante no confirma qué obra conserva o qué datos aporta, formula la corrección condicional y solicita los datos de la obra realmente citada."
+    },
+    {
+      "id": "observation-59",
+      "sectionId": "references",
+      "classification": "client-evidence-mismatch",
+      "sourceUnitIds": [
+        "s-lg-content-75564791:7"
+      ],
+      "sourceImageIds": [
+        "image-14"
+      ],
+      "criterionRefs": [
+        "references:1",
+        "references:2",
+        "references:4"
+      ],
+      "condition": "Se registran datos o propiedades de una imagen como si procedieran de la unidad textual que solo la introduce.",
+      "application": "Salvaguarda de aplicación del cliente, no error de la guía: separa el párrafo introductorio de la imagen inspeccionada. Vincula los datos visuales al sourceImageId, archivo o referencia, huella disponible y panel concreto; reserva sourceUnitId para los datos presentes en esa unidad textual. La imagen suministrada sigue siendo evidencia válida, pero un registro de procedencia incorrecto debe corregirse aunque el hallazgo APA esté sustentado."
+    },
+    {
+      "id": "observation-60",
+      "sectionId": "secondary-citations",
+      "classification": "client-evidence-mismatch",
+      "sourceUnitIds": [
+        "s-lg-content-75564590:3",
+        "s-lg-content-75564590:8"
+      ],
+      "sourceImageIds": [],
+      "criterionRefs": [
+        "secondary-citations:2",
+        "secondary-citations:4",
+        "secondary-citations:5"
+      ],
+      "condition": "Al reparar otra propiedad de una cita secundaria, se sustituye por coma el separador narrativo con fecha original del perfil UPC.",
+      "application": "Salvaguarda de aplicación del cliente: consulta el esquema de la modalidad antes de entregar la reparación. La narrativa UPC con fecha original usa punto y coma entre el año original y como se cita en; la parentética usa coma. Mantén responsables, fechas y localizador acreditados de la fuente consultada, y referencia solo la obra efectivamente consultada. Si la fecha original se desconoce, aplica ese supuesto sin inventarla ni extender el separador de un esquema a todos los casos."
     }
   ]
 }
