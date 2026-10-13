@@ -98,10 +98,12 @@ test('new safeguards reach the relevant MCP sections with their actual source ev
       ['legal-arbitration', ['observation-54']],
       ['video', ['observation-55']],
       ['conferences', ['observation-56']],
-      ['citation-faq', ['observation-57']],
+      ['citation-faq', ['observation-57', 'observation-64']],
       ['reference-faq', ['observation-58']],
       ['references', ['observation-59']],
       ['secondary-citations', ['observation-60']],
+      ['audio', ['observation-61', 'observation-62']],
+      ['personal-communications', ['observation-63']],
     ]);
     for (const [sectionId, ids] of expected) {
       const response = await client.callTool({ name: 'campus_apa7_guidance', arguments: { topic: 'review', reviewSectionId: sectionId } });
@@ -110,7 +112,7 @@ test('new safeguards reach the relevant MCP sections with their actual source ev
       for (const id of ids) {
         const warning = skill.considerations.warnings.find((item: { id: string }) => item.id === id);
         assert.ok(warning, `${sectionId}: ${id}`);
-        if (['observation-56', 'observation-57', 'observation-58', 'observation-59', 'observation-60'].includes(id)) {
+        if (['observation-56', 'observation-57', 'observation-58', 'observation-59', 'observation-60', 'observation-61', 'observation-62', 'observation-63', 'observation-64'].includes(id)) {
           assert.equal(warning.classification, 'client-evidence-mismatch', 'client failures must not be reported as UPC source errors');
         }
         for (const unitId of warning.sourceUnitIds) {

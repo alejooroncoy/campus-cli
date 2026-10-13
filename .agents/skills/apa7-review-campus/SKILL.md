@@ -56,6 +56,11 @@ explica la adaptación institucional y aplica la prioridad indicada.
    fuente, con la unidad, página o panel de donde proceden. Mantén separado ese
    registro de los ejemplos que solo enseñan una regla. Si hay varios pasajes o
    entradas, vuelve al fragmento concreto antes de nombrar su obra o responsable.
+   Copiar el fragmento completo no sustituye identificar sus datos pertinentes.
+   Antes de declarar que falta una identidad, título o modalidad, revisa todas
+   las entradas y partes aportadas del caso. Distingue serie, episodio y plataforma;
+   un registro de episodio con anfitrión permite corregir autoría sin pedir otra
+   identidad ni atribuir la obra a la plataforma que aloja el archivo.
    Si los datos proceden de una imagen, identifica esa imagen o archivo y el panel
    inspeccionado; en el MCP, usa su `sourceImageId` y la huella disponible. Registra
    por separado la unidad de texto que introduce la imagen: esa unidad no contiene
@@ -65,6 +70,11 @@ explica la adaptación institucional y aplica la prioridad indicada.
    de autores y correspondencia con la lista de referencias. Cuenta solo las
    palabras del pasaje citado, excluyendo introducción y atribución. La traducción propia
    sigue las reglas de paráfrasis, no las de cita textual del original.
+   Aplica también la consideración UPC de paráfrasis ante un error textual que
+   pueda confundir. Que el fragmento sea una textual no desactiva esa condición.
+   Valora si el error está acreditado y confunde; distingue reformular la idea
+   con atribución de alterar silenciosamente la transcripción. No agregues sic
+   por un artefacto de extracción ni certifiques fidelidad editorial sin el original.
 4. Comprueba referencias por su tipo real, no solo porque tengan URL. Usa los
    datos de la obra que el estudiante está citando. Si la revisión requiere
    comprobar su exactitud, consulta la obra o registro editorial disponible;
@@ -97,6 +107,11 @@ explica la adaptación institucional y aplica la prioridad indicada.
    Antes de entregar una reparación, coteja sus datos con el registro del mismo
    caso. Conserva los que no cambian por la corrección; un supuesto sin firma
    no autoriza sustituir su libro, año o editorial por los de otro ejemplo.
+   Una reparación de atribución cambia la cita o sus campos, conservando las
+   demás oraciones, cifras, porcentajes, comparaciones temporales y condiciones.
+   No sustituyas el pasaje por un resumen salvo que la tarea requiera reformularlo.
+   Si das una instrucción de cambio localizado, identifica el segmento que se
+   restituye y deja explícito qué contenido del mismo pasaje debe conservarse.
    Si la variante no identifica la obra o el cambio exacto, explica la reparación
    condicional y pide ese dato en lugar de completar una entrada distinta.
    Coteja también la puntuación del perfil que estás aplicando, incluso si la
@@ -109,6 +124,10 @@ explica la adaptación institucional y aplica la prioridad indicada.
    identifica evento contenedor, deja pendiente si era independiente o parte de
    un evento. No uses esa incertidumbre para eliminar un contenedor acreditado
    de otra entrada.
+   Valora la acción concreta declarada y comprueba que estado, hallazgo y reparación
+   sean coherentes. Un soporte válido no vuelve correcta una exigencia indebida
+   sobre ese soporte: distingue la edición física sin URL del supuesto que le
+   impone una URL, y no cambies el supuesto por su control correcto al valorarlo.
 
 ## Formato de los ejemplos y datos de la obra
 
@@ -200,11 +219,12 @@ comportamiento del agente.
 
 Consulta `sourceIssues` y las salvaguardas de la sección antes de corregir: hay
 contrastes de formato, inconsistencias internas y datos que necesitan el original.
-Las 60 observaciones agrupadas se conservan como salvaguardas condicionales;
-no equivalen a 60 errores confirmados. Cinco proceden de fallos de aplicación del
-agente detectados en una revisión independiente: confundir pasajes, inferir una
-modalidad sin evidencia, trasladar datos de otra obra, atribuir a un párrafo datos
-de una imagen y normalizar indebidamente puntuación del perfil UPC. No se atribuyen a la UPC
+Las 64 observaciones agrupadas se conservan como salvaguardas condicionales;
+no equivalen a 64 errores confirmados. Nueve proceden de fallos de aplicación del
+agente detectados en revisiones independientes: identidad del pasaje, modalidad
+sin evidencia, traslado de datos, procedencia visual, puntuación del perfil UPC,
+acción del supuesto, datos aportados ignorados, pérdida de contenido al reparar
+y aplicabilidad de la paráfrasis ante error confuso. No se atribuyen a la UPC
 como reglas nuevas ni como errores de sus ejemplos. La separación aparente C/asación se
 reclasificó como artefacto de extracción. Los ejemplos de la guía no permiten
 certificar los metadatos de otra obra. Explica los
