@@ -1,3 +1,4 @@
+import { setupTurnitinAdmin } from './turnitin-admin';
 import { setupTurnitinUploads } from './turnitin-upload';
 import { setupTurnitinLogin } from './turnitin-login';
 import { setupTurnitinReportViewer, type ReportKind } from './turnitin-report-viewer';
@@ -17,6 +18,7 @@ function setupTurnitin() {
   const fields = document.querySelector<HTMLFieldSetElement>('[data-ti-fields]')!;
   const refresh = document.querySelector<HTMLButtonElement>('[data-ti-refresh]')!;
   let config: Config;
+  let adminPanel: ReturnType<typeof setupTurnitinAdmin> | undefined;
   let requestId = crypto.randomUUID();
   let isAdmin = false;
   let refreshPending = false;
@@ -115,41 +117,6 @@ function setupTurnitin() {
       } else if (!admin) {
         card.append(el('p', order.status === 'payment_rejected' ? 'Revisa la observación del pago antes de solicitar una nueva revisión.' : 'Tus informes de similitud e IA aparecerán aquí cuando la revisión esté lista.', 'ti-muted'));
       }
-      if (admin) {
-        card.append(link(order, 'document', 'Descargar documento', true), link(order, 'receipt', 'Ver comprobante', true));
-        if (order.status === 'payment_review') {
-          const reviewForm = el('form');
-          const noteLabel = el('label','Observación (obligatoria si rechazas el pago)');
-          const note = el('textarea'); note.maxLength = 500; note.rows = 2; noteLabel.append(note);
-          const accept = el('button', 'Confirmar pago', 'app-button'); accept.type = 'button';
-          const reject = el('button', 'Observar pago', 'app-button app-button--secondary'); reject.type = 'button';
-          const review = async (accepted: boolean) => {
-            if (!accepted && note.value.trim().length < 5) { announce('Indica el motivo de la observación.'); note.focus(); return; }
-            accept.disabled = reject.disabled = true;
-            try { await api(`admin/orders/${order.id}/review`, { accepted, note: note.value }); announce('Pedido actualizado.'); await loadOrders(); }
-            catch (error) { announce((error as Error).message); }
-            finally { accept.disabled = reject.disabled = false; }
-          };
-          accept.onclick = () => void review(true); reject.onclick = () => void review(false);
-          reviewForm.append(noteLabel, accept, reject); card.append(reviewForm);
-        }
-        if (order.status === 'processing') {
-          const delivery = el('form');
-          for (const [name, text] of [['similarity','Informe de similitud (PDF)'],['ai','Informe de IA (PDF)']]) {
-            const label = el('label',text); const input = el('input'); input.name = name; input.type = 'file'; input.accept = '.pdf'; input.required = true; label.append(input); delivery.append(label);
-          }
-          const button = el('button', 'Entregar ambos informes', 'app-button'); button.type = 'submit'; delivery.append(button);
-          delivery.onsubmit = async event => {
-            event.preventDefault(); button.disabled = true;
-            try {
-              await api(`admin/orders/${order.id}/complete`, { similarity: await encode(selected(delivery,'similarity'),config.maxDocumentBytes), ai: await encode(selected(delivery,'ai'),config.maxDocumentBytes) });
-              announce('Informes entregados. El cliente ya puede verlos y descargarlos.'); await loadOrders();
-            } catch (error) { announce((error as Error).message); }
-            finally { button.disabled = false; }
-          };
-          card.append(delivery);
-        }
-      }
       target.append(card);
     }
   }
@@ -165,6 +132,11 @@ function setupTurnitin() {
       const result = await api(`orders?${query}`);
       if (disposed || version !== historyVersion) return;
       isAdmin = result.admin === true;
+      if (isAdmin) {
+        document.querySelector<HTMLElement>('.ti-order-head h1')!.textContent = 'Tu mesa de revisiones.';
+        document.querySelector<HTMLElement>('.ti-order-head>p:not(.eyebrow)')!.textContent = 'Gestiona los pagos y entrega los informes desde Campus.';
+        document.querySelector<HTMLElement>('.ti-service-facts')!.hidden = true;
+      }
       const orders: Order[] = result.orders;
       // Older pending orders may be outside the first page. Refresh only their
       // metadata so a completion is visible without collapsing loaded history.
@@ -198,26 +170,28 @@ function setupTurnitin() {
         newOrder.open = counts.all === 0 && !isAdmin;
         if (counts.all === 0 && !isAdmin) newOrder.parentElement!.prepend(newOrder);
         const linkedId = /^#ti-order-([0-9a-f-]{36})$/i.exec(location.hash)?.[1];
-        if (linkedId && !historyOrders.some(order => order.id === linkedId)) {
+        if (linkedId && !isAdmin && !historyOrders.some(order => order.id === linkedId)) {
           try {
             const linked = await api(`orders/${linkedId}`);
             if (disposed || version !== historyVersion) return;
             if (linked.order) historyOrders.unshift(linked.order);
           } catch { linkUnavailable = true; }
         }
-        if (linkedId) openReports.add(linkedId);
+        if (linkedId && !isAdmin) openReports.add(linkedId);
       }
       ordersLoaded = true;
       updateHistoryCount();
       renderOrders(historyOrders, document.querySelector<HTMLElement>('[data-ti-orders]')!);
       document.querySelector<HTMLElement>('[data-ti-admin]')!.hidden = !isAdmin;
       if (isAdmin && !append && !reset) {
-        const adminOrders = await api('admin/orders');
-        if (disposed || version !== historyVersion) return;
-        renderOrders(adminOrders.orders, document.querySelector<HTMLElement>('[data-ti-admin-orders]')!, true);
         document.querySelector<HTMLElement>('.ti-order-layout')!.prepend(document.querySelector<HTMLElement>('[data-ti-admin]')!);
+        if (!adminPanel) {
+          adminPanel = setupTurnitinAdmin({ api, encode, maxDocumentBytes: () => config.maxDocumentBytes, reportCard: (order,kind) => reportCard(order,kind,true) });
+          await adminPanel.refresh();
+        }
+        if (disposed || version !== historyVersion) return;
       }
-      if (!initialLinkHandled && /^#ti-order-[0-9a-f-]{36}$/i.test(location.hash)) {
+      if (!isAdmin && !initialLinkHandled && /^#ti-order-[0-9a-f-]{36}$/i.test(location.hash)) {
         document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'center' });
         initialLinkHandled = true;
       }

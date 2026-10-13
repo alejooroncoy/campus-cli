@@ -1,6 +1,6 @@
 <dialog class="ti-report-dialog" data-ti-report-dialog aria-labelledby="ti-report-title" aria-describedby="ti-report-document">
   <header class="ti-report-header">
-    <div><p>Tu revisión de Turnitin</p><h2 id="ti-report-title" data-ti-report-title>Informe de similitud</h2><p id="ti-report-document" data-ti-report-document></p></div>
+    <div><p data-ti-viewer-context>Tu revisión de Turnitin</p><h2 id="ti-report-title" data-ti-report-title>Informe de similitud</h2><p id="ti-report-document" data-ti-report-document></p></div>
     <button type="button" class="ti-report-close" data-ti-report-close aria-label="Cerrar informe">×</button>
   </header>
   <div class="ti-report-toolbar">
@@ -17,6 +17,7 @@
   </div>
   <div class="ti-pdf-stage" data-ti-pdf-stage tabindex="0" role="region" aria-label="Contenido del informe">
     <canvas data-ti-report-canvas aria-hidden="true" hidden></canvas>
+    <img class="ti-receipt-image" data-ti-preview-image alt="Comprobante de pago" hidden />
     <div class="ti-pdf-text" data-ti-report-text></div>
   </div>
   <footer class="ti-report-footer">
