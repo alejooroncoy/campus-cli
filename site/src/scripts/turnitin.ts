@@ -1,4 +1,5 @@
 import { setupTurnitinLogin } from './turnitin-login';
+import { setupTurnitinReportViewer, type ReportKind } from './turnitin-report-viewer';
 type Order = {
   id: string; amountCents: number; status: string; documentName: string; note: string;
   createdAt: string; paidAt: string | null;
@@ -18,7 +19,12 @@ function setupTurnitin() {
   let requestId = crypto.randomUUID();
   let isAdmin = false;
   let refreshPending = false;
-  const announce = (message: string) => { status.textContent = message; };
+  let ordersLoaded = false;
+  let pendingOrders = false;
+  let disposed = false;
+  let statuses = new Map<string, string>();
+  let poll: ReturnType<typeof setInterval> | undefined;
+  const announce = (message: string, quiet = false) => { status.textContent = message; status.classList.toggle('ti-status--quiet', quiet); };
   async function api(path: string, input?: unknown) {
     const response = await fetch(`/api/app/turnitin/${path}`, { credentials: 'same-origin', cache: 'no-store',
       method: input === undefined ? 'GET' : 'POST',
@@ -45,18 +51,47 @@ function setupTurnitin() {
     anchor.href = `/api/app/turnitin/${admin ? 'admin/' : ''}orders/${order.id}/files/${kind}`;
     anchor.setAttribute('download', ''); return anchor;
   }
+  function reportCard(order: Order, kind: ReportKind, admin: boolean) {
+    const box = el('div', '', 'ti-file-card');
+    box.setAttribute('role', 'group');
+    const title = kind === 'similarity' ? 'Informe de similitud' : 'Informe de IA';
+    box.setAttribute('aria-label', title);
+    box.append(el('span', 'PDF · Disponible', 'ti-file-label'), el('h4', title),
+      el('p', kind === 'similarity' ? 'Consulta las coincidencias de texto y sus fuentes.' : 'Consulta el resultado de detección de escritura con IA.'));
+    const actions = el('div', '', 'ti-file-actions');
+    const view = el('button', 'Ver informe', 'app-button');
+    view.type = 'button';
+    view.setAttribute('aria-label', `Ver ${title.replace('Informe', 'informe')} de ${order.documentName}`);
+    view.onclick = () => setupTurnitinReportViewer()?.open({ id: order.id, documentName: order.documentName, admin }, kind);
+    const download = link(order, kind, 'Descargar PDF ↓', admin);
+    download.className = 'app-button app-button--secondary';
+    download.setAttribute('aria-label', `Descargar ${title.replace('Informe', 'informe')} de ${order.documentName}`);
+    actions.append(view, download); box.append(actions); return box;
+  }
   function renderOrders(orders: Order[], target: HTMLElement, admin = false) {
     target.replaceChildren();
-    if (!orders.length) { target.append(el('p', 'Todavía no hay pedidos.', 'ti-muted')); return; }
+    if (!admin) document.querySelector<HTMLElement>('.ti-report-note')!.hidden = orders.length === 0;
+    if (!orders.length) {
+      const empty = el('div', '', 'ti-empty');
+      empty.append(el('h3', admin ? 'No hay pedidos pendientes' : 'Tu primera revisión empieza aquí'), el('p', admin ? 'Los pedidos nuevos aparecerán en este panel.' : 'Después de enviar tu trabajo, podrás seguir su estado y abrir o descargar los dos informes.', 'ti-muted'));
+      target.append(empty); return;
+    }
     for (const order of orders) {
       const card = el('article', '', 'ti-order');
-      card.id = `ti-order-${order.id}`;
-      card.append(el('h3', order.documentName), el('span', labels[order.status] ?? order.status, 'ti-tag'));
-      card.append(el('p', `${money(order.amountCents)} · ${new Date(order.createdAt).toLocaleString('es-PE', { timeZone: 'America/Lima', dateStyle: 'short', timeStyle: 'short' })}`, 'ti-small'));
-      card.append(el('p', `Pedido ${order.id.slice(0,8)}`, 'ti-small'));
+      card.id = `ti-order-${order.id}`; card.dataset.status = order.status;
+      const head = el('div', '', 'ti-order-heading');
+      head.append(el('h3', order.documentName), el('span', labels[order.status] ?? order.status, 'ti-tag'));
+      card.append(head);
+      card.append(el('p', `${money(order.amountCents)} · ${new Date(order.createdAt).toLocaleString('es-PE', { timeZone: 'America/Lima', dateStyle: 'short', timeStyle: 'short' })} · Pedido ${order.id.slice(0,8)}`, 'ti-small'));
       if (order.note) card.append(el('p', order.note));
       if (order.status === 'processing' && order.paidAt) card.append(el('p', 'Entrega de 10 minutos a 1 hora desde la validación del pago.', 'ti-small'));
-      if (order.status === 'completed') card.append(link(order, 'similarity', 'Descargar similitud ↓', admin), link(order, 'ai', 'Descargar informe de IA ↓', admin));
+      if (order.status === 'completed') {
+        const reports = el('div', '', 'ti-file-grid');
+        reports.append(reportCard(order, 'similarity', admin), reportCard(order, 'ai', admin));
+        card.append(reports);
+      } else if (!admin) {
+        card.append(el('p', order.status === 'payment_rejected' ? 'Revisa la observación del pago antes de solicitar una nueva revisión.' : 'Tus informes de similitud e IA aparecerán aquí cuando la revisión esté lista.', 'ti-muted'));
+      }
       if (admin) {
         card.append(link(order, 'document', 'Descargar documento', true), link(order, 'receipt', 'Ver comprobante', true));
         if (order.status === 'payment_review') {
@@ -85,7 +120,7 @@ function setupTurnitin() {
             event.preventDefault(); button.disabled = true;
             try {
               await api(`admin/orders/${order.id}/complete`, { similarity: await encode(selected(delivery,'similarity'),config.maxDocumentBytes), ai: await encode(selected(delivery,'ai'),config.maxDocumentBytes) });
-              announce('Informes entregados. El cliente ya puede descargarlos.'); await loadOrders();
+              announce('Informes entregados. El cliente ya puede verlos y descargarlos.'); await loadOrders();
             } catch (error) { announce((error as Error).message); }
             finally { button.disabled = false; }
           };
@@ -99,17 +134,42 @@ function setupTurnitin() {
     if (refreshPending) return;
     refreshPending = true; refresh.disabled = true;
     try {
-      const result = await api('orders'); isAdmin = result.admin === true;
-      renderOrders(result.orders, document.querySelector<HTMLElement>('[data-ti-orders]')!);
+      const result = await api('orders');
+      if (disposed) return;
+      isAdmin = result.admin === true;
+      const orders: Order[] = result.orders;
+      if (ordersLoaded && orders.some(order => order.status === 'completed' && statuses.has(order.id) && statuses.get(order.id) !== 'completed'))
+        announce('Tus informes ya están listos. Ábrelos en Mis revisiones.');
+      pendingOrders = orders.some(order => ['payment_review', 'processing'].includes(order.status));
+      statuses = new Map(orders.map(order => [order.id, order.status]));
+      if (!ordersLoaded) {
+        const newOrder = document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!;
+        newOrder.open = orders.length === 0;
+        if (!orders.length) newOrder.parentElement!.prepend(newOrder);
+      }
+      ordersLoaded = true;
+      renderOrders(orders, document.querySelector<HTMLElement>('[data-ti-orders]')!);
       document.querySelector<HTMLElement>('[data-ti-admin]')!.hidden = !isAdmin;
-      if (isAdmin) renderOrders((await api('admin/orders')).orders, document.querySelector<HTMLElement>('[data-ti-admin-orders]')!, true);
+      if (isAdmin) {
+        const adminOrders = await api('admin/orders');
+        if (disposed) return;
+        renderOrders(adminOrders.orders, document.querySelector<HTMLElement>('[data-ti-admin-orders]')!, true);
+      }
       if (/^#ti-order-[0-9a-f-]{36}$/i.test(location.hash)) document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'center' });
     } finally { refreshPending = false; refresh.disabled = false; }
   }
   refresh.onclick = async () => {
     try { await loadOrders(); announce('Estado actualizado.'); } catch (error) { announce((error as Error).message); }
   };
-  form.addEventListener('change', () => { requestId = crypto.randomUUID(); });
+  const fileNames = Array.from(form.querySelectorAll<HTMLElement>('[data-ti-filename]')).map(node => ({ node, initial: node.textContent }));
+  form.addEventListener('change', () => {
+    requestId = crypto.randomUUID();
+    for (const { node, initial } of fileNames) {
+      const file = selected(form, node.dataset.tiFilename!);
+      node.textContent = file?.name ?? initial;
+      node.closest('.ti-upload')?.classList.toggle('ti-upload--selected', Boolean(file));
+    }
+  });
   form.onsubmit = async event => {
     event.preventDefault();
     if (fields.disabled || !form.reportValidity()) return;
@@ -117,16 +177,23 @@ function setupTurnitin() {
     try {
       await api('orders', { requestId, amountCents: config.amountCents, consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
         document: await encode(selected(form,'document'),config.maxDocumentBytes), receipt: await encode(selected(form,'receipt'),config.maxReceiptBytes) });
-      form.reset(); requestId = crypto.randomUUID();
-      announce('Pedido recibido. Tu comprobante está en revisión. Consulta el estado en Mis pedidos.');
+      form.reset(); for (const { node, initial } of fileNames) { node.textContent = initial; node.closest('.ti-upload')?.classList.remove('ti-upload--selected'); } requestId = crypto.randomUUID();
+      announce('Pedido recibido. Tu comprobante está en revisión. Consulta el estado en Mis revisiones.');
+      document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!.open = false;
+      const reviewPanel = document.querySelector<HTMLElement>('[data-ti-my-orders-panel]')!;
+      reviewPanel.parentElement!.prepend(reviewPanel);
+      reviewPanel.scrollIntoView({ block: 'start' });
       try { await loadOrders(); } catch { announce('Tu pedido ya fue recibido. Usa Actualizar estado para consultar su avance.'); }
     } catch (error) { announce((error as Error).message); }
     finally { fields.disabled = false; }
   };
+  const cleanup = () => { disposed = true; clearInterval(poll); };
+  document.addEventListener('astro:before-swap', cleanup, { once: true });
+  window.addEventListener('pagehide', cleanup, { once: true });
   void (async () => {
     try {
       config = await api('config');
-      document.querySelector<HTMLElement>('[data-ti-price]')!.textContent = config.amountCents === 800 ? 'Lanzamiento: S/8 por documento. Regular: S/10.' : 'S/10 por documento.';
+      document.querySelector<HTMLElement>('[data-ti-price]')!.textContent = config.amountCents === 800 ? 'S/8 · Lanzamiento' : `${money(config.amountCents)} por documento`;
       document.querySelector<HTMLElement>('[data-ti-amount]')!.textContent = money(config.amountCents);
       document.querySelector<HTMLElement>('[data-ti-phone]')!.textContent = config.phone;
       document.querySelector<HTMLElement>('[data-ti-holder]')!.textContent = config.holder;
@@ -134,14 +201,21 @@ function setupTurnitin() {
       const response = await fetch('/api/app/session', { credentials: 'same-origin', cache: 'no-store' });
       if (!response.ok) throw new Error('No se pudo comprobar tu sesión.');
       const session = await response.json();
+      if (disposed) return;
       if (!session.authenticated) {
         document.querySelector<HTMLElement>('[data-ti-login]')!.hidden = false;
         announce(config.enabled ? 'Inicia sesión para enviar tu pedido y descargar tus informes.' : 'Los pedidos nuevos están pausados. Inicia sesión para consultar pedidos anteriores.');
         setupTurnitinLogin()?.open(config.amountCents);
         return;
       }
-      await loadOrders(); form.hidden = !config.enabled; refresh.hidden = false;
-      announce(config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.');
+      form.hidden = !config.enabled; refresh.hidden = false;
+      await loadOrders();
+      // Keep pending customer reviews current without disturbing staff forms.
+      poll = setInterval(() => {
+        if (!disposed && pendingOrders && !isAdmin && document.visibilityState === 'visible')
+          void loadOrders().catch(() => {});
+      }, 30000);
+      announce(statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
     } catch (error) { announce((error as Error).message); }
   })();
 }

@@ -56,6 +56,10 @@ explica la adaptación institucional y aplica la prioridad indicada.
    fuente, con la unidad, página o panel de donde proceden. Mantén separado ese
    registro de los ejemplos que solo enseñan una regla. Si hay varios pasajes o
    entradas, vuelve al fragmento concreto antes de nombrar su obra o responsable.
+   Si los datos proceden de una imagen, identifica esa imagen o archivo y el panel
+   inspeccionado; en el MCP, usa su `sourceImageId` y la huella disponible. Registra
+   por separado la unidad de texto que introduce la imagen: esa unidad no contiene
+   los autores, títulos ni propiedades visuales que solo muestra la imagen.
 3. Distingue cita textual, paráfrasis, traducción propia y contenido generado con
    IA. Comprueba autor, año, localizador cuando corresponda, puntuación, cantidad
    de autores y correspondencia con la lista de referencias. Cuenta solo las
@@ -95,6 +99,12 @@ explica la adaptación institucional y aplica la prioridad indicada.
    no autoriza sustituir su libro, año o editorial por los de otro ejemplo.
    Si la variante no identifica la obra o el cambio exacto, explica la reparación
    condicional y pide ese dato en lugar de completar una entrada distinta.
+   Coteja también la puntuación del perfil que estás aplicando, incluso si la
+   reparación solicitada cambia solo otra propiedad. En la cita secundaria
+   narrativa UPC con fecha original, el año original y «como se cita en» se
+   separan mediante punto y coma; en la parentética se usa coma. No sustituyas
+   esa distinción por un formato genérico. Conserva el localizador de la fuente
+   consultada cuando el pasaje textual lo requiere.
    La ausencia de un campo no demuestra una modalidad: si una conferencia no
    identifica evento contenedor, deja pendiente si era independiente o parte de
    un evento. No uses esa incertidumbre para eliminar un contenedor acreditado
@@ -190,10 +200,11 @@ comportamiento del agente.
 
 Consulta `sourceIssues` y las salvaguardas de la sección antes de corregir: hay
 contrastes de formato, inconsistencias internas y datos que necesitan el original.
-Las 58 observaciones agrupadas se conservan como salvaguardas condicionales;
-no equivalen a 58 errores confirmados. Tres proceden de fallos de aplicación del
+Las 60 observaciones agrupadas se conservan como salvaguardas condicionales;
+no equivalen a 60 errores confirmados. Cinco proceden de fallos de aplicación del
 agente detectados en una revisión independiente: confundir pasajes, inferir una
-modalidad sin evidencia y trasladar datos de otra obra. No se atribuyen a la UPC
+modalidad sin evidencia, trasladar datos de otra obra, atribuir a un párrafo datos
+de una imagen y normalizar indebidamente puntuación del perfil UPC. No se atribuyen a la UPC
 como reglas nuevas ni como errores de sus ejemplos. La separación aparente C/asación se
 reclasificó como artefacto de extracción. Los ejemplos de la guía no permiten
 certificar los metadatos de otra obra. Explica los

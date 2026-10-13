@@ -1,45 +1,67 @@
 ---
 import AppShell from '../../../layouts/AppShell.astro';
 import TurnitinLogin from '../../../components/TurnitinLogin.astro';
+import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro';
 ---
 <AppShell title="Informes de Turnitin" active="turnitin">
   <link rel="stylesheet" href="/turnitin.css" />
   <div class="ti-order-shell">
     <header class="ti-order-head">
       <p class="eyebrow">Campus · Turnitin</p>
-      <h1>Revisa tu trabajo antes de entregar.</h1>
-      <p>Informes de similitud y detección de escritura con IA. Entrega de 10 minutos a 1 hora después de validar el pago. <a href="/turnitin/">Ver detalles del servicio →</a></p>
+      <h1>Tu trabajo, listo para revisar.</h1>
+      <p>Solicita tus informes de similitud e IA y consúltalos aquí.</p>
+      <div class="ti-service-facts"><span>Dos informes PDF</span><span>10 min a 1 h después de validar el pago</span><a href="/turnitin/">Detalles del servicio ↗</a></div>
     </header>
     <p class="ti-status" data-ti-status role="status" aria-live="polite">Comprobando disponibilidad…</p>
-    <div class="ti-order-grid">
-      <section class="ti-panel">
-        <h2>Solicitar una revisión</h2>
-        <p class="ti-muted" data-ti-price>Precio de lanzamiento: S/8 por documento. Regular: S/10.</p>
+    <div class="ti-order-layout">
+      <section class="ti-panel ti-reviews" aria-labelledby="ti-my-orders" data-ti-my-orders-panel>
+        <div class="ti-panel-head"><div><h2 id="ti-my-orders">Mis revisiones</h2><p>Abre tus informes de similitud e IA o descarga los PDF.</p></div><button class="app-button app-button--secondary" type="button" data-ti-refresh hidden>Actualizar</button></div>
+        <div data-ti-orders><p class="ti-muted">Inicia sesión para consultar tus revisiones.</p></div>
+        <p class="ti-muted ti-report-note">El resultado de IA puede mostrar «*%» en lugar de un porcentaje exacto. Encontrarás el resultado disponible dentro de tu informe.</p>
+      </section>
+
+      <details class="ti-panel ti-new-order" data-ti-new-order open>
+        <summary><span class="ti-summary-title"><span>Solicitar una revisión</span><span class="ti-new-order-hint">Tu documento y comprobante, en un solo envío.</span></span><span class="ti-price-badge" data-ti-price>S/8 · Lanzamiento</span><span class="ti-disclosure" aria-hidden="true"></span></summary>
+        <div class="ti-new-order-body">
         <p data-ti-login hidden><a href="/api/app/auth/start?return=/app/turnitin/" data-ti-open-login>Revisar mi trabajo: iniciar sesión →</a></p>
         <form data-ti-form hidden>
           <fieldset data-ti-fields style="border:0;padding:0;margin:0">
-            <label>1. Elige tu documento<input name="document" type="file" accept=".pdf,.docx" required /></label>
-            <p class="ti-muted">PDF con texto seleccionable o Word (.docx), hasta 10 MB. Para IA: entre 300 y 30 000 palabras de prosa.</p>
-            <div class="ti-payment">
-              <p>2. Paga por Yape o Plin</p>
-              <strong data-ti-amount>S/8</strong>
-              <dl><dt>Número</dt><dd data-ti-phone>—</dd><dt>Titular</dt><dd data-ti-holder>—</dd></dl>
-              <p class="ti-muted">Verifica el titular en tu aplicación antes de pagar.</p>
+            <div class="ti-submit-grid">
+              <section class="ti-step" aria-labelledby="ti-document-title">
+                <h3 id="ti-document-title"><span class="ti-step-number">1</span> Sube tu trabajo</h3>
+                <p class="ti-muted">Elige el documento que deseas revisar.</p>
+                <label class="ti-upload">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+                  <span class="ti-upload-title" id="ti-document-label">Seleccionar documento</span>
+                  <span class="ti-upload-name" data-ti-filename="document">PDF o Word (.docx) · Hasta 10 MB</span>
+                  <input name="document" type="file" accept=".pdf,.docx" aria-labelledby="ti-document-label" aria-describedby="ti-document-help" required />
+                </label>
+                <p class="ti-field-help" id="ti-document-help">El PDF debe tener texto seleccionable. Para el informe de IA: entre 300 y 30 000 palabras de prosa.</p>
+              </section>
+              <section class="ti-step" aria-labelledby="ti-payment-title">
+                <h3 id="ti-payment-title"><span class="ti-step-number">2</span> Paga y adjunta el comprobante</h3>
+                <div class="ti-payment">
+                  <div class="ti-payment-top"><span>Yape o Plin · Por documento</span><strong data-ti-amount>S/8</strong></div>
+                  <dl><div><dt>Número de celular</dt><dd data-ti-phone>—</dd></div><div><dt>Titular</dt><dd data-ti-holder>—</dd></div></dl>
+                  <p class="ti-field-help">Verifica el titular antes de pagar. Precio regular: S/10.</p>
+                </div>
+                <label class="ti-upload ti-upload--receipt">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M4 16v4h16v-4"/></svg>
+                  <span><span class="ti-upload-title" id="ti-receipt-label">Adjuntar comprobante</span><span class="ti-upload-name" data-ti-filename="receipt">PNG, JPG o PDF · Hasta 5 MB</span></span>
+                  <input name="receipt" type="file" accept=".png,.jpg,.jpeg,.pdf" aria-labelledby="ti-receipt-label" required />
+                </label>
+              </section>
             </div>
-            <label>Comprobante de pago<input name="receipt" type="file" accept=".png,.jpg,.jpeg,.pdf" required /></label>
-            <p class="ti-muted">PNG, JPG o PDF, hasta 5 MB. Revisaremos el comprobante antes de procesar el documento.</p>
-            <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo que Campus procese este documento con Turnitin para entregar los informes. He leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
-            <button class="app-button" type="submit">3. Enviar documento y comprobante</button>
+            <div class="ti-submit-footer">
+            <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo la revisión de mi documento con Turnitin y he leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
+            <div class="ti-submit-action"><p class="ti-field-help">Recibirás ambos informes aquí cuando estén listos.</p><button class="app-button" type="submit">Enviar a revisión <span aria-hidden="true">→</span></button></div>
+            </div>
           </fieldset>
         </form>
         <noscript>Activa JavaScript para enviar tu documento y consultar los informes.</noscript>
-      </section>
-      <section class="ti-panel" aria-labelledby="ti-my-orders">
-        <h2 id="ti-my-orders">Mis pedidos</h2>
-        <button class="app-button app-button--secondary" type="button" data-ti-refresh hidden>Actualizar estado</button>
-        <div data-ti-orders><p class="ti-muted">Inicia sesión para consultar tus pedidos.</p></div>
-        <p class="ti-muted">Cuando el pedido esté listo, podrás descargar los dos informes aquí. Turnitin puede mostrar «*%» en el análisis de IA en lugar de un porcentaje exacto.</p>
-      </section>
+        </div>
+      </details>
+
     </div>
     <section class="ti-panel ti-admin" data-ti-admin hidden>
       <h2>Administrar pedidos</h2>
@@ -48,5 +70,6 @@ import TurnitinLogin from '../../../components/TurnitinLogin.astro';
     </section>
   </div>
   <TurnitinLogin />
+  <TurnitinReportViewer />
   <script src="../../../scripts/turnitin.ts"></script>
 </AppShell>
