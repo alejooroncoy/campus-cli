@@ -839,6 +839,34 @@ export default function ProfesChat() {
     }
   }, [messages.length, busy]);
 
+  const balanceRetryPending = useRef(false);
+  const [balanceRetrying, setBalanceRetrying] = useState(false);
+  function applyAccessSession(session: CampusSession) {
+        setSession(session);
+        setUsage(session.usage);
+        setAuthenticated(session.authenticated);
+        setPlan(session.plan ?? (session.authenticated ? "free" : "anon"));
+
+        if (!session.authenticated) {
+          const guestRemaining = session.usage?.remaining ?? 5;
+          setAccess(!session.aiReady ? "unavailable" : guestRemaining > 0 ? "ready" : "guest_limit");
+          setAccessNote(!session.aiReady ? "Campus no está disponible por ahora." : "");
+        } else {
+          setAccess(!session.universityConfirmed ? "setup" : !session.profesAvailable ? "unsupported" : !session.accessUnavailable && session.aiReady ? "ready" : "unavailable");
+          setAccessNote(session.universityConfirmed && !session.profesAvailable
+            ? "Campus tiene cobertura para UPC por ahora. Tu universidad ya quedó registrada."
+            : session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
+        }
+  }
+  async function retryAccess() {
+    if (balanceRetryPending.current) return;
+    balanceRetryPending.current = true;
+    setBalanceRetrying(true);
+    try { applyAccessSession(await getCampusSession(true)); }
+    catch { setAccessNote("No pudimos comprobar tu saldo. Inténtalo de nuevo."); }
+    finally { balanceRetryPending.current = false; setBalanceRetrying(false); }
+  }
+
   useEffect(() => {
     try { setInput(sessionStorage.getItem("campus-question") ?? ""); } catch { /* Private browsing may deny storage. */ }
     try { setUpcHintDismissed(sessionStorage.getItem(upcHintDismissedKey) === "1"); } catch { /* The hint still works without storage. */ }
@@ -875,21 +903,7 @@ export default function ProfesChat() {
     getCampusSession()
       .then(async session => {
         if (!mounted) return;
-        setSession(session);
-        setUsage(session.usage);
-        setAuthenticated(session.authenticated);
-        setPlan(session.plan ?? (session.authenticated ? "free" : "anon"));
-
-        if (!session.authenticated) {
-          const guestRemaining = session.usage?.remaining ?? 5;
-          setAccess(!session.aiReady ? "unavailable" : guestRemaining > 0 ? "ready" : "guest_limit");
-          setAccessNote(!session.aiReady ? "Profes no está disponible por ahora." : "");
-        } else {
-          setAccess(!session.universityConfirmed ? "setup" : !session.profesAvailable ? "unsupported" : session.aiReady ? "ready" : "unavailable");
-          setAccessNote(session.universityConfirmed && !session.profesAvailable
-            ? "Profes tiene cobertura para UPC por ahora. Tu universidad ya quedó registrada."
-            : !session.aiReady ? "Profes no está disponible por ahora." : "");
-        }
+        applyAccessSession(session);
         // The URL decides which chat is open; /profes/ always starts a new chat.
         // History metadata must never block or re-open the messages that just loaded.
         try {
@@ -1267,8 +1281,8 @@ export default function ProfesChat() {
           : `${usage.remaining} de 5 consultas de prueba restantes`
         : "5 consultas de prueba gratis"
       : plan === "plus"
-        ? usage ? `${usage.remaining} consultas disponibles hoy` : "Campus Plus"
-        : usage ? `${usage.remaining} de ${usage.limit} consultas disponibles` : "Campus Free";
+        ? usage ? `${usage.remaining} consultas disponibles hoy` : "Campus"
+        : usage ? `${usage.remaining} de ${usage.limit} consultas disponibles` : "Campus";
 
   const studentName = session
     ? formatStudentName(session.authenticated ? session.banner?.fullName || session.email?.split("@")[0] || "" : "")
@@ -1341,7 +1355,7 @@ export default function ProfesChat() {
             {historyContent}
           </div>
         </dialog>
-    <section className={`app-profes-ai${messages.length || currentConversationId ? " has-messages" : ""}${isGuestLimit ? " is-guest-limited" : ""}`} aria-label="Asistente de Profes y cursos">
+    <section className={`app-profes-ai${messages.length || currentConversationId ? " has-messages" : ""}${isGuestLimit ? " is-guest-limited" : ""}`} aria-label="Asistente de Campus">
 
       {/* Top Toolbar for Profes */}
       <div className="app-profes-toolbar">
@@ -1550,7 +1564,7 @@ export default function ProfesChat() {
       ) : (
         <div className="app-profes-ai__composer-dock">
           <form className="app-profes-ai__composer" onSubmit={submit}>
-            <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta sobre profesores o tus cursos</label>
+            <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta a Campus</label>
             <textarea
               id="profes-message"
               ref={textarea}
@@ -1579,6 +1593,7 @@ export default function ProfesChat() {
             </div>
           </form>
           <p className="app-profes-ai__composer-hint">{hint}</p>
+          {session?.accessUnavailable ? <button type="button" className="app-profes-ai__older-messages" onClick={() => { void retryAccess(); }} disabled={busy || balanceRetrying}>{balanceRetrying ? "Comprobando saldo…" : "Reintentar saldo"}</button> : null}
         </div>
       )}
 

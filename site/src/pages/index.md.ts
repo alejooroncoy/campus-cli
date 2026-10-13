@@ -14,11 +14,11 @@ export const GET: APIRoute = () => {
   const markdown = [
     "# Campus",
     "",
-    "> Campus Plus reúne Campus Profes, horarios para tu matrícula y Blackboard UPC conectado para asistentes de IA. Más de 350 estudiantes ya se han ayudado con Campus Profes.",
+    "> Campus conecta tus cursos, tareas, notas y profesores con el asistente web o tu IA mediante MCP: una cuenta y un plan. Más de 350 estudiantes ya se han ayudado con Campus.",
     "",
     "Fuente: https://campuscli.com/",
     "Campus CLI: https://campuscli.com/campus-cli/",
-    "Campus Profes: https://campuscli.com/profes/",
+    "Opiniones de profesores: https://campuscli.com/profes/",
     "Texto completo del sitio: https://campuscli.com/llms-full.txt",
     "",
     "---",

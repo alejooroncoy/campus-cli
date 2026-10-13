@@ -80,7 +80,7 @@ function applyAccountUI(profile: UIProfileCache | null): void {
     element.hidden = !profile?.authenticated;
   });
   const upgradeLabel = document.querySelector<HTMLElement>("[data-app-sidebar-upgrade-label]");
-  if (upgradeLabel) upgradeLabel.textContent = profile?.plan === "plus" ? "Ver Campus Plus" : "Mejorar a Plus";
+  if (upgradeLabel) upgradeLabel.textContent = "Ver mi plan";
 
   if (profile?.authenticated) {
     // Sidebar User Trigger
@@ -102,15 +102,14 @@ function applyAccountUI(profile: UIProfileCache | null): void {
     if (menuLogin) menuLogin.hidden = true;
 
     // Show the actual available balance, including welcome credits.
-    const isPlus = profile.plan === "plus";
-    if (planTitle) planTitle.textContent = isPlus ? "Campus Plus" : "Campus Free";
-    if (planDesc) planDesc.textContent = typeof profile.remaining === "number"
+    if (planTitle) planTitle.textContent = "Campus";
+    if (planDesc) planDesc.textContent = profile.accessUnavailable ? "Saldo temporalmente no disponible" : typeof profile.remaining === "number"
       ? `${profile.remaining} consultas disponibles${profile.period === "day" ? " hoy" : ""}`
       : "Consultas disponibles";
     if (planBtn) {
-      planBtn.href = isPlus ? "/app/perfil/" : "/#plan-plus";
+      planBtn.href = "/app/perfil/";
       const btnSpan = planBtn.querySelector("span");
-      if (btnSpan) btnSpan.textContent = isPlus ? "Ver mi plan" : "Ver Campus Plus";
+      if (btnSpan) btnSpan.textContent = "Ver mi plan";
     }
   } else {
     // Sidebar User Trigger
@@ -197,8 +196,12 @@ function initPage() {
 
     document.querySelectorAll("[data-app-plan]").forEach(el => {
       el.textContent = value.authenticated
-        ? value.plan === "plus" ? "Campus Plus (100/día)" : "Campus Free (25 consultas)"
+        ? value.accessUnavailable ? "Campus · Saldo no disponible" : value.plan === "plus" ? "Campus · Acceso activo (100/día)" : "Campus · Acceso gratuito (25 consultas)"
         : el.tagName === "A" ? "Iniciar sesión" : "Prueba gratis (5 consultas)";
+    });
+
+    document.querySelectorAll<HTMLElement>("[data-app-activate]").forEach(el => {
+      el.hidden = !value.authenticated || value.plan === "plus" || value.accessBlocked === true || value.accessUnavailable === true;
     });
 
     const email = document.querySelector("[data-app-email]");
@@ -210,7 +213,7 @@ function initPage() {
     const coverage = document.querySelector<HTMLElement>("[data-app-profile-coverage]");
     if (coverage) coverage.hidden = !value.universityConfirmed || value.profesAvailable !== false;
     const usage = document.querySelector("[data-app-usage]");
-    if (usage) usage.textContent = value.usage ? `${value.usage.remaining} de ${value.usage.limit} consultas disponibles${value.usage.period === "day" ? " hoy" : " en tu prueba"}.` : "5 consultas de prueba gratis disponibles.";
+    if (usage) usage.textContent = value.accessUnavailable ? "No pudimos comprobar tu saldo. Puedes volver a intentarlo sin iniciar sesión." : value.usage ? `${value.usage.remaining} de ${value.usage.limit} consultas disponibles${value.usage.period === "day" ? " hoy" : " en tu prueba"}.` : "5 consultas de prueba gratis disponibles.";
     const bannerStatus = document.querySelector<HTMLElement>("[data-app-banner-status]");
     if (bannerStatus) {
       if (value.banner?.connected) {
@@ -247,6 +250,7 @@ function initPage() {
         subTitle,
         bannerConnected: !!value.banner?.connected,
         plan: value.plan,
+        accessUnavailable: value.accessUnavailable,
         remaining: value.usage?.remaining,
         period: value.usage?.period,
       };

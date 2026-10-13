@@ -12,13 +12,11 @@ const schemas = [
     "alternateName": [
       "Campus CLI",
       "campus-cli",
-      "blackboard-cli",
-      "Campus Profes",
-      "Campus Plus"
+      "blackboard-cli"
     ],
     "url": "https://campuscli.com/",
     "logo": "https://campuscli.com/assets/campus-logo.webp",
-    "description": "Campus Plus reúne herramientas para estudiantes universitarios en Perú: profesores y horarios para la matrícula, y conexión directa de Blackboard UPC con asistentes de IA.",
+    "description": "Campus reúne herramientas para estudiantes universitarios en Perú: profesores y horarios para la matrícula, y conexión directa de Blackboard UPC con asistentes de IA.",
     "disambiguatingDescription": "No confundir con el paquete `campus-cli` de PyPI (Python, gestión de notebooks Jupyter) ni con otras plataformas de IA para estudiantes con nombres similares (CampusCode, Campus AI).",
     "sameAs": [
       "https://github.com/alejooroncoy/campus-cli"
@@ -50,14 +48,14 @@ const schemas = [
   {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": "Campus Plus",
+    "name": "Campus",
     "itemListElement": [
       {
         "@type": "ListItem",
         "position": 1,
-        "name": "Matrícula con Campus Profes",
-        "description": "Compara profesores, horarios, NRC, sedes y cupos antes de matricularte.",
-        "url": "https://campuscli.com/campus-cli/"
+        "name": "Asistente de Campus",
+        "description": "Consulta profesores, notas actuales y cuánto necesitas para aprobar.",
+        "url": "https://campuscli.com/app/profes/"
       },
       {
         "@type": "ListItem",
@@ -74,10 +72,10 @@ const schemas = [
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "¿Qué incluye Campus Plus?",
+        "name": "¿Qué incluye Campus?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Campus Plus reúne Campus Profes y horarios para la matrícula, junto con la conexión de Campus CLI a Blackboard UPC para cursos, tareas, notas y anuncios."
+          "text": "Campus ofrece el asistente web y el conector MCP para tu IA con una sola cuenta, plan y saldo de consultas."
         }
       },
       {
@@ -90,10 +88,10 @@ const schemas = [
       },
       {
         "@type": "Question",
-        "name": "¿Cuánto cuesta Campus Plus?",
+        "name": "¿Cuánto cuesta Campus?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "El acceso fundador a Campus Plus cuesta S/5 el primer mes para los estudiantes que se unan al relanzamiento."
+          "text": "El acceso fundador a Campus cuesta S/5 el primer mes para los estudiantes que se unan al relanzamiento."
         }
       },
       {
@@ -110,13 +108,13 @@ const schemas = [
 ---
 
 <Base
-  title={"Campus Plus | Profes, horarios y Blackboard UPC con IA"}
-  description={"Compara profesores y horarios con Campus Profes y consulta tareas y notas de Blackboard UPC con IA. Más de 350 estudiantes ayudados. Conoce Campus Plus."}
+  title={"Campus | Tu universidad, en una conversación"}
+  description={"Compara profesores y horarios con Campus y consulta tareas y notas de Blackboard UPC con IA. Más de 350 estudiantes ayudados. Conoce Campus."}
   canonical={"https://campuscli.com/"}
   markdownUrl={"https://campuscli.com/index.md"}
-  ogTitle={"Campus Plus | Tu matrícula y tu ciclo, con Campus"}
-  ogDescription={"Profes, horarios y Blackboard UPC conectado. Más de 350 estudiantes ya se han ayudado con Campus Profes."}
-  ogImageAlt={"Campus Plus: matrícula, horarios y Blackboard UPC"}
+  ogTitle={"Campus | Tu matrícula y tu ciclo, con Campus"}
+  ogDescription={"Profes, horarios y Blackboard UPC conectado. Más de 350 estudiantes ya se han ayudado con Campus."}
+  ogImageAlt={"Campus: matrícula, horarios y Blackboard UPC"}
   schemas={schemas}
 >
   <Fragment set:html={body} />
