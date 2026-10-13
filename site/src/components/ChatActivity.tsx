@@ -23,13 +23,18 @@ export function appendActivity(steps: string[], activity: string): string[] {
   return [...steps, activity].slice(-30);
 }
 
-export default function ChatActivity({ steps, busy, interrupted = false }: {
-  steps: string[]; busy: boolean; interrupted?: boolean;
+export default function ChatActivity({ steps, busy, interrupted = false, expanded = false, onExpandedChange }: {
+  steps: string[]; busy: boolean; interrupted?: boolean; expanded?: boolean; onExpandedChange?: (expanded: boolean) => void;
 }) {
   const current = steps.at(-1) ?? "connecting";
   const label = busy ? activityLabels[current] : interrupted ? "Consulta interrumpida" : "Consulta finalizada";
   return (
-    <details className="app-chat-activity" aria-label="Actividad de Campus">
+    <details className="app-chat-activity" aria-label="Actividad de Campus" open={expanded} onToggle={event => {
+      onExpandedChange?.(event.currentTarget.open);
+      if (event.currentTarget.open) event.currentTarget.scrollIntoView({
+        block: "nearest", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      });
+    }}>
       <summary>
         <span className="app-profes-ai__thinking-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><use href="/assets/lucide.svg#book-open" /></svg>

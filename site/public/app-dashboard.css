@@ -1806,6 +1806,7 @@ button:disabled {
 }
 .app-chat-activity {
   margin-bottom: 12px;
+  scroll-margin-block: 80px 180px;
   max-width: 100%;
   color: var(--app-muted);
   font-size: 13px;
@@ -1831,7 +1832,7 @@ button:disabled {
 .app-chat-activity ol {
   margin: 8px 0 0 11px;
   padding: 0 0 0 20px;
-  border-left: 1px solid var(--app-border);
+  border-left: 1px solid var(--app-line);
   list-style: none;
 }
 .app-chat-activity li {

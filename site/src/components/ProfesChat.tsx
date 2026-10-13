@@ -680,6 +680,7 @@ export default function ProfesChat() {
   const [input, setInput] = useState("");
   const [usage, setUsage] = useState<CampusSession["usage"]>();
   const [activitySteps, setActivitySteps] = useState<string[]>([]);
+  const [activityExpanded, setActivityExpanded] = useState(false);
   const [miupcReconnectRequired,setMiupcReconnectRequired] = useState(false);
   const [miupcReconnectConversationId,setMiupcReconnectConversationId] = useState<string|null>(null);
   const [miupcReconnectRevision,setMiupcReconnectRevision] = useState(0);
@@ -1026,6 +1027,7 @@ export default function ProfesChat() {
     if (isGuestLimit) { window.location.assign(loginUrl); return; }
     if (access === "setup") { window.location.assign("/app/perfil/?universidad=pendiente"); return; }
     setActivitySteps(["connecting"]);
+    setActivityExpanded(false);
     setInput("");
     try { await sendMessage({ text: question }); }
     catch (err: any) {
@@ -1117,6 +1119,7 @@ export default function ProfesChat() {
     setCurrentConversationId(null);
     setMessages([]);
     setActivitySteps([]);
+    setActivityExpanded(false);
     setHasOlderMessages(false);
     olderMessagesCursor.current = null;
     restoreScrollAfterLoad.current = 0;
@@ -1150,6 +1153,7 @@ export default function ProfesChat() {
       else scrollToLatestAfterLoad.current = true;
       setMessages(snapshot ? snapshot.messages : toUIMessages(page!.messages));
       setActivitySteps([]);
+      setActivityExpanded(false);
       const nextUrl = `/app/profes/c/${id}/`;
       if (updateUrl && window.location.pathname !== nextUrl) window.history.pushState({ ...window.history.state, campusConversation: id }, "", nextUrl);
       setHistoryOpen(false);
@@ -1419,7 +1423,7 @@ export default function ProfesChat() {
           </div>
           {messages.map(message => (
             <article className={`app-profes-ai__message app-profes-ai__message--${message.role}`} key={message.id}>
-              {!busy && message.role === "assistant" && message.id === messages.at(-1)?.id && activitySteps.length > 0 ? <ChatActivity steps={activitySteps} busy={false} /> : null}
+              {!busy && message.role === "assistant" && message.id === messages.at(-1)?.id && activitySteps.length > 0 ? <ChatActivity steps={activitySteps} busy={false} expanded={activityExpanded} onExpandedChange={setActivityExpanded} /> : null}
               {message.role === "assistant" ? <span className="app-profes-ai__speaker">Campus</span> : null}
               {message.role === "assistant" ? (
                 <AssistantMessageContent
@@ -1433,7 +1437,7 @@ export default function ProfesChat() {
             </article>
           ))}
           {authenticated && miupcReconnectRequired && miupcReconnectConversationId===currentConversationId ? <MiupcReconnect key={currentConversationId} freshNotice={freshMiupcNotice.current===currentConversationId} onNoticeSeen={()=>{freshMiupcNotice.current=null;}} conversationId={currentConversationId} noticeRevision={miupcReconnectRevision} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{clearMiupcReconnectNotices("upc");setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
-          {busy || (activitySteps.length > 0 && messages.at(-1)?.role === "user") ? <ChatActivity steps={activitySteps} busy={busy} interrupted={!busy} /> : null}
+          {busy || (activitySteps.length > 0 && messages.at(-1)?.role === "user") ? <ChatActivity steps={activitySteps} busy={busy} interrupted={!busy} expanded={activityExpanded} onExpandedChange={setActivityExpanded} /> : null}
           {showUpcHint ? (
             <aside className="app-profes-upc-hint" aria-label="Sugerencia para estudiantes de la UPC">
               <button type="button" className="app-profes-upc-hint__close" aria-label="Cerrar sugerencia" onClick={dismissUpcHint}>×</button>

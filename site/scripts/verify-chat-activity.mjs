@@ -26,6 +26,8 @@ try {
   assert.match(complete,/Consulta finalizada/);
   assert.doesNotMatch(complete,/En curso|aria-current/);
   assert.match(render({steps,busy:false,interrupted:true}),/Consulta interrumpida/);
+  assert.match(render({steps,busy:true,expanded:true}),/<details[^>]*open=""/);
+  assert.match(render({steps,busy:false,expanded:true}),/<details[^>]*open=""/);
   for(let index=0;index<100;index++)steps=appendActivity(steps,index%2?'answer':'reviews');
   assert.equal(steps.length,30);
   console.log('Chat activity: allowlist, bounded ordered steps, duplicate events, native disclosure, completion and interruption passed.');
