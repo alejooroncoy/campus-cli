@@ -839,6 +839,8 @@ export default function ProfesChat() {
     }
   }, [messages.length, busy]);
 
+  const balanceRetryPending = useRef(false);
+  const [balanceRetrying, setBalanceRetrying] = useState(false);
   function applyAccessSession(session: CampusSession) {
         setSession(session);
         setUsage(session.usage);
@@ -857,8 +859,12 @@ export default function ProfesChat() {
         }
   }
   async function retryAccess() {
+    if (balanceRetryPending.current) return;
+    balanceRetryPending.current = true;
+    setBalanceRetrying(true);
     try { applyAccessSession(await getCampusSession(true)); }
     catch { setAccessNote("No pudimos comprobar tu saldo. Inténtalo de nuevo."); }
+    finally { balanceRetryPending.current = false; setBalanceRetrying(false); }
   }
 
   useEffect(() => {
@@ -1587,7 +1593,7 @@ export default function ProfesChat() {
             </div>
           </form>
           <p className="app-profes-ai__composer-hint">{hint}</p>
-          {session?.accessUnavailable ? <button type="button" className="app-profes-ai__older-messages" onClick={() => { void retryAccess(); }} disabled={busy}>Reintentar saldo</button> : null}
+          {session?.accessUnavailable ? <button type="button" className="app-profes-ai__older-messages" onClick={() => { void retryAccess(); }} disabled={busy || balanceRetrying}>{balanceRetrying ? "Comprobando saldo…" : "Reintentar saldo"}</button> : null}
         </div>
       )}
 
