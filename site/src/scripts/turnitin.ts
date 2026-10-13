@@ -1,3 +1,4 @@
+import { setupTurnitinUploads } from './turnitin-upload';
 import { setupTurnitinLogin } from './turnitin-login';
 import { setupTurnitinReportViewer, type ReportKind } from './turnitin-report-viewer';
 type Order = {
@@ -144,8 +145,8 @@ function setupTurnitin() {
       statuses = new Map(orders.map(order => [order.id, order.status]));
       if (!ordersLoaded) {
         const newOrder = document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!;
-        newOrder.open = orders.length === 0;
-        if (!orders.length) newOrder.parentElement!.prepend(newOrder);
+        newOrder.open = orders.length === 0 && !isAdmin;
+        if (!orders.length && !isAdmin) newOrder.parentElement!.prepend(newOrder);
       }
       ordersLoaded = true;
       renderOrders(orders, document.querySelector<HTMLElement>('[data-ti-orders]')!);
@@ -154,6 +155,7 @@ function setupTurnitin() {
         const adminOrders = await api('admin/orders');
         if (disposed) return;
         renderOrders(adminOrders.orders, document.querySelector<HTMLElement>('[data-ti-admin-orders]')!, true);
+        document.querySelector<HTMLElement>('.ti-order-layout')!.prepend(document.querySelector<HTMLElement>('[data-ti-admin]')!);
       }
       if (/^#ti-order-[0-9a-f-]{36}$/i.test(location.hash)) document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'center' });
     } finally { refreshPending = false; refresh.disabled = false; }
@@ -161,31 +163,28 @@ function setupTurnitin() {
   refresh.onclick = async () => {
     try { await loadOrders(); announce('Estado actualizado.'); } catch (error) { announce((error as Error).message); }
   };
-  const fileNames = Array.from(form.querySelectorAll<HTMLElement>('[data-ti-filename]')).map(node => ({ node, initial: node.textContent }));
-  form.addEventListener('change', () => {
-    requestId = crypto.randomUUID();
-    for (const { node, initial } of fileNames) {
-      const file = selected(form, node.dataset.tiFilename!);
-      node.textContent = file?.name ?? initial;
-      node.closest('.ti-upload')?.classList.toggle('ti-upload--selected', Boolean(file));
-    }
-  });
+  const uploads = setupTurnitinUploads(form, kind => kind === 'document' ? (config?.maxDocumentBytes ?? 10 * 1024 * 1024) : (config?.maxReceiptBytes ?? 5 * 1024 * 1024));
+  const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+  const submitText = submit.querySelector<HTMLElement>('[data-ti-submit-text]')!;
+  const submissionMessage = form.querySelector<HTMLElement>('[data-ti-submit-status]')!;
+  const showSubmission = (message: string) => { submissionMessage.textContent = message; submissionMessage.hidden = !message; };
+  form.addEventListener('change', () => { requestId = crypto.randomUUID(); showSubmission(''); });
   form.onsubmit = async event => {
     event.preventDefault();
-    if (fields.disabled || !form.reportValidity()) return;
-    fields.disabled = true; announce('Enviando tu documento y comprobante…');
+    if (fields.disabled || !uploads.validate() || !form.reportValidity()) return;
+    fields.disabled = true; submit.setAttribute('aria-busy', 'true'); submitText.textContent = 'Enviando…'; showSubmission('Enviando tu documento y comprobante. Mantén esta página abierta.'); announce('Enviando tu documento y comprobante…', true);
     try {
       await api('orders', { requestId, amountCents: config.amountCents, consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
         document: await encode(selected(form,'document'),config.maxDocumentBytes), receipt: await encode(selected(form,'receipt'),config.maxReceiptBytes) });
-      form.reset(); for (const { node, initial } of fileNames) { node.textContent = initial; node.closest('.ti-upload')?.classList.remove('ti-upload--selected'); } requestId = crypto.randomUUID();
+      form.reset(); uploads.reset(); showSubmission(''); requestId = crypto.randomUUID();
       announce('Pedido recibido. Tu comprobante está en revisión. Consulta el estado en Mis revisiones.');
       document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!.open = false;
       const reviewPanel = document.querySelector<HTMLElement>('[data-ti-my-orders-panel]')!;
       reviewPanel.parentElement!.prepend(reviewPanel);
       reviewPanel.scrollIntoView({ block: 'start' });
       try { await loadOrders(); } catch { announce('Tu pedido ya fue recibido. Usa Actualizar estado para consultar su avance.'); }
-    } catch (error) { announce((error as Error).message); }
-    finally { fields.disabled = false; }
+    } catch (error) { showSubmission((error as Error).message); announce((error as Error).message, true); }
+    finally { fields.disabled = false; submit.removeAttribute('aria-busy'); submitText.textContent = 'Enviar a revisión'; }
   };
   const cleanup = () => { disposed = true; clearInterval(poll); };
   document.addEventListener('astro:before-swap', cleanup, { once: true });
@@ -215,7 +214,7 @@ function setupTurnitin() {
         if (!disposed && pendingOrders && !isAdmin && document.visibilityState === 'visible')
           void loadOrders().catch(() => {});
       }, 30000);
-      announce(statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
+      announce(isAdmin ? 'Revisa los pedidos en Administrar pedidos.' : statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
     } catch (error) { announce((error as Error).message); }
   })();
 }

@@ -146,3 +146,18 @@
 .ti-report-dialog [hidden]{display:none!important}
 .ti-report-dialog a:focus-visible,.ti-report-dialog button:focus-visible,.ti-report-dialog select:focus-visible,.ti-pdf-stage:focus-visible{outline:2px solid #087f5b;outline-offset:3px}
 @media(max-width:650px){.ti-file-grid{grid-template-columns:1fr}.ti-file-card{padding:16px}.ti-report-dialog{width:calc(100% - 16px);height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);border-radius:12px}.ti-report-header{padding:16px;gap:10px}.ti-report-header h2{font-size:22px}.ti-report-header p:last-child{max-height:38px;overflow:hidden}.ti-report-toolbar{padding:0 16px 12px;gap:10px}.ti-report-switch button{padding:8px 12px;font-size:12px}.ti-report-toolbar .app-button{padding:10px 12px;font-size:12px}.ti-report-message{padding:8px 16px;font-size:12px}.ti-report-footer{flex-direction:column;gap:10px;padding:10px 16px}.ti-pdf-stage{padding:12px}.ti-report-recovery:has(> :not([hidden])){padding-inline:16px}}
+
+/* File input methods and mobile submission feedback. */
+.ti-panel .ti-upload--dragging{border-style:solid;border-color:#087f5b;background:#eaf7f1;box-shadow:0 0 0 3px #087f5b12}
+.ti-upload-methods{font-size:11px;color:#506d7f;line-height:1.6;margin:10px 0 0}
+.ti-panel .ti-remove-file{font:inherit;font-size:12px;min-height:40px;background:transparent;border:0;padding:6px 0;color:#087f5b;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ti-upload-error{font-size:12px;line-height:1.6;color:#9c3c24;margin:8px 0 0}
+.ti-submit-status{padding:12px 14px;background:#f4f8f8;border:1px solid #d4e1e6;border-radius:8px;font-size:13px;line-height:1.6;margin:16px 0 0;overflow-wrap:anywhere}
+.ti-submit-action .app-button{transition:background-color 180ms ease,box-shadow 180ms ease,transform 180ms ease;cursor:pointer}
+.ti-submit-action .app-button>span[aria-hidden]{display:inline-block;transition:transform 180ms ease}
+@media(hover:hover){.ti-submit-action .app-button:hover:not(:disabled){background:#79c5e5;box-shadow:0 4px 12px #102a3a12;transform:translateY(-1px)}.ti-submit-action .app-button:hover:not(:disabled)>span[aria-hidden]{transform:translateX(3px)}}
+.ti-submit-action .app-button:active:not(:disabled){background:#79c5e5;transform:translateY(0);box-shadow:none}
+.ti-submit-action .app-button:disabled{cursor:wait;opacity:.65}
+@media(prefers-reduced-motion:reduce){.ti-submit-action .app-button,.ti-submit-action .app-button>span[aria-hidden],.ti-panel .ti-upload{transition:none}.ti-submit-action .app-button:hover:not(:disabled),.ti-submit-action .app-button:hover:not(:disabled)>span[aria-hidden]{transform:none}}
+
+.ti-order-layout>.ti-admin{margin-top:0}.ti-admin .ti-order>a{min-height:44px;display:inline-flex;align-items:center}
