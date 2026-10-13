@@ -2,10 +2,11 @@ import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import type { PDFDocumentProxy, PDFDocumentLoadingTask, RenderTask } from 'pdfjs-dist';
 
 export type ReportKind = 'similarity' | 'ai';
-export type ReportOrder = { id: string; documentName: string; admin: boolean };
-const initialized = new WeakMap<HTMLDialogElement, { open: (order: ReportOrder, kind: ReportKind) => void }>();
-const titles: Record<ReportKind, string> = { similarity: 'Informe de similitud', ai: 'Informe de IA' };
-const reportUrl = (order: ReportOrder, kind: ReportKind) =>
+export type PreviewKind = ReportKind | 'receipt';
+export type ReportOrder = { id: string; documentName: string; receiptName?: string; admin: boolean };
+const initialized = new WeakMap<HTMLDialogElement, { open: (order: ReportOrder, kind: PreviewKind) => void }>();
+const titles: Record<PreviewKind, string> = { similarity: 'Informe de similitud', ai: 'Informe de IA', receipt: 'Comprobante de pago' };
+const reportUrl = (order: ReportOrder, kind: PreviewKind) =>
   `/api/app/turnitin/${order.admin ? 'admin/' : ''}orders/${order.id}/files/${kind}`;
 
 export function setupTurnitinReportViewer() {
@@ -18,6 +19,9 @@ export function setupTurnitinReportViewer() {
   const message = find<HTMLElement>('[data-ti-report-message]');
   const canvas = find<HTMLCanvasElement>('[data-ti-report-canvas]');
   const text = find<HTMLElement>('[data-ti-report-text]');
+  const image = find<HTMLImageElement>('[data-ti-preview-image]');
+  const footer = find<HTMLElement>('.ti-report-footer');
+  const switcher = find<HTMLElement>('.ti-report-switch');
   const stage = find<HTMLElement>('[data-ti-pdf-stage]');
   const download = find<HTMLAnchorElement>('[data-ti-report-download]');
   const retry = find<HTMLButtonElement>('[data-ti-report-retry]');
@@ -27,7 +31,7 @@ export function setupTurnitinReportViewer() {
   const zoom = find<HTMLSelectElement>('[data-ti-report-zoom]');
   const pageLabel = find<HTMLElement>('[data-ti-report-page]');
   let order: ReportOrder | null = null;
-  let kind: ReportKind = 'similarity';
+  let kind: PreviewKind = 'similarity';
   let pdf: PDFDocumentProxy | null = null;
   let loadingTask: PDFDocumentLoadingTask | null = null;
   let rendering: RenderTask | null = null;
@@ -50,6 +54,7 @@ export function setupTurnitinReportViewer() {
     if (task) void task.destroy().catch(() => {});
     canvas.width = canvas.height = 0; canvas.hidden = true;
     text.textContent = '';
+    image.onload = image.onerror = null; image.hidden = true; image.removeAttribute('src'); image.style.width = '';
     controls();
   }
   async function renderPage() {
@@ -86,7 +91,7 @@ export function setupTurnitinReportViewer() {
       // A text alternative for screen readers; PDF content never becomes HTML.
       text.textContent = content.items.map(item => 'str' in item ? item.str : '').join(' ').slice(0, 300000);
       text.setAttribute('aria-label', `Página ${pageNumber} de ${currentPdf.numPages}. ${titles[kind]}`);
-      message.textContent = 'Puedes leer el informe aquí o descargar el PDF.';
+      message.textContent = kind === 'receipt' ? 'Revisa el comprobante aquí o descarga el PDF.' : 'Puedes leer el informe aquí o descargar el PDF.';
       pageLabel.textContent = `Página ${pageNumber} de ${currentPdf.numPages}`;
       controls();
     } catch {
@@ -96,12 +101,14 @@ export function setupTurnitinReportViewer() {
       retry.hidden = false;
     }
   }
-  async function load(selected: ReportKind) {
+  async function load(selected: PreviewKind) {
     if (!order || !dialog.open) return;
     clearDocument();
     kind = selected; pageNumber = 1; zoom.value = '1'; stage.scrollTop = stage.scrollLeft = 0;
     const version = generation;
     const currentOrder = order;
+    switcher.hidden = selected === 'receipt'; footer.hidden = false;
+    find<HTMLElement>('[data-ti-viewer-context]').textContent = selected === 'receipt' ? 'Administrar pedido' : 'Tu revisión de Turnitin';
     retry.hidden = login.hidden = true;
     pageLabel.textContent = 'Página —';
     find<HTMLElement>('[data-ti-report-title]').textContent = titles[kind];
@@ -109,11 +116,12 @@ export function setupTurnitinReportViewer() {
       button.setAttribute('aria-pressed', String(button.dataset.tiReportKind === kind));
     });
     download.href = reportUrl(currentOrder, kind);
-    download.setAttribute('aria-label', `Descargar PDF: ${titles[kind]}`);
-    message.textContent = 'Cargando tu informe…';
+    download.setAttribute('aria-label', `${kind === 'receipt' ? 'Descargar' : 'Descargar PDF:'} ${titles[kind]}`);
+    download.textContent = kind === 'receipt' ? 'Descargar comprobante ↓' : 'Descargar PDF ↓';
+    message.textContent = kind === 'receipt' ? 'Cargando comprobante…' : 'Cargando tu informe…';
     const requestAbort = new AbortController(); abort = requestAbort;
     const timeout = setTimeout(() => requestAbort.abort(), 45000);
-    let failureMessage = 'No pudimos abrir el informe. Vuelve a intentar o descarga el PDF.';
+    let failureMessage = kind === 'receipt' ? 'No pudimos abrir el comprobante. Vuelve a intentar o descárgalo.' : 'No pudimos abrir el informe. Vuelve a intentar o descarga el PDF.';
     try {
       const response = await fetch(reportUrl(currentOrder, selected), {
         credentials: 'same-origin', cache: 'no-store', signal: requestAbort.signal,
@@ -124,7 +132,21 @@ export function setupTurnitinReportViewer() {
         failureMessage = 'Tu sesión terminó. Inicia sesión para ver tus informes.';
         throw new Error(failureMessage);
       }
-      if (!response.ok || !response.headers.get('content-type')?.startsWith('application/pdf'))
+      if (!response.ok) throw new Error(failureMessage);
+      const mime = response.headers.get('content-type')?.split(';')[0];
+      if (selected === 'receipt' && (mime === 'image/png' || mime === 'image/jpeg')) {
+        const blob = await response.blob();
+        if (blob.size > 5 * 1024 * 1024) throw new Error(failureMessage);
+        const data = await new Promise<string>((resolve,reject) => {
+          const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = reject; reader.readAsDataURL(blob);
+        });
+        if (version !== generation || !dialog.open) return;
+        image.onerror = () => { if (version === generation && dialog.open) { image.hidden = true; retry.hidden = false; message.textContent = failureMessage; } };
+        image.src = data; image.alt = `Comprobante de ${currentOrder.documentName}`; image.hidden = false;
+        footer.hidden = true; message.textContent = 'Revisa el comprobante o descárgalo en tu dispositivo.';
+        return;
+      }
+      if (mime !== 'application/pdf')
         throw new Error('No pudimos abrir el informe. Vuelve a intentar o descarga el PDF.');
       const bytes = new Uint8Array(await response.arrayBuffer());
       if (version !== generation || !dialog.open) return;
@@ -163,7 +185,8 @@ export function setupTurnitinReportViewer() {
     download.removeAttribute('href');
     find<HTMLElement>('[data-ti-report-document]').textContent = '';
   });
-  const controller = { open(currentOrder: ReportOrder, selected: ReportKind) {
+  const controller = { open(currentOrder: ReportOrder, selected: PreviewKind) {
+    if (selected === 'receipt' && !currentOrder.admin) return;
     order = currentOrder;
     find<HTMLElement>('[data-ti-report-document]').textContent = currentOrder.documentName;
     if (!dialog.open) dialog.showModal();

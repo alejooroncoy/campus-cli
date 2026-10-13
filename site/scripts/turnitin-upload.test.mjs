@@ -68,3 +68,13 @@ test('picker validation, keyboard activation, disabled submission and reset pres
   assert.equal(f.input.files[0],pdf);
   f.controls.reset();assert.equal(f.remove.hidden,true);assert.equal(f.tokens.has('ti-upload--selected'),false);
 });
+
+test('staff report selections require PDFs and retain distinct 10 MB limits',()=>{
+  for(const kind of ['similarity','ai']){
+    assert.equal(uploadError([pdf],kind,10*MB),null);
+    assert.match(uploadError([image],kind,10*MB),/informe PDF/);
+    assert.match(uploadError([{name:'informe.docx',size:100}],kind,10*MB),/informe PDF/);
+    assert.match(uploadError([{name:'informe.pdf',size:10*MB+1}],kind,10*MB),/10 MB/);
+    assert.match(uploadError([pdf,pdf],kind,10*MB),/solo archivo/);
+  }
+});

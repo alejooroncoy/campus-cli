@@ -1,11 +1,11 @@
-type UploadKind = 'document' | 'receipt';
+type UploadKind = 'document' | 'receipt' | 'similarity' | 'ai';
 type UploadFile = Pick<File, 'name' | 'size'>;
 
 export function uploadError(files: readonly UploadFile[], kind: UploadKind, maxBytes: number): string | null {
   if (files.length !== 1) return 'Selecciona un solo archivo.';
   const file = files[0];
-  const allowed = kind === 'document' ? /\.(pdf|docx)$/i : /\.(png|jpe?g|pdf)$/i;
-  if (!allowed.test(file.name)) return kind === 'document' ? 'Usa un PDF o Word (.docx).' : 'Usa un comprobante PNG, JPG o PDF.';
+  const allowed = kind === 'document' ? /\.(pdf|docx)$/i : kind === 'receipt' ? /\.(png|jpe?g|pdf)$/i : /\.pdf$/i;
+  if (!allowed.test(file.name)) return kind === 'document' ? 'Usa un PDF o Word (.docx).' : kind === 'receipt' ? 'Usa un comprobante PNG, JPG o PDF.' : 'Usa un informe PDF.';
   if (!file.size) return 'El archivo está vacío. Selecciona otro.';
   if (file.size > maxBytes) return `El archivo supera los ${Math.round(maxBytes / 1024 / 1024)} MB permitidos.`;
   return null;
