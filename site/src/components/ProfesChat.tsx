@@ -839,6 +839,28 @@ export default function ProfesChat() {
     }
   }, [messages.length, busy]);
 
+  function applyAccessSession(session: CampusSession) {
+        setSession(session);
+        setUsage(session.usage);
+        setAuthenticated(session.authenticated);
+        setPlan(session.plan ?? (session.authenticated ? "free" : "anon"));
+
+        if (!session.authenticated) {
+          const guestRemaining = session.usage?.remaining ?? 5;
+          setAccess(!session.aiReady ? "unavailable" : guestRemaining > 0 ? "ready" : "guest_limit");
+          setAccessNote(!session.aiReady ? "Campus no está disponible por ahora." : "");
+        } else {
+          setAccess(!session.universityConfirmed ? "setup" : !session.profesAvailable ? "unsupported" : !session.accessUnavailable && session.aiReady ? "ready" : "unavailable");
+          setAccessNote(session.universityConfirmed && !session.profesAvailable
+            ? "Campus tiene cobertura para UPC por ahora. Tu universidad ya quedó registrada."
+            : session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
+        }
+  }
+  async function retryAccess() {
+    try { applyAccessSession(await getCampusSession(true)); }
+    catch { setAccessNote("No pudimos comprobar tu saldo. Inténtalo de nuevo."); }
+  }
+
   useEffect(() => {
     try { setInput(sessionStorage.getItem("campus-question") ?? ""); } catch { /* Private browsing may deny storage. */ }
     try { setUpcHintDismissed(sessionStorage.getItem(upcHintDismissedKey) === "1"); } catch { /* The hint still works without storage. */ }
@@ -875,21 +897,7 @@ export default function ProfesChat() {
     getCampusSession()
       .then(async session => {
         if (!mounted) return;
-        setSession(session);
-        setUsage(session.usage);
-        setAuthenticated(session.authenticated);
-        setPlan(session.plan ?? (session.authenticated ? "free" : "anon"));
-
-        if (!session.authenticated) {
-          const guestRemaining = session.usage?.remaining ?? 5;
-          setAccess(!session.aiReady ? "unavailable" : guestRemaining > 0 ? "ready" : "guest_limit");
-          setAccessNote(!session.aiReady ? "Campus no está disponible por ahora." : "");
-        } else {
-          setAccess(!session.universityConfirmed ? "setup" : !session.profesAvailable ? "unsupported" : session.aiReady ? "ready" : "unavailable");
-          setAccessNote(session.universityConfirmed && !session.profesAvailable
-            ? "Campus tiene cobertura para UPC por ahora. Tu universidad ya quedó registrada."
-            : !session.aiReady ? "Campus no está disponible por ahora." : "");
-        }
+        applyAccessSession(session);
         // The URL decides which chat is open; /profes/ always starts a new chat.
         // History metadata must never block or re-open the messages that just loaded.
         try {
@@ -1579,6 +1587,7 @@ export default function ProfesChat() {
             </div>
           </form>
           <p className="app-profes-ai__composer-hint">{hint}</p>
+          {session?.accessUnavailable ? <button type="button" className="app-profes-ai__older-messages" onClick={() => { void retryAccess(); }} disabled={busy}>Reintentar saldo</button> : null}
         </div>
       )}
 

@@ -64,6 +64,14 @@ try {
   await assert.rejects(failedRequest);
   assert.deepEqual(await api.getCampusSession(), guest, 'A failed bootstrap can be retried');
 
+  globalThis.window = {};
+  calls = 0;
+  globalThis.fetch = async () => response(++calls === 1 ? { ...signedIn, accessUnavailable: true } : signedIn);
+  api = await load();
+  assert.equal((await api.getCampusSession()).authenticated, true, 'Billing unavailability does not log the user out');
+  assert.deepEqual(await api.getCampusSession(), signedIn, 'Degraded balance checks can retry without a sticky bootstrap');
+  assert.equal(calls, 2);
+
   storage.set('campus_ui_profile', JSON.stringify({ authenticated: true, cleanName: 'Test User', savedAt: Date.now() }));
   assert.equal(api.getCampusProfilePreview()?.cleanName, 'Test User');
   storage.set('campus_ui_profile', JSON.stringify({ authenticated: true, savedAt: Date.now() - 16 * 60 * 1000 }));

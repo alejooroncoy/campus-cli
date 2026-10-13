@@ -4,6 +4,7 @@ export type CampusSession = {
   plan?: string;
   aiReady: boolean;
   accessBlocked?: boolean;
+  accessUnavailable?: boolean;
   university?: { id: number; name: string; shortName: string | null } | null;
   universityConfirmed?: boolean;
   profesAvailable?: boolean;
@@ -31,6 +32,7 @@ export type CampusProfilePreview = {
   plan?: string;
   remaining?: number;
   period?: string;
+  accessUnavailable?: boolean;
 };
 
 declare global {
@@ -72,7 +74,12 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
 
   const pending = request.then(value => {
     // A response from before logout/refresh must not repopulate the session.
-    if (pendingSession === pending) cachedSession = value;
+    if (pendingSession === pending) {
+      if (value.accessUnavailable) {
+        pendingSession = undefined;
+        if (typeof window !== "undefined") delete window.__campusSessionBootstrap;
+      } else cachedSession = value;
+    }
     return value;
   }).catch(error => {
     if (pendingSession === pending) {
