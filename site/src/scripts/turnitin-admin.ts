@@ -89,7 +89,7 @@ export function setupTurnitinAdmin(deps:Dependencies) {
         const filename=el('span','Seleccionar PDF · Hasta 10 MB','ti-upload-name');filename.dataset.tiFilename=kind;
         const input=el('input');input.type='file';input.name=kind;input.accept='.pdf';input.required=true;input.tabIndex=-1;input.setAttribute('aria-labelledby',label.id);
         const error=el('p','','ti-upload-error');error.dataset.tiUploadError=kind;error.id=`${label.id}-error`;error.hidden=true;error.setAttribute('role','alert');input.setAttribute('aria-describedby',error.id);
-        const remove=el('button',`Quitar ${title.toLowerCase()}`,'ti-remove-file');remove.type='button';remove.dataset.tiRemove=kind;remove.hidden=true;
+        const remove=el('button',`Quitar ${title.replace('Informe','informe')}`,'ti-remove-file');remove.type='button';remove.dataset.tiRemove=kind;remove.hidden=true;
         zone.append(label,filename,input);group.append(zone,remove,error);uploads.append(group);
       }
       const submit=el('button','Entregar informes y avisar al cliente →','app-button');submit.type='submit';submit.disabled=true;
@@ -146,8 +146,8 @@ export function setupTurnitinAdmin(deps:Dependencies) {
   }
   refreshButton.onclick=()=>{if(mutating)return;void refresh().then(()=>announce('Pedidos actualizados.')).catch(error=>announce(error.message,true));};
   more.onclick=()=>{if(cursor&&!loading&&!mutating)void refresh(true).catch(error=>announce(error.message,true));};
-  for(const button of filters)button.onclick=()=>{if(mutating)return;filter=button.dataset.tiAdminFilter!;controls();void refresh().catch(error=>announce(error.message,true));};
-  const searchNow=()=>{clearTimeout(timer);void refresh().catch(error=>announce(error.message,true));};
+  for(const button of filters)button.onclick=()=>{if(mutating)return;filter=button.dataset.tiAdminFilter!;announce('');controls();void refresh().catch(error=>announce(error.message,true));};
+  const searchNow=()=>{clearTimeout(timer);announce('');void refresh().catch(error=>announce(error.message,true));};
   search.oninput=()=>{clearTimeout(timer);timer=setTimeout(searchNow,300);};search.addEventListener('search',searchNow);
   const cleanup=()=>{disposed=true;version++;clearTimeout(timer);cards.clear();};document.addEventListener('astro:before-swap',cleanup,{once:true});window.addEventListener('pagehide',cleanup,{once:true});
   return {refresh};
