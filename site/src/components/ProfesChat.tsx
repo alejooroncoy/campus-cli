@@ -883,12 +883,12 @@ export default function ProfesChat() {
         if (!session.authenticated) {
           const guestRemaining = session.usage?.remaining ?? 5;
           setAccess(!session.aiReady ? "unavailable" : guestRemaining > 0 ? "ready" : "guest_limit");
-          setAccessNote(!session.aiReady ? "Profes no está disponible por ahora." : "");
+          setAccessNote(!session.aiReady ? "Campus no está disponible por ahora." : "");
         } else {
           setAccess(!session.universityConfirmed ? "setup" : !session.profesAvailable ? "unsupported" : session.aiReady ? "ready" : "unavailable");
           setAccessNote(session.universityConfirmed && !session.profesAvailable
-            ? "Profes tiene cobertura para UPC por ahora. Tu universidad ya quedó registrada."
-            : !session.aiReady ? "Profes no está disponible por ahora." : "");
+            ? "Campus tiene cobertura para UPC por ahora. Tu universidad ya quedó registrada."
+            : !session.aiReady ? "Campus no está disponible por ahora." : "");
         }
         // The URL decides which chat is open; /profes/ always starts a new chat.
         // History metadata must never block or re-open the messages that just loaded.

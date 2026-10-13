@@ -12,16 +12,16 @@ function initMiupcProfile() {
   let disposed = false;
   let revision = 0;
   const messages: Record<string, string> = {
-    connected: 'Conexión guardada. Ya puedes preguntar por tus notas actuales en Profes.',
+    connected: 'Conexión guardada. Ya puedes preguntar por tus notas actuales en Campus.',
     pending_login: 'Completa el acceso de Mi UPC en la ventana segura.',
     saving: 'Guardando tu conexión…',
     busy: 'Hay una consulta de Mi UPC en curso. Inténtalo cuando termine.',
-    reconnect_required: 'Primero conecta tu cuenta UPC desde Profes.',
+    reconnect_required: 'Primero conecta tu cuenta UPC desde Campus.',
     not_configured: 'La conexión con Mi UPC todavía no está disponible.',
     expired: 'El enlace venció. Puedes volver a conectar Mi UPC.',
     failed: 'No pudimos guardar la conexión. Inténtalo de nuevo.',
     not_supported: 'Mi UPC está disponible solo para estudiantes de UPC.',
-    not_connected: 'Conecta Mi UPC una vez para consultar tus notas actuales desde Profes.',
+    not_connected: 'Conecta Mi UPC una vez para consultar tus notas actuales desde Campus.',
   };
   const update = (data: { status: string; loginUrl?: string }) => {
     if (disposed) return;
