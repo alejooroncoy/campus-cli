@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom";
 import MiupcReconnect from "./MiupcReconnect";
 import ChatMarkdown from "./ChatMarkdown";
+import ChatActivity, { activityLabels, appendActivity } from "./ChatActivity";
 import {rememberMiupcReconnect,hasMiupcReconnectNotice,requiresUpcReconnect,clearMiupcReconnectNotices} from "../scripts/miupc-reconnect";
 import { useChat } from "@ai-sdk/react";
 import type { ChatTransport, UIMessage, UIMessageChunk } from "ai";
@@ -90,15 +91,6 @@ const suggestions = [
   { icon: "calendar-days", label: "Horario y clases", prompt: "¿Cuál es mi horario de clases y salones este ciclo?" },
   { icon: "sparkles", label: "Mi malla curricular", prompt: "¿Cuáles son los cursos que me toca llevar en mi carrera?" },
 ];
-const activityLabels: Record<string, string> = {
-  academic: "Consultando tu contexto académico…",
-  grades: "Consultando tus notas en Mi UPC…",
-  connecting: "Conectando con Campus…",
-  search: "Buscando profesores…",
-  course: "Buscando profesores del curso…",
-  reviews: "Leyendo reseñas…",
-  answer: "Preparando respuesta…",
-};
 
 function messageText(message: UIMessage) {
   return message.parts.filter(part => part.type === "text").map(part => part.text).join("\n");
@@ -687,7 +679,8 @@ export default function ProfesChat() {
   const [plan, setPlan] = useState<string>("anon");
   const [input, setInput] = useState("");
   const [usage, setUsage] = useState<CampusSession["usage"]>();
-  const [activity, setActivity] = useState("connecting");
+  const [activitySteps, setActivitySteps] = useState<string[]>([]);
+  const [activityExpanded, setActivityExpanded] = useState(false);
   const [miupcReconnectRequired,setMiupcReconnectRequired] = useState(false);
   const [miupcReconnectConversationId,setMiupcReconnectConversationId] = useState<string|null>(null);
   const [miupcReconnectRevision,setMiupcReconnectRevision] = useState(0);
@@ -742,8 +735,7 @@ export default function ProfesChat() {
   currentConversationIdRef.current = currentConversationId;
   const usageHandler = useRef(setUsage);
   usageHandler.current = setUsage;
-  const activityHandler = useRef(setActivity);
-  activityHandler.current = setActivity;
+  const activityHandler = useRef((value: string) => setActivitySteps(steps => appendActivity(steps, value)));
   const guestLimitHandler = useRef(() => setAccess("guest_limit"));
   guestLimitHandler.current = () => setAccess("guest_limit");
 
@@ -1034,7 +1026,8 @@ export default function ProfesChat() {
     }
     if (isGuestLimit) { window.location.assign(loginUrl); return; }
     if (access === "setup") { window.location.assign("/app/perfil/?universidad=pendiente"); return; }
-    setActivity("connecting");
+    setActivitySteps(["connecting"]);
+    setActivityExpanded(false);
     setInput("");
     try { await sendMessage({ text: question }); }
     catch (err: any) {
@@ -1125,6 +1118,8 @@ export default function ProfesChat() {
     setInput(currentConversationId ? conversationDrafts.current.get("new") ?? "" : "");
     setCurrentConversationId(null);
     setMessages([]);
+    setActivitySteps([]);
+    setActivityExpanded(false);
     setHasOlderMessages(false);
     olderMessagesCursor.current = null;
     restoreScrollAfterLoad.current = 0;
@@ -1157,6 +1152,8 @@ export default function ProfesChat() {
       if (snapshot) restoreScrollAfterLoad.current = snapshot.top;
       else scrollToLatestAfterLoad.current = true;
       setMessages(snapshot ? snapshot.messages : toUIMessages(page!.messages));
+      setActivitySteps([]);
+      setActivityExpanded(false);
       const nextUrl = `/app/profes/c/${id}/`;
       if (updateUrl && window.location.pathname !== nextUrl) window.history.pushState({ ...window.history.state, campusConversation: id }, "", nextUrl);
       setHistoryOpen(false);
@@ -1426,6 +1423,7 @@ export default function ProfesChat() {
           </div>
           {messages.map(message => (
             <article className={`app-profes-ai__message app-profes-ai__message--${message.role}`} key={message.id}>
+              {!busy && message.role === "assistant" && message.id === messages.at(-1)?.id && activitySteps.length > 0 ? <ChatActivity steps={activitySteps} busy={false} expanded={activityExpanded} onExpandedChange={setActivityExpanded} /> : null}
               {message.role === "assistant" ? <span className="app-profes-ai__speaker">Campus</span> : null}
               {message.role === "assistant" ? (
                 <AssistantMessageContent
@@ -1439,14 +1437,7 @@ export default function ProfesChat() {
             </article>
           ))}
           {authenticated && miupcReconnectRequired && miupcReconnectConversationId===currentConversationId ? <MiupcReconnect key={currentConversationId} freshNotice={freshMiupcNotice.current===currentConversationId} onNoticeSeen={()=>{freshMiupcNotice.current=null;}} conversationId={currentConversationId} noticeRevision={miupcReconnectRevision} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{clearMiupcReconnectNotices("upc");setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
-          {busy ? (
-            <div className="app-profes-ai__thinking" role="status" aria-label={activityLabels[activity] ?? activityLabels.connecting}>
-              <span className="app-profes-ai__thinking-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><use href="/assets/lucide.svg#book-open" /></svg>
-              </span>
-              <span className="app-profes-ai__thinking-text" aria-hidden="true">{activityLabels[activity] ?? activityLabels.connecting}</span>
-            </div>
-          ) : null}
+          {busy || (activitySteps.length > 0 && messages.at(-1)?.role === "user") ? <ChatActivity steps={activitySteps} busy={busy} interrupted={!busy} expanded={activityExpanded} onExpandedChange={setActivityExpanded} /> : null}
           {showUpcHint ? (
             <aside className="app-profes-upc-hint" aria-label="Sugerencia para estudiantes de la UPC">
               <button type="button" className="app-profes-upc-hint__close" aria-label="Cerrar sugerencia" onClick={dismissUpcHint}>×</button>

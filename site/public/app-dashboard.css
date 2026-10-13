@@ -1804,6 +1804,47 @@ button:disabled {
   width: 20px;
   height: 20px;
 }
+.app-chat-activity {
+  margin-bottom: 12px;
+  scroll-margin-block: 80px 180px;
+  max-width: 100%;
+  color: var(--app-muted);
+  font-size: 13px;
+}
+.app-chat-activity summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 36px;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 6px;
+}
+.app-chat-activity summary::-webkit-details-marker { display: none; }
+.app-chat-activity summary:focus-visible {
+  outline: 2px solid var(--app-link);
+  outline-offset: 4px;
+}
+.app-chat-activity__chevron { flex-shrink: 0; transition: transform 160ms ease; }
+.app-chat-activity[open] .app-chat-activity__chevron { transform: rotate(180deg); }
+.app-chat-activity ol {
+  margin: 8px 0 0 11px;
+  padding: 0 0 0 20px;
+  border-left: 1px solid var(--app-line);
+  list-style: none;
+}
+.app-chat-activity li {
+  padding: 5px 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.app-chat-activity li[aria-current="step"] { color: var(--app-ink); }
+.app-chat-activity small { display: block; color: var(--app-muted); }
+@media (prefers-reduced-motion: reduce) {
+  .app-chat-activity__chevron { transition: none; }
+}
 .app-profes-ai__error {
   margin-top: 12px;
   color: var(--app-danger);
