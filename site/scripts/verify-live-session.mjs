@@ -14,7 +14,14 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const stop=api.watchLiveCampusSession();await flush();
 value={...value,plan:'plus',usage:{remaining:100}};timer();await flush();
 assert.equal(events.length,1);assert.equal(events[0].detail.plan,'plus');assert.equal(reloads,0);
-value={...value,accessUnavailable:true};timer();await flush();assert.equal(events.length,1);
-value={...value,accessUnavailable:false,email:'other@example.org'};timer();await flush();assert.equal(reloads,1);assert.equal(events.length,1);
+value={...value,plan:'free',usage:{remaining:0}};timer();await flush();assert.equal(events.length,2);assert.equal(events[1].detail.plan,'free');assert.equal(reloads,0);
+value={...value,accessUnavailable:true};timer();await flush();assert.equal(events.length,2);
+value={...value,accessUnavailable:false,email:'other@example.org'};timer();await flush();assert.equal(reloads,1);assert.equal(events.length,2);
 stop();assert.equal(cleared,true);assert.equal(listeners.size,0);assert.equal(docListeners.size,0);
 console.log('Live plan: same-owner upgrade updates display without reload; outage preserves state; foreign owner reloads; cleanup passed.');
+
+// A failed first lookup must not permanently disable revalidation.
+let fetches=0;globalThis.fetch=async()=>{if(++fetches===1)throw Error('offline');return {ok:true,json:async()=>value};};
+const retryApi=await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text+'\n// retry fixture').toString('base64')}`);
+const stopRetry=retryApi.watchLiveCampusSession();await flush();const oldReloads=reloads;timer();await flush();assert.equal(fetches,2);assert.equal(reloads,oldReloads+1);stopRetry();
+console.log('Live plan: initial connection failure recovers on the next check.');

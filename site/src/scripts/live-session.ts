@@ -7,13 +7,18 @@ const owner=(session:CampusSession)=>session.authenticated ? session.email?.toLo
 export function watchLiveCampusSession(intervalMs=15000) {
   let stopped=false,pending=false;
   let previous:CampusSession|undefined;
-  void getCampusSession().then(value=>{previous=value;}).catch(()=>{});
+  void getCampusSession().then(value=>{if(!stopped&&!previous)previous=value;}).catch(()=>{});
   const refresh=async()=>{
-    if(stopped||pending||!previous)return;
+    if(stopped||pending)return;
     pending=true;
     try {
       const value=await getCampusSession(true);
       if(stopped||value.accessUnavailable)return;
+      if(!previous){
+        // The initial lookup failed: retry rather than leaving updates disabled.
+        // A fresh document rebinds private chat state to this verified owner.
+        previous=value;location.reload();return;
+      }
       if(!owner(value)||owner(value)!==owner(previous)){
         clearCampusSession(false);
         location.reload();
