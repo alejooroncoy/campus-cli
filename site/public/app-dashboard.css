@@ -952,6 +952,7 @@ button:disabled {
     right: 0;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
+    align-items: center;
     height: var(--app-mobile-nav-height);
     padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
     background: var(--app-canvas);
