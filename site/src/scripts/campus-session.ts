@@ -1,5 +1,5 @@
 import { notifySessionLogout, publishSessionIdentity } from "./session-sync";
-import { CONVERSATION_DRAFTS_KEY } from "./conversation-drafts";
+import { CONVERSATION_DRAFTS_KEY, GUEST_DRAFT_HANDOFF_KEY } from "./conversation-drafts";
 export type CampusSession = {
   authenticated: boolean;
   email?: string;
@@ -87,6 +87,7 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
     }
     return value;
   }).catch(error => {
+    if (pendingSession !== pending) return getCampusSession();
     if (pendingSession === pending) {
       pendingSession = undefined;
       if (typeof window !== "undefined") delete window.__campusSessionBootstrap;
@@ -104,6 +105,7 @@ export function clearCampusSession(notify = true): void {
   try {
     sessionStorage.removeItem("campus_ui_profile");
     sessionStorage.removeItem(CONVERSATION_DRAFTS_KEY);
+    sessionStorage.removeItem(GUEST_DRAFT_HANDOFF_KEY);
     sessionStorage.removeItem("campus-question");
   } catch { /* Storage is optional. */ }
   if (notify && typeof window !== "undefined") notifySessionLogout();

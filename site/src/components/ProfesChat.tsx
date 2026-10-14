@@ -1,4 +1,5 @@
-import { createConversationDrafts, restoreConversationDrafts } from "../scripts/conversation-drafts";
+import {assistantLoginHref} from "../scripts/assistant-handoff";
+import { createConversationDrafts, restoreConversationDrafts, markGuestDraftHandoff } from "../scripts/conversation-drafts";
 import { createPortal } from "react-dom";
 import MiupcReconnect from "./MiupcReconnect";
 import ChatMarkdown from "./ChatMarkdown";
@@ -83,7 +84,7 @@ function formatRelativeTime(iso: string): string {
   }
 }
 
-const loginUrl = "/api/app/auth/start?return=%2Fapp%2Fprofes%2F";
+const getLoginUrl = () => assistantLoginHref(typeof window === 'undefined' ? '/app/profes/' : window.location.pathname);
 const guestQuotaDismissedKey = "campus-profes-quota-dismissed";
 const upcHintDismissedKey = "campus-profes-upc-hint-dismissed";
 const suggestions = [
@@ -602,7 +603,7 @@ function profesTransport(
           onGuestLimit();
           throw new Error("LOGIN_REQUIRED_GUEST_LIMIT");
         }
-        window.location.assign(loginUrl);
+        markGuestDraftHandoff(); window.location.assign(getLoginUrl());
         throw new Error("Inicia sesión para continuar.");
       }
       if (response.status === 409 && data.code === "UNIVERSITY_REQUIRED") {
@@ -1058,7 +1059,7 @@ export default function ProfesChat() {
       setInput("");
       return;
     }
-    if (isGuestLimit) { window.location.assign(loginUrl); return; }
+    if (isGuestLimit) { markGuestDraftHandoff(); window.location.assign(getLoginUrl()); return; }
     if (access === "setup") { window.location.assign("/app/perfil/?universidad=pendiente"); return; }
     setActivitySteps(["connecting"]);
     setActivityExpanded(false);
@@ -1480,7 +1481,7 @@ export default function ProfesChat() {
               <span className="app-profes-ai__speaker">Campus</span>
               <strong>Ah, estudias en la UPC. Conecta tu cuenta.</strong>
               <p>Así podré consultar tus cursos y horario oficiales cuando los necesites.</p>
-              <a className="app-profes-upc-hint__link" href={loginUrl}>Iniciar sesión para conectar UPC →</a>
+              <a className="app-profes-upc-hint__link" href={getLoginUrl()}>Iniciar sesión para conectar UPC →</a>
             </aside>
           ) : null}
           <div ref={conversationEndRef} />
@@ -1567,7 +1568,7 @@ export default function ProfesChat() {
           <footer className="app-profes-review__actions">
             {reviewStep === "done" ? <button type="button" className="app-profes-review__primary" onClick={closeReview}>Volver al chat</button>
               : access === "checking" ? <span className="app-profes-review__draft-note" role="status">Cargando tu cuenta…</span>
-              : !authenticated ? <a className="app-profes-review__primary" href={loginUrl}>Iniciar sesión</a>
+              : !authenticated ? <a className="app-profes-review__primary" href={getLoginUrl()}>Iniciar sesión</a>
               : !session?.universityConfirmed ? <a className="app-profes-review__primary" href="/app/perfil/">Elegir universidad</a>
               : reviewStep === "confirm" ? <>
                 <button type="button" className="app-profes-review__secondary" onClick={() => setReviewStep("edit")} disabled={reviewSending}>Editar</button>
@@ -1658,7 +1659,7 @@ export default function ProfesChat() {
               </div>
             </div>
             <div className="app-guest-quota-card__action">
-              <a href={loginUrl} className="app-guest-quota-card__btn"><span>Continuar gratis</span><span aria-hidden="true">→</span></a>
+              <a href={getLoginUrl()} className="app-guest-quota-card__btn"><span>Continuar gratis</span><span aria-hidden="true">→</span></a>
             </div>
           </div>
         </div>

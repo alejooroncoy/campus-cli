@@ -43,6 +43,16 @@ try {
   assert.deepEqual(await olderRequest, guest, "Stale callers also receive the verified current session");
   assert.deepEqual(await api.getCampusSession(), guest, 'Old responses cannot override a refreshed session');
 
+  const staleFailure=deferred();
+  globalThis.window={};
+  globalThis.fetch=()=>staleFailure.promise;
+  api=await load();
+  const staleCaller=api.getCampusSession();
+  globalThis.fetch=async()=>response(guest);
+  await api.getCampusSession(true);
+  staleFailure.reject(new Error('Obsolete network error'));
+  assert.deepEqual(await staleCaller,guest,'Superseded failures cannot replace a verified current session');
+
   const beforeLogout = deferred();
   globalThis.window = { __campusSessionBootstrap: { promise: beforeLogout.promise } };
   globalThis.fetch = async () => response(guest);

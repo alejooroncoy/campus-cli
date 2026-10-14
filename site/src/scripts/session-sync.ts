@@ -39,16 +39,22 @@ export async function publishSessionIdentity(session:CampusSession, current:()=>
 
 export function watchSessionChanges(invalidate:()=>void) {
   invalidateTab=invalidate;
-  const storage=(event:StorageEvent)=>{if(event.key===KEY)invalidate();};
+  const receiveIdentity=(identity:unknown)=>{
+    if(typeof identity!=='string'){invalidate();return;}
+    if(!knownIdentity){pendingIdentity=identity;return;}
+    if(identity!==knownIdentity)invalidate();
+  };
+  const storage=(event:StorageEvent)=>{
+    if(event.key!==KEY)return;
+    try {receiveIdentity(JSON.parse(event.newValue??'null')?.identity);}
+    catch {invalidate();}
+  };
   window.addEventListener('storage',storage);
   try {
     channel=new BroadcastChannel(CHANNEL);
     channel.onmessage=event=>{
       if(event.data?.type!=='session-changed')return;
-      const identity=event.data.identity;
-      if(typeof identity!=='string'){invalidate();return;}
-      if(!knownIdentity){pendingIdentity=identity;return;}
-      if(identity!==knownIdentity)invalidate();
+      receiveIdentity(event.data.identity);
     };
   } catch { /* Storage events still synchronize ordinary tabs. */ }
   return ()=>{window.removeEventListener('storage',storage);channel?.close();channel=undefined;invalidateTab=undefined;pendingIdentity=undefined;};

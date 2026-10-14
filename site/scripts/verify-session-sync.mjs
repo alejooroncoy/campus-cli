@@ -29,6 +29,11 @@ await publishSessionIdentity({authenticated:false,accessUnavailable:true},()=>tr
 assert.equal(messages.length,1,'Network failure is not a logout');
 await publishSessionIdentity({authenticated:true,email:'account-b@example.org'},()=>true);
 assert.equal(messages.length,2);
+listeners.get('storage')({key:'campus-session-revision-v1',newValue:values.get('campus-session-revision-v1')});
+assert.equal(invalidations,0,'Same verified identity revisions do not reload the tab');
+listeners.get('storage')({key:'campus-session-revision-v1',newValue:JSON.stringify({identity:'guest',revision:'new'})});
+assert.equal(invalidations,1,'Different storage identity invalidates');
+invalidations=0;
 listeners.get('storage')({key:'unrelated'});
 channel.onmessage({data:{type:'unrelated'}});
 assert.equal(invalidations,0);

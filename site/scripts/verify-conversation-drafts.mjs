@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createConversationDrafts,restoreConversationDrafts,CONVERSATION_DRAFTS_KEY} from '../src/scripts/conversation-drafts.ts';
+import {createConversationDrafts,restoreConversationDrafts,CONVERSATION_DRAFTS_KEY,markGuestDraftHandoff,GUEST_DRAFT_HANDOFF_KEY} from '../src/scripts/conversation-drafts.ts';
 const a='00000000-0000-4000-8000-000000000001',b='00000000-0000-4000-8000-000000000002';
 const values=new Map();
 const storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)};
@@ -28,3 +28,19 @@ assert.equal(restoreConversationDrafts('account:b',storage,initial,false,a,'Brow
 initial.set(a,'Actually typed before session loaded');
 assert.equal(restoreConversationDrafts('account:b',storage,initial,true,a,'Actually typed before session loaded').get(a),'Actually typed before session loaded');
 console.log('Account changes: old owned memory and browser-restored fields cannot become another account draft; genuine pending edits are preserved.');
+
+values.clear();
+const guestDrafts=createConversationDrafts('guest',storage);guestDrafts.set(null,'Guest question before sign-in');
+assert.equal(restoreConversationDrafts('account:new',storage,createConversationDrafts(),false,null,'').get(null),'');
+markGuestDraftHandoff(storage);
+assert.equal(restoreConversationDrafts('account:new',storage,createConversationDrafts(),false,null,'').get(null),'Guest question before sign-in');
+assert.equal(storage.getItem(GUEST_DRAFT_HANDOFF_KEY),'null');
+assert.equal(restoreConversationDrafts('account:other',storage,createConversationDrafts(),false,null,'').get(null),'');
+values.clear();const privateDrafts=createConversationDrafts('account:old',storage);privateDrafts.set(null,'Private old account');markGuestDraftHandoff(storage);
+assert.equal(restoreConversationDrafts('account:new',storage,createConversationDrafts(),false,null,'').get(null),'');
+console.log('Guest sign-in: explicit same-tab handoff preserves the question once; unmarked guests and foreign account drafts never migrate.');
+
+values.clear();const lockedGuest=createConversationDrafts('guest',storage);lockedGuest.set(null,'Guest private question');markGuestDraftHandoff(storage);
+const consumptionDenied={getItem:storage.getItem,setItem:()=>{throw Error('Storage blocked');}};
+assert.equal(restoreConversationDrafts('account:new',consumptionDenied,createConversationDrafts(),false,null,'').get(null),'');
+console.log('Guest handoff fails closed when its one-time marker cannot be consumed.');

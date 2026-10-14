@@ -5,3 +5,8 @@ export function connectAiHref(path:string){
  const back=assistantReturnPath(path);
  return back?`/app/copilot/?return=${encodeURIComponent(back)}`:'/app/copilot/';
 }
+
+export function assistantLoginHref(path:string){
+ const back=assistantReturnPath(path) ?? '/app/profes/';
+ return `/api/app/auth/start?return=${encodeURIComponent(back)}`;
+}

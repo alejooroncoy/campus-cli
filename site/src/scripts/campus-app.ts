@@ -1,3 +1,4 @@
+import {markGuestDraftHandoff} from "./conversation-drafts";
 import { watchLiveCampusSession } from "./live-session";
 import { watchSessionChanges } from "./session-sync";
 import { createKeyboardViewportState, watchMobileKeyboard } from "./mobile-keyboard";
@@ -429,7 +430,8 @@ const pwaDismissBtn = document.querySelector<HTMLButtonElement>("#app-pwa-dismis
 const pwaMsg = document.querySelector<HTMLElement>("#app-pwa-banner-msg");
 
 const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-const isDismissed = localStorage.getItem("campus-pwa-dismissed") === "1";
+let isDismissed = false;
+try { isDismissed = localStorage.getItem("campus-pwa-dismissed") === "1"; } catch { /* Storage is optional. */ }
 
 if (!isStandalone && !isDismissed && pwaBanner) {
   let deferredPrompt: BeforeInstallPromptEvent | null = null;
@@ -458,13 +460,13 @@ if (!isStandalone && !isDismissed && pwaBanner) {
   });
 
   pwaDismissBtn?.addEventListener("click", () => {
-    localStorage.setItem("campus-pwa-dismissed", "1");
+    try { localStorage.setItem("campus-pwa-dismissed", "1"); } catch { /* Keep dismissal in this document. */ }
     pwaBanner.hidden = true;
   });
 
   window.addEventListener("appinstalled", () => {
     pwaBanner.hidden = true;
-    localStorage.setItem("campus-pwa-dismissed", "1");
+    try { localStorage.setItem("campus-pwa-dismissed", "1"); } catch { /* Keep dismissal in this document. */ }
   });
 }
 
@@ -483,3 +485,10 @@ watchSessionChanges(() => {
 });
 
 watchLiveCampusSession();
+
+document.addEventListener('click',event=>{
+  const link=event.target instanceof Element ? event.target.closest('a[href]') as HTMLAnchorElement|null : null;
+  if(!link)return;
+  const url=new URL(link.href,location.href);
+  if(url.origin===location.origin && url.pathname==='/api/app/auth/start')markGuestDraftHandoff();
+},true);

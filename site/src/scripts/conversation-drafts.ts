@@ -1,4 +1,5 @@
 export const CONVERSATION_DRAFTS_KEY = 'campus-conversation-drafts-v1';
+export const GUEST_DRAFT_HANDOFF_KEY = 'campus-guest-draft-handoff-v1';
 type DraftStorage = Pick<Storage,'getItem'|'setItem'>;
 const validId = (id:string) => id === 'new' || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
@@ -35,9 +36,34 @@ export function createConversationDrafts(owner:string|null=null, storage?:DraftS
 }
 
 
+// Transfer only drafts from this tab's explicit guest sign-in, never another
+// authenticated owner's drafts or another tab's account-change notification.
+export function markGuestDraftHandoff(storage?:DraftStorage) {
+  try {
+    storage ??= sessionStorage;
+    const record=storage.getItem(CONVERSATION_DRAFTS_KEY);
+    const saved=JSON.parse(record ?? 'null');
+    if(saved?.owner==='guest' && saved.entries?.length)
+      storage.setItem(GUEST_DRAFT_HANDOFF_KEY,JSON.stringify({savedAt:Date.now(),record}));
+  } catch { /* Optional storage cannot prevent sign-in. */ }
+}
+
+
 export function restoreConversationDrafts(owner:string|null, storage:DraftStorage|undefined,
   pending:ReturnType<typeof createConversationDrafts>, edited:boolean, id:string|null, fieldValue:string) {
   const restored = createConversationDrafts(owner,storage);
+  if(owner?.startsWith('account:') && storage){
+    try {
+      const marker=JSON.parse(storage.getItem(GUEST_DRAFT_HANDOFF_KEY) ?? 'null');
+      if(marker?.record===storage.getItem(CONVERSATION_DRAFTS_KEY)
+        && typeof marker?.savedAt==='number' && Date.now()>=marker.savedAt && Date.now()-marker.savedAt<10*60*1000){
+        const guest=createConversationDrafts('guest',storage);
+        storage.setItem(GUEST_DRAFT_HANDOFF_KEY,'null');
+        for(const [key,text] of guest.entries())restored.set(key==='new'?null:key,text);
+      }
+      storage.setItem(GUEST_DRAFT_HANDOFF_KEY,'null');
+    } catch { /* Unmarked or stale guest drafts are not adopted. */ }
+  }
   const canAdopt = pending.owner === owner || pending.owner === null && edited;
   if (canAdopt) for (const [key,text] of pending.entries()) restored.set(key === 'new' ? null : key,text);
   // Browser Back may refill a form from an earlier account. Only a real input
