@@ -852,6 +852,11 @@ export default function ProfesChat() {
             : session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
         }
   }
+  useEffect(() => {
+    const updated = (event: Event) => applyAccessSession((event as CustomEvent<CampusSession>).detail);
+    window.addEventListener("campus:session-updated", updated);
+    return () => window.removeEventListener("campus:session-updated", updated);
+  }, []);
   async function retryAccess() {
     if (balanceRetryPending.current) return;
     balanceRetryPending.current = true;

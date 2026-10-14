@@ -1,3 +1,4 @@
+import { watchLiveCampusSession } from "./live-session";
 import { watchSessionChanges } from "./session-sync";
 import { createKeyboardViewportState, watchMobileKeyboard } from "./mobile-keyboard";
 import { getCampusSession, canConnectMiupc, clearCampusSession, getCampusProfilePreview, type CampusProfilePreview, type CampusSession } from "./campus-session";
@@ -161,7 +162,9 @@ async function loadUniversities(optionsEl: HTMLDataListElement | null) {
 const mobileKeyboardViewport = createKeyboardViewportState();
 let stopMobileKeyboard: (() => void) | undefined;
 
+let stopSessionDisplay: (() => void) | undefined;
 function initPage() {
+  stopSessionDisplay?.();
   stopMobileKeyboard?.();
   stopMobileKeyboard = watchMobileKeyboard(mobileKeyboardViewport);
   updateNavHighlights();
@@ -192,7 +195,7 @@ function initPage() {
   const loginUrl = `/api/app/auth/start?return=${encodeURIComponent(location.pathname)}`;
   if (login) login.href = loginUrl;
 
-  getCampusSession().then(value => {
+  const renderSession = (value: CampusSession) => {
     if (value.authenticated && !value.universityConfirmed && !["/app/perfil/", "/app/turnitin/"].includes(location.pathname)) {
       location.assign("/app/perfil/?universidad=pendiente");
       return;
@@ -272,7 +275,11 @@ function initPage() {
     if (profileGuest && new URLSearchParams(location.search).get("login") === "error") {
       say("No se pudo completar el inicio de sesión. Inténtalo de nuevo.");
     }
-  }).catch(() => {
+  };
+  const updated = (event: Event) => renderSession((event as CustomEvent<CampusSession>).detail);
+  window.addEventListener("campus:session-updated", updated);
+  stopSessionDisplay = () => window.removeEventListener("campus:session-updated", updated);
+  getCampusSession().then(renderSession).catch(() => {
     applyAccountUI(null);
     if (profileLoading) profileLoading.hidden = true;
     if (profileGuest) profileGuest.hidden = false;
@@ -474,3 +481,5 @@ watchSessionChanges(() => {
   document.querySelectorAll('.app-profes-ai__conversation, [data-app-profile-authenticated]').forEach(element=>element.replaceChildren());
   location.reload();
 });
+
+watchLiveCampusSession();
