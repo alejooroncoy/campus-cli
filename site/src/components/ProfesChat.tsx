@@ -577,7 +577,7 @@ function AssistantMessageContent({
 function profesTransport(
   onUsage: (usage: CampusSession["usage"]) => void,
   onActivity: (activity: string) => void,
-  onGuestLimit: () => void,
+  onGuestLimit: (question:string, conversationId:string|null) => void,
   getConversationId: () => string | null,
   onConversationCreated: (id: string, title?: string) => void,
   onMiupcReconnect: (conversationId: string | null,upcRequired:boolean) => void,
@@ -600,7 +600,7 @@ function profesTransport(
       const data = response.ok ? null : await response.json().catch(() => ({}));
       if (response.status === 401) {
         if (data?.code === "LOGIN_REQUIRED_GUEST_LIMIT") {
-          onGuestLimit();
+          onGuestLimit(question,activeConvId);
           throw new Error("LOGIN_REQUIRED_GUEST_LIMIT");
         }
         markGuestDraftHandoff(); window.location.assign(getLoginUrl());
@@ -810,7 +810,13 @@ export default function ProfesChat() {
       if (value && value.remaining <= 0) guestLimitHandler.current();
     },
     value => activityHandler.current(value),
-    () => guestLimitHandler.current(),
+    (question,id) => {
+      if(currentConversationIdRef.current===id){
+        conversationDrafts.current.set(id,question);
+        setInput(question);
+      }
+      guestLimitHandler.current();
+    },
     () => currentConversationIdRef.current,
     handleConversationCreated,
     handleMiupcReconnect,
