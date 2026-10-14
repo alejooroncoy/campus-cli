@@ -5,6 +5,7 @@ const connectorUrl = "https://mcp.campuscli.com/mcp";
 const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&connectorName=${encodeURIComponent(connectorName)}&connectorUrl=${encodeURIComponent(connectorUrl)}#settings/customize-connectors`;
 ---
 <AppShell title="Conectar IA" active="copilot">
+  <a class="app-button app-button--outline" data-assistant-return hidden>← Volver a mi conversación</a>
   <section class="app-page-heading app-page-heading--compact">
     <p class="app-kicker">Campus con tu IA</p>
     <h1>Conecta Campus con tu asistente.</h1>
@@ -99,3 +100,15 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
 
   <p class="app-connector-footnote">Tu Aula Virtual se autoriza en el asistente. Campus nunca necesita que escribas tu contraseña universitaria aquí.</p>
 </AppShell>
+<script>
+  import {assistantReturnPath} from '../../../scripts/assistant-handoff';
+  function restoreAssistantLink(){
+    const link=document.querySelector<HTMLAnchorElement>('[data-assistant-return]');
+    if(!link)return;
+    const back=assistantReturnPath(new URLSearchParams(window.location.search).get('return'));
+    link.hidden=!back;
+    if(back)link.href=back;else link.removeAttribute('href');
+  }
+  restoreAssistantLink();
+  document.addEventListener('astro:page-load',restoreAssistantLink);
+</script>
