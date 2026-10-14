@@ -13,7 +13,7 @@ const nav = [
   { id: "profes", label: "Asistente", href: "/app/profes/", icon: "users" },
   { id: "copilot", label: "Conectar Campus", href: "/app/copilot/", icon: "sparkles" },
   { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "book-open" },
-  { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "users" },
+  { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "user" },
 ];
 ---
 
@@ -78,7 +78,7 @@ const nav = [
       <nav class="app-mobile-nav" aria-label="Campus móvil" transition:persist="app-mobile-nav">
         {nav.map((item) => (
           <a href={item.href} class:list={{ "is-active": active === item.id }} aria-current={active === item.id ? "page" : undefined}>
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href={`/assets/lucide.svg#${item.icon}`}></use></svg>
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href={`/assets/lucide.svg?v=2#${item.icon}`}></use></svg>
             <span>{item.label}</span>
           </a>
         ))}
