@@ -853,22 +853,47 @@ export default function ProfesChat() {
         }
   }
   function restoreAccessDraft(session: CampusSession) {
-        const owner = session.authenticated ? (session.email ? `account:${session.email.toLowerCase()}` : null) : 'guest';
-        let storage: Storage | undefined;
-        try { storage = sessionStorage; } catch { /* Private browsing may deny storage. */ }
-        const currentId = currentConversationIdRef.current;
-        const savedDrafts = restoreConversationDrafts(owner,storage,conversationDrafts.current,
-          draftEditedBeforeSession.current,currentId,textarea.current?.value ?? '');
-        draftEditedBeforeSession.current = false;
-        conversationDrafts.current = savedDrafts;
-        setInput(savedDrafts.get(currentId));
+    const owner = session.authenticated ? (session.email ? `account:${session.email.toLowerCase()}` : null) : 'guest';
+    let storage: Storage | undefined;
+    try { storage = sessionStorage; } catch { /* Private browsing may deny storage. */ }
+    const currentId = currentConversationIdRef.current;
+    const savedDrafts = restoreConversationDrafts(owner,storage,conversationDrafts.current,
+      draftEditedBeforeSession.current,currentId,textarea.current?.value ?? '');
+    draftEditedBeforeSession.current = false;
+    conversationDrafts.current = savedDrafts;
+    setInput(savedDrafts.get(currentId));
+  }
+  async function loadConversationHistory(isCurrent: () => boolean) {
+    setHistoryLoading(true);
+    setHistoryError("");
+    // The URL decides which chat is open; /profes/ always starts a new chat.
+    // History metadata must never block or re-open the messages that just loaded.
+    try {
+      const convRes = await fetch("/api/app/profes/conversations", { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(6000) });
+      if (!convRes.ok) throw new Error("History unavailable");
+      const data = await convRes.json() as { conversations?: ConversationItem[] };
+      if (!isCurrent()) return;
+      const list = data.conversations ?? [];
+      setConversations(list);
+      // Warm a small set of recent chats; hovering/focusing loads any other one.
+      for (const conversation of list.filter(item => item.id !== currentConversationIdRef.current).slice(0, 3)) {
+        void pageCache.current.get(conversation.id).catch(() => {});
+      }
+    } catch { if (isCurrent()) setHistoryError("No pudimos cargar el historial. Puedes volver a intentarlo."); }
+    finally { if (isCurrent()) setHistoryLoading(false); }
+
   }
   useEffect(() => {
     const updated = (event: Event) => applyAccessSession((event as CustomEvent<CampusSession>).detail);
-    const recovered = (event: Event) => restoreAccessDraft((event as CustomEvent<CampusSession>).detail);
+    let mounted = true;
+    const recovered = (event: Event) => {
+      restoreAccessDraft((event as CustomEvent<CampusSession>).detail);
+      void loadConversationHistory(() => mounted);
+    };
     window.addEventListener("campus:session-updated", updated);
     window.addEventListener("campus:session-recovered", recovered);
     return () => {
+      mounted = false;
       window.removeEventListener("campus:session-updated", updated);
       window.removeEventListener("campus:session-recovered", recovered);
     };
@@ -919,21 +944,7 @@ export default function ProfesChat() {
         if (!mounted) return;
         restoreAccessDraft(session);
         applyAccessSession(session);
-        // The URL decides which chat is open; /profes/ always starts a new chat.
-        // History metadata must never block or re-open the messages that just loaded.
-        try {
-          const convRes = await fetch("/api/app/profes/conversations", { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(6000) });
-          if (!convRes.ok) throw new Error("History unavailable");
-          const data = await convRes.json() as { conversations?: ConversationItem[] };
-          if (!mounted) return;
-          const list = data.conversations ?? [];
-          setConversations(list);
-          // Warm a small set of recent chats; hovering/focusing loads any other one.
-          for (const conversation of list.filter(item => item.id !== routeConversationId).slice(0, 3)) {
-            void pageCache.current.get(conversation.id).catch(() => {});
-          }
-        } catch { if (mounted) setHistoryError("No pudimos cargar el historial. Puedes volver a intentarlo."); }
-        finally { if (mounted) setHistoryLoading(false); }
+        await loadConversationHistory(() => mounted);
 
       })
       .catch(() => { if (mounted) { setHistoryLoading(false); setAccess("unavailable"); setAccessNote("Campus no está disponible por ahora."); } });
@@ -1067,6 +1078,8 @@ export default function ProfesChat() {
   }
 
   function chooseSuggestion(prompt: string) {
+    draftEditedBeforeSession.current = true;
+    conversationDrafts.current.set(currentConversationIdRef.current, prompt);
     setInput(prompt);
     textarea.current?.focus();
   }
