@@ -852,10 +852,26 @@ export default function ProfesChat() {
             : session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
         }
   }
+  function restoreAccessDraft(session: CampusSession) {
+        const owner = session.authenticated ? (session.email ? `account:${session.email.toLowerCase()}` : null) : 'guest';
+        let storage: Storage | undefined;
+        try { storage = sessionStorage; } catch { /* Private browsing may deny storage. */ }
+        const currentId = currentConversationIdRef.current;
+        const savedDrafts = restoreConversationDrafts(owner,storage,conversationDrafts.current,
+          draftEditedBeforeSession.current,currentId,textarea.current?.value ?? '');
+        draftEditedBeforeSession.current = false;
+        conversationDrafts.current = savedDrafts;
+        setInput(savedDrafts.get(currentId));
+  }
   useEffect(() => {
     const updated = (event: Event) => applyAccessSession((event as CustomEvent<CampusSession>).detail);
+    const recovered = (event: Event) => restoreAccessDraft((event as CustomEvent<CampusSession>).detail);
     window.addEventListener("campus:session-updated", updated);
-    return () => window.removeEventListener("campus:session-updated", updated);
+    window.addEventListener("campus:session-recovered", recovered);
+    return () => {
+      window.removeEventListener("campus:session-updated", updated);
+      window.removeEventListener("campus:session-recovered", recovered);
+    };
   }, []);
   async function retryAccess() {
     if (balanceRetryPending.current) return;
@@ -901,15 +917,7 @@ export default function ProfesChat() {
     getCampusSession()
       .then(async session => {
         if (!mounted) return;
-        const owner = session.authenticated ? (session.email ? `account:${session.email.toLowerCase()}` : null) : 'guest';
-        let storage: Storage | undefined;
-        try { storage = sessionStorage; } catch { /* Private browsing may deny storage. */ }
-        const currentId = currentConversationIdRef.current;
-        const savedDrafts = restoreConversationDrafts(owner,storage,conversationDrafts.current,
-          draftEditedBeforeSession.current,currentId,textarea.current?.value ?? '');
-        draftEditedBeforeSession.current = false;
-        conversationDrafts.current = savedDrafts;
-        setInput(savedDrafts.get(currentId));
+        restoreAccessDraft(session);
         applyAccessSession(session);
         // The URL decides which chat is open; /profes/ always starts a new chat.
         // History metadata must never block or re-open the messages that just loaded.

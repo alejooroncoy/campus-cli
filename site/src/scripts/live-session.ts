@@ -15,9 +15,10 @@ export function watchLiveCampusSession(intervalMs=15000) {
       const value=await getCampusSession(true);
       if(stopped||value.accessUnavailable)return;
       if(!previous){
-        // The initial lookup failed: retry rather than leaving updates disabled.
-        // A fresh document rebinds private chat state to this verified owner.
-        previous=value;location.reload();return;
+        previous=value;
+        window.dispatchEvent(new CustomEvent('campus:session-recovered',{detail:value}));
+        window.dispatchEvent(new CustomEvent('campus:session-updated',{detail:value}));
+        return;
       }
       if(!owner(value)||owner(value)!==owner(previous)){
         clearCampusSession(false);

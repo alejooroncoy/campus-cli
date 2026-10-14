@@ -23,5 +23,5 @@ console.log('Live plan: same-owner upgrade updates display without reload; outag
 // A failed first lookup must not permanently disable revalidation.
 let fetches=0;globalThis.fetch=async()=>{if(++fetches===1)throw Error('offline');return {ok:true,json:async()=>value};};
 const retryApi=await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text+'\n// retry fixture').toString('base64')}`);
-const stopRetry=retryApi.watchLiveCampusSession();await flush();const oldReloads=reloads;timer();await flush();assert.equal(fetches,2);assert.equal(reloads,oldReloads+1);stopRetry();
+const stopRetry=retryApi.watchLiveCampusSession();await flush();const oldReloads=reloads;timer();await flush();assert.equal(fetches,2);assert.equal(reloads,oldReloads);assert.equal(events.at(-2).type,"campus:session-recovered");assert.equal(events.at(-1).type,"campus:session-updated");stopRetry();
 console.log('Live plan: initial connection failure recovers on the next check.');
