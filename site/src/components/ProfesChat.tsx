@@ -1,3 +1,4 @@
+import { createConversationDrafts } from "../scripts/conversation-drafts";
 import { createPortal } from "react-dom";
 import MiupcReconnect from "./MiupcReconnect";
 import ChatMarkdown from "./ChatMarkdown";
@@ -722,7 +723,7 @@ export default function ProfesChat() {
   const [historySearchOpen, setHistorySearchOpen] = useState(false);
   const [sidebarHosts, setSidebarHosts] = useState<{ actions: HTMLElement; history: HTMLElement } | null>(null);
   const mobileHistoryDialog = useRef<HTMLDialogElement>(null);
-  const conversationDrafts = useRef(new Map<string, string>());
+  const conversationDrafts = useRef(createConversationDrafts());
   const pageCache = useRef(createConversationCache(fetchConversationPage));
   const conversationSnapshots = useRef(new Map<string, { messages: UIMessage[]; hasMore: boolean; cursor: string | null; top: number }>());
   const navigationVersion = useRef(0);
@@ -860,7 +861,6 @@ export default function ProfesChat() {
   }
 
   useEffect(() => {
-    try { setInput(sessionStorage.getItem("campus-question") ?? ""); } catch { /* Private browsing may deny storage. */ }
     try { setUpcHintDismissed(sessionStorage.getItem(upcHintDismissedKey) === "1"); } catch { /* The hint still works without storage. */ }
     try {
       const saved = sessionStorage.getItem("campus-profes-review-draft");
@@ -895,6 +895,16 @@ export default function ProfesChat() {
     getCampusSession()
       .then(async session => {
         if (!mounted) return;
+        const owner = session.authenticated ? (session.email ? `account:${session.email.toLowerCase()}` : null) : 'guest';
+        let storage: Storage | undefined;
+        try { storage = sessionStorage; } catch { /* Private browsing may deny storage. */ }
+        const savedDrafts = createConversationDrafts(owner,storage);
+        for (const [id,text] of conversationDrafts.current.entries()) savedDrafts.set(id === 'new' ? null : id,text);
+        const currentId = currentConversationIdRef.current;
+        const typedBeforeSession = textarea.current?.value;
+        if (typedBeforeSession) savedDrafts.set(currentId,typedBeforeSession);
+        conversationDrafts.current = savedDrafts;
+        setInput(savedDrafts.get(currentId));
         applyAccessSession(session);
         // The URL decides which chat is open; /profes/ always starts a new chat.
         // History metadata must never block or re-open the messages that just loaded.
@@ -922,8 +932,8 @@ export default function ProfesChat() {
     if (!field) return;
     field.style.height = "0px";
     field.style.height = `${Math.min(Math.max(field.scrollHeight, 42), 160)}px`;
-    try { sessionStorage.setItem("campus-question", input); } catch { /* Draft still works in memory. */ }
-  }, [input]);
+    conversationDrafts.current.set(currentConversationId,input);
+  }, [input,currentConversationId]);
 
   useEffect(() => {
     if (!reviewOpen || reviewStep === "done") return;
@@ -1099,7 +1109,7 @@ export default function ProfesChat() {
   }
 
   function saveCurrentConversation() {
-    conversationDrafts.current.set(currentConversationId ?? "new", input);
+    conversationDrafts.current.set(currentConversationId, input);
     if (currentConversationId && !loadingConversation) {
       conversationSnapshots.current.set(currentConversationId, {
         messages, hasMore: hasOlderMessages, cursor: olderMessagesCursor.current, top: window.scrollY,
@@ -1115,7 +1125,7 @@ export default function ProfesChat() {
     setLoadingConversation(false);
     setLoadingOlderMessages(false);
     preserveScrollAfterPrepend.current = null;
-    setInput(currentConversationId ? conversationDrafts.current.get("new") ?? "" : "");
+    setInput(conversationDrafts.current.get(null));
     setCurrentConversationId(null);
     setMessages([]);
     setActivitySteps([]);
@@ -1145,7 +1155,7 @@ export default function ProfesChat() {
     try {
       const page = snapshot ? null : cached ?? await pageCache.current.get(id);
       if (navigationVersion.current !== version) return;
-      setInput(conversationDrafts.current.get(id) ?? "");
+      setInput(conversationDrafts.current.get(id));
       setCurrentConversationId(id);
       setHasOlderMessages(snapshot?.hasMore ?? page!.hasMore);
       olderMessagesCursor.current = snapshot ? snapshot.cursor : page!.nextBeforeId;

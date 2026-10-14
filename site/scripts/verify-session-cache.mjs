@@ -49,7 +49,11 @@ try {
   api = await load();
   storage.set('campus_ui_profile', JSON.stringify({ authenticated: true, savedAt: Date.now(), cleanName: 'Test User' }));
   const obsolete = api.getCampusSession();
+  storage.set("campus-conversation-drafts-v1", "private draft fixture");
+  storage.set("campus-question", "legacy draft fixture");
   api.clearCampusSession();
+  assert.equal(storage.has("campus-conversation-drafts-v1"), false);
+  assert.equal(storage.has("campus-question"), false);
   assert.equal(storage.has('campus_ui_profile'), false);
   assert.equal(window.__campusSessionBootstrap, undefined);
   beforeLogout.resolve(signedIn);

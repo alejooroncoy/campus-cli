@@ -1,3 +1,4 @@
+import { CONVERSATION_DRAFTS_KEY } from "./conversation-drafts";
 export type CampusSession = {
   authenticated: boolean;
   email?: string;
@@ -98,6 +99,8 @@ export function clearCampusSession(): void {
   if (typeof window !== "undefined") delete window.__campusSessionBootstrap;
   try {
     sessionStorage.removeItem("campus_ui_profile");
+    sessionStorage.removeItem(CONVERSATION_DRAFTS_KEY);
+    sessionStorage.removeItem("campus-question");
   } catch { /* Storage is optional. */ }
 }
 
