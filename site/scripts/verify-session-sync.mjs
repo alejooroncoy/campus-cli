@@ -47,9 +47,10 @@ await publishSessionIdentity({authenticated:true,email:'account-b@example.org'},
 assert.equal(messages.length,5,'Identity changes use channel when writes fail');
 await publishSessionIdentity({authenticated:true,email:'account-b@example.org'},()=>true);
 assert.equal(messages.length,5,'Blocked storage must not create reload loops');
+await publishSessionIdentity(a,()=>true);assert.equal(messages.length,6,'Returning to the stored old identity must still announce the account switch');
 Object.defineProperty(window,'localStorage',{configurable:true,get(){throw Error('Storage access denied');}});
-await publishSessionIdentity({authenticated:true,email:'account-c@example.org'},()=>true);assert.equal(messages.length,6);
-await publishSessionIdentity({authenticated:true,email:'account-c@example.org'},()=>true);assert.equal(messages.length,6);
+await publishSessionIdentity({authenticated:true,email:'account-c@example.org'},()=>true);assert.equal(messages.length,7);
+await publishSessionIdentity({authenticated:true,email:'account-c@example.org'},()=>true);assert.equal(messages.length,7);
 const beforeSame=invalidations;channel.onmessage({data:messages.at(-1)});assert.equal(invalidations,beforeSame);
 channel.onmessage({data:{type:'session-changed',identity:'guest'}});assert.equal(invalidations,beforeSame+1);
 stop();assert.equal(listeners.size,0);assert.equal(closed,true);

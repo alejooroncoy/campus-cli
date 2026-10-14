@@ -76,9 +76,10 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
 
   const pending = request.then(async value => {
     // A response from before logout/refresh must not repopulate the session.
+    if (pendingSession !== pending) return getCampusSession();
     if (pendingSession === pending) {
       await publishSessionIdentity(value, () => pendingSession === pending);
-      if (pendingSession !== pending) return value;
+      if (pendingSession !== pending) return getCampusSession();
       if (value.accessUnavailable) {
         pendingSession = undefined;
         if (typeof window !== "undefined") delete window.__campusSessionBootstrap;

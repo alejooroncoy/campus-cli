@@ -23,7 +23,7 @@ export async function publishSessionIdentity(session:CampusSession, current:()=>
     if(!current())return;
     let old:{identity?:string}|null=null;
     try { old=JSON.parse(window.localStorage.getItem(KEY)??'null'); } catch { /* Replace an invalid revision. */ }
-    const changed=old?.identity!==identity && knownIdentity!==identity;
+    const changed=knownIdentity === undefined ? old?.identity!==identity : knownIdentity!==identity;
     knownIdentity=identity;
     if(old?.identity!==identity){
       try { window.localStorage.setItem(KEY,JSON.stringify({identity,revision:crypto.randomUUID()})); }

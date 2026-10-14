@@ -40,7 +40,7 @@ try {
   fresh.resolve(response(guest));
   await newerRequest;
   old.resolve(response(signedIn));
-  await olderRequest;
+  assert.deepEqual(await olderRequest, guest, "Stale callers also receive the verified current session");
   assert.deepEqual(await api.getCampusSession(), guest, 'Old responses cannot override a refreshed session');
 
   const beforeLogout = deferred();
@@ -57,7 +57,7 @@ try {
   assert.equal(storage.has('campus_ui_profile'), false);
   assert.equal(window.__campusSessionBootstrap, undefined);
   beforeLogout.resolve(signedIn);
-  await obsolete;
+  assert.deepEqual(await obsolete, guest, "A late caller cannot paint the previous account after logout");
   assert.deepEqual(await api.getCampusSession(), guest, 'Logout discards the bootstrap and any late response');
 
   const failed = deferred();
