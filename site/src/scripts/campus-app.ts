@@ -1,3 +1,4 @@
+import { watchMobileKeyboard } from "./mobile-keyboard";
 import { getCampusSession, canConnectMiupc, clearCampusSession, getCampusProfilePreview, type CampusProfilePreview, type CampusSession } from "./campus-session";
 
 const UI_CACHE_KEY = "campus_ui_profile";
@@ -155,7 +156,11 @@ async function loadUniversities(optionsEl: HTMLDataListElement | null) {
   }
 }
 
+let stopMobileKeyboard: (() => void) | undefined;
+
 function initPage() {
+  stopMobileKeyboard?.();
+  stopMobileKeyboard = watchMobileKeyboard();
   updateNavHighlights();
 
   // Instant UI paint from harmless cache (only non-sensitive profile info)
@@ -384,6 +389,7 @@ function initPage() {
 
 // Hook into Astro's View Transitions lifecycle (initial load and every client-side page load)
 document.addEventListener("astro:page-load", initPage);
+document.addEventListener("astro:before-swap", () => { stopMobileKeyboard?.(); stopMobileKeyboard = undefined; });
 
 // Fallback for regular load if ClientRouter is absent
 if (document.readyState === "loading") {

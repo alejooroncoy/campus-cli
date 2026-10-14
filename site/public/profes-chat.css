@@ -1358,3 +1358,15 @@
 .app-chat-markdown .app-academic-table :is(th,td):not(:first-child) { white-space: nowrap; }
 .app-chat-markdown .app-academic-table td:first-child { min-width: 150px; }
 .app-chat-markdown .app-academic-table th { font-size: 12px; }
+
+@media (max-width: 700px) {
+  .app-keyboard-open .app-profes-ai__composer-dock {
+    position: sticky;
+    bottom: var(--app-keyboard-inset, 0px);
+    z-index: 10;
+    padding: 8px 0;
+  }
+  .app-keyboard-open .app-profes-ai__conversation > :last-child {
+    scroll-margin-bottom: calc(var(--app-keyboard-dock-height, 120px) + var(--app-keyboard-inset, 0px) + 12px);
+  }
+}

@@ -2264,3 +2264,12 @@ button:disabled {
     font-size: 14px;
   }
 }
+
+@media (max-width: 700px) {
+  .campus-app-body.app-keyboard-open {
+    --app-mobile-nav-height: var(--app-keyboard-inset, 0px);
+  }
+  .app-keyboard-open .app-mobile-nav {
+    display: none;
+  }
+}

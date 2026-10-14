@@ -10,9 +10,10 @@
     "preview": "astro preview",
     "test:agent-discovery": "node scripts/verify-agent-discovery.mjs",
     "test:offline": "node scripts/verify-offline-shell.mjs",
-    "test:app": "node scripts/verify-session-cache.mjs && node scripts/verify-conversation-cache.mjs && node scripts/verify-offline-shell.mjs && node scripts/externalize-app-scripts.test.mjs && node scripts/verify-miupc-reconnect.mjs && node scripts/verify-chat-markdown.mjs && node scripts/verify-chat-activity.mjs && node scripts/turnitin-upload.test.mjs && node scripts/turnitin-login.test.mjs",
+    "test:app": "node scripts/verify-session-cache.mjs && node scripts/verify-conversation-cache.mjs && node scripts/verify-offline-shell.mjs && node scripts/externalize-app-scripts.test.mjs && node scripts/verify-miupc-reconnect.mjs && node scripts/verify-chat-markdown.mjs && node scripts/verify-chat-activity.mjs && node scripts/turnitin-upload.test.mjs && node scripts/turnitin-login.test.mjs && node scripts/verify-mobile-keyboard.mjs",
     "test:miupc-reconnect": "node scripts/miupc-reconnect-e2e.mjs",
     "test:chat-markdown": "node scripts/chat-markdown-e2e.mjs",
+    "test:mobile-keyboard": "node scripts/verify-mobile-keyboard.mjs",
     "test:assistant-handoff": "node scripts/verify-assistant-handoff.mjs",
     "pdf-assets": "node scripts/copy-pdf-reader-assets.mjs"
   },
