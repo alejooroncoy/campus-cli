@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createConversationDrafts,CONVERSATION_DRAFTS_KEY} from '../src/scripts/conversation-drafts.ts';
+import {createConversationDrafts,restoreConversationDrafts,CONVERSATION_DRAFTS_KEY} from '../src/scripts/conversation-drafts.ts';
 const a='00000000-0000-4000-8000-000000000001',b='00000000-0000-4000-8000-000000000002';
 const values=new Map();
 const storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)};
@@ -19,3 +19,12 @@ values.set(CONVERSATION_DRAFTS_KEY,'malformed');assert.equal(createConversationD
 values.set(CONVERSATION_DRAFTS_KEY,JSON.stringify({owner:'guest',entries:[[a,17],['__proto__','bad'],[b,'x'.repeat(2001)],[null,'bad']]}));
 assert.equal(createConversationDrafts('guest',storage).get(a),'');assert.equal(createConversationDrafts('guest',storage).get(b),'');
 console.log('Conversation drafts: reload, Inicio return, distinct chats/new draft, account isolation, cleared drafts and denied/corrupt storage passed.');
+
+values.clear();
+const ownedA=createConversationDrafts('account:a',storage);ownedA.set(a,'Private A');
+assert.equal(restoreConversationDrafts('account:b',storage,ownedA,true,a,'Private A').get(a),'');
+const initial=createConversationDrafts();
+assert.equal(restoreConversationDrafts('account:b',storage,initial,false,a,'Browser-restored private A').get(a),'');
+initial.set(a,'Actually typed before session loaded');
+assert.equal(restoreConversationDrafts('account:b',storage,initial,true,a,'Actually typed before session loaded').get(a),'Actually typed before session loaded');
+console.log('Account changes: old owned memory and browser-restored fields cannot become another account draft; genuine pending edits are preserved.');

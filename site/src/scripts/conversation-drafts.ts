@@ -17,6 +17,7 @@ export function createConversationDrafts(owner:string|null=null, storage?:DraftS
     } catch { /* Optional storage may be unavailable or corrupt. */ }
   }
   return {
+    owner,
     get(id:string|null) { return drafts.get(id ?? 'new') ?? ''; },
     set(id:string|null,text:string) {
       const key = id ?? 'new';
@@ -31,4 +32,16 @@ export function createConversationDrafts(owner:string|null=null, storage?:DraftS
     },
     entries() { return drafts.entries(); },
   };
+}
+
+
+export function restoreConversationDrafts(owner:string|null, storage:DraftStorage|undefined,
+  pending:ReturnType<typeof createConversationDrafts>, edited:boolean, id:string|null, fieldValue:string) {
+  const restored = createConversationDrafts(owner,storage);
+  const canAdopt = pending.owner === owner || pending.owner === null && edited;
+  if (canAdopt) for (const [key,text] of pending.entries()) restored.set(key === 'new' ? null : key,text);
+  // Browser Back may refill a form from an earlier account. Only a real input
+  // event in this newly mounted editor counts as an unsaved question to adopt.
+  if (pending.owner === null && edited && fieldValue) restored.set(id,fieldValue);
+  return restored;
 }

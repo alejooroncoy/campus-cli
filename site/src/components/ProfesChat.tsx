@@ -1,4 +1,4 @@
-import { createConversationDrafts } from "../scripts/conversation-drafts";
+import { createConversationDrafts, restoreConversationDrafts } from "../scripts/conversation-drafts";
 import { createPortal } from "react-dom";
 import MiupcReconnect from "./MiupcReconnect";
 import ChatMarkdown from "./ChatMarkdown";
@@ -724,6 +724,7 @@ export default function ProfesChat() {
   const [sidebarHosts, setSidebarHosts] = useState<{ actions: HTMLElement; history: HTMLElement } | null>(null);
   const mobileHistoryDialog = useRef<HTMLDialogElement>(null);
   const conversationDrafts = useRef(createConversationDrafts());
+  const draftEditedBeforeSession = useRef(false);
   const pageCache = useRef(createConversationCache(fetchConversationPage));
   const conversationSnapshots = useRef(new Map<string, { messages: UIMessage[]; hasMore: boolean; cursor: string | null; top: number }>());
   const navigationVersion = useRef(0);
@@ -898,11 +899,10 @@ export default function ProfesChat() {
         const owner = session.authenticated ? (session.email ? `account:${session.email.toLowerCase()}` : null) : 'guest';
         let storage: Storage | undefined;
         try { storage = sessionStorage; } catch { /* Private browsing may deny storage. */ }
-        const savedDrafts = createConversationDrafts(owner,storage);
-        for (const [id,text] of conversationDrafts.current.entries()) savedDrafts.set(id === 'new' ? null : id,text);
         const currentId = currentConversationIdRef.current;
-        const typedBeforeSession = textarea.current?.value;
-        if (typedBeforeSession) savedDrafts.set(currentId,typedBeforeSession);
+        const savedDrafts = restoreConversationDrafts(owner,storage,conversationDrafts.current,
+          draftEditedBeforeSession.current,currentId,textarea.current?.value ?? '');
+        draftEditedBeforeSession.current = false;
         conversationDrafts.current = savedDrafts;
         setInput(savedDrafts.get(currentId));
         applyAccessSession(session);
@@ -1568,9 +1568,10 @@ export default function ProfesChat() {
             <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta a Campus</label>
             <textarea
               id="profes-message"
+              autoComplete="off"
               ref={textarea}
               value={input}
-              onChange={event => setInput(event.target.value)}
+              onChange={event => { draftEditedBeforeSession.current = true; setInput(event.target.value); }}
               onKeyDown={onKeyDown}
               placeholder="Pregunta a Campus…"
               rows={1}
