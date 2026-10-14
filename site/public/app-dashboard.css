@@ -959,10 +959,14 @@ button:disabled {
   }
   .app-mobile-nav a {
     display: grid;
+    grid-template-rows: 19px 2.4em;
     place-items: center;
     align-content: center;
-    gap: 5px;
+    gap: 4px;
+    min-width: 0;
     min-height: 52px;
+    line-height: 1.2;
+    text-align: center;
     border-radius: 8px;
     font-size: 11px;
     color: var(--app-muted);
