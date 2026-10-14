@@ -1,3 +1,4 @@
+import { watchSessionChanges } from "./session-sync";
 import { createKeyboardViewportState, watchMobileKeyboard } from "./mobile-keyboard";
 import { getCampusSession, canConnectMiupc, clearCampusSession, getCampusProfilePreview, type CampusProfilePreview, type CampusSession } from "./campus-session";
 
@@ -459,3 +460,17 @@ if (!isStandalone && !isDismissed && pwaBanner) {
     localStorage.setItem("campus-pwa-dismissed", "1");
   });
 }
+
+
+// Notifications only invalidate local display state. The reload verifies the
+// actual cookie/session on the server; neither a message nor storage grants access.
+let invalidatingAccount=false;
+watchSessionChanges(() => {
+  if(invalidatingAccount)return;
+  invalidatingAccount=true;
+  clearCampusSession(false);
+  stopMobileKeyboard?.();
+  document.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('input, textarea').forEach(field=>{field.value='';field.blur();});
+  document.querySelectorAll('.app-profes-ai__conversation, [data-app-profile-authenticated]').forEach(element=>element.replaceChildren());
+  location.reload();
+});
