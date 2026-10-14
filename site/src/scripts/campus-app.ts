@@ -1,4 +1,4 @@
-import { watchMobileKeyboard } from "./mobile-keyboard";
+import { createKeyboardViewportState, watchMobileKeyboard } from "./mobile-keyboard";
 import { getCampusSession, canConnectMiupc, clearCampusSession, getCampusProfilePreview, type CampusProfilePreview, type CampusSession } from "./campus-session";
 
 const UI_CACHE_KEY = "campus_ui_profile";
@@ -156,11 +156,13 @@ async function loadUniversities(optionsEl: HTMLDataListElement | null) {
   }
 }
 
+// Keep the expanded viewport across Astro page swaps, even if the keyboard stays open.
+const mobileKeyboardViewport = createKeyboardViewportState();
 let stopMobileKeyboard: (() => void) | undefined;
 
 function initPage() {
   stopMobileKeyboard?.();
-  stopMobileKeyboard = watchMobileKeyboard();
+  stopMobileKeyboard = watchMobileKeyboard(mobileKeyboardViewport);
   updateNavHighlights();
 
   // Instant UI paint from harmless cache (only non-sensitive profile info)

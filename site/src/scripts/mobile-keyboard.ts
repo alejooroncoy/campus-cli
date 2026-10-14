@@ -27,11 +27,10 @@ export function createKeyboardViewportState() {
   };
 }
 
-export function watchMobileKeyboard(): () => void {
+export function watchMobileKeyboard(sampleState = createKeyboardViewportState()): () => void {
   const body = document.body;
   const viewport = window.visualViewport;
   const mobile = window.matchMedia('(max-width: 700px)');
-  const sampleState = createKeyboardViewportState();
   let frame = 0;
   let keepLatestVisible = false;
   let previousHeight = 0;
@@ -77,6 +76,7 @@ export function watchMobileKeyboard(): () => void {
     schedule();
   };
   window.addEventListener('resize',schedule);
+  window.addEventListener('pageshow',schedule);
   viewport?.addEventListener('resize',schedule);
   viewport?.addEventListener('scroll',schedule);
   mobile.addEventListener('change',schedule);
@@ -87,6 +87,7 @@ export function watchMobileKeyboard(): () => void {
     cancelAnimationFrame(frame);
     dockObserver.disconnect();
     window.removeEventListener('resize',schedule);
+    window.removeEventListener('pageshow',schedule);
     viewport?.removeEventListener('resize',schedule);
     viewport?.removeEventListener('scroll',schedule);
     mobile.removeEventListener('change',schedule);
