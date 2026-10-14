@@ -421,6 +421,35 @@ button:disabled {
   margin: 0 auto;
   padding: 42px 40px 64px;
 }
+.app-assistant-return {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: -8px 0 20px;
+  padding: 4px 0;
+  border-radius: 4px;
+  color: var(--app-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.app-assistant-return svg {
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.app-assistant-return:hover {
+  color: var(--app-ink);
+}
+.app-assistant-return:hover span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .app-page-heading {
   margin-bottom: 30px;
 }
