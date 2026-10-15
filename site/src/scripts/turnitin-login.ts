@@ -2,9 +2,9 @@ export function turnitinLoginReturn(pathname: string, hash: string) {
   return '/app/turnitin/' + (pathname === '/app/turnitin/' && /^#ti-order-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(hash) ? hash : '');
 }
 type TurnitinLogin = { open: (amountCents?: number) => void };
-const initialized = new WeakMap<HTMLDialogElement, TurnitinLogin>();
+const initialized = new WeakMap<HTMLElement, TurnitinLogin>();
 export function setupTurnitinLogin(): TurnitinLogin | null {
-  const dialog = document.querySelector<HTMLDialogElement>('[data-ti-login-dialog]');
+  const dialog = document.querySelector<HTMLElement>('[data-ti-login-panel]');
   if (!dialog) return null;
   const previous = initialized.get(dialog);
   if (previous) return previous;
@@ -20,18 +20,23 @@ export function setupTurnitinLogin(): TurnitinLogin | null {
       const note = dialog.querySelector<HTMLElement>('[data-ti-login-note]')!;
       for (const node of [title, description, note]) node.dataset.defaultText ??= node.textContent!;
       title.textContent = readingReports ? 'Inicia sesión para ver tus informes.' : title.dataset.defaultText!;
-      description.textContent = readingReports ? 'Tus informes de similitud e IA están en Campus. Entra con la misma cuenta con la que hiciste el pedido.' : description.dataset.defaultText!;
-      note.textContent = readingReports ? 'Volverás directamente a tu revisión para ver o descargar los PDF.' : note.dataset.defaultText!;
-      dialog.querySelector<HTMLElement>('.ti-login-offer')!.hidden = readingReports;
+      description.textContent = readingReports ? 'Usa la misma cuenta con la que hiciste el pedido.' : description.dataset.defaultText!;
+      note.textContent = readingReports ? 'Volverás a tu revisión.' : note.dataset.defaultText!;
+      const offer = dialog.querySelector<HTMLElement>('.ti-login-offer');
+      if (offer) offer.hidden = readingReports;
 
-      if (amountCents !== undefined) dialog.querySelector<HTMLElement>('[data-ti-login-price]')!.textContent = `S/${amountCents / 100}`;
+      const price = dialog.querySelector<HTMLElement>('[data-ti-login-price]');
+      if (amountCents !== undefined && price) price.textContent = `S/${amountCents / 100}`;
+      if (!(dialog instanceof HTMLDialogElement)) { dialog.hidden = false; return; }
       if (!dialog.open) dialog.showModal();
       dialog.querySelector<HTMLAnchorElement>('[data-ti-google-login]')?.focus();
     },
   };
   initialized.set(dialog, controller);
-  dialog.querySelectorAll<HTMLButtonElement>('[data-ti-close-login]').forEach(button => { button.onclick = () => dialog.close(); });
-  dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  if (dialog instanceof HTMLDialogElement) {
+    dialog.querySelectorAll<HTMLButtonElement>('[data-ti-close-login]').forEach(button => { button.onclick = () => dialog.close(); });
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  }
   document.querySelectorAll<HTMLAnchorElement>('[data-ti-open-login]').forEach(anchor => {
     anchor.onclick = event => { event.preventDefault(); controller.open(); };
   });

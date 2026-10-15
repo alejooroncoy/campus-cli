@@ -1,19 +1,27 @@
-<dialog class="ti-login-dialog" data-ti-login-dialog aria-labelledby="ti-login-title" aria-describedby="ti-login-description">
+---
+interface Props { inline?: boolean }
+const { inline = false } = Astro.props;
+const Container = inline ? 'section' : 'dialog';
+const Heading = inline ? 'h3' : 'h2';
+---
+<Container class={inline ? 'ti-login-inline' : 'ti-login-dialog'} data-ti-login-panel data-ti-login={inline ? '' : undefined} hidden={inline} aria-labelledby="ti-login-title" aria-describedby="ti-login-description">
   <div class="ti-login-body">
-    <button type="button" class="ti-login-close" data-ti-close-login aria-label="Cerrar inicio de sesión">×</button>
-    <div class="ti-login-brand"><img src="/assets/campus-logo.webp" width="32" height="32" alt="" /><span>Campus</span></div>
-    <p class="ti-login-eyebrow">Tu revisión con Turnitin</p>
-    <h2 id="ti-login-title">Un paso antes de subir tu trabajo.</h2>
-    <p id="ti-login-description">Inicia sesión para enviar tu documento y comprobante, seguir el pedido y descargar tus informes.</p>
-    <div class="ti-login-offer"><strong data-ti-login-price>S/8</strong><span>por documento<br />Informes de similitud e IA</span></div>
+    {!inline && <>
+      <button type="button" class="ti-login-close" data-ti-close-login aria-label="Cerrar inicio de sesión">×</button>
+      <div class="ti-login-brand"><img src="/assets/campus-logo.webp" width="32" height="32" alt="" /><span>Campus</span></div>
+      <p class="ti-login-eyebrow">Tu revisión con Turnitin</p>
+    </>}
+    <Heading id="ti-login-title">Inicia sesión para empezar.</Heading>
+    <p id="ti-login-description">Después podrás subir tu trabajo y comprobante.</p>
+    {!inline && <div class="ti-login-offer"><strong data-ti-login-price>S/8</strong><span>por documento<br />Informes de similitud e IA</span></div>}
     <a class="ti-google-login" href="/api/app/auth/start?return=/app/turnitin/" data-ti-google-login>
       <svg viewBox="0 0 48 48" width="22" height="22" aria-hidden="true"><path fill="#4285f4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.9h11a9.4 9.4 0 0 1-4.1 6.2v5h6.7c3.9-3.6 6-8.8 6-15z"/><path fill="#34a853" d="M24 44c5.5 0 10.2-1.8 13.6-4.5l-6.7-5c-1.8 1.2-4.1 1.9-6.9 1.9-5.3 0-9.8-3.6-11.4-8.5H5.7v5.2A20 20 0 0 0 24 44z"/><path fill="#fbbc05" d="M12.6 27.9a12 12 0 0 1 0-7.8v-5.2H5.7a20 20 0 0 0 0 18.2z"/><path fill="#ea4335" d="M24 11.6c3 0 5.7 1 7.8 3l5.8-5.8A19.4 19.4 0 0 0 24 4 20 20 0 0 0 5.7 14.9l6.9 5.2c1.6-4.9 6.1-8.5 11.4-8.5z"/></svg>
       Continuar con Google
     </a>
-    <p class="ti-login-note" data-ti-login-note>Volverás aquí para completar tu pedido. El servicio se paga por documento, sin membresía.</p>
-    <button type="button" class="ti-login-later" data-ti-close-login>Seguir viendo el servicio</button>
+    <p class="ti-login-note" data-ti-login-note>Pago por documento · Sin membresía.</p>
+    {!inline && <button type="button" class="ti-login-later" data-ti-close-login>Seguir viendo el servicio</button>}
   </div>
-</dialog>
+</Container>
 <script>
   import { setupTurnitinLogin } from '../scripts/turnitin-login';
   setupTurnitinLogin();

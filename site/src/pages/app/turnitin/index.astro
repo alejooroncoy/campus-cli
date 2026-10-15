@@ -9,13 +9,13 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
     <header class="ti-order-head">
       <p class="eyebrow">Campus · Turnitin</p>
       <h1>Tu trabajo, listo para revisar.</h1>
-      <p>Solicita tus informes de similitud e IA y consúltalos aquí.</p>
+      <p>Informes de similitud e IA para tu trabajo.</p>
       <div class="ti-service-facts"><span>Dos informes PDF</span><span>10 min a 1 h después de validar el pago</span><a href="/turnitin/">Detalles del servicio ↗</a></div>
     </header>
     <p class="ti-status" data-ti-status role="status" aria-live="polite">Comprobando disponibilidad…</p>
     <div class="ti-order-layout">
       <section class="ti-panel ti-reviews" aria-labelledby="ti-my-orders" data-ti-my-orders-panel>
-        <div class="ti-panel-head"><div><h2 id="ti-my-orders">Mis revisiones</h2><p>Todos tus trabajos, sus estados y los dos informes en un solo lugar.</p></div><button class="app-button app-button--secondary" type="button" data-ti-refresh hidden>Actualizar</button></div>
+        <div class="ti-panel-head"><div><h2 id="ti-my-orders">Mis revisiones</h2><p>Consulta el estado y descarga tus PDF.</p></div><button class="app-button app-button--secondary" type="button" data-ti-refresh hidden>Actualizar</button></div>
         <div class="ti-history-tools" data-ti-history-tools hidden>
           <label class="ti-history-search">Buscar un trabajo<input type="search" placeholder="Nombre de tu documento" maxlength="180" data-ti-search /></label>
           <div class="ti-history-filters" role="group" aria-label="Filtrar revisiones por estado">
@@ -27,15 +27,15 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
           </div>
           <p class="ti-history-count" data-ti-history-count role="status" aria-live="polite"></p>
         </div>
-        <div data-ti-orders><p class="ti-muted">Inicia sesión para consultar tus revisiones.</p></div>
+        <div data-ti-orders><p class="ti-muted">Tus revisiones aparecerán aquí.</p></div>
         <button class="app-button app-button--secondary ti-history-more" type="button" data-ti-more hidden>Ver más revisiones</button>
-        <p class="ti-muted ti-report-note">El resultado de IA puede mostrar «*%» en lugar de un porcentaje exacto. Encontrarás el resultado disponible dentro de tu informe.</p>
+        <p class="ti-muted ti-report-note" hidden>El informe de IA puede mostrar «*%» en lugar de un porcentaje exacto.</p>
       </section>
 
       <details class="ti-panel ti-new-order" data-ti-new-order open>
         <summary><span class="ti-summary-title"><span>Solicitar una revisión</span><span class="ti-new-order-hint">Tu documento y comprobante, en un solo envío.</span></span><span class="ti-price-badge" data-ti-price>S/8 · Lanzamiento</span><span class="ti-disclosure" aria-hidden="true"></span></summary>
         <div class="ti-new-order-body">
-        <p data-ti-login hidden><a href="/api/app/auth/start?return=/app/turnitin/" data-ti-open-login>Revisar mi trabajo: iniciar sesión →</a></p>
+        <TurnitinLogin inline />
         <form data-ti-form hidden>
           <fieldset data-ti-fields style="border:0;padding:0;margin:0">
             <div class="ti-submit-grid">
@@ -98,7 +98,6 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
       <button class="app-button app-button--secondary ti-history-more" type="button" data-ti-admin-more hidden>Ver más pedidos</button>
     </section>
   </div>
-  <TurnitinLogin />
   <TurnitinReportViewer />
   <script src="../../../scripts/turnitin.ts"></script>
 </AppShell>
