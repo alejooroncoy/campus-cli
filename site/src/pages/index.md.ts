@@ -14,7 +14,7 @@ export const GET: APIRoute = () => {
   const markdown = [
     "# Campus",
     "",
-    "> Campus para UPC: Campus Free (S/0) y Campus Plus. Los primeros 25 usuarios de pago: S/5 el primer mes, luego S/10 al mes. Nuevas suscripciones después de ese grupo: S/15 al mes desde el primer mes.",
+    "> Campus conecta tus cursos, tareas, notas y profesores con el asistente web o tu IA mediante MCP: una cuenta y un plan. Más de 350 estudiantes ya se han ayudado con Campus.",
     "",
     "Fuente: https://campuscli.com/",
     "Campus CLI: https://campuscli.com/campus-cli/",

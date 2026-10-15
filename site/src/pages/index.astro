@@ -1,6 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
-// Shared with the Markdown route so public plan details stay consistent.
+// Kept as raw html so the markup that is already indexed ships byte for byte.
 import body from "../html/index.html?raw";
 
 const schemas = [
@@ -16,7 +16,7 @@ const schemas = [
     ],
     "url": "https://campuscli.com/",
     "logo": "https://campuscli.com/assets/campus-logo.webp",
-    "description": "Campus ayuda a estudiantes UPC a consultar profesores, cursos, tareas y notas. Ofrece Campus Free y Campus Plus, con asistente web y conexión con IA.",
+    "description": "Campus reúne herramientas para estudiantes universitarios en Perú: profesores y horarios para la matrícula, y conexión directa de Blackboard UPC con asistentes de IA.",
     "disambiguatingDescription": "No confundir con el paquete `campus-cli` de PyPI (Python, gestión de notebooks Jupyter) ni con otras plataformas de IA para estudiantes con nombres similares (CampusCode, Campus AI).",
     "sameAs": [
       "https://github.com/alejooroncoy/campus-cli"
@@ -66,65 +66,57 @@ const schemas = [
       }
     ]
   },
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "¿Puedo usar Campus gratis?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Sí. Campus Free cuesta S/0 e incluye 25 consultas de bienvenida al crear tu cuenta para consultar profesores y cursos con el asistente web. Son consultas de bienvenida, no una cuota mensual."
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Qué incluye Campus?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Campus ofrece el asistente web y el conector MCP para tu IA con una sola cuenta, plan y saldo de consultas."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Blackboard está conectado de verdad?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí. Campus ya conecta directamente Blackboard UPC con ChatGPT, Claude o la terminal. Tu Aula Virtual sigue siendo la fuente de tus datos y puedes revocar el acceso cuando quieras."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto cuesta Campus?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "El acceso fundador a Campus cuesta S/5 el primer mes para los estudiantes que se unan al relanzamiento."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Es lo mismo que el paquete \"campus-cli\" de PyPI u otras apps de IA para estudiantes?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. El paquete campus-cli de PyPI es un proyecto de Python no relacionado (gestión de archivos de notebooks Jupyter), y tampoco somos otras plataformas de \"IA para resolver tareas\" con nombres parecidos. Este Campus es el paquete campus-cli de npm; el código fuente está en github.com/alejooroncoy/campus-cli."
+        }
       }
-    },
-    {
-      "@type": "Question",
-      "name": "¿Cuánto cuesta Campus Plus?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Los primeros 25 usuarios de pago acceden por S/5 el primer mes y luego S/10 al mes. Una vez completado ese grupo, las nuevas suscripciones cuestan S/15 al mes desde el primer mes. La promoción se asigna al activar el pago, no al enviar el formulario."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "¿Cómo activo Campus Plus?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Elige “Quiero Campus Plus” y déjanos tus datos. Te escribiremos por WhatsApp para confirmar la tarifa disponible y coordinar el pago y la activación."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "¿Puedo usar Campus con mi IA?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Sí. Puedes conectar Blackboard UPC con asistentes compatibles como ChatGPT, Claude y Gemini. Consulta la guía de conexión. La suscripción a un asistente externo, si la requiere, se contrata por separado."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "¿Campus es parte de la UPC?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Campus es un proyecto independiente, hecho por estudiantes. No está afiliado a UPC, Blackboard, OpenAI ni Anthropic. La conexión universitaria está disponible inicialmente para UPC."
-      }
-    }
-  ]
-}
+    ]
+  }
 ];
 ---
 
 <Base
-  title={"Campus | Tu universidad, un poco más fácil"}
-  description={"Conoce Campus Free y Campus Plus para UPC. Plus: S/5 el primer mes y luego S/10 al mes para los primeros 25 usuarios de pago. Después, S/15 al mes para nuevos usuarios."}
+  title={"Campus | Tu universidad, en una conversación"}
+  description={"Compara profesores y horarios con Campus y consulta tareas y notas de Blackboard UPC con IA. Más de 350 estudiantes ayudados. Conoce Campus."}
   canonical={"https://campuscli.com/"}
   markdownUrl={"https://campuscli.com/index.md"}
-  ogTitle={"Campus Free y Campus Plus | Tu universidad, más fácil"}
-  ogDescription={"Empieza gratis con Campus Free. Campus Plus para los primeros 25 de pago: S/5 el primer mes y luego S/10 al mes. Nuevos usuarios después: S/15 al mes."}
+  ogTitle={"Campus | Tu matrícula y tu ciclo, con Campus"}
+  ogDescription={"Profes, horarios y Blackboard UPC conectado. Más de 350 estudiantes ya se han ayudado con Campus."}
   ogImageAlt={"Campus: matrícula, horarios y Blackboard UPC"}
   schemas={schemas}
 >
   <Fragment set:html={body} />
-  <link slot="head" rel="stylesheet" href="/campus-landing.css" />
+  <link slot="head" rel="stylesheet" href="/turnitin.css" />
 </Base>
