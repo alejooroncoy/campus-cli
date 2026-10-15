@@ -43,7 +43,7 @@ More than 350 students have used the professor-rating feature.
 - Blackboard UPC: tareas, notas y materiales con IA: https://campuscli.com/blackboard-upc/ (Markdown: https://campuscli.com/blackboard-upc/index.md)
 - Blackboard in ChatGPT, nothing to install (paid): https://campuscli.com/blackboard-chatgpt/ (Markdown: https://campuscli.com/blackboard-chatgpt/index.md)
 - Blackboard MCP: https://campuscli.com/blackboard-mcp/ (Markdown: https://campuscli.com/blackboard-mcp/index.md)
-- Gemini Spark MCP: https://campuscli.com/blog/conectar-blackboard-gemini-spark-campus/ (Markdown: https://campuscli.com/blog/conectar-blackboard-gemini-spark-campus/index.md)
+- Gemini MCP: https://campuscli.com/blog/conectar-blackboard-gemini-spark-campus/ (Markdown: https://campuscli.com/blog/conectar-blackboard-gemini-spark-campus/index.md)
 - Blackboard CLI, free and open source: https://campuscli.com/blackboard-cli/ (Markdown: https://campuscli.com/blackboard-cli/index.md)
 - Blog: https://campuscli.com/blog/
 - Non-affiliation notice: https://campuscli.com/no-afiliacion/
@@ -67,7 +67,7 @@ explicit confirmation before submitting an assignment.
 Step-by-step for connecting Blackboard UPC to each client, plus a comparison of
 the options that exist.
 
-- [Gemini Spark MCP: cómo conectar Blackboard UPC con Campus](https://campuscli.com/blog/conectar-blackboard-gemini-spark-campus/) (Markdown: https://campuscli.com/blog/conectar-blackboard-gemini-spark-campus/index.md)
+- [Gemini MCP: cómo conectar Blackboard UPC con Campus](https://campuscli.com/blog/conectar-blackboard-gemini-spark-campus/) (Markdown: https://campuscli.com/blog/conectar-blackboard-gemini-spark-campus/index.md)
 ${perClient.join("\n")}
 
 ## Guides (Markdown available)
