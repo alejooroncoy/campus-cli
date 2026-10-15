@@ -52,13 +52,13 @@ En esta guía vas a conectar la cuenta, comprobar que funciona y ver qué pregun
 
 Necesitas tres cosas:
 
-- Una cuenta de Google que tenga acceso a **Gemini**.
+- Una cuenta **personal de Google** con acceso a las apps personalizadas de Gemini; no una cuenta de trabajo o universidad.
 - Acceso activo a tu cuenta de **Blackboard UPC**.
 - La URL oficial del servidor MCP de Campus: `https://mcp.campuscli.com/mcp`.
 
 Puedes empezar gratis: cada cuenta puede conectar el servidor alojado y realizar **consultas del mismo saldo que en la web**. Cuando las termines, deberás [activar Campus por S/5](https://campuscli.com/campus-cli/#acceso-anticipado) para continuar usando Campus desde Gemini.
 
-La disponibilidad de las aplicaciones personalizadas depende de la cuenta, la región y el idioma. Si no ves «Apps personalizadas» en «Apps conectadas», revisa los requisitos de tu cuenta. La [guía oficial de Google para aplicaciones personalizadas](https://support.google.com/gemini/answer/17209137) contiene los requisitos y restricciones vigentes.
+Según la [guía oficial de Google para aplicaciones personalizadas](https://support.google.com/gemini/answer/17209137), necesitas tener **18 años o más**, estar en **Estados Unidos**, usar una **cuenta personal de Google**, tener **Guardar actividad (Keep Activity) activado** y utilizar Gemini en **inglés**. Google no anuncia disponibilidad general para estudiantes en Perú. Aunque algunas cuentas ya muestren controles en español, eso no garantiza acceso para todas las cuentas. Si no ves «Apps personalizadas» en «Apps conectadas», revisa estos requisitos antes de continuar.
 
 ## Paso 1: abre Connected apps en Gemini
 
