@@ -1,70 +1,70 @@
 ---
-title: "Gemini Spark MCP: cómo conectar Blackboard UPC con Campus"
-seoTitle: "Gemini Spark MCP: conecta Blackboard UPC con Campus"
-ogTitle: "Conecta Blackboard UPC con Gemini Spark mediante Campus MCP"
-description: "Conecta Blackboard UPC con Gemini Spark mediante Campus MCP y consulta cursos, tareas, fechas, notas y materiales desde una tarea de Gemini."
+title: "Gemini MCP: cómo conectar Blackboard UPC con Campus"
+seoTitle: "Gemini MCP: conecta Blackboard UPC con Campus"
+ogTitle: "Conecta Blackboard UPC con Gemini mediante Campus MCP"
+description: "Conecta Blackboard UPC con Gemini mediante Campus MCP y consulta cursos, tareas, fechas, notas y materiales desde un chat de Gemini."
 published: "2026-09-13"
-updated: "2026-09-13"
-tag: "Tutorial · Gemini Spark"
+updated: "2026-10-15"
+tag: "Tutorial · Gemini"
 section: tutorial
 readingMinutes: 7
 howTo:
-  name: "Cómo conectar Campus a Gemini Spark"
+  name: "Cómo conectar Campus a Gemini"
   totalTime: "PT5M"
   steps:
     - name: "Abre las aplicaciones conectadas"
-      text: "En Gemini, entra a Spark, abre Connected apps y busca la sección Custom apps for Spark."
+      text: "En Gemini, abre Apps conectadas y pulsa Crear una app personalizada."
     - name: "Pega la URL MCP de Campus"
-      text: "Escribe https://mcp.campuscli.com/mcp en Add a custom app link to get started. La ruta /mcp al final es obligatoria."
+      text: "Escribe https://mcp.campuscli.com/mcp en URL del servidor de MCP. La ruta /mcp al final es obligatoria."
     - name: "Continúa con el registro automático"
       text: "Pulsa Next. Campus admite el registro dinámico OAuth de Gemini, así que no debes introducir manualmente un Client ID ni un Client secret."
     - name: "Revisa la advertencia de Google"
       text: "Gemini avisa que Campus es una aplicación personalizada que Google no ha revisado. Continúa únicamente si reconoces la URL oficial de Campus y deseas conectar tu cuenta."
     - name: "Autoriza Campus y conecta Blackboard"
       text: "Completa el inicio de sesión de Campus. Si tu Aula Virtual todavía no está vinculada, sigue el acceso institucional de Microsoft y UPC; la contraseña se introduce en la página de la institución."
-    - name: "Comprueba la conexión en Spark"
-      text: "Inicia una tarea de Spark y pregunta qué cursos tienes. Si Gemini devuelve tus cursos de Blackboard, la conexión está lista."
+    - name: "Comprueba la conexión en Gemini"
+      text: "Abre un chat de Gemini, selecciona @Campus y pregunta qué cursos tienes. Si Gemini devuelve tus cursos de Blackboard, la conexión está lista."
 faq:
-  - q: "¿Cuál es la URL de Campus para Gemini Spark?"
+  - q: "¿Cuál es la URL de Campus para Gemini?"
     a: "La URL correcta es https://mcp.campuscli.com/mcp. Debe incluir https y la ruta /mcp al final."
   - q: "¿Necesito un Client ID y un Client secret?"
-    a: "No. Campus admite el registro dinámico OAuth que utiliza Gemini Spark. Si aparecen esos campos, cierra el intento y vuelve a empezar con la URL exacta; no inventes credenciales ni pegues contraseñas allí."
+    a: "No. Campus admite el registro dinámico OAuth que utiliza Gemini. Si aparecen esos campos, cierra el intento y vuelve a empezar con la URL exacta; no inventes credenciales ni pegues contraseñas allí."
   - q: "¿Por qué Gemini dice que Campus no fue revisado por Google?"
     a: "Porque Campus se agrega como una aplicación MCP personalizada y no como una integración incluida en el catálogo de Google. La advertencia es general para servidores personalizados; comprueba que el dominio sea mcp.campuscli.com antes de continuar."
   - q: "¿Gemini puede entregar una tarea por mí?"
     a: "Campus puede preparar una entrega compatible, pero nunca debe enviarla sin mostrarte qué se entregará y pedir tu confirmación. Los cuestionarios con preguntas interactivas se completan directamente en Blackboard."
   - q: "¿Dónde funciona una aplicación personalizada de Gemini?"
-    a: "Google indica que estas conexiones se configuran desde Gemini en la web y se utilizan dentro de tareas de Gemini Spark. Su disponibilidad puede depender de la cuenta, el idioma y el despliegue de la función."
-  - q: "¿Puedo probar Campus en Gemini Spark sin pagar?"
+    a: "Google indica que estas conexiones se configuran desde Gemini en la web y pueden utilizarse en el chat de Gemini, tanto en la web como en la app móvil. Su disponibilidad puede depender de la cuenta, el idioma y el despliegue de la función."
+  - q: "¿Puedo probar Campus en Gemini sin pagar?"
     a: "Sí. Puedes conectar Campus y realizar consultas del mismo saldo que en la web. Cuando las termines, necesitas activar Campus por S/5 para continuar usando el servidor alojado."
 summary:
   - "La URL que debes pegar es **https://mcp.campuscli.com/mcp**; escribir solo el dominio no conecta el servidor MCP."
   - "Puedes empezar con **consultas compartidas con la web**; después necesitas Campus por S/5 para continuar usando la conexión alojada."
   - "Campus admite el **registro automático OAuth** de Gemini: no necesitas crear ni copiar un Client ID o Client secret."
-  - "Después de autorizar tu cuenta puedes preguntar por **cursos, tareas, fechas, notas, anuncios y materiales** de Blackboard UPC desde una tarea de Spark."
+  - "Después de autorizar tu cuenta puedes preguntar por **cursos, tareas, fechas, notas, anuncios y materiales** de Blackboard UPC desde un chat de Gemini."
   - "La advertencia de Google es normal para una app personalizada: verifica el dominio y recuerda que **ninguna entrega se envía sin tu confirmación**."
 ---
-Gemini Spark ya puede conectarse con Blackboard UPC mediante el servidor MCP de Campus. Eso significa que puedes consultar tu Aula Virtual desde una tarea de Gemini sin descargar archivos, abrir cada curso ni copiar fechas a mano. Campus funciona como la conexión MCP que permite a Gemini descubrir y usar sus herramientas académicas.
+Gemini ya puede conectarse con Blackboard UPC mediante el servidor MCP de Campus. Eso significa que puedes consultar tu Aula Virtual desde un chat de Gemini sin descargar archivos, abrir cada curso ni copiar fechas a mano. Campus funciona como la conexión MCP que permite a Gemini descubrir y usar sus herramientas académicas.
 
-En esta guía vas a conectar la cuenta, comprobar que funciona y ver qué preguntas conviene hacer después. La configuración toma unos cinco minutos si ya tienes acceso a Gemini Spark y tu sesión institucional está vigente.
+En esta guía vas a conectar la cuenta, comprobar que funciona y ver qué preguntas conviene hacer después. La configuración toma unos cinco minutos si ya tienes acceso a Gemini y tu sesión institucional está vigente.
 
 ## Antes de empezar
 
 Necesitas tres cosas:
 
-- Una cuenta de Google que tenga acceso a **Gemini Spark**.
+- Una cuenta de Google que tenga acceso a **Gemini**.
 - Acceso activo a tu cuenta de **Blackboard UPC**.
 - La URL oficial del servidor MCP de Campus: `https://mcp.campuscli.com/mcp`.
 
-Puedes empezar gratis: cada cuenta puede conectar el servidor alojado y realizar **consultas del mismo saldo que en la web**. Cuando las termines, deberás [activar Campus por S/5](https://campuscli.com/campus-cli/#acceso-anticipado) para continuar usando Campus desde Gemini Spark.
+Puedes empezar gratis: cada cuenta puede conectar el servidor alojado y realizar **consultas del mismo saldo que en la web**. Cuando las termines, deberás [activar Campus por S/5](https://campuscli.com/campus-cli/#acceso-anticipado) para continuar usando Campus desde Gemini.
 
-Google mantiene Gemini Spark y sus aplicaciones personalizadas como una función de disponibilidad limitada. Si no ves «Spark» o «Custom apps for Spark» en tu cuenta, todavía no puedes completar esta configuración desde ella. La [guía oficial de Google para aplicaciones personalizadas](https://support.google.com/gemini/answer/17209137) contiene los requisitos y restricciones vigentes.
+La disponibilidad de las aplicaciones personalizadas depende de la cuenta, la región y el idioma. Si no ves «Apps personalizadas» en «Apps conectadas», revisa los requisitos de tu cuenta. La [guía oficial de Google para aplicaciones personalizadas](https://support.google.com/gemini/answer/17209137) contiene los requisitos y restricciones vigentes.
 
-## Paso 1: abre Connected apps en Gemini Spark
+## Paso 1: abre Connected apps en Gemini
 
-Entra a [Gemini](https://gemini.google.com/) desde una computadora y selecciona **Spark**. En el menú lateral abre **Connected apps**. Desplázate hasta encontrar la sección **Custom apps for Spark**.
+Abre [Apps conectadas de Gemini](https://gemini.google.com/customize/connectors?pageId=none&hl=es_419) desde una computadora y pulsa **Crear una app personalizada**. También puedes entrar desde **Configuración → Apps conectadas**; si esa opción no aparece directamente, busca en **Inteligencia personal → Apps conectadas**.
 
-Ahí verás el campo **Add a custom app link to get started**. Gemini pide la dirección del servidor que debe descubrir; todavía no solicita tu usuario ni tu contraseña de Blackboard.
+Se abrirá «Conéctate a un servidor de MCP», con el campo **URL del servidor de MCP**. Gemini pide la dirección del servidor que debe descubrir; todavía no solicita tu usuario ni tu contraseña de Blackboard.
 
 ## Paso 2: pega la URL MCP de Campus
 
@@ -95,11 +95,11 @@ Al continuar, Gemini inicia el flujo de autorización de Campus. Inicia sesión 
 
 La contraseña universitaria se escribe en las páginas oficiales de Microsoft o UPC. No debe introducirse en el formulario de configuración de Gemini ni enviarse dentro de una conversación.
 
-Después de completar la autorización, el navegador vuelve a Gemini y la aplicación queda disponible para las tareas de Spark. Si alguna pantalla queda abierta tras terminar, regresa a **Connected apps** y comprueba que Campus figure entre tus aplicaciones personalizadas.
+Después de completar la autorización, el navegador vuelve a Gemini y la aplicación queda disponible en Gemini. Si alguna pantalla queda abierta tras terminar, regresa a **Connected apps** y comprueba que Campus figure entre tus aplicaciones personalizadas.
 
 ## Paso 5: comprueba que la conexión funciona
 
-Abre una tarea nueva en Spark y empieza con una consulta pequeña:
+Abre un chat de Gemini, escribe **@** y selecciona **Campus**. Empieza con una consulta pequeña:
 
 > Usa Campus para decirme qué cursos tengo activos en Blackboard.
 
@@ -115,7 +115,7 @@ Después puedes probar:
 
 No necesitas memorizar los nombres técnicos de las herramientas. Describe el resultado que buscas; Gemini decide cuándo consultar cursos, tareas, calificaciones, anuncios, contenido o el horario mediante Campus.
 
-## Qué puedes hacer desde Gemini Spark con Campus
+## Qué puedes hacer desde Gemini con Campus
 
 La conexión sirve principalmente para evitar el trabajo de recopilar información dispersa. Desde una sola tarea puedes:
 
@@ -149,12 +149,12 @@ Cierra ese intento y empieza de nuevo antes de introducir credenciales manuales.
 
 La conexión con Google y la sesión de Blackboard son dos autorizaciones distintas. Vuelve a iniciar la conexión de tu Aula Virtual cuando Campus lo solicite. Si la sesión institucional expiró, completa otra vez el acceso de Microsoft UPC.
 
-### La aplicación no aparece fuera de Spark
+### La aplicación no aparece en el chat
 
-Las aplicaciones MCP personalizadas están pensadas para tareas de Gemini Spark. Según la documentación actual de Google, se configuran desde Gemini en la web y su disponibilidad depende de la cuenta. Usa una tarea de Spark para probarla, no una conversación general de Gemini.
+Comprueba que Campus esté habilitado en **Apps conectadas**. En el chat escribe **@** y selecciona Campus para pedir que use esa conexión. Google permite configurar apps personalizadas desde la web y utilizarlas también desde la app móvil, según la disponibilidad de la cuenta.
 
 ## Una conexión, preguntas en lenguaje natural
 
-El objetivo no es trasladar Blackboard a otra pantalla. Es dejar de navegar curso por curso cada vez que necesitas responder algo sencillo. Con Campus conectado a Gemini Spark, puedes formular la pregunta completa: qué vence, qué pesa más, dónde está la rúbrica o qué cambió. Luego recibirás una respuesta construida con la información vigente de tu Aula Virtual.
+El objetivo no es trasladar Blackboard a otra pantalla. Es dejar de navegar curso por curso cada vez que necesitas responder algo sencillo. Con Campus conectado a Gemini, puedes formular la pregunta completa: qué vence, qué pesa más, dónde está la rúbrica o qué cambió. Luego recibirás una respuesta construida con la información vigente de tu Aula Virtual.
 
 Si quieres conocer todas las funciones, límites y medidas de seguridad del conector, revisa la [guía de Blackboard MCP de Campus](https://campuscli.com/blackboard-mcp/). Para organizar primero qué información debes revisar cada semana, continúa con [cómo organizar tu semana en Blackboard sin perder fechas](https://campuscli.com/blog/organizar-tu-semana-blackboard/).
