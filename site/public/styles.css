@@ -59,7 +59,7 @@ h1, h2, h3, p { margin-top: 0; }
   transition: width 420ms cubic-bezier(.32, .72, .28, 1), min-height 420ms cubic-bezier(.32, .72, .28, 1), padding 420ms cubic-bezier(.32, .72, .28, 1), gap 420ms cubic-bezier(.32, .72, .28, 1), border-radius 420ms cubic-bezier(.32, .72, .28, 1), background 420ms cubic-bezier(.32, .72, .28, 1), border-color 420ms cubic-bezier(.32, .72, .28, 1), box-shadow 420ms cubic-bezier(.32, .72, .28, 1);
 }
 .site-header.is-scrolled {
-  width: min(860px, calc(100% - 24px));
+  width: min(760px, calc(100% - 24px));
   min-height: 58px;
   gap: 14px;
   padding: 7px 14px 7px 18px;
@@ -91,8 +91,8 @@ h1, h2, h3, p { margin-top: 0; }
 .header-github:not(:has(svg)) + .button--small::after { content: "↗"; margin-left: 2px; font-size: 24px; line-height: 1; }
 .site-header.is-scrolled .brand { font-size: 18px; }
 .site-header.is-scrolled .brand img { width: 30px; height: 30px; }
-.site-header.is-scrolled nav { gap: 16px; font-size: 13px; border-color: transparent; background: transparent; }
-.site-header.is-scrolled .site-header__actions { gap: 10px; margin-left: 0; padding-left: 0; border-left-color: transparent; }
+.site-header.is-scrolled nav { border-color: transparent; background: transparent; }
+.site-header.is-scrolled .site-header__actions { padding-left: 0; border-left-color: transparent; }
 .site-header.is-scrolled .button { min-height: 38px; padding-inline: 14px; }
 /* Article pages have a compact local stylesheet; keep the shared shell intact. */
 body > .site-header { max-width: 1180px !important; margin-inline: auto !important; padding: 0 !important; }
@@ -457,7 +457,7 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
   .shell { width: min(100% - 32px, 1180px); }
   .announcement { display: none; }
   .site-header { min-height: 72px; }
-  .site-header .button { display: inline-flex; }
+  .site-header .button { display: none; }
   .header-github span { display: none; }
   .site-header.is-scrolled .button { display: inline-flex; min-height: 38px; padding: 0 13px; font-size: 13px; }
   .brand { font-size: 19px; }
@@ -1672,6 +1672,3 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
   font-size: 14px;
   white-space: nowrap;
 }
-
-/* Keep the Campus entry action available on narrow phones. */
-@media (max-width: 380px) { .site-header { gap: 12px; } .site-header__actions { gap: 8px; } .site-header .brand { font-size: 19px; } .site-header .button--small { padding-inline: 11px; font-size: 13px; } }
