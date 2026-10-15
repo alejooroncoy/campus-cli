@@ -162,7 +162,14 @@
 
 .ti-order-layout>.ti-admin{margin-top:0}.ti-admin .ti-order>a{min-height:44px;display:inline-flex;align-items:center}
 
-.ti-login-dialog [hidden]{display:none!important}
+.ti-login-dialog [hidden],.ti-login-inline[hidden]{display:none!important}
+.ti-login-inline .ti-login-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,320px);column-gap:40px;row-gap:12px;padding:0}
+.ti-login-inline h3{grid-column:1;margin:0;font-size:24px;line-height:1.25;letter-spacing:-.02em}
+.ti-login-inline #ti-login-description{grid-column:1;margin:0;max-width:560px}
+.ti-login-inline .ti-google-login{grid-column:2;grid-row:1 / 3;align-self:center;color:#102a3a;text-decoration:none}
+.ti-login-inline .ti-login-note{grid-column:1 / -1;margin:4px 0 0}
+.ti-login-inline a:focus-visible{outline:2px solid #087f5b;outline-offset:3px}
+@media(max-width:700px){.ti-login-inline .ti-login-body{grid-template-columns:minmax(0,1fr);gap:16px}.ti-login-inline .ti-google-login{grid-column:1;grid-row:auto}.ti-login-inline h3{font-size:22px}}
 
 /* A searchable history, with each pair of reports kept beside its document. */
 .ti-history-tools{margin-bottom:6px}.ti-history-search{display:grid;gap:8px;font-size:12px;font-weight:600;color:#506d7f}.ti-history-search input{width:100%;min-height:46px;border:1px solid #cad9df;border-radius:9px;padding:12px 14px;font:inherit;font-size:14px;font-weight:400;color:#102a3a;background:#f8fbfc;box-sizing:border-box}

@@ -263,7 +263,7 @@ function setupTurnitin() {
       if (disposed) return;
       if (!session.authenticated) {
         document.querySelector<HTMLElement>('[data-ti-login]')!.hidden = false;
-        announce(config.enabled ? 'Inicia sesión para enviar tu pedido y descargar tus informes.' : 'Los pedidos nuevos están pausados. Inicia sesión para consultar pedidos anteriores.');
+        announce(config.enabled ? 'Inicia sesión para solicitar o consultar una revisión.' : 'Los pedidos nuevos están pausados. Inicia sesión para consultar pedidos anteriores.');
         setupTurnitinLogin()?.open(config.amountCents);
         return;
       }

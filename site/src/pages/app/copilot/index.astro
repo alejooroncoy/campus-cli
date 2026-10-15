@@ -12,7 +12,7 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
   <section class="app-page-heading app-page-heading--compact">
     <p class="app-kicker">Campus en tu IA</p>
     <h1>Conecta Campus a tu IA.</h1>
-    <p>Usa Campus desde ChatGPT, Claude o Gemini para analizar tus materiales, revisar tareas y procesar grabaciones de clases publicadas y disponibles. Conecta tu cuenta y pregunta desde tu IA, con la misma cuenta y plan de Campus.</p>
+    <p>Consulta tus materiales y tareas desde ChatGPT, Claude o Gemini con tu cuenta Campus.</p>
   </section>
 
   <section class="app-connector-help" aria-label="Ayuda por WhatsApp">
@@ -21,8 +21,8 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
         <svg viewBox="0 0 24 24"><use href="/assets/lucide.svg#message-circle"></use></svg>
       </span>
       <div>
-        <h2>¿Tienes dudas o no sabes cómo conectarlo?</h2>
-        <p>Escríbenos directamente y te guiamos paso a paso por WhatsApp.</p>
+        <h2>¿Necesitas ayuda?</h2>
+        <p>Te guiamos por WhatsApp.</p>
       </div>
     </div>
     <a
@@ -41,7 +41,7 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
     <div>
       <h2 id="connector-values-title">Los datos de tu conector</h2>
       <p>El plugin de Campus usa MCP: una conexión que permite a tu IA consultar tu Aula Virtual con tu autorización.</p>
-      <p>Claude abre los datos ya completados. Para ChatGPT puedes copiarlos aquí; al abrir Gemini intentaremos copiar la URL por ti.</p>
+      <p>Copia estos datos si tu asistente los solicita.</p>
     </div>
     <div class="app-connector-values">
       <div class="app-connector-value">
@@ -89,17 +89,17 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
 
     <article class="app-connector-card">
       <div class="app-connector-card__top">
-        <span class="app-provider-icon app-provider-icon--gemini"><img src="https://www.gstatic.com/lamda/images/gemini_sparkle_aurora_33f86dc0c0257da337c63.svg" width="24" height="24" alt="" /></span>
+        <span class="app-provider-icon app-provider-icon--gemini"><img src="/assets/gemini-mark.png" width="24" height="24" alt="" /></span>
         <h2>Gemini</h2>
         <a class="app-provider-link" href="https://gemini.google.com/customize/connectors?pageId=none&amp;hl=en" target="_blank" rel="noopener noreferrer" data-copy-connector-url={connectorUrl} aria-label="Copiar URL de Campus y abrir las apps conectadas de Gemini en otra pestaña">Copiar URL y abrir <span aria-hidden="true">↗</span></a>
       </div>
       <ol class="app-connector-steps">
-        <li><strong>Abre Connected Apps</strong><p>Pulsa “Copiar URL y abrir” y, en Gemini, elige “Create custom app”.</p></li>
-        <li><strong>Pega la URL de Campus</strong><p>En “MCP Server URL”, pega la URL y pulsa “Next”. Si no se copió, usa el botón “Copiar” de arriba.</p></li>
-        <li><strong>Prueba en Gemini</strong><p>Autoriza Campus, abre un chat y selecciona @Campus para preguntar “Muéstrame mis cursos”.</p></li>
+        <li><strong>Abre Gemini</strong><p>Pulsa “Copiar URL y abrir” y elige “Create custom app”.</p></li>
+        <li><strong>Pega la URL</strong><p>Pégala en “MCP Server URL” y pulsa “Next”. Puedes copiarla arriba.</p></li>
+        <li><strong>Empieza a preguntar</strong><p>Autoriza Campus, abre un chat y selecciona @Campus. Prueba: “Muéstrame mis cursos”.</p></li>
       </ol>
-      <p class="app-connector-card__note">¿Te aparece @Campus Relay? También funciona. No necesitas eliminarlo ni reconectarlo.</p>
-      <p class="app-connector-card__note">Google publica estos requisitos: 18 años o más, cuenta personal, Estados Unidos, inglés y Guardar actividad activado. La función no está anunciada para todas las cuentas de Perú. <a href="/blog/conectar-blackboard-gemini-spark-campus/">Ver guía →</a></p>
+      <p class="app-connector-card__note">Si ya usas @Campus Relay, sigue con esa app.</p>
+      <details class="app-connector-card__note"><summary>Disponibilidad y requisitos</summary><p>Google exige 18 años o más, cuenta personal, Estados Unidos, inglés y Guardar actividad activado. No está anunciado para todas las cuentas de Perú. <a href="/blog/conectar-blackboard-gemini-spark-campus/">Ver guía →</a></p></details>
     </article>
   </section>
 
