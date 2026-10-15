@@ -23,7 +23,7 @@ howTo:
     - name: "Autoriza Campus y conecta Blackboard"
       text: "Completa el inicio de sesión de Campus. Si tu Aula Virtual todavía no está vinculada, sigue el acceso institucional de Microsoft y UPC; la contraseña se introduce en la página de la institución."
     - name: "Comprueba la conexión en Gemini"
-      text: "Abre un chat de Gemini, selecciona @Campus y pregunta qué cursos tienes. Si Gemini devuelve tus cursos de Blackboard, la conexión está lista."
+      text: "Abre un chat de Gemini, selecciona @Campus (o @Campus Relay si conectaste antes) y pregunta qué cursos tienes. Si Gemini devuelve tus cursos de Blackboard, la conexión está lista."
 faq:
   - q: "¿Cuál es la URL de Campus para Gemini?"
     a: "La URL correcta es https://mcp.campuscli.com/mcp. Debe incluir https y la ruta /mcp al final."
@@ -99,7 +99,7 @@ Después de completar la autorización, el navegador vuelve a Gemini y la aplica
 
 ## Paso 5: comprueba que la conexión funciona
 
-Abre un chat de Gemini, escribe **@** y selecciona **Campus**. Empieza con una consulta pequeña:
+Abre un chat de Gemini, escribe **@** y selecciona **Campus**. Si ya habías conectado Campus, Gemini puede conservar el nombre **Campus Relay**: selecciona esa app; tu conexión sigue siendo válida. Empieza con una consulta pequeña:
 
 > Usa Campus para decirme qué cursos tengo activos en Blackboard.
 
@@ -151,7 +151,7 @@ La conexión con Google y la sesión de Blackboard son dos autorizaciones distin
 
 ### La aplicación no aparece en el chat
 
-Comprueba que Campus esté habilitado en **Apps conectadas**. En el chat escribe **@** y selecciona Campus para pedir que use esa conexión. Google permite configurar apps personalizadas desde la web y utilizarlas también desde la app móvil, según la disponibilidad de la cuenta.
+Comprueba que Campus esté habilitado en **Apps conectadas**. En el chat escribe **@** y selecciona Campus, o **Campus Relay** si Gemini conserva el nombre anterior, para pedir que use esa conexión. No necesitas eliminar una conexión válida para utilizarla. Google permite configurar apps personalizadas desde la web y utilizarlas también desde la app móvil, según la disponibilidad de la cuenta.
 
 ## Una conexión, preguntas en lenguaje natural
 
