@@ -13,9 +13,9 @@ howTo:
   totalTime: "PT5M"
   steps:
     - name: "Abre las aplicaciones conectadas"
-      text: "En Gemini, abre Apps conectadas y pulsa Crear una app personalizada."
+      text: "En Gemini, abre Connected Apps y pulsa Create custom app."
     - name: "Pega la URL MCP de Campus"
-      text: "Escribe https://mcp.campuscli.com/mcp en URL del servidor de MCP. La ruta /mcp al final es obligatoria."
+      text: "Escribe https://mcp.campuscli.com/mcp en MCP Server URL. La ruta /mcp al final es obligatoria."
     - name: "Continúa con el registro automático"
       text: "Pulsa Next. Campus admite el registro dinámico OAuth de Gemini, así que no debes introducir manualmente un Client ID ni un Client secret."
     - name: "Revisa la advertencia de Google"
@@ -62,9 +62,9 @@ Según la [guía oficial de Google para aplicaciones personalizadas](https://sup
 
 ## Paso 1: abre Connected apps en Gemini
 
-Abre [Apps conectadas de Gemini](https://gemini.google.com/customize/connectors?pageId=none&hl=es_419) desde una computadora y pulsa **Crear una app personalizada**. También puedes entrar desde **Configuración → Apps conectadas**; si esa opción no aparece directamente, busca en **Inteligencia personal → Apps conectadas**.
+Abre [Connected Apps de Gemini](https://gemini.google.com/customize/connectors?pageId=none&hl=en) desde una computadora. El enlace abre la configuración en inglés, el idioma que Google admite para esta función. Pulsa **Create custom app**. También puedes entrar desde **Settings → Connected Apps**; si esa opción no aparece directamente, busca en **Personal Intelligence → Connected Apps**.
 
-Se abrirá «Conéctate a un servidor de MCP», con el campo **URL del servidor de MCP**. Gemini pide la dirección del servidor que debe descubrir; todavía no solicita tu usuario ni tu contraseña de Blackboard.
+Se abrirá «Connect to an MCP server», con el campo **MCP Server URL**. Gemini pide la dirección del servidor que debe descubrir; todavía no solicita tu usuario ni tu contraseña de Blackboard.
 
 ## Paso 2: pega la URL MCP de Campus
 
