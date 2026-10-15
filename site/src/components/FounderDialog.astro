@@ -16,9 +16,10 @@
 
 <dialog class="founder-dialog" aria-labelledby="dialog-title">
       <button class="dialog-close" type="button" aria-label="Cerrar" data-close-founder><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#x"></use></svg></button>
-      <p class="eyebrow">Campus · S/5 el primer mes</p>
-      <h2 id="dialog-title">Únete como fundador.</h2>
-      <p><span class="desktop-copy">Déjame tus datos. Te escribiré por WhatsApp para coordinar tu acceso fundador a Campus.</span><span class="mobile-copy">Te escribiré por WhatsApp para coordinar tu acceso.</span></p>
+      <p class="eyebrow">Campus Plus</p>
+      <h2 id="dialog-title">Da el siguiente paso con Plus.</h2>
+      <p>Primeros 25 usuarios de pago: <strong>S/5 el primer mes y luego S/10 al mes.</strong> Al completar ese grupo, nuevas suscripciones a <strong>S/15 al mes desde el primer mes.</strong></p>
+      <p>Déjanos tus datos. Te escribiremos por WhatsApp para confirmar la tarifa disponible y coordinar tu acceso. Enviar este formulario no reserva un cupo promocional.</p>
       <form id="founder-form">
         <div class="founder-form__grid">
           <label>Nombre<input name="name" autocomplete="name" required /></label>
@@ -31,7 +32,7 @@
         <label>¿Qué quieres usar primero?<select name="intent"><option>Profes y horarios para mi matrícula</option><option>Mis cursos y tareas de Blackboard</option><option>Notas y anuncios de Blackboard</option><option>Todo Campus</option></select></label>
         <label class="honeypot" aria-hidden="true">Sitio web<input name="website" tabindex="-1" autocomplete="off" /></label>
         <div class="turnstile-slot" aria-label="Verificación de seguridad"></div>
-        <button class="button button--full" type="submit">Quiero mi acceso fundador <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button>
+        <button class="button button--full" type="submit">Quiero Campus Plus <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button>
       </form>
       <p class="form-note" id="form-note"><span class="desktop-copy">Tus datos se usan solo para coordinar Campus. Te escribiré por WhatsApp al número indicado.</span><span class="mobile-copy">Usaremos tus datos solo para coordinar tu acceso.</span></p>
       <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
@@ -39,5 +40,5 @@
 
 <div class="toast" id="founder-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
       <span class="toast__icon"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg></span>
-      <span><strong>Te anotamos como fundador</strong><small>Te escribiré por WhatsApp pronto.</small></span>
+      <span><strong>Recibimos tu solicitud de Plus</strong><small>Te escribiré por WhatsApp pronto.</small></span>
     </div>
