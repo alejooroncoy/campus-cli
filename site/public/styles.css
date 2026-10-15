@@ -1672,3 +1672,6 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
   font-size: 14px;
   white-space: nowrap;
 }
+
+/* Keep the Campus entry action available on narrow phones. */
+@media (max-width: 380px) { .site-header { gap: 12px; } .site-header__actions { gap: 8px; } .site-header .brand { font-size: 19px; } .site-header .button--small { padding-inline: 11px; font-size: 13px; } }

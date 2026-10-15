@@ -132,3 +132,4 @@
  .cp-final { margin-bottom:38px; padding:35px 20px; } .cp-final h2 { font-size:30px; }
 }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .campus-landing * { transition:none!important; animation:none!important; } }
+@media(max-width:380px) { .cp-plan__top { flex-wrap:wrap; } }
