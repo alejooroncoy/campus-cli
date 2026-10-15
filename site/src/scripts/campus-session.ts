@@ -1,3 +1,5 @@
+import { notifySessionLogout, publishSessionIdentity } from "./session-sync";
+import { CONVERSATION_DRAFTS_KEY, GUEST_DRAFT_HANDOFF_KEY } from "./conversation-drafts";
 export type CampusSession = {
   authenticated: boolean;
   email?: string;
@@ -72,9 +74,12 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
   });
   if (typeof window !== "undefined" && !early) window.__campusSessionBootstrap = { promise: request };
 
-  const pending = request.then(value => {
+  const pending = request.then(async value => {
     // A response from before logout/refresh must not repopulate the session.
+    if (pendingSession !== pending) return getCampusSession();
     if (pendingSession === pending) {
+      await publishSessionIdentity(value, () => pendingSession === pending);
+      if (pendingSession !== pending) return getCampusSession();
       if (value.accessUnavailable) {
         pendingSession = undefined;
         if (typeof window !== "undefined") delete window.__campusSessionBootstrap;
@@ -82,6 +87,7 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
     }
     return value;
   }).catch(error => {
+    if (pendingSession !== pending) return getCampusSession();
     if (pendingSession === pending) {
       pendingSession = undefined;
       if (typeof window !== "undefined") delete window.__campusSessionBootstrap;
@@ -92,13 +98,17 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
   return pending;
 }
 
-export function clearCampusSession(): void {
+export function clearCampusSession(notify = true): void {
   cachedSession = undefined;
   pendingSession = undefined;
   if (typeof window !== "undefined") delete window.__campusSessionBootstrap;
   try {
     sessionStorage.removeItem("campus_ui_profile");
+    sessionStorage.removeItem(CONVERSATION_DRAFTS_KEY);
+    sessionStorage.removeItem(GUEST_DRAFT_HANDOFF_KEY);
+    sessionStorage.removeItem("campus-question");
   } catch { /* Storage is optional. */ }
+  if (notify && typeof window !== "undefined") notifySessionLogout();
 }
 
 export function canConnectMiupc(session: CampusSession): boolean {

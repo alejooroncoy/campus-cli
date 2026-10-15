@@ -2,6 +2,7 @@ import Markdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkBreaks from "remark-breaks";
 import type { Root, Element } from "hast";
+import {connectAiHref} from '../scripts/assistant-handoff';
 
 function normalizeBullets(text: string) {
   let fence: string | null = null;
@@ -53,6 +54,7 @@ function tableSections() {
 }
 
 const components: Components = {
+  a:({href,children})=><a href={href==='/app/copilot/'&&typeof window!=='undefined'?connectAiHref(window.location.pathname):href}>{children}</a>,
   table: ({ children }) => (
     <div className="app-academic-table" role="region" aria-label="Tabla de la respuesta" tabIndex={0}>
       <table>{children}</table>

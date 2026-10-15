@@ -1,3 +1,7 @@
+import {markGuestDraftHandoff} from "./conversation-drafts";
+import { watchLiveCampusSession } from "./live-session";
+import { watchSessionChanges } from "./session-sync";
+import { createKeyboardViewportState, watchMobileKeyboard } from "./mobile-keyboard";
 import { getCampusSession, canConnectMiupc, clearCampusSession, getCampusProfilePreview, type CampusProfilePreview, type CampusSession } from "./campus-session";
 
 const UI_CACHE_KEY = "campus_ui_profile";
@@ -155,7 +159,15 @@ async function loadUniversities(optionsEl: HTMLDataListElement | null) {
   }
 }
 
+// Keep the expanded viewport across Astro page swaps, even if the keyboard stays open.
+const mobileKeyboardViewport = createKeyboardViewportState();
+let stopMobileKeyboard: (() => void) | undefined;
+
+let stopSessionDisplay: (() => void) | undefined;
 function initPage() {
+  stopSessionDisplay?.();
+  stopMobileKeyboard?.();
+  stopMobileKeyboard = watchMobileKeyboard(mobileKeyboardViewport);
   updateNavHighlights();
 
   // Instant UI paint from harmless cache (only non-sensitive profile info)
@@ -184,7 +196,7 @@ function initPage() {
   const loginUrl = `/api/app/auth/start?return=${encodeURIComponent(location.pathname)}`;
   if (login) login.href = loginUrl;
 
-  getCampusSession().then(value => {
+  const renderSession = (value: CampusSession) => {
     if (value.authenticated && !value.universityConfirmed && !["/app/perfil/", "/app/turnitin/"].includes(location.pathname)) {
       location.assign("/app/perfil/?universidad=pendiente");
       return;
@@ -264,7 +276,11 @@ function initPage() {
     if (profileGuest && new URLSearchParams(location.search).get("login") === "error") {
       say("No se pudo completar el inicio de sesión. Inténtalo de nuevo.");
     }
-  }).catch(() => {
+  };
+  const updated = (event: Event) => renderSession((event as CustomEvent<CampusSession>).detail);
+  window.addEventListener("campus:session-updated", updated);
+  stopSessionDisplay = () => window.removeEventListener("campus:session-updated", updated);
+  getCampusSession().then(renderSession).catch(() => {
     applyAccountUI(null);
     if (profileLoading) profileLoading.hidden = true;
     if (profileGuest) profileGuest.hidden = false;
@@ -384,6 +400,7 @@ function initPage() {
 
 // Hook into Astro's View Transitions lifecycle (initial load and every client-side page load)
 document.addEventListener("astro:page-load", initPage);
+document.addEventListener("astro:before-swap", () => { stopMobileKeyboard?.(); stopMobileKeyboard = undefined; });
 
 // Fallback for regular load if ClientRouter is absent
 if (document.readyState === "loading") {
@@ -413,7 +430,8 @@ const pwaDismissBtn = document.querySelector<HTMLButtonElement>("#app-pwa-dismis
 const pwaMsg = document.querySelector<HTMLElement>("#app-pwa-banner-msg");
 
 const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-const isDismissed = localStorage.getItem("campus-pwa-dismissed") === "1";
+let isDismissed = false;
+try { isDismissed = localStorage.getItem("campus-pwa-dismissed") === "1"; } catch { /* Storage is optional. */ }
 
 if (!isStandalone && !isDismissed && pwaBanner) {
   let deferredPrompt: BeforeInstallPromptEvent | null = null;
@@ -442,12 +460,35 @@ if (!isStandalone && !isDismissed && pwaBanner) {
   });
 
   pwaDismissBtn?.addEventListener("click", () => {
-    localStorage.setItem("campus-pwa-dismissed", "1");
+    try { localStorage.setItem("campus-pwa-dismissed", "1"); } catch { /* Keep dismissal in this document. */ }
     pwaBanner.hidden = true;
   });
 
   window.addEventListener("appinstalled", () => {
     pwaBanner.hidden = true;
-    localStorage.setItem("campus-pwa-dismissed", "1");
+    try { localStorage.setItem("campus-pwa-dismissed", "1"); } catch { /* Keep dismissal in this document. */ }
   });
 }
+
+
+// Notifications only invalidate local display state. The reload verifies the
+// actual cookie/session on the server; neither a message nor storage grants access.
+let invalidatingAccount=false;
+watchSessionChanges(() => {
+  if(invalidatingAccount)return;
+  invalidatingAccount=true;
+  clearCampusSession(false);
+  stopMobileKeyboard?.();
+  document.querySelectorAll<HTMLInputElement|HTMLTextAreaElement>('input, textarea').forEach(field=>{field.value='';field.blur();});
+  document.querySelectorAll('.app-profes-ai__conversation, [data-app-profile-authenticated]').forEach(element=>element.replaceChildren());
+  location.reload();
+});
+
+watchLiveCampusSession();
+
+document.addEventListener('click',event=>{
+  const link=event.target instanceof Element ? event.target.closest('a[href]') as HTMLAnchorElement|null : null;
+  if(!link)return;
+  const url=new URL(link.href,location.href);
+  if(url.origin===location.origin && url.pathname==='/api/app/auth/start')markGuestDraftHandoff();
+},true);

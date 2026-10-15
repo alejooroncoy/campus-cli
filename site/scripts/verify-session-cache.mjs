@@ -40,8 +40,18 @@ try {
   fresh.resolve(response(guest));
   await newerRequest;
   old.resolve(response(signedIn));
-  await olderRequest;
+  assert.deepEqual(await olderRequest, guest, "Stale callers also receive the verified current session");
   assert.deepEqual(await api.getCampusSession(), guest, 'Old responses cannot override a refreshed session');
+
+  const staleFailure=deferred();
+  globalThis.window={};
+  globalThis.fetch=()=>staleFailure.promise;
+  api=await load();
+  const staleCaller=api.getCampusSession();
+  globalThis.fetch=async()=>response(guest);
+  await api.getCampusSession(true);
+  staleFailure.reject(new Error('Obsolete network error'));
+  assert.deepEqual(await staleCaller,guest,'Superseded failures cannot replace a verified current session');
 
   const beforeLogout = deferred();
   globalThis.window = { __campusSessionBootstrap: { promise: beforeLogout.promise } };
@@ -49,11 +59,15 @@ try {
   api = await load();
   storage.set('campus_ui_profile', JSON.stringify({ authenticated: true, savedAt: Date.now(), cleanName: 'Test User' }));
   const obsolete = api.getCampusSession();
+  storage.set("campus-conversation-drafts-v1", "private draft fixture");
+  storage.set("campus-question", "legacy draft fixture");
   api.clearCampusSession();
+  assert.equal(storage.has("campus-conversation-drafts-v1"), false);
+  assert.equal(storage.has("campus-question"), false);
   assert.equal(storage.has('campus_ui_profile'), false);
   assert.equal(window.__campusSessionBootstrap, undefined);
   beforeLogout.resolve(signedIn);
-  await obsolete;
+  assert.deepEqual(await obsolete, guest, "A late caller cannot paint the previous account after logout");
   assert.deepEqual(await api.getCampusSession(), guest, 'Logout discards the bootstrap and any late response');
 
   const failed = deferred();

@@ -1,3 +1,5 @@
+import {assistantLoginHref} from "../scripts/assistant-handoff";
+import { createConversationDrafts, restoreConversationDrafts, markGuestDraftHandoff } from "../scripts/conversation-drafts";
 import { createPortal } from "react-dom";
 import MiupcReconnect from "./MiupcReconnect";
 import ChatMarkdown from "./ChatMarkdown";
@@ -82,7 +84,7 @@ function formatRelativeTime(iso: string): string {
   }
 }
 
-const loginUrl = "/api/app/auth/start?return=%2Fapp%2Fprofes%2F";
+const getLoginUrl = () => assistantLoginHref(typeof window === 'undefined' ? '/app/profes/' : window.location.pathname);
 const guestQuotaDismissedKey = "campus-profes-quota-dismissed";
 const upcHintDismissedKey = "campus-profes-upc-hint-dismissed";
 const suggestions = [
@@ -575,7 +577,7 @@ function AssistantMessageContent({
 function profesTransport(
   onUsage: (usage: CampusSession["usage"]) => void,
   onActivity: (activity: string) => void,
-  onGuestLimit: () => void,
+  onGuestLimit: (question:string, conversationId:string|null) => void,
   getConversationId: () => string | null,
   onConversationCreated: (id: string, title?: string) => void,
   onMiupcReconnect: (conversationId: string | null,upcRequired:boolean) => void,
@@ -598,10 +600,10 @@ function profesTransport(
       const data = response.ok ? null : await response.json().catch(() => ({}));
       if (response.status === 401) {
         if (data?.code === "LOGIN_REQUIRED_GUEST_LIMIT") {
-          onGuestLimit();
+          onGuestLimit(question,activeConvId);
           throw new Error("LOGIN_REQUIRED_GUEST_LIMIT");
         }
-        window.location.assign(loginUrl);
+        markGuestDraftHandoff(); window.location.assign(getLoginUrl());
         throw new Error("Inicia sesión para continuar.");
       }
       if (response.status === 409 && data.code === "UNIVERSITY_REQUIRED") {
@@ -722,7 +724,8 @@ export default function ProfesChat() {
   const [historySearchOpen, setHistorySearchOpen] = useState(false);
   const [sidebarHosts, setSidebarHosts] = useState<{ actions: HTMLElement; history: HTMLElement } | null>(null);
   const mobileHistoryDialog = useRef<HTMLDialogElement>(null);
-  const conversationDrafts = useRef(new Map<string, string>());
+  const conversationDrafts = useRef(createConversationDrafts());
+  const draftEditedBeforeSession = useRef(false);
   const pageCache = useRef(createConversationCache(fetchConversationPage));
   const conversationSnapshots = useRef(new Map<string, { messages: UIMessage[]; hasMore: boolean; cursor: string | null; top: number }>());
   const navigationVersion = useRef(0);
@@ -807,7 +810,13 @@ export default function ProfesChat() {
       if (value && value.remaining <= 0) guestLimitHandler.current();
     },
     value => activityHandler.current(value),
-    () => guestLimitHandler.current(),
+    (question,id) => {
+      if(currentConversationIdRef.current===id){
+        conversationDrafts.current.set(id,question);
+        setInput(question);
+      }
+      guestLimitHandler.current();
+    },
     () => currentConversationIdRef.current,
     handleConversationCreated,
     handleMiupcReconnect,
@@ -850,6 +859,52 @@ export default function ProfesChat() {
             : session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
         }
   }
+  function restoreAccessDraft(session: CampusSession) {
+    const owner = session.authenticated ? (session.email ? `account:${session.email.toLowerCase()}` : null) : 'guest';
+    let storage: Storage | undefined;
+    try { storage = sessionStorage; } catch { /* Private browsing may deny storage. */ }
+    const currentId = currentConversationIdRef.current;
+    const savedDrafts = restoreConversationDrafts(owner,storage,conversationDrafts.current,
+      draftEditedBeforeSession.current,currentId,textarea.current?.value ?? '');
+    draftEditedBeforeSession.current = false;
+    conversationDrafts.current = savedDrafts;
+    setInput(savedDrafts.get(currentId));
+  }
+  async function loadConversationHistory(isCurrent: () => boolean) {
+    setHistoryLoading(true);
+    setHistoryError("");
+    // The URL decides which chat is open; /profes/ always starts a new chat.
+    // History metadata must never block or re-open the messages that just loaded.
+    try {
+      const convRes = await fetch("/api/app/profes/conversations", { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(6000) });
+      if (!convRes.ok) throw new Error("History unavailable");
+      const data = await convRes.json() as { conversations?: ConversationItem[] };
+      if (!isCurrent()) return;
+      const list = data.conversations ?? [];
+      setConversations(list);
+      // Warm a small set of recent chats; hovering/focusing loads any other one.
+      for (const conversation of list.filter(item => item.id !== currentConversationIdRef.current).slice(0, 3)) {
+        void pageCache.current.get(conversation.id).catch(() => {});
+      }
+    } catch { if (isCurrent()) setHistoryError("No pudimos cargar el historial. Puedes volver a intentarlo."); }
+    finally { if (isCurrent()) setHistoryLoading(false); }
+
+  }
+  useEffect(() => {
+    const updated = (event: Event) => applyAccessSession((event as CustomEvent<CampusSession>).detail);
+    let mounted = true;
+    const recovered = (event: Event) => {
+      restoreAccessDraft((event as CustomEvent<CampusSession>).detail);
+      void loadConversationHistory(() => mounted);
+    };
+    window.addEventListener("campus:session-updated", updated);
+    window.addEventListener("campus:session-recovered", recovered);
+    return () => {
+      mounted = false;
+      window.removeEventListener("campus:session-updated", updated);
+      window.removeEventListener("campus:session-recovered", recovered);
+    };
+  }, []);
   async function retryAccess() {
     if (balanceRetryPending.current) return;
     balanceRetryPending.current = true;
@@ -860,7 +915,6 @@ export default function ProfesChat() {
   }
 
   useEffect(() => {
-    try { setInput(sessionStorage.getItem("campus-question") ?? ""); } catch { /* Private browsing may deny storage. */ }
     try { setUpcHintDismissed(sessionStorage.getItem(upcHintDismissedKey) === "1"); } catch { /* The hint still works without storage. */ }
     try {
       const saved = sessionStorage.getItem("campus-profes-review-draft");
@@ -895,22 +949,9 @@ export default function ProfesChat() {
     getCampusSession()
       .then(async session => {
         if (!mounted) return;
+        restoreAccessDraft(session);
         applyAccessSession(session);
-        // The URL decides which chat is open; /profes/ always starts a new chat.
-        // History metadata must never block or re-open the messages that just loaded.
-        try {
-          const convRes = await fetch("/api/app/profes/conversations", { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(6000) });
-          if (!convRes.ok) throw new Error("History unavailable");
-          const data = await convRes.json() as { conversations?: ConversationItem[] };
-          if (!mounted) return;
-          const list = data.conversations ?? [];
-          setConversations(list);
-          // Warm a small set of recent chats; hovering/focusing loads any other one.
-          for (const conversation of list.filter(item => item.id !== routeConversationId).slice(0, 3)) {
-            void pageCache.current.get(conversation.id).catch(() => {});
-          }
-        } catch { if (mounted) setHistoryError("No pudimos cargar el historial. Puedes volver a intentarlo."); }
-        finally { if (mounted) setHistoryLoading(false); }
+        await loadConversationHistory(() => mounted);
 
       })
       .catch(() => { if (mounted) { setHistoryLoading(false); setAccess("unavailable"); setAccessNote("Campus no está disponible por ahora."); } });
@@ -922,8 +963,8 @@ export default function ProfesChat() {
     if (!field) return;
     field.style.height = "0px";
     field.style.height = `${Math.min(Math.max(field.scrollHeight, 42), 160)}px`;
-    try { sessionStorage.setItem("campus-question", input); } catch { /* Draft still works in memory. */ }
-  }, [input]);
+    conversationDrafts.current.set(currentConversationId,input);
+  }, [input,currentConversationId]);
 
   useEffect(() => {
     if (!reviewOpen || reviewStep === "done") return;
@@ -1024,7 +1065,7 @@ export default function ProfesChat() {
       setInput("");
       return;
     }
-    if (isGuestLimit) { window.location.assign(loginUrl); return; }
+    if (isGuestLimit) { markGuestDraftHandoff(); window.location.assign(getLoginUrl()); return; }
     if (access === "setup") { window.location.assign("/app/perfil/?universidad=pendiente"); return; }
     setActivitySteps(["connecting"]);
     setActivityExpanded(false);
@@ -1044,6 +1085,8 @@ export default function ProfesChat() {
   }
 
   function chooseSuggestion(prompt: string) {
+    draftEditedBeforeSession.current = true;
+    conversationDrafts.current.set(currentConversationIdRef.current, prompt);
     setInput(prompt);
     textarea.current?.focus();
   }
@@ -1099,7 +1142,7 @@ export default function ProfesChat() {
   }
 
   function saveCurrentConversation() {
-    conversationDrafts.current.set(currentConversationId ?? "new", input);
+    conversationDrafts.current.set(currentConversationId, input);
     if (currentConversationId && !loadingConversation) {
       conversationSnapshots.current.set(currentConversationId, {
         messages, hasMore: hasOlderMessages, cursor: olderMessagesCursor.current, top: window.scrollY,
@@ -1115,7 +1158,7 @@ export default function ProfesChat() {
     setLoadingConversation(false);
     setLoadingOlderMessages(false);
     preserveScrollAfterPrepend.current = null;
-    setInput(currentConversationId ? conversationDrafts.current.get("new") ?? "" : "");
+    setInput(conversationDrafts.current.get(null));
     setCurrentConversationId(null);
     setMessages([]);
     setActivitySteps([]);
@@ -1145,7 +1188,7 @@ export default function ProfesChat() {
     try {
       const page = snapshot ? null : cached ?? await pageCache.current.get(id);
       if (navigationVersion.current !== version) return;
-      setInput(conversationDrafts.current.get(id) ?? "");
+      setInput(conversationDrafts.current.get(id));
       setCurrentConversationId(id);
       setHasOlderMessages(snapshot?.hasMore ?? page!.hasMore);
       olderMessagesCursor.current = snapshot ? snapshot.cursor : page!.nextBeforeId;
@@ -1444,7 +1487,7 @@ export default function ProfesChat() {
               <span className="app-profes-ai__speaker">Campus</span>
               <strong>Ah, estudias en la UPC. Conecta tu cuenta.</strong>
               <p>Así podré consultar tus cursos y horario oficiales cuando los necesites.</p>
-              <a className="app-profes-upc-hint__link" href={loginUrl}>Iniciar sesión para conectar UPC →</a>
+              <a className="app-profes-upc-hint__link" href={getLoginUrl()}>Iniciar sesión para conectar UPC →</a>
             </aside>
           ) : null}
           <div ref={conversationEndRef} />
@@ -1531,7 +1574,7 @@ export default function ProfesChat() {
           <footer className="app-profes-review__actions">
             {reviewStep === "done" ? <button type="button" className="app-profes-review__primary" onClick={closeReview}>Volver al chat</button>
               : access === "checking" ? <span className="app-profes-review__draft-note" role="status">Cargando tu cuenta…</span>
-              : !authenticated ? <a className="app-profes-review__primary" href={loginUrl}>Iniciar sesión</a>
+              : !authenticated ? <a className="app-profes-review__primary" href={getLoginUrl()}>Iniciar sesión</a>
               : !session?.universityConfirmed ? <a className="app-profes-review__primary" href="/app/perfil/">Elegir universidad</a>
               : reviewStep === "confirm" ? <>
                 <button type="button" className="app-profes-review__secondary" onClick={() => setReviewStep("edit")} disabled={reviewSending}>Editar</button>
@@ -1558,9 +1601,10 @@ export default function ProfesChat() {
             <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta a Campus</label>
             <textarea
               id="profes-message"
+              autoComplete="off"
               ref={textarea}
               value={input}
-              onChange={event => setInput(event.target.value)}
+              onChange={event => { draftEditedBeforeSession.current = true; setInput(event.target.value); }}
               onKeyDown={onKeyDown}
               placeholder="Pregunta a Campus…"
               rows={1}
@@ -1621,7 +1665,7 @@ export default function ProfesChat() {
               </div>
             </div>
             <div className="app-guest-quota-card__action">
-              <a href={loginUrl} className="app-guest-quota-card__btn"><span>Continuar gratis</span><span aria-hidden="true">→</span></a>
+              <a href={getLoginUrl()} className="app-guest-quota-card__btn"><span>Continuar gratis</span><span aria-hidden="true">→</span></a>
             </div>
           </div>
         </div>

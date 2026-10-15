@@ -4,11 +4,15 @@ const connectorName = "Campus";
 const connectorUrl = "https://mcp.campuscli.com/mcp";
 const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&connectorName=${encodeURIComponent(connectorName)}&connectorUrl=${encodeURIComponent(connectorUrl)}#settings/customize-connectors`;
 ---
-<AppShell title="Conectar IA" active="copilot">
+<AppShell title="Conectar Campus" active="copilot">
+  <a class="app-assistant-return" data-assistant-return hidden>
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>
+    <span>Volver a mi conversación</span>
+  </a>
   <section class="app-page-heading app-page-heading--compact">
-    <p class="app-kicker">Campus con tu IA</p>
-    <h1>Conecta Campus con tu asistente.</h1>
-    <p>Elige Claude, ChatGPT o Gemini Spark. Usa la misma cuenta y el mismo plan de Campus para preguntar por tus cursos, tareas y notas desde allí. La conexión se realiza por MCP.</p>
+    <p class="app-kicker">Campus en tu IA</p>
+    <h1>Conecta Campus a tu IA.</h1>
+    <p>Usa Campus desde ChatGPT, Claude o Gemini Spark para analizar tus materiales, revisar tareas y procesar grabaciones de clases publicadas y disponibles. Conecta tu cuenta y pregunta desde tu IA, con la misma cuenta y plan de Campus.</p>
   </section>
 
   <section class="app-connector-help" aria-label="Ayuda por WhatsApp">
@@ -36,6 +40,7 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
   <section class="app-connector-bar" aria-labelledby="connector-values-title">
     <div>
       <h2 id="connector-values-title">Los datos de tu conector</h2>
+      <p>El plugin de Campus usa MCP: una conexión que permite a tu IA consultar tu Aula Virtual con tu autorización.</p>
       <p>Claude abre los datos ya completados. Para ChatGPT puedes copiarlos aquí; al abrir Gemini intentaremos copiar la URL por ti.</p>
     </div>
     <div class="app-connector-values">
@@ -99,3 +104,15 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
 
   <p class="app-connector-footnote">Tu Aula Virtual se autoriza en el asistente. Campus nunca necesita que escribas tu contraseña universitaria aquí.</p>
 </AppShell>
+<script>
+  import {assistantReturnPath} from '../../../scripts/assistant-handoff';
+  function restoreAssistantLink(){
+    const link=document.querySelector<HTMLAnchorElement>('[data-assistant-return]');
+    if(!link)return;
+    const back=assistantReturnPath(new URLSearchParams(window.location.search).get('return'));
+    link.hidden=!back;
+    if(back)link.href=back;else link.removeAttribute('href');
+  }
+  restoreAssistantLink();
+  document.addEventListener('astro:page-load',restoreAssistantLink);
+</script>

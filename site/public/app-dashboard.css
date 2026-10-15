@@ -23,7 +23,7 @@
   --app-mint:#d9f1e8;
   --app-green:#087f5b;
   --app-danger:#b42318;
-  --app-mobile-nav-height:calc(67px + env(safe-area-inset-bottom));
+  --app-mobile-nav-height:calc(78px + env(safe-area-inset-bottom));
 }
 * {
   box-sizing: border-box;
@@ -420,6 +420,35 @@ button:disabled {
   max-width: 1040px;
   margin: 0 auto;
   padding: 42px 40px 64px;
+}
+.app-assistant-return {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: -8px 0 20px;
+  padding: 4px 0;
+  border-radius: 4px;
+  color: var(--app-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.app-assistant-return svg {
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.app-assistant-return:hover {
+  color: var(--app-ink);
+}
+.app-assistant-return:hover span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .app-page-heading {
   margin-bottom: 30px;
@@ -923,17 +952,22 @@ button:disabled {
     right: 0;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
+    align-items: center;
     height: var(--app-mobile-nav-height);
-    padding: 7px 8px calc(7px + env(safe-area-inset-bottom));
+    padding: 12px 8px calc(12px + env(safe-area-inset-bottom));
     background: var(--app-canvas);
     border-top: 1px solid var(--app-line);
   }
   .app-mobile-nav a {
     display: grid;
+    grid-template-rows: 19px 2.4em;
     place-items: center;
     align-content: center;
-    gap: 5px;
+    gap: 4px;
+    min-width: 0;
     min-height: 52px;
+    line-height: 1.2;
+    text-align: center;
     border-radius: 8px;
     font-size: 11px;
     color: var(--app-muted);
@@ -2228,5 +2262,14 @@ button:disabled {
     width: 100%;
     padding: 13px 20px;
     font-size: 14px;
+  }
+}
+
+@media (max-width: 700px) {
+  .campus-app-body.app-keyboard-open {
+    --app-mobile-nav-height: var(--app-keyboard-inset, 0px);
+  }
+  .app-keyboard-open .app-mobile-nav {
+    display: none;
   }
 }

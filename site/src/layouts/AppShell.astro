@@ -11,9 +11,9 @@ const { title, active } = Astro.props;
 const nav = [
   { id: "inicio", label: "Inicio", href: "/app/", icon: "book-open" },
   { id: "profes", label: "Asistente", href: "/app/profes/", icon: "users" },
-  { id: "copilot", label: "Conectar IA", href: "/app/copilot/", icon: "sparkles" },
-  { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "book-open" },
-  { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "users" },
+  { id: "copilot", label: "Conectar Campus", href: "/app/copilot/", icon: "sparkles" },
+  { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" },
+  { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "user" },
 ];
 ---
 
@@ -33,8 +33,8 @@ const nav = [
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Campus" />
-    <link rel="stylesheet" href="/app-dashboard.css?v=15" />
-    {active === "profes" && <link rel="stylesheet" href="/profes-chat.css?v=19" />}
+    <link rel="stylesheet" href="/app-dashboard.css?v=17" />
+    {active === "profes" && <link rel="stylesheet" href="/profes-chat.css?v=20" />}
     <script is:inline async src="/campus-session-bootstrap.js?v=2"></script>
     {active === "profes" && <script is:inline src="/campus-conversation-bootstrap.js?v=1" data-astro-rerun></script>}
     {/* The mounted chat owns its conversation URLs and browser history. */}
@@ -78,7 +78,7 @@ const nav = [
       <nav class="app-mobile-nav" aria-label="Campus móvil" transition:persist="app-mobile-nav">
         {nav.map((item) => (
           <a href={item.href} class:list={{ "is-active": active === item.id }} aria-current={active === item.id ? "page" : undefined}>
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href={`/assets/lucide.svg#${item.icon}`}></use></svg>
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href={`/assets/lucide.svg?v=3#${item.icon}`}></use></svg>
             <span>{item.label}</span>
           </a>
         ))}

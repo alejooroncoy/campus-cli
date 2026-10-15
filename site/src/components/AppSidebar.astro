@@ -8,8 +8,8 @@ const { active } = Astro.props;
 const nav = [
   { id: "inicio", label: "Inicio", href: "/app/", icon: "book-open" },
   { id: "profes", label: "Asistente", href: "/app/profes/", icon: "users" },
-  { id: "copilot", label: "Conectar IA", href: "/app/copilot/", icon: "sparkles" },
-  { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "book-open" },
+  { id: "copilot", label: "Conectar Campus", href: "/app/copilot/", icon: "sparkles" },
+  { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" },
 ];
 ---
 
@@ -41,7 +41,7 @@ const nav = [
             aria-current={active === item.id ? "page" : undefined}
           >
             <svg viewBox="0 0 24 24" class="sidebar-menu-icon" aria-hidden="true">
-              <use href={`/assets/lucide.svg#${item.icon}`} />
+              <use href={`/assets/lucide.svg?v=3#${item.icon}`} />
             </svg>
             <span>{item.label}</span>
           </a>
