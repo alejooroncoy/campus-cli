@@ -72,6 +72,9 @@ if (browser && !local && key && host) {
         // Discard SDK's implicit referrer, title, search, URL, device and person
         // properties; retain only correlation fields and our closed contract.
         event.properties = { ...safeAnalyticsProperties(original),
+          // The browser SDK authenticates ingestion with this public project
+          // token. Keep our configured token, never a caller-supplied value.
+          token: key,
           distinct_id: original.distinct_id,
           $session_id: original.$session_id,
           $window_id: original.$window_id,
@@ -79,6 +82,10 @@ if (browser && !local && key && host) {
           $process_person_profile: event.event === '$identify' || Boolean(identity),
           $geoip_disable: true,
         };
+        // The real SDK also puts initial URLs/referrers in these top-level
+        // person updates. They are outside properties and must be removed too.
+        delete event.$set;
+        delete event.$set_once;
         return event;
       },
     });
@@ -122,7 +129,9 @@ export function analyticsSession(session: CampusSession): void {
   if (!browser || session.accessUnavailable) return;
   sessionResolved = true;
   currentPlan = session.authenticated ? (session.plan === 'plus' ? 'plus' : 'free') : 'guest';
-  if (session.authenticated && /^campus:[a-zA-Z0-9_-]{8,100}$/.test(session.analyticsId ?? '')) {
+  // The server normalizes non-numeric/long Google subjects to an opaque
+  // google_<sha256> ID. Raw provider subjects are not a browser contract.
+  if (session.authenticated && /^campus:(?:google:[0-9]{8,32}|[a-zA-Z0-9_-]{8,100})$/.test(session.analyticsId ?? '')) {
     identity = session.analyticsId;
     if (!local && client && client.get_distinct_id() !== identity) client.identify(identity!);
   } else if (!session.authenticated && (identity || client?.get_distinct_id().startsWith('campus:'))) resetAnalytics();

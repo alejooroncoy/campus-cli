@@ -49,3 +49,5 @@ jobs:
       - run: npm --prefix site run check
       - run: npm --prefix site run test:app
       - run: npm --prefix site run test:analytics
+      - run: npx playwright install --with-deps chromium
+      - run: npm --prefix site run test:analytics:transport
