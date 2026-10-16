@@ -197,7 +197,8 @@ export function setupAnalytics(): void {
     const plan = ['free', 'plus', 'trial'].includes(loc) ? loc : undefined;
     const target = support ? 'whatsapp' : provider ? 'connect' : url.pathname === '/api/app/auth/start' ? 'auth'
       : url.hash === '#planes' ? 'plans' : url.hash === '#incluye' ? 'features' : analyticsPage(url.pathname);
-    const intent = support ? 'support' : target === 'plus' ? 'plus' : plan ?? (target === 'auth' ? 'signup' : target === 'connect' ? 'connect' : ['turnitin_app', 'turnitin'].includes(target) ? 'turnitin' : target === 'app' && loc !== 'app' ? 'trial' : 'navigate');
+    const managingPlus = anchor.hasAttribute('data-profile-manage') || currentPlan === 'plus';
+    const intent = support ? 'support' : target === 'plus' ? managingPlus ? 'navigate' : 'plus' : plan ?? (target === 'auth' ? 'signup' : target === 'connect' ? 'connect' : ['turnitin_app', 'turnitin'].includes(target) ? 'turnitin' : target === 'app' && loc !== 'app' ? 'trial' : 'navigate');
     if (['trial', 'free', 'plus'].includes(intent)) {
       try { sessionStorage.setItem('campus-selected-plan', intent); } catch { /* Optional. */ }
     }

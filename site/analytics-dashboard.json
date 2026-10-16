@@ -455,6 +455,12 @@
                 "type": "event",
                 "operator": "exact",
                 "value": "success"
+              },
+              {
+                "key": "purchase_kind",
+                "type": "event",
+                "operator": "exact",
+                "value": "activation"
               }
             ]
           },
@@ -474,6 +480,12 @@
                 "type": "event",
                 "operator": "exact",
                 "value": "success"
+              },
+              {
+                "key": "purchase_kind",
+                "type": "event",
+                "operator": "exact",
+                "value": "activation"
               }
             ]
           },
@@ -499,6 +511,12 @@
                 "type": "event",
                 "operator": "exact",
                 "value": "active"
+              },
+              {
+                "key": "purchase_kind",
+                "type": "event",
+                "operator": "exact",
+                "value": "activation"
               }
             ]
           }
