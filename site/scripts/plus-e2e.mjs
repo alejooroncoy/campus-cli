@@ -20,7 +20,7 @@ try{
     await page.waitForURL('**/app/perfil/**');
     await page.locator('[data-app-select-upc]:visible').click();
     await page.getByRole('button',{name:'Guardar y continuar'}).click();
-    await page.waitForURL('**/app/plus/');await page.locator('[data-plus-view=ready]:visible').waitFor();
+    await page.locator('[data-plus-view=ready]:visible').waitFor();assert.equal(new URL(page.url()).pathname,'/app/plus/');
     await page.goto(base+'/app/perfil/');
     await page.locator('[data-profile-upgrade]:visible').waitFor();
     assert.equal(await page.locator('[data-profile-upgrade]').getAttribute('href'),'/app/plus/');
