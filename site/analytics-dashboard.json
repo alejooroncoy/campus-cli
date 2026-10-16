@@ -404,7 +404,7 @@
     },
     {
       "name": "Campus Plus: del interés a la activación",
-      "description": "La conversión se confirma con la aprobación del pago en el servidor, atribuida al comprador. El envío de comprobante es un paso intermedio. Instrumentación pendiente de despliegue.",
+      "description": "La conversión se confirma con la aprobación del pago en el servidor, atribuida al comprador. El envío de comprobante es un paso intermedio.",
       "query": {
         "kind": "FunnelsQuery",
         "dateRange": {
@@ -503,7 +503,10 @@
             ]
           }
         ]
-      }
+      },
+      "id": 12955621,
+      "short_id": "DJm31E0B",
+      "url": "https://us.posthog.com/project/539784/insights/DJm31E0B"
     }
   ]
 }
