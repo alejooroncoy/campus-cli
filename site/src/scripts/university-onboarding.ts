@@ -5,7 +5,7 @@ export function universityReturnPath(value: string | null): string | null {
   const chat = assistantReturnPath(value);
   if (chat) return chat;
   if (value === '/app/') return '/app/profes/';
-  if (value === '/app/perfil/' || value === '/app/copilot/') return value;
+  if (value === '/app/perfil/' || value === '/app/copilot/' || value === '/app/plus/') return value;
   if (value.startsWith('/app/copilot/?')) {
     const back = assistantReturnPath(new URLSearchParams(value.slice('/app/copilot/?'.length)).get('return'));
     return back ? connectAiHref(back) : '/app/copilot/';

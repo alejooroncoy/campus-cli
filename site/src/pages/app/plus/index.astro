@@ -1,0 +1,57 @@
+---
+import AppShell from '../../../layouts/AppShell.astro';
+---
+<AppShell title="Campus Plus" active="perfil">
+  <link rel="stylesheet" href="/campus-plus.css" />
+  <div class="plus-page" data-plus-root>
+    <a class="app-text-link" href="/app/perfil/">Volver a Mi perfil</a>
+    <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Más Campus para tu ciclo.</h1><p>100 consultas al día en la web y consultas ilimitadas con tu IA por MCP.</p></section>
+    <p class="plus-message" role="status" aria-live="polite" data-plus-message>Comprobando tu cuenta…</p>
+    <section class="app-panel" data-plus-view="guest" hidden>
+      <h2>Primero, tu cuenta Campus.</h2><p>Inicia sesión o crea tu cuenta gratis. Después verás tu precio y podrás activar Plus.</p>
+      <a class="app-button" href="/api/app/auth/start?return=%2Fapp%2Fplus%2F">Crear cuenta o entrar</a>
+      <p class="plus-muted">Crear tu cuenta no realiza ningún cobro.</p>
+    </section>
+    <section class="app-panel" data-plus-view="ready" hidden>
+      <h2>Activa Plus desde tu cuenta.</h2><p data-plus-account></p><p>Paga por Yape o Plin y adjunta tu comprobante. Activaremos tu mes después de verificar el abono.</p>
+      <button class="app-button" type="button" data-plus-checkout>Ver mi precio</button>
+      <p class="plus-muted">Pago mensual. Sin cobros automáticos.</p>
+    </section>
+    <section class="app-panel" data-plus-view="university" hidden><h2>Confirma tu universidad.</h2><p>Por ahora, Campus Plus está disponible para estudiantes de UPC. Comprueba tu elección antes de pagar.</p><a class="app-button" href="/app/perfil/?universidad=pendiente&amp;return=%2Fapp%2Fplus%2F">Elegir mi universidad</a></section>
+    <section class="app-panel" data-plus-view="payment" hidden aria-labelledby="plus-pay-title">
+      <p class="app-kicker" data-plus-offer></p><h2 id="plus-pay-title">Activa tu mes de Plus.</h2>
+      <p class="plus-price"><strong data-plus-amount></strong><span>por un mes</span></p>
+      <p data-plus-renewal></p><p class="plus-muted" data-plus-expiry></p>
+      <ol class="plus-steps">
+        <li><h3>1. Realiza el pago</h3><p>Yape o Plin al número y titular indicados.</p><dl class="plus-payment"><div><dt>Número</dt><dd><span data-plus-phone></span><button type="button" class="app-text-link" data-plus-copy>Copiar</button></dd></div><div><dt>Titular</dt><dd data-plus-holder></dd></div></dl></li>
+        <li><h3>2. Adjunta el comprobante</h3><form data-plus-form>
+          <label for="plus-receipt">Comprobante de tu pago</label><div class="plus-upload"><span data-plus-filename>Seleccionar comprobante</span><input id="plus-receipt" name="receipt" type="file" accept="image/png,image/jpeg,application/pdf" aria-describedby="plus-file-hint" required /></div>
+          <p id="plus-file-hint" class="plus-muted">PNG, JPG o PDF · Hasta 5 MB.</p>
+          <label class="plus-consent"><input type="checkbox" name="consent" required /><span>Confirmo el monto y autorizo la revisión de mi comprobante para activar Plus. <a href="/privacidad/#plus" target="_blank" rel="noopener">Privacidad</a>.</span></label>
+          <button class="app-button" type="submit" data-plus-submit>Enviar comprobante</button>
+          <button class="app-button app-button--secondary" type="button" data-plus-requote hidden>Volver a comprobar mi precio</button>
+          <p class="plus-muted">El envío queda asociado a tu cuenta. Espera la confirmación antes de volver a pagar.</p>
+        </form></li>
+      </ol>
+    </section>
+    <section class="app-panel" data-plus-view="pending" hidden>
+      <p class="app-kicker">COMPROBANTE RECIBIDO</p><h2>Estamos verificando tu pago.</h2><p>Tu cuenta seguirá en su plan actual hasta confirmar el abono. Consulta aquí el resultado; no hace falta volver a pagar.</p>
+      <button type="button" class="app-button app-button--secondary" data-plus-refresh>Actualizar estado</button>
+    </section>
+    <section class="app-panel" data-plus-view="active" hidden>
+      <p class="app-kicker">TU PLAN ESTÁ ACTIVO</p><h2>Ya tienes Campus Plus.</h2><p data-plus-active-until></p><p data-plus-active-renewal></p>
+      <a class="app-button" href="/app/profes/">Ir al asistente</a> <a class="app-text-link" href="/app/copilot/">Conectar mi IA</a>
+      <button class="app-button app-button--secondary" type="button" data-plus-renew hidden>Renovar un mes</button>
+    </section>
+    <section class="app-panel" data-plus-view="rejected" hidden>
+      <p class="app-kicker">PAGO OBSERVADO</p><h2>Revisemos tu comprobante.</h2><p data-plus-rejection></p><p>Si ya pagaste el monto correcto, contacta a soporte antes de realizar otro pago.</p><button class="app-button app-button--secondary" type="button" data-plus-retry>Volver a comprobar mi precio</button>
+    </section>
+    <section class="app-panel" data-plus-view="unavailable" hidden>
+      <h2>No pudimos comprobar la activación.</h2><p>Vuelve a intentarlo antes de realizar un pago. Si ya pagaste, conserva tu comprobante y contacta a soporte.</p><button type="button" class="app-button app-button--secondary" data-plus-refresh>Volver a comprobar</button>
+    </section>
+    <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>100 consultas diarias en la web.</li><li>Consultas ilimitadas con tu IA por MCP.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte. Turnitin se cobra por documento.</p></details>
+    <p class="plus-support">¿Necesitas ayuda? <a class="app-text-link" href="https://wa.me/51946189585" target="_blank" rel="noopener">WhatsApp +51 946 189 585</a></p>
+    <section class="app-panel plus-admin" id="plus-payments" data-plus-admin hidden><h2>Validar pagos de Plus</h2><p>Comprueba el abono en tu cuenta de Yape o Plin antes de activar el mes.</p><button type="button" class="app-button app-button--secondary" data-plus-admin-refresh>Actualizar pagos</button><div data-plus-admin-list></div><button type="button" class="app-button app-button--secondary" data-plus-admin-more hidden>Cargar más</button></section>
+  </div>
+  <script src="../../../scripts/plus.ts"></script>
+</AppShell>

@@ -48,3 +48,4 @@ jobs:
       - run: npm --prefix site run build
       - run: npm --prefix site run check
       - run: npm --prefix site run test:app
+      - run: npm --prefix site run test:analytics
