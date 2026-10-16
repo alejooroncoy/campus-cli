@@ -90,21 +90,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
       </details>
 
     </div>
-    <section class="ti-panel ti-admin" data-ti-admin hidden>
-      <div class="ti-panel-head"><div><p class="ti-admin-eyebrow">Campus · Administración</p><h2>Administrar pedidos</h2><p>Valida el pago, sube los dos informes y avisa al cliente.</p></div><button class="app-button app-button--secondary" type="button" data-ti-admin-refresh>Actualizar pedidos</button></div>
-      <label class="ti-history-search">Buscar un pedido<input type="search" placeholder="Nombre del trabajo" maxlength="180" data-ti-admin-search /></label>
-      <div class="ti-history-filters" role="group" aria-label="Filtrar pedidos de administración">
-        <button type="button" data-ti-admin-filter="payment_review" aria-pressed="true">Validar pagos <span data-ti-admin-total="payment_review">0</span></button>
-        <button type="button" data-ti-admin-filter="processing" aria-pressed="false">Por entregar <span data-ti-admin-total="processing">0</span></button>
-        <button type="button" data-ti-admin-filter="completed" aria-pressed="false">Entregados <span data-ti-admin-total="completed">0</span></button>
-        <button type="button" data-ti-admin-filter="payment_rejected" aria-pressed="false">Observados <span data-ti-admin-total="payment_rejected">0</span></button>
-        <button type="button" data-ti-admin-filter="all" aria-pressed="false">Todos <span data-ti-admin-total="all">0</span></button>
-      </div>
-      <p class="ti-history-count" data-ti-admin-count role="status" aria-live="polite"></p>
-      <p class="ti-admin-status" data-ti-admin-status role="status" aria-live="polite" hidden></p>
-      <div data-ti-admin-orders></div>
-      <button class="app-button app-button--secondary ti-history-more" type="button" data-ti-admin-more hidden>Ver más pedidos</button>
-    </section>
+
   </div>
   <TurnitinReportViewer />
   <script src="../../../scripts/turnitin.ts"></script>

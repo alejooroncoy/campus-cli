@@ -1,6 +1,5 @@
 import { setupTurnitinRequest } from './turnitin-request';
 import { analyticsHeaders, track } from './analytics';
-import { setupTurnitinAdmin } from './turnitin-admin';
 import { setupTurnitinUploads } from './turnitin-upload';
 import { setupTurnitinLogin } from './turnitin-login';
 import { setupTurnitinReportViewer, type ReportKind } from './turnitin-report-viewer';
@@ -20,9 +19,7 @@ function setupTurnitin() {
   const fields = document.querySelector<HTMLFieldSetElement>('[data-ti-fields]')!;
   const refresh = document.querySelector<HTMLButtonElement>('[data-ti-refresh]')!;
   let config: Config;
-  let adminPanel: ReturnType<typeof setupTurnitinAdmin> | undefined;
   let requestId = crypto.randomUUID();
-  let isAdmin = false;
   let refreshPending = false;
   let ordersLoaded = false;
   let pendingOrders = false;
@@ -62,14 +59,14 @@ function setupTurnitin() {
   function el<K extends keyof HTMLElementTagNameMap>(tag: K, text = '', className = '') {
     const node = document.createElement(tag); node.textContent = text; node.className = className; return node;
   }
-  function link(order: Order, kind: string, text: string, admin: boolean) {
+  function link(order: Order, kind: string, text: string) {
     const anchor = el('a', text);
-    anchor.href = `/api/app/turnitin/${admin ? 'admin/' : ''}orders/${order.id}/files/${kind}`;
+    anchor.href = `/api/app/turnitin/orders/${order.id}/files/${kind}`;
     anchor.setAttribute('download', '');
-    if (!admin && (kind === 'similarity' || kind === 'ai')) anchor.onclick = () => track('campus_turnitin_download_clicked', { report_kind: kind });
+    if (kind === 'similarity' || kind === 'ai') anchor.onclick = () => track('campus_turnitin_download_clicked', { report_kind: kind });
     return anchor;
   }
-  function reportCard(order: Order, kind: ReportKind, admin: boolean) {
+  function reportCard(order: Order, kind: ReportKind) {
     const box = el('div', '', 'ti-file-card');
     box.setAttribute('role', 'group');
     const title = kind === 'similarity' ? 'Informe de similitud' : 'Informe de IA';
@@ -80,19 +77,19 @@ function setupTurnitin() {
     const view = el('button', 'Ver informe', 'app-button');
     view.type = 'button';
     view.setAttribute('aria-label', `Ver ${title.replace('Informe', 'informe')} de ${order.documentName}`);
-    view.onclick = () => setupTurnitinReportViewer()?.open({ id: order.id, documentName: order.documentName, admin }, kind);
-    const download = link(order, kind, 'Descargar PDF ↓', admin);
+    view.onclick = () => setupTurnitinReportViewer()?.open({ id: order.id, documentName: order.documentName }, kind);
+    const download = link(order, kind, 'Descargar PDF ↓');
     download.className = 'app-button app-button--secondary';
     download.setAttribute('aria-label', `Descargar ${title.replace('Informe', 'informe')} de ${order.documentName}`);
     actions.append(view, download); box.append(actions); return box;
   }
-  function renderOrders(orders: Order[], target: HTMLElement, admin = false) {
+  function renderOrders(orders: Order[], target: HTMLElement) {
     target.replaceChildren();
-    if (!admin) document.querySelector<HTMLElement>('.ti-report-note')!.hidden = orders.length === 0;
+    document.querySelector<HTMLElement>('.ti-report-note')!.hidden = orders.length === 0;
     if (!orders.length) {
       const empty = el('div', '', 'ti-empty');
-      const filtered = !admin && (historyFilter !== 'all' || Boolean(historySearch));
-      empty.append(el('h3', admin ? 'No hay pedidos pendientes' : filtered ? 'No encontramos revisiones con estos filtros' : 'Aún no tienes revisiones'), el('p', admin ? 'Los pedidos nuevos aparecerán en este panel.' : filtered ? 'Prueba otro nombre o selecciona Todas para ver tus trabajos.' : 'Aquí verás el estado y los informes de cada trabajo.', 'ti-muted'));
+      const filtered = (historyFilter !== 'all' || Boolean(historySearch));
+      empty.append(el('h3', filtered ? 'No encontramos revisiones con estos filtros' : 'Aún no tienes revisiones'), el('p', filtered ? 'Prueba otro nombre o selecciona Todas para ver tus trabajos.' : 'Aquí verás el estado y los informes de cada trabajo.', 'ti-muted'));
       target.append(empty); return;
     }
     for (const order of orders) {
@@ -101,7 +98,7 @@ function setupTurnitin() {
       const head = el('div', '', 'ti-order-heading');
       head.append(el('h3', order.documentName), el('span', labels[order.status] ?? order.status, 'ti-tag'));
       card.append(head);
-      if (!admin) {
+      {
         const progress = el('ol', '', 'ti-order-progress');
         progress.setAttribute('aria-label', 'Avance de tu revisión');
         const position = order.status === 'completed' ? 2 : order.status === 'processing' ? 1 : 0;
@@ -117,9 +114,8 @@ function setupTurnitin() {
       if (order.status === 'processing' && order.paidAt) card.append(el('p', 'Entrega de 10 minutos a 1 hora desde la validación del pago.', 'ti-small'));
       if (order.status === 'completed') {
         const reports = el('div', '', 'ti-file-grid');
-        reports.append(reportCard(order, 'similarity', admin), reportCard(order, 'ai', admin));
-        if (admin) card.append(reports);
-        else {
+        reports.append(reportCard(order, 'similarity'), reportCard(order, 'ai'));
+        {
           const details = el('details', '', 'ti-order-reports');
           details.open = openReports.has(order.id);
           const summary = el('summary');
@@ -129,7 +125,7 @@ function setupTurnitin() {
           details.ontoggle = () => { if (details.open) { openReports.add(order.id); track('campus_turnitin_reports_opened'); } else openReports.delete(order.id); };
           card.append(details);
         }
-      } else if (!admin) {
+      } else {
         card.append(el('p', order.status === 'payment_rejected' ? 'Revisa la observación del pago antes de solicitar una nueva revisión.' : order.status === 'payment_review' ? 'Recibimos tu documento y comprobante. Ahora validamos el pago.' : 'Pago validado. Estamos preparando tus informes.', 'ti-muted'));
       }
       target.append(card);
@@ -146,12 +142,6 @@ function setupTurnitin() {
     try {
       const result = await api(`orders?${query}`);
       if (disposed || version !== historyVersion) return;
-      isAdmin = result.admin === true;
-      if (isAdmin) {
-        document.querySelector<HTMLElement>('.ti-order-head h1')!.textContent = 'Tu mesa de revisiones.';
-        document.querySelector<HTMLElement>('.ti-order-head>p:not(.eyebrow)')!.textContent = 'Gestiona los pagos y entrega los informes desde Campus.';
-        document.querySelector<HTMLElement>('.ti-service-facts')!.hidden = true;
-      }
       const orders: Order[] = result.orders;
       // Older pending orders may be outside the first page. Refresh only their
       // metadata so a completion is visible without collapsing loaded history.
@@ -163,7 +153,7 @@ function setupTurnitin() {
       }
       if (ordersLoaded && orders.some(order => order.status === 'completed' && statuses.has(order.id) && statuses.get(order.id) !== 'completed'))
         announce('Tus informes ya están listos. Ábrelos en Mis revisiones.');
-      if (!isAdmin) for (const order of orders) {
+      for (const order of orders) {
         const previous = statuses.get(order.id);
         if (previous !== order.status) track('campus_turnitin_status_updated', { order_status: order.status, previous_status: previous });
       }
@@ -186,31 +176,22 @@ function setupTurnitin() {
       more.hidden = !nextCursor;
       if (!ordersLoaded) {
         const newOrder = document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!;
-        newOrder.open = counts.all === 0 && !isAdmin;
-        if (counts.all === 0 && !isAdmin) newOrder.parentElement!.prepend(newOrder);
+        newOrder.open = counts.all === 0;
+        if (counts.all === 0) newOrder.parentElement!.prepend(newOrder);
         const linkedId = /^#ti-order-([0-9a-f-]{36})$/i.exec(location.hash)?.[1];
-        if (linkedId && !isAdmin && !historyOrders.some(order => order.id === linkedId)) {
+        if (linkedId && !historyOrders.some(order => order.id === linkedId)) {
           try {
             const linked = await api(`orders/${linkedId}`);
             if (disposed || version !== historyVersion) return;
             if (linked.order) historyOrders.unshift(linked.order);
           } catch { linkUnavailable = true; }
         }
-        if (linkedId && !isAdmin) openReports.add(linkedId);
+        if (linkedId) openReports.add(linkedId);
       }
       ordersLoaded = true;
       updateHistoryCount();
       renderOrders(historyOrders, document.querySelector<HTMLElement>('[data-ti-orders]')!);
-      document.querySelector<HTMLElement>('[data-ti-admin]')!.hidden = !isAdmin;
-      if (isAdmin && !append && !reset) {
-        document.querySelector<HTMLElement>('.ti-order-layout')!.prepend(document.querySelector<HTMLElement>('[data-ti-admin]')!);
-        if (!adminPanel) {
-          adminPanel = setupTurnitinAdmin({ api, encode, maxDocumentBytes: () => config.maxDocumentBytes, reportCard: (order,kind) => reportCard(order,kind,true) });
-          await adminPanel.refresh();
-        }
-        if (disposed || version !== historyVersion) return;
-      }
-      if (!isAdmin && !initialLinkHandled && /^#ti-order-[0-9a-f-]{36}$/i.test(location.hash)) {
+      if (!initialLinkHandled && /^#ti-order-[0-9a-f-]{36}$/i.test(location.hash)) {
         document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'center' });
         initialLinkHandled = true;
       }
@@ -304,13 +285,13 @@ function setupTurnitin() {
       }
       form.hidden = !config.enabled; refresh.hidden = false;
       await loadOrders();
-      if (config.enabled && requestPanel.open && !isAdmin) request.start();
-      // Keep pending customer reviews current without disturbing staff forms.
+      if (config.enabled && requestPanel.open) request.start();
+      // Refresh pending reviews while the student is viewing this page.
       poll = setInterval(() => {
-        if (!disposed && !refreshPending && pendingOrders && !isAdmin && document.visibilityState === 'visible')
+        if (!disposed && !refreshPending && pendingOrders && document.visibilityState === 'visible')
           void loadOrders().catch(() => {});
       }, 30000);
-      announce(linkUnavailable ? 'No pudimos abrir esa revisión. Comprueba que entraste con la cuenta del pedido.' : isAdmin ? 'Revisa los pedidos en Administrar pedidos.' : statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
+      announce(linkUnavailable ? 'No pudimos abrir esa revisión. Comprueba que entraste con la cuenta del pedido.' : statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
     } catch (error) { announce((error as Error).message); }
   })();
 }
