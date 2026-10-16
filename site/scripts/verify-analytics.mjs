@@ -78,6 +78,9 @@ assert.equal(captured.at(-1).properties.token, 'public-test-key', 'Privacy filte
 live.analyticsSession({ authenticated: true, plan: 'free', analyticsId: 'campus:google:123456789012345678901', aiReady: true });
 assert.equal(identified.at(-1), 'campus:google:123456789012345678901', 'Real Google subject format must identify the buyer');
 assert.equal(live.analyticsHeaders()['X-POSTHOG-DISTINCT-ID'], 'campus:google:123456789012345678901');
+const normalizedGoogle='campus:google_'+'a'.repeat(64);
+live.analyticsSession({authenticated:true,plan:'free',analyticsId:normalizedGoogle,aiReady:true});
+assert.equal(identified.at(-1),normalizedGoogle,'Normalized non-numeric or long Google subjects must identify the buyer');
 const identify = config.before_send({ event: '$identify', $set:{email:'private'}, $set_once:{$initial_current_url:'private'}, properties: { distinct_id: distinct, $anon_distinct_id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', $set: { email: 'private' } } });
 assert.equal(identify.properties.$anon_distinct_id, 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
 assert.equal('$set' in identify.properties, false);

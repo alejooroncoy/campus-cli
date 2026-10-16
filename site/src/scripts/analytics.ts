@@ -129,6 +129,8 @@ export function analyticsSession(session: CampusSession): void {
   if (!browser || session.accessUnavailable) return;
   sessionResolved = true;
   currentPlan = session.authenticated ? (session.plan === 'plus' ? 'plus' : 'free') : 'guest';
+  // The server normalizes non-numeric/long Google subjects to an opaque
+  // google_<sha256> ID. Raw provider subjects are not a browser contract.
   if (session.authenticated && /^campus:(?:google:[0-9]{8,32}|[a-zA-Z0-9_-]{8,100})$/.test(session.analyticsId ?? '')) {
     identity = session.analyticsId;
     if (!local && client && client.get_distinct_id() !== identity) client.identify(identity!);
