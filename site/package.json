@@ -22,11 +22,11 @@
     "test:analytics:transport": "node scripts/analytics-transport.test.mjs"
   },
   "dependencies": {
-    "@ai-sdk/react": "^4.0.116",
-    "@astrojs/react": "^7.0.0",
+    "@ai-sdk/react": "^4.0.142",
+    "@astrojs/react": "^7.0.1",
     "@astrojs/sitemap": "^3.7.3",
     "ai": "^7.0.113",
-    "astro": "^7.3.2",
+    "astro": "^7.3.8",
     "pdfjs-dist": "6.4.299",
     "posthog-js": "^1.438.12",
     "react": "^19.3.0",
@@ -40,6 +40,6 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "esbuild": "^0.28.2",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   }
 }
