@@ -17,7 +17,7 @@ export function profileAccountView(session: CampusSession | 'loading' | 'error')
       : usage.period === 'day'
         ? usage.remaining === 0 ? 'Has usado tus consultas web de hoy. Tu cuota se renueva cada día.' : 'Tu cuota web se renueva cada día.'
         : account.state === 'free' ? usage.remaining === 0
-          ? 'Has usado tus consultas de bienvenida. No se renuevan cada mes. Puedes conocer Campus Plus para continuar.'
+          ? 'Has usado tus consultas de bienvenida. No se renuevan cada mes. Puedes activar Campus Plus para continuar.'
           : 'Son consultas de bienvenida: no se renuevan cada mes.'
         : 'Este saldo corresponde al uso en la web.',
     mcp: verified && account.state === 'plus' ? 'Con Campus Plus: consultas ilimitadas mediante MCP, el conector para tu IA compatible. Son independientes de tu cuota web.' : undefined,
@@ -35,6 +35,8 @@ export function renderProfileAccount(root: HTMLElement | null, session: CampusSe
   }
   const upgrade = root.querySelector<HTMLElement>('[data-profile-upgrade]');
   if (upgrade) upgrade.hidden = !view.upgrade;
+  const manage = root.querySelector<HTMLElement>('[data-profile-manage]');
+  if (manage) manage.hidden = view.state !== 'plus';
   const refresh = root.querySelector<HTMLButtonElement>('[data-profile-refresh]');
   if (refresh) {
     refresh.disabled = view.state === 'loading';

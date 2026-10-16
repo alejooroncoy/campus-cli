@@ -94,8 +94,10 @@ The hosted web assistant and MCP share the free consultation allowance, existing
 credits and paid access. The profile is the source for current balance and plan:
 https://campuscli.com/app/perfil/. The web counts a question; hosted MCP counts
 a metered consultation tool. Connection and plan status checks are not charged.
-Paid activation keeps the existing Campus founder offer and payment verification:
-https://campuscli.com/#incluye. Turnitin reports are priced per document separately.
+Activate Plus at https://campuscli.com/app/plus/: sign in, confirm your university,
+check your server-confirmed offer, pay by Yape/Plin and submit the receipt.
+Access starts after manual payment approval. No automatic charges.
+Turnitin reports are priced per document separately.
 
 ## Local CLI
 
