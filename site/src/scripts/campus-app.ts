@@ -111,7 +111,7 @@ function applyAccountUI(profile: UIProfileCache | null): void {
     if (menuLogin) menuLogin.hidden = true;
 
     // Show the actual available balance, including welcome credits.
-    if (planTitle) planTitle.textContent = profile.accessUnavailable ? "Plan por comprobar" : profile.plan === "plus" ? "Campus Plus" : profile.plan === "free" ? "Campus Free" : "Plan por comprobar";
+    if (planTitle) planTitle.textContent = profile.accessUnavailable ? "Plan por comprobar" : profile.plan === "plus" ? profile.plusTest ? "Campus Plus · prueba" : "Campus Plus" : profile.plan === "free" ? "Campus Free" : "Plan por comprobar";
     if (planDesc) planDesc.textContent = profile.accessUnavailable ? "Saldo temporalmente no disponible" : typeof profile.remaining === "number"
       ? `${profile.remaining} consultas disponibles${profile.period === "day" ? " hoy" : ""}`
       : "Consultas disponibles";
@@ -283,6 +283,7 @@ function initPage() {
         subTitle,
         bannerConnected: !!value.banner?.connected,
         plan: value.plan,
+        plusTest: value.plusTest,
         accessUnavailable: value.accessUnavailable,
         remaining: value.usage?.remaining,
         period: value.usage?.period,

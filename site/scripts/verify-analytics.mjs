@@ -27,6 +27,7 @@ try {
   for (let i = 0; i < 105; i++) analytics.track('campus_cta_clicked', { intent: 'plus', message: 'private' });
   const records = JSON.parse(storage.get('campus-analytics-debug'));
   assert.equal(records.length, 100); assert.equal(records[0].properties.environment, 'development');
+  assert.equal('is_test' in records[0].properties,false,'An unresolved session must never be classified as a real user');
   assert.equal(records.some(item => JSON.stringify(item).includes('private')), false);
   analytics.analyticsSession({ authenticated: true, plan: 'plus', aiReady: true, analyticsId: 'campus:account_uuid1234', usage: { remaining: 97, limit: 100, period: 'day' } });
   analytics.analyticsSession({ authenticated: true, plan: 'plus', aiReady: true, analyticsId: 'campus:account_uuid1234', usage: { remaining: 97, limit: 100, period: 'day' } });
@@ -34,6 +35,9 @@ try {
   analytics.analyticsSession({ authenticated: true, plan: 'plus', aiReady: true, analyticsId: 'campus:account_uuid1234', usage: { remaining: 96, limit: 100, period: 'day' } });
   assert.equal(JSON.parse(storage.get('campus-analytics-debug')).filter(item => item.event === 'campus_session_ready').length, 1, 'A new balance is not another app entry');
   assert.equal(JSON.parse(storage.get('campus-analytics-debug')).filter(item => item.event === 'campus_usage_updated').length, 1);
+  analytics.analyticsSession({authenticated:true,plan:'plus',plusTest:true,aiReady:true,analyticsId:'campus:account_uuid1234'});
+  analytics.track('campus_plus_status_viewed',{plus_status:'active'});
+  assert.equal(JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties.is_test,true);
   analytics.track('unknown_event', { email: 'private' });
   assert.equal(remote.length, 0);
   assert.equal(analytics.analyticsHeaders()['X-POSTHOG-DISTINCT-ID'], 'campus:account_uuid1234');

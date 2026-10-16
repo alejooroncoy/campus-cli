@@ -7,6 +7,7 @@ import AppShell from '../../../layouts/AppShell.astro';
     <a class="app-text-link" href="/app/perfil/">Volver a Mi perfil</a>
     <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Más Campus para tu ciclo.</h1><p>100 consultas al día en la web y consultas ilimitadas con tu IA por MCP.</p></section>
     <p class="plus-message" role="status" aria-live="polite" data-plus-message>Comprobando tu cuenta…</p>
+    <p class="app-panel" role="note" data-plus-qa hidden><strong>PRUEBA EN PRODUCCIÓN · SIN PAGO</strong><br />Este comprobante es sintético. La activación de prueba dura 24 horas y no ocupa un cupo de los primeros 25 de pago.</p>
     <section class="app-panel" data-plus-view="guest" hidden>
       <h2>Primero, tu cuenta Campus.</h2><p>Inicia sesión o crea tu cuenta gratis. Después verás tu precio y podrás activar Plus.</p>
       <a class="app-button" href="/api/app/auth/start?return=%2Fapp%2Fplus%2F">Crear cuenta o entrar</a>
@@ -51,7 +52,6 @@ import AppShell from '../../../layouts/AppShell.astro';
     </section>
     <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>100 consultas diarias en la web.</li><li>Consultas ilimitadas con tu IA por MCP.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte. Turnitin se cobra por documento.</p></details>
     <p class="plus-support">¿Necesitas ayuda? <a class="app-text-link" href="https://wa.me/51946189585" target="_blank" rel="noopener">WhatsApp +51 946 189 585</a></p>
-    <section class="app-panel plus-admin" id="plus-payments" data-plus-admin hidden><h2>Validar pagos de Plus</h2><p>Comprueba el abono en tu cuenta de Yape o Plin antes de activar el mes.</p><button type="button" class="app-button app-button--secondary" data-plus-admin-refresh>Actualizar pagos</button><div data-plus-admin-list></div><button type="button" class="app-button app-button--secondary" data-plus-admin-more hidden>Cargar más</button></section>
   </div>
   <script src="../../../scripts/plus.ts"></script>
 </AppShell>

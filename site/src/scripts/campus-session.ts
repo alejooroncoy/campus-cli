@@ -8,6 +8,7 @@ export type CampusSession = {
   authenticated: boolean;
   email?: string;
   plan?: string;
+  plusTest?: boolean;
   aiReady: boolean;
   accessBlocked?: boolean;
   accessUnavailable?: boolean;
@@ -36,6 +37,7 @@ export type CampusProfilePreview = {
   subTitle?: string;
   bannerConnected?: boolean;
   plan?: string;
+  plusTest?: boolean;
   remaining?: number;
   period?: string;
   accessUnavailable?: boolean;

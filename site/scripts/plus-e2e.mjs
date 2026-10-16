@@ -7,7 +7,7 @@ const output=new URL('../../output/plus-review/',import.meta.url).pathname;await
 const browser=await chromium.launch({headless:true});
 const receipt=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j2FoAAAAASUVORK5CYII=','base64');
 try{
-  for(const viewport of [{width:390,height:844},{width:1366,height:900}]){
+  for(const {viewport,isTest} of [{width:390,height:844},{width:1366,height:900}].flatMap(viewport=>[false,true].map(isTest=>({viewport,isTest})))){
     const context=await browser.newContext({viewport,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     await context.request.post(base+'/__fixture/reset');
@@ -20,7 +20,7 @@ try{
     await page.waitForURL('**/app/perfil/**');
     await page.locator('[data-app-select-upc]:visible').click();
     await page.getByRole('button',{name:'Guardar y continuar'}).click();
-    await page.waitForURL('**/app/plus/');await page.locator('[data-plus-view=ready]:visible').waitFor();
+    await page.locator('[data-plus-view=ready]:visible').waitFor();assert.equal(new URL(page.url()).pathname,'/app/plus/');
     await page.goto(base+'/app/perfil/');
     await page.locator('[data-profile-upgrade]:visible').waitFor();
     assert.equal(await page.locator('[data-profile-upgrade]').getAttribute('href'),'/app/plus/');
@@ -34,6 +34,7 @@ try{
     await page.screenshot({path:output+`${viewport.width<600?'mobile':'desktop'}-payment.png`,fullPage:true});
     await page.locator('#plus-receipt').setInputFiles({name:'invalid.txt',mimeType:'text/plain',buffer:Buffer.from('invalid')});
     await page.getByRole('status').filter({hasText:'Usa un comprobante'}).waitFor();
+    if(isTest)assert.equal((await context.request.post(base+'/__fixture/qa',{headers:{origin:base}})).status(),200);
     await page.locator('#plus-receipt').setInputFiles({name:'private-proof.png',mimeType:'image/png',buffer:receipt});
     await page.locator('[name=consent]').check();await page.getByRole('button',{name:'Enviar comprobante',exact:true}).click();
     await page.locator('[data-plus-view=pending]:visible').waitFor();
@@ -42,17 +43,15 @@ try{
     assert.equal((await (await context.request.get(base+'/api/app/session')).json()).usage.limit,25);
     assert.equal((await context.request.get(`${base}/api/app/plus/admin/orders/${order.id}/receipt`)).status(),403);
     await page.reload();await page.locator('[data-plus-view=pending]:visible').waitFor();
+    assert.equal(await page.locator('[data-plus-qa]').isVisible(),isTest);
+    assert.equal(await page.locator('[data-plus-admin]').count(),0,'Student app must never render a payment approval panel');
     const staff=await browser.newContext({viewport,serviceWorkers:'block'});await staff.addCookies([{name:'plus_fixture_session',value:'9',url:base}]);
-    const panel=await staff.newPage();await panel.goto(base+'/app/plus/');
-    const card=panel.locator('[data-plus-admin-list] article').filter({hasText:'Por validar'});await card.waitFor();
-    const approve=card.getByRole('button',{name:'Confirmar pago y activar'});assert.equal(await approve.isDisabled(),true);
     const file=await staff.request.get(`${base}/api/app/plus/admin/orders/${order.id}/receipt`);assert.equal(file.status(),200);assert.deepEqual(await file.body(),receipt);
-    await card.getByRole('checkbox').check();await approve.click();
-    await panel.locator('[data-plus-admin-list] article').filter({hasText:'Activado'}).waitFor();
+    const review=await staff.request.post(`${base}/api/app/plus/admin/orders/${order.id}/review`,{headers:{origin:base},data:{accepted:true,paymentVerified:!isTest,testConfirmed:isTest,note:isTest?'QA synthetic receipt without bank transfer':''}});assert.equal(review.status(),200);
     await page.getByRole('button',{name:'Actualizar estado'}).click();await page.locator('[data-plus-view=active]:visible').waitFor();
-    const session=await (await context.request.get(base+'/api/app/session')).json();assert.equal(session.plan,'plus');assert.equal(session.usage.limit,100);assert.equal(session.mcpUnlimited,true);
+    const session=await (await context.request.get(base+'/api/app/session')).json();assert.equal(session.plan,'plus');assert.equal(session.plusTest,isTest);assert.equal(session.usage.limit,100);assert.equal(session.mcpUnlimited,true);
     await page.screenshot({path:output+`${viewport.width<600?'mobile':'desktop'}-active.png`,fullPage:true});
-    await page.getByRole('link',{name:'Volver a Mi perfil'}).click();await page.locator('[data-profile-label]').filter({hasText:'Campus Plus'}).waitFor();
+    await page.getByRole('link',{name:'Volver a Mi perfil'}).click();await page.locator('[data-profile-label]').filter({hasText:isTest?'Campus Plus · prueba':'Campus Plus'}).waitFor();
     assert.match(await page.locator('[data-profile-usage]').textContent(),/100 de 100/);
     assert.equal(await page.getByRole('link',{name:'Pagos de Campus Plus'}).getAttribute('href'),'/app/plus/');
     await page.getByRole('link',{name:'Pagos de Campus Plus'}).click();
@@ -60,13 +59,13 @@ try{
     const metrics=await (await context.request.get(base+'/__fixture/metrics')).json();
     for(const operation of ['plus_checkout','plus_receipt','plus_payment_review'])assert.ok(metrics.some(event=>event.properties.operation===operation&&event.properties.outcome==='success'&&event.properties.purchase_kind==='activation'));
     const activation=metrics.find(event=>event.properties.plus_status==='active'&&event.distinctId==='campus:plus-fixture-owner-1');
-    assert.ok(activation);assert.equal('$session_id' in activation.properties,false,'Approval belongs to the buyer, but never the staff browser session');
+    assert.ok(activation);assert.equal(activation.properties.is_test,isTest);assert.equal('$session_id' in activation.properties,false,'Approval belongs to the buyer, but never the staff browser session');
     const client=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('campus-analytics-debug')??'[]'));
     assert.equal(client.filter(event=>event.event==='campus_cta_clicked').at(-1).properties.intent,'navigate','Managing an active plan never starts acquisition');
     for(const event of ['campus_plus_checkout_viewed','campus_plus_receipt_selected','campus_plus_submit_started'])assert.ok(client.some(item=>item.event===event));
     assert.equal(JSON.stringify([...metrics,...client]).includes('private-proof'),false);assert.equal(JSON.stringify([...metrics,...client]).includes('student@example.test'),false);
     assert.deepEqual(errors,[]);
-    console.log(`${viewport.width}px: landing → login → university → price → receipt → staff approval → persisted Plus, 100 web queries and unlimited MCP; metrics and private files passed.`);
+    console.log(`${viewport.width}px (${isTest?'QA':'paid'}): landing → login → university → price → receipt → staff approval → persisted Plus, 100 web queries and unlimited MCP; metrics and private files passed.`);
     await staff.close();await context.close();
   }
 }finally{await browser.close();}

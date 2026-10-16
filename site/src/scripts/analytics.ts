@@ -27,6 +27,7 @@ let sessionResolved = false;
 let readyContext = '';
 let lastSessionState = '';
 let currentPlan = 'unavailable';
+let isTest: boolean | undefined;
 let mounted = false;
 let observer: IntersectionObserver | undefined;
 const sectionTimers = new Map<HTMLElement, ReturnType<typeof setTimeout>>();
@@ -107,6 +108,7 @@ export function track(event: string, properties: Record<string, unknown> = {}): 
   if (!browser || !events.has(event)) return;
   const item = { event, properties: safeAnalyticsProperties({
     page: analyticsPage(location.pathname), current_plan: currentPlan,
+    ...(isTest!==undefined?{is_test:isTest}:{}),
     selected_plan: selectedPlan(),
     viewport: innerWidth < 761 ? 'mobile' : innerWidth < 1200 ? 'tablet' : 'desktop',
     environment: local ? 'development' : 'production', ...properties,
@@ -129,6 +131,7 @@ export function analyticsSession(session: CampusSession): void {
   if (!browser || session.accessUnavailable) return;
   sessionResolved = true;
   currentPlan = session.authenticated ? (session.plan === 'plus' ? 'plus' : 'free') : 'guest';
+  isTest = session.authenticated && session.plusTest === true;
   // The server normalizes non-numeric/long Google subjects to an opaque
   // google_<sha256> ID. Raw provider subjects are not a browser contract.
   if (session.authenticated && /^campus:(?:google:[0-9]{8,32}|[a-zA-Z0-9_-]{8,100})$/.test(session.analyticsId ?? '')) {
@@ -147,7 +150,7 @@ export function analyticsSession(session: CampusSession): void {
   track(firstReady ? 'campus_session_ready' : 'campus_usage_updated', { authenticated: session.authenticated, remaining: session.usage?.remaining, limit: session.usage?.limit });
 }
 export function resetAnalytics(): void {
-  identity = undefined; currentPlan = 'guest';
+  identity = undefined; currentPlan = 'guest'; isTest = false;
   readyContext = ''; lastSessionState = '';
   queue = [];
   if (browser && !local) persistQueue();
