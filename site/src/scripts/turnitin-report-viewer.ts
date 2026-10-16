@@ -1,3 +1,4 @@
+import { analyticsHeaders, track } from './analytics';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import type { PDFDocumentProxy, PDFDocumentLoadingTask, RenderTask } from 'pdfjs-dist';
 
@@ -38,6 +39,7 @@ export function setupTurnitinReportViewer() {
   let abort: AbortController | null = null;
   let generation = 0;
   let drawing = 0;
+  let displayedGeneration = -1;
   let pageNumber = 1;
   let resizeTimer: ReturnType<typeof setTimeout> | undefined;
   let observer: ResizeObserver | null = null;
@@ -91,6 +93,9 @@ export function setupTurnitinReportViewer() {
       // A text alternative for screen readers; PDF content never becomes HTML.
       text.textContent = content.items.map(item => 'str' in item ? item.str : '').join(' ').slice(0, 300000);
       text.setAttribute('aria-label', `Página ${pageNumber} de ${currentPdf.numPages}. ${titles[kind]}`);
+      if (!order?.admin && kind !== 'receipt' && displayedGeneration !== documentVersion) {
+        displayedGeneration = documentVersion; track('campus_turnitin_report_displayed', { report_kind: kind });
+      }
       message.textContent = kind === 'receipt' ? 'Revisa el comprobante aquí o descarga el PDF.' : 'Puedes leer el informe aquí o descargar el PDF.';
       pageLabel.textContent = `Página ${pageNumber} de ${currentPdf.numPages}`;
       controls();
@@ -107,6 +112,7 @@ export function setupTurnitinReportViewer() {
     kind = selected; pageNumber = 1; zoom.value = '1'; stage.scrollTop = stage.scrollLeft = 0;
     const version = generation;
     const currentOrder = order;
+    if (!currentOrder.admin && selected !== 'receipt') track('campus_turnitin_report_requested', { report_kind: selected });
     switcher.hidden = selected === 'receipt'; footer.hidden = false;
     find<HTMLElement>('[data-ti-viewer-context]').textContent = selected === 'receipt' ? 'Administrar pedido' : 'Tu revisión de Turnitin';
     retry.hidden = login.hidden = true;
@@ -124,7 +130,7 @@ export function setupTurnitinReportViewer() {
     let failureMessage = kind === 'receipt' ? 'No pudimos abrir el comprobante. Vuelve a intentar o descárgalo.' : 'No pudimos abrir el informe. Vuelve a intentar o descarga el PDF.';
     try {
       const response = await fetch(reportUrl(currentOrder, selected), {
-        credentials: 'same-origin', cache: 'no-store', signal: requestAbort.signal,
+        credentials: 'same-origin', cache: 'no-store', headers: analyticsHeaders(), signal: requestAbort.signal,
       });
       if (version !== generation || !dialog.open) return;
       if (response.status === 401) {
@@ -165,6 +171,7 @@ export function setupTurnitinReportViewer() {
       await renderPage();
     } catch (error) {
       if (version !== generation || !dialog.open) return;
+      if (!currentOrder.admin && selected !== 'receipt') track('campus_flow_failed', { step: 'report', error_kind: 'unavailable', report_kind: selected });
       message.textContent = error instanceof Error && error.name !== 'AbortError'
         ? failureMessage : 'La carga tardó demasiado. Vuelve a intentar o descarga el PDF.';
       retry.hidden = !login.hidden;
@@ -177,6 +184,7 @@ export function setupTurnitinReportViewer() {
   next.onclick = () => { if (pdf && pageNumber < pdf.numPages) { pageNumber++; stage.scrollTop = 0; void renderPage(); } };
   zoom.onchange = () => void renderPage();
   retry.onclick = () => void load(kind);
+  download.onclick = () => { if (order && !order.admin && kind !== 'receipt') track('campus_turnitin_download_clicked', { report_kind: kind }); };
   find<HTMLButtonElement>('[data-ti-report-close]').onclick = () => dialog.close();
   dialog.addEventListener('close', () => {
     clearDocument(); order = null;

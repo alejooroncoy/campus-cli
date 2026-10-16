@@ -1,0 +1,406 @@
+{
+  "project_id": 539784,
+  "dashboard_id": 2219861,
+  "url": "https://us.posthog.com/project/539784/dashboard/2219861",
+  "status": "prepared_not_deployed",
+  "insights": [
+    {
+      "name": "De la landing a una respuesta",
+      "description": "Usuarios que ven la landing, entran a la app, cargan su sesión y completan una consulta en 24 horas. La última etapa se confirma en el servidor.",
+      "query": {
+        "kind": "FunnelsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "properties": [
+          {
+            "key": "environment",
+            "type": "event",
+            "operator": "exact",
+            "value": "production"
+          }
+        ],
+        "filterTestAccounts": true,
+        "funnelsFilter": {
+          "funnelOrderType": "ordered",
+          "funnelWindowInterval": 1,
+          "funnelWindowIntervalUnit": "day",
+          "funnelVizType": "steps"
+        },
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "campus_page_viewed",
+            "custom_name": "Landing",
+            "properties": [
+              {
+                "key": "page",
+                "type": "event",
+                "operator": "exact",
+                "value": "home"
+              }
+            ]
+          },
+          {
+            "kind": "EventsNode",
+            "event": "campus_cta_clicked",
+            "custom_name": "Entrar a la app",
+            "properties": [
+              {
+                "key": "target",
+                "type": "event",
+                "operator": "exact",
+                "value": "app"
+              }
+            ]
+          },
+          {
+            "kind": "EventsNode",
+            "event": "campus_session_ready",
+            "custom_name": "App lista",
+            "properties": []
+          },
+          {
+            "kind": "EventsNode",
+            "event": "campus_api_completed",
+            "custom_name": "Respuesta completada",
+            "properties": [
+              {
+                "key": "operation",
+                "type": "event",
+                "operator": "exact",
+                "value": "question"
+              },
+              {
+                "key": "outcome",
+                "type": "event",
+                "operator": "exact",
+                "value": "success"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Primer uso: elegir universidad",
+      "description": "Personas que ven la elección inicial, guardan una universidad y reciben una respuesta. No exige este paso a quienes ya lo completaron.",
+      "query": {
+        "kind": "FunnelsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "properties": [
+          {
+            "key": "environment",
+            "type": "event",
+            "operator": "exact",
+            "value": "production"
+          }
+        ],
+        "filterTestAccounts": true,
+        "funnelsFilter": {
+          "funnelOrderType": "ordered",
+          "funnelWindowInterval": 1,
+          "funnelWindowIntervalUnit": "day",
+          "funnelVizType": "steps"
+        },
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "campus_university_step_viewed",
+            "custom_name": "Elegir universidad",
+            "properties": []
+          },
+          {
+            "kind": "EventsNode",
+            "event": "campus_university_selected",
+            "custom_name": "Universidad elegida",
+            "properties": []
+          },
+          {
+            "kind": "EventsNode",
+            "event": "campus_api_completed",
+            "custom_name": "Respuesta completada",
+            "properties": [
+              {
+                "key": "operation",
+                "type": "event",
+                "operator": "exact",
+                "value": "question"
+              },
+              {
+                "key": "outcome",
+                "type": "event",
+                "operator": "exact",
+                "value": "success"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Turnitin: de la app al pedido",
+      "description": "Usuarios que abren Turnitin en la app y logran enviar documento y comprobante. Un envío confirmado no significa pago aprobado ni informe entregado.",
+      "query": {
+        "kind": "FunnelsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "properties": [
+          {
+            "key": "environment",
+            "type": "event",
+            "operator": "exact",
+            "value": "production"
+          }
+        ],
+        "filterTestAccounts": true,
+        "funnelsFilter": {
+          "funnelOrderType": "ordered",
+          "funnelWindowInterval": 1,
+          "funnelWindowIntervalUnit": "day",
+          "funnelVizType": "steps"
+        },
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "campus_page_viewed",
+            "custom_name": "Turnitin en la app",
+            "properties": [
+              {
+                "key": "page",
+                "type": "event",
+                "operator": "exact",
+                "value": "turnitin_app"
+              }
+            ]
+          },
+          {
+            "kind": "EventsNode",
+            "event": "campus_upload_selected",
+            "custom_name": "Archivo válido",
+            "properties": [
+              {
+                "key": "valid",
+                "type": "event",
+                "operator": "exact",
+                "value": "true"
+              }
+            ]
+          },
+          {
+            "kind": "EventsNode",
+            "event": "campus_api_completed",
+            "custom_name": "Pedido recibido",
+            "properties": [
+              {
+                "key": "operation",
+                "type": "event",
+                "operator": "exact",
+                "value": "turnitin"
+              },
+              {
+                "key": "outcome",
+                "type": "event",
+                "operator": "exact",
+                "value": "success"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Free o Plus: interés por plan",
+      "description": "Usuarios únicos que eligen un plan desde sus tarjetas. Una persona puede interesarse por ambos; no son ventas ni suscripciones activadas.",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "properties": [
+          {
+            "key": "environment",
+            "type": "event",
+            "operator": "exact",
+            "value": "production"
+          }
+        ],
+        "filterTestAccounts": true,
+        "trendsFilter": {
+          "display": "ActionsBarValue"
+        },
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "campus_cta_clicked",
+            "math": "dau",
+            "properties": [
+              {
+                "key": "intent",
+                "type": "event",
+                "operator": "exact",
+                "value": [
+                  "free",
+                  "plus"
+                ]
+              }
+            ]
+          }
+        ],
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "intent",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Asistente: uso por tipo de acceso",
+      "description": "Consultas completadas en el servidor, separadas entre prueba, Free y Plus. Excluye errores y avisos sin consumo.",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "properties": [
+          {
+            "key": "environment",
+            "type": "event",
+            "operator": "exact",
+            "value": "production"
+          }
+        ],
+        "filterTestAccounts": true,
+        "trendsFilter": {
+          "display": "ActionsBarValue"
+        },
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "campus_api_completed",
+            "properties": [
+              {
+                "key": "operation",
+                "type": "event",
+                "operator": "exact",
+                "value": "question"
+              },
+              {
+                "key": "outcome",
+                "type": "event",
+                "operator": "exact",
+                "value": "success"
+              }
+            ]
+          }
+        ],
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "current_plan",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Fallos del recorrido web",
+      "description": "Solicitudes rechazadas o fallidas, por función. Incluye fallos de IA aunque la conexión de streaming responda HTTP 200.",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "properties": [
+          {
+            "key": "environment",
+            "type": "event",
+            "operator": "exact",
+            "value": "production"
+          }
+        ],
+        "filterTestAccounts": true,
+        "trendsFilter": {
+          "display": "ActionsBarValue"
+        },
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "campus_api_completed",
+            "properties": [
+              {
+                "key": "outcome",
+                "type": "event",
+                "operator": "exact",
+                "value": "failed"
+              }
+            ]
+          }
+        ],
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "operation",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Funciones que despiertan interés",
+      "description": "Clics hacia conexión de IA, Turnitin y soporte humano. El proveedor y la ubicación están disponibles como propiedades; un clic no confirma la conexión externa.",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "properties": [
+          {
+            "key": "environment",
+            "type": "event",
+            "operator": "exact",
+            "value": "production"
+          }
+        ],
+        "filterTestAccounts": true,
+        "trendsFilter": {
+          "display": "ActionsBarValue"
+        },
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "campus_cta_clicked",
+            "properties": [
+              {
+                "key": "intent",
+                "type": "event",
+                "operator": "exact",
+                "value": [
+                  "connect",
+                  "turnitin",
+                  "support"
+                ]
+              }
+            ]
+          }
+        ],
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "intent",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

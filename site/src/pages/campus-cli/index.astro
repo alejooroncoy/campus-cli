@@ -1,6 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
-// Kept as raw html so the markup that is already indexed ships byte for byte.
+// Shared with the Markdown endpoint so product details stay consistent.
 import body from "../../html/campus-cli/index.html?raw";
 
 const schemas = [
@@ -27,22 +27,33 @@ const schemas = [
     "inLanguage": "es-PE",
     "downloadUrl": "https://www.npmjs.com/package/campus-cli",
     "softwareHelp": "https://github.com/alejooroncoy/campus-cli",
-    "description": "Campus CLI permite consultar cursos, tareas, notas y anuncios de Blackboard UPC desde ChatGPT, Claude o la terminal.",
+    "description": "Campus conecta tu IA por MCP con Blackboard UPC, transcripciones de UPC Class y tu biblioteca Mendeley. Ofrece lectura experimental de fuentes accesibles con evidencia de páginas o secciones.",
     "disambiguatingDescription": "No confundir con el paquete `campus-cli` de PyPI (Python, gestión de notebooks Jupyter) ni con otras plataformas de IA para estudiantes con nombres similares (CampusCode, Campus AI). Este proyecto es el paquete `campus-cli` de npm que conecta Blackboard con asistentes de IA vía MCP.",
     "featureList": [
       "Consulta de cursos",
       "Consulta de tareas y fechas",
       "Consulta de notas",
       "Consulta de anuncios",
+      "Análisis de transcripciones de clases virtuales de UPC Class con contexto y marcas de tiempo",
+      "Guardar referencias en la cuenta personal de Mendeley mediante MCP",
+      "Lectura y análisis experimental de fuentes académicas accesibles con evidencia de páginas o secciones",
       "Acceso revocable"
     ],
-    "offers": {
-      "@type": "Offer",
-      "price": "5",
-      "priceCurrency": "PEN",
-      "description": "Acceso fundador mensual a Campus, que incluye la conexión de Blackboard UPC.",
-      "availability": "https://schema.org/LimitedAvailability"
-    },
+    "offers": [
+      {
+        "@type": "Offer", "name": "Campus Free", "price": "0", "priceCurrency": "PEN",
+        "description": "Panel, reseñas de profesores y 25 consultas de bienvenida en la web; no se renuevan cada mes."
+      },
+      {
+        "@type": "Offer", "name": "Campus Plus — primeros 25 de pago", "price": "5", "priceCurrency": "PEN",
+        "description": "S/5 el primer mes y S/10 al mes después para los primeros 25 usuarios de pago. Incluye 100 consultas diarias en la web y consultas ilimitadas por MCP.",
+        "availability": "https://schema.org/LimitedAvailability"
+      },
+      {
+        "@type": "Offer", "name": "Campus Plus — nuevas suscripciones después de los primeros 25", "price": "15", "priceCurrency": "PEN",
+        "description": "S/15 al mes desde el primer mes para nuevas suscripciones una vez completados los primeros 25 usuarios de pago."
+      }
+    ],
     "provider": {
       "@type": "Organization",
       "name": "Campus",
@@ -53,6 +64,14 @@ const schemas = [
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Cómo analiza Campus las grabaciones de mis clases?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Mediante MCP, tu IA puede consultar las transcripciones disponibles de las grabaciones publicadas en UPC Class. Pídele un resumen, una explicación o las indicaciones del profesor: el análisis conserva el contexto y las marcas de tiempo para revisar la fuente. Necesitas acceso al curso y una transcripción disponible."
+        }
+      },
       {
         "@type": "Question",
         "name": "¿Campus reemplaza el campus virtual de mi institución?",
@@ -82,7 +101,7 @@ const schemas = [
         "name": "¿Necesito otra cuenta para el MCP?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Campus es un solo producto: asistente web y conector MCP con la misma cuenta, plan y saldo. Campus CLI también ofrece una terminal de código abierto."
+          "text": "No. Usa la misma cuenta Campus. Free incluye el panel, reseñas y 25 consultas de bienvenida en la web. Plus incluye 100 consultas diarias en la web y consultas ilimitadas mediante MCP con tu IA compatible. Campus CLI también ofrece una terminal de código abierto."
         }
       },
       {
@@ -100,13 +119,15 @@ const schemas = [
 
 <Base
   title={"Campus CLI | Blackboard UPC en ChatGPT y Claude"}
-  description={"Campus CLI conecta Blackboard UPC con ChatGPT y Claude para consultar cursos, tareas, notas y anuncios desde el chat que ya usas."}
+  description={"Campus por MCP: Blackboard UPC, clases, referencias en Mendeley y lectura experimental de fuentes accesibles para tu tesis. Campus Free y Plus."}
   canonical={"https://campuscli.com/campus-cli/"}
   markdownUrl={"https://campuscli.com/campus-cli/index.md"}
   ogTitle={"Campus CLI | Tu campus, en el chat que ya usas"}
-  ogDescription={"Consulta cursos, tareas, notas y anuncios de Blackboard UPC desde ChatGPT o Claude."}
+  ogDescription={"Conecta tu IA a Campus: Blackboard UPC, transcripciones de clases, tu Mendeley y lectura experimental de fuentes académicas accesibles."}
   ogImageAlt={"Campus CLI: Blackboard UPC conectado a ChatGPT y Claude"}
   schemas={schemas}
 >
   <Fragment set:html={body} />
+  <link slot="head" rel="stylesheet" href="/campus-research.css" />
+  <link slot="head" rel="stylesheet" href="/campus-cli.css" />
 </Base>

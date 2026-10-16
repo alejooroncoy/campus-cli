@@ -10,7 +10,7 @@ export const GET: APIRoute = () => {
   const markdown = [
     "# Opiniones de profesores en Campus",
     "",
-    "> Consulta y comparte opiniones de profesores desde Campus. El asistente web y el conector MCP comparten cuenta y plan. También disponible por WhatsApp.",
+    "> Consulta y comparte opiniones de profesores desde Campus. El asistente web y el conector MCP comparten cuenta y plan. Disponible desde la app web de Campus.",
     "",
     "Fuente: https://campuscli.com/profes/",
     "",

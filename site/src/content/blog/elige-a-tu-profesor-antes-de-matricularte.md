@@ -1,10 +1,10 @@
 ---
 title: "Por qué construí Campus Profes: elegir profesor no debería ser una lotería"
-seoTitle: "Campus Profes: elige a tu profesor por WhatsApp"
+seoTitle: "Campus Profes: elige a tu profesor desde la web"
 ogTitle: "Lancé Campus Profes: elige a tu profesor antes de matricularte"
-description: "Lancé Campus Profes, un bot de WhatsApp para consultar calificaciones, comentarios y horarios de profesores antes de matricularte. Por qué lo construí."
+description: "Consulta opiniones y calificaciones de profesores desde la web de Campus. Cómo nació Campus Profes y cómo usarlo ahora."
 published: "2026-08-10"
-updated: "2026-09-07"
+updated: "2026-10-15"
 tag: "Lanzamiento · Fundador"
 section: fundador
 readingMinutes: 5
@@ -13,15 +13,17 @@ faq:
   - q: "¿Campus Profes es lo mismo que Campus para Blackboard?"
     a: "Las opiniones de profesores son una función de Campus. El asistente web y el conector MCP comparten cuenta y plan."
   - q: "¿Cuánto cuesta Campus Profes?"
-    a: "Campus ofrece acceso fundador de S/5 el primer mes para los primeros 25 miembros. El precio regular anunciado es S/19.90 al mes."
+    a: "Empieza con Campus Free y 25 consultas de bienvenida en la web. Plus incluye 100 consultas diarias en la web e ilimitadas por MCP. Consulta los precios y condiciones actuales en los planes de Campus."
   - q: "¿De dónde salen las calificaciones de los profesores?"
     a: "De alumnos que ya llevaron el curso y califican después de terminarlo. No es un formulario anónimo abierto a cualquiera ni información inventada."
 summary:
-  - "Acabo de lanzar **Campus Profes**, un bot de WhatsApp para consultar calificaciones, comentarios y horarios de profesores antes de matricularte."
+  - "**Campus Profes** nació como un bot de WhatsApp. Ahora puedes consultar opiniones de profesores desde la app web de Campus."
   - "Nace del mismo problema de siempre en época de matrícula: elegir profesor a ciegas, preguntando en tres grupos de WhatsApp distintos y confiando en la primera respuesta que llega."
   - "Sirve para comparar secciones del mismo curso antes de matricular, armar tu horario sin cruces comparando quién enseña mejor en cada bloque, y dejar tu propia calificación para el que pregunte después."
-  - "Las opiniones de profesores vuelven a **Campus**: solicita acceso fundador y consulta por WhatsApp antes de matricularte."
+  - "Las opiniones de profesores están en la **app web de Campus**: entra con tu cuenta y empieza con Campus Free."
 ---
+> **Actualización:** Campus se usa desde la [app web](/app/). La historia de WhatsApp que sigue describe cómo nació el proyecto; el servicio actual se ofrece en la web.
+
 Cada ciclo pasa lo mismo en época de matrícula. Entras a elegir horario, ves cuatro o cinco secciones del mismo curso, cada una con un profesor distinto, y no tienes ninguna forma de saber, desde el sistema de matrícula, cuál es cuál. Así que abres WhatsApp y preguntas en dos o tres grupos a la vez: "¿alguien sabe cómo es el profesor de Gerencia de Proyectos?". Decides con la primera respuesta que te llega, venga de quien venga, y a veces ni siquiera es de alguien que lo llevó de verdad. Ese momento, repetido ciclo tras ciclo, es la razón por la que construí Campus Profes.
 
 ## El problema no es elegir curso, es elegir profesor
@@ -50,4 +52,4 @@ Campus Profes ya ayudó a más de 350 estudiantes a decidir antes de su matrícu
 
 ## Cómo empezar
 
-Las opiniones de profesores y la conexión con tu IA se usan desde la misma cuenta Campus. Puedes solicitar el acceso fundador en [la página de Campus Profes](https://campuscli.com/profes/) y recibir acompañamiento para empezar a consultar por WhatsApp antes de tu matrícula. El acceso fundador cuesta S/5 el primer mes para los primeros 25 miembros; el precio regular anunciado es S/19.90 al mes.
+Entra a [la app web de Campus](/app/profes/) y consulta desde tu cuenta. Campus Free incluye reseñas, panel y 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web y consultas ilimitadas por MCP. Revisa los precios y condiciones en [Campus Free y Plus](/#planes).

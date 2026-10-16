@@ -1,23 +1,5 @@
 document.documentElement.classList.add("js");
 
-const dialog = document.querySelector(".founder-dialog");
-const openFounder = document.querySelectorAll("[data-open-founder]");
-const closeFounder = document.querySelector("[data-close-founder]");
-const founderForm = document.querySelector("#founder-form");
-const localPreview = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-const founderApi = localPreview
-  ? "http://127.0.0.1:8787/v1/founders"
-  : document.querySelector('meta[name="campus-founder-api"]')?.content || `${window.location.origin}/v1/founders`;
-const turnstileSiteKey = document.querySelector('meta[name="campus-turnstile-site-key"]')?.content;
-const turnstileSlot = document.querySelector(".turnstile-slot");
-const formStatus = document.querySelector("#form-status");
-const founderToast = document.querySelector("#founder-toast");
-const submitButton = founderForm.querySelector('button[type="submit"]');
-let turnstileToken = "";
-let toastTimeout;
-let turnstileLoading = false;
-let turnstileWidgetId;
-
 const siteHeader = document.querySelector(".site-header");
 
 let headerFrame;
@@ -54,128 +36,20 @@ if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-mot
   revealItems.forEach((item) => item.classList.add("is-visible"));
 }
 
-const renderTurnstile = () => {
-  if (!window.turnstile || turnstileWidgetId !== undefined) return;
-  turnstileSlot.dataset.state = "";
-  turnstileWidgetId = window.turnstile.render(turnstileSlot, {
-    sitekey: turnstileSiteKey,
-    callback: (token) => { turnstileToken = token; },
-    "expired-callback": () => { turnstileToken = ""; },
-    "error-callback": () => { turnstileToken = ""; },
+// Native disclosure navigation also closes with Escape, outside clicks and links.
+for (const menu of document.querySelectorAll('.site-menu')) {
+  menu.addEventListener('click', event => {
+    if (event.target instanceof Element && event.target.closest('a')) menu.open = false;
   });
-};
-
-const loadTurnstile = () => {
-  if (!turnstileSiteKey || !turnstileSlot || turnstileWidgetId !== undefined) return;
-  if (window.turnstile) {
-    renderTurnstile();
-    return;
-  }
-  if (turnstileLoading) return;
-
-  turnstileLoading = true;
-  turnstileSlot.dataset.state = "loading";
-  const script = document.createElement("script");
-  script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-  script.async = true;
-  script.onload = renderTurnstile;
-  script.onerror = () => {
-    turnstileSlot.dataset.state = "";
-    formStatus.dataset.state = "error";
-    formStatus.textContent = "No pudimos cargar la verificaci\u00f3n. Intenta de nuevo.";
-  };
-  document.head.append(script);
-};
-
-openFounder.forEach((button) => button.addEventListener("click", () => {
-  const intent = button.dataset.founderIntent;
-  const intentSelect = founderForm.elements.namedItem("intent");
-  if (intent && intentSelect instanceof HTMLSelectElement) intentSelect.value = intent;
-  dialog.showModal();
-  loadTurnstile();
-}));
-closeFounder.addEventListener("click", () => dialog.close());
-
-const showFounderToast = () => {
-  window.clearTimeout(toastTimeout);
-  founderToast.hidden = false;
-  toastTimeout = window.setTimeout(() => { founderToast.hidden = true; }, 6000);
-};
-
-dialog.addEventListener("click", (event) => {
-  if (event.target === dialog) dialog.close();
-});
-
-founderForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const data = new FormData(founderForm);
-  formStatus.textContent = "";
-  formStatus.dataset.state = "";
-  submitButton.disabled = true;
-  const originalSubmitContent = submitButton.innerHTML;
-  submitButton.textContent = "Enviando...";
-  try {
-    const response = await fetch(founderApi, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        name: data.get("name"),
-        whatsapp: data.get("whatsapp"),
-        career: data.get("career"),
-        cycle: data.get("cycle"),
-        intent: data.get("intent"),
-        website: data.get("website"),
-        turnstileToken,
-      }),
-    });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || "No pudimos enviar tu solicitud.");
-    founderForm.reset();
-    turnstileToken = "";
-    dialog.close();
-    showFounderToast();
-  } catch (error) {
-    formStatus.dataset.state = "error";
-    formStatus.textContent = error instanceof Error ? error.message : "No pudimos enviar tu solicitud.";
-  } finally {
-    submitButton.disabled = false;
-    submitButton.innerHTML = originalSubmitContent;
-  }
-});
-
-/* Star count next to the GitHub icon. Cached for an hour so a visitor
-   browsing several pages spends one call against the anonymous API quota,
-   and hidden entirely if the request fails — the icon still links out. */
-const starsSlot = document.querySelector("[data-github-stars]");
-if (starsSlot) {
-  const githubLink = starsSlot.closest(".header-github");
-  const cacheKey = "campus:github-stars";
-  const cacheTtl = 3600000;
-  // Compact notation so a five-figure count never widens the header: 1.2K, 107.5K.
-  const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
-
-  const renderStars = (stars) => {
-    if (!Number.isFinite(stars)) return;
-    starsSlot.textContent = compact.format(stars);
-    starsSlot.hidden = false;
-    githubLink.classList.add("has-stars");
-    githubLink.setAttribute("aria-label", `Ver Campus en GitHub, ${stars} estrellas`);
-  };
-
-  try {
-    const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
-    if (cached && Date.now() - cached.at < cacheTtl) renderStars(cached.stars);
-  } catch { /* localStorage unavailable or corrupt: just refetch. */ }
-
-  fetch("https://api.github.com/repos/alejooroncoy/campus-cli")
-    .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
-    .then((repo) => {
-      renderStars(repo.stargazers_count);
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify({ stars: repo.stargazers_count, at: Date.now() }));
-      } catch { /* Quota or private mode: the count still shows this visit. */ }
-    })
-    .catch(() => { /* Rate limited or offline: leave the plain icon. */ });
+  document.addEventListener('click', event => {
+    if (menu.open && !menu.contains(event.target)) menu.open = false;
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && menu.open) {
+      menu.open = false;
+      menu.querySelector('summary')?.focus();
+    }
+  });
 }
 
 /**

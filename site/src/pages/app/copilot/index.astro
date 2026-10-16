@@ -12,36 +12,47 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
   <section class="app-page-heading app-page-heading--compact">
     <p class="app-kicker">Campus en tu IA</p>
     <h1>Conecta Campus a tu IA.</h1>
-    <p>Consulta tus materiales y tareas desde ChatGPT, Claude o Gemini con tu cuenta Campus.</p>
+    <p>Consulta Blackboard UPC, repasa tus clases y trabaja las fuentes de tu tesis desde tu IA. <a class="app-text-link" href="/campus-cli/#investigacion">Mendeley y lectura experimental</a>.</p>
   </section>
 
-  <section class="app-connector-help" aria-label="Ayuda por WhatsApp">
+  <section class="app-connector-account" data-copilot-account data-state="loading" aria-labelledby="copilot-account-title">
+    <div class="app-connector-account__content">
+      <span class="app-connector-account__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><use href="/assets/lucide.svg#user"></use></svg></span>
+      <div>
+        <div class="app-connector-account__heading"><h2 id="copilot-account-title">Tu cuenta Campus</h2><span class="app-connector-account__badge" data-copilot-account-label>Comprobando…</span></div>
+        <div role="status" aria-live="polite" aria-atomic="true"><p data-copilot-account-description>Estamos comprobando tu cuenta y tu plan de Campus.</p><p class="app-connector-account__usage" data-copilot-account-usage hidden></p></div>
+      </div>
+    </div>
+    <div class="app-connector-account__actions"><a class="app-button app-button--secondary" data-copilot-account-action hidden></a><a class="app-text-link" href="/#plan-plus" data-copilot-account-upgrade hidden>Conocer Campus Plus</a><button class="app-button app-button--secondary" type="button" data-copilot-account-retry hidden>Volver a comprobar</button></div>
+    <p class="app-connector-account__note">Este es tu plan de Campus. Es independiente del plan que tengas en ChatGPT, Claude o Gemini.</p>
+  </section>
+
+  <section class="app-connector-help" aria-label="Ayuda para conectar Campus">
     <div class="app-connector-help__content">
       <span class="app-connector-help__icon" aria-hidden="true">
         <svg viewBox="0 0 24 24"><use href="/assets/lucide.svg#message-circle"></use></svg>
       </span>
       <div>
         <h2>¿Necesitas ayuda?</h2>
-        <p>Te guiamos por WhatsApp.</p>
+        <p>Escríbenos por WhatsApp al 946 189 585 para ayudarte a conectar Campus.</p>
       </div>
     </div>
     <a
-      class="app-button app-button--whatsapp"
-      href="https://wa.me/51946189585?text=Hola,%20tengo%20una%20duda%20para%20conectar%20Campus"
+      class="app-button app-button--secondary"
+      href="https://wa.me/51946189585"
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Contactar a soporte por WhatsApp"
+      aria-label="Pedir ayuda por WhatsApp al 946 189 585 (se abre en otra pestaña)"
     >
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="/assets/lucide.svg#message-circle"></use></svg>
-      <span>Escribir a soporte</span>
+      <span>Ayuda por WhatsApp</span>
     </a>
   </section>
 
   <section class="app-connector-bar" aria-labelledby="connector-values-title">
     <div>
       <h2 id="connector-values-title">Los datos de tu conector</h2>
-      <p>El plugin de Campus usa MCP: una conexión que permite a tu IA consultar tu Aula Virtual con tu autorización.</p>
-      <p>Copia estos datos si tu asistente los solicita.</p>
+      <p>Copia el nombre y la URL en tu asistente para conectar Campus.</p>
     </div>
     <div class="app-connector-values">
       <div class="app-connector-value">
@@ -61,7 +72,7 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
       <div class="app-connector-card__top">
         <span class="app-provider-icon app-provider-icon--claude"><img src="/assets/claude-mark.svg" width="23" height="23" alt="" /></span>
         <h2>Claude</h2>
-        <a class="app-provider-link" href={claudeConnectorUrl} target="_blank" rel="noopener noreferrer" aria-label="Conectar Campus en Claude en otra pestaña">Conectar <span aria-hidden="true">↗</span></a>
+        <a class="app-provider-link" href={claudeConnectorUrl} target="_blank" rel="noopener noreferrer" aria-label="Conectar Campus en Claude en otra pestaña">Conectar <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
       </div>
       <ol class="app-connector-steps">
         <li><strong>Inicia sesión en Claude</strong><p>La conexión personalizada también funciona con su plan gratuito.</p></li>
@@ -76,7 +87,7 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
       <div class="app-connector-card__top">
         <span class="app-provider-icon app-provider-icon--chatgpt"><img src="/assets/openai-mark.svg" width="23" height="23" alt="" /></span>
         <h2>ChatGPT</h2>
-        <a class="app-provider-link" href="https://chatgpt.com/plugins#settings/Connectors?create-connector=true&amp;redirectAfter=%2Fplugins" target="_blank" rel="noopener noreferrer" aria-label="Crear conector de Campus en ChatGPT en otra pestaña">Conectar <span aria-hidden="true">↗</span></a>
+        <a class="app-provider-link" href="https://chatgpt.com/plugins#settings/Connectors?create-connector=true&amp;redirectAfter=%2Fplugins" target="_blank" rel="noopener noreferrer" aria-label="Crear conector de Campus en ChatGPT en otra pestaña">Conectar <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
       </div>
       <ol class="app-connector-steps">
         <li><strong>Inicia sesión en ChatGPT</strong><p>Puedes comenzar con la cuenta que ya usas, incluso Free.</p></li>
@@ -91,7 +102,7 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
       <div class="app-connector-card__top">
         <span class="app-provider-icon app-provider-icon--gemini"><img src="/assets/gemini-mark.png" width="24" height="24" alt="" /></span>
         <h2>Gemini</h2>
-        <a class="app-provider-link" href="https://gemini.google.com/customize/connectors?pageId=none&amp;hl=en" target="_blank" rel="noopener noreferrer" data-copy-connector-url={connectorUrl} aria-label="Copiar URL de Campus y abrir las apps conectadas de Gemini en otra pestaña">Copiar URL y abrir <span aria-hidden="true">↗</span></a>
+        <a class="app-provider-link" href="https://gemini.google.com/customize/connectors?pageId=none&amp;hl=en" target="_blank" rel="noopener noreferrer" data-copy-connector-url={connectorUrl} aria-label="Copiar URL de Campus y abrir las apps conectadas de Gemini en otra pestaña">Copiar URL y abrir <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
       </div>
       <ol class="app-connector-steps">
         <li><strong>Abre Gemini</strong><p>Pulsa “Copiar URL y abrir” y elige “Create custom app”.</p></li>

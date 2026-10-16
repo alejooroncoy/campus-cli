@@ -16,7 +16,7 @@ const schemas = [
     ],
     "url": "https://campuscli.com/",
     "logo": "https://campuscli.com/assets/campus-logo.webp",
-    "description": "Campus ayuda a estudiantes UPC a consultar profesores, cursos, tareas y notas. Ofrece Campus Free y Campus Plus, con asistente web y conexión con IA.",
+    "description": "Campus ayuda a estudiantes UPC a consultar profesores, cursos, tareas y notas. Ofrece Campus Free y Campus Plus, con asistente web y conexión con IA para consultar Blackboard, analizar transcripciones de clases virtuales, guardar referencias en Mendeley y usar la lectura experimental de fuentes accesibles.",
     "disambiguatingDescription": "No confundir con el paquete `campus-cli` de PyPI (Python, gestión de notebooks Jupyter) ni con otras plataformas de IA para estudiantes con nombres similares (CampusCode, Campus AI).",
     "sameAs": [
       "https://github.com/alejooroncoy/campus-cli"
@@ -72,18 +72,18 @@ const schemas = [
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "¿Puedo usar Campus gratis?",
+      "name": "¿Necesito crear una cuenta?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Sí. Campus Free cuesta S/0 e incluye 25 consultas de bienvenida al crear tu cuenta para consultar profesores y cursos con el asistente web. Son consultas de bienvenida, no una cuota mensual."
+        "text": "Puedes probar el asistente antes de crearla. Después, regístrate en Campus Free para tener tu cuenta y las consultas de bienvenida."
       }
     },
     {
       "@type": "Question",
-      "name": "¿Cuánto cuesta Campus Plus?",
+      "name": "¿Qué necesito para analizar mis clases?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Los primeros 25 usuarios de pago acceden por S/5 el primer mes y luego S/10 al mes. Una vez completado ese grupo, las nuevas suscripciones cuestan S/15 al mes desde el primer mes. La promoción se asigna al activar el pago, no al enviar el formulario."
+        "text": "Campus usa las transcripciones de las grabaciones publicadas en UPC Class. Necesitas acceso al curso y que la grabación tenga transcripción disponible."
       }
     },
     {
@@ -91,15 +91,31 @@ const schemas = [
       "name": "¿Cómo activo Campus Plus?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Elige “Quiero Campus Plus” y déjanos tus datos. Te escribiremos por WhatsApp para confirmar la tarifa disponible y coordinar el pago y la activación."
+        "text": "Entra desde “Quiero Campus Plus”, inicia sesión o crea tu cuenta y revisa tu plan en “Mi perfil”."
       }
     },
     {
       "@type": "Question",
-      "name": "¿Puedo usar Campus con mi IA?",
+      "name": "¿Necesito otra suscripción para usar mi IA?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Sí. Puedes conectar Blackboard UPC con asistentes compatibles como ChatGPT, Claude y Gemini. Consulta la guía de conexión. La suscripción a un asistente externo, si la requiere, se contrata por separado."
+        "text": "Depende del asistente compatible y de las funciones que uses. Cualquier suscripción externa se contrata por separado de Campus."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Puede leer cualquier fuente?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La lectura es experimental y depende del acceso al documento. Si solo se lee el resumen o algunas páginas, se indica ese alcance. Guardar una referencia en Mendeley no da acceso al texto completo."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Puedo cambiar mi universidad?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí. Durante la prueba puedes cambiarla en el asistente y, con tu cuenta, desde Mi perfil. La elección se conserva al crear tu cuenta. Por ahora, el asistente y Blackboard están disponibles para UPC."
       }
     },
     {
@@ -107,7 +123,7 @@ const schemas = [
       "name": "¿Campus es parte de la UPC?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Campus es un proyecto independiente, hecho por estudiantes. No está afiliado a UPC, Blackboard, OpenAI ni Anthropic. La conexión universitaria está disponible inicialmente para UPC."
+        "text": "Campus es un proyecto independiente, hecho por estudiantes. No está afiliado a UPC, Blackboard, OpenAI ni Anthropic."
       }
     }
   ]
@@ -116,7 +132,7 @@ const schemas = [
 ---
 
 <Base
-  title={"Campus | Tu universidad, un poco más fácil"}
+  title={"Campus | Tu ciclo en UPC, un poco más fácil"}
   description={"Conoce Campus Free y Campus Plus para UPC. Plus: S/5 el primer mes y luego S/10 al mes para los primeros 25 usuarios de pago. Después, S/15 al mes para nuevos usuarios."}
   canonical={"https://campuscli.com/"}
   markdownUrl={"https://campuscli.com/index.md"}
@@ -126,5 +142,7 @@ const schemas = [
   schemas={schemas}
 >
   <Fragment set:html={body} />
+  <link slot="head" rel="stylesheet" href="/campus-research.css" />
+  <script src="../scripts/landing-demo.ts"></script>
   <link slot="head" rel="stylesheet" href="/campus-landing.css" />
 </Base>

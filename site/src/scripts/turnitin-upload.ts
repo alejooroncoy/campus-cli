@@ -1,7 +1,9 @@
+import { track } from './analytics.ts';
 type UploadKind = 'document' | 'receipt' | 'similarity' | 'ai';
 type UploadFile = Pick<File, 'name' | 'size'>;
 
 export function uploadError(files: readonly UploadFile[], kind: UploadKind, maxBytes: number): string | null {
+  if (!files.length) return kind === 'document' ? 'Selecciona tu documento para continuar.' : kind === 'receipt' ? 'Adjunta el comprobante de tu pago.' : 'Selecciona un informe PDF.';
   if (files.length !== 1) return 'Selecciona un solo archivo.';
   const file = files[0];
   const allowed = kind === 'document' ? /\.(pdf|docx)$/i : kind === 'receipt' ? /\.(png|jpe?g|pdf)$/i : /\.pdf$/i;
@@ -45,6 +47,9 @@ export function setupTurnitinUploads(form: HTMLFormElement, maxBytes: (kind: Upl
     };
     input.addEventListener('change', () => {
       const message = input.files?.length ? uploadError(Array.from(input.files), kind, maxBytes(kind)) : null;
+      if (kind === 'document' || kind === 'receipt') {
+        if (input.files?.length) track('campus_upload_selected', { upload_kind: kind, valid: !message });
+      }
       if (message) input.value = '';
       showError(message); update();
     });
@@ -81,13 +86,13 @@ export function setupTurnitinUploads(form: HTMLFormElement, maxBytes: (kind: Upl
       if (!enabled()) return;
       clear(); input.dispatchEvent(new Event('change', { bubbles: true })); zone.focus();
     };
-    return { clear, validate() {
+    return { kind, clear, validate() {
       const message = uploadError(Array.from(input.files ?? []), kind, maxBytes(kind));
       showError(message); if (message) zone.focus(); return !message;
     } };
   });
-  return { reset: () => uploads.forEach(upload => upload.clear()), validate: () => {
-    for (const upload of uploads) if (!upload.validate()) return false;
+  return { reset: () => uploads.forEach(upload => upload.clear()), validate: (kind?: UploadKind) => {
+    for (const upload of uploads) if ((!kind || upload.kind === kind) && !upload.validate()) return false;
     return true;
   } };
 }

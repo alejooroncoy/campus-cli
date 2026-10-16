@@ -3,10 +3,10 @@
 // NO almacenar en caché datos privados de consultas, notas, profesores ni respuestas de la API.
 // Solo cachea recursos estáticos del shell (CSS, fuentes, íconos, logos).
 
-const CACHE_NAME = "campus-shell-v8";
+const CACHE_NAME = "campus-shell-v13";
 const STATIC_ASSETS = [
-  "/app-dashboard.css?v=17",
-  "/profes-chat.css?v=20",
+  "/app-dashboard.css?v=21",
+  "/profes-chat.css?v=23",
   "/assets/fonts/GoogleSansFlex-Regular.woff2",
   "/assets/fonts/GoogleSansFlex-SemiBold.woff2",
   "/assets/campus-logo.webp",

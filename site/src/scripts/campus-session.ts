@@ -1,6 +1,10 @@
+import { ACCOUNT_HANDOFF_KEY } from './account-onboarding';
+import { analyticsSession, resetAnalytics } from "./analytics";
 import { notifySessionLogout, publishSessionIdentity } from "./session-sync";
 import { CONVERSATION_DRAFTS_KEY, GUEST_DRAFT_HANDOFF_KEY } from "./conversation-drafts";
+import { carryGuestUniversity } from './guest-university';
 export type CampusSession = {
+  analyticsId?: string;
   authenticated: boolean;
   email?: string;
   plan?: string;
@@ -77,13 +81,18 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
   const pending = request.then(async value => {
     // A response from before logout/refresh must not repopulate the session.
     if (pendingSession !== pending) return getCampusSession();
+    value = await carryGuestUniversity(value, () => pendingSession === pending);
+    if (pendingSession !== pending) return getCampusSession();
     if (pendingSession === pending) {
       await publishSessionIdentity(value, () => pendingSession === pending);
       if (pendingSession !== pending) return getCampusSession();
       if (value.accessUnavailable) {
         pendingSession = undefined;
         if (typeof window !== "undefined") delete window.__campusSessionBootstrap;
-      } else cachedSession = value;
+      } else {
+        cachedSession = value;
+        try { analyticsSession(value); } catch { /* Metrics must never invalidate a verified session. */ }
+      }
     }
     return value;
   }).catch(error => {
@@ -106,8 +115,12 @@ export function clearCampusSession(notify = true): void {
     sessionStorage.removeItem("campus_ui_profile");
     sessionStorage.removeItem(CONVERSATION_DRAFTS_KEY);
     sessionStorage.removeItem(GUEST_DRAFT_HANDOFF_KEY);
+    sessionStorage.removeItem(ACCOUNT_HANDOFF_KEY);
     sessionStorage.removeItem("campus-question");
   } catch { /* Storage is optional. */ }
+  if (typeof window !== "undefined") {
+    try { resetAnalytics(); } catch { /* Logout also works when analytics is unavailable. */ }
+  }
   if (notify && typeof window !== "undefined") notifySessionLogout();
 }
 
