@@ -1,3 +1,8 @@
+import { analyticsHeaders, track } from './analytics';
+import { universitySetupHref, universityDoneHref } from "./university-onboarding";
+import { readGuestUniversity, universityLabel, type UniversityChoice } from './guest-university';
+import { renderProfileAccount } from "./profile-account";
+import { renderCopilotAccount } from "./copilot-account";
 import {markGuestDraftHandoff} from "./conversation-drafts";
 import { watchLiveCampusSession } from "./live-session";
 import { watchSessionChanges } from "./session-sync";
@@ -106,7 +111,7 @@ function applyAccountUI(profile: UIProfileCache | null): void {
     if (menuLogin) menuLogin.hidden = true;
 
     // Show the actual available balance, including welcome credits.
-    if (planTitle) planTitle.textContent = "Campus";
+    if (planTitle) planTitle.textContent = profile.accessUnavailable ? "Plan por comprobar" : profile.plan === "plus" ? "Campus Plus" : profile.plan === "free" ? "Campus Free" : "Plan por comprobar";
     if (planDesc) planDesc.textContent = profile.accessUnavailable ? "Saldo temporalmente no disponible" : typeof profile.remaining === "number"
       ? `${profile.remaining} consultas disponibles${profile.period === "day" ? " hoy" : ""}`
       : "Consultas disponibles";
@@ -117,8 +122,8 @@ function applyAccountUI(profile: UIProfileCache | null): void {
     }
   } else {
     // Sidebar User Trigger
-    if (sbUserName) sbUserName.textContent = "Invitado";
-    if (sbUserSub) sbUserSub.textContent = "Sin iniciar sesión";
+    if (sbUserName) sbUserName.textContent = "Prueba gratis";
+    if (sbUserSub) sbUserSub.textContent = "Conoce Campus";
     if (sbUserAvatar) {
       sbUserAvatar.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" /><path d="M5.5 19a6.5 6.5 0 0 1 13 0" /></svg>';
       sbUserAvatar.classList.remove("has-initials");
@@ -143,19 +148,35 @@ function applyAccountUI(profile: UIProfileCache | null): void {
 
 const universities = new Map<string, number>();
 const universityKey = (value: string) => value.trim().toLocaleLowerCase("es-PE");
-
+let universityChoices: UniversityChoice[] = [];
+let universityRequest: Promise<void> | undefined;
 async function loadUniversities(optionsEl: HTMLDataListElement | null) {
-  if (!optionsEl || universities.size) return;
-  const response = await fetch("/api/app/universities", { cache: "no-store" });
-  if (!response.ok) throw new Error("No pudimos cargar las universidades. Recarga para intentarlo.");
-  const data = await response.json() as { universities: { id: number; name: string; shortName: string | null }[] };
-  for (const item of data.universities) {
-    const label = item.shortName ? `${item.shortName} — ${item.name}` : item.name;
-    universities.set(universityKey(label), item.id);
-    if (item.shortName) universities.set(universityKey(item.shortName), item.id);
+  if (!optionsEl) return;
+  if (!universityChoices.length) {
+    universityRequest ??= fetch("/api/app/universities", { cache: "no-store" }).then(async response => {
+      if (!response.ok) throw new Error("No pudimos cargar las universidades. Recarga para intentarlo.");
+      const data = await response.json() as { universities: UniversityChoice[] };
+      universityChoices = data.universities;
+      for (const item of universityChoices) {
+        const label = item.shortName ? `${item.shortName} — ${item.name}` : item.name;
+        universities.set(universityKey(label), item.id);
+        if (item.shortName) universities.set(universityKey(item.shortName), item.id);
+      }
+    }).catch(error => { universityRequest = undefined; throw error; });
+    await universityRequest;
+  }
+  if (!optionsEl.isConnected) return;
+  optionsEl.replaceChildren(...universityChoices.map(item => {
     const option = document.createElement("option");
-    option.value = label;
-    optionsEl.append(option);
+    option.value = item.shortName ? `${item.shortName} — ${item.name}` : item.name;
+    return option;
+  }));
+  const upc = universityChoices.find(item => item.shortName?.toUpperCase() === 'UPC');
+  const quickChoice = optionsEl.closest('form')?.querySelector<HTMLButtonElement>('[data-app-select-upc]');
+  if (quickChoice) {
+    quickChoice.hidden = !upc;
+    if (upc) quickChoice.dataset.universityLabel = `${upc.shortName} — ${upc.name}`;
+    quickChoice.setAttribute('aria-pressed', String(optionsEl.closest('form')?.querySelector<HTMLInputElement>('input')?.value === quickChoice.dataset.universityLabel));
   }
 }
 
@@ -171,6 +192,8 @@ function initPage() {
   updateNavHighlights();
 
   // Instant UI paint from harmless cache (only non-sensitive profile info)
+  const copilotAccount = document.querySelector<HTMLElement>("[data-copilot-account]");
+  renderCopilotAccount(copilotAccount, "loading");
   const cachedProfile = readUICache();
   applyAccountUI(cachedProfile);
 
@@ -179,6 +202,9 @@ function initPage() {
   const login = document.querySelector<HTMLAnchorElement>("[data-app-login]");
   const profileLoading = document.querySelector<HTMLElement>("[data-app-profile-loading]");
   const profileGuest = document.querySelector<HTMLElement>("[data-app-profile-guest]");
+  const profileError = document.querySelector<HTMLElement>("[data-app-profile-error]");
+  const profileAccount = document.querySelector<HTMLElement>("[data-profile-account]");
+  renderProfileAccount(profileAccount, "loading");
   const profileAuthenticated = document.querySelector<HTMLElement>("[data-app-profile-authenticated]");
   const profileUniversity = document.querySelector<HTMLElement>("[data-app-profile-university]");
   const universityForm = document.querySelector<HTMLFormElement>("[data-app-university-form]");
@@ -187,9 +213,11 @@ function initPage() {
   const universityStatus = document.querySelector<HTMLElement>("[data-app-university-status]");
   const universityCancel = document.querySelector<HTMLElement>("[data-app-cancel-university]");
 
-  function showUniversityForm() {
+  function showUniversityForm(selected: UniversityChoice | null = null) {
     if (profileUniversity) profileUniversity.hidden = false;
     if (profileAuthenticated) profileAuthenticated.hidden = true;
+    if (universityInput && !universityInput.value && selected) universityInput.value = universityLabel(selected);
+    if (selected && universityStatus) universityStatus.textContent = 'Conservamos tu elección. Guarda para continuar.';
     void loadUniversities(universityOptions).catch(error => { if (universityStatus) universityStatus.textContent = error.message; });
   }
 
@@ -197,24 +225,19 @@ function initPage() {
   if (login) login.href = loginUrl;
 
   const renderSession = (value: CampusSession) => {
+    if (profileError && (value.accessUnavailable || typeof value.authenticated !== "boolean")) { showSessionError(); return; }
+    renderCopilotAccount(copilotAccount, value);
+    renderProfileAccount(profileAccount, value);
+    if (profileError) profileError.hidden = true;
     if (value.authenticated && !value.universityConfirmed && !["/app/perfil/", "/app/turnitin/"].includes(location.pathname)) {
-      location.assign("/app/perfil/?universidad=pendiente");
+      location.assign(universitySetupHref(location.pathname, location.search));
       return;
     }
     if (profileLoading) profileLoading.hidden = true;
     if (profileGuest) profileGuest.hidden = value.authenticated;
+    if (!value.authenticated && profileUniversity) profileUniversity.hidden = true;
     if (profileAuthenticated) profileAuthenticated.hidden = !value.authenticated || !value.universityConfirmed;
-    if (value.authenticated && !value.universityConfirmed) showUniversityForm();
-
-    document.querySelectorAll("[data-app-plan]").forEach(el => {
-      el.textContent = value.authenticated
-        ? value.accessUnavailable ? "Campus · Saldo no disponible" : value.plan === "plus" ? "Campus · Acceso activo (100/día)" : "Campus · Acceso gratuito (25 consultas)"
-        : el.tagName === "A" ? "Iniciar sesión" : "Prueba gratis (5 consultas)";
-    });
-
-    document.querySelectorAll<HTMLElement>("[data-app-activate]").forEach(el => {
-      el.hidden = !value.authenticated || value.plan === "plus" || value.accessBlocked === true || value.accessUnavailable === true;
-    });
+    if (value.authenticated && !value.universityConfirmed) showUniversityForm(readGuestUniversity());
 
     const email = document.querySelector("[data-app-email]");
     if (email) email.textContent = value.email ?? "Inicia sesión con tu cuenta Campus.";
@@ -224,8 +247,6 @@ function initPage() {
     if (miupcConnector) miupcConnector.hidden = !canConnectMiupc(value);
     const coverage = document.querySelector<HTMLElement>("[data-app-profile-coverage]");
     if (coverage) coverage.hidden = !value.universityConfirmed || value.profesAvailable !== false;
-    const usage = document.querySelector("[data-app-usage]");
-    if (usage) usage.textContent = value.accessUnavailable ? "No pudimos comprobar tu saldo. Puedes volver a intentarlo sin iniciar sesión." : value.usage ? `${value.usage.remaining} de ${value.usage.limit} consultas disponibles${value.usage.period === "day" ? " hoy" : " en tu prueba"}.` : "5 consultas de prueba gratis disponibles.";
     const bannerStatus = document.querySelector<HTMLElement>("[data-app-banner-status]");
     if (bannerStatus) {
       if (value.banner?.connected) {
@@ -280,14 +301,36 @@ function initPage() {
   const updated = (event: Event) => renderSession((event as CustomEvent<CampusSession>).detail);
   window.addEventListener("campus:session-updated", updated);
   stopSessionDisplay = () => window.removeEventListener("campus:session-updated", updated);
-  getCampusSession().then(renderSession).catch(() => {
-    applyAccountUI(null);
+  const showSessionError = () => {
+    const preview = readUICache();
+    if (preview?.authenticated) applyAccountUI({ ...preview, accessUnavailable: true, remaining: undefined });
+    renderCopilotAccount(copilotAccount, "error");
+    renderProfileAccount(profileAccount, "error");
     if (profileLoading) profileLoading.hidden = true;
-    if (profileGuest) profileGuest.hidden = false;
+    if (profileGuest) profileGuest.hidden = true;
+    if (profileUniversity) profileUniversity.hidden = true;
     if (profileAuthenticated) profileAuthenticated.hidden = true;
-    if (profileGuest && new URLSearchParams(location.search).get("login") === "error") {
-      say("No se pudo iniciar sesión. Inténtalo de nuevo.");
-    }
+    if (profileError) profileError.hidden = false;
+  };
+  getCampusSession().then(renderSession).catch(showSessionError);
+  document.querySelectorAll<HTMLButtonElement>("[data-profile-refresh]").forEach(button => {
+    button.addEventListener("click", async () => {
+      renderProfileAccount(profileAccount, "loading");
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      try { await getCampusSession(true).then(renderSession); }
+      catch { showSessionError(); }
+      finally { button.disabled = false; button.removeAttribute("aria-busy"); }
+    });
+  });
+
+  copilotAccount?.querySelector("[data-copilot-account-retry]")?.addEventListener("click", () => {
+    renderCopilotAccount(copilotAccount, "loading");
+    void getCampusSession(true).then(value => {
+      if (copilotAccount.isConnected) renderSession(value);
+    }).catch(() => {
+      if (copilotAccount.isConnected) renderCopilotAccount(copilotAccount, "error");
+    });
   });
 
   document.querySelector("[data-app-change-university]")?.addEventListener("click", () => {
@@ -301,6 +344,18 @@ function initPage() {
     if (profileAuthenticated) profileAuthenticated.hidden = false;
     universityCancel.hidden = true;
     if (universityStatus) universityStatus.textContent = "";
+  });
+
+  const upcChoice = document.querySelector<HTMLButtonElement>('[data-app-select-upc]');
+  upcChoice?.addEventListener('click', () => {
+    if (!universityInput || !upcChoice.dataset.universityLabel) return;
+    universityInput.value = upcChoice.dataset.universityLabel;
+    upcChoice.setAttribute('aria-pressed', 'true');
+    if (universityStatus) universityStatus.textContent = 'UPC seleccionada. Guarda para continuar.';
+  });
+  universityInput?.addEventListener('input', () => {
+    upcChoice?.setAttribute('aria-pressed', String(universityInput.value === upcChoice.dataset.universityLabel));
+    if (universityStatus) universityStatus.textContent = '';
   });
 
   universityForm?.addEventListener("submit", async event => {
@@ -317,12 +372,12 @@ function initPage() {
     try {
       const response = await fetch("/api/app/university", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...analyticsHeaders() },
         body: JSON.stringify({ universityId }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "No pudimos guardar tu universidad.");
-      location.assign(new URLSearchParams(location.search).get("universidad") === "pendiente" ? "/app/profes/" : "/app/perfil/");
+      location.assign(universityDoneHref(location.search));
     } catch (error) {
       if (universityStatus) universityStatus.textContent = error instanceof Error ? error.message : "No pudimos guardar tu universidad.";
       if (button) button.disabled = false;
@@ -360,8 +415,9 @@ function initPage() {
   document.querySelectorAll<HTMLElement>("[data-app-logout], [data-app-sidebar-logout]").forEach(btn => {
     btn.addEventListener("click", async () => {
       try {
-        const response = await fetch("/api/app/logout", { method: "POST" });
+        const response = await fetch("/api/app/logout", { method: "POST", headers: analyticsHeaders() });
         if (!response.ok) throw new Error();
+        track('campus_logout_completed');
         clearCampusSession();
         writeUICache(null);
         location.assign("/app/");
@@ -379,8 +435,10 @@ function initPage() {
     const copyTarget = label === "URL" ? "la URL" : "el nombre";
     try {
       await navigator.clipboard.writeText(value);
+      track('campus_connector_copied', { copy_kind: label === 'URL' ? 'url' : 'name' });
       say(`${copiedMessage} en la configuración de tu asistente.`);
     } catch {
+      track('campus_flow_failed', { step: 'connector', error_kind: 'clipboard' });
       say(`No pudimos copiar ${copyTarget}. Selecciona el dato y cópialo manualmente.`);
     }
   }));

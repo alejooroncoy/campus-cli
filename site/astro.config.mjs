@@ -43,7 +43,7 @@ fromFile("/", "./src/html/index.html");
 fromFile("/campus-cli/", "./src/html/campus-cli/index.html");
 fromFile("/profes/", "./src/html/profes/index.html");
 // The service page's content revision, preserved across unrelated deploys.
-lastmod.set("/turnitin/", "2026-10-12");
+lastmod.set("/turnitin/", "2026-10-15");
 fromFile("/blackboard-upc/", "./src/html/blackboard-upc/index.html");
 fromFile("/blackboard-chatgpt/", "./src/html/blackboard-chatgpt/index.html");
 fromFile("/blackboard-mcp/", "./src/html/blackboard-mcp/index.html");
@@ -66,7 +66,15 @@ export default defineConfig({
   site: "https://campuscli.com",
   // The live URLs all end in a slash and are already indexed. Anything else
   // here would silently change every canonical on the site.
-  trailingSlash: "always",
+  // Local API routes accept the same URLs used by the hosted app.
+  trailingSlash: process.env.NODE_ENV === "development" && process.env.CAMPUS_DEV_APP_ORIGIN ? "ignore" : "always",
+  vite: {
+    server: {
+      proxy: process.env.CAMPUS_DEV_APP_ORIGIN ? {
+        "/api/app": { target: process.env.CAMPUS_DEV_APP_ORIGIN, changeOrigin: true },
+      } : undefined,
+    },
+  },
   build: { format: "directory" },
   integrations: [
     react(),

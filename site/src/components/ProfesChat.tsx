@@ -1,3 +1,10 @@
+import { consumeConversationHandoff } from '../scripts/account-onboarding';
+import { analyticsHeaders, track } from '../scripts/analytics';
+import { canRetryQuestion, questionFailure } from '../scripts/question-retry';
+import {universitySetupHref} from "../scripts/university-onboarding";
+import GuestUniversity from './GuestUniversity';
+import { readGuestUniversity, rememberGuestUniversity, guestUniversitySupported, type UniversityChoice } from '../scripts/guest-university';
+import {assistantAccountView} from "../scripts/assistant-account";
 import {assistantLoginHref} from "../scripts/assistant-handoff";
 import { createConversationDrafts, restoreConversationDrafts, markGuestDraftHandoff } from "../scripts/conversation-drafts";
 import { createPortal } from "react-dom";
@@ -590,12 +597,14 @@ function profesTransport(
       if (!question) throw new Error("Escribe una pregunta antes de enviarla.");
 
       const activeConvId = getConversationId();
+      track('campus_question_submitted', { new_conversation: !activeConvId });
       const response = await fetch("/api/app/profes/message", {
         method: "POST",
-        headers: { "content-type": "application/json", accept: "application/x-ndjson" },
+        headers: { "content-type": "application/json", accept: "application/x-ndjson", ...analyticsHeaders() },
         credentials: "same-origin",
         signal: abortSignal,
-        body: JSON.stringify({ message: question, conversationId: activeConvId || undefined }),
+        body: JSON.stringify({ message: question, conversationId: activeConvId || undefined,
+          universityId: readGuestUniversity()?.id }),
       });
       const data = response.ok ? null : await response.json().catch(() => ({}));
       if (response.status === 401) {
@@ -607,10 +616,10 @@ function profesTransport(
         throw new Error("Inicia sesión para continuar.");
       }
       if (response.status === 409 && data.code === "UNIVERSITY_REQUIRED") {
-        window.location.assign("/app/perfil/?universidad=pendiente");
+        window.location.assign(universitySetupHref(window.location.pathname, window.location.search));
         throw new Error("Elige tu universidad para continuar.");
       }
-      if (!response.ok) throw new Error(typeof data?.error === "string" ? data.error : "No pudimos completar la consulta.");
+      if (!response.ok) throw questionFailure(typeof data?.error === "string" ? data.error : "No pudimos completar la consulta.", data?.code);
       if (!response.body) throw new Error("Campus no devolvió una respuesta.");
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -636,7 +645,7 @@ function profesTransport(
             convTitle = event.title;
           }
         }
-        if (event.type === "error") throw new Error(event.error ?? "No pudimos completar la consulta.");
+        if (event.type === "error") throw questionFailure(event.error ?? "No pudimos completar la consulta.", (event as { code?: string }).code);
       };
       while (true) {
         const { done, value } = await reader.read();
@@ -651,6 +660,7 @@ function profesTransport(
       }
       if (pending.trim()) readEvent(pending.trim());
       if (!answer.trim()) throw new Error("Campus no devolvió una respuesta.");
+      track('campus_answer_displayed', { remaining: usage?.remaining, limit: usage?.limit });
       onUsage(usage);
       if (convId) onConversationCreated(convId, convTitle);
       if (miupcReconnectRequired || upcReconnectRequired) onMiupcReconnect(convId ?? activeConvId,upcReconnectRequired);
@@ -678,7 +688,13 @@ export default function ProfesChat() {
   const [access, setAccess] = useState<Access>("checking");
   const [session, setSession] = useState<CampusSession | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
-  const [plan, setPlan] = useState<string>("anon");
+  const [guestUniversity, setGuestUniversity] = useState(readGuestUniversity);
+  const [changingUniversity, setChangingUniversity] = useState(false);
+  const guestNeedsUniversity = session?.authenticated === false && (changingUniversity || !guestUniversity);
+  const guestUnsupported = session?.authenticated === false && !guestUniversitySupported(guestUniversity);
+  function selectGuestUniversity(value: UniversityChoice) {
+    rememberGuestUniversity(value); setGuestUniversity(value); setChangingUniversity(false);
+  }
   const [input, setInput] = useState("");
   const [usage, setUsage] = useState<CampusSession["usage"]>();
   const [activitySteps, setActivitySteps] = useState<string[]>([]);
@@ -822,7 +838,7 @@ export default function ProfesChat() {
     handleMiupcReconnect,
     ()=>{clearMiupcReconnectNotices();setMiupcReconnectRequired(false);setUpcReconnectRequired(false);},
   ), [handleConversationCreated,handleMiupcReconnect]);
-  const { messages, setMessages, sendMessage, status, error, stop } = useChat({ transport });
+  const { messages, setMessages, sendMessage, regenerate, status, error, stop } = useChat({ transport, onError: () => track('campus_flow_failed', { step: 'question', error_kind: 'rejected' }) });
   const messagesHandler = useRef(setMessages);
   messagesHandler.current = setMessages;
   const busy = status === "submitted" || status === "streaming";
@@ -846,7 +862,6 @@ export default function ProfesChat() {
         setSession(session);
         setUsage(session.usage);
         setAuthenticated(session.authenticated);
-        setPlan(session.plan ?? (session.authenticated ? "free" : "anon"));
 
         if (!session.authenticated) {
           const guestRemaining = session.usage?.remaining ?? 5;
@@ -951,6 +966,12 @@ export default function ProfesChat() {
         if (!mounted) return;
         restoreAccessDraft(session);
         applyAccessSession(session);
+        if (session.authenticated && routeConversationPage) {
+          void routeConversationPage.then(page => {
+            if (mounted && navigationVersion.current === initialNavigationVersion && page.messages.length > 0
+              && consumeConversationHandoff(window.location.pathname)) track('campus_conversation_restored');
+          }).catch(() => { /* Failed history loads never count as restored. */ });
+        }
         await loadConversationHistory(() => mounted);
 
       })
@@ -1021,18 +1042,18 @@ export default function ProfesChat() {
     || (usage && !authenticated && usage.remaining <= 0));
 
   useEffect(() => {
-    if (!isGuestLimit) return;
+    if (!isGuestLimit || guestNeedsUniversity || guestUnsupported) return;
     try { setQuotaDialogOpen(sessionStorage.getItem(guestQuotaDismissedKey) !== "1"); }
     catch { setQuotaDialogOpen(true); }
-  }, [isGuestLimit]);
+  }, [isGuestLimit, guestNeedsUniversity, guestUnsupported]);
 
   useEffect(() => {
-    if (!isGuestLimit || !quotaDialogOpen) return;
+    if (!isGuestLimit || !quotaDialogOpen || guestNeedsUniversity || guestUnsupported) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     quotaClose.current?.focus();
     return () => { document.body.style.overflow = previousOverflow; };
-  }, [isGuestLimit, quotaDialogOpen]);
+  }, [isGuestLimit, quotaDialogOpen, guestNeedsUniversity, guestUnsupported]);
 
   function closeQuotaDialog() {
     try { sessionStorage.setItem(guestQuotaDismissedKey, "1"); } catch { /* El aviso compacto sigue disponible. */ }
@@ -1059,14 +1080,14 @@ export default function ProfesChat() {
   async function submit(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     const question = input.trim();
-    if (!question || busy || loadingConversation || access === "checking" || access === "unavailable" || access === "unsupported") return;
+    if (!question || busy || loadingConversation || guestNeedsUniversity || guestUnsupported || access === "checking" || access === "unavailable" || access === "unsupported") return;
     if (wantsToReview(question)) {
       openReview();
       setInput("");
       return;
     }
     if (isGuestLimit) { markGuestDraftHandoff(); window.location.assign(getLoginUrl()); return; }
-    if (access === "setup") { window.location.assign("/app/perfil/?universidad=pendiente"); return; }
+    if (access === "setup") { window.location.assign(universitySetupHref(window.location.pathname, window.location.search)); return; }
     setActivitySteps(["connecting"]);
     setActivityExpanded(false);
     setInput("");
@@ -1126,7 +1147,7 @@ export default function ProfesChat() {
     setReviewSending(true); setReviewError("");
     try {
       const response = await fetch("/api/app/profes/reviews", {
-        method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" },
+        method: "POST", credentials: "same-origin", headers: { "content-type": "application/json", ...analyticsHeaders() },
         body: JSON.stringify({ professorId: reviewProfessor.id, text: reviewText.trim(),
           ...(reviewCourse ? { courseId: reviewCourse.id } : {}),
           ...(reviewRating ? { rating: Number(reviewRating) } : {}),
@@ -1309,20 +1330,13 @@ export default function ProfesChat() {
 
   const currentConversation = conversations.find(c => c.id === currentConversationId);
 
-  const hint = isGuestLimit ? "Prueba completada · Inicia sesión para 25 consultas"
+  const account = assistantAccountView(session ? { ...session, usage } : access === "checking" ? "loading" : "error");
+  const hint = isGuestLimit ? "Prueba completada · Continúa con Campus Free"
     : access === "checking" ? "Comprobando acceso…"
     : access === "setup" ? "Elige tu universidad al enviar"
     : access === "unsupported" ? accessNote
     : access === "unavailable" ? accessNote
-    : !authenticated
-      ? usage
-        ? usage.remaining === 5
-          ? "5 consultas de prueba gratis"
-          : `${usage.remaining} de 5 consultas de prueba restantes`
-        : "5 consultas de prueba gratis"
-      : plan === "plus"
-        ? usage ? `${usage.remaining} consultas disponibles hoy` : "Campus"
-        : usage ? `${usage.remaining} de ${usage.limit} consultas disponibles` : "Campus";
+    : account.balance;
 
   const studentName = session
     ? formatStudentName(session.authenticated ? session.banner?.fullName || session.email?.split("@")[0] || "" : "")
@@ -1381,6 +1395,16 @@ export default function ProfesChat() {
     </section>
   );
 
+  if (guestNeedsUniversity) return <div className="app-profes-layout"><GuestUniversity selected={guestUniversity} onSelect={selectGuestUniversity} /></div>;
+  if (guestUnsupported) return <div className="app-profes-layout"><section className="app-guest-university" aria-labelledby="university-coverage-title">
+    <p className="app-guest-university__eyebrow">TU UNIVERSIDAD</p>
+    <h1 id="university-coverage-title">Aún no llegamos a tu universidad.</h1>
+    <p><strong>{guestUniversity?.name}</strong></p>
+    <p>Por ahora, el asistente de Campus está disponible para UPC. Elegir universidad no consume consultas.</p>
+    <button type="button" className="app-guest-university__continue" onClick={() => setChangingUniversity(true)}>Cambiar universidad</button>
+    <a className="app-guest-university__back" href={assistantLoginHref(window.location.pathname)}>Crear cuenta y conservar mi universidad</a>
+  </section></div>;
+
   return (
     <div className="app-profes-layout">
       {sidebarHosts ? createPortal(sidebarActions, sidebarHosts.actions) : null}
@@ -1399,6 +1423,19 @@ export default function ProfesChat() {
 
       {/* Top Toolbar for Profes */}
       <div className="app-profes-toolbar">
+        {session?.universityConfirmed && session.university ? <a className="app-university-context" href="/app/perfil/">{session.university.shortName || session.university.name}<span>Cambiar</span></a>
+          : session?.authenticated === false && guestUniversity ? <button type="button" className="app-university-context" onClick={() => setChangingUniversity(true)} disabled={busy}>{guestUniversity.shortName || guestUniversity.name}<span>Cambiar</span></button> : null}
+        <div className="app-assistant-account" data-state={account.state} aria-label="Tu plan y consultas">
+          <div className="app-assistant-account__summary">
+            <strong className="app-assistant-account__label"><span className="app-assistant-account__dot" aria-hidden="true" />{account.label}</strong>
+            <span className="app-assistant-account__balance" aria-live="polite">{account.available}</span>
+          </div>
+          {account.retry ? <button type="button" className="app-assistant-account__retry" onClick={() => { void retryAccess(); }} disabled={busy || balanceRetrying}>{balanceRetrying ? "Comprobando…" : "Reintentar"}</button>
+            : account.state !== "loading" ? <a className="app-assistant-account__link" onClick={() => { if (account.state === "guest") markGuestDraftHandoff(); }} href={account.state === "guest" ? assistantLoginHref(window.location.pathname) : "/app/perfil/"}>
+              {account.state === "guest" ? "Crear cuenta" : account.state === "blocked" ? "Mi cuenta" : "Ver plan"}
+              <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg>
+            </a> : null}
+        </div>
         <div className="app-profes-toolbar__left">
           <button
             type="button"
@@ -1487,7 +1524,7 @@ export default function ProfesChat() {
               <span className="app-profes-ai__speaker">Campus</span>
               <strong>Ah, estudias en la UPC. Conecta tu cuenta.</strong>
               <p>Así podré consultar tus cursos y horario oficiales cuando los necesites.</p>
-              <a className="app-profes-upc-hint__link" href={getLoginUrl()}>Iniciar sesión para conectar UPC →</a>
+              <a className="app-profes-upc-hint__link" onClick={() => markGuestDraftHandoff()} href={getLoginUrl()}>Iniciar sesión para conectar UPC →</a>
             </aside>
           ) : null}
           <div ref={conversationEndRef} />
@@ -1574,7 +1611,7 @@ export default function ProfesChat() {
           <footer className="app-profes-review__actions">
             {reviewStep === "done" ? <button type="button" className="app-profes-review__primary" onClick={closeReview}>Volver al chat</button>
               : access === "checking" ? <span className="app-profes-review__draft-note" role="status">Cargando tu cuenta…</span>
-              : !authenticated ? <a className="app-profes-review__primary" href={getLoginUrl()}>Iniciar sesión</a>
+              : !authenticated ? <a className="app-profes-review__primary" onClick={() => markGuestDraftHandoff()} href={getLoginUrl()}>Iniciar sesión</a>
               : !session?.universityConfirmed ? <a className="app-profes-review__primary" href="/app/perfil/">Elegir universidad</a>
               : reviewStep === "confirm" ? <>
                 <button type="button" className="app-profes-review__secondary" onClick={() => setReviewStep("edit")} disabled={reviewSending}>Editar</button>
@@ -1590,10 +1627,10 @@ export default function ProfesChat() {
       {isGuestLimit ? (
         <div className="app-guest-quota-reminder" role="status">
           <div className="app-guest-quota-reminder__text">
-            <strong>Terminaste tus 5 consultas de prueba</strong>
-            <span>Tu conversación sigue aquí. Inicia sesión para continuar.</span>
+            <strong>Completaste tu prueba gratis</strong>
+            <span>Crea tu cuenta Campus Free y recibe 25 consultas de bienvenida.</span>
           </div>
-          <button ref={quotaReopen} type="button" className="app-guest-quota-reminder__button" onClick={reopenQuotaDialog}>Ver 25 consultas gratis</button>
+          <button ref={quotaReopen} type="button" className="app-guest-quota-reminder__button" onClick={reopenQuotaDialog}>Conocer Campus Free</button>
         </div>
       ) : (
         <div className="app-profes-ai__composer-dock">
@@ -1627,12 +1664,19 @@ export default function ProfesChat() {
               )}
             </div>
           </form>
-          <p className="app-profes-ai__composer-hint">{hint}</p>
+          {access !== "ready" || isGuestLimit ? <p className="app-profes-ai__composer-hint">{hint}</p> : null}
           {session?.accessUnavailable ? <button type="button" className="app-profes-ai__older-messages" onClick={() => { void retryAccess(); }} disabled={busy || balanceRetrying}>{balanceRetrying ? "Comprobando saldo…" : "Reintentar saldo"}</button> : null}
         </div>
       )}
 
-      {(error || (historyError && !historyOpen)) && !isGuestLimit ? <p className="app-profes-ai__error" role="alert">{error?.message ?? historyError}</p> : null}
+      {(error || (historyError && !historyOpen)) && !isGuestLimit ? <div className="app-profes-ai__recovery">
+        <p className="app-profes-ai__error" role="alert">{error?.message ?? historyError}</p>
+        {canRetryQuestion(error) && messages.at(-1)?.role === 'user' && access === 'ready' && (usage?.remaining ?? 0) > 0 && !busy ? <button type="button" className="app-profes-ai__retry" onClick={() => {
+          track('campus_question_retried', { step: 'question' });
+          setActivitySteps(['connecting']); setActivityExpanded(false);
+          void regenerate();
+        }}>Reintentar consulta</button> : null}
+      </div> : null}
       {messages.length === 0 && !currentConversationId && !isGuestLimit ? (
         <div className="app-profes-ai__suggestions" aria-label="Ideas para empezar">
           {suggestions.filter(item => planningEnabled || item.icon !== "calendar-days").map(item => (
@@ -1656,8 +1700,8 @@ export default function ProfesChat() {
                 <span className="app-guest-quota-card__dot" aria-hidden="true" />
                 <span>5 de 5 consultas usadas</span>
               </div>
-              <h2 id="guest-quota-title" className="app-guest-quota-card__title">Tu conversación puede continuar</h2>
-              <p id="guest-quota-desc" className="app-guest-quota-card__desc">Inicia sesión gratis y recibe 25 consultas adicionales. Tus preguntas anteriores seguirán aquí.</p>
+              <h2 id="guest-quota-title" className="app-guest-quota-card__title">Continúa con tu cuenta Campus.</h2>
+              <p id="guest-quota-desc" className="app-guest-quota-card__desc">Al crear tu cuenta Campus Free recibes 25 consultas de bienvenida. Si ya tienes cuenta, entra para continuar.</p>
               <div className="app-guest-quota-card__perks">
                 <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#check" /></svg>25 consultas de bienvenida</span>
                 <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#check" /></svg>Tu historial se conserva</span>
@@ -1665,7 +1709,7 @@ export default function ProfesChat() {
               </div>
             </div>
             <div className="app-guest-quota-card__action">
-              <a href={getLoginUrl()} className="app-guest-quota-card__btn"><span>Continuar gratis</span><span aria-hidden="true">→</span></a>
+              <a onClick={() => markGuestDraftHandoff()} href={getLoginUrl()} className="app-guest-quota-card__btn"><span>Crear cuenta o entrar</span><span aria-hidden="true">→</span></a>
             </div>
           </div>
         </div>

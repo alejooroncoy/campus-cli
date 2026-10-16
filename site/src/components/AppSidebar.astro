@@ -1,22 +1,22 @@
 ---
 interface Props {
-  active: "inicio" | "profes" | "copilot" | "perfil" | "turnitin";
+  active: "profes" | "copilot" | "perfil" | "turnitin";
 }
 
 const { active } = Astro.props;
 
 const nav = [
-  { id: "inicio", label: "Inicio", href: "/app/", icon: "book-open" },
   { id: "profes", label: "Asistente", href: "/app/profes/", icon: "users" },
-  { id: "copilot", label: "Conectar Campus", href: "/app/copilot/", icon: "sparkles" },
+  { id: "copilot", label: "Conectar IA", href: "/app/copilot/", icon: "sparkles" },
   { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" },
+  { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "user" },
 ];
 ---
 
 <aside class:list={["shadcn-sidebar", { "sidebar--profes": active === "profes" }]} aria-label="Navegación principal">
   <!-- Sidebar Header -->
   <div class="sidebar-header">
-    <a class="sidebar-brand" href="/app/" aria-label="Campus, inicio">
+    <a class="sidebar-brand" href="/app/" aria-label="Campus, abrir asistente">
       <div class="sidebar-brand__logo">
         <img src="/assets/campus-logo.webp" width="22" height="22" alt="" />
       </div>
@@ -62,16 +62,16 @@ const nav = [
           <span class="sidebar-badge-ext" aria-hidden="true">↗</span>
         </a>
         <a
-          href="https://wa.me/51946189585?text=Hola,%20tengo%20una%20duda%20con%20Campus"
+          href="https://wa.me/51946189585"
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Soporte por WhatsApp al 946 189 585 (se abre en otra pestaña)"
           class="sidebar-menu-btn"
         >
-          <svg viewBox="0 0 24 24" class="sidebar-menu-icon sidebar-menu-icon--wa" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="sidebar-menu-icon" aria-hidden="true">
             <use href="/assets/lucide.svg#message-circle" />
           </svg>
-          <span>Soporte WhatsApp</span>
-          <span class="sidebar-dot-online" aria-hidden="true"></span>
+          <span>Soporte por WhatsApp</span>
         </a>
       </nav>
     </div>
@@ -90,7 +90,7 @@ const nav = [
       </a>
     </div>
 
-    <p class="sidebar-guest-note" data-app-sidebar-guest-note>Explora Campus gratis.</p>
+    <p class="sidebar-guest-note" data-app-sidebar-guest-note>Prueba Campus con 5 consultas.</p>
 
     <!-- NavUser Dropdown Container -->
     <div class="sidebar-user-container">
@@ -165,7 +165,7 @@ const nav = [
         </div>
         <div class="sidebar-user__info">
           <span class="sidebar-user__name" data-app-sidebar-user-name>Mi perfil</span>
-          <span class="sidebar-user__sub" data-app-sidebar-user-sub>Sin iniciar sesión</span>
+          <span class="sidebar-user__sub" data-app-sidebar-user-sub>Conoce Campus</span>
         </div>
         <svg class="sidebar-user__chevron" viewBox="0 0 24 24" aria-hidden="true">
           <path d="m7 15 5 5 5-5M7 9l5-5 5 5" />

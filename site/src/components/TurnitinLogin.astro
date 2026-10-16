@@ -7,7 +7,7 @@ const Heading = inline ? 'h3' : 'h2';
 <Container class={inline ? 'ti-login-inline' : 'ti-login-dialog'} data-ti-login-panel data-ti-login={inline ? '' : undefined} hidden={inline} aria-labelledby="ti-login-title" aria-describedby="ti-login-description">
   <div class="ti-login-body">
     {!inline && <>
-      <button type="button" class="ti-login-close" data-ti-close-login aria-label="Cerrar inicio de sesión">×</button>
+      <button type="button" class="ti-login-close" data-ti-close-login aria-label="Cerrar inicio de sesión"><svg class="site-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#x"></use></svg></button>
       <div class="ti-login-brand"><img src="/assets/campus-logo.webp" width="32" height="32" alt="" /><span>Campus</span></div>
       <p class="ti-login-eyebrow">Tu revisión con Turnitin</p>
     </>}

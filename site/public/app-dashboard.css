@@ -95,17 +95,17 @@ button:disabled {
 }
 .app-skip {
   position: fixed;
-  top: 8px;
+  top: -100px;
   left: 8px;
   z-index: 100;
   padding: 12px;
   background: var(--app-accent);
   color: var(--app-ink);
   border-radius: 8px;
-  transform: translateY(-150%);
+  transform: none;
 }
 .app-skip:focus {
-  transform: none;
+  top: 8px;
 }
 .app-shell {
   display: grid;
@@ -951,7 +951,7 @@ button:disabled {
     left: 0;
     right: 0;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     align-items: center;
     height: var(--app-mobile-nav-height);
     padding: 12px 8px calc(12px + env(safe-area-inset-bottom));
@@ -2273,3 +2273,56 @@ button:disabled {
     display: none;
   }
 }
+
+/* Verified account state on the connector guide; independent of provider plans. */
+.app-connector-account {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 24px;
+  margin-bottom: 22px;
+  padding: 22px;
+  border: 1px solid var(--app-line);
+  border-radius: 14px;
+  background: var(--app-paper);
+}
+.app-connector-account__content { display: flex; align-items: flex-start; gap: 14px; flex: 1 1 360px; min-width: 0; }
+.app-connector-account__icon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 auto; border-radius: 11px; background: var(--app-sky-pale); color: var(--app-link); }
+.app-connector-account__heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 9px; }
+.app-connector-account__heading h2 { margin: 0; color: var(--app-ink); font-size: 16px; font-weight: 600; }
+.app-connector-account__badge { display: inline-flex; align-items: center; padding: 4px 9px; border-radius: 6px; background: var(--app-canvas); color: var(--app-muted); font-size: 12px; font-weight: 600; }
+.app-connector-account[data-state="free"] .app-connector-account__badge { background: var(--app-sky-pale); color: var(--app-link); }
+.app-connector-account[data-state="plus"] .app-connector-account__badge { background: var(--app-ink); color: white; }
+.app-connector-account[data-state="blocked"] .app-connector-account__badge { color: var(--app-danger); }
+.app-connector-account p { margin: 0; font-size: 13px; color: var(--app-muted); line-height: 1.6; }
+.app-connector-account .app-connector-account__usage { margin-top: 6px; color: var(--app-ink); }
+.app-connector-account__actions { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.app-connector-account__actions .app-text-link { font-size: 12px; }
+.app-connector-account .app-connector-account__note { flex-basis: 100%; padding-top: 15px; border-top: 1px solid var(--app-line); font-size: 12px; }
+@media (max-width: 620px) {
+  .app-connector-account { padding: 18px; gap: 16px; }
+  .app-connector-account__content { flex-basis: 100%; }
+  .app-connector-account__actions { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
+}
+
+/* Profile: verified plan and web balance stay above personal account details. */
+.app-profile-plan{padding:28px;margin:0 0 24px;border:1px solid #b7dfe9;border-radius:16px;background:var(--app-sky-pale);color:var(--app-ink)}
+.app-profile-plan .app-kicker{margin:0 0 10px;color:var(--app-muted)}
+.app-profile-plan h2{font-size:28px;line-height:1.2;letter-spacing:-.6px;margin:0 0 24px}
+.app-profile-plan p{line-height:1.65;overflow-wrap:anywhere}
+.app-profile-plan .app-profile-plan__channel{font-size:14px;color:var(--app-muted);margin:0 0 6px}
+.app-profile-plan .app-profile-plan__usage{font-size:clamp(23px,3vw,30px);font-weight:600;line-height:1.3;letter-spacing:-.4px;margin:0 0 12px;max-width:650px}
+.app-profile-plan [data-profile-note]{font-size:14px;margin:0}
+.app-profile-plan .app-profile-plan__mcp{font-size:14px;border-top:1px solid #b7dfe9;padding-top:16px;margin:18px 0 0}
+.app-profile-plan .app-actions{align-items:center;gap:12px 20px}
+.app-profile-plan .app-button,.app-profile-plan .app-text-link{min-height:44px}
+.app-profile-plan .app-text-link{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.app-profile-plan[data-state="unavailable"],.app-profile-plan[data-state="blocked"]{background:var(--app-paper);border-color:var(--app-line)}
+.app-profile-plan button:disabled{cursor:wait;opacity:.7}
+@media(max-width:650px){.app-profile-plan{padding:22px 20px}.app-profile-plan h2{font-size:26px}.app-profile-plan .app-actions{align-items:stretch;flex-direction:column}.app-profile-plan .app-button{justify-content:center}.app-profile-plan .app-text-link{align-self:flex-start}.app-profile-plan .app-profile-plan__usage{font-size:24px}}
+
+.app-profile-university .app-university-quick{justify-self:start;min-height:44px;margin:0;padding:10px 16px;border:1px solid #b7dfe9;border-radius:10px;background:var(--app-sky-pale);color:var(--app-ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}.app-profile-university .app-university-quick[aria-pressed="true"]{border-color:var(--app-link);box-shadow:0 0 0 1px var(--app-link)}.app-profile-university .app-university-quick:focus-visible{outline:2px solid var(--app-link);outline-offset:3px}
+
+/* Keep the keyboard skip link clipped until focused, including captured views. */
+.app-skip:not(:focus){clip-path:inset(50%)}

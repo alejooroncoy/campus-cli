@@ -4,42 +4,62 @@ import AppShell from "../../../layouts/AppShell.astro";
 <AppShell title="Mi perfil" active="perfil">
   <section class="app-profile-loading" data-app-profile-loading aria-live="polite">Comprobando tu cuenta…</section>
 
+  <section class="app-profile-entry" data-app-profile-error hidden role="status">
+    <div class="app-profile-entry__content">
+    <p class="app-profile-entry__eyebrow">NO PUDIMOS COMPROBAR TU CUENTA</p>
+    <h1>Vuelve a comprobar tu perfil.</h1>
+    <p>No pudimos verificar tu sesión, plan o consultas. Esto no significa que hayas cerrado sesión ni que tengas Campus Free.</p>
+    <button class="app-button" type="button" data-profile-refresh>Volver a intentar</button>
+    </div>
+  </section>
+
   <section class="app-profile-entry" data-app-profile-guest hidden>
     <div class="app-profile-entry__content">
-      <p class="app-profile-entry__eyebrow">TU CUENTA CAMPUS</p>
-      <h1>Entra a tu Campus.</h1>
-      <p class="app-profile-entry__lead">Usa Campus, revisa tu plan y mira cuántas consultas te quedan desde una sola cuenta.</p>
-      <a class="app-button app-profile-entry__button" data-app-login href="/api/app/auth/start?return=%2Fapp%2Fperfil%2F">Continuar con Campus <span aria-hidden="true">→</span></a>
-      <p class="app-profile-entry__first-time">¿Primera vez? Crearemos tu cuenta al entrar.</p>
-      <p class="app-profile-entry__note">Tu conversación se guarda en tu cuenta para que puedas retomarla después.</p>
+      <p class="app-profile-entry__eyebrow">TU CUENTA GRATIS · CAMPUS FREE</p>
+      <h1>Tu siguiente paso: Campus Free.</h1>
+      <p class="app-profile-entry__lead">Crea tu cuenta gratis para guardar tus conversaciones y recibir 25 consultas de bienvenida.</p>
+      <a class="app-button app-profile-entry__button" data-app-login href="/api/app/auth/start?return=%2Fapp%2Fperfil%2F">Crear cuenta gratis <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
+      <p class="app-profile-entry__first-time">¿Ya tienes cuenta? Usa el mismo botón para entrar.</p>
+      <p class="app-profile-entry__note">Las 25 consultas son de bienvenida; no se renuevan cada mes.</p>
       <p class="app-profile-entry__status" data-app-status role="status" aria-live="polite"></p>
     </div>
   </section>
 
   <section class="app-profile-university" data-app-profile-university hidden>
-    <button class="app-profile-university__cancel" type="button" data-app-cancel-university hidden><span aria-hidden="true">←</span> Volver a mi perfil</button>
-    <p class="app-profile-entry__eyebrow">TU UNIVERSIDAD</p>
+    <button class="app-profile-university__cancel" type="button" data-app-cancel-university hidden><svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-left"></use></svg> Volver a mi perfil</button>
+    <p class="app-profile-entry__eyebrow">PERSONALIZA TU CAMPUS</p>
     <h1>¿En qué universidad estudias?</h1>
-    <p>Así te mostramos información de tu universidad y sabemos dónde llevar Campus después. La consulta de profesores está disponible por ahora para UPC.</p>
+    <p>Elige dónde estudias para mostrarte las funciones disponibles. Hoy las reseñas y la conexión con Blackboard están disponibles para UPC.</p>
     <form data-app-university-form>
       <label for="app-university">Tu universidad</label>
-      <input id="app-university" name="university" list="app-university-options" autocomplete="off" placeholder="Escribe UPC o el nombre de tu universidad" required />
+      <input id="app-university" name="university" list="app-university-options" autocomplete="off" placeholder="Busca tu universidad…" required />
       <datalist id="app-university-options" data-app-university-options></datalist>
-      <button class="app-button" type="submit">Guardar y continuar <span aria-hidden="true">→</span></button>
+      <button class="app-university-quick" type="button" data-app-select-upc aria-pressed="false" hidden>Estudio en UPC</button>
+      <button class="app-button" type="submit">Guardar y continuar <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button>
     </form>
-    <p class="app-profile-university__note">Elige una de las universidades de la lista. Podrás cambiarla después en tu perfil.</p>
+    <p class="app-profile-university__note">Tu elección se guarda en Mi perfil y puedes cambiarla. Elegir universidad no conecta tu Aula Virtual; esa autorización se hace aparte.</p>
     <p class="app-profile-university__status" data-app-university-status role="status" aria-live="polite"></p>
   </section>
 
   <div data-app-profile-authenticated hidden>
     <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">Mi perfil</p><h1>Tu cuenta Campus.</h1><p>Tu plan y tu uso, en un solo lugar.</p></section>
+    <section class="app-profile-plan" data-profile-account aria-labelledby="profile-plan-title">
+      <p class="app-kicker">TU PLAN ACTUAL</p>
+      <h2 id="profile-plan-title" data-profile-label>Comprobando…</h2>
+      <p class="app-profile-plan__channel">Consultas en la web</p>
+      <p class="app-profile-plan__usage" data-profile-usage aria-live="polite" hidden></p>
+      <p data-profile-note>Estamos comprobando tu plan y tu saldo.</p>
+      <p class="app-profile-plan__mcp" data-profile-mcp hidden></p>
+      <div class="app-actions">
+        <button class="app-button app-button--secondary" type="button" data-profile-refresh>Actualizar saldo</button>
+        <a class="app-text-link" href="/#planes" data-profile-upgrade hidden>Conocer Campus Plus <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
+      </div>
+    </section>
     <div class="app-split"><section class="app-panel">
-      <h2>Cuenta y uso</h2>
+      <h2>Datos de tu cuenta</h2>
       <div class="app-profile-row"><span>Correo de tu cuenta</span><p data-app-email>Comprobando tu sesión…</p></div>
       <div class="app-profile-row"><span>Universidad</span><p data-app-university-name>Por comprobar</p><button class="app-profile-change-university" type="button" data-app-change-university>Cambiar universidad</button></div>
       <p class="app-profile-coverage" data-app-profile-coverage hidden>La consulta de profesores todavía no está disponible para tu universidad. La registramos para saber dónde ampliar la cobertura.</p>
-      <div class="app-profile-row"><span>Plan actual</span><p data-app-plan>Por comprobar</p><a class="app-text-link" href="/#incluye" data-app-activate hidden>Activar Campus →</a></div>
-      <div class="app-profile-row"><span>Consultas de Campus</span><p data-app-usage>Comprobando tu uso…</p></div>
       <div class="app-profile-row"><span>Matrícula (Banner)</span><p data-app-banner-status>Por comprobar</p></div>
       <div class="app-profile-row" id="miupc" hidden>
         <span>Notas actuales · Mi UPC</span>
@@ -50,7 +70,7 @@ import AppShell from "../../../layouts/AppShell.astro";
         </div>
       </div>
       <div class="app-actions"><button class="app-button app-button--secondary" type="button" data-app-logout hidden>Cerrar sesión</button></div>
-    </section><aside class="app-panel"><p class="app-kicker">Una sola cuenta</p><h2>Tu Campus, conectado.</h2><p>Entra con la misma cuenta en la web y en tu conector MCP. Tus consultas usan un único saldo.</p><ul class="app-info-list"><li>Tu identidad en Campus</li><li>Un plan para la web y el MCP</li><li>Tu saldo compartido de consultas</li><li>Tu horario y matrícula de Banner</li></ul><a class="app-text-link" href="/app/copilot/">Usar Campus con mi IA →</a><p>La web descuenta una consulta por pregunta; el MCP, una por herramienta de consulta. Las comprobaciones de conexión y plan no consumen saldo.</p></aside></div>
+    </section><aside class="app-panel"><p class="app-kicker">Una sola cuenta</p><h2>Tu Campus, conectado.</h2><p>Entra con la misma cuenta en la web y en tu conector MCP. Tu plan define el uso disponible en cada canal.</p><ul class="app-info-list"><li>Tu identidad en Campus</li><li>Un plan para la web y el MCP</li><li>Tus consultas web disponibles</li><li>Tu horario y matrícula de Banner</li></ul><a class="app-text-link" href="/app/copilot/">Usar Campus con mi IA <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><p>Campus Free incluye 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web e ilimitadas mediante MCP.</p></aside></div>
   </div>
 </AppShell>
 

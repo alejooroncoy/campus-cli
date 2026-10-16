@@ -52,10 +52,9 @@ const schemas = [
     "audience": { "@type": "EducationalAudience", "educationalRole": "student" },
     "offers": {
       "@type": "Offer",
-      "price": "5",
+      "price": "0",
       "priceCurrency": "PEN",
-      "description": "Acceso fundador a Campus por mes.",
-      "availability": "https://schema.org/LimitedAvailability"
+      "description": "Campus Free: reseñas, panel y 25 consultas de bienvenida en la web."
     }
   },
   {
@@ -83,7 +82,7 @@ const schemas = [
         "name": "¿Cuesta algo?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "El acceso fundador a Campus cuesta S/5 el primer mes. Incluye el asistente web y el conector MCP de Campus con una sola cuenta, plan y saldo."
+          "text": "Puedes empezar con Campus Free: reseñas, panel y 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web e ilimitadas por MCP. Consulta los precios y condiciones en los planes de Campus."
         }
       },
       {
@@ -99,7 +98,7 @@ const schemas = [
         "name": "¿Qué universidades o profesores tiene?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "El piloto está abierto a estudiantes en Perú y crece con cada alumno que califica a su profesor."
+          "text": "El asistente está disponible inicialmente para UPC. Las opiniones dependen de las reseñas disponibles; puedes aportar tu experiencia desde tu cuenta Campus."
         }
       },
       {
@@ -117,13 +116,14 @@ const schemas = [
 
 <Base
   title={"Campus | Elige profesores antes de matricularte"}
-  description={"Opiniones de profesores en Campus: compara calificaciones, comentarios y horarios de profesores antes de matricularte."}
+  description={"Opiniones de profesores en Campus: compara calificaciones y comentarios de estudiantes antes de matricularte."}
   canonical={"https://campuscli.com/profes/"}
-  ogTitle={"Campus | Elige a tu profesor por WhatsApp"}
+  ogTitle={"Campus | Elige a tu profesor desde la web"}
   ogDescription={"Profes, horarios y una matrícula mejor como parte de Campus."}
   markdownUrl={"https://campuscli.com/profes/index.md"}
-  ogImageAlt={"Campus: calificaciones y horarios de profesores por WhatsApp"}
+  ogImageAlt={"Campus: calificaciones y horarios de profesores en la web"}
   schemas={schemas}
 >
   <Fragment set:html={body} />
+  <link slot="head" rel="stylesheet" href="/campus-profes.css" />
 </Base>

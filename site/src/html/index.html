@@ -1,185 +1,90 @@
-<main id="inicio">
-      <section class="hero hero--text shell">
-        <div class="hero__copy">
-          <p class="eyebrow"><span class="dot"></span> Campus · UPC</p>
-          <h1>Tu universidad, en una conversación.</h1>
-          <p class="hero__lead"><span class="hero__lead-desktop">Consulta profesores, tareas y notas. Calcula cuánto necesitas para aprobar con tus evaluaciones y pesos reales. Usa Campus aquí o con tu IA: una sola cuenta y un solo plan.</span><span class="hero__lead-mobile">Tu matrícula y tu ciclo, con Campus.</span></p>
-          <div class="hero__actions">
-            <a class="button" href="/app/">Usar Campus <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
-            <a class="text-link" href="/app/copilot/">Conectar Campus con mi IA <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-down"></use></svg></a>
+<main id="inicio" class="campus-landing">
+  <section class="cp-hero shell" aria-labelledby="cp-title">
+    <div class="cp-hero__copy">
+      <p class="cp-kicker"><span></span> HECHO POR ESTUDIANTES · PARA UPC</p>
+      <h1 id="cp-title">Tu ciclo en UPC.<br>Un poco más <em>fácil.</em></h1>
+      <p class="cp-lead">Elige profesores con reseñas de estudiantes. Conecta tu IA para revisar Blackboard UPC, repasar clases y avanzar tu tesis.</p>
+      <div class="cp-actions"><a class="button" href="/app/">Probar Campus gratis <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a class="cp-link" href="#planes">Ver planes y precios <svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-down"></use></svg></a></div>
+    </div>
+    <figure class="cp-motion" data-campus-demo>
+      <div class="cp-motion__window" role="img" aria-label="Demostración ilustrativa: una estudiante pregunta por un profesor de Cálculo y Campus muestra un resumen de reseñas.">
+        <div aria-hidden="true">
+          <div class="cp-motion__bar"><span><img src="/assets/campus-logo.webp" alt="" width="26" height="26">Campus</span><span class="cp-motion__badge">UPC</span></div>
+          <div class="cp-motion__body">
+            <p class="cp-motion__question">¿Qué dicen del profe de Cálculo?</p>
+            <div class="cp-motion__typing"><i></i><i></i><i></i></div>
+            <div class="cp-motion__answer"><img src="/assets/campus-logo.webp" alt="" width="30" height="30"><div><strong>Esto cuentan sus estudiantes.</strong><blockquote>«Explica con ejemplos y resuelve las dudas en clase.»</blockquote><span>Reseñas para elegir con más contexto.</span></div></div>
           </div>
-          <p class="hero__note"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#shield-check"></use></svg> Acceso fundador: S/5 el primer mes. Hecho por estudiantes, para estudiantes.</p>
-          <p class="ti-home-promo"><a href="/turnitin/"><span class="ti-home-promo__badge">Nuevo</span><span><strong>Turnitin en Perú: similitud + IA</strong><span class="ti-home-promo__detail">Lanzamiento S/8 · Regular S/10 · Ver promoción →</span></span></a></p>
         </div>
-        <div class="plus-hero-stage" aria-label="Vista previa de Campus">
-          <div class="plus-hero-stage__topline">
-            <span>Campus</span>
-            <span class="plus-hero-stage__status"><i></i> Todo conectado</span>
-          </div>
-          <div class="plus-hero-stage__heading">
-            <div>
-              <p>Tu ciclo, ordenado.</p>
-              <strong>Lo importante en un solo lugar.</strong>
-            </div>
-            <span class="plus-hero-stage__week">Semana 4</span>
-          </div>
-          <div class="plus-hero-stage__items">
-            <article>
-              <span class="plus-hero-stage__icon plus-hero-stage__icon--blue"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#calendar-days"></use></svg></span>
-              <div><strong>Tu matrícula</strong><p>Profes y horario listos</p></div>
-              <svg class="plus-hero-stage__check" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check-circle-2"></use></svg>
-            </article>
-            <article>
-              <span class="plus-hero-stage__icon plus-hero-stage__icon--mint"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#book-open"></use></svg></span>
-              <div><strong>Blackboard UPC</strong><p>Cursos, tareas y notas</p></div>
-              <svg class="plus-hero-stage__check" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check-circle-2"></use></svg>
-            </article>
-          </div>
-          <div class="plus-hero-stage__footer"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#sparkles"></use></svg> Una membresía para cada momento del ciclo.</div>
-        </div>
-      </section>
+      </div>
+      <figcaption><span>Ejemplo ilustrativo</span><button type="button" data-demo-toggle aria-pressed="false" aria-label="Pausar animación" hidden><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path data-demo-icon d="M9 5v14M15 5v14"></path></svg><span data-demo-toggle-label>Pausar</span></button></figcaption>
+    </figure>
+  </section>
 
-      <section class="section shell reveal" id="incluye">
-        <div class="section-heading">
-          <p class="eyebrow">Campus</p>
-          <h2><span class="desktop-copy">Desde tu matrícula hasta la última entrega.</span><span class="mobile-copy">Para todo tu ciclo.</span></h2>
-          <p>Una membresía simple para decidir mejor antes de empezar y no perderte durante el ciclo.</p>
-        </div>
-        <div class="product-picks">
-          <article class="product-pick product-pick--cli">
-            <div class="product-pick__topline">
-              <span class="product-pick__icon"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#sparkles"></use></svg></span>
-              <span class="product-pick__badge">Antes de matricularte</span>
-            </div>
-            <p class="product-pick__eyebrow">Profesores y cursos</p>
-            <h3>Elige bien tus secciones.</h3>
-            <p>Conoce opiniones de profesores, consulta cursos y revisa tus notas actuales.</p>
-            <ul>
-              <li><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg> Opiniones y calificaciones de profesores</li>
-              <li><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg> Horarios, NRC, sedes y cupos disponibles</li>
-              <li><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg> Un horario visual y guardado</li>
-            </ul>
-            <p class="product-pick__proof"><strong>350+</strong> estudiantes ayudados antes de su matrícula</p>
-            <a class="button" href="/profes/">Conocer Campus <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
-          </article>
-          <article class="product-pick product-pick--profes">
-            <div class="product-pick__topline">
-              <span class="product-pick__icon"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#message-circle"></use></svg></span>
-              <span class="product-pick__badge">Durante tu ciclo</span>
-            </div>
-            <p class="product-pick__eyebrow">Conexión directa a Blackboard</p>
-            <h3>Tu Aula Virtual, más cerca.</h3>
-            <p>Campus ya conecta Blackboard UPC directamente con ChatGPT, Claude o la terminal para consultar tu información real.</p>
-            <ul>
-              <li><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg> Cursos, tareas, fechas, notas y anuncios</li>
-              <li><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg> Conexión privada, cifrada y revocable</li>
-              <li><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg> Sin copiar y pegar entre pestañas</li>
-            </ul>
-            <a class="button" href="/campus-cli/">Ver la conexión a Blackboard <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
-          </article>
-        </div>
-        <aside class="plus-access" aria-labelledby="plus-access-title">
-          <div>
-            <p class="eyebrow">Acceso fundador</p>
-            <h3 id="plus-access-title">Una cuenta para tu universidad.</h3>
-            <p>Profes, horarios y Blackboard UPC conectado en una sola membresía.</p>
-          </div>
-          <div class="plus-access__action">
-            <p class="plus-access__price"><strong>S/5</strong><span>el primer mes</span></p>
-            <button class="button" type="button" data-open-founder>Quiero acceder <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button>
-          </div>
+  <div class="cp-connect shell"><span>Una cuenta. Tu Campus.</span><p>En la web <span aria-hidden="true">/</span> Con ChatGPT <span aria-hidden="true">/</span> Con Claude <span aria-hidden="true">/</span> Con Gemini</p><a href="/app/copilot/">Conectar mi IA <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div>
+
+  <section class="cp-section shell" id="incluye" aria-labelledby="cp-features-title">
+    <div class="cp-section__heading"><p class="cp-kicker">PARA LO QUE SÍ NECESITAS</p><h2 id="cp-features-title">Para las preguntas<br>de tu ciclo.</h2></div>
+    <div class="cp-features">
+      <article><span class="cp-feature__number">01 / PROFESORES</span><svg class="cp-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#users"></use></svg><h3>¿Con qué profe me matriculo?</h3><p>Lee reseñas sobre profesores y cursos antes de elegir tu sección. Empieza con una consulta en Campus.</p><a href="/app/profes/">Explorar profesores <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></article>
+      <article><span class="cp-feature__number">02 / TU CICLO</span><svg class="cp-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#book-open"></use></svg><h3>¿Qué tengo pendiente esta semana?</h3><p>Conecta tu IA para consultar tareas, fechas, materiales y notas de Blackboard UPC.</p><a href="/app/copilot/">Conectar Blackboard <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></article>
+      <article><span class="cp-feature__number">03 / CLASES VIRTUALES · MCP</span><svg class="cp-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#sparkles"></use></svg><h3>¿Qué explicó el profesor en clase?</h3><p>Pide resúmenes e indicaciones con marcas de tiempo. Campus analiza las transcripciones disponibles en UPC Class mediante MCP.</p><a href="/app/copilot/">Analizar clases con mi IA <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></article>
+    </div>
+  </section>
+
+
+  <section class="research-feature shell" id="investigacion" aria-labelledby="research-title">
+    <div class="research-feature__heading"><p class="research-feature__kicker">CAMPUS PLUS · CON TU IA POR MCP</p><h2 id="research-title">Fuentes para tu tesis.</h2><p>Lee su contenido y guarda las referencias en Mendeley, desde tu IA.</p></div>
+    <div class="research-feature__grid">
+      <article><div class="research-feature__top"><svg class="cp-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#file-text"></use></svg><span class="research-feature__badge">Lectura experimental</span></div><h3>Lee más que el resumen.</h3><p>Analiza el texto completo accesible: método, resultados y limitaciones, con evidencia por página o sección.</p></article>
+      <article><div class="research-feature__top"><svg class="cp-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#book-open"></use></svg><span class="research-feature__label">Tu biblioteca Mendeley</span></div><h3>Guarda en Mendeley.</h3><p>Conecta tu biblioteca y guarda las referencias que elijas para tu tesis.</p></article>
+    </div>
+    <div class="research-feature__actions">
+    <details class="research-feature__details"><summary>Ver ejemplos y alcance<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><div>
+      <p><strong>Para leer:</strong> “Lee esta fuente y dime qué aporta a mi tesis, con sus limitaciones y páginas.”</p>
+      <p><strong>Para guardar:</strong> “Conecta mi Mendeley y guarda esta referencia.”</p>
+      <p>La lectura es experimental y depende del acceso al documento. Si solo se lee el resumen o algunas páginas, se indica ese alcance; no equivale a una revisión completa.</p>
+      <p>Tú autorizas tu cuenta de Mendeley y decides qué guardar en tu biblioteca o en un grupo con acceso de escritura. Guardar una referencia no da acceso al documento completo.</p>
+    </div></details>
+    <div class="research-feature__footer"><a href="/app/copilot/">Conectar mi IA <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div>
+    </div>
+  </section>
+
+  <section class="cp-start shell" aria-labelledby="cp-start-title" id="como-empezar">
+    <div class="cp-section__heading"><p class="cp-kicker">ASÍ EMPIEZAS</p><h2 id="cp-start-title">Empieza en tres pasos.</h2></div>
+    <ol class="cp-start__steps">
+      <li><span class="cp-start__number" aria-hidden="true">01</span><h3>Elige tu universidad.</h3><p>Selecciona dónde estudias y prueba el asistente antes de crear tu cuenta.</p></li>
+      <li><span class="cp-start__number" aria-hidden="true">02</span><h3>Crea tu cuenta Campus Free.</h3><p>La universidad que elegiste se guarda en tu cuenta para continuar desde el mismo panel.</p></li>
+      <li><span class="cp-start__number" aria-hidden="true">03</span><h3>Opcional: conecta tu IA.</h3><p>Con Plus, autoriza Blackboard o Mendeley para usarlos desde tu IA.</p></li>
+    </ol>
+  </section>
+
+  <section class="cp-plans" id="planes" aria-labelledby="cp-plans-title">
+    <div class="shell">
+      <div class="cp-section__heading cp-plans__heading"><div><p class="cp-kicker">DOS PLANES. UN SOLO CAMPUS.</p><h2 id="cp-plans-title">Elige tu plan.</h2></div><p>Precios en soles.</p></div>
+      <div class="cp-plan-grid">
+        <aside class="cp-plan-trial" aria-label="Prueba antes de elegir un plan">
+          <div><strong>¿Solo quieres probar?</strong><p>Tienes 5 consultas gratis antes de crear tu cuenta.</p></div>
+          <a href="/app/">Probar Campus <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
         </aside>
-      </section>
+        <article class="cp-plan cp-plan--free" aria-labelledby="free-title"><div class="cp-plan__top"><h3 id="free-title">Campus Free</h3><span>Para conocer Campus</span></div><p class="cp-plan__price"><strong>S/0</strong><span>gratis</span></p><a class="button cp-button--outline" href="/app/">Empezar gratis <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><ul><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>25 consultas de bienvenida en el asistente web</li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>Reseñas de profesores y cursos</li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>Acceso a tu panel</li></ul><p class="cp-plan__footnote">Las consultas de bienvenida no se renuevan cada mes.</p></article>
+        <article class="cp-plan cp-plan--plus" id="plan-plus" aria-labelledby="plus-title"><div class="cp-plan__top"><h3 id="plus-title">Campus Plus</h3><span class="cp-plan__badge">PRIMEROS 25 DE PAGO</span></div><p class="cp-plan__price"><strong>S/5</strong><span>el primer mes</span></p><p class="cp-plan__description">Después, <strong>S/10 al mes.</strong></p><a class="button cp-button--mint" href="/app/">Quiero Campus Plus <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><p class="cp-plan__includes">Todo lo de Free, más:</p><ul><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>100 consultas al día en la web</li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>Consultas ilimitadas con tu IA (MCP)</li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Guardar referencias en <strong>Mendeley</strong></span></li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span><strong>Lectura experimental</strong> de fuentes accesibles</span></li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>Clases virtuales desde sus transcripciones</li></ul><p class="cp-plan__footnote">Al completar los primeros 25 usuarios de pago, las nuevas suscripciones costarán <strong>S/15 al mes desde el primer mes.</strong></p></article>
+      </div>
+      <p class="cp-plans__note">MCP conecta Campus con tu IA compatible. Si tu IA requiere una suscripción, se paga aparte.</p>
+      <p class="cp-plans__note">Gestiona tu plan en la app, desde <strong>Mi perfil</strong>. El cupo promocional se confirma al activar el pago.</p>
+    </div>
+  </section>
 
-      <section class="section shell reveal" aria-labelledby="turnitin-service-title">
-        <aside class="plus-access">
-          <div><p class="eyebrow">Servicio por documento · Turnitin</p><h2 id="turnitin-service-title">Servicio de Turnitin en Perú.</h2><p>Informes de similitud y detección de escritura con IA. Entrega de 10 minutos a 1 hora tras validar el pago.</p></div>
-          <div class="plus-access__action"><p class="plus-access__price"><strong>S/8</strong><span>lanzamiento · regular S/10</span></p><a class="button" href="/turnitin/">Ver promoción de Turnitin →</a></div>
-        </aside>
-      </section>
+  <section class="cp-extra shell" aria-labelledby="turnitin-service-title"><div class="cp-extra__icon" aria-hidden="true"><svg class="cp-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#shield-check"></use></svg></div><div><p class="cp-kicker">TAMBIÉN EN CAMPUS · SERVICIO APARTE</p><h2 id="turnitin-service-title">Revisa tu documento con Turnitin.</h2><p>Informe de similitud y detección de escritura con IA. Se paga por documento y no está incluido en los planes.</p></div><div class="cp-extra__action"><p><strong>S/8</strong> <span>lanzamiento · regular S/10</span></p><a href="/turnitin/">Conocer el servicio <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div></section>
 
-      <section class="section feature-band reveal" id="por-que-dos">
-        <div class="shell feature-band__grid">
-          <div>
-            <p class="eyebrow eyebrow--light">El plan fundador</p>
-            <h2><span class="desktop-copy">Empieza Campus por S/5 el primer mes.</span><span class="mobile-copy">S/5 el primer mes.</span></h2>
-          </div>
-          <div class="security-list">
-            <article>
-              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#message-circle"></use></svg>
-              <div><h3>Todo lo que ya existe</h3><p>El asistente de Campus y la conexión MCP a tu universidad comparten cuenta, plan y consultas.</p></div>
-            </article>
-            <article>
-              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#users"></use></svg>
-              <div><h3>Primer mes a S/5</h3><p>Empieza Campus por S/5 el primer mes mientras construimos con tu feedback.</p></div>
-            </article>
-            <article>
-              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#shield-check"></use></svg>
-              <div><h3>Hecho para la vida real</h3><p>Menos búsquedas y menos pestañas: herramientas para decidir tu matrícula y llegar a tus entregas a tiempo.</p></div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section shell reveal" aria-labelledby="guias-campus">
-        <div class="section-heading">
-          <p class="eyebrow">Guías para empezar</p>
-          <h2 id="guias-campus">Cómo usar Campus en tu matrícula y tus clases.</h2>
-          <p>Encuentra la guía según lo que necesitas hacer hoy.</p>
-        </div>
-        <ul class="guide-index">
-          <li>
-            <span class="guide-index__moment guide-index__moment--enroll">Matrícula</span>
-            <a href="/blog/elige-a-tu-profesor-antes-de-matricularte/">Cómo elegir profesores antes de matricularte</a>
-            <p>Compara opiniones, horarios y secciones antes de armar tu ciclo.</p>
-            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg>
-          </li>
-          <li>
-            <span class="guide-index__moment guide-index__moment--class">Clases</span>
-            <a href="/blackboard-mcp/">Blackboard MCP: conecta el Aula Virtual UPC con tu asistente de IA</a>
-            <p>Configura Claude, Cursor u otro asistente de escritorio.</p>
-            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg>
-          </li>
-          <li>
-            <span class="guide-index__moment guide-index__moment--class">Clases</span>
-            <a href="/blog/conectar-blackboard-gemini-spark-campus/">Gemini MCP: conecta Blackboard UPC con Campus</a>
-            <p>Pega el servidor MCP, autoriza tu cuenta y consulta el Aula Virtual desde Gemini.</p>
-            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg>
-          </li>
-          <li>
-            <span class="guide-index__moment guide-index__moment--class">Clases</span>
-            <a href="/blog/organizar-tu-semana-blackboard/">Organiza tus tareas y fechas de entrega en Blackboard</a>
-            <p>Arma tu semana con lo que ya está publicado en el Aula Virtual.</p>
-            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg>
-          </li>
-          <li>
-            <span class="guide-index__moment guide-index__moment--class">Clases</span>
-            <a href="/blackboard-chatgpt/">Cómo consultar Blackboard UPC desde ChatGPT</a>
-            <p>Pregunta por cursos, tareas y notas sin instalar nada.</p>
-            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg>
-          </li>
-        </ul>
-      </section>
-
-      <section class="faq shell reveal grain-surface" aria-label="Preguntas frecuentes">
-        <div class="faq__intro"><p class="eyebrow">Antes de unirte</p><h2>Preguntas directas.</h2><p>Lo esencial sobre Campus y lo que ya puedes usar.</p></div>
-        <div class="faq__items">
-          <details>
-            <summary>¿Qué incluye Campus?<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary>
-            <p>Campus incluye el asistente de la web y el conector MCP para tu IA, con una sola cuenta, plan y saldo. Consulta profesores, cursos, tareas y notas, y simula cuánto necesitas para aprobar.</p>
-          </details>
-          <details>
-            <summary>¿Blackboard está conectado de verdad?<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary>
-            <p>Sí. Campus ya conecta directamente Blackboard UPC con ChatGPT, Claude o la terminal. Tu Aula Virtual sigue siendo la fuente de tus datos y puedes revocar el acceso cuando quieras.</p>
-          </details>
-          <details>
-            <summary>¿Cuánto cuesta?<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary>
-            <p>El acceso fundador a Campus cuesta S/5 el primer mes. Es una forma simple de probarlo y ayudarnos a priorizar qué construir después.</p>
-          </details>
-          <details>
-            <summary>¿Es lo mismo que el paquete "campus-cli" de PyPI u otras apps de IA para estudiantes?<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary>
-            <p>No. El paquete <code>campus-cli</code> de PyPI es un proyecto de Python no relacionado (gestión de archivos de notebooks Jupyter). Tampoco somos las plataformas de "IA para resolver tareas" que usan nombres parecidos. Este Campus es el paquete <code>campus-cli</code> de npm — el código fuente está en <a href="https://github.com/alejooroncoy/campus-cli" target="_blank" rel="noreferrer">github.com/alejooroncoy/campus-cli</a>.</p>
-          </details>
-        </div>
-      </section>
-    </main>
+  <section class="cp-faq shell" aria-labelledby="cp-faq-title"><div><p class="cp-kicker">TODO CLARO, DESDE EL INICIO</p><h2 id="cp-faq-title">Antes de empezar.</h2><a class="cp-link" href="/blog/">Explorar las guías de Campus <svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div><div class="cp-faq__items">
+    <details><summary>¿Necesito crear una cuenta?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Puedes probar el asistente antes de crearla. Después, regístrate en Campus Free para tener tu cuenta y las consultas de bienvenida.</p></details>
+    <details><summary>¿Qué necesito para analizar mis clases?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Campus usa las transcripciones de las grabaciones publicadas en UPC Class. Necesitas acceso al curso y que la grabación tenga transcripción disponible.</p></details>
+    <details><summary>¿Cómo activo Campus Plus?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Entra desde “Quiero Campus Plus”, inicia sesión o crea tu cuenta y revisa tu plan en “Mi perfil”.</p></details>
+    <details><summary>¿Necesito otra suscripción para usar mi IA?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Depende del asistente compatible y de las funciones que uses. Cualquier suscripción externa se contrata por separado de Campus.</p></details>
+    <details><summary>¿Puede leer cualquier fuente?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>La lectura es experimental y depende del acceso al documento. Si solo se lee el resumen o algunas páginas, se indica ese alcance. Guardar una referencia en Mendeley no da acceso al texto completo.</p></details>
+    <details><summary>¿Puedo cambiar mi universidad?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Sí. Durante la prueba puedes cambiarla en el asistente y, con tu cuenta, desde Mi perfil. La elección se conserva al crear tu cuenta. Por ahora, el asistente y Blackboard están disponibles para UPC.</p></details>
+    <details><summary>¿Campus es parte de la UPC?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Campus es un proyecto independiente, hecho por estudiantes. No está afiliado a UPC, Blackboard, OpenAI ni Anthropic.</p></details>
+  </div></section>
+  <section class="cp-final shell"><p class="cp-kicker">TU SIGUIENTE CICLO EMPIEZA AQUÍ</p><h2>Hazle espacio a lo importante.</h2><a class="button" href="/app/">Entrar a Campus gratis <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></section>
+</main>

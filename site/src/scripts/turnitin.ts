@@ -1,3 +1,5 @@
+import { setupTurnitinRequest } from './turnitin-request';
+import { analyticsHeaders, track } from './analytics';
 import { setupTurnitinAdmin } from './turnitin-admin';
 import { setupTurnitinUploads } from './turnitin-upload';
 import { setupTurnitinLogin } from './turnitin-login';
@@ -42,7 +44,7 @@ function setupTurnitin() {
   async function api(path: string, input?: unknown) {
     const response = await fetch(`/api/app/turnitin/${path}`, { credentials: 'same-origin', cache: 'no-store',
       method: input === undefined ? 'GET' : 'POST',
-      headers: input === undefined ? {} : { 'content-type': 'application/json' },
+      headers: { ...analyticsHeaders(), ...(input === undefined ? {} : { 'content-type': 'application/json' }) },
       body: input === undefined ? undefined : JSON.stringify(input), signal: AbortSignal.timeout(60000) });
     const result = await response.json().catch(() => ({ error: 'No se pudo conectar con Campus.' }));
     if (!response.ok) throw new Error(result.error ?? 'No se pudo completar la solicitud.');
@@ -63,7 +65,9 @@ function setupTurnitin() {
   function link(order: Order, kind: string, text: string, admin: boolean) {
     const anchor = el('a', text);
     anchor.href = `/api/app/turnitin/${admin ? 'admin/' : ''}orders/${order.id}/files/${kind}`;
-    anchor.setAttribute('download', ''); return anchor;
+    anchor.setAttribute('download', '');
+    if (!admin && (kind === 'similarity' || kind === 'ai')) anchor.onclick = () => track('campus_turnitin_download_clicked', { report_kind: kind });
+    return anchor;
   }
   function reportCard(order: Order, kind: ReportKind, admin: boolean) {
     const box = el('div', '', 'ti-file-card');
@@ -88,7 +92,7 @@ function setupTurnitin() {
     if (!orders.length) {
       const empty = el('div', '', 'ti-empty');
       const filtered = !admin && (historyFilter !== 'all' || Boolean(historySearch));
-      empty.append(el('h3', admin ? 'No hay pedidos pendientes' : filtered ? 'No encontramos revisiones con estos filtros' : 'Tu primera revisión empieza aquí'), el('p', admin ? 'Los pedidos nuevos aparecerán en este panel.' : filtered ? 'Prueba otro nombre o selecciona Todas para ver tus trabajos.' : 'Después de enviar tu trabajo, podrás seguir su estado y abrir o descargar los dos informes.', 'ti-muted'));
+      empty.append(el('h3', admin ? 'No hay pedidos pendientes' : filtered ? 'No encontramos revisiones con estos filtros' : 'Aún no tienes revisiones'), el('p', admin ? 'Los pedidos nuevos aparecerán en este panel.' : filtered ? 'Prueba otro nombre o selecciona Todas para ver tus trabajos.' : 'Aquí verás el estado y los informes de cada trabajo.', 'ti-muted'));
       target.append(empty); return;
     }
     for (const order of orders) {
@@ -97,6 +101,17 @@ function setupTurnitin() {
       const head = el('div', '', 'ti-order-heading');
       head.append(el('h3', order.documentName), el('span', labels[order.status] ?? order.status, 'ti-tag'));
       card.append(head);
+      if (!admin) {
+        const progress = el('ol', '', 'ti-order-progress');
+        progress.setAttribute('aria-label', 'Avance de tu revisión');
+        const position = order.status === 'completed' ? 2 : order.status === 'processing' ? 1 : 0;
+        ['Pago', 'Revisión', 'Informes'].forEach((label, index) => {
+          const step = el('li', label); step.dataset.progress = index < position ? 'done' : index === position ? 'current' : 'pending';
+          if (index === position) step.setAttribute('aria-current', 'step');
+          progress.append(step);
+        });
+        card.append(progress);
+      }
       card.append(el('p', `${money(order.amountCents)} · ${new Date(order.createdAt).toLocaleString('es-PE', { timeZone: 'America/Lima', dateStyle: 'short', timeStyle: 'short' })} · Pedido ${order.id.slice(0,8)}`, 'ti-small'));
       if (order.note) card.append(el('p', order.note));
       if (order.status === 'processing' && order.paidAt) card.append(el('p', 'Entrega de 10 minutos a 1 hora desde la validación del pago.', 'ti-small'));
@@ -111,11 +126,11 @@ function setupTurnitin() {
           summary.append(el('span', 'Ver informes de similitud e IA'), el('span', '', 'ti-disclosure'));
           summary.lastElementChild!.setAttribute('aria-hidden', 'true');
           details.append(summary, reports);
-          details.ontoggle = () => { if (details.open) openReports.add(order.id); else openReports.delete(order.id); };
+          details.ontoggle = () => { if (details.open) { openReports.add(order.id); track('campus_turnitin_reports_opened'); } else openReports.delete(order.id); };
           card.append(details);
         }
       } else if (!admin) {
-        card.append(el('p', order.status === 'payment_rejected' ? 'Revisa la observación del pago antes de solicitar una nueva revisión.' : 'Tus informes de similitud e IA aparecerán aquí cuando la revisión esté lista.', 'ti-muted'));
+        card.append(el('p', order.status === 'payment_rejected' ? 'Revisa la observación del pago antes de solicitar una nueva revisión.' : order.status === 'payment_review' ? 'Recibimos tu documento y comprobante. Ahora validamos el pago.' : 'Pago validado. Estamos preparando tus informes.', 'ti-muted'));
       }
       target.append(card);
     }
@@ -148,6 +163,10 @@ function setupTurnitin() {
       }
       if (ordersLoaded && orders.some(order => order.status === 'completed' && statuses.has(order.id) && statuses.get(order.id) !== 'completed'))
         announce('Tus informes ya están listos. Ábrelos en Mis revisiones.');
+      if (!isAdmin) for (const order of orders) {
+        const previous = statuses.get(order.id);
+        if (previous !== order.status) track('campus_turnitin_status_updated', { order_status: order.status, previous_status: previous });
+      }
       for (const order of orders) statuses.set(order.id, order.status);
       if (!ordersLoaded || reset || (!append && (historyFilter !== 'all' || Boolean(historySearch)))) historyOrders = orders;
       else {
@@ -160,7 +179,7 @@ function setupTurnitin() {
         all: historyOrders.length, ...Object.fromEntries(Object.keys(labels).map(key => [key, historyOrders.filter(order => order.status === key).length])),
       };
       pendingOrders = counts.payment_review > 0 || counts.processing > 0;
-      document.querySelector<HTMLElement>('[data-ti-history-tools]')!.hidden = false;
+      document.querySelector<HTMLElement>('[data-ti-history-tools]')!.hidden = counts.all <= 1 && !historySearch && historyFilter === 'all';
       document.querySelectorAll<HTMLElement>('[data-ti-count]').forEach(node => { node.textContent = String(counts[node.dataset.tiCount!] ?? 0); });
       const total = counts[historyFilter] ?? 0;
       const updateHistoryCount = () => { historyCount.textContent = `${Math.min(historyOrders.length,total)} de ${total} ${total === 1 ? 'revisión' : 'revisiones'}${historySearch ? ' con este nombre' : ''} · Más recientes primero`; };
@@ -200,6 +219,7 @@ function setupTurnitin() {
     }
   }
   refresh.onclick = async () => {
+    track('campus_turnitin_history_refreshed');
     try { await loadOrders(); announce('Estado actualizado.'); } catch (error) { announce((error as Error).message); }
   };
   more.onclick = async () => {
@@ -209,6 +229,7 @@ function setupTurnitin() {
   document.querySelectorAll<HTMLButtonElement>('[data-ti-filter]').forEach(button => {
     button.onclick = () => {
       historyFilter = button.dataset.tiFilter!;
+      track('campus_turnitin_history_filtered', { order_status: historyFilter });
       document.querySelectorAll<HTMLButtonElement>('[data-ti-filter]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
       void loadOrders(false, true).catch(error => announce(error.message));
     };
@@ -222,6 +243,9 @@ function setupTurnitin() {
   search.oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(searchHistory, 300); };
   search.addEventListener('search', searchHistory);
   const uploads = setupTurnitinUploads(form, kind => kind === 'document' ? (config?.maxDocumentBytes ?? 10 * 1024 * 1024) : (config?.maxReceiptBytes ?? 5 * 1024 * 1024));
+  const request = setupTurnitinRequest(form, uploads);
+  const requestPanel = document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!;
+  requestPanel.addEventListener('toggle', () => { if (requestPanel.open && !form.hidden && !fields.disabled) request.start(); });
   const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
   const submitText = submit.querySelector<HTMLElement>('[data-ti-submit-text]')!;
   const submissionMessage = form.querySelector<HTMLElement>('[data-ti-submit-status]')!;
@@ -229,12 +253,18 @@ function setupTurnitin() {
   form.addEventListener('change', () => { requestId = crypto.randomUUID(); showSubmission(''); });
   form.onsubmit = async event => {
     event.preventDefault();
-    if (fields.disabled || !uploads.validate() || !form.reportValidity()) return;
+    if (fields.disabled) return;
+    if (!request.isPayment()) { request.next(); return; }
+    if (!uploads.validate('document')) { request.document(); return; }
+    if (!uploads.validate() || !form.reportValidity()) { track('campus_flow_failed', { step: 'upload', error_kind: 'validation' }); return; }
+    track('campus_turnitin_submit_started');
     fields.disabled = true; submit.setAttribute('aria-busy', 'true'); submitText.textContent = 'Enviando…'; showSubmission('Enviando tu documento y comprobante. Mantén esta página abierta.'); announce('Enviando tu documento y comprobante…', true);
     try {
-      await api('orders', { requestId, amountCents: config.amountCents, consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
+      const received = await api('orders', { requestId, amountCents: config.amountCents, consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
         document: await encode(selected(form,'document'),config.maxDocumentBytes), receipt: await encode(selected(form,'receipt'),config.maxReceiptBytes) });
-      form.reset(); uploads.reset(); showSubmission(''); requestId = crypto.randomUUID();
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(received.order?.id ?? '')) throw new Error('No pudimos confirmar el envío. Vuelve a intentarlo; conservamos tus archivos.');
+      track('campus_turnitin_submitted');
+      form.reset(); uploads.reset(); request.reset(); showSubmission(''); requestId = crypto.randomUUID();
       announce('Pedido recibido. Tu comprobante está en revisión. Consulta el estado en Mis revisiones.');
       document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!.open = false;
       const reviewPanel = document.querySelector<HTMLElement>('[data-ti-my-orders-panel]')!;
@@ -243,8 +273,8 @@ function setupTurnitin() {
       historyFilter = 'all'; historySearch = ''; search.value = '';
       document.querySelectorAll<HTMLButtonElement>('[data-ti-filter]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.tiFilter === 'all')));
       try { await loadOrders(false, true); } catch { announce('Tu pedido ya fue recibido. Usa Actualizar estado para consultar su avance.'); }
-    } catch (error) { showSubmission((error as Error).message); announce((error as Error).message, true); }
-    finally { fields.disabled = false; submit.removeAttribute('aria-busy'); submitText.textContent = 'Enviar a revisión'; }
+    } catch (error) { track('campus_flow_failed', { step: 'turnitin', error_kind: 'rejected' }); showSubmission((error as Error).message); announce((error as Error).message, true); }
+    finally { fields.disabled = false; submit.removeAttribute('aria-busy'); submitText.textContent = 'Enviar revisión'; }
   };
   const cleanup = () => { disposed = true; clearInterval(poll); clearTimeout(searchTimer); };
   document.addEventListener('astro:before-swap', cleanup, { once: true });
@@ -256,7 +286,12 @@ function setupTurnitin() {
       document.querySelector<HTMLElement>('[data-ti-amount]')!.textContent = money(config.amountCents);
       document.querySelector<HTMLElement>('[data-ti-phone]')!.textContent = config.phone;
       document.querySelector<HTMLElement>('[data-ti-holder]')!.textContent = config.holder;
-      if (!config.ordersAvailable) { announce('El servicio todavía no está recibiendo pedidos. Vuelve pronto.'); return; }
+      if (!config.ordersAvailable) {
+        document.querySelector<HTMLElement>('[data-ti-new-order]')!.hidden = true;
+        document.querySelector<HTMLElement>('[data-ti-my-orders-panel]')!.hidden = true;
+        announce('El servicio todavía no está recibiendo pedidos. No realices pagos por ahora.');
+        return;
+      }
       const response = await fetch('/api/app/session', { credentials: 'same-origin', cache: 'no-store' });
       if (!response.ok) throw new Error('No se pudo comprobar tu sesión.');
       const session = await response.json();
@@ -269,6 +304,7 @@ function setupTurnitin() {
       }
       form.hidden = !config.enabled; refresh.hidden = false;
       await loadOrders();
+      if (config.enabled && requestPanel.open && !isAdmin) request.start();
       // Keep pending customer reviews current without disturbing staff forms.
       poll = setInterval(() => {
         if (!disposed && !refreshPending && pendingOrders && !isAdmin && document.visibilityState === 'visible')

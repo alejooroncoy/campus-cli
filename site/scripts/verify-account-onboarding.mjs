@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import { build } from 'esbuild';
+const values = new Map();
+globalThis.sessionStorage = { getItem: k => values.get(k) ?? null, setItem: (k,v) => values.set(k,v), removeItem: k => values.delete(k) };
+const { outputFiles } = await build({ entryPoints: ['src/scripts/account-onboarding.ts'], bundle: true, format: 'esm', write: false });
+const api = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
+const path = '/app/profes/c/118adac7-9134-4f9e-b751-a145605de41c/';
+api.beginAccountHandoff('https://evil.example/app/'); assert.equal(api.accountHandoff(), null);
+api.beginAccountHandoff(path); assert.equal(api.accountHandoff().returnPath, path);
+assert.equal(api.consumeConversationHandoff(path), false, 'Guest history is not an authenticated restoration');
+assert.equal(api.completeAccountHandoff(), true); assert.equal(api.completeAccountHandoff(), false);
+assert.equal(api.consumeConversationHandoff('/app/profes/'), false);
+assert.equal(api.consumeConversationHandoff(path), true); assert.equal(api.consumeConversationHandoff(path), false);
+values.set('campus-account-handoff-v1', JSON.stringify({ startedAt: Date.now()-31*60*1000, returnPath: path, completed: false }));
+assert.equal(api.completeAccountHandoff(), false, 'Expired sign-in does not create a conversion');
+console.log('Account onboarding: safe return, verified completion, one-time matching conversation restoration and expiry pass.');

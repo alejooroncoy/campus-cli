@@ -36,10 +36,10 @@ faq:
   - q: "¿Dónde funciona una aplicación personalizada de Gemini?"
     a: "Google indica que estas conexiones se configuran desde Gemini en la web y pueden utilizarse en el chat de Gemini, tanto en la web como en la app móvil. Su disponibilidad puede depender de la cuenta, el idioma y el despliegue de la función."
   - q: "¿Puedo probar Campus en Gemini sin pagar?"
-    a: "Sí. Puedes conectar Campus y realizar consultas del mismo saldo que en la web. Cuando las termines, necesitas activar Campus por S/5 para continuar usando el servidor alojado."
+    a: "Campus Free incluye 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web y consultas ilimitadas mediante MCP con un asistente compatible. Consulta los planes vigentes antes de elegir Plus."
 summary:
   - "La URL que debes pegar es **https://mcp.campuscli.com/mcp**; escribir solo el dominio no conecta el servidor MCP."
-  - "Puedes empezar con **consultas compartidas con la web**; después necesitas Campus por S/5 para continuar usando la conexión alojada."
+  - "**Campus Free** incluye 25 consultas de bienvenida en la web; **Campus Plus** incluye 100 al día en la web e ilimitadas mediante MCP."
   - "Campus admite el **registro automático OAuth** de Gemini: no necesitas crear ni copiar un Client ID o Client secret."
   - "Después de autorizar tu cuenta puedes preguntar por **cursos, tareas, fechas, notas, anuncios y materiales** de Blackboard UPC desde un chat de Gemini."
   - "La advertencia de Google es normal para una app personalizada: verifica el dominio y recuerda que **ninguna entrega se envía sin tu confirmación**."
@@ -56,7 +56,7 @@ Necesitas tres cosas:
 - Acceso activo a tu cuenta de **Blackboard UPC**.
 - La URL oficial del servidor MCP de Campus: `https://mcp.campuscli.com/mcp`.
 
-Puedes empezar gratis: cada cuenta puede conectar el servidor alojado y realizar **consultas del mismo saldo que en la web**. Cuando las termines, deberás [activar Campus por S/5](https://campuscli.com/campus-cli/#acceso-anticipado) para continuar usando Campus desde Gemini.
+Usa tu misma cuenta Campus. **Campus Free** incluye 25 consultas de bienvenida en la web. **Campus Plus** incluye 100 consultas diarias en la web y consultas ilimitadas por MCP. Revisa los [planes y sus condiciones](/#planes) y entra a la [app web de Campus](/app/) para empezar.
 
 Según la [guía oficial de Google para aplicaciones personalizadas](https://support.google.com/gemini/answer/17209137), necesitas tener **18 años o más**, estar en **Estados Unidos**, usar una **cuenta personal de Google**, tener **Guardar actividad (Keep Activity) activado** y utilizar Gemini en **inglés**. Google no anuncia disponibilidad general para estudiantes en Perú. Aunque algunas cuentas ya muestren controles en español, eso no garantiza acceso para todas las cuentas. Si no ves «Apps personalizadas» en «Apps conectadas», revisa estos requisitos antes de continuar.
 

@@ -10,7 +10,7 @@ export const GET: APIRoute = () => {
   const markdown = [
     "# Campus CLI",
     "",
-    "> Conecta el Aula Virtual (Blackboard UPC) con el asistente de IA que ya usas.",
+    "> Conecta tu IA a Campus por MCP: Blackboard UPC, transcripciones de clases, tu Mendeley y lectura experimental de fuentes académicas accesibles. Campus Free y Campus Plus.",
     "",
     "Fuente: https://campuscli.com/campus-cli/",
     "Texto completo del sitio: https://campuscli.com/llms-full.txt",

@@ -15,7 +15,7 @@ import Base from "../../layouts/Base.astro";
  */
 
 const url = "https://campuscli.com/privacidad/";
-const updated = "2026-10-12";
+const updated = "2026-10-16";
 const updatedLabel = "12 de octubre de 2026";
 
 const schemas = [
@@ -69,7 +69,7 @@ const schemas = [
         <li><strong>Nunca vemos tu contraseña.</strong> Inicias sesión en la página de tu universidad, no en la nuestra.</li>
         <li>La conexión de Blackboard consulta tus cursos en el momento. Si solicitas el servicio de <strong>Turnitin</strong>, guardamos el documento que subes, el comprobante y los informes para atender tu pedido.</li>
         <li>Solo conservamos tu sesión <strong>si tú activas “Mantener conexión activa”</strong>, cifrada y por 90 días como máximo.</li>
-        <li>Las métricas van <strong>seudonimizadas</strong>: un hash irreversible, sin contenido académico.</li>
+        <li>Las métricas van <strong>seudonimizadas</strong>: identificadores técnicos, sin contenido académico.</li>
         <li>Puedes <strong>revocar la conexión o eliminar tu cuenta</strong> desde Campus Mobile; también puedes escribir a <a class="prose-link" href="mailto:info@campuscli.com">info@campuscli.com</a>.</li>
       </ul>
     </section>
@@ -127,10 +127,10 @@ const schemas = [
 
     <h3>Métricas de uso</h3>
     <ul>
-      <li><strong>Qué es:</strong> qué herramienta se usó, si funcionó, cuánto tardó y qué tipo de error ocurrió si falló.</li>
+      <li><strong>Qué es:</strong> qué secciones visitas, qué plan o función eliges, qué pasos completas y si una solicitud funciona, cuánto tarda o por qué falla. No enviamos el texto de tus consultas ni los nombres o contenidos de tus archivos.</li>
       <li><strong>Para qué:</strong> detectar fallos y saber qué mejorar. No hacemos perfilado ni publicidad.</li>
       <li><strong>Base legal:</strong> interés legítimo en mantener el servicio funcionando.</li>
-      <li><strong>Cómo:</strong> tu identificador viaja convertido en un hash SHA-256 irreversible. Estas métricas <em>no</em> incluyen contenido de tus cursos, ni nombres de tareas, ni notas.</li>
+      <li><strong>Cómo:</strong> usamos un identificador aleatorio del navegador y, al entrar, el identificador técnico de tu cuenta Campus para relacionar el uso antes y después del acceso. No enviamos tu nombre, correo, teléfono, contenido de cursos, tareas, notas ni comprobantes. No grabamos la pantalla ni el contenido de los formularios para estas métricas web.</li>
     </ul>
 
     <h3>Formulario de acceso anticipado</h3>
@@ -233,7 +233,7 @@ const schemas = [
       <li>La cámara de Campus Mobile procesa el QR en el dispositivo y no crea una galería ni copia de imágenes.</li>
       <li>Los datos del formulario se guardan cifrados en reposo.</li>
       <li>Los enlaces de descarga son de un solo uso y caducan a los 10 minutos.</li>
-      <li>Los identificadores en métricas van convertidos en hash irreversible.</li>
+      <li>Las métricas usan identificadores técnicos y excluyen el contenido académico.</li>
     </ul>
     <p>
       Ningún sistema es infalible. Si detectamos una brecha que afecte tus

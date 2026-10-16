@@ -1,0 +1,18 @@
+/* Preserve the product card while making the web entry and plans visible. */
+#campus-profes .profes-plans-link { display:inline-flex; align-items:center; min-height:44px; margin-top:18px; }
+@media(max-width:620px) {
+ #campus-profes .founder-heading > p:last-child { display:block; font-size:16px; }
+ #campus-profes .price-card h3 { display:block; }
+}
+
+#campus-profes .founder-stage { padding:40px; }
+#campus-profes .founder-heading h2 { font-size:clamp(30px,3.2vw,42px); }
+#campus-profes .founder-heading > p:last-child { margin-top:18px; font-size:16px; }
+#campus-profes .pricing-grid--single { margin-top:28px; grid-template-columns:minmax(0,400px); }
+#campus-profes .price-card { min-height:0; padding:28px; }
+#campus-profes .price-card h3 { margin:0; font-size:28px; }
+#campus-profes .price-card .price { margin:24px 0 20px; }
+#campus-profes .price-card > p { margin-bottom:24px; font-size:15px; color:var(--muted); line-height:1.65; }
+#campus-profes .price-card .button { margin-top:0; border-radius:9px; }
+#campus-profes .profes-plans-link { font-size:14px; line-height:1.5; }
+@media(max-width:620px) { #campus-profes .founder-stage { padding:28px 18px; } #campus-profes .price-card { padding:24px; } }

@@ -59,7 +59,7 @@ h1, h2, h3, p { margin-top: 0; }
   transition: width 420ms cubic-bezier(.32, .72, .28, 1), min-height 420ms cubic-bezier(.32, .72, .28, 1), padding 420ms cubic-bezier(.32, .72, .28, 1), gap 420ms cubic-bezier(.32, .72, .28, 1), border-radius 420ms cubic-bezier(.32, .72, .28, 1), background 420ms cubic-bezier(.32, .72, .28, 1), border-color 420ms cubic-bezier(.32, .72, .28, 1), box-shadow 420ms cubic-bezier(.32, .72, .28, 1);
 }
 .site-header.is-scrolled {
-  width: min(760px, calc(100% - 24px));
+  width: min(860px, calc(100% - 24px));
   min-height: 58px;
   gap: 14px;
   padding: 7px 14px 7px 18px;
@@ -82,17 +82,11 @@ h1, h2, h3, p { margin-top: 0; }
 .site-header .brand, .site-header .brand img, .site-header nav, .site-header .button { transition: font-size 420ms cubic-bezier(.32, .72, .28, 1), width 420ms cubic-bezier(.32, .72, .28, 1), height 420ms cubic-bezier(.32, .72, .28, 1), min-height 420ms cubic-bezier(.32, .72, .28, 1), padding 420ms cubic-bezier(.32, .72, .28, 1); }
 .site-header .button { border-radius: 999px; }
 .site-header__actions { display: flex; align-items: center; justify-self: end; gap: 16px; margin-left: 26px; padding-left: 22px; border-left: 1px solid #dce7eb; }
-.header-github { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 40px; height: 40px; padding: 0; color: #4f6979; border: 1px solid transparent; border-radius: 999px; transition: background 160ms ease, border-color 160ms ease, color 160ms ease; }
-.header-github.has-stars { padding-inline: 12px; border-color: #dce7eb; background: rgba(255, 255, 255, .6); }
-.header-github__stars { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; }
-.header-github svg { width: 20px; height: 20px; }
-.header-github:hover { color: var(--ink); background: #fff; border-color: #d5e3e7; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-.header-github:not(:has(svg)) + .button--small::after { content: "↗"; margin-left: 2px; font-size: 24px; line-height: 1; }
 .site-header.is-scrolled .brand { font-size: 18px; }
 .site-header.is-scrolled .brand img { width: 30px; height: 30px; }
-.site-header.is-scrolled nav { border-color: transparent; background: transparent; }
-.site-header.is-scrolled .site-header__actions { padding-left: 0; border-left-color: transparent; }
+.site-header.is-scrolled nav { gap: 16px; font-size: 13px; border-color: transparent; background: transparent; }
+.site-header.is-scrolled .site-header__actions { gap: 10px; margin-left: 0; padding-left: 0; border-left-color: transparent; }
 .site-header.is-scrolled .button { min-height: 38px; padding-inline: 14px; }
 /* Article pages have a compact local stylesheet; keep the shared shell intact. */
 body > .site-header { max-width: 1180px !important; margin-inline: auto !important; padding: 0 !important; }
@@ -104,7 +98,7 @@ nav a { position: relative; padding: 8px 0; transition: color 160ms ease; }
 nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 2px; height: 1px; background: var(--sky); transform: scaleX(0); transform-origin: left; transition: transform 180ms ease; }
 nav a:hover { color: var(--ink); background: transparent; }
 nav a:hover::after { transform: scaleX(1); }
-nav a:focus-visible, .header-github:focus-visible { outline: 2px solid var(--sky); outline-offset: 3px; }
+nav a:focus-visible { outline: 2px solid var(--sky); outline-offset: 3px; }
 
 .button { min-height: 48px; display: inline-flex; justify-content: center; align-items: center; gap: 9px; padding: 0 19px; border: 1px solid var(--night); border-radius: 8px; background: var(--night); color: #fff; font-weight: 600; white-space: nowrap; cursor: pointer; transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease; }
 .button:hover { background: #1d3d4d; box-shadow: 0 8px 18px rgba(16, 42, 58, .14); transform: translateY(-2px); }
@@ -457,8 +451,7 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
   .shell { width: min(100% - 32px, 1180px); }
   .announcement { display: none; }
   .site-header { min-height: 72px; }
-  .site-header .button { display: none; }
-  .header-github span { display: none; }
+  .site-header .button { display: inline-flex; }
   .site-header.is-scrolled .button { display: inline-flex; min-height: 38px; padding: 0 13px; font-size: 13px; }
   .brand { font-size: 19px; }
   .brand img { width: 30px; height: 30px; }
@@ -1672,3 +1665,58 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
   font-size: 14px;
   white-space: nowrap;
 }
+
+/* Keep the Campus entry action available on narrow phones. */
+@media (max-width: 380px) { .site-header { gap: 12px; } .site-header__actions { gap: 8px; } .site-header .brand { font-size: 19px; } .site-header .button--small { padding-inline: 11px; font-size: 13px; } }
+
+/* Shared review: keyboard access, consistent icons and readable touch targets. */
+.site-icon { display:inline-block; fill:none; flex:0 0 auto; vertical-align:middle; }
+.site-skip-link { position:fixed; top:10px; left:16px; padding:12px 18px; background:var(--night); color:white; border-radius:8px; z-index:300; transform:translateY(-150%); }
+.site-skip-link:focus { transform:none; outline:3px solid var(--sky); outline-offset:3px; }
+#campus-content { scroll-margin-top:96px; }
+.button,.text-link,summary { touch-action:manipulation; }
+.article pre,.doc-page pre { max-width:100%; overflow-x:auto; }
+/* Long command names and CTA labels must fit narrow guide layouts. */
+.article :not(pre) > code,.doc-page :not(pre) > code { overflow-wrap:anywhere; word-break:break-word; }
+.article .button,.doc-page .button { max-width:100%; box-sizing:border-box; white-space:normal; overflow-wrap:anywhere; line-height:1.5; text-align:center; }
+
+/* Compact public-page refinements. */
+.doc-entry-note{padding:14px 18px;border-left:3px solid var(--sky);border-radius:0 8px 8px 0;background:var(--sky-pale);font-size:15px!important;line-height:1.6;color:var(--muted);margin:24px 0}
+.product-example-note{display:block;font-size:12px;line-height:1.6;color:var(--muted);margin-top:12px;text-align:center}
+/* Keep the next decision visible for students on product pages. */
+@media(max-width:700px){.hero__actions{gap:12px}.hero__actions .text-link{display:inline-flex;min-height:44px;max-width:100%;font-size:14px;line-height:1.5;white-space:normal;text-align:center}}
+
+/* Human support belongs with footer contact details. */
+.footer .footer__support{display:inline-flex;align-items:center;gap:10px;max-width:100%;min-height:48px;margin-top:20px;color:#e2f6fb;text-decoration:none;scroll-margin-top:110px}
+.footer__support>span{display:grid;gap:3px;min-width:0}
+.footer__support strong{font-size:14px;line-height:1.5;font-weight:600}
+.footer__support small{font-size:13px;line-height:1.5;color:#aec5cd;font-variant-numeric:tabular-nums}
+.footer .footer__support:hover strong{text-decoration:underline;text-underline-offset:4px}
+.footer__support:focus-visible{outline:2px solid var(--sky);outline-offset:5px;border-radius:3px}
+@media(min-width:721px){.footer__inner{grid-template-columns:1.4fr .8fr .8fr!important}}
+
+/* A quieter header; secondary destinations live in a native disclosure. */
+.site-header__actions{gap:16px;margin-left:0;padding-left:0;border-left:0}
+.site-header.is-scrolled{width:min(760px,calc(100% - 24px))}
+.site-header.is-scrolled .site-header__actions{gap:12px}
+.site-header nav .site-nav__expanded-link{display:none}
+@media(min-width:1101px){
+  .site-header:not(.is-scrolled) nav{gap:24px}
+  .site-header:not(.is-scrolled) nav .site-nav__expanded-link{display:inline-flex;align-items:center;min-height:44px}
+  .site-header:not(.is-scrolled) .site-menu__panel .site-menu__secondary-link{display:none}
+}
+.site-menu{position:relative;font-size:14px;color:var(--muted);border:0;border-radius:0;background:transparent}
+.site-menu summary{display:flex;align-items:center;justify-content:center;gap:6px;min-width:44px;min-height:44px;padding:6px 2px;list-style:none;cursor:pointer;color:var(--ink);border:0;border-radius:0;background:transparent;box-shadow:none}
+.site-menu summary::-webkit-details-marker{display:none}
+.site-menu summary:hover{color:#087fa4;background:transparent}
+.site-menu__mobile-icon{display:none}
+.site-menu[open] summary .site-menu__mobile-icon{transform:none}
+.site-menu[open] .site-menu__chevron{transform:rotate(180deg)}
+.site-menu__panel{position:absolute;z-index:40;right:0;top:calc(100% + 12px);width:248px;max-width:calc(100vw - 32px);max-height:min(70vh,420px);overflow:auto;overscroll-behavior:contain;padding:8px;border:1px solid var(--line);border-radius:14px;background:var(--paper);box-shadow:0 14px 35px #102a3a20;color:var(--ink)}
+.site-menu__panel a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:10px 12px;font-size:14px;line-height:1.5;border-radius:7px}
+.site-menu__panel a:hover{background:var(--sky-pale)}
+.site-menu__panel .site-menu__help{margin-top:5px;border-top:1px solid var(--line);border-radius:0;padding-top:14px;color:#087fa4}
+.site-menu__panel .site-menu__mobile-link{display:none}
+.site-menu :is(summary,a):focus-visible{outline:2px solid #087fa4;outline-offset:3px}
+@media(max-width:900px){.site-menu__panel .site-menu__mobile-link{display:flex}}
+@media(max-width:720px){.site-header__actions,.site-header.is-scrolled .site-header__actions{gap:10px}.site-menu summary{width:44px;padding:0}.site-menu summary>span,.site-menu__chevron{display:none}.site-menu__mobile-icon{display:block}.site-menu__panel{top:calc(100% + 9px)}}
