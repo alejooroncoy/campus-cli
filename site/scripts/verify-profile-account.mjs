@@ -8,6 +8,7 @@ assert.equal(profileAccountView(free).label,'Campus Free');
 assert.match(profileAccountView(free).usage,/7 de 25/);
 assert.match(profileAccountView(free).note,/no se renuevan cada mes/);
 assert.equal(profileAccountView(plus).label,'Campus Plus');
+assert.equal(profileAccountView({...plus,plusTest:true}).label,'Campus Plus · prueba');
 assert.match(profileAccountView(plus).usage,/63 de 100.*hoy/);
 assert.match(profileAccountView(plus).note,/cada día/);
 assert.match(profileAccountView(plus).mcp,/independientes de tu cuota web/);

@@ -30,7 +30,7 @@ const categories: Record<string, readonly string[]> = {
   viewport: ['mobile', 'tablet', 'desktop'], environment: ['development', 'production'],
 };
 const numbers = new Set(['remaining', 'limit', 'duration_ms', 'position', 'amount_cents']);
-const booleans = new Set(['authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed']);
+const booleans = new Set(['authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test']);
 export function safeAnalyticsProperties(input: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(input).filter(([key, value]) =>
     (Object.hasOwn(categories, key) && categories[key].includes(value as string))

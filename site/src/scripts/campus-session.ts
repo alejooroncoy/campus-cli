@@ -8,6 +8,7 @@ export type CampusSession = {
   authenticated: boolean;
   email?: string;
   plan?: string;
+  plusTest?: boolean;
   aiReady: boolean;
   accessBlocked?: boolean;
   accessUnavailable?: boolean;

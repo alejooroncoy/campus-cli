@@ -44,7 +44,7 @@ export function copilotAccountView(session: CampusSession | "loading" | "error")
     && Number.isFinite(usage.limit) && usage.limit >= 0;
   return {
     state: plan,
-    label: plan === "plus" ? "Campus Plus" : "Campus Free",
+    label: plan === "plus" ? session.plusTest ? "Campus Plus · prueba" : "Campus Plus" : "Campus Free",
     description: plan === "plus"
       ? "Has iniciado sesión con Campus Plus. Usa esta misma cuenta al autorizar Campus en tu asistente."
       : "Tu cuenta Campus Free incluye 25 consultas de bienvenida en la web. Usa esta misma cuenta para autorizar el conector.",
