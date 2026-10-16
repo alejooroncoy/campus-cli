@@ -34,6 +34,7 @@ try{
     await page.screenshot({path:output+`${viewport.width<600?'mobile':'desktop'}-payment.png`,fullPage:true});
     await page.locator('#plus-receipt').setInputFiles({name:'invalid.txt',mimeType:'text/plain',buffer:Buffer.from('invalid')});
     await page.getByRole('status').filter({hasText:'Usa un comprobante'}).waitFor();
+    if(isTest)assert.equal((await context.request.post(base+'/__fixture/qa',{headers:{origin:base}})).status(),200);
     await page.locator('#plus-receipt').setInputFiles({name:'private-proof.png',mimeType:'image/png',buffer:receipt});
     await page.locator('[name=consent]').check();await page.getByRole('button',{name:'Enviar comprobante',exact:true}).click();
     await page.locator('[data-plus-view=pending]:visible').waitFor();
@@ -41,7 +42,6 @@ try{
     assert.equal(order.status,'payment_review');assert.equal(pending.currentPlan,'free');
     assert.equal((await (await context.request.get(base+'/api/app/session')).json()).usage.limit,25);
     assert.equal((await context.request.get(`${base}/api/app/plus/admin/orders/${order.id}/receipt`)).status(),403);
-    if(isTest)assert.equal((await context.request.post(base+'/__fixture/qa',{headers:{origin:base}})).status(),200);
     await page.reload();await page.locator('[data-plus-view=pending]:visible').waitFor();
     assert.equal(await page.locator('[data-plus-qa]').isVisible(),isTest);
     assert.equal(await page.locator('[data-plus-admin]').count(),0,'Student app must never render a payment approval panel');
