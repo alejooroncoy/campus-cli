@@ -37,6 +37,7 @@ export type CampusProfilePreview = {
   subTitle?: string;
   bannerConnected?: boolean;
   plan?: string;
+  plusTest?: boolean;
   remaining?: number;
   period?: string;
   accessUnavailable?: boolean;

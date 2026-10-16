@@ -27,7 +27,7 @@ let sessionResolved = false;
 let readyContext = '';
 let lastSessionState = '';
 let currentPlan = 'unavailable';
-let isTest = false;
+let isTest: boolean | undefined;
 let mounted = false;
 let observer: IntersectionObserver | undefined;
 const sectionTimers = new Map<HTMLElement, ReturnType<typeof setTimeout>>();
@@ -107,7 +107,8 @@ export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
 export function track(event: string, properties: Record<string, unknown> = {}): void {
   if (!browser || !events.has(event)) return;
   const item = { event, properties: safeAnalyticsProperties({
-    page: analyticsPage(location.pathname), current_plan: currentPlan, is_test: isTest,
+    page: analyticsPage(location.pathname), current_plan: currentPlan,
+    ...(isTest!==undefined?{is_test:isTest}:{}),
     selected_plan: selectedPlan(),
     viewport: innerWidth < 761 ? 'mobile' : innerWidth < 1200 ? 'tablet' : 'desktop',
     environment: local ? 'development' : 'production', ...properties,
