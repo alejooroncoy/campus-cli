@@ -121,13 +121,28 @@ try {
   assert.equal(sectionEvents().length, 1, 'Background time does not count');
   document.visibilityState = 'visible'; listeners.get('visibilitychange')(); flushTimers();
   assert.equal(sectionEvents().length, 2, 'Visible foreground dwell can count again');
-  class AppBrand { constructor() { this.href = 'http://127.0.0.1:4336/app/'; } closest(selector) { return selector === 'a[href]' ? this : null; } }
+  class AppBrand {
+    constructor(path = '/app/', management = false) { this.href = `http://127.0.0.1:4336${path}`; this.management = management; }
+    closest(selector) { return selector === 'a[href]' ? this : null; }
+    hasAttribute(name) { return name === 'data-profile-manage' && this.management; }
+  }
   globalThis.Element = AppBrand;
   location.pathname = '/app/profes/';
   storage.set('campus-selected-plan', 'plus');
   listeners.get('click')({ target: new AppBrand() });
   assert.equal(dwell.selectedPlan(), 'plus', 'Returning to the assistant inside the app preserves Plus interest');
   assert.equal(JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties.intent, 'navigate');
+  storage.set('campus-selected-plan', 'free');
+  listeners.get('click')({ target: new AppBrand('/app/plus/', true) });
+  assert.equal(JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties.intent, 'navigate', 'Plan management is not acquisition, even before session resolution');
+  assert.equal(dwell.selectedPlan(), 'free');
+  dwell.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234' });
+  listeners.get('click')({ target: new AppBrand('/app/plus/') });
+  assert.equal(JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties.intent, 'navigate', 'Existing Plus users navigating from another CTA are not acquisitions');
+  dwell.analyticsSession({ authenticated: true, plan: 'free', analyticsId: 'campus:account_uuid1234' });
+  listeners.get('click')({ target: new AppBrand('/app/plus/') });
+  assert.equal(JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties.intent, 'plus', 'A Free upgrade remains an acquisition');
+  assert.equal(dwell.selectedPlan(), 'plus');
   dwell.track('campus_question_retried', { step: 'question', message: 'private' });
   assert.equal(JSON.parse(storage.get('campus-analytics-debug')).at(-1).event, 'campus_question_retried');
   assert.equal('message' in JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties, false);
