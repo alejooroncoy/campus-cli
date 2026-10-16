@@ -59,7 +59,8 @@ try{
     await page.locator('[data-plus-view=active]:visible').waitFor();
     const metrics=await (await context.request.get(base+'/__fixture/metrics')).json();
     for(const operation of ['plus_checkout','plus_receipt','plus_payment_review'])assert.ok(metrics.some(event=>event.properties.operation===operation&&event.properties.outcome==='success'&&event.properties.purchase_kind==='activation'));
-    assert.ok(metrics.some(event=>event.properties.plus_status==='active'&&event.distinctId==='campus:plus-fixture-owner-1'));
+    const activation=metrics.find(event=>event.properties.plus_status==='active'&&event.distinctId==='campus:plus-fixture-owner-1');
+    assert.ok(activation);assert.equal('$session_id' in activation.properties,false,'Approval belongs to the buyer, but never the staff browser session');
     const client=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('campus-analytics-debug')??'[]'));
     assert.equal(client.filter(event=>event.event==='campus_cta_clicked').at(-1).properties.intent,'navigate','Managing an active plan never starts acquisition');
     for(const event of ['campus_plus_checkout_viewed','campus_plus_receipt_selected','campus_plus_submit_started'])assert.ok(client.some(item=>item.event===event));
