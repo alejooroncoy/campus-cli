@@ -2,7 +2,7 @@
   "project_id": 539784,
   "dashboard_id": 2219861,
   "url": "https://us.posthog.com/project/539784/dashboard/2219861",
-  "status": "prepared_not_deployed",
+  "status": "instrumentation_deployed",
   "insights": [
     {
       "name": "De la landing a una respuesta",
