@@ -34,6 +34,7 @@ function init(){
    const row=document.createElement('section');row.className='memory-record';
    const title=document.createElement('h3');title.textContent=labels[record.key];
    const text=document.createElement('p');text.textContent=record.content;
+   const expiry=document.createElement('small');const date=new Date(record.expiresAt);expiry.textContent=Number.isFinite(date.getTime())?'Se conserva hasta el '+date.toLocaleDateString('es-PE',{day:'numeric',month:'short',year:'numeric'})+'.':'';
    const actions=document.createElement('div');actions.className='app-actions';
    const edit=button('Corregir',()=>{
     const form=document.createElement('form'),label=document.createElement('label'),input=document.createElement('textarea');
@@ -43,7 +44,7 @@ function init(){
     text.hidden=true;actions.replaceWith(form);input.focus();
    });
    const forget=button('Olvidar',()=>{void change({action:'forget',key:record.key});});
-   actions.append(edit,forget);row.append(title,text,actions);list.append(row);
+   actions.append(edit,forget);row.append(title,text,expiry,actions);list.append(row);
   }
  }
  toggle.addEventListener('click',()=>{if(snapshot)void change({action:snapshot.enabled?'disable':'enable'});});
