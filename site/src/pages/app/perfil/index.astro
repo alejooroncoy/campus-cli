@@ -74,10 +74,10 @@ import AppShell from "../../../layouts/AppShell.astro";
     </section><aside class="app-panel"><p class="app-kicker">Una sola cuenta</p><h2>Tu Campus, conectado.</h2><p>Entra con la misma cuenta en la web y en tu conector MCP. Tu plan define el uso disponible en cada canal.</p><ul class="app-info-list"><li>Tu identidad en Campus</li><li>Un plan para la web y el MCP</li><li>Tus consultas web disponibles</li><li>Tu horario y matrícula de Banner</li></ul><a class="app-text-link" href="/app/copilot/">Usar Campus con mi IA <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><p>Campus Free incluye 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web e ilimitadas mediante MCP.</p></aside></div>
     <details class="app-panel app-memory" data-memory-root>
       <summary><strong>Lo que Campus recuerda de ti</strong></summary>
-      <p>Preferencias y metas breves para continuar entre conversaciones. Puedes corregirlas u olvidarlas. Tu historial de chats se gestiona por separado.</p>
+      <p>Tus preferencias y metas entre chats. Puedes corregirlas u olvidarlas.</p>
       <p data-memory-status role="status" aria-live="polite">Abre esta sección para ver tu memoria.</p>
       <div data-memory-list></div>
-      <p>Al desactivar la memoria, se olvidan sus recuerdos guardados.</p>
+      <p>Desactivar también olvida los recuerdos guardados.</p>
       <div class="app-actions">
         <button class="app-button app-button--secondary" type="button" data-memory-refresh>Actualizar</button>
         <button class="app-text-link" type="button" data-memory-toggle hidden>Desactivar memoria</button>
@@ -99,6 +99,9 @@ import AppShell from "../../../layouts/AppShell.astro";
 .app-memory .memory-record p { white-space: pre-wrap; overflow-wrap: anywhere; }
 .app-memory .memory-record h3 { margin: 0; font-size: 1rem; }
 .app-memory textarea { width: 100%; min-height: 5rem; padding: .75rem; border: 1px solid #b6d4df; border-radius: .75rem; color: #102f3e; background: white; font: inherit; resize: vertical; }
+.app-memory button.app-text-link { appearance: none; border: 0; background: transparent; padding: .5rem 0; min-height: 44px; color: #007d9d; font: inherit; font-weight: 600; cursor: pointer; text-align: left; }
+.app-memory button.app-text-link:hover { text-decoration: underline; }
+.app-memory button:focus-visible { outline: 2px solid #00b4df; outline-offset: 3px; }
 .app-memory .app-actions { flex-wrap: wrap; gap: 1rem; }
 .app-memory [data-memory-status] { color: #4b6b7b; }
 </style>

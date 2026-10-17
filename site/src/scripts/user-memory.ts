@@ -28,7 +28,7 @@ function init(){
  function button(text:string,action:()=>void){const b=document.createElement('button');b.type='button';b.className='app-text-link';b.textContent=text;b.addEventListener('click',action);return b;}
  function render(){
   if(!snapshot)return;list.replaceChildren();toggle.hidden=false;toggle.textContent=snapshot.enabled?'Desactivar memoria':'Activar memoria';clear.hidden=!snapshot.records.length;
-  status.textContent=!snapshot.enabled?'Memoria desactivada. No guardaremos ni usaremos recuerdos.':snapshot.records.length?'Solo se conservan declaraciones breves; las notas y conexiones se consultan en su fuente.':'Aún no hay recuerdos. Puedes decirle al asistente cómo prefieres aprender o cuál es tu meta.';
+  status.textContent=!snapshot.enabled?'Memoria desactivada. No guardaremos ni usaremos recuerdos.':snapshot.records.length?`${snapshot.records.length} ${snapshot.records.length===1?'recuerdo guardado':'recuerdos guardados'}.`:'Aún no hay recuerdos. Puedes decirle al asistente cómo prefieres aprender o cuál es tu meta.';
   for(const record of snapshot.records){
    if(!Object.hasOwn(labels,record.key))continue;
    const row=document.createElement('section');row.className='memory-record';
