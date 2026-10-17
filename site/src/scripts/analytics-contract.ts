@@ -26,6 +26,8 @@ const categories: Record<string, readonly string[]> = {
   previous_status: ['payment_review', 'processing', 'completed', 'payment_rejected'],
   report_kind: ['similarity', 'ai'],
   provider: ['chatgpt', 'claude', 'gemini'],
+  aiClient: ['chatgpt', 'gemini', 'claude', 'cursor', 'vscode'],
+  aiClientSource: ['handoff_url'],
   upload_kind: ['document', 'receipt'], copy_kind: ['name', 'url'],
   viewport: ['mobile', 'tablet', 'desktop'], environment: ['development', 'production'],
 };

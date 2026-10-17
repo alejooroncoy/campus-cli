@@ -161,3 +161,20 @@ try {
   assert.equal('message' in JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties, false);
 } finally { console.debug = savedDebug; }
 console.log('Analytics engagement: minimum foreground dwell, no smooth-scroll false impressions and no duplicate section views pass.');
+
+
+const handoffBundle=await build({entryPoints:['src/scripts/mcp-handoff.ts'],bundle:true,format:'esm',write:false});
+const {mcpHandoff,clearMcpHandoff}=await import(`data:text/javascript;base64,${Buffer.from(handoffBundle.outputFiles[0].text).toString('base64')}`);
+const handoffMap=new Map(),handoffStorage={getItem:k=>handoffMap.get(k)??null,setItem:(k,v)=>handoffMap.set(k,v),removeItem:k=>handoffMap.delete(k)};
+for(const aiClient of ['chatgpt','gemini']){
+ const expected={aiClient,aiClientSource:'handoff_url'};
+ assert.deepEqual(mcpHandoff(`https://campuscli.com/app/turnitin/?source=mcp&ai_client=${aiClient}&secret=private`,handoffStorage,1000),expected);
+ assert.deepEqual(mcpHandoff('https://campuscli.com/app/turnitin/',handoffStorage,2000),expected,'OAuth return retains bounded handoff');
+ assert.deepEqual(mcpHandoff('https://campuscli.com/app/turnitin/',handoffStorage,1801001),{},'Old handoffs expire');
+}
+assert.deepEqual(mcpHandoff('https://campuscli.com/app/turnitin/?source=mcp&ai_client=private@example.test',handoffStorage,1000),{});
+assert.deepEqual(mcpHandoff('https://campuscli.com/?source=mcp&ai_client=chatgpt',handoffStorage,1000),{},'Unrelated routes cannot establish a Turnitin handoff');
+mcpHandoff('https://campuscli.com/app/turnitin/?source=mcp&ai_client=gemini',handoffStorage,1000);clearMcpHandoff(handoffStorage);
+assert.equal(handoffMap.size,0);
+assert.deepEqual(safeAnalyticsProperties({aiClient:'gemini',aiClientSource:'handoff_url',download_url:'https://private',aiClientName:'private'}),{aiClient:'gemini',aiClientSource:'handoff_url'});
+console.log('MCP handoff: closed ChatGPT/Gemini origin, OAuth return, expiry, logout and redaction passed.');
