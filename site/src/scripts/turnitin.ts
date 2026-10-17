@@ -4,7 +4,7 @@ import { setupTurnitinUploads } from './turnitin-upload';
 import { setupTurnitinLogin } from './turnitin-login';
 import { setupTurnitinReportViewer, type ReportKind } from './turnitin-report-viewer';
 type Order = {
-  id: string; amountCents: number; status: string; documentName: string; note: string;
+  id: string; amountCents: number; status: string; documentName: string; note: string; isTest?: boolean;
   createdAt: string; paidAt: string | null;
 };
 type Config = { enabled: boolean; ordersAvailable: boolean; amountCents: number; phone: string; holder: string; maxDocumentBytes: number; maxReceiptBytes: number };
@@ -63,7 +63,7 @@ function setupTurnitin() {
     const anchor = el('a', text);
     anchor.href = `/api/app/turnitin/orders/${order.id}/files/${kind}`;
     anchor.setAttribute('download', '');
-    if (kind === 'similarity' || kind === 'ai') anchor.onclick = () => track('campus_turnitin_download_clicked', { report_kind: kind });
+    if (kind === 'similarity' || kind === 'ai') anchor.onclick = () => track('campus_turnitin_download_clicked', { report_kind: kind, is_test: Boolean(order.isTest) });
     return anchor;
   }
   function reportCard(order: Order, kind: ReportKind) {
@@ -72,12 +72,12 @@ function setupTurnitin() {
     const title = kind === 'similarity' ? 'Informe de similitud' : 'Informe de IA';
     box.setAttribute('aria-label', title);
     box.append(el('span', 'PDF · Disponible', 'ti-file-label'), el('h4', title),
-      el('p', kind === 'similarity' ? 'Consulta las coincidencias de texto y sus fuentes.' : 'Consulta el resultado de detección de escritura con IA.'));
+      el('p', order.isTest ? 'PDF ficticio para comprobar la entrega. Sin análisis real.' : kind === 'similarity' ? 'Consulta las coincidencias de texto y sus fuentes.' : 'Consulta el resultado de detección de escritura con IA.'));
     const actions = el('div', '', 'ti-file-actions');
     const view = el('button', 'Ver informe', 'app-button');
     view.type = 'button';
     view.setAttribute('aria-label', `Ver ${title.replace('Informe', 'informe')} de ${order.documentName}`);
-    view.onclick = () => setupTurnitinReportViewer()?.open({ id: order.id, documentName: order.documentName }, kind);
+    view.onclick = () => setupTurnitinReportViewer()?.open({ id: order.id, documentName: order.documentName, isTest: order.isTest }, kind);
     const download = link(order, kind, 'Descargar PDF ↓');
     download.className = 'app-button app-button--secondary';
     download.setAttribute('aria-label', `Descargar ${title.replace('Informe', 'informe')} de ${order.documentName}`);
@@ -96,13 +96,13 @@ function setupTurnitin() {
       const card = el('article', '', 'ti-order');
       card.id = `ti-order-${order.id}`; card.dataset.status = order.status;
       const head = el('div', '', 'ti-order-heading');
-      head.append(el('h3', order.documentName), el('span', labels[order.status] ?? order.status, 'ti-tag'));
+      head.append(el('h3', order.documentName), el('span', order.isTest ? (order.status === 'completed' ? 'Prueba entregada' : 'Prueba en preparación') : labels[order.status] ?? order.status, 'ti-tag'));
       card.append(head);
       {
         const progress = el('ol', '', 'ti-order-progress');
         progress.setAttribute('aria-label', 'Avance de tu revisión');
         const position = order.status === 'completed' ? 2 : order.status === 'processing' ? 1 : 0;
-        ['Pago', 'Revisión', 'Informes'].forEach((label, index) => {
+        [order.isTest ? 'Prueba' : 'Pago', 'Revisión', 'Informes'].forEach((label, index) => {
           const step = el('li', label); step.dataset.progress = index < position ? 'done' : index === position ? 'current' : 'pending';
           if (index === position) step.setAttribute('aria-current', 'step');
           progress.append(step);
@@ -110,6 +110,7 @@ function setupTurnitin() {
         card.append(progress);
       }
       card.append(el('p', `${money(order.amountCents)} · ${new Date(order.createdAt).toLocaleString('es-PE', { timeZone: 'America/Lima', dateStyle: 'short', timeStyle: 'short' })} · Pedido ${order.id.slice(0,8)}`, 'ti-small'));
+      if (order.isTest) card.append(el('p', 'Prueba sin abono · PDF ficticios, sin análisis real.', 'ti-small'));
       if (order.note) card.append(el('p', order.note));
       if (order.status === 'processing' && order.paidAt) card.append(el('p', 'Entrega de 10 minutos a 1 hora desde la validación del pago.', 'ti-small'));
       if (order.status === 'completed') {
@@ -122,11 +123,11 @@ function setupTurnitin() {
           summary.append(el('span', 'Ver informes de similitud e IA'), el('span', '', 'ti-disclosure'));
           summary.lastElementChild!.setAttribute('aria-hidden', 'true');
           details.append(summary, reports);
-          details.ontoggle = () => { if (details.open) { openReports.add(order.id); track('campus_turnitin_reports_opened'); } else openReports.delete(order.id); };
+          details.ontoggle = () => { if (details.open) { openReports.add(order.id); track('campus_turnitin_reports_opened', { is_test: Boolean(order.isTest) }); } else openReports.delete(order.id); };
           card.append(details);
         }
       } else {
-        card.append(el('p', order.status === 'payment_rejected' ? 'Revisa la observación del pago antes de solicitar una nueva revisión.' : order.status === 'payment_review' ? 'Recibimos tu documento y comprobante. Ahora validamos el pago.' : 'Pago validado. Estamos preparando tus informes.', 'ti-muted'));
+        card.append(el('p', order.status === 'payment_rejected' ? 'Revisa la observación del pago antes de solicitar una nueva revisión.' : order.status === 'payment_review' ? 'Recibimos tu documento y comprobante. Ahora validamos el pago.' : order.isTest ? 'Estamos preparando los PDF de prueba.' : 'Pago validado. Estamos preparando tus informes.', 'ti-muted'));
       }
       target.append(card);
     }
@@ -155,7 +156,7 @@ function setupTurnitin() {
         announce('Tus informes ya están listos. Ábrelos en Mis revisiones.');
       for (const order of orders) {
         const previous = statuses.get(order.id);
-        if (previous !== order.status) track('campus_turnitin_status_updated', { order_status: order.status, previous_status: previous });
+        if (previous !== order.status) track('campus_turnitin_status_updated', { order_status: order.status, previous_status: previous, is_test: Boolean(order.isTest) });
       }
       for (const order of orders) statuses.set(order.id, order.status);
       if (!ordersLoaded || reset || (!append && (historyFilter !== 'all' || Boolean(historySearch)))) historyOrders = orders;
