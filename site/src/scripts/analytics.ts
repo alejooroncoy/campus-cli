@@ -1,4 +1,5 @@
 import { beginAccountHandoff, completeAccountHandoff } from './account-onboarding.ts';
+import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
 import type { PostHog } from 'posthog-js';
@@ -107,6 +108,7 @@ export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
 export function track(event: string, properties: Record<string, unknown> = {}): void {
   if (!browser || !events.has(event)) return;
   const item = { event, properties: safeAnalyticsProperties({
+    ...(() => { try { return mcpHandoff(location.href, sessionStorage); } catch { return {}; } })(),
     page: analyticsPage(location.pathname), current_plan: currentPlan,
     ...(isTest!==undefined?{is_test:isTest}:{}),
     selected_plan: selectedPlan(),
@@ -150,6 +152,7 @@ export function analyticsSession(session: CampusSession): void {
   track(firstReady ? 'campus_session_ready' : 'campus_usage_updated', { authenticated: session.authenticated, remaining: session.usage?.remaining, limit: session.usage?.limit });
 }
 export function resetAnalytics(): void {
+  if (browser) { try { clearMcpHandoff(sessionStorage); } catch { /* Optional. */ } }
   identity = undefined; currentPlan = 'guest'; isTest = false;
   readyContext = ''; lastSessionState = '';
   queue = [];

@@ -50,7 +50,7 @@ try{
     }
     unexpected.push(url.origin+url.pathname);await route.abort();
   });
-  await page.goto('https://campus.analytics.test/app/plus/?code=private-oauth',{waitUntil:'domcontentloaded'});
+  await page.goto('https://campus.analytics.test/app/turnitin/?source=mcp&ai_client=chatgpt&code=private-oauth',{waitUntil:'domcontentloaded'});
   let timer;
   try{await Promise.race([received,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Real SDK did not deliver the checkout events: '+JSON.stringify({errors,unexpected,requested,messages,shapes:events.map(e=>({keys:Object.keys(e),event:e.event}))}))),15000);})]);}
   finally{clearTimeout(timer);}
@@ -58,6 +58,7 @@ try{
     const event=events.find(e=>e.event===name);assert.ok(event);
     assert.equal(event.properties.token,key,'Privacy filtering must preserve SDK ingestion authentication');
     assert.equal(event.properties.distinct_id,buyer,'Google buyer identity must match the server');
+    assert.equal(event.properties.aiClient,'chatgpt');assert.equal(event.properties.aiClientSource,'handoff_url');
     assert.equal(event.properties.current_plan,'free');assert.equal(event.properties.environment,'production');
   }
   assert.equal(events.find(e=>e.event==='campus_plus_checkout_viewed').properties.amount_cents,500);
