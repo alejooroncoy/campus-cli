@@ -4,7 +4,7 @@ import type { PDFDocumentProxy, PDFDocumentLoadingTask, RenderTask } from 'pdfjs
 
 export type ReportKind = 'similarity' | 'ai';
 export type PreviewKind = ReportKind;
-export type ReportOrder = { id: string; documentName: string;  };
+export type ReportOrder = { id: string; documentName: string; isTest?: boolean; };
 const initialized = new WeakMap<HTMLDialogElement, { open: (order: ReportOrder, kind: PreviewKind) => void }>();
 const titles: Record<PreviewKind, string> = { similarity: 'Informe de similitud', ai: 'Informe de IA' };
 const reportUrl = (order: ReportOrder, kind: PreviewKind) =>
@@ -92,7 +92,7 @@ export function setupTurnitinReportViewer() {
       text.textContent = content.items.map(item => 'str' in item ? item.str : '').join(' ').slice(0, 300000);
       text.setAttribute('aria-label', `Página ${pageNumber} de ${currentPdf.numPages}. ${titles[kind]}`);
       if (displayedGeneration !== documentVersion) {
-        displayedGeneration = documentVersion; track('campus_turnitin_report_displayed', { report_kind: kind });
+        displayedGeneration = documentVersion; track('campus_turnitin_report_displayed', { report_kind: kind, is_test: Boolean(order?.isTest) });
       }
       message.textContent = 'Puedes leer el informe aquí o descargar el PDF.';
       pageLabel.textContent = `Página ${pageNumber} de ${currentPdf.numPages}`;
@@ -110,9 +110,9 @@ export function setupTurnitinReportViewer() {
     kind = selected; pageNumber = 1; zoom.value = '1'; stage.scrollTop = stage.scrollLeft = 0;
     const version = generation;
     const currentOrder = order;
-    track('campus_turnitin_report_requested', { report_kind: selected });
+    track('campus_turnitin_report_requested', { report_kind: selected, is_test: Boolean(currentOrder.isTest) });
     switcher.hidden = false; footer.hidden = false;
-    find<HTMLElement>('[data-ti-viewer-context]').textContent = 'Tu revisión de Turnitin';
+    find<HTMLElement>('[data-ti-viewer-context]').textContent = currentOrder.isTest ? 'Prueba sin análisis real' : 'Tu revisión de Turnitin';
     retry.hidden = login.hidden = true;
     pageLabel.textContent = 'Página —';
     find<HTMLElement>('[data-ti-report-title]').textContent = titles[kind];
@@ -157,7 +157,7 @@ export function setupTurnitinReportViewer() {
       await renderPage();
     } catch (error) {
       if (version !== generation || !dialog.open) return;
-      track('campus_flow_failed', { step: 'report', error_kind: 'unavailable', report_kind: selected });
+      track('campus_flow_failed', { step: 'report', error_kind: 'unavailable', report_kind: selected, is_test: Boolean(currentOrder.isTest) });
       message.textContent = error instanceof Error && error.name !== 'AbortError'
         ? failureMessage : 'La carga tardó demasiado. Vuelve a intentar o descarga el PDF.';
       retry.hidden = !login.hidden;
@@ -170,7 +170,7 @@ export function setupTurnitinReportViewer() {
   next.onclick = () => { if (pdf && pageNumber < pdf.numPages) { pageNumber++; stage.scrollTop = 0; void renderPage(); } };
   zoom.onchange = () => void renderPage();
   retry.onclick = () => void load(kind);
-  download.onclick = () => { if (order) track('campus_turnitin_download_clicked', { report_kind: kind }); };
+  download.onclick = () => { if (order) track('campus_turnitin_download_clicked', { report_kind: kind, is_test: Boolean(order?.isTest) }); };
   find<HTMLButtonElement>('[data-ti-report-close]').onclick = () => dialog.close();
   dialog.addEventListener('close', () => {
     clearDocument(); order = null;
