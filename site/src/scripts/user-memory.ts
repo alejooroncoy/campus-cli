@@ -21,7 +21,7 @@ function init(){
    const r=await fetch('/api/app/memory',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json',...analyticsHeaders()},body:JSON.stringify({revision:snapshot.revision,change:value})});
    if(r.status===409){setBusy(false);await load();status.textContent='Tu memoria cambió en otra consulta. Revisa la versión actual antes de editar.';return;}
    if(!r.ok){status.textContent=r.status===400?'Usa una declaración breve como “Prefiero respuestas breves”, sin datos sensibles.':'No se guardó el cambio. Vuelve a intentarlo.';return;}
-   snapshot=await r.json();render();status.textContent='Memoria actualizada.';
+   snapshot=await r.json();render();status.textContent=value.action==='disable'?'Memoria desactivada. No guardaremos ni usaremos recuerdos.':value.action==='enable'?'Memoria activada. Puedes contarle tus preferencias al asistente.':value.action==='clear'?'Olvidamos todos los recuerdos.':value.action==='forget'?'Recuerdo olvidado.':'Recuerdo actualizado.';
   }catch{status.textContent='No se pudo confirmar el cambio. Actualiza para comprobarlo antes de volver a editar.';}
   finally{setBusy(false);}
  }
