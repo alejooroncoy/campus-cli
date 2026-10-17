@@ -661,7 +661,7 @@ function profesTransport(
       if (pending.trim()) readEvent(pending.trim());
       if (!answer.trim()) throw new Error("Campus no devolvió una respuesta.");
       track('campus_answer_displayed', { remaining: usage?.remaining, limit: usage?.limit });
-      onUsage(usage);
+      if(usage)onUsage(usage);
       if (convId) onConversationCreated(convId, convTitle);
       if (miupcReconnectRequired || upcReconnectRequired) onMiupcReconnect(convId ?? activeConvId,upcReconnectRequired);
       else if(miupcConnectionRestored)onMiupcRestored();

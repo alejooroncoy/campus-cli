@@ -1,7 +1,7 @@
 // Explicit event/property contracts: never export text, URLs with parameters,
 // academic content, file names, email, OAuth codes or receipts.
 export const events = new Set([
-  'campus_plus_checkout_viewed', 'campus_plus_receipt_selected', 'campus_plus_submit_started', 'campus_plus_status_viewed', 'campus_plus_payment_copied',
+  'campus_memory_viewed', 'campus_plus_checkout_viewed', 'campus_plus_receipt_selected', 'campus_plus_submit_started', 'campus_plus_status_viewed', 'campus_plus_payment_copied',
   'campus_page_viewed', 'campus_section_viewed', 'campus_cta_clicked',
   'campus_details_opened', 'campus_university_step_viewed', 'campus_university_selected',
   'campus_account_access_completed', 'campus_conversation_restored', 'campus_university_carried',
