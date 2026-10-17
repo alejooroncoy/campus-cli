@@ -388,7 +388,7 @@ function formatStudentName(raw?: string | null): string {
 }
 
 
-function ProfessorCard({
+export function ProfessorCard({
   data,
   onAskAbout,
   onLeaveReview,
@@ -426,9 +426,9 @@ function ProfessorCard({
       {(data.difficulty !== undefined || data.reviews !== undefined) ? (
         <div className="app-prof-card__metrics">
           {data.difficulty !== undefined ? (
-            <div className="app-prof-metric" title="Dificultad (de 1 a 5)">
+            <div className="app-prof-metric" title="Dificultad (de 0 a 10)">
               <span>Dificultad:</span>
-              <strong className="app-prof-metric__val">{data.difficulty.toFixed(1)} / 5</strong>
+              <strong className="app-prof-metric__val">{data.difficulty.toFixed(1)} / 10</strong>
             </div>
           ) : null}
           {data.reviews !== undefined ? (
