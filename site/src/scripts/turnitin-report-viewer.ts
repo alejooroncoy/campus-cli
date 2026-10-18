@@ -4,7 +4,7 @@ import type { PDFDocumentProxy, PDFDocumentLoadingTask, RenderTask } from 'pdfjs
 
 export type ReportKind = 'similarity' | 'ai';
 export type PreviewKind = ReportKind;
-export type ReportOrder = { id: string; documentName: string; isTest?: boolean; };
+export type ReportOrder = { id: string; documentName: string; isTest?: boolean; availableReports?: ReportKind[]; };
 const initialized = new WeakMap<HTMLDialogElement, { open: (order: ReportOrder, kind: PreviewKind) => void }>();
 const titles: Record<PreviewKind, string> = { similarity: 'Informe de similitud', ai: 'Informe de IA' };
 const reportUrl = (order: ReportOrder, kind: PreviewKind) =>
@@ -112,6 +112,9 @@ export function setupTurnitinReportViewer() {
     const currentOrder = order;
     track('campus_turnitin_report_requested', { report_kind: selected, is_test: Boolean(currentOrder.isTest) });
     switcher.hidden = false; footer.hidden = false;
+    dialog.querySelectorAll<HTMLButtonElement>('[data-ti-report-kind]').forEach(button => {
+      button.hidden = Boolean(currentOrder.availableReports && !currentOrder.availableReports.includes(button.dataset.tiReportKind as ReportKind));
+    });
     find<HTMLElement>('[data-ti-viewer-context]').textContent = currentOrder.isTest ? 'Prueba sin análisis real' : 'Tu revisión de Turnitin';
     retry.hidden = login.hidden = true;
     pageLabel.textContent = 'Página —';

@@ -6,6 +6,7 @@ import { setupTurnitinReportViewer, type ReportKind } from './turnitin-report-vi
 type Order = {
   id: string; amountCents: number; status: string; documentName: string; note: string; isTest?: boolean;
   createdAt: string; paidAt: string | null;
+  availableReports?: ReportKind[];
 };
 type Config = { enabled: boolean; ordersAvailable: boolean; amountCents: number; phone: string; holder: string; maxDocumentBytes: number; maxReceiptBytes: number };
 const labels: Record<string,string> = { payment_review: 'Comprobante en revisión', processing: 'Preparando tus informes', completed: 'Informes listos', payment_rejected: 'Pago observado' };
@@ -77,7 +78,7 @@ function setupTurnitin() {
     const view = el('button', 'Ver informe', 'app-button');
     view.type = 'button';
     view.setAttribute('aria-label', `Ver ${title.replace('Informe', 'informe')} de ${order.documentName}`);
-    view.onclick = () => setupTurnitinReportViewer()?.open({ id: order.id, documentName: order.documentName, isTest: order.isTest }, kind);
+    view.onclick = () => setupTurnitinReportViewer()?.open({ id: order.id, documentName: order.documentName, isTest: order.isTest, availableReports: order.availableReports }, kind);
     const download = link(order, kind, 'Descargar PDF ↓');
     download.className = 'app-button app-button--secondary';
     download.setAttribute('aria-label', `Descargar ${title.replace('Informe', 'informe')} de ${order.documentName}`);
@@ -113,18 +114,25 @@ function setupTurnitin() {
       if (order.isTest) card.append(el('p', 'Prueba sin abono · PDF ficticios, sin análisis real.', 'ti-small'));
       if (order.note) card.append(el('p', order.note));
       if (order.status === 'processing' && order.paidAt) card.append(el('p', 'Entrega de 10 minutos a 1 hora desde la validación del pago.', 'ti-small'));
-      if (order.status === 'completed') {
+      const availableReports = order.availableReports ?? (order.status === 'completed' ? ['similarity', 'ai'] as ReportKind[] : []);
+      if (availableReports.length) {
         const reports = el('div', '', 'ti-file-grid');
-        reports.append(reportCard(order, 'similarity'), reportCard(order, 'ai'));
-        {
+        for (const kind of availableReports) reports.append(reportCard(order, kind));
+        if (order.status === 'completed') {
           const details = el('details', '', 'ti-order-reports');
           details.open = openReports.has(order.id);
           const summary = el('summary');
-          summary.append(el('span', 'Ver informes de similitud e IA'), el('span', '', 'ti-disclosure'));
+          const label = availableReports.length === 1 ? `Ver informe de ${availableReports[0] === 'similarity' ? 'similitud' : 'IA'}` : 'Ver informes de similitud e IA';
+          summary.append(el('span', label), el('span', '', 'ti-disclosure'));
           summary.lastElementChild!.setAttribute('aria-hidden', 'true');
           details.append(summary, reports);
           details.ontoggle = () => { if (details.open) { openReports.add(order.id); track('campus_turnitin_reports_opened', { is_test: Boolean(order.isTest) }); } else openReports.delete(order.id); };
           card.append(details);
+        } else {
+          const names = availableReports.map(kind => kind === 'similarity' ? 'similitud' : 'IA');
+          card.append(el('p', `${availableReports.length === 1 ? 'El informe' : 'Los informes'} de ${names.join(' e ')} ${availableReports.length === 1 ? 'ya está disponible' : 'ya están disponibles'}.`, 'ti-small'), reports);
+          const pending = (['similarity', 'ai'] as const).filter(kind => !availableReports.includes(kind));
+          if (pending.length) card.append(el('p', `El informe de ${pending.map(kind => kind === 'similarity' ? 'similitud' : 'IA').join(' e ')} aparecerá aquí cuando esté listo.`, 'ti-muted'));
         }
       } else {
         card.append(el('p', order.status === 'payment_rejected' ? 'Revisa la observación del pago antes de solicitar una nueva revisión.' : order.status === 'payment_review' ? 'Recibimos tu documento y comprobante. Ahora validamos el pago.' : order.isTest ? 'Estamos preparando los PDF de prueba.' : 'Pago validado. Estamos preparando tus informes.', 'ti-muted'));
@@ -152,13 +160,19 @@ function setupTurnitin() {
         if (disposed || version !== historyVersion) return;
         for (const update of updates) if (update.status === 'fulfilled' && update.value.order) orders.push(update.value.order);
       }
-      if (ordersLoaded && orders.some(order => order.status === 'completed' && statuses.has(order.id) && statuses.get(order.id) !== 'completed'))
-        announce('Tus informes ya están listos. Ábrelos en Mis revisiones.');
       for (const order of orders) {
         const previous = statuses.get(order.id);
-        if (previous !== order.status) track('campus_turnitin_status_updated', { order_status: order.status, previous_status: previous, is_test: Boolean(order.isTest) });
+        const available = order.availableReports ?? (order.status === 'completed' ? ['similarity', 'ai'] as ReportKind[] : []);
+        const progress = `${order.status}:${available.join(',')}`;
+        if (ordersLoaded && previous && previous !== progress) {
+          const previousReports = previous.slice(previous.indexOf(':') + 1).split(',').filter(Boolean);
+          const addedReports = available.filter(kind => !previousReports.includes(kind));
+          if (order.status === 'completed' && !previous.startsWith('completed:')) announce('Tus informes ya están listos. Ábrelos en Mis revisiones.');
+          else if (addedReports.length) announce('Ya tienes un informe disponible. Puedes abrirlo o descargarlo en Mis revisiones.');
+        }
+        if (previous !== progress) track('campus_turnitin_status_updated', { order_status: order.status, previous_status: previous?.split(':')[0], is_test: Boolean(order.isTest) });
+        statuses.set(order.id, progress);
       }
-      for (const order of orders) statuses.set(order.id, order.status);
       if (!ordersLoaded || reset || (!append && (historyFilter !== 'all' || Boolean(historySearch)))) historyOrders = orders;
       else {
         const merged = new Map(historyOrders.map(order => [order.id, order]));
