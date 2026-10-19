@@ -238,7 +238,7 @@ function setupTurnitin() {
   };
   search.oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(searchHistory, 300); };
   search.addEventListener('search', searchHistory);
-  const uploads = setupTurnitinUploads(form, kind => kind === 'document' ? (config?.maxDocumentBytes ?? 10 * 1024 * 1024) : (config?.maxReceiptBytes ?? 5 * 1024 * 1024));
+  const uploads = setupTurnitinUploads(form, kind => kind === 'document' ? (config?.maxDocumentBytes ?? 20 * 1024 * 1024) : (config?.maxReceiptBytes ?? 5 * 1024 * 1024));
   const request = setupTurnitinRequest(form, uploads);
   const requestPanel = document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!;
   requestPanel.addEventListener('toggle', () => { if (requestPanel.open && !form.hidden && !fields.disabled) request.start(); });

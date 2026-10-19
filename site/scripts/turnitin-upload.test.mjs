@@ -6,15 +6,15 @@ const pdf = new File(['%PDF-1.4 fixture'], 'Trabajo.PDF', {type:'application/pdf
 const image = new File(['fixture image'], 'comprobante.png', {type:'image/png'});
 
 test('file selection accepts PDF/DOCX documents and image/PDF receipts with separate limits', () => {
-  assert.equal(uploadError([pdf],'document',10*MB),null);
-  assert.equal(uploadError([{name:'trabajo.docx',size:10*MB}],'document',10*MB),null);
+  assert.equal(uploadError([pdf],'document',20*MB),null);
+  assert.equal(uploadError([{name:'trabajo.docx',size:20*MB}],'document',20*MB),null);
   assert.equal(uploadError([image],'receipt',5*MB),null);
-  assert.match(uploadError([image],'document',10*MB),/PDF o Word/);
-  assert.match(uploadError([{name:'trabajo.pdf.exe',size:1}],'document',10*MB),/PDF o Word/);
+  assert.match(uploadError([image],'document',20*MB),/PDF o Word/);
+  assert.match(uploadError([{name:'trabajo.pdf.exe',size:1}],'document',20*MB),/PDF o Word/);
   assert.match(uploadError([{name:'pago.pdf',size:5*MB+1}],'receipt',5*MB),/5 MB/);
-  assert.match(uploadError([{name:'trabajo.pdf',size:10*MB+1}],'document',10*MB),/10 MB/);
-  assert.match(uploadError([{name:'trabajo.pdf',size:0}],'document',10*MB),/vacío/);
-  assert.match(uploadError([pdf,pdf],'document',10*MB),/solo archivo/);
+  assert.match(uploadError([{name:'trabajo.pdf',size:20*MB+1}],'document',20*MB),/20 MB/);
+  assert.match(uploadError([{name:'trabajo.pdf',size:0}],'document',20*MB),/vacío/);
+  assert.match(uploadError([pdf,pdf],'document',20*MB),/solo archivo/);
 });
 
 // Event targets keep these interaction tests independent of a browser package.
@@ -31,7 +31,7 @@ function fixture() {
   Object.assign(zone,{focused:false,focus(){this.focused=true;},querySelector(selector){return selector==='input[type=file]'?input:name;},
     classList:{add:x=>tokens.add(x),remove:x=>tokens.delete(x),toggle:(x,on)=>on?tokens.add(x):tokens.delete(x)}});
   const form={querySelectorAll:()=>[zone],querySelector:selector=>selector.includes('upload-error')?error:remove};
-  const controls=setupTurnitinUploads(form,()=>10*MB);
+  const controls=setupTurnitinUploads(form,()=>20*MB);
   const event=(type,values={})=>{const e=new Event(type,{cancelable:true});Object.assign(e,values);zone.dispatchEvent(e);return e;};
   return {zone,input,name,error,remove,tokens,controls,event};
 }
@@ -69,12 +69,12 @@ test('picker validation, keyboard activation, disabled submission and reset pres
   f.controls.reset();assert.equal(f.remove.hidden,true);assert.equal(f.tokens.has('ti-upload--selected'),false);
 });
 
-test('staff report selections require PDFs and retain distinct 10 MB limits',()=>{
+test('staff report selections require PDFs and allow up to 20 MB each',()=>{
   for(const kind of ['similarity','ai']){
-    assert.equal(uploadError([pdf],kind,10*MB),null);
-    assert.match(uploadError([image],kind,10*MB),/informe PDF/);
-    assert.match(uploadError([{name:'informe.docx',size:100}],kind,10*MB),/informe PDF/);
-    assert.match(uploadError([{name:'informe.pdf',size:10*MB+1}],kind,10*MB),/10 MB/);
-    assert.match(uploadError([pdf,pdf],kind,10*MB),/solo archivo/);
+    assert.equal(uploadError([pdf],kind,20*MB),null);
+    assert.match(uploadError([image],kind,20*MB),/informe PDF/);
+    assert.match(uploadError([{name:'informe.docx',size:100}],kind,20*MB),/informe PDF/);
+    assert.match(uploadError([{name:'informe.pdf',size:20*MB+1}],kind,20*MB),/20 MB/);
+    assert.match(uploadError([pdf,pdf],kind,20*MB),/solo archivo/);
   }
 });
