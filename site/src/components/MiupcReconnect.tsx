@@ -253,9 +253,11 @@ export default function MiupcReconnect({disabled,upcRequired,conversationId,noti
   const waiting=starting||restoring||connection?.status==='pending_login'||connection?.status==='saving';
   const done=connection?.status==='connected'||accessReady||checkGrades;
   const needsUpcAccess=connection?.status==='upc_reconnect_required'||connection?.status==='reconnect_required';
+  const statusLoading=starting||restoring||checkingAccess||connection?.status==='saving'||error.includes('Seguimos comprobando');
+  const statusText=checkGrades?'Campus tiene una conexión guardada. Vuelve a preguntar por tus notas para comprobar el acceso actual.':accessReady?'Ya puedes volver a preguntar por tus notas en esta conversación.':restoring?'Recuperando la verificación…':checkingAccess?'Comprobando tu acceso UPC…':starting?'Preparando la ventana segura…':error||(connection?copy[connection.status]:'Reconecta para consultar tus notas. Tu conversación y lo que estás escribiendo se conservan.');
   return <aside className="app-miupc-reconnect" aria-label="Reconexión de Mi UPC">
     <div><strong>{checkGrades?'Comprueba tus notas':accessReady?'Acceso UPC actualizado':done?'Mi UPC está conectado':needsUpcAccess?'Actualiza tu acceso UPC':'Mi UPC necesita verificar tu acceso'}</strong>
-      <p role="status" aria-live="polite">{checkGrades?'Campus tiene una conexión guardada. Vuelve a preguntar por tus notas para comprobar el acceso actual.':accessReady?'Ya puedes volver a preguntar por tus notas en esta conversación.':restoring?'Recuperando la verificación…':checkingAccess?'Comprobando tu acceso UPC…':starting?'Preparando la ventana segura…':error||(connection?copy[connection.status]:'Reconecta para consultar tus notas. Tu conversación y lo que estás escribiendo se conservan.')}</p>
+      <p role="status" aria-live="polite" aria-busy={statusLoading}>{statusLoading?<><span className="app-sr-only">{statusText}</span><span className="app-skeleton app-skeleton--line" aria-hidden="true"/></>:statusText}</p>
     </div>
     <div className="app-miupc-reconnect__actions">
       {needsUpcAccess?<a href="https://profes.campuscli.com/?conectar=banner" target="_blank" rel="noopener noreferrer">Actualizar acceso UPC ↗</a>:done?<button type="button" onClick={onDismiss}>{checkGrades?'Seguir en el chat':'Listo'}</button>:<button type="button" onClick={()=>void start()} disabled={disabled||waiting}>{restoring?'Recuperando…':starting?'Preparando…':waiting?'Esperando verificación…':'Reconectar Mi UPC'}</button>}

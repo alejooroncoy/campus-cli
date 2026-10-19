@@ -4,7 +4,7 @@ import TurnitinLogin from '../../../components/TurnitinLogin.astro';
 import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro';
 ---
 <AppShell title="Informes de Turnitin" active="turnitin">
-  <link rel="stylesheet" href="/turnitin.css" />
+  <link rel="stylesheet" href="/turnitin.css?v=2" />
   <div class="ti-order-shell">
     <header class="ti-order-head">
       <h1>Turnitin</h1>
@@ -12,10 +12,10 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
       <p>Similitud e IA en dos informes PDF.</p>
       <div class="ti-service-facts"><span>10 min a 1 h tras validar el pago y el archivo</span></div>
     </header>
-    <p class="ti-status" data-ti-status role="status" aria-live="polite">Comprobando disponibilidad…</p>
+    <p class="ti-status" data-ti-status role="status" aria-live="polite"><span class="app-sr-only">Comprobando disponibilidad…</span><span class="ti-inline-skeleton" aria-hidden="true"></span></p>
     <div class="ti-order-layout">
       <section class="ti-panel ti-reviews" aria-labelledby="ti-my-orders" data-ti-my-orders-panel>
-        <div class="ti-panel-head"><div><h2 id="ti-my-orders">Mis revisiones</h2><p>Consulta el estado y descarga tus PDF.</p></div><button class="app-button app-button--secondary" type="button" data-ti-refresh hidden>Actualizar</button></div>
+        <div class="ti-panel-head"><div><h2 id="ti-my-orders">Mis revisiones</h2><p>Consulta el estado y descarga tus PDF.</p></div><button class="app-button app-button--secondary" type="button" data-ti-refresh hidden><span data-ti-refresh-label>Actualizar</span><span class="ti-inline-skeleton ti-inline-skeleton--button" data-ti-refresh-skeleton aria-hidden="true" hidden></span></button></div>
         <div class="ti-history-tools" data-ti-history-tools hidden>
           <label class="ti-history-search">Buscar un trabajo<input type="search" placeholder="Nombre de tu documento" maxlength="180" data-ti-search /></label>
           <div class="ti-history-filters" role="group" aria-label="Filtrar revisiones por estado">
@@ -27,8 +27,8 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
           </div>
           <p class="ti-history-count" data-ti-history-count role="status" aria-live="polite"></p>
         </div>
-        <div data-ti-orders><p class="ti-muted">Tus revisiones aparecerán aquí.</p></div>
-        <button class="app-button app-button--secondary ti-history-more" type="button" data-ti-more hidden>Ver más revisiones</button>
+        <div data-ti-orders aria-busy="true"><div class="ti-orders-skeleton" role="status" aria-label="Cargando tus revisiones"><article class="ti-order-skeleton"><span class="ti-inline-skeleton ti-inline-skeleton--title" aria-hidden="true"></span><span class="ti-inline-skeleton ti-inline-skeleton--line" aria-hidden="true"></span><span class="ti-inline-skeleton ti-inline-skeleton--line-short" aria-hidden="true"></span><span class="ti-inline-skeleton ti-inline-skeleton--block" aria-hidden="true"></span></article><article class="ti-order-skeleton"><span class="ti-inline-skeleton ti-inline-skeleton--title" aria-hidden="true"></span><span class="ti-inline-skeleton ti-inline-skeleton--line" aria-hidden="true"></span><span class="ti-inline-skeleton ti-inline-skeleton--line-short" aria-hidden="true"></span></article></div></div>
+        <button class="app-button app-button--secondary ti-history-more" type="button" data-ti-more hidden><span data-ti-more-label>Ver más revisiones</span><span class="ti-inline-skeleton ti-inline-skeleton--button" data-ti-more-skeleton aria-hidden="true" hidden></span></button>
         <p class="ti-muted ti-report-note" hidden>El informe de IA puede mostrar «*%» en lugar de un porcentaje exacto.</p>
       </section>
 
@@ -78,7 +78,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <p class="ti-upload-error" id="ti-receipt-error" data-ti-upload-error="receipt" role="alert" hidden></p>
             <div class="ti-submit-footer">
             <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo la revisión de mi documento con Turnitin y he leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
-            <div class="ti-submit-action"><p class="ti-field-help">Sigue el estado y descarga tus informes en Mis revisiones.</p><button class="app-button" type="submit"><span data-ti-submit-text>Enviar revisión</span> <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button></div>
+            <div class="ti-submit-action"><p class="ti-field-help">Sigue el estado y descarga tus informes en Mis revisiones.</p><button class="app-button" type="submit"><span data-ti-submit-text>Enviar revisión</span><span class="ti-inline-skeleton ti-inline-skeleton--button" data-ti-submit-skeleton aria-hidden="true" hidden></span> <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button></div>
             <p class="ti-submit-status" data-ti-submit-status role="status" aria-live="polite" hidden></p>
             </div>
               </section>

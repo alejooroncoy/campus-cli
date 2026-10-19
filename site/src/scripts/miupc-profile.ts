@@ -23,9 +23,16 @@ function initMiupcProfile() {
     not_supported: 'Mi UPC está disponible solo para estudiantes de UPC.',
     not_connected: 'Conecta Mi UPC una vez para consultar tus notas actuales desde Campus.',
   };
+  const renderStatus = (text: string, loading = false) => {
+    status.setAttribute('aria-busy', String(loading));
+    if (!loading) { status.textContent = text; return; }
+    const accessible = document.createElement('span'); accessible.className = 'app-sr-only'; accessible.textContent = text;
+    const skeleton = document.createElement('span'); skeleton.className = 'app-skeleton app-skeleton--line'; skeleton.setAttribute('aria-hidden', 'true');
+    status.replaceChildren(accessible, skeleton);
+  };
   const update = (data: { status: string; loginUrl?: string }) => {
     if (disposed) return;
-    status.textContent = messages[data.status] ?? messages.failed;
+    renderStatus(messages[data.status] ?? messages.failed, data.status === 'saving');
     const waiting = ['pending_login', 'saving'].includes(data.status);
     button.disabled = waiting;
     button.textContent = data.status === 'connected' ? 'Renovar conexión' : 'Conectar Mi UPC';
@@ -39,8 +46,9 @@ function initMiupcProfile() {
   };
   const poll = async () => {
     const current = revision;
+    renderStatus('Comprobando tu conexión de Mi UPC…', true);
     try {
-      if (!canConnectMiupc(await getCampusSession())) return;
+      if (!canConnectMiupc(await getCampusSession())) { update({ status: 'not_supported' }); return; }
       const response = await fetch('/api/app/miupc/connect/', { cache: 'no-store', signal: AbortSignal.timeout(50_000) });
       const data = response.ok ? await response.json() : { status: 'failed' };
       if (current === revision) update(data);
@@ -50,7 +58,7 @@ function initMiupcProfile() {
     revision++;
     if (timer) clearTimeout(timer);
     button.disabled = true;
-    status.textContent = 'Preparando la conexión segura…';
+    renderStatus('Preparando la conexión segura…', true);
     try {
       const response = await fetch('/api/app/miupc/connect/', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(50_000) });
       update(response.ok ? await response.json() : { status: 'failed' });

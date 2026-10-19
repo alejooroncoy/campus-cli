@@ -2,7 +2,14 @@
 import AppShell from "../../../layouts/AppShell.astro";
 ---
 <AppShell title="Mi perfil" active="perfil">
-  <section class="app-profile-loading" data-app-profile-loading aria-live="polite">Comprobando tu cuenta…</section>
+  <section class="app-profile-loading" data-app-profile-loading role="status" aria-live="polite" aria-atomic="true">
+    <span class="app-sr-only">Comprobando tu cuenta…</span>
+    <div class="app-profile-loading__skeleton" aria-hidden="true">
+      <span class="app-skeleton app-skeleton--short"></span>
+      <div class="app-profile-loading__skeleton-card"><span class="app-skeleton app-skeleton--short"></span><span class="app-skeleton app-skeleton--title"></span><span class="app-skeleton app-skeleton--line"></span></div>
+      <div class="app-profile-loading__skeleton-card"><span class="app-skeleton app-skeleton--short"></span><span class="app-skeleton app-skeleton--line"></span><span class="app-skeleton app-skeleton--line"></span></div>
+    </div>
+  </section>
 
   <section class="app-profile-entry" data-app-profile-error hidden role="status">
     <div class="app-profile-entry__content">
@@ -34,8 +41,9 @@ import AppShell from "../../../layouts/AppShell.astro";
       <label for="app-university">Tu universidad</label>
       <input id="app-university" name="university" list="app-university-options" autocomplete="off" placeholder="Busca tu universidad…" required />
       <datalist id="app-university-options" data-app-university-options></datalist>
+      <div class="app-university-loading" data-app-universities-loading role="status" aria-live="polite" hidden><span class="app-sr-only">Cargando universidades…</span><span class="app-skeleton app-skeleton--line" aria-hidden="true"></span><span class="app-skeleton app-skeleton--short" aria-hidden="true"></span></div>
       <button class="app-university-quick" type="button" data-app-select-upc aria-pressed="false" hidden>Estudio en UPC</button>
-      <button class="app-button" type="submit">Guardar y continuar <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button>
+      <button class="app-button" type="submit"><span data-app-university-submit-label>Guardar y continuar</span><span class="app-skeleton app-skeleton--short" data-app-university-submit-skeleton aria-hidden="true" hidden></span><svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button>
     </form>
     <p class="app-profile-university__note">Tu elección se guarda en Mi perfil y puedes cambiarla. Elegir universidad no conecta tu Aula Virtual; esa autorización se hace aparte.</p>
     <p class="app-profile-university__status" data-app-university-status role="status" aria-live="polite"></p>
@@ -64,7 +72,7 @@ import AppShell from "../../../layouts/AppShell.astro";
       <div class="app-profile-row"><span>Matrícula (Banner)</span><p data-app-banner-status>Por comprobar</p></div>
       <div class="app-profile-row" id="miupc" hidden>
         <span>Notas actuales · Mi UPC</span>
-        <p data-miupc-status aria-live="polite">Conecta Mi UPC una vez para consultar tus notas actuales desde Campus.</p>
+        <p data-miupc-status role="status" aria-live="polite" aria-atomic="true">Conecta Mi UPC una vez para consultar tus notas actuales desde Campus.</p>
         <div class="app-actions">
           <button class="app-button app-button--secondary" type="button" data-miupc-connect>Conectar Mi UPC</button>
           <a class="app-text-link" data-miupc-login target="_blank" rel="noopener noreferrer" hidden>Abrir acceso seguro ↗</a>

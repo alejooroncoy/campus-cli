@@ -64,8 +64,16 @@ export function renderCopilotAccount(root: HTMLElement | null, session: CampusSe
   const action = root.querySelector<HTMLAnchorElement>("[data-copilot-account-action]");
   const upgrade = root.querySelector<HTMLElement>("[data-copilot-account-upgrade]");
   const retry = root.querySelector<HTMLElement>("[data-copilot-account-retry]");
-  if (label) label.textContent = view.label;
-  if (description) description.textContent = view.description;
+  root.setAttribute("aria-busy", String(view.state === "loading"));
+  const setText = (node: HTMLElement | null, value: string, skeletonClass: string) => {
+    if (!node) return;
+    if (view.state !== "loading") { node.textContent = value; return; }
+    const skeleton = document.createElement("span"); skeleton.className = `app-skeleton ${skeletonClass}`; skeleton.setAttribute("aria-hidden", "true");
+    const accessible = document.createElement("span"); accessible.className = "app-sr-only"; accessible.textContent = value;
+    node.replaceChildren(skeleton, accessible);
+  };
+  setText(label, view.label, "app-skeleton--short");
+  setText(description, view.description, "app-skeleton--line");
   if (usage) { usage.textContent = view.usage ?? ""; usage.hidden = !view.usage; }
   if (action) {
     action.hidden = !view.action;

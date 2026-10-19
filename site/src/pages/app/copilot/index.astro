@@ -15,12 +15,12 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
     <p>Consulta Blackboard UPC, repasa tus clases y trabaja las fuentes de tu tesis desde tu IA. <a class="app-text-link" href="/campus-cli/#investigacion">Mendeley y lectura experimental</a>.</p>
   </section>
 
-  <section class="app-connector-account" data-copilot-account data-state="loading" aria-labelledby="copilot-account-title">
+  <section class="app-connector-account" data-copilot-account data-state="loading" aria-busy="true" aria-labelledby="copilot-account-title">
     <div class="app-connector-account__content">
       <span class="app-connector-account__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><use href="/assets/lucide.svg#user"></use></svg></span>
       <div>
-        <div class="app-connector-account__heading"><h2 id="copilot-account-title">Tu cuenta Campus</h2><span class="app-connector-account__badge" data-copilot-account-label>Comprobando…</span></div>
-        <div role="status" aria-live="polite" aria-atomic="true"><p data-copilot-account-description>Estamos comprobando tu cuenta y tu plan de Campus.</p><p class="app-connector-account__usage" data-copilot-account-usage hidden></p></div>
+        <div class="app-connector-account__heading"><h2 id="copilot-account-title">Tu cuenta Campus</h2><span class="app-connector-account__badge" data-copilot-account-label><span class="app-sr-only">Comprobando…</span><span class="app-skeleton app-skeleton--short" aria-hidden="true"></span></span></div>
+        <div role="status" aria-live="polite" aria-atomic="true"><p data-copilot-account-description><span class="app-sr-only">Estamos comprobando tu cuenta y tu plan de Campus.</span><span class="app-skeleton app-skeleton--line" aria-hidden="true"></span></p><p class="app-connector-account__usage" data-copilot-account-usage hidden></p></div>
       </div>
     </div>
     <div class="app-connector-account__actions"><a class="app-button app-button--secondary" data-copilot-account-action hidden></a><a class="app-text-link" href="/app/plus/" data-copilot-account-upgrade hidden>Activar Campus Plus</a><button class="app-button app-button--secondary" type="button" data-copilot-account-retry hidden>Volver a comprobar</button></div>
