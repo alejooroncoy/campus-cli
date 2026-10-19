@@ -8,27 +8,29 @@ function init(){
  const list=root.querySelector<HTMLElement>('[data-memory-list]')!,status=root.querySelector<HTMLElement>('[data-memory-status]')!;
  const toggle=root.querySelector<HTMLButtonElement>('[data-memory-toggle]')!,clear=root.querySelector<HTMLButtonElement>('[data-memory-clear]')!;
  let snapshot:Snapshot|undefined,busy=false,loaded=false;
- function setBusy(value:boolean){busy=value;root!.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=value);}
+ function setBusy(value:boolean){busy=value;root!.setAttribute('aria-busy',String(value));root!.querySelectorAll<HTMLButtonElement>('button').forEach(b=>b.disabled=value);}
+ function setStatus(value:string){status.textContent=value;status.removeAttribute('aria-busy');status.removeAttribute('data-loading');}
+ function showLoading(value:string){status.dataset.loading='true';status.setAttribute('aria-busy','true');const accessible=document.createElement('span');accessible.className='app-sr-only';accessible.textContent=value;const skeleton=document.createElement('span');skeleton.className='app-skeleton app-skeleton--line';skeleton.setAttribute('aria-hidden','true');status.replaceChildren(accessible,skeleton);}
  async function load(){
-  if(busy)return;setBusy(true);status.textContent='Comprobando tu memoria…';
+  if(busy)return;setBusy(true);showLoading('Comprobando tu memoria…');
   try{const r=await fetch('/api/app/memory',{credentials:'same-origin',cache:'no-store',headers:analyticsHeaders()});if(!r.ok)throw Error();snapshot=await r.json();render();loaded=true;}
-  catch{snapshot=undefined;list.replaceChildren();toggle.hidden=true;clear.hidden=true;status.textContent='No pudimos comprobar tu memoria. Vuelve a intentarlo.';}
+  catch{snapshot=undefined;list.replaceChildren();toggle.hidden=true;clear.hidden=true;setStatus('No pudimos comprobar tu memoria. Vuelve a intentarlo.');}
   finally{setBusy(false);}
  }
  async function change(value:Record<string,unknown>){
-  if(busy||!snapshot)return;setBusy(true);
+  if(busy||!snapshot)return;setBusy(true);showLoading('Guardando cambios…');
   try{
    const r=await fetch('/api/app/memory',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json',...analyticsHeaders()},body:JSON.stringify({revision:snapshot.revision,change:value})});
-   if(r.status===409){setBusy(false);await load();status.textContent='Tu memoria cambió en otra consulta. Revisa la versión actual antes de editar.';return;}
-   if(!r.ok){status.textContent=r.status===400?'Usa una declaración breve como “Prefiero respuestas breves”, sin datos sensibles.':'No se guardó el cambio. Vuelve a intentarlo.';return;}
-   snapshot=await r.json();render();status.textContent=value.action==='disable'?'Memoria desactivada. No guardaremos ni usaremos recuerdos.':value.action==='enable'?'Memoria activada. Puedes contarle tus preferencias al asistente.':value.action==='clear'?'Olvidamos todos los recuerdos.':value.action==='forget'?'Recuerdo olvidado.':'Recuerdo actualizado.';
-  }catch{status.textContent='No se pudo confirmar el cambio. Actualiza para comprobarlo antes de volver a editar.';}
+   if(r.status===409){setBusy(false);await load();setStatus('Tu memoria cambió en otra consulta. Revisa la versión actual antes de editar.');return;}
+   if(!r.ok){setStatus(r.status===400?'Usa una declaración breve como “Prefiero respuestas breves”, sin datos sensibles.':'No se guardó el cambio. Vuelve a intentarlo.');return;}
+   snapshot=await r.json();render();setStatus(value.action==='disable'?'Memoria desactivada. No guardaremos ni usaremos recuerdos.':value.action==='enable'?'Memoria activada. Puedes contarle tus preferencias al asistente.':value.action==='clear'?'Olvidamos todos los recuerdos.':value.action==='forget'?'Recuerdo olvidado.':'Recuerdo actualizado.');
+  }catch{setStatus('No se pudo confirmar el cambio. Actualiza para comprobarlo antes de volver a editar.');}
   finally{setBusy(false);}
  }
  function button(text:string,action:()=>void){const b=document.createElement('button');b.type='button';b.className='app-text-link';b.textContent=text;b.addEventListener('click',action);return b;}
  function render(){
   if(!snapshot)return;list.replaceChildren();toggle.hidden=false;toggle.textContent=snapshot.enabled?'Desactivar memoria':'Activar memoria';clear.hidden=!snapshot.records.length;
-  status.textContent=!snapshot.enabled?'Memoria desactivada. No guardaremos ni usaremos recuerdos.':snapshot.records.length?`${snapshot.records.length} ${snapshot.records.length===1?'recuerdo guardado':'recuerdos guardados'}.`:'Aún no hay recuerdos. Puedes decirle al asistente cómo prefieres aprender o cuál es tu meta.';
+  setStatus(!snapshot.enabled?'Memoria desactivada. No guardaremos ni usaremos recuerdos.':snapshot.records.length?`${snapshot.records.length} ${snapshot.records.length===1?'recuerdo guardado':'recuerdos guardados'}.`:'Aún no hay recuerdos. Puedes decirle al asistente cómo prefieres aprender o cuál es tu meta.');
   for(const record of snapshot.records){
    if(!Object.hasOwn(labels,record.key))continue;
    const row=document.createElement('section');row.className='memory-record';

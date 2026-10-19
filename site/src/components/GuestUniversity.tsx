@@ -38,7 +38,8 @@ export default function GuestUniversity({ selected, onSelect }: {
     <form onSubmit={submit}>
       {upc ? <button type="button" className="app-guest-university__quick" onClick={() => { setInput(universityLabel(upc)); setError(''); }} aria-pressed={input === universityLabel(upc)}><strong>UPC</strong><span>Universidad Peruana de Ciencias Aplicadas</span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#check" /></svg></button> : null}
       <label htmlFor="guest-university">Busca tu universidad</label>
-      <input id="guest-university" list="guest-universities" value={input} onChange={event => { setInput(event.target.value); setError(''); }} placeholder={loading ? 'Cargando universidades…' : 'Escribe el nombre de tu universidad'} autoComplete="off" disabled={loading || !choices.length} />
+      <input id="guest-university" list="guest-universities" value={input} onChange={event => { setInput(event.target.value); setError(''); }} placeholder="Escribe el nombre de tu universidad" autoComplete="off" disabled={loading || !choices.length} />
+      {loading ? <div className="app-guest-university__loading" role="status" aria-live="polite"><span className="app-sr-only">Cargando universidades…</span><span className="app-skeleton app-skeleton--line" aria-hidden="true" /><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></div> : null}
       <datalist id="guest-universities">{choices.map(item => <option key={item.id} value={universityLabel(item)} />)}</datalist>
       {error ? <p role="alert" className="app-guest-university__error">{error}</p> : null}
       {!loading && !choices.length ? <button type="button" className="app-guest-university__continue" onClick={() => setAttempt(value => value + 1)}>Volver a intentar</button>

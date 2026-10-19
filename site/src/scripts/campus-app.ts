@@ -210,15 +210,26 @@ function initPage() {
   const universityForm = document.querySelector<HTMLFormElement>("[data-app-university-form]");
   const universityInput = document.querySelector<HTMLInputElement>("#app-university");
   const universityOptions = document.querySelector<HTMLDataListElement>("[data-app-university-options]");
+  const universitiesLoading = document.querySelector<HTMLElement>("[data-app-universities-loading]");
   const universityStatus = document.querySelector<HTMLElement>("[data-app-university-status]");
   const universityCancel = document.querySelector<HTMLElement>("[data-app-cancel-university]");
+  const setUniversityStatus = (text: string, loading = false) => {
+    if (!universityStatus) return;
+    universityStatus.setAttribute("aria-busy", String(loading));
+    if (!loading) { universityStatus.textContent = text; return; }
+    const accessible = document.createElement("span"); accessible.className = "app-sr-only"; accessible.textContent = text;
+    const skeleton = document.createElement("span"); skeleton.className = "app-skeleton app-skeleton--line"; skeleton.setAttribute("aria-hidden", "true");
+    universityStatus.replaceChildren(accessible, skeleton);
+  };
 
   function showUniversityForm(selected: UniversityChoice | null = null) {
     if (profileUniversity) profileUniversity.hidden = false;
     if (profileAuthenticated) profileAuthenticated.hidden = true;
     if (universityInput && !universityInput.value && selected) universityInput.value = universityLabel(selected);
-    if (selected && universityStatus) universityStatus.textContent = 'Conservamos tu elección. Guarda para continuar.';
-    void loadUniversities(universityOptions).catch(error => { if (universityStatus) universityStatus.textContent = error.message; });
+    if (selected) setUniversityStatus('Conservamos tu elección. Guarda para continuar.');
+    if (!universityChoices.length && universitiesLoading) universitiesLoading.hidden = false;
+    void loadUniversities(universityOptions).then(() => { if (universitiesLoading) universitiesLoading.hidden = true; })
+      .catch(error => { if (universitiesLoading) universitiesLoading.hidden = true; setUniversityStatus(error.message); });
   }
 
   const loginUrl = `/api/app/auth/start?return=${encodeURIComponent(location.pathname)}`;
@@ -344,7 +355,7 @@ function initPage() {
     if (profileUniversity) profileUniversity.hidden = true;
     if (profileAuthenticated) profileAuthenticated.hidden = false;
     universityCancel.hidden = true;
-    if (universityStatus) universityStatus.textContent = "";
+    setUniversityStatus("");
   });
 
   const upcChoice = document.querySelector<HTMLButtonElement>('[data-app-select-upc]');
@@ -352,24 +363,28 @@ function initPage() {
     if (!universityInput || !upcChoice.dataset.universityLabel) return;
     universityInput.value = upcChoice.dataset.universityLabel;
     upcChoice.setAttribute('aria-pressed', 'true');
-    if (universityStatus) universityStatus.textContent = 'UPC seleccionada. Guarda para continuar.';
+    setUniversityStatus('UPC seleccionada. Guarda para continuar.');
   });
   universityInput?.addEventListener('input', () => {
     upcChoice?.setAttribute('aria-pressed', String(universityInput.value === upcChoice.dataset.universityLabel));
-    if (universityStatus) universityStatus.textContent = '';
+    setUniversityStatus('');
   });
 
   universityForm?.addEventListener("submit", async event => {
     event.preventDefault();
     const universityId = universities.get(universityKey(universityInput?.value ?? ""));
     if (!universityId) {
-      if (universityStatus) universityStatus.textContent = "Elige una universidad de las sugerencias.";
+      setUniversityStatus("Elige una universidad de las sugerencias.");
       universityInput?.focus();
       return;
     }
     const button = universityForm.querySelector<HTMLButtonElement>("button[type=submit]");
-    if (button) button.disabled = true;
-    if (universityStatus) universityStatus.textContent = "Guardando tu universidad…";
+    if (button) {
+      button.disabled = true; button.setAttribute("aria-busy", "true"); button.setAttribute("aria-label", "Guardando tu universidad…");
+      button.querySelector<HTMLElement>("[data-app-university-submit-label]")!.hidden = true;
+      button.querySelector<HTMLElement>("[data-app-university-submit-skeleton]")!.hidden = false;
+    }
+    setUniversityStatus("Guardando tu universidad…", true);
     try {
       const response = await fetch("/api/app/university", {
         method: "POST",
@@ -380,8 +395,12 @@ function initPage() {
       if (!response.ok) throw new Error(data.error ?? "No pudimos guardar tu universidad.");
       location.assign(universityDoneHref(location.search));
     } catch (error) {
-      if (universityStatus) universityStatus.textContent = error instanceof Error ? error.message : "No pudimos guardar tu universidad.";
-      if (button) button.disabled = false;
+      setUniversityStatus(error instanceof Error ? error.message : "No pudimos guardar tu universidad.");
+      if (button) {
+        button.disabled = false; button.removeAttribute("aria-busy"); button.removeAttribute("aria-label");
+        button.querySelector<HTMLElement>("[data-app-university-submit-label]")!.hidden = false;
+        button.querySelector<HTMLElement>("[data-app-university-submit-skeleton]")!.hidden = true;
+      }
     }
   });
 

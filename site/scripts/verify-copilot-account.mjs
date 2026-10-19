@@ -25,9 +25,11 @@ assert.equal(copilotAccountView('loading').action, undefined);
 // A same-document upgrade, downgrade, logout or failure must clear stale CTAs and balances.
 const fields = new Map(['label', 'description', 'usage', 'action', 'upgrade', 'retry'].map(name => [name, {
   textContent: '', hidden: false, href: undefined,
+  replaceChildren(...children) { this.children = children; },
   removeAttribute(name) { if (name === 'href') this.href = undefined; },
 }]));
-const root = { dataset: {}, querySelector(selector) { return fields.get(selector.match(/data-copilot-account-(.*)\]/)[1]); } };
+const root = { dataset: {}, setAttribute() {}, querySelector(selector) { return fields.get(selector.match(/data-copilot-account-(.*)\]/)[1]); } };
+globalThis.document = { createElement() { return { className: '', setAttribute() {} }; } };
 renderCopilotAccount(root, free);
 assert.equal(fields.get('upgrade').hidden, false);
 renderCopilotAccount(root, plus);

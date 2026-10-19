@@ -46,13 +46,17 @@ export function setupTurnitinLogin(): TurnitinLogin | null {
       event.preventDefault();
       if (checking) return;
       checking = true; anchor.setAttribute('aria-busy', 'true');
+      anchor.setAttribute('aria-label', 'Comprobando tu sesión…');
+      const label = anchor.querySelector<HTMLElement>('[data-ti-start-label]');
+      const skeleton = anchor.querySelector<HTMLElement>('[data-ti-start-skeleton]');
+      if (label && skeleton) { label.hidden = true; skeleton.hidden = false; }
       // Open immediately. A returning customer proceeds straight to the order.
       controller.open();
       try {
         const response = await fetch('/api/app/session', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(8000) });
         if (response.ok && (await response.json()).authenticated === true) window.location.assign('/app/turnitin/');
       } catch { /* Google sign-in remains available if session checking failed. */ }
-      finally { checking = false; anchor.removeAttribute('aria-busy'); }
+      finally { checking = false; anchor.removeAttribute('aria-busy'); anchor.removeAttribute('aria-label'); if (label && skeleton) { label.hidden = false; skeleton.hidden = true; } }
     };
   });
   return controller;

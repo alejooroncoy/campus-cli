@@ -1389,7 +1389,7 @@ export default function ProfesChat() {
                 </div>
               );
             })}
-            {filteredConversations.length === 0 ? <p className="app-profes-history__empty" role={historyLoading ? "status" : undefined}>{historyLoading ? "Cargando historial…" : conversations.length ? "No encontramos esa consulta." : "Tus consultas aparecerán aquí al empezar a conversar."}</p> : null}
+            {filteredConversations.length === 0 ? historyLoading ? <div className="app-profes-history__loading" role="status" aria-label="Cargando historial"><span className="app-sr-only">Cargando historial…</span><span className="app-skeleton app-skeleton--line" aria-hidden="true" /><span className="app-skeleton app-skeleton--short" aria-hidden="true" /><span className="app-skeleton app-skeleton--line" aria-hidden="true" /></div> : <p className="app-profes-history__empty">{conversations.length ? "No encontramos esa consulta." : "Tus consultas aparecerán aquí al empezar a conversar."}</p> : null}
           </div>
           {historyError ? <p className="app-profes-history__status" role="alert">{historyError}</p> : null}
     </section>
@@ -1427,10 +1427,10 @@ export default function ProfesChat() {
           : session?.authenticated === false && guestUniversity ? <button type="button" className="app-university-context" onClick={() => setChangingUniversity(true)} disabled={busy}>{guestUniversity.shortName || guestUniversity.name}<span>Cambiar</span></button> : null}
         <div className="app-assistant-account" data-state={account.state} aria-label="Tu plan y consultas">
           <div className="app-assistant-account__summary">
-            <strong className="app-assistant-account__label"><span className="app-assistant-account__dot" aria-hidden="true" />{account.label}</strong>
-            <span className="app-assistant-account__balance" aria-live="polite">{account.available}</span>
+            <strong className="app-assistant-account__label"><span className="app-assistant-account__dot" aria-hidden="true" />{account.state === "loading" ? <><span className="app-sr-only">{account.label}</span><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></> : account.label}</strong>
+            <span className="app-assistant-account__balance" aria-live="polite">{account.state === "loading" ? <><span className="app-sr-only">{account.available}</span><span className="app-skeleton app-skeleton--line" aria-hidden="true" /></> : account.available}</span>
           </div>
-          {account.retry ? <button type="button" className="app-assistant-account__retry" onClick={() => { void retryAccess(); }} disabled={busy || balanceRetrying}>{balanceRetrying ? "Comprobando…" : "Reintentar"}</button>
+          {account.retry ? <button type="button" className="app-assistant-account__retry" onClick={() => { void retryAccess(); }} disabled={busy || balanceRetrying} aria-busy={balanceRetrying}>{balanceRetrying ? <><span className="app-sr-only">Comprobando…</span><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></> : "Reintentar"}</button>
             : account.state !== "loading" ? <a className="app-assistant-account__link" onClick={() => { if (account.state === "guest") markGuestDraftHandoff(); }} href={account.state === "guest" ? assistantLoginHref(window.location.pathname) : "/app/perfil/"}>
               {account.state === "guest" ? "Crear cuenta" : account.state === "blocked" ? "Mi cuenta" : "Ver plan"}
               <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg>
@@ -1491,8 +1491,8 @@ export default function ProfesChat() {
       ) : messages.length > 0 ? (
         <div className="app-profes-ai__conversation" aria-live="polite" aria-label="Conversación">
           {hasOlderMessages ? (
-            <button type="button" className="app-profes-ai__older-messages" onClick={loadOlderMessages} disabled={loadingOlderMessages}>
-              {loadingOlderMessages ? "Cargando mensajes…" : "Ver mensajes anteriores"}
+            <button type="button" className="app-profes-ai__older-messages" onClick={loadOlderMessages} disabled={loadingOlderMessages} aria-busy={loadingOlderMessages}>
+            {loadingOlderMessages ? <><span className="app-sr-only">Cargando mensajes…</span><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></> : "Ver mensajes anteriores"}
             </button>
           ) : null}
           <div className="app-profes-ai__conversation-top">
@@ -1518,6 +1518,7 @@ export default function ProfesChat() {
           ))}
           {authenticated && miupcReconnectRequired && miupcReconnectConversationId===currentConversationId ? <MiupcReconnect key={currentConversationId} freshNotice={freshMiupcNotice.current===currentConversationId} onNoticeSeen={()=>{freshMiupcNotice.current=null;}} conversationId={currentConversationId} noticeRevision={miupcReconnectRevision} upcRequired={upcReconnectRequired} disabled={busy} onConnected={clearMiupcReconnectNotices} onUpcAccessRestored={()=>{clearMiupcReconnectNotices("upc");setUpcReconnectRequired(false);}} onDismiss={()=>setMiupcReconnectRequired(false)} /> : null}
           {busy || (activitySteps.length > 0 && messages.at(-1)?.role === "user") ? <ChatActivity steps={activitySteps} busy={busy} interrupted={!busy} expanded={activityExpanded} onExpandedChange={setActivityExpanded} /> : null}
+          {busy && messages.at(-1)?.role === "user" ? <div className="app-chat-response-skeleton" aria-hidden="true"><span className="app-skeleton app-skeleton--line" /><span className="app-skeleton app-skeleton--line" /><span className="app-skeleton app-skeleton--short" /></div> : null}
           {showUpcHint ? (
             <aside className="app-profes-upc-hint" aria-label="Sugerencia para estudiantes de la UPC">
               <button type="button" className="app-profes-upc-hint__close" aria-label="Cerrar sugerencia" onClick={dismissUpcHint}>×</button>
@@ -1555,7 +1556,7 @@ export default function ProfesChat() {
               ) : reviewStep === "select" ? (
                 <>
                   <p>Encuentra tu curso y elige al docente con quien lo llevaste.</p>
-                  {access === "checking" ? <p role="status">Cargando tu cuenta…</p> : authenticated && session?.universityConfirmed ? <>
+                  {access === "checking" ? <div className="app-profes-review__loading" role="status"><span className="app-sr-only">Cargando tu cuenta…</span><span className="app-skeleton app-skeleton--line" aria-hidden="true" /><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></div> : authenticated && session?.universityConfirmed ? <>
                     <div className="app-profes-review__tabs" aria-label="Cómo buscar">
                       <button type="button" aria-pressed={reviewSearchMode === "course"} onClick={() => changeReviewSearchMode("course")}>Por curso</button>
                       <button type="button" aria-pressed={reviewSearchMode === "professor"} onClick={() => changeReviewSearchMode("professor")}>Por nombre</button>
@@ -1570,7 +1571,7 @@ export default function ProfesChat() {
                         placeholder={reviewSearchMode === "course" ? "Nombre o código del curso" : "Nombre o apellido"} maxLength={100} />
                     </> : <label>Elige al docente</label>}
                     <div className="app-profes-review__lookup" aria-busy={reviewSearching}>
-                      {reviewSearching ? <p role="status">Buscando…</p> : reviewCourses.length || reviewProfessors.length ? (
+                      {reviewSearching ? <div className="app-profes-review__loading" role="status"><span className="app-sr-only">Buscando…</span><span className="app-skeleton app-skeleton--line" aria-hidden="true" /><span className="app-skeleton app-skeleton--line" aria-hidden="true" /><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></div> : reviewCourses.length || reviewProfessors.length ? (
                         <div className="app-profes-review__results" aria-label={reviewCourses.length ? "Cursos encontrados" : "Profesores encontrados"}>
                           {reviewCourses.map(course => <button key={course.id} type="button" onClick={() => { setReviewCourse(course); setReviewProfessor(null); setReviewQuery(""); setReviewCourses([]); setReviewProfessors([]); }}>
                             <span>{course.name}</span>{course.code ? <small>{course.code}</small> : null}<span className="app-profes-review__result-arrow" aria-hidden="true">→</span>
@@ -1610,12 +1611,12 @@ export default function ProfesChat() {
           </div>
           <footer className="app-profes-review__actions">
             {reviewStep === "done" ? <button type="button" className="app-profes-review__primary" onClick={closeReview}>Volver al chat</button>
-              : access === "checking" ? <span className="app-profes-review__draft-note" role="status">Cargando tu cuenta…</span>
+              : access === "checking" ? <span className="app-profes-review__draft-note" role="status"><span className="app-sr-only">Cargando tu cuenta…</span><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></span>
               : !authenticated ? <a className="app-profes-review__primary" onClick={() => markGuestDraftHandoff()} href={getLoginUrl()}>Iniciar sesión</a>
               : !session?.universityConfirmed ? <a className="app-profes-review__primary" href="/app/perfil/">Elegir universidad</a>
               : reviewStep === "confirm" ? <>
                 <button type="button" className="app-profes-review__secondary" onClick={() => setReviewStep("edit")} disabled={reviewSending}>Editar</button>
-                <button type="button" className="app-profes-review__primary" onClick={sendReview} disabled={reviewSending}>{reviewSending ? "Enviando…" : "Confirmar y enviar"}</button>
+                <button type="button" className="app-profes-review__primary" onClick={sendReview} disabled={reviewSending} aria-busy={reviewSending}>{reviewSending ? <><span className="app-sr-only">Enviando…</span><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></> : "Confirmar y enviar"}</button>
               </> : reviewStep === "edit" ? <>
                 <span className="app-profes-review__draft-note">Borrador guardado</span>
                 <button type="button" className="app-profes-review__primary" disabled={!reviewProfessor || reviewText.trim().length < 10 || reviewText.length > 1500 || Boolean(reviewRating && (!Number.isFinite(Number(reviewRating)) || Number(reviewRating) < 0 || Number(reviewRating) > 10)) || Boolean(reviewTerm && !/^20\d{2}-[0123]$/.test(reviewTerm))} onClick={() => { setReviewError(""); setReviewStep("confirm"); }}>Revisar reseña</button>

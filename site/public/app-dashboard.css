@@ -1005,6 +1005,22 @@ button:disabled {
   white-space: nowrap;
   border: 0;
 }
+.app-skeleton {
+  display: block;
+  border-radius: 7px;
+  background: linear-gradient(90deg, var(--app-line) 25%, var(--app-paper) 50%, var(--app-line) 75%);
+  background-size: 200% 100%;
+  animation: app-skeleton-shimmer 1.35s ease-in-out infinite;
+}
+.app-skeleton--line { width: min(100%, 360px); height: 14px; }
+.app-skeleton--short { width: min(58%, 220px); height: 14px; }
+.app-skeleton--title { width: min(52%, 260px); height: 28px; border-radius: 8px; }
+.app-skeleton--block { width: 100%; height: 54px; border-radius: 11px; }
+.app-button[aria-busy="true"] svg { display: none; }
+@keyframes app-skeleton-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .app-skeleton { animation: none; opacity: .62; }
+}
 .app-chat-intro {
   padding-bottom: 24px;
 }
@@ -1409,6 +1425,10 @@ button:disabled {
   color: var(--app-muted);
   font-size: 14px;
 }
+.app-profile-loading__skeleton { display: grid; gap: 18px; width: min(100%, 640px); }
+.app-profile-loading__skeleton-card { display: grid; gap: 16px; padding: 26px; border: 1px solid var(--app-line); border-radius: 16px; background: var(--app-paper); }
+.app-profile-loading__skeleton-card .app-skeleton--line { height: 12px; }
+.app-profile-loading__skeleton-card .app-skeleton--title { margin-block: 4px; }
 .app-profile-entry {
   display: grid;
   place-items: center;
@@ -2295,6 +2315,9 @@ button:disabled {
 .app-connector-account[data-state="free"] .app-connector-account__badge { background: var(--app-sky-pale); color: var(--app-link); }
 .app-connector-account[data-state="plus"] .app-connector-account__badge { background: var(--app-ink); color: white; }
 .app-connector-account[data-state="blocked"] .app-connector-account__badge { color: var(--app-danger); }
+.app-connector-account[data-state="loading"] .app-connector-account__badge .app-skeleton { width: 72px; height: 12px; }
+.app-connector-account[data-state="loading"] [data-copilot-account-description] .app-skeleton { width: min(100%, 380px); height: 12px; }
+.app-connector-account[data-state="loading"] [data-copilot-account-description] { min-height: 20px; }
 .app-connector-account p { margin: 0; font-size: 13px; color: var(--app-muted); line-height: 1.6; }
 .app-connector-account .app-connector-account__usage { margin-top: 6px; color: var(--app-ink); }
 .app-connector-account__actions { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
@@ -2318,11 +2341,14 @@ button:disabled {
 .app-profile-plan .app-actions{align-items:center;gap:12px 20px}
 .app-profile-plan .app-button,.app-profile-plan .app-text-link{min-height:44px}
 .app-profile-plan .app-text-link{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.app-profile-plan [data-profile-usage] .app-skeleton{width:min(100%,320px);height:28px}.app-profile-plan [data-profile-label] .app-skeleton{width:min(100%,260px);height:28px}.app-profile-plan [data-profile-note] .app-skeleton{width:min(100%,360px);height:13px}.app-profile-plan [data-profile-refresh][aria-busy=true] .app-skeleton{width:92px;height:11px}
 .app-profile-plan[data-state="unavailable"],.app-profile-plan[data-state="blocked"]{background:var(--app-paper);border-color:var(--app-line)}
 .app-profile-plan button:disabled{cursor:wait;opacity:.7}
 @media(max-width:650px){.app-profile-plan{padding:22px 20px}.app-profile-plan h2{font-size:26px}.app-profile-plan .app-actions{align-items:stretch;flex-direction:column}.app-profile-plan .app-button{justify-content:center}.app-profile-plan .app-text-link{align-self:flex-start}.app-profile-plan .app-profile-plan__usage{font-size:24px}}
 
 .app-profile-university .app-university-quick{justify-self:start;min-height:44px;margin:0;padding:10px 16px;border:1px solid #b7dfe9;border-radius:10px;background:var(--app-sky-pale);color:var(--app-ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}.app-profile-university .app-university-quick[aria-pressed="true"]{border-color:var(--app-link);box-shadow:0 0 0 1px var(--app-link)}.app-profile-university .app-university-quick:focus-visible{outline:2px solid var(--app-link);outline-offset:3px}
+.app-university-loading{display:grid;gap:9px;padding:2px 0}.app-university-loading .app-skeleton{height:12px}.app-university-loading .app-skeleton--line{width:72%}.app-university-loading .app-skeleton--short{width:48%}
+.app-profile-university [data-app-university-submit-skeleton]{width:128px;height:11px}
 
 /* Keep the keyboard skip link clipped until focused, including captured views. */
 .app-skip:not(:focus){clip-path:inset(50%)}

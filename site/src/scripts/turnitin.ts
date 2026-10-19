@@ -37,6 +37,7 @@ function setupTurnitin() {
   let linkUnavailable = false;
   const openReports = new Set<string>();
   const more = document.querySelector<HTMLButtonElement>('[data-ti-more]')!;
+  const ordersList = document.querySelector<HTMLElement>('[data-ti-orders]')!;
   const historyCount = document.querySelector<HTMLElement>('[data-ti-history-count]')!;
   const announce = (message: string, quiet = false) => { status.textContent = message; status.classList.toggle('ti-status--quiet', quiet); };
   async function api(path: string, input?: unknown) {
@@ -143,7 +144,24 @@ function setupTurnitin() {
   async function loadOrders(append = false, reset = false) {
     const version = ++historyVersion;
     refreshPending = true; refresh.disabled = more.disabled = true;
-    more.textContent = append ? 'Cargando…' : 'Ver más revisiones';
+    ordersList.setAttribute('aria-busy', 'true');
+    if (!append) {
+      refresh.setAttribute('aria-busy', 'true');
+      refresh.setAttribute('aria-label', 'Actualizando tus revisiones…');
+      refresh.querySelector<HTMLElement>('[data-ti-refresh-label]')!.hidden = true;
+      refresh.querySelector<HTMLElement>('[data-ti-refresh-skeleton]')!.hidden = false;
+    }
+    more.setAttribute('aria-busy', String(append));
+    if (append) more.setAttribute('aria-label', 'Cargando más revisiones…');
+    more.querySelector<HTMLElement>('[data-ti-more-label]')!.hidden = append;
+    more.querySelector<HTMLElement>('[data-ti-more-skeleton]')!.hidden = !append;
+    if (reset && ordersLoaded) {
+      const placeholder = document.createElement('div'); placeholder.className = 'ti-orders-skeleton ti-orders-skeleton--refresh';
+      placeholder.setAttribute('role', 'status'); placeholder.setAttribute('aria-label', 'Actualizando revisiones');
+      const card = document.createElement('article'); card.className = 'ti-order-skeleton';
+      for (const width of ['title', 'line', 'line-short']) { const line = document.createElement('span'); line.className = `ti-inline-skeleton ti-inline-skeleton--${width}`; line.setAttribute('aria-hidden', 'true'); card.append(line); }
+      placeholder.append(card); ordersList.prepend(placeholder);
+    }
     const query = new URLSearchParams();
     if (historyFilter !== 'all') query.set('status', historyFilter);
     if (historySearch) query.set('search', historySearch);
@@ -205,13 +223,27 @@ function setupTurnitin() {
       }
       ordersLoaded = true;
       updateHistoryCount();
-      renderOrders(historyOrders, document.querySelector<HTMLElement>('[data-ti-orders]')!);
+      renderOrders(historyOrders, ordersList);
       if (!initialLinkHandled && /^#ti-order-[0-9a-f-]{36}$/i.test(location.hash)) {
         document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'center' });
         initialLinkHandled = true;
       }
+    } catch (error) {
+      if (version === historyVersion && !ordersLoaded) ordersList.replaceChildren();
+      throw error;
     } finally {
-      if (version === historyVersion) { refreshPending = false; refresh.disabled = more.disabled = false; more.textContent = 'Ver más revisiones'; }
+      if (version === historyVersion) {
+        refreshPending = false; refresh.disabled = more.disabled = false;
+        ordersList.removeAttribute('aria-busy'); ordersList.querySelectorAll('.ti-orders-skeleton--refresh').forEach(placeholder => placeholder.remove());
+        refresh.removeAttribute('aria-busy');
+        refresh.removeAttribute('aria-label');
+        refresh.querySelector<HTMLElement>('[data-ti-refresh-label]')!.hidden = false;
+        refresh.querySelector<HTMLElement>('[data-ti-refresh-skeleton]')!.hidden = true;
+        more.removeAttribute('aria-busy');
+        more.removeAttribute('aria-label');
+        more.querySelector<HTMLElement>('[data-ti-more-label]')!.hidden = false;
+        more.querySelector<HTMLElement>('[data-ti-more-skeleton]')!.hidden = true;
+      }
     }
   }
   refresh.onclick = async () => {
@@ -254,7 +286,7 @@ function setupTurnitin() {
     if (!uploads.validate('document')) { request.document(); return; }
     if (!uploads.validate() || !form.reportValidity()) { track('campus_flow_failed', { step: 'upload', error_kind: 'validation' }); return; }
     track('campus_turnitin_submit_started');
-    fields.disabled = true; submit.setAttribute('aria-busy', 'true'); submitText.textContent = 'Enviando…'; showSubmission('Enviando tu documento y comprobante. Mantén esta página abierta.'); announce('Enviando tu documento y comprobante…', true);
+    fields.disabled = true; submit.setAttribute('aria-busy', 'true'); submit.setAttribute('aria-label', 'Enviando tu revisión…'); submitText.hidden = true; submit.querySelector<HTMLElement>('[data-ti-submit-skeleton]')!.hidden = false; showSubmission('Enviando tu documento y comprobante. Mantén esta página abierta.'); announce('Enviando tu documento y comprobante…', true);
     try {
       const received = await api('orders', { requestId, amountCents: config.amountCents, consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
         document: await encode(selected(form,'document'),config.maxDocumentBytes), receipt: await encode(selected(form,'receipt'),config.maxReceiptBytes) });
@@ -270,7 +302,7 @@ function setupTurnitin() {
       document.querySelectorAll<HTMLButtonElement>('[data-ti-filter]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.tiFilter === 'all')));
       try { await loadOrders(false, true); } catch { announce('Tu pedido ya fue recibido. Usa Actualizar estado para consultar su avance.'); }
     } catch (error) { track('campus_flow_failed', { step: 'turnitin', error_kind: 'rejected' }); showSubmission((error as Error).message); announce((error as Error).message, true); }
-    finally { fields.disabled = false; submit.removeAttribute('aria-busy'); submitText.textContent = 'Enviar revisión'; }
+    finally { fields.disabled = false; submit.removeAttribute('aria-busy'); submit.removeAttribute('aria-label'); submitText.hidden = false; submit.querySelector<HTMLElement>('[data-ti-submit-skeleton]')!.hidden = true; }
   };
   const cleanup = () => { disposed = true; clearInterval(poll); clearTimeout(searchTimer); };
   document.addEventListener('astro:before-swap', cleanup, { once: true });
@@ -294,6 +326,8 @@ function setupTurnitin() {
       if (disposed) return;
       if (!session.authenticated) {
         document.querySelector<HTMLElement>('[data-ti-login]')!.hidden = false;
+        ordersList.removeAttribute('aria-busy');
+        ordersList.replaceChildren(el('p', 'Inicia sesión para consultar tus revisiones.', 'ti-muted'));
         announce(config.enabled ? 'Inicia sesión para solicitar o consultar una revisión.' : 'Los pedidos nuevos están pausados. Inicia sesión para consultar pedidos anteriores.');
         setupTurnitinLogin()?.open(config.amountCents);
         return;
@@ -307,7 +341,11 @@ function setupTurnitin() {
           void loadOrders().catch(() => {});
       }, 30000);
       announce(linkUnavailable ? 'No pudimos abrir esa revisión. Comprueba que entraste con la cuenta del pedido.' : statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
-    } catch (error) { announce((error as Error).message); }
+    } catch (error) {
+      ordersList.removeAttribute('aria-busy');
+      if (!ordersLoaded) ordersList.replaceChildren(el('p', 'No pudimos cargar tus revisiones. Actualiza para intentarlo.', 'ti-muted'));
+      announce((error as Error).message);
+    }
   })();
 }
 setupTurnitin();

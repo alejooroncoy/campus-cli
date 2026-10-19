@@ -23,6 +23,7 @@ export function setupTurnitinReportViewer() {
   const footer = find<HTMLElement>('.ti-report-footer');
   const switcher = find<HTMLElement>('.ti-report-switch');
   const stage = find<HTMLElement>('[data-ti-pdf-stage]');
+  const skeleton = find<HTMLElement>('[data-ti-report-skeleton]');
   const download = find<HTMLAnchorElement>('[data-ti-report-download]');
   const retry = find<HTMLButtonElement>('[data-ti-report-retry]');
   const login = find<HTMLAnchorElement>('[data-ti-report-login]');
@@ -54,6 +55,7 @@ export function setupTurnitinReportViewer() {
     const task = loadingTask; loadingTask = null; pdf = null;
     if (task) void task.destroy().catch(() => {});
     canvas.width = canvas.height = 0; canvas.hidden = true;
+    skeleton.hidden = true; stage.removeAttribute('aria-busy');
     text.textContent = '';
     controls();
   }
@@ -61,6 +63,7 @@ export function setupTurnitinReportViewer() {
     if (!pdf || !dialog.open) return;
     const currentPdf = pdf;
     retry.hidden = true;
+    skeleton.hidden = false; stage.setAttribute('aria-busy', 'true'); canvas.hidden = true;
     pageLabel.textContent = `Página ${pageNumber} de ${currentPdf.numPages}`;
     controls();
     const documentVersion = generation;
@@ -95,11 +98,13 @@ export function setupTurnitinReportViewer() {
         displayedGeneration = documentVersion; track('campus_turnitin_report_displayed', { report_kind: kind, is_test: Boolean(order?.isTest) });
       }
       message.textContent = 'Puedes leer el informe aquí o descargar el PDF.';
+      skeleton.hidden = true; stage.removeAttribute('aria-busy');
       pageLabel.textContent = `Página ${pageNumber} de ${currentPdf.numPages}`;
       controls();
     } catch {
       if (documentVersion !== generation || renderVersion !== drawing || !dialog.open) return;
       canvas.hidden = true; text.textContent = '';
+      skeleton.hidden = true; stage.removeAttribute('aria-busy');
       message.textContent = 'No pudimos mostrar esta página. Puedes descargar el PDF o volver a intentar.';
       retry.hidden = false;
     }
@@ -126,6 +131,7 @@ export function setupTurnitinReportViewer() {
     download.setAttribute('aria-label', `${'Descargar PDF:'} ${titles[kind]}`);
     download.textContent = 'Descargar PDF ↓';
     message.textContent = 'Cargando tu informe…';
+    skeleton.hidden = false; stage.setAttribute('aria-busy', 'true');
     const requestAbort = new AbortController(); abort = requestAbort;
     const timeout = setTimeout(() => requestAbort.abort(), 45000);
     let failureMessage = 'No pudimos abrir el informe. Vuelve a intentar o descarga el PDF.';
@@ -163,6 +169,7 @@ export function setupTurnitinReportViewer() {
       track('campus_flow_failed', { step: 'report', error_kind: 'unavailable', report_kind: selected, is_test: Boolean(currentOrder.isTest) });
       message.textContent = error instanceof Error && error.name !== 'AbortError'
         ? failureMessage : 'La carga tardó demasiado. Vuelve a intentar o descarga el PDF.';
+      skeleton.hidden = true; stage.removeAttribute('aria-busy');
       retry.hidden = !login.hidden;
     } finally { clearTimeout(timeout); }
   }

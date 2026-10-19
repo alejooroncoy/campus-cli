@@ -2,11 +2,11 @@
 import AppShell from '../../../layouts/AppShell.astro';
 ---
 <AppShell title="Campus Plus" active="perfil">
-  <link rel="stylesheet" href="/campus-plus.css" />
+  <link rel="stylesheet" href="/campus-plus.css?v=2" />
   <div class="plus-page" data-plus-root>
     <a class="app-text-link" href="/app/perfil/">Volver a Mi perfil</a>
     <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Más Campus para tu ciclo.</h1><p>100 consultas al día en la web y consultas ilimitadas con tu IA por MCP.</p></section>
-    <p class="plus-message" role="status" aria-live="polite" data-plus-message>Comprobando tu cuenta…</p>
+    <p class="plus-message" role="status" aria-live="polite" aria-atomic="true" aria-busy="true" data-plus-message data-loading="true"><span class="app-sr-only">Comprobando tu cuenta…</span><span class="app-skeleton plus-message__skeleton" aria-hidden="true"></span></p>
     <p class="app-panel" role="note" data-plus-qa hidden><strong>PRUEBA EN PRODUCCIÓN · SIN PAGO</strong><br />Este comprobante es sintético. La activación de prueba dura 24 horas y no ocupa un cupo de los primeros 25 de pago.</p>
     <section class="app-panel" data-plus-view="guest" hidden>
       <h2>Primero, tu cuenta Campus.</h2><p>Inicia sesión o crea tu cuenta gratis. Después verás tu precio y podrás activar Plus.</p>
@@ -29,7 +29,7 @@ import AppShell from '../../../layouts/AppShell.astro';
           <label for="plus-receipt">Comprobante de tu pago</label><div class="plus-upload"><span data-plus-filename>Seleccionar comprobante</span><input id="plus-receipt" name="receipt" type="file" accept="image/png,image/jpeg,application/pdf" aria-describedby="plus-file-hint" required /></div>
           <p id="plus-file-hint" class="plus-muted">PNG, JPG o PDF · Hasta 5 MB.</p>
           <label class="plus-consent"><input type="checkbox" name="consent" required /><span>Confirmo el monto y autorizo la revisión de mi comprobante para activar Plus. <a href="/privacidad/#plus" target="_blank" rel="noopener">Privacidad</a>.</span></label>
-          <button class="app-button" type="submit" data-plus-submit>Enviar comprobante</button>
+          <button class="app-button" type="submit" data-plus-submit><span data-plus-submit-label>Enviar comprobante</span><span class="app-skeleton app-skeleton--short" data-plus-submit-skeleton aria-hidden="true" hidden></span></button>
           <button class="app-button app-button--secondary" type="button" data-plus-requote hidden>Volver a comprobar mi precio</button>
           <p class="plus-muted">El envío queda asociado a tu cuenta. Espera la confirmación antes de volver a pagar.</p>
         </form></li>

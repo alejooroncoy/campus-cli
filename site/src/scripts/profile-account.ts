@@ -29,9 +29,23 @@ export function renderProfileAccount(root: HTMLElement | null, session: CampusSe
   if (!root) return;
   const view = profileAccountView(session);
   root.dataset.state = view.state;
+  root.setAttribute('aria-busy', String(view.state === 'loading'));
   for (const key of ['label', 'usage', 'note', 'mcp'] as const) {
     const node = root.querySelector<HTMLElement>(`[data-profile-${key}]`);
-    if (node) { node.textContent = view[key] ?? ''; node.hidden = !view[key]; }
+    if (!node) continue;
+    if (view.state === 'loading' && key !== 'mcp') {
+      const skeleton = document.createElement('span');
+      skeleton.className = `app-skeleton ${key === 'label' ? 'app-skeleton--title' : 'app-skeleton--line'}`;
+      skeleton.setAttribute('aria-hidden', 'true');
+      const accessible = document.createElement('span');
+      accessible.className = 'app-sr-only';
+      accessible.textContent = key === 'label' ? 'Comprobando…' : 'Estamos comprobando tu plan y tu saldo.';
+      node.replaceChildren(skeleton, accessible);
+      node.hidden = false;
+    } else {
+      node.textContent = view[key] ?? '';
+      node.hidden = !view[key];
+    }
   }
   const upgrade = root.querySelector<HTMLElement>('[data-profile-upgrade]');
   if (upgrade) upgrade.hidden = !view.upgrade;
@@ -40,7 +54,11 @@ export function renderProfileAccount(root: HTMLElement | null, session: CampusSe
   const refresh = root.querySelector<HTMLButtonElement>('[data-profile-refresh]');
   if (refresh) {
     refresh.disabled = view.state === 'loading';
-    refresh.textContent = view.state === 'loading' ? 'Comprobando…' : 'Actualizar saldo';
+    if (view.state === 'loading') {
+      const skeleton = document.createElement('span'); skeleton.className = 'app-skeleton app-skeleton--short'; skeleton.setAttribute('aria-hidden', 'true');
+      const accessible = document.createElement('span'); accessible.className = 'app-sr-only'; accessible.textContent = 'Comprobando…';
+      refresh.replaceChildren(skeleton, accessible);
+    } else refresh.textContent = 'Actualizar saldo';
     refresh.setAttribute('aria-busy', String(view.state === 'loading'));
   }
 }

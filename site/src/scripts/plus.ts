@@ -16,7 +16,11 @@ function mount(){
   const text=(key:string,value:string)=>{find(key).textContent=value;};
   const status=find('message'),form=find<HTMLFormElement>('form'),input=form.elements.namedItem('receipt') as HTMLInputElement;
   let disposed=false,quote:Order|null=null,timer:ReturnType<typeof setInterval>|undefined,busy=false,pendingPayment=false,poll=0,currentOwner:string|undefined;
-  const message=(value='',error=false)=>{status.textContent=value;status.dataset.error=String(error);};
+  const message=(value='',error=false,loading=false)=>{
+    status.dataset.error=String(error);status.dataset.loading=String(loading);status.setAttribute('aria-busy',String(loading));
+    if(loading){const accessible=document.createElement('span');accessible.className='app-sr-only';accessible.textContent=value;const skeleton=document.createElement('span');skeleton.className='app-skeleton plus-message__skeleton';skeleton.setAttribute('aria-hidden','true');status.replaceChildren(accessible,skeleton);}
+    else status.textContent=value;
+  };
   const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);};
   async function api(path:string,data?:unknown){
     const response=await fetch(`/api/app/plus/${path}`,{method:data===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(30000),
@@ -26,7 +30,7 @@ function mount(){
   function failure(error:unknown){if(disposed)return;message(error instanceof Error?error.message:'No pudimos conectar con Campus. Vuelve a intentarlo sin volver a pagar.',true);track('campus_flow_failed',{step:'plus',error_kind:'rejected'});}
   function expired(){const ended=quote!==null&&Date.now()>=new Date(quote.expiresAt).getTime();find<HTMLButtonElement>('submit').disabled=busy||ended;find('requote').hidden=!ended;if(ended)message('Tu reserva de precio venció. Vuelve a comprobarlo antes de pagar. Si ya pagaste, contacta a soporte.',true);return ended;}
   async function checkout(){
-    if(busy)return;busy=true;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry]').forEach(b=>b.disabled=true);message('Comprobando tu precio…');
+    if(busy)return;busy=true;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry]').forEach(b=>b.disabled=true);message('Comprobando tu precio…',false,true);
     try{
       const value=await api('checkout',{});if(disposed)return;
       quote=value.order;
@@ -43,6 +47,7 @@ function mount(){
     }catch(error){failure(error);}finally{busy=false;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry]').forEach(b=>b.disabled=false);expired();}
   }
   async function load(){
+    message('Comprobando tu cuenta…',false,true);
     try{
       const [session,config]=await Promise.all([getCampusSession(true),api('config')]);if(disposed)return;
       find('qa').hidden=true;
@@ -77,18 +82,18 @@ function mount(){
     event.preventDefault();if(!quote||busy||expired())return;
     const error=uploadError(Array.from(input.files??[]),'receipt',5*1024*1024);if(error){message(error,true);return;}
     if(!(form.elements.namedItem('consent') as HTMLInputElement).checked){message('Confirma la revisión de tu comprobante.',true);return;}
-    busy=true;expired();message('Enviando comprobante…');track('campus_plus_submit_started',{offer:quote.cohort,amount_cents:quote.amountCents});
+    busy=true;expired();find<HTMLButtonElement>('submit').setAttribute('aria-busy','true');find<HTMLButtonElement>('submit').setAttribute('aria-label','Enviando comprobante…');find<HTMLElement>('submit-label').hidden=true;find<HTMLElement>('submit-skeleton').hidden=false;message('Enviando comprobante…',false,true);track('campus_plus_submit_started',{offer:quote.cohort,amount_cents:quote.amountCents});
     try{
       const file=input.files![0];const base64=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=reject;reader.readAsDataURL(file);});
       await api('orders',{quoteId:quote.id,consent:true,receipt:{name:file.name,base64}});if(disposed)return;form.reset();quote=null;await load();
-    }catch(error){failure(error);}finally{busy=false;expired();}
+    }catch(error){failure(error);}finally{busy=false;find<HTMLButtonElement>('submit').removeAttribute('aria-busy');find<HTMLButtonElement>('submit').removeAttribute('aria-label');find<HTMLElement>('submit-label').hidden=false;find<HTMLElement>('submit-skeleton').hidden=true;expired();}
   };
   timer=setInterval(()=>{if(quote)expired();if(pendingPayment&&!busy&&document.visibilityState==='visible'&&++poll%20===0)void load();},1000);
   const changed=(event:Event)=>{
     const session=(event as CustomEvent<CampusSession>).detail;
     const owner=session.authenticated?session.analyticsId??session.email??'account':'guest';
     if(currentOwner!==undefined&&owner!==currentOwner){
-      disposed=true;quote=null;form.reset();show('loading');message('Actualizando la cuenta…');location.reload();
+      disposed=true;quote=null;form.reset();show('loading');message('Actualizando la cuenta…',false,true);location.reload();
     }
   };
   window.addEventListener('campus:session-updated',changed);
