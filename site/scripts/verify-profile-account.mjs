@@ -22,8 +22,9 @@ for(const usage of [undefined,{remaining:NaN,limit:100},{remaining:-1,limit:100}
 }
 assert.equal(profileAccountView({...free,authenticated:false,plan:'anon'}).state,'guest');
 assert.equal(profileAccountView({...plus,accessBlocked:true}).state,'blocked');
-const fields=new Map(['label','usage','note','mcp','upgrade','refresh'].map(name=>[name,{textContent:'',hidden:false,setAttribute(){}}]));
+const fields=new Map(['label','usage','note','mcp','upgrade','refresh'].map(name=>[name,{textContent:'',hidden:false,setAttribute(){},replaceChildren(...children){this.children=children;}}]));
 const root={dataset:{},setAttribute(){},querySelector(selector){return fields.get(selector.match(/data-profile-(.*)\]/)[1]);}};
+globalThis.document={createElement(){return {className:'',hidden:false,setAttribute(){},append(){}};}};
 renderProfileAccount(root,free);assert.equal(fields.get('upgrade').hidden,false);
 renderProfileAccount(root,plus);assert.equal(fields.get('upgrade').hidden,true);assert.equal(fields.get('mcp').hidden,false);
 renderProfileAccount(root,'error');assert.equal(fields.get('usage').textContent,'');assert.equal(fields.get('usage').hidden,true);assert.equal(fields.get('mcp').hidden,true);
