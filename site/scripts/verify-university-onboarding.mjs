@@ -9,11 +9,11 @@ assert.equal(universityDoneHref(setup.search),chat,'Return to the same saved con
 const connector=`/app/copilot/?return=${encodeURIComponent(chat)}`;
 const guideSetup=new URL(universitySetupHref('/app/copilot/',new URL(connector,'https://local.test').search),'https://local.test');
 assert.equal(universityDoneHref(guideSetup.search),connector,'Preserve the connector guide and its own return to the conversation');
-assert.equal(universityDoneHref('?universidad=pendiente'),'/app/profes/');
+assert.equal(universityDoneHref('?universidad=pendiente'),'/app/asistente/');
 assert.equal(universityDoneHref(''),'/app/perfil/');
-assert.equal(universityReturnPath('/app/'),'/app/profes/');
-for(const value of ['https://evil.test/','//evil.test/','javascript:alert(1)','/app/profes/c/not-a-uuid/','/api/app/logout','/app/copilot/../perfil/']){
- assert.equal(universityReturnPath(value),null);assert.equal(universityDoneHref(`?universidad=pendiente&return=${encodeURIComponent(value)}`),'/app/profes/');
+assert.equal(universityReturnPath('/app/'),'/app/asistente/');
+for(const value of ['https://evil.test/','//evil.test/','javascript:alert(1)','/app/asistente/c/not-a-uuid/','/api/app/logout','/app/copilot/../perfil/']){
+ assert.equal(universityReturnPath(value),null);assert.equal(universityDoneHref(`?universidad=pendiente&return=${encodeURIComponent(value)}`),'/app/asistente/');
 }
 assert.equal(universityReturnPath('/app/copilot/?return=https%3A%2F%2Fevil.test'),'/app/copilot/');
 console.log('University onboarding: preserves chat and connector destinations, profile edits and legacy links; external/malformed returns fail closed.');

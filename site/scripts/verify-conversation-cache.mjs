@@ -54,13 +54,15 @@ assert.equal(createConversationCache(async () => 'other user').peek('a'), undefi
 
 const bootstrap = await readFile(new URL('../public/campus-conversation-bootstrap.js', import.meta.url), 'utf8');
 const id = 'fbe400c2-5195-4e9b-8ae5-fdfd34c65e20';
-const earlyCalls = [];
-const context = { window: {}, location: { pathname: `/app/profes/c/${id}/` }, AbortSignal, fetch: async (url, options) => { earlyCalls.push({ url, options }); return { ok: true, json: async () => ({ messages: [] }) }; } };
-vm.runInNewContext(bootstrap, context);
-vm.runInNewContext(bootstrap, context);
-await context.window.__campusConversationPreload.promise;
-assert.equal(earlyCalls.length, 1, 'Early preload runs once for the deep link');
-assert.match(earlyCalls[0].url, /limit=5/);
-assert.equal(earlyCalls[0].options.credentials, 'same-origin');
-assert.equal(earlyCalls[0].options.cache, 'no-store');
+for (const pathname of [`/app/asistente/c/${id}/`, `/app/profes/c/${id}/`]) {
+  const earlyCalls = [];
+  const context = { window: {}, location: { pathname }, AbortSignal, fetch: async (url, options) => { earlyCalls.push({ url, options }); return { ok: true, json: async () => ({ messages: [] }) }; } };
+  vm.runInNewContext(bootstrap, context);
+  vm.runInNewContext(bootstrap, context);
+  await context.window.__campusConversationPreload.promise;
+  assert.equal(earlyCalls.length, 1, `Early preload runs once for ${pathname}`);
+  assert.match(earlyCalls[0].url, /limit=5/);
+  assert.equal(earlyCalls[0].options.credentials, 'same-origin');
+  assert.equal(earlyCalls[0].options.cache, 'no-store');
+}
 console.log('Conversation cache and early preload: all checks passed.');

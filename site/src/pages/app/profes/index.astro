@@ -1,15 +1,19 @@
 ---
-import AppShell from "../../../layouts/AppShell.astro";
-import ProfesChat from "../../../components/ProfesChat.tsx";
 ---
-<AppShell title="Asistente" active="profes">
-  <ProfesChat client:only="react">
-    <div slot="fallback" class="app-profes-layout">
-      <section class="app-profes-ai has-messages" aria-label="Asistente de Campus">
-        <div class="app-profes-ai__conversation-skeleton" role="status" aria-label="Cargando conversación">
-          <span></span><span></span><span></span>
-        </div>
-      </section>
-    </div>
-  </ProfesChat>
-</AppShell>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content="0;url=/app/asistente/" />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://campuscli.com/app/asistente/" />
+    <title>Redirigiendo a Asistente…</title>
+    <script is:inline>
+      const target = "/app/asistente/" + window.location.search + window.location.hash;
+      window.location.replace(target);
+    </script>
+  </head>
+  <body>
+    <p>Redirigiendo a <a href="/app/asistente/">Asistente</a>…</p>
+  </body>
+</html>

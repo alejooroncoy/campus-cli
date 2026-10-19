@@ -42,7 +42,7 @@ interface ConversationPage {
 
 function conversationIdFromPath(): string | null {
   if (typeof window === "undefined") return null;
-  const match = window.location.pathname.match(/^\/app\/profes\/c\/([0-9a-f-]{36})\/?$/i);
+  const match = window.location.pathname.match(/^\/app\/(?:profes|asistente)\/c\/([0-9a-f-]{36})\/?$/i);
   return match?.[1] ?? null;
 }
 
@@ -91,7 +91,7 @@ function formatRelativeTime(iso: string): string {
   }
 }
 
-const getLoginUrl = () => assistantLoginHref(typeof window === 'undefined' ? '/app/profes/' : window.location.pathname);
+const getLoginUrl = () => assistantLoginHref(typeof window === 'undefined' ? '/app/asistente/' : window.location.pathname, typeof window === 'undefined' ? '' : window.location.search);
 const guestQuotaDismissedKey = "campus-profes-quota-dismissed";
 const upcHintDismissedKey = "campus-profes-upc-hint-dismissed";
 const suggestions = [
@@ -707,7 +707,7 @@ export default function ProfesChat() {
   const [historyError, setHistoryError] = useState("");
   const [quotaDialogOpen, setQuotaDialogOpen] = useState(false);
   const [upcHintDismissed, setUpcHintDismissed] = useState(false);
-  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("modal") === "review");
   const [reviewStep, setReviewStep] = useState<"select" | "edit" | "confirm" | "done">("select");
   const [reviewSearchMode, setReviewSearchMode] = useState<"course" | "professor">("course");
   const [reviewCourses, setReviewCourses] = useState<ReviewCourse[]>([]);
@@ -790,7 +790,11 @@ export default function ProfesChat() {
 
   const handleConversationCreated = useCallback((id: string, title?: string) => {
     setCurrentConversationId(id);
-    if (window.location.pathname !== `/app/profes/c/${id}/`) window.history.pushState({ ...window.history.state, campusConversation: id }, "", `/app/profes/c/${id}/`);
+    const search = window.location.search;
+    const targetPath = `/app/asistente/c/${id}/`;
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({ ...window.history.state, campusConversation: id }, "", `${targetPath}${search}`);
+    }
     setConversations(prev => {
       const idx = prev.findIndex(c => c.id === id);
       const now = new Date().toISOString();
@@ -1112,6 +1116,23 @@ export default function ProfesChat() {
     textarea.current?.focus();
   }
 
+  function syncModalUrl(open: boolean) {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const currentModal = url.searchParams.get("modal");
+    if (open) {
+      if (currentModal !== "review") {
+        url.searchParams.set("modal", "review");
+        window.history.pushState({ ...window.history.state, campusReviewModal: true }, "", url.pathname + url.search + url.hash);
+      }
+    } else {
+      if (currentModal === "review") {
+        url.searchParams.delete("modal");
+        window.history.replaceState(window.history.state, "", url.pathname + (url.search ? url.search : "") + url.hash);
+      }
+    }
+  }
+
   function openReview() {
     if (reviewStep === "done") {
       setReviewProfessor(null); setReviewCourse(null);
@@ -1121,6 +1142,7 @@ export default function ProfesChat() {
     }
     setReviewStep(reviewStep !== "done" && reviewProfessor ? "edit" : "select");
     setReviewOpen(true); setReviewError("");
+    syncModalUrl(true);
   }
 
   function openReviewForProfessor(profName: string) {
@@ -1129,11 +1151,19 @@ export default function ProfesChat() {
     setReviewQuery(profName); setReviewProfessor(null);
     setReviewCourses([]); setReviewProfessors([]);
     setReviewStep("select"); setReviewError(""); setReviewOpen(true);
+    syncModalUrl(true);
   }
 
   function closeReview() {
     if (reviewSending) return;
     setReviewOpen(false); setReviewError("");
+    if (typeof window !== "undefined") {
+      if (window.history.state?.campusReviewModal) {
+        window.history.back();
+      } else {
+        syncModalUrl(false);
+      }
+    }
   }
 
   function changeReviewSearchMode(mode: "course" | "professor") {
@@ -1187,7 +1217,8 @@ export default function ProfesChat() {
     setHasOlderMessages(false);
     olderMessagesCursor.current = null;
     restoreScrollAfterLoad.current = 0;
-    if (updateUrl && window.location.pathname !== "/app/profes/") window.history.pushState({ ...window.history.state, campusConversation: null }, "", "/app/profes/");
+    const search = window.location.search;
+    if (updateUrl && window.location.pathname !== "/app/asistente/") window.history.pushState({ ...window.history.state, campusConversation: null }, "", `/app/asistente/${search}`);
     setHistoryOpen(false);
     setHistoryError("");
     requestAnimationFrame(() => textarea.current?.focus());
@@ -1218,8 +1249,9 @@ export default function ProfesChat() {
       setMessages(snapshot ? snapshot.messages : toUIMessages(page!.messages));
       setActivitySteps([]);
       setActivityExpanded(false);
-      const nextUrl = `/app/profes/c/${id}/`;
-      if (updateUrl && window.location.pathname !== nextUrl) window.history.pushState({ ...window.history.state, campusConversation: id }, "", nextUrl);
+      const search = window.location.search;
+      const nextUrl = `/app/asistente/c/${id}/${search}`;
+      if (updateUrl && window.location.pathname !== `/app/asistente/c/${id}/`) window.history.pushState({ ...window.history.state, campusConversation: id }, "", nextUrl);
       setHistoryOpen(false);
       if (!snapshot && page?.hasMore && page.nextBeforeId) void pageCache.current.get(id, page.nextBeforeId).catch(() => {});
     } catch {
@@ -1230,7 +1262,12 @@ export default function ProfesChat() {
       }
     }
   }
-  navigateConversation.current = id => { if (id) void selectConversation(id, false); else startNewConversation(false); };
+  navigateConversation.current = id => {
+    if (id !== currentConversationIdRef.current) {
+      if (id) void selectConversation(id, false);
+      else startNewConversation(false);
+    }
+  };
 
   async function loadOlderMessages() {
     const id = currentConversationId;
@@ -1291,10 +1328,12 @@ export default function ProfesChat() {
 
   useEffect(() => {
     const onPopState = (event: PopStateEvent) => {
-      if (!/^\/app\/profes(?:\/c\/[0-9a-f-]{36})?\/?$/i.test(window.location.pathname)) return;
+      if (!/^\/app\/(?:profes|asistente)(?:\/c\/[0-9a-f-]{36})?\/?$/i.test(window.location.pathname)) return;
       // These entries belong to the mounted chat. Avoid Astro replacing the page
       // and discarding its messages/cache when the user goes Back or Forward.
       event.stopImmediatePropagation();
+      const isReview = new URLSearchParams(window.location.search).get("modal") === "review";
+      setReviewOpen(isReview);
       navigateConversation.current(conversationIdFromPath());
     };
     window.addEventListener("popstate", onPopState, true);
@@ -1320,7 +1359,10 @@ export default function ProfesChat() {
         setMessages([]);
         setHasOlderMessages(false);
         olderMessagesCursor.current = null;
-        if (window.location.pathname === `/app/profes/c/${id}/`) window.history.replaceState({}, "", "/app/profes/");
+        const search = window.location.search;
+        if (window.location.pathname === `/app/asistente/c/${id}/` || window.location.pathname === `/app/profes/c/${id}/`) {
+          window.history.replaceState({}, "", `/app/asistente/${search}`);
+        }
         setInput("");
       }
     } catch {
