@@ -234,7 +234,7 @@ function setupTurnitin() {
     } finally {
       if (version === historyVersion) {
         refreshPending = false; refresh.disabled = more.disabled = false;
-        ordersList.removeAttribute('aria-busy'); ordersList.querySelector('.ti-orders-skeleton--refresh')?.remove();
+        ordersList.removeAttribute('aria-busy'); ordersList.querySelectorAll('.ti-orders-skeleton--refresh').forEach(placeholder => placeholder.remove());
         refresh.removeAttribute('aria-busy');
         refresh.removeAttribute('aria-label');
         refresh.querySelector<HTMLElement>('[data-ti-refresh-label]')!.hidden = false;
