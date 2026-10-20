@@ -331,7 +331,7 @@ function setupTurnitin() {
         ordersList.removeAttribute('aria-busy');
         ordersList.replaceChildren(el('p', 'Inicia sesión para consultar tus revisiones.', 'ti-muted'));
         announce(config.enabled ? 'Inicia sesión para solicitar o consultar una revisión.' : 'Los pedidos nuevos están pausados. Inicia sesión para consultar pedidos anteriores.');
-        setupTurnitinLogin()?.open(config.amountCents);
+        setupTurnitinLogin()?.open(config.amountCents, !config.enabled);
         return;
       }
       form.hidden = !config.enabled; refresh.hidden = false;

@@ -17,7 +17,7 @@ assert.equal(/Turnitin/i.test(read('contacto/index.html')), enabled, 'contact pa
 const history = read('app/turnitin/index.html');
 assert.ok(history.includes('data-ti-my-orders-panel'), 'existing customer history remains available');
 assert.equal((history.match(/id="ti-login-title"/g) ?? []).length, 1, 'login remains unique and available');
-if (!enabled) assert.ok(history.indexOf('data-ti-login-panel') < history.indexOf('data-ti-new-order'), 'paused login remains outside the hidden new-order panel');
+assert.ok(history.indexOf('data-ti-login-panel') < history.indexOf('data-ti-new-order'), 'paused login remains outside the hidden new-order panel');
 assert.ok(history.includes(`data-ti-service-enabled="${enabled}"`));
 const newOrder = history.match(/<details\b[^>]*data-ti-new-order[^>]*>/)?.[0];
 assert.ok(newOrder);

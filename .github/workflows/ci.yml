@@ -55,5 +55,7 @@ jobs:
       - name: Turnitin public pause and reactivation
         run: |
           node site/scripts/verify-turnitin-feature.mjs
+          node site/scripts/verify-turnitin-visibility.mjs
           CAMPUS_TURNITIN_SERVICE_ENABLED=true npm --prefix site run build
           CAMPUS_TURNITIN_SERVICE_ENABLED=true node site/scripts/verify-turnitin-feature.mjs
+          CAMPUS_TURNITIN_SERVICE_ENABLED=true node site/scripts/verify-turnitin-visibility.mjs

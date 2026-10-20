@@ -1,7 +1,7 @@
 export function turnitinLoginReturn(pathname: string, hash: string) {
   return '/app/turnitin/' + (pathname === '/app/turnitin/' && /^#ti-order-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(hash) ? hash : '');
 }
-type TurnitinLogin = { open: (amountCents?: number) => void };
+type TurnitinLogin = { open: (amountCents?: number, intakePaused?: boolean) => void };
 const initialized = new WeakMap<HTMLElement, TurnitinLogin>();
 export function setupTurnitinLogin(): TurnitinLogin | null {
   const dialog = document.querySelector<HTMLElement>('[data-ti-login-panel]');
@@ -9,10 +9,10 @@ export function setupTurnitinLogin(): TurnitinLogin | null {
   const previous = initialized.get(dialog);
   if (previous) return previous;
   const controller = {
-    open(amountCents?: number) {
+    open(amountCents?: number, intakePaused = false) {
       if (!dialog.isConnected) return;
       const returnUrl = turnitinLoginReturn(location.pathname, location.hash);
-      const readingReports = returnUrl.includes('#');
+      const readingReports = intakePaused || returnUrl.includes('#');
       const login = dialog.querySelector<HTMLAnchorElement>('[data-ti-google-login]')!;
       login.href = '/api/app/auth/start?return=' + encodeURIComponent(returnUrl);
       const title = dialog.querySelector<HTMLElement>('#ti-login-title')!;

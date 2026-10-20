@@ -33,11 +33,10 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
         <p class="ti-muted ti-report-note" hidden>El informe de IA puede mostrar «*%» en lugar de un porcentaje exacto.</p>
       </section>
 
-      {!turnitinServiceEnabled && <TurnitinLogin inline />}
+      <TurnitinLogin inline />
       <details class="ti-panel ti-new-order" data-ti-new-order data-ti-service-enabled={String(turnitinServiceEnabled)} hidden={!turnitinServiceEnabled} open={turnitinServiceEnabled}>
         <summary><span class="ti-summary-title">Nueva revisión</span><span class="ti-price-badge" data-ti-price>S/8 · Lanzamiento</span><span class="ti-disclosure" aria-hidden="true"></span></summary>
         <div class="ti-new-order-body">
-        {turnitinServiceEnabled && <TurnitinLogin inline />}
         <form data-ti-form hidden novalidate>
           <fieldset data-ti-fields style="border:0;padding:0;margin:0">
             <nav class="ti-request-progress" aria-label="Pasos de tu revisión">
