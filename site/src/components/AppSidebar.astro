@@ -1,19 +1,20 @@
 ---
 interface Props {
-  active: "profes" | "copilot" | "perfil" | "turnitin";
+  active: "profes" | "asistente" | "copilot" | "perfil" | "turnitin";
 }
 
 const { active } = Astro.props;
+const isChat = active === "profes" || active === "asistente";
 
 const nav = [
-  { id: "profes", label: "Asistente", href: "/app/profes/", icon: "users" },
+  { id: "asistente", label: "Asistente", href: "/app/asistente/", icon: "users" },
   { id: "copilot", label: "Conectar IA", href: "/app/copilot/", icon: "sparkles" },
   { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" },
   { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "user" },
 ];
 ---
 
-<aside class:list={["shadcn-sidebar", { "sidebar--profes": active === "profes" }]} aria-label="Navegación principal">
+<aside class:list={["shadcn-sidebar", { "sidebar--profes": isChat }]} aria-label="Navegación principal">
   <!-- Sidebar Header -->
   <div class="sidebar-header">
     <a class="sidebar-brand" href="/app/" aria-label="Campus, abrir asistente">
@@ -27,7 +28,7 @@ const nav = [
     </a>
   </div>
 
-  {active === "profes" && <div id="profes-sidebar-actions"></div>}
+  {isChat && <div id="profes-sidebar-actions"></div>}
 
   <!-- Sidebar Content -->
   <div class="sidebar-content">
@@ -37,8 +38,8 @@ const nav = [
         {nav.map((item) => (
           <a
             href={item.href}
-            class:list={["sidebar-menu-btn", { "is-active": active === item.id }]}
-            aria-current={active === item.id ? "page" : undefined}
+            class:list={["sidebar-menu-btn", { "is-active": active === item.id || (item.id === "asistente" && active === "profes") }]}
+            aria-current={active === item.id || (item.id === "asistente" && active === "profes") ? "page" : undefined}
           >
             <svg viewBox="0 0 24 24" class="sidebar-menu-icon" aria-hidden="true">
               <use href={`/assets/lucide.svg?v=3#${item.icon}`} />
@@ -49,7 +50,7 @@ const nav = [
       </nav>
     </div>
 
-    {active === "profes" && <div id="profes-sidebar-history"></div>}
+    {isChat && <div id="profes-sidebar-history"></div>}
 
     <div class="sidebar-group">
       <span class="sidebar-group__label">Ayuda & Conexión</span>

@@ -11,6 +11,18 @@ assert.equal(api.consumeConversationHandoff(path), false, 'Guest history is not 
 assert.equal(api.completeAccountHandoff(), true); assert.equal(api.completeAccountHandoff(), false);
 assert.equal(api.consumeConversationHandoff('/app/profes/'), false);
 assert.equal(api.consumeConversationHandoff(path), true); assert.equal(api.consumeConversationHandoff(path), false);
+values.clear();
+const asistentePath = '/app/asistente/c/118adac7-9134-4f9e-b751-a145605de41c/';
+api.beginAccountHandoff(asistentePath);
+assert.equal(api.accountHandoff().returnPath, asistentePath);
+assert.equal(api.completeAccountHandoff(), true);
+assert.equal(api.consumeConversationHandoff(asistentePath), true);
+assert.equal(api.consumeConversationHandoff(asistentePath), false);
+values.clear();
+api.beginAccountHandoff('/app/asistente/?modal=review');
+assert.equal(api.accountHandoff()?.returnPath, '/app/asistente/?modal=review');
+assert.equal(api.completeAccountHandoff(), true);
+assert.equal(api.consumeConversationHandoff('/app/asistente/'), false, 'Non-conversation return is not consumed as conversation history');
 values.set('campus-account-handoff-v1', JSON.stringify({ startedAt: Date.now()-31*60*1000, returnPath: path, completed: false }));
 assert.equal(api.completeAccountHandoff(), false, 'Expired sign-in does not create a conversion');
 console.log('Account onboarding: safe return, verified completion, one-time matching conversation restoration and expiry pass.');

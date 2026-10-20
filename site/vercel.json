@@ -6,6 +6,26 @@
       "source": "/sitemap.xml",
       "destination": "/sitemap-index.xml",
       "permanent": true
+    },
+    {
+      "source": "/app/profes",
+      "destination": "/app/asistente/",
+      "permanent": false
+    },
+    {
+      "source": "/app/profes/",
+      "destination": "/app/asistente/",
+      "permanent": false
+    },
+    {
+      "source": "/app/profes/c/:id",
+      "destination": "/app/asistente/c/:id/",
+      "permanent": false
+    },
+    {
+      "source": "/app/profes/c/:id/",
+      "destination": "/app/asistente/c/:id/",
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -14,8 +34,20 @@
       "destination": "https://profes.campuscli.com/api/app/:path*/"
     },
     {
+      "source": "/app/asistente/c/:id([0-9a-fA-F-]{36})/",
+      "destination": "/app/asistente/"
+    },
+    {
+      "source": "/app/asistente/c/:id([0-9a-fA-F-]{36})",
+      "destination": "/app/asistente/"
+    },
+    {
       "source": "/app/profes/c/:id([0-9a-fA-F-]{36})/",
-      "destination": "/app/profes/"
+      "destination": "/app/asistente/"
+    },
+    {
+      "source": "/app/profes/c/:id([0-9a-fA-F-]{36})",
+      "destination": "/app/asistente/"
     },
     {
       "source": "/:path*",

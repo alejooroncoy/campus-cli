@@ -52,4 +52,4 @@ Campus Profes ya ayudó a más de 350 estudiantes a decidir antes de su matrícu
 
 ## Cómo empezar
 
-Entra a [la app web de Campus](/app/profes/) y consulta desde tu cuenta. Campus Free incluye reseñas, panel y 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web y consultas ilimitadas por MCP. Revisa los precios y condiciones en [Campus Free y Plus](/#planes).
+Entra a [la app web de Campus](/app/asistente/) y consulta desde tu cuenta. Campus Free incluye reseñas, panel y 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web y consultas ilimitadas por MCP. Revisa los precios y condiciones en [Campus Free y Plus](/#planes).

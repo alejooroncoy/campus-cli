@@ -40,7 +40,7 @@ export function safeAnalyticsProperties(input: Record<string, unknown>): Record<
     || (booleans.has(key) && typeof value === 'boolean')));
 }
 export function analyticsPage(path: string): string {
-  if (/^\/app\/profes\//.test(path)) return 'assistant';
-  const routes: Record<string, string> = { '/': 'home', '/app/': 'app', '/app/plus/': 'plus', '/app/copilot/': 'connect', '/app/perfil/': 'profile', '/app/turnitin/': 'turnitin_app', '/turnitin/': 'turnitin', '/profes/': 'professors', '/campus-cli/': 'cli', '/blackboard-mcp/': 'mcp', '/privacidad/': 'privacy' };
+  if (/^\/app\/(?:profes|asistente)\//.test(path)) return 'assistant';
+  const routes: Record<string, string> = { '/': 'home', '/app/': 'app', '/app/asistente/': 'assistant', '/app/plus/': 'plus', '/app/copilot/': 'connect', '/app/perfil/': 'profile', '/app/turnitin/': 'turnitin_app', '/turnitin/': 'turnitin', '/profes/': 'professors', '/campus-cli/': 'cli', '/blackboard-mcp/': 'mcp', '/privacidad/': 'privacy' };
   return routes[path] ?? (path.startsWith('/blog/') ? 'blog' : 'other');
 }

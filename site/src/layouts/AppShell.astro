@@ -5,12 +5,13 @@ import AppSidebar from "../components/AppSidebar.astro";
 
 interface Props {
   title: string;
-  active: "profes" | "copilot" | "perfil" | "turnitin";
+  active: "profes" | "asistente" | "copilot" | "perfil" | "turnitin";
 }
 
 const { title, active } = Astro.props;
+const isChat = active === "profes" || active === "asistente";
 const nav = [
-  { id: "profes", label: "Asistente", href: "/app/profes/", icon: "users" },
+  { id: "asistente", label: "Asistente", href: "/app/asistente/", icon: "users" },
   { id: "copilot", label: "Conectar IA", href: "/app/copilot/", icon: "sparkles" },
   { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" },
   { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "user" },
@@ -34,11 +35,11 @@ const nav = [
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Campus" />
     <link rel="stylesheet" href="/app-dashboard.css?v=22" />
-    {active === "profes" && <link rel="stylesheet" href="/profes-chat.css?v=24" />}
+    {isChat && <link rel="stylesheet" href="/profes-chat.css?v=24" />}
     <script is:inline async src="/campus-session-bootstrap.js?v=2"></script>
-    {active === "profes" && <script is:inline src="/campus-conversation-bootstrap.js?v=1" data-astro-rerun></script>}
+    {isChat && <script is:inline src="/campus-conversation-bootstrap.js?v=1" data-astro-rerun></script>}
     {/* The mounted chat owns its conversation URLs and browser history. */}
-    {active !== "profes" && <ClientRouter />}
+    {!isChat && <ClientRouter />}
   </head>
   <body class="campus-app-body">
     <a class="app-skip" href="#app-content">Saltar al contenido</a>
@@ -70,14 +71,14 @@ const nav = [
           </div>
         </div>
 
-        <main id="app-content" class:list={["app-main", { "app-main--profes": active === "profes" }]} tabindex="-1">
+        <main id="app-content" class:list={["app-main", { "app-main--profes": isChat }]} tabindex="-1">
           <slot />
         </main>
       </div>
 
       <nav class="app-mobile-nav" aria-label="Campus móvil" transition:persist="app-mobile-nav">
         {nav.map((item) => (
-          <a href={item.href} class:list={{ "is-active": active === item.id }} aria-current={active === item.id ? "page" : undefined}>
+          <a href={item.href} class:list={{ "is-active": active === item.id || (item.id === "asistente" && active === "profes") }} aria-current={active === item.id || (item.id === "asistente" && active === "profes") ? "page" : undefined}>
             <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href={`/assets/lucide.svg?v=3#${item.icon}`}></use></svg>
             <span>{item.label}</span>
           </a>

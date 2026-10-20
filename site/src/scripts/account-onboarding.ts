@@ -24,6 +24,9 @@ export function completeAccountHandoff(): boolean {
 }
 export function consumeConversationHandoff(path: string): boolean {
   const item = accountHandoff();
-  if (!item?.completed || item.returnPath !== path || !path.includes('/c/')) return false;
+  if (!item?.completed) return false;
+  const itemBase = item.returnPath.split('?')[0];
+  const targetBase = path.split('?')[0];
+  if (itemBase !== targetBase || !targetBase.includes('/c/')) return false;
   try { sessionStorage.removeItem(key); return true; } catch { return false; }
 }
