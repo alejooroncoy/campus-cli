@@ -9,7 +9,7 @@ for (const path of ['index.html', 'index.md', 'llms.txt', 'llms-full.txt']) {
 assert.equal(read('sitemap-0.xml').includes('/turnitin/'), enabled, 'sitemap follows the flag');
 assert.equal(read('turnitin/index.html').includes('data-ti-start'), enabled, 'public service page follows the flag');
 assert.equal(read('turnitin/index.md').toLowerCase().includes('turnitin'), enabled, 'service Markdown follows the flag');
-for (const path of ['index.html', 'app/index.html']) {
+for (const path of ['index.html', 'app/asistente/index.html']) {
   assert.equal(read(path).includes('href="/app/turnitin/"') || read(path).includes('href="/turnitin/"'), enabled, `${path}: navigation follows the flag`);
 }
 assert.ok(!read('llms.txt').includes('there.\\n'), 'discovery uses a real newline');
