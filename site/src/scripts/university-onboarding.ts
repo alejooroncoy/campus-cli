@@ -13,7 +13,9 @@ export function universityReturnPath(value: string | null): string | null {
   return null;
 }
 export function universitySetupHref(pathname: string, search = '') {
-  const back = universityReturnPath(pathname === '/app/copilot/' ? pathname + search : pathname) ?? '/app/asistente/';
+  const modalParam = search && new URLSearchParams(search).get('modal') === 'review' ? '?modal=review' : '';
+  const candidate = pathname.includes('?') ? pathname : `${pathname}${modalParam}`;
+  const back = universityReturnPath(pathname === '/app/copilot/' ? pathname + search : candidate) ?? '/app/asistente/';
   return `/app/perfil/?universidad=pendiente&return=${encodeURIComponent(back)}`;
 }
 export function universityDoneHref(search: string) {

@@ -10,6 +10,9 @@ const connector=`/app/copilot/?return=${encodeURIComponent(chat)}`;
 const guideSetup=new URL(universitySetupHref('/app/copilot/',new URL(connector,'https://local.test').search),'https://local.test');
 assert.equal(universityDoneHref(guideSetup.search),connector,'Preserve the connector guide and its own return to the conversation');
 assert.equal(universityDoneHref('?universidad=pendiente'),'/app/asistente/');
+const modalSetup=new URL(universitySetupHref('/app/asistente/','?modal=review'),'https://local.test');
+assert.equal(modalSetup.searchParams.get('return'),'/app/asistente/?modal=review');
+assert.equal(universityDoneHref(modalSetup.search),'/app/asistente/?modal=review','Preserve review modal when returning from university onboarding');
 assert.equal(universityDoneHref(''),'/app/perfil/');
 assert.equal(universityReturnPath('/app/'),'/app/asistente/');
 for(const value of ['https://evil.test/','//evil.test/','javascript:alert(1)','/app/asistente/c/not-a-uuid/','/api/app/logout','/app/copilot/../perfil/']){

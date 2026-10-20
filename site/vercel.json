@@ -8,8 +8,18 @@
       "permanent": true
     },
     {
+      "source": "/app/profes",
+      "destination": "/app/asistente/",
+      "permanent": false
+    },
+    {
       "source": "/app/profes/",
       "destination": "/app/asistente/",
+      "permanent": false
+    },
+    {
+      "source": "/app/profes/c/:id",
+      "destination": "/app/asistente/c/:id/",
       "permanent": false
     },
     {
@@ -28,7 +38,15 @@
       "destination": "/app/asistente/"
     },
     {
+      "source": "/app/asistente/c/:id([0-9a-fA-F-]{36})",
+      "destination": "/app/asistente/"
+    },
+    {
       "source": "/app/profes/c/:id([0-9a-fA-F-]{36})/",
+      "destination": "/app/asistente/"
+    },
+    {
+      "source": "/app/profes/c/:id([0-9a-fA-F-]{36})",
       "destination": "/app/asistente/"
     },
     {
