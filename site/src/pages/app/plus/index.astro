@@ -1,4 +1,5 @@
 ---
+import { turnitinServiceEnabled } from "../../../../feature-flags.mjs";
 import AppShell from '../../../layouts/AppShell.astro';
 ---
 <AppShell title="Campus Plus" active="perfil">
@@ -50,7 +51,7 @@ import AppShell from '../../../layouts/AppShell.astro';
     <section class="app-panel" data-plus-view="unavailable" hidden>
       <h2>No pudimos comprobar la activación.</h2><p>Vuelve a intentarlo antes de realizar un pago. Si ya pagaste, conserva tu comprobante y contacta a soporte.</p><button type="button" class="app-button app-button--secondary" data-plus-refresh>Volver a comprobar</button>
     </section>
-    <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>100 consultas diarias en la web.</li><li>Consultas ilimitadas con tu IA por MCP.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte. Turnitin se cobra por documento.</p></details>
+    <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>100 consultas diarias en la web.</li><li>Consultas ilimitadas con tu IA por MCP.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
     <p class="plus-support">¿Necesitas ayuda? <a class="app-text-link" href="https://wa.me/51946189585" target="_blank" rel="noopener">WhatsApp +51 946 189 585</a></p>
   </div>
   <script src="../../../scripts/plus.ts"></script>

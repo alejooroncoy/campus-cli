@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
-import body from "../html/index.html?raw";
+import rawBody from "../html/index.html?raw";
+import { publicHomeHtml } from "../../feature-flags.mjs";
+const body = publicHomeHtml(rawBody);
 import { htmlToMarkdown } from "../lib/html-to-markdown";
 
 /**

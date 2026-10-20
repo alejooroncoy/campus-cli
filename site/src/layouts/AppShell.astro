@@ -1,4 +1,5 @@
 ---
+import { turnitinServiceEnabled } from "../../feature-flags.mjs";
 import { ClientRouter } from "astro:transitions";
 import Analytics from "../components/Analytics.astro";
 import AppSidebar from "../components/AppSidebar.astro";
@@ -13,7 +14,7 @@ const isChat = active === "profes" || active === "asistente";
 const nav = [
   { id: "asistente", label: "Asistente", href: "/app/asistente/", icon: "users" },
   { id: "copilot", label: "Conectar IA", href: "/app/copilot/", icon: "sparkles" },
-  { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" },
+  ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
   { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "user" },
 ];
 ---

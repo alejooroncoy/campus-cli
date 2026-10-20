@@ -1,4 +1,5 @@
 ---
+import { turnitinServiceEnabled } from "../../feature-flags.mjs";
 interface Props {
   active: "profes" | "asistente" | "copilot" | "perfil" | "turnitin";
 }
@@ -9,7 +10,7 @@ const isChat = active === "profes" || active === "asistente";
 const nav = [
   { id: "asistente", label: "Asistente", href: "/app/asistente/", icon: "users" },
   { id: "copilot", label: "Conectar IA", href: "/app/copilot/", icon: "sparkles" },
-  { id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" },
+  ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
   { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "user" },
 ];
 ---

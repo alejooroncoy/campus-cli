@@ -1,4 +1,5 @@
 ---
+import { turnitinServiceEnabled } from "../../../../feature-flags.mjs";
 import AppShell from '../../../layouts/AppShell.astro';
 import TurnitinLogin from '../../../components/TurnitinLogin.astro';
 import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro';
@@ -7,10 +8,10 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
   <link rel="stylesheet" href="/turnitin.css?v=2" />
   <div class="ti-order-shell">
     <header class="ti-order-head">
-      <h1>Turnitin</h1>
-      <a class="ti-service-link" href="/turnitin/" aria-label="Detalles del servicio">Detalles <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
-      <p>Similitud e IA en dos informes PDF.</p>
-      <div class="ti-service-facts"><span>10 min a 1 h tras validar el pago y el archivo</span></div>
+      <h1>{turnitinServiceEnabled ? "Turnitin" : "Tus revisiones de Turnitin"}</h1>
+      {turnitinServiceEnabled && <a class="ti-service-link" href="/turnitin/" aria-label="Detalles del servicio">Detalles <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>}
+      <p>{turnitinServiceEnabled ? "Similitud e IA en dos informes PDF." : "Los pedidos nuevos están pausados. Consulta tus informes anteriores aquí."}</p>
+      {turnitinServiceEnabled && <div class="ti-service-facts"><span>10 min a 1 h tras validar el pago y el archivo</span></div>}
     </header>
     <p class="ti-status" data-ti-status role="status" aria-live="polite"><span class="app-sr-only">Comprobando disponibilidad…</span><span class="ti-inline-skeleton" aria-hidden="true"></span></p>
     <div class="ti-order-layout">
@@ -32,10 +33,10 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
         <p class="ti-muted ti-report-note" hidden>El informe de IA puede mostrar «*%» en lugar de un porcentaje exacto.</p>
       </section>
 
-      <details class="ti-panel ti-new-order" data-ti-new-order open>
+      <TurnitinLogin inline />
+      <details class="ti-panel ti-new-order" data-ti-new-order data-ti-service-enabled={String(turnitinServiceEnabled)} hidden={!turnitinServiceEnabled} open={turnitinServiceEnabled}>
         <summary><span class="ti-summary-title">Nueva revisión</span><span class="ti-price-badge" data-ti-price>S/8 · Lanzamiento</span><span class="ti-disclosure" aria-hidden="true"></span></summary>
         <div class="ti-new-order-body">
-        <TurnitinLogin inline />
         <form data-ti-form hidden novalidate>
           <fieldset data-ti-fields style="border:0;padding:0;margin:0">
             <nav class="ti-request-progress" aria-label="Pasos de tu revisión">

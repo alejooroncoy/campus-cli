@@ -2,7 +2,9 @@ import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
 import clients from "../data/mcp-clients.json";
 import { htmlToMarkdown } from "../lib/html-to-markdown";
-import homeBody from "../html/index.html?raw";
+import rawHomeBody from "../html/index.html?raw";
+import { publicHomeHtml, turnitinServiceEnabled } from "../../feature-flags.mjs";
+const homeBody = publicHomeHtml(rawHomeBody);
 import campusCliBody from "../html/campus-cli/index.html?raw";
 import profesBody from "../html/profes/index.html?raw";
 import turnitinBody from "../html/turnitin/index.html?raw";
@@ -88,7 +90,7 @@ export const GET: APIRoute = async () => {
       url: "https://campuscli.com/blackboard-cli/",
       body: cliBody,
     },
-  ].map((page) => section(page.title, page.description, page.url, htmlToMarkdown(page.body)));
+  ].filter((page) => turnitinServiceEnabled || page.body !== turnitinBody).map((page) => section(page.title, page.description, page.url, htmlToMarkdown(page.body)));
 
   const perClient = Object.entries(clients).flatMap(([slug, data]) => {
     const body = bodies[`../html/blackboard-mcp/clients/${slug}.html`];
@@ -143,7 +145,7 @@ export const GET: APIRoute = async () => {
     "## Qué contiene",
     "",
     "1. Campus: asistente web, conector MCP y opiniones de profesores, con cuenta y plan comunes.",
-    "   Campus CLI: alternativa local de código abierto. Turnitin: servicio por documento.",
+    "   Campus CLI: alternativa local de código abierto." + (turnitinServiceEnabled ? " Turnitin: servicio por documento." : ""),
     "2. Conexión por asistente: Cursor, Claude Code, Claude Desktop, Codex,",
     "   GitHub Copilot, Windsurf, y la comparativa de servidores MCP.",
     "3. Guías del blog.",
