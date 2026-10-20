@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { turnitinServiceEnabled as enabled } from '../feature-flags.mjs';
 
 const read = path => readFileSync(new URL(`../dist/${path}`, import.meta.url), 'utf8');
-for (const path of ['index.html', 'index.md', 'llms.txt', 'llms-full.txt']) {
+for (const path of ['index.html', 'index.md', 'llms.txt', 'llms-full.txt', 'app/plus/index.html']) {
   assert.equal(/Turnitin/i.test(read(path)), enabled, `${path}: public promotion follows the flag`);
 }
 assert.equal(read('sitemap-0.xml').includes('/turnitin/'), enabled, 'sitemap follows the flag');
