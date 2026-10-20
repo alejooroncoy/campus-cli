@@ -39,10 +39,10 @@ try {
   assert.equal(await api.carryGuestUniversity({ ...fresh, universityConfirmed: undefined }, () => true).then(s => s.universityConfirmed), undefined);
   assert.equal(calls.length, 0, 'Guest, configured, stale and unverified sessions cannot write university data');
 
-  window.location = { pathname: '/app/perfil/', search: '?universidad=pendiente&return=%2Fapp%2Fprofes%2F' };
+  window.location = { pathname: '/app/perfil/', search: '?universidad=pendiente&return=%2Fapp%2Fasistente%2F' };
   assert.equal(await api.carryGuestUniversity(fresh, () => true), fresh, 'Explicit recovery owns writes after an automatic save fails');
   assert.equal(calls.length, 0);
-  window.location = { pathname: '/app/profes/c/118adac7-9134-4f9e-b751-a145605de41c/', search: '' };
+  window.location = { pathname: '/app/asistente/c/118adac7-9134-4f9e-b751-a145605de41c/', search: '' };
 
   api = await load();
   globalThis.fetch = async url => response(url.endsWith('universities') ? { universities: [upc] } : {}, false);

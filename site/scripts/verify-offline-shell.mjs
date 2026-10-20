@@ -66,7 +66,7 @@ for (const stylesheet of stylesheetUrls) {
 await lifecycle('activate');
 assert.deepEqual(deleted, ['campus-shell-v2', 'campus-shell-v3', 'campus-shell-v4', 'campus-shell-v5', 'campus-shell-v6', 'campus-shell-v7', 'campus-shell-v8', 'campus-shell-v9', 'campus-shell-v10', 'campus-shell-v11', 'campus-shell-v12']);
 
-const path = '/app/profes/c/d65145e9-0504-4e42-852f-0581930025d2/';
+const path = '/app/asistente/c/d65145e9-0504-4e42-852f-0581930025d2/';
 const failed = await request(path, 'navigate');
 assert.equal(failed.status, 503);
 assert.equal(failed.headers.get('cache-control'), 'no-store');

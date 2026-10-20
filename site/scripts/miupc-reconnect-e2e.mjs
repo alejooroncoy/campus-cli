@@ -3,7 +3,7 @@
 import {chromium} from 'playwright';
 import assert from 'node:assert/strict';
 const base=process.env.CAMPUS_RECONNECT_E2E_ORIGIN??'http://127.0.0.1:4330';
-const path='/app/profes/c/11111111-1111-4111-8111-111111111111/';
+const path='/app/asistente/c/11111111-1111-4111-8111-111111111111/';
 const browser=await chromium.launch({headless:true});
 async function scenario(mode,blocked=false,mobile=false){
  await fetch(`${base}/__e2e/${mode}`,{method:'POST'});
@@ -56,7 +56,7 @@ async function scenario(mode,blocked=false,mobile=false){
    assert.equal((await(await fetch(`${base}/__e2e/state`)).json()).starts,after.starts);
    await page.getByRole('button',{name:/^Consulta sin aviso/}).click();await notice.waitFor({state:'hidden'});
    assert.ok(page.url().endsWith('/22222222-2222-4222-8222-222222222222/'));
-   await page.locator('#profes-sidebar-actions .app-profes-sidebar-new').click();assert.equal(page.url(),base+'/app/profes/');assert.equal(await notice.count(),0);
+   await page.locator('#profes-sidebar-actions .app-profes-sidebar-new').click();assert.equal(page.url(),base+'/app/asistente/');assert.equal(await notice.count(),0);
    await page.getByRole('button',{name:/^Consulta E2E/}).click();await notice.waitFor();assert.equal(page.url(),base+path);assert.equal(await input.inputValue(),'Borrador que se conserva');
   }
   assert.ok((await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)));

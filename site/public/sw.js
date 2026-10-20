@@ -171,7 +171,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. Navegación HTML (/app/, /app/profes/, etc.): Network-First con fallback seguro
+  // 3. Navegación HTML (/app/, /app/asistente/, etc.): Network-First con fallback seguro
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request).catch(async () => {

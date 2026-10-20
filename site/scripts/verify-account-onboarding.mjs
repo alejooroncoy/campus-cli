@@ -12,6 +12,13 @@ assert.equal(api.completeAccountHandoff(), true); assert.equal(api.completeAccou
 assert.equal(api.consumeConversationHandoff('/app/profes/'), false);
 assert.equal(api.consumeConversationHandoff(path), true); assert.equal(api.consumeConversationHandoff(path), false);
 values.clear();
+const asistentePath = '/app/asistente/c/118adac7-9134-4f9e-b751-a145605de41c/';
+api.beginAccountHandoff(asistentePath);
+assert.equal(api.accountHandoff().returnPath, asistentePath);
+assert.equal(api.completeAccountHandoff(), true);
+assert.equal(api.consumeConversationHandoff(asistentePath), true);
+assert.equal(api.consumeConversationHandoff(asistentePath), false);
+values.clear();
 api.beginAccountHandoff('/app/asistente/?modal=review');
 assert.equal(api.accountHandoff()?.returnPath, '/app/asistente/?modal=review');
 assert.equal(api.completeAccountHandoff(), true);

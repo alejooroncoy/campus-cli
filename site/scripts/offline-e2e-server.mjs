@@ -23,7 +23,9 @@ const server = createServer(async (req, res) => {
     return;
   }
   try {
-    const route = /^\/app\/profes\/c\/[0-9a-f-]{36}\/$/i.test(path) ? '/app/profes/' : path;
+    const route = /^\/app\/(?:asistente|profes)\/c\/[0-9a-f-]{36}\/$/i.test(path)
+      ? (path.startsWith('/app/asistente/') ? '/app/asistente/' : '/app/profes/')
+      : path;
     let file = resolve(root, `.${decodeURIComponent(route)}`);
     if (!file.startsWith(root + sep)) throw Error('invalid path');
     if ((await stat(file)).isDirectory()) file = resolve(file, 'index.html');

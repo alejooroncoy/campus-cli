@@ -12,6 +12,8 @@ assert.deepEqual(safeAnalyticsProperties({ current_plan: 'plus', selected_plan: 
   page: 'private-course', toString: 'private', duration_ms: Infinity, limit: -1 }), {
   current_plan: 'plus', selected_plan: 'free', remaining: 100, authenticated: true,
 });
+assert.equal(analyticsPage('/app/asistente/'), 'assistant');
+assert.equal(analyticsPage('/app/asistente/c/private-id/'), 'assistant');
 assert.equal(analyticsPage('/app/profes/c/private-id/'), 'assistant');
 assert.equal(analyticsPage('/private-unrecognized-route'), 'other');
 assert.equal(analyticsPage('/app/perfil/'), 'profile');
@@ -57,7 +59,7 @@ const sdk = {
   } })),
 };
 globalThis.__campusPostHogFixture = { init: (_key, settings) => { config = settings; return sdk; } };
-globalThis.location = { hostname: 'campuscli.com', pathname: '/app/profes/', origin: 'https://campuscli.com' };
+globalThis.location = { hostname: 'campuscli.com', pathname: '/app/asistente/', origin: 'https://campuscli.com' };
 const production = await build({ entryPoints: ['src/scripts/analytics.ts'], bundle: true, format: 'esm', platform: 'node', write: false,
   define: { 'import.meta.env': JSON.stringify({ DEV: false, PUBLIC_POSTHOG_KEY: 'public-test-key', PUBLIC_POSTHOG_HOST: 'https://us.i.posthog.com' }) },
   plugins: [{ name: 'fake-posthog', setup(build) {
@@ -140,7 +142,7 @@ try {
     hasAttribute(name) { return name === 'data-profile-manage' && this.management; }
   }
   globalThis.Element = AppBrand;
-  location.pathname = '/app/profes/';
+  location.pathname = '/app/asistente/';
   storage.set('campus-selected-plan', 'plus');
   listeners.get('click')({ target: new AppBrand() });
   assert.equal(dwell.selectedPlan(), 'plus', 'Returning to the assistant inside the app preserves Plus interest');

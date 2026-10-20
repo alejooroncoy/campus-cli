@@ -51,7 +51,7 @@ try{
   page.on('pageerror',error=>errors.push(error.message));
   await page.route('https://example.invalid/**',route=>{remoteImages++;return route.abort();});
   await page.route('**/api/app/profes/conversation?**',route=>route.fulfill({json:{conversationId:id,messages:[{id:'1',role:'user',content:'Mis notas actuales'},{id:'2',role:'assistant',content:answer}],hasMore:false,nextBeforeId:'1'}}));
-  await page.goto(`${base}/app/profes/c/${id}/`);
+  await page.goto(`${base}/app/asistente/c/${id}/`);
   const reply=page.locator('.app-profes-ai__message--assistant').last();
   await reply.getByRole('table').first().waitFor();
   assert.equal(await reply.locator('p').filter({hasText:'Campos de ejemplo:'}).locator('br').count(),2,'Single line breaks must stay visible');
