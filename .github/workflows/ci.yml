@@ -51,3 +51,9 @@ jobs:
       - run: npm --prefix site run test:analytics
       - run: npx playwright install --with-deps chromium
       - run: npm --prefix site run test:analytics:transport
+
+      - name: Turnitin public pause and reactivation
+        run: |
+          node site/scripts/verify-turnitin-feature.mjs
+          CAMPUS_TURNITIN_SERVICE_ENABLED=true npm --prefix site run build
+          CAMPUS_TURNITIN_SERVICE_ENABLED=true node site/scripts/verify-turnitin-feature.mjs

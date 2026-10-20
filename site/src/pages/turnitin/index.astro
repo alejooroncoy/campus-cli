@@ -1,4 +1,6 @@
 ---
+import { turnitinServiceEnabled } from "../../../feature-flags.mjs";
+if (!turnitinServiceEnabled) return Astro.redirect("/");
 import Base from '../../layouts/Base.astro';
 import TurnitinLogin from '../../components/TurnitinLogin.astro';
 import body from '../../html/turnitin/index.html?raw';

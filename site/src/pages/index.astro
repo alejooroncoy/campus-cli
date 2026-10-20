@@ -1,7 +1,9 @@
 ---
 import Base from "../layouts/Base.astro";
 // Shared with the Markdown route so public plan details stay consistent.
-import body from "../html/index.html?raw";
+import rawBody from "../html/index.html?raw";
+import { publicHomeHtml } from "../../feature-flags.mjs";
+const body = publicHomeHtml(rawBody);
 
 const schemas = [
   {

@@ -3,6 +3,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import react from "@astrojs/react";
+import { turnitinServiceEnabled } from "./feature-flags.mjs";
 
 /**
  * Real modification dates for the sitemap.
@@ -79,7 +80,7 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      filter: (page) => !new URL(page).pathname.startsWith("/app/"),
+      filter: (page) => !new URL(page).pathname.startsWith("/app/") && (turnitinServiceEnabled || !new URL(page).pathname.startsWith("/turnitin/")),
       // A sitemap has no line breaks, so a browser shows one unreadable run of
       // text and the file looks broken even when it validates. Crawlers ignore
       // the stylesheet; it is there so a person can check the list.

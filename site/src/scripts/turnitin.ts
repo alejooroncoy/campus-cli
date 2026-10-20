@@ -281,7 +281,7 @@ function setupTurnitin() {
   form.addEventListener('change', () => { requestId = crypto.randomUUID(); showSubmission(''); });
   form.onsubmit = async event => {
     event.preventDefault();
-    if (fields.disabled) return;
+    if (!config?.enabled || fields.disabled) return;
     if (!request.isPayment()) { request.next(); return; }
     if (!uploads.validate('document')) { request.document(); return; }
     if (!uploads.validate() || !form.reportValidity()) { track('campus_flow_failed', { step: 'upload', error_kind: 'validation' }); return; }
@@ -310,6 +310,8 @@ function setupTurnitin() {
   void (async () => {
     try {
       config = await api('config');
+      config.enabled = config.enabled && requestPanel.dataset.tiServiceEnabled === 'true';
+      requestPanel.hidden = !config.enabled;
       document.querySelector<HTMLElement>('[data-ti-price]')!.textContent = config.amountCents === 800 ? 'S/8 · Lanzamiento' : `${money(config.amountCents)} por documento`;
       document.querySelector<HTMLElement>('[data-ti-amount]')!.textContent = money(config.amountCents);
       document.querySelector<HTMLElement>('[data-ti-phone]')!.textContent = config.phone;
