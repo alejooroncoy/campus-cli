@@ -19,7 +19,8 @@
     "./banner-schedule": "./dist/providers/banner/schedule.js",
     "./analytics": "./dist/analytics.js",
     "./mendeley-mcp-tools": "./dist/providers/academic/mendeley-mcp-tools.js",
-    "./mendeley-service": "./dist/providers/academic/mendeley-service.js"
+    "./mendeley-service": "./dist/providers/academic/mendeley-service.js",
+    "./research-browser": "./dist/providers/academic/research-browser-api.js"
   },
   "files": [
     "dist",
