@@ -202,6 +202,9 @@ export async function startMcpServer() {
   });
   const onclose = server.server.onclose;
   server.server.onclose = () => { onclose?.(); void browserReader.dispose(); };
+  // StdioServerTransport does not close itself on stdin EOF. Release a waiting
+  // browser even if the desktop client disconnects before asking to cancel.
+  process.stdin.once('end', () => { void browserReader.dispose(); });
   registerMendeleyTools(server, {
     authorize: async () => isSessionValid(await loadOrRefreshSession()),
     service: new MendeleyService(new LocalMendeleyTokenStore()),
