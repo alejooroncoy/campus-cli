@@ -4,6 +4,9 @@ import { registerBlackboardTools } from '../providers/blackboard/mcp-tools.js';
 import { registerBannerTools } from '../providers/banner/mcp-tools.js';
 import { registerUclassTools } from '../providers/uclass/mcp-tools.js';
 import { registerResearchTools } from '../providers/academic/research-mcp-tools.js';
+import { registerBrowserResearchTools } from '../providers/academic/research-browser-mcp-tools.js';
+import { ResearchBrowserReading } from '../providers/academic/research-browser-reading.js';
+import { automaticResearchBrowser, browserRecoveryEligible } from '../providers/academic/research-browserbase.js';
 import { registerMendeleyTools } from '../providers/academic/mendeley-mcp-tools.js';
 import { LocalMendeleyTokenStore, MendeleyService } from '../providers/academic/mendeley-service.js';
 import { isSessionValid, loadOrRefreshSession } from '../providers/blackboard/auth/session.js';
@@ -79,6 +82,21 @@ Si el editor falla pero el estudiante adjunta el PDF descargado, usa
 campus_research_read_source_file para extraer páginas del archivo. Un enlace
 de descarga por sí solo no demuestra lectura; comprueba título, autores y
 publicación dentro del PDF antes de atribuirlo a su URL de origen.
+En este cliente local, incluye doi al leer un PDF o documento editorial conocido.
+Si falla el acceso, el lector inicia una tarea de recuperación automáticamente.
+También puedes usar campus_research_start_browser_reading con DOI y página editorial.
+Con BROWSERBASE_API_KEY, Campus pide aprobación directa por tarea antes de abrir
+una sesión Browserbase aislada que puede resolver la verificación del editor.
+Sin esa configuración abre una ventana local para la verificación manual.
+El lector captura el PDF y retoma las páginas solicitadas. Consulta campus_research_browser_reading_status con jobId;
+solo ready contiene texto e identidad verificada. Continúa con
+campus_research_browser_read_pages, nextPage y el mismo SHA-256. Coteja fragmentos
+con campus_research_browser_verify_evidence. La identidad no valida resultados;
+declara las páginas realmente leídas y revisa tablas visualmente. No apruebes un
+CAPTCHA en nombre del usuario, exportes cookies ni confundas una página abierta con un PDF recibido.
+Las sesiones expiran a los quince minutos. cancel_browser_reading cierra la
+ventana y libera memoria; conserva el PDF ya guardado. Estas herramientas son
+locales y no abren navegadores en el servidor compartido del plugin remoto.
 
 Para guardar referencias usa campus_mendeley_list, campus_mendeley_list_groups,
 campus_mendeley_list_group_documents, campus_mendeley_save_doi y
@@ -177,9 +195,37 @@ export async function startMcpServer() {
   registerBlackboardTools(server);
   registerBannerTools(server);
   registerUclassTools(server);
+  const browserReader = new ResearchBrowserReading({ openBrowser: automaticResearchBrowser({
+    apiKey: process.env.BROWSERBASE_API_KEY, projectId: process.env.BROWSERBASE_PROJECT_ID,
+    confirm: async ({ origin, doi }) => {
+      try {
+        const result = await server.server.elicitInput({ mode: 'form',
+          message: `La fuente ${origin}${doi ? ` (DOI ${doi})` : ''} necesita recuperación en Browserbase. ¿Autorizas para esta tarea una sesión remota aislada que puede resolver el CAPTCHA y descargar el PDF? Solo se enviará la URL pública; no se transferirán cookies de Campus ni del navegador personal. Consume el uso del plan Browserbase configurado.`,
+          requestedSchema: { type: 'object', properties: { confirm: { type: 'boolean', title: 'Autorizar esta recuperación', default: false } }, required: ['confirm'] },
+        }, { timeout: 300_000 });
+        return result.action === 'accept' && result.content?.confirm === true;
+      } catch { return false; }
+    },
+  }) });
   registerResearchTools(server, {
     authorize: async () => isSessionValid(await loadOrRefreshSession()),
+    browserRecovery: async (input, error) => {
+      if (!browserRecoveryEligible(error)) throw error;
+      const url = new URL(input.url);
+      const doi = input.doi ?? (url.hostname === 'doi.org' || url.hostname === 'dx.doi.org'
+        ? decodeURIComponent(url.pathname.slice(1)) : undefined);
+      if (!doi) throw error; // Canonical identity is mandatory; never guess it from an asset filename.
+      return browserReader.start({ ...input, doi }, { skipDirect: true });
+    },
   });
+  registerBrowserResearchTools(server, {
+    authorize: async () => isSessionValid(await loadOrRefreshSession()), reader: browserReader,
+  });
+  const onclose = server.server.onclose;
+  server.server.onclose = () => { onclose?.(); void browserReader.dispose(); };
+  // StdioServerTransport does not close itself on stdin EOF. Release a waiting
+  // browser even if the desktop client disconnects before asking to cancel.
+  process.stdin.once('end', () => { void browserReader.dispose(); });
   registerMendeleyTools(server, {
     authorize: async () => isSessionValid(await loadOrRefreshSession()),
     service: new MendeleyService(new LocalMendeleyTokenStore()),

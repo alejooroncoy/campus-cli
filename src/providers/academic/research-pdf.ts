@@ -2,7 +2,7 @@ import { Worker } from 'node:worker_threads';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-import { publicHttpsUrl, researchDownload } from './research-http.js';
+import { publicHttpsUrl, researchDownload, ResearchBrowserAccessError, isResearchChallengeHtml } from './research-http.js';
 import { officialResearchAlternate, officialResearchPdf } from './research-official-sources.js';
 import { resolveResearchHtmlPdf } from './research-html.js';
 
@@ -225,6 +225,7 @@ export async function readResearchPdf(raw: z.input<typeof pdfInput>) {
   const alternate = officialResearchAlternate(url);
   const options = { maxBytes: 20 * 1024 * 1024, redirects: 4 };
   const downloaded = await resolveResearchHtmlPdf(await researchDownload(officialResearchPdf(url) ?? url, options), options);
+  if (isResearchChallengeHtml(downloaded.bytes, downloaded.contentType)) throw new ResearchBrowserAccessError();
   return { ...await readResearchPdfBytes(downloaded.bytes, { requestedUrl: url, resolvedUrl: downloaded.url }, startPage, pageCount),
     ...(alternate?.scope === 'full_report' || alternate?.scope === 'full_article'
       ? { accessScope: alternate.scope, sourceRoute: 'official_alternate' as const } : {}),
