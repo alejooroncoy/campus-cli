@@ -12,6 +12,9 @@ import { ResearchBrowserReading, type BrowserReadingOpen, MAX_BROWSER_PDF_BYTES 
 import { registerBrowserResearchTools } from '../src/providers/academic/research-browser-mcp-tools.js';
 import { registerResearchTools } from '../src/providers/academic/research-mcp-tools.js';
 import { localResearchBrowser } from '../src/providers/academic/research-browser.js';
+import { automaticResearchBrowser } from '../src/providers/academic/research-browserbase.js';
+import { ResearchHttpError } from '../src/providers/academic/research-http.js';
+import { readResearchDocument } from '../src/providers/academic/research-document.js';
 
 const doi = '10.1234/browser-reading';
 const title = 'Verified Browser Reading Study';
@@ -50,6 +53,124 @@ function harness(extra: Record<string, any> = {}) {
   return { reader, saved, capture: (bytes = pdfFixture()) => callbacks.onPdf(bytes), closeBrowser: () => callbacks.onClosed(), closes: () => closes };
 }
 const tick = () => new Promise(resolve => setImmediate(resolve));
+
+test('Browserbase fallback delivers the real API download to identity verification, then reuses its bytes and job', async () => {
+  const calls: Array<{ url: string; body?: any }> = []; let approvals = 0; let direct = 0; let releases = 0;
+  const page = { goto: async () => {}, title: async () => 'Are you a robot?',
+    locator: () => ({ innerText: async () => 'Confirm you are human' }) };
+  const context = { route: async () => {}, pages: () => [page], newCDPSession: async () => ({ send: async () => ({}) }) };
+  const openBrowser = automaticResearchBrowser({ apiKey: 'private-key', projectId: 'project-test',
+    confirm: async () => { approvals++; return true; }, validateUrl: async value => publicHttpsUrl(value),
+    download: async () => { direct++; throw new ResearchHttpError(403); },
+    connect: async () => ({ contexts: () => [context], close: async () => {} }) as any,
+    fetch: async (address, init) => {
+      const value = String(address); const body = init?.body ? JSON.parse(String(init.body)) : undefined;
+      calls.push({ url: value, body });
+      assert.equal((init?.headers as any)['x-bb-api-key'], 'private-key');
+      assert.equal(new URL(value).hostname, 'api.browserbase.com');
+      assert.equal(init?.redirect, 'error');
+      if (body?.status === 'REQUEST_RELEASE') { releases++; return new Response('{}'); }
+      if (value.endsWith('/sessions')) return Response.json({ id: 'session-test', projectId: 'project-test', connectUrl: 'wss://connect.browserbase.com?apiKey=private-key' });
+      if (value.includes('/downloads?')) return Response.json({ downloads: [{ id: 'download-test', filename: 'article.pdf', mimeType: 'application/pdf', size: pdfFixture().length }] });
+      return new Response(new Uint8Array(pdfFixture()));
+    },
+  });
+  const h = harness({ openBrowser });
+  try {
+    const started = await h.reader.start({ doi, url, pageCount: 1 });
+    for (let i = 0; i < 100 && h.reader.status(started).status !== 'ready'; i++) await new Promise(resolve => setTimeout(resolve, 20));
+    const ready = h.reader.status(started);
+    assert.equal(ready.status, 'ready'); assert.equal(ready.identityAllowed, true);
+    const continued = await h.reader.read({ jobId: started.jobId, expectedSha256: ready.sha256!, startPage: 2, pageCount: 1 });
+    const reused = await h.reader.start({ doi, url, startPage: 2, pageCount: 1 });
+    assert.equal(reused.jobId, started.jobId); assert.equal(continued.document.pages[0].page, 2);
+    assert.equal(approvals, 1); assert.equal(direct, 1); assert.equal(h.saved.length, 1); assert.equal(releases, 1);
+    assert.equal(calls.filter(call => call.url.endsWith('/sessions') && !call.body?.status).length, 1);
+    assert.equal(calls[0].body.browserSettings.solveCaptchas, true);
+    assert.doesNotMatch(JSON.stringify(reused), /private-key|private-token|connect\.browserbase/);
+  } finally { await h.reader.dispose(); }
+});
+
+test('Browserbase is never contacted for a direct PDF, denial, rate limit or private URL', async () => {
+  for (const mode of ['direct', 'denied', 'limited', 'private'] as const) {
+    let requests = 0; let approvals = 0; let captured = 0; let failure: string | undefined;
+    const open = automaticResearchBrowser({ apiKey: 'secret', confirm: async () => { approvals++; return false; },
+      validateUrl: async value => publicHttpsUrl(value),
+      download: async () => {
+        if (mode === 'direct') return { bytes: pdfFixture(), url, contentType: 'application/pdf' };
+        throw new ResearchHttpError(mode === 'limited' ? 429 : 403);
+      },
+      fetch: async () => { requests++; throw new Error('must not call'); },
+    });
+    const handle = await open({ url: mode === 'private' ? 'https://127.0.0.1/pdf' : url,
+      onPdf: async () => { captured++; }, onFailure: reason => { failure = reason; }, onClosed: () => {} });
+    await tick(); await tick();
+    assert.equal(requests, 0);
+    assert.equal(captured, mode === 'direct' ? 1 : 0);
+    assert.equal(approvals, mode === 'denied' ? 1 : 0);
+    if (mode === 'denied') assert.equal(failure, 'browserbase_not_authorized');
+    await handle.close();
+  }
+});
+
+test('cancelling while Browserbase session creation is pending releases the eventual session without connecting', async () => {
+  let created!: (response: Response) => void; let releases = 0; let connects = 0;
+  const open = automaticResearchBrowser({ apiKey: 'secret', confirm: async () => true,
+    validateUrl: async value => publicHttpsUrl(value), download: async () => { throw new ResearchHttpError(403); },
+    connect: async () => { connects++; throw new Error('must not connect'); },
+    fetch: async (_url, init) => {
+      const body = JSON.parse(String(init?.body));
+      if (body.status) { releases++; return new Response('{}'); }
+      return new Promise(resolve => { created = resolve; });
+    },
+  });
+  const handle = await open({ url, onPdf: async () => { throw new Error('must not read'); }, onFailure: () => {}, onClosed: () => {} });
+  await tick(); await tick(); await handle.close();
+  created(Response.json({ id: 'late-session', projectId: 'test', connectUrl: 'wss://connect.browserbase.com' }));
+  await tick(); await tick();
+  assert.equal(releases, 1); assert.equal(connects, 0);
+});
+
+test('Browserbase oversized metadata or streamed body never becomes verified evidence', async () => {
+  for (const declaredOversize of [true, false]) {
+    let transfers = 0; let releases = 0;
+    const h = harness({ openBrowser: automaticResearchBrowser({ apiKey: 'secret', confirm: async () => true,
+      validateUrl: async value => publicHttpsUrl(value), download: async () => { throw new ResearchHttpError(403); },
+      connect: async () => ({ contexts: () => [{ route: async () => {}, pages: () => [{ goto: async () => {} }], newCDPSession: async () => ({ send: async () => ({}) }) }], close: async () => {} }) as any,
+      fetch: async (address, init) => {
+        const path = String(address);
+        if (String(init?.body).includes('REQUEST_RELEASE')) { releases++; return new Response('{}'); }
+        if (path.endsWith('/sessions')) return Response.json({ id: 'test-session', connectUrl: 'wss://connect.browserbase.com' });
+        if (path.includes('/downloads?')) return Response.json({ downloads: [{ id: 'test-file', mimeType: 'application/pdf', size: declaredOversize ? MAX_BROWSER_PDF_BYTES + 1 : 100 }] });
+        transfers++;
+        return new Response(new ReadableStream({ start(controller) { controller.enqueue(new Uint8Array(MAX_BROWSER_PDF_BYTES + 1)); controller.close(); } }));
+      },
+    }) });
+    try {
+      const job = await h.reader.start({ doi, url });
+      for (let i = 0; i < 30 && h.reader.status(job).status !== 'failed'; i++) await new Promise(resolve => setTimeout(resolve, 10));
+      assert.equal(h.reader.status(job).status, 'failed'); assert.equal(h.saved.length, 0);
+      assert.equal(transfers, declaredOversize ? 0 : 1); assert.equal(releases, 1);
+    } finally { await h.reader.dispose(); }
+  }
+});
+
+test('a 200 HTML challenge is an access failure and MCP readers preserve DOI and requested pages for automatic recovery', async () => {
+  await assert.rejects(readResearchDocument({ url, format: 'auto' }, { download: async () => ({
+    bytes: Buffer.from('<html><title>Just a moment...</title><body>Are you a robot?</body></html>'), url, contentType: 'text/html',
+  }) }), /comprobación de acceso/);
+  const handlers = new Map<string, any>(); const configs = new Map<string, any>();
+  const server = { registerTool(name: string, config: any, handler: any) { configs.set(name, config); handlers.set(name, handler); } } as any;
+  let recovered: any;
+  registerResearchTools(server, { authorize: () => true,
+    readPdf: async () => { throw new ResearchHttpError(403); },
+    browserRecovery: async (input, error) => { assert.ok(error instanceof ResearchHttpError); recovered = input; return { jobId: 'recovering', status: 'awaiting_user', evidenceAllowed: false }; },
+  });
+  const result = JSON.parse((await handlers.get('campus_research_read_pdf')({ url, doi, startPage: 3, pageCount: 2 })).content[0].text);
+  assert.equal(result.jobId, 'recovering'); assert.deepEqual(recovered, { url, doi, startPage: 3, pageCount: 2 });
+  assert.equal(configs.get('campus_research_read_pdf').annotations.readOnlyHint, false);
+  assert.ok(configs.get('campus_research_read_pdf').inputSchema.doi);
+});
 
 test('human handoff automatically captures, verifies and reads the requested pages on the same bytes', async () => {
   const h = harness();

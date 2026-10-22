@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { decodeHTML } from 'entities';
 import { unzipSync } from 'fflate';
 import { z } from 'zod';
-import { researchDownload, ResearchHttpError } from './research-http.js';
+import { researchDownload, ResearchHttpError, ResearchBrowserAccessError, isResearchChallengeHtml } from './research-http.js';
 import { readResearchPdfBytes } from './research-pdf.js';
 import { officialResearchAlternate, officialResearchPdf } from './research-official-sources.js';
 import { resolveResearchHtmlPdf, type NavigatedResearchDownload } from './research-html.js';
@@ -554,6 +554,7 @@ export async function readResearchDocument(raw: z.input<typeof documentInput>, d
     downloaded = await download(sourceUrl, options);
   }
   downloaded = await resolveResearchHtmlPdf(downloaded, options, download);
+  if (isResearchChallengeHtml(downloaded.bytes, downloaded.contentType)) throw new ResearchBrowserAccessError();
   const navigation = downloaded.htmlNavigation ? { sourceNavigation: downloaded.htmlNavigation } : {};
   if (alternate?.scope === 'full_report' || alternate?.scope === 'full_article') {
     if (!downloaded.bytes.subarray(0, 5).equals(Buffer.from('%PDF-'))) {

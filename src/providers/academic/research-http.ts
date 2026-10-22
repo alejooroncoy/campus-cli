@@ -9,6 +9,11 @@ export class ResearchBrowserAccessError extends Error {
   }
 }
 
+export function isResearchChallengeHtml(bytes: Buffer, contentType: string) {
+  return /html/i.test(contentType) && /are you a robot|just a moment|verify (?:that )?you are human|confirm (?:that )?you are (?:a )?human|cf-chl-|completing the captcha challenge/i
+    .test(bytes.subarray(0, 32 * 1024).toString());
+}
+
 export class ResearchHttpError extends Error {
   constructor(public readonly status: number, authenticated = false, public readonly rateLimited = false,
     public readonly retryAfterMs: number | null = null, public readonly rateLimitRemaining: number | null = null,

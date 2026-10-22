@@ -28,11 +28,17 @@ export const browserReadingEvidenceInput = browserReadingJobInput.extend({
 export const MAX_BROWSER_PDF_BYTES = 20 * 1024 * 1024;
 type State = 'opening_browser' | 'awaiting_user' | 'processing_pdf' | 'ready' | 'failed' | 'cancelled' | 'expired';
 export type BrowserReadingHandle = { close(): Promise<void> };
+export type BrowserReadingPhase = 'direct_download' | 'local_verification' | 'awaiting_browserbase_approval'
+  | 'browserbase_verification' | 'downloading_pdf';
+export type BrowserReadingFailure = 'browserbase_not_authorized' | 'browserbase_timeout' | 'browserbase_download_failed';
 export type BrowserReadingOpen = (options: {
   url: string;
+  doi?: string;
+  skipDirect?: boolean;
   onPdf(bytes: Buffer): Promise<void>;
   onClosed(): void;
-  onFailure(): void;
+  onFailure(reason?: BrowserReadingFailure): void;
+  onProgress?(phase: BrowserReadingPhase): void;
 }) => Promise<BrowserReadingHandle>;
 type Canonical = NonNullable<Awaited<ReturnType<ResearchService['verifyDoi']>>['source']> & { title: string; doi: string };
 type Reading = Awaited<ReturnType<typeof readResearchPdfBytes>>;
@@ -42,6 +48,8 @@ type Job = {
   startPage: number; pageCount: number; timer: ReturnType<typeof setTimeout>;
   handle?: BrowserReadingHandle; bytes?: Buffer; sha256?: string; file?: string;
   document?: Reading; identity?: Identity; reason?: string; reading?: Promise<unknown>;
+  phase?: BrowserReadingPhase;
+  skipDirect?: boolean;
 };
 type Dependencies = {
   openBrowser: BrowserReadingOpen;
@@ -68,11 +76,16 @@ export class ResearchBrowserReading {
   private readonly jobs = new Map<string, Job>();
   constructor(private readonly dependencies: Dependencies) {}
 
-  async start(raw: z.input<typeof browserReadingInput>) {
+  async start(raw: z.input<typeof browserReadingInput>, options: { skipDirect?: boolean } = {}) {
     const input = browserReadingInput.parse(raw);
     const doi = normalizeDoi(input.doi);
     await (this.dependencies.validateUrl ?? resolvedPublicHttpsUrl)(input.url);
     this.prune();
+    const cached = [...this.jobs.values()].find(job => job.doi === doi && job.url === input.url && job.state === 'ready');
+    if (cached) {
+      const result = await this.read({ jobId: cached.id, expectedSha256: cached.sha256!, startPage: input.startPage, pageCount: input.pageCount });
+      return { ...result, requestedPages: { startPage: input.startPage, pageCount: input.pageCount }, reusedVerifiedPdf: true };
+    }
     const duplicate = [...this.jobs.values()].find(job => job.doi === doi && job.url === input.url
       && ['opening_browser', 'awaiting_user', 'processing_pdf'].includes(job.state));
     if (duplicate) return this.summary(duplicate);
@@ -84,7 +97,7 @@ export class ResearchBrowserReading {
     const id = randomUUID();
     const ttlMs = this.dependencies.ttlMs ?? 15 * 60_000;
     const job: Job = { id, doi, url: input.url, canonical: null as unknown as Canonical,
-      state: 'opening_browser', expiresAt: Date.now() + ttlMs, startPage: input.startPage, pageCount: input.pageCount,
+      state: 'opening_browser', expiresAt: Date.now() + ttlMs, startPage: input.startPage, pageCount: input.pageCount, skipDirect: options.skipDirect,
       timer: setTimeout(() => { void this.stop(job, 'expired'); }, ttlMs) };
     job.timer.unref();
     this.jobs.set(id, job);
@@ -104,10 +117,11 @@ export class ResearchBrowserReading {
 
   private async open(job: Job) {
     try {
-      const handle = await this.dependencies.openBrowser({ url: job.url,
+      const handle = await this.dependencies.openBrowser({ url: job.url, doi: job.doi, skipDirect: job.skipDirect,
         onPdf: bytes => this.capture(job, bytes),
         onClosed: () => { if (['opening_browser', 'awaiting_user'].includes(job.state)) void this.stop(job, 'cancelled', 'browser_closed'); },
-        onFailure: () => { if (['opening_browser', 'awaiting_user'].includes(job.state)) void this.stop(job, 'failed', 'browser_download_failed'); },
+        onFailure: reason => { if (['opening_browser', 'awaiting_user'].includes(job.state)) void this.stop(job, 'failed', reason ?? 'browser_download_failed'); },
+        onProgress: phase => { if (['opening_browser', 'awaiting_user'].includes(job.state)) job.phase = phase; },
       });
       job.handle = handle;
       if (job.state === 'opening_browser') job.state = 'awaiting_user';
@@ -224,6 +238,7 @@ export class ResearchBrowserReading {
   private summary(job: Job, includeDocument = true) {
     return { jobId: job.id, doi: job.doi, status: job.state, expiresAt: new Date(job.expiresAt).toISOString(),
       requestedPages: { startPage: job.startPage, pageCount: job.pageCount },
+      ...(job.phase ? { phase: job.phase } : {}),
       sourceKind: 'local_browser_pdf' as const, sourceUrlClaim: `https://doi.org/${job.doi}`,
       sourceUrlVerifiedByServer: false, identityAllowed: job.state === 'ready', citationReady: false,
       ...(job.reason ? { reason: job.reason } : {}),
@@ -231,7 +246,11 @@ export class ResearchBrowserReading {
         ...(includeDocument ? { document: job.document } : {}) } : {}),
       guidance: job.state === 'ready'
         ? 'PDF descargado y verificado. Solo se extrajeron las páginas devueltas. Continúa con browser_read_pages, jobId, nextPage y el mismo SHA-256; las tablas requieren revisión visual. La identidad no valida afirmaciones científicas.'
-        : 'Completa manualmente la verificación en la ventana local de Campus. El lector continúa al recibir el PDF y conserva la página solicitada. Consulta browser_reading_status sin iniciar otra descarga. Cierra o cancela para detenerlo. No resuelvas ni eludas controles automáticamente.',
+        : ['failed', 'expired', 'cancelled'].includes(job.state)
+          ? 'La recuperación terminó sin un PDF listo. No se leyó contenido nuevo; revisa reason antes de volver a intentar.'
+          : job.phase && job.phase !== 'local_verification'
+            ? 'Campus está recuperando el PDF. Si aparece una solicitud MCP de Browserbase, solo el usuario puede autorizar esta tarea. Consulta browser_reading_status con el mismo jobId; no repitas la descarga ni abras otra sesión. Cancela para detenerlo.'
+            : 'Completa manualmente la verificación en la ventana local de Campus. El lector continúa al recibir el PDF y conserva la página solicitada. Consulta browser_reading_status sin iniciar otra descarga. Cierra o cancela para detenerlo. No resuelvas ni eludas controles automáticamente.',
     };
   }
   async dispose() { await Promise.all([...this.jobs.values()].map(job => this.stop(job, 'cancelled'))); }
