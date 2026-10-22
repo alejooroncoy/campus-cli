@@ -2,6 +2,8 @@
 import Base from "../../layouts/Base.astro";
 // Kept as raw html so the markup that is already indexed ships byte for byte.
 import body from "../../html/blog/index.html?raw";
+const title = "Guías para estudiantes UPC: Blackboard y matrícula | Campus";
+const description = "Resuelve dudas sobre tareas, notas y profesores UPC. Encuentra guías prácticas para usar Blackboard y organizar tu ciclo con Campus.";
 
 const schemas = [
   {
@@ -26,12 +28,12 @@ const schemas = [
 ---
 
 <Base
-  title={"Blog | Campus para Blackboard UPC"}
-  description={"Blog de Campus: Blackboard UPC, inteligencia artificial, MCP, CLI y herramientas para estudiar mejor."}
+  title={title}
+  description={description}
   canonical={"https://campuscli.com/blog/"}
   markdownUrl={"https://campuscli.com/blog/index.md"}
-  ogTitle={"Blog | Campus para Blackboard UPC"}
-  ogDescription={"Blog de Campus: Blackboard UPC, inteligencia artificial, MCP, CLI y herramientas para estudiar mejor."}
+  ogTitle={title}
+  ogDescription={description}
   ogImageAlt={"Blog de Campus: guías de Blackboard UPC con IA"}
   schemas={schemas}
 >

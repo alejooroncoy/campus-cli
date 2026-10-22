@@ -17,6 +17,16 @@ assert.equal(analyticsPage('/app/asistente/c/private-id/'), 'assistant');
 assert.equal(analyticsPage('/app/profes/c/private-id/'), 'assistant');
 assert.equal(analyticsPage('/private-unrecognized-route'), 'other');
 assert.equal(analyticsPage('/app/perfil/'), 'profile');
+// Public acquisition pages must be distinguishable without exporting raw URLs.
+for (const [path, page] of [
+  ['/blackboard-upc/', 'blackboard_upc'],
+  ['/blackboard-chatgpt/', 'chatgpt'],
+  ['/blackboard-cli/', 'terminal'],
+  ['/blackboard-mcp/claude-desktop/', 'mcp'],
+]) {
+  assert.equal(analyticsPage(path), page);
+  assert.deepEqual(safeAnalyticsProperties({ page, target: page, url: path + '?code=private' }), { page, target: page });
+}
 const storage = new Map(); const remote = [];
 globalThis.window = {}; globalThis.location = { hostname: '127.0.0.1', pathname: '/', origin: 'http://127.0.0.1:4336' };
 globalThis.sessionStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) };

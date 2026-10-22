@@ -3,6 +3,8 @@ import Base from "../../layouts/Base.astro";
 import body from "../../html/blackboard-upc/index.html?raw";
 
 const url = "https://campuscli.com/blackboard-upc/";
+const title = "Blackboard UPC con IA: consulta tareas y notas | Campus";
+const description = "Conecta tu Aula Virtual UPC con una IA compatible y consulta cursos, tareas y notas. Revisa cómo funciona Campus y qué necesitas para empezar.";
 
 const schemas = [
   {
@@ -29,6 +31,11 @@ const schemas = [
     mainEntity: [
       {
         "@type": "Question",
+        name: "¿Cómo ingreso al Aula Virtual de la UPC?",
+        acceptedAnswer: { "@type": "Answer", text: "Entra a https://aulavirtual.upc.edu.pe/ e inicia sesión con tu cuenta institucional. Campus es un servicio independiente para consultar tus cursos con IA." },
+      },
+      {
+        "@type": "Question",
         name: "¿Necesito pagar ChatGPT Plus?",
         acceptedAnswer: { "@type": "Answer", text: "Campus Plus incluye el conector alojado. La disponibilidad de conectores en tu asistente de IA depende de su cuenta y plan; una suscripción externa, si se requiere, se paga por separado." },
       },
@@ -48,11 +55,11 @@ const schemas = [
 ---
 
 <Base
-  title="Blackboard UPC: tareas, notas y materiales con IA | Campus"
-  description="Consulta tus tareas, notas, anuncios y materiales de Blackboard UPC desde ChatGPT o Claude. Conecta tu Aula Virtual con Campus, sin copiar archivos."
+  title={title}
+  description={description}
   canonical={url}
-  ogTitle="Tu Blackboard UPC, más fácil de consultar"
-  ogDescription="Pregunta por tus tareas, notas y materiales del Aula Virtual UPC desde ChatGPT o Claude."
+  ogTitle={title}
+  ogDescription={description}
   ogImageAlt="Campus para Blackboard UPC"
   markdownUrl={`${url}index.md`}
   schemas={schemas}
