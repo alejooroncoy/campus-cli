@@ -31,6 +31,42 @@ const articles = [
     ],
     "year": 2026,
     "venue": "Applied Sciences"
+  },
+  {
+    "url": "https://doi.org/10.3390/app15116335",
+    "doi": "10.3390/app15116335",
+    "title": "Machine Learning-Driven Acoustic Feature Classification and Pronunciation Assessment for Mandarin Learners",
+    "authors": ["Gulnur Arkin", "Tangnur Abdukelim", "Hankiz Yilahun", "Askar Hamdulla"],
+    "year": 2025,
+    "venue": "Applied Sciences",
+    "expectedSha256": "b1c26de6dc6c246f86ddea0c3263c53cbd256cb1498d564beeb51e2ddbe7bc87"
+  },
+  {
+    "url": "https://www.mdpi.com/2079-9292/12/9/2055/pdf",
+    "doi": "10.3390/electronics12092055",
+    "title": "Knowledge-Based Features for Speech Analysis and Classification: Pronunciation Diagnoses",
+    "authors": ["Lichuan Liu", "Wei Li", "Sherrill Morris", "Mutian Zhuang"],
+    "year": 2023,
+    "venue": "Electronics",
+    "expectedSha256": "88af2dcfdedc3b4b933d3c6e1e31be26432c3e496b8ad864898767674b2fa0bf"
+  },
+  {
+    "url": "https://doi.org/10.3390/inventions10040046",
+    "doi": "10.3390/inventions10040046",
+    "title": "Intelligent Mobile-Assisted Language Learning: A Deep Learning Approach for Pronunciation Analysis and Personalized Feedback",
+    "authors": ["Fengqin Liu", "Korawit Orkphol", "Natthapon Pannurat", "Thanat Sooknuan", "Thanin Muangpool", "Sanya Kuankid", "Montri Phothisonothai"],
+    "year": 2025,
+    "venue": "Inventions",
+    "expectedSha256": "8d903b8e293903033c58805513730fdc018a897fdff3affa9b39d0f65addaf8b"
+  },
+  {
+    "url": "https://www.mdpi.com/2079-9292/12/8/1775",
+    "doi": "10.3390/electronics12081775",
+    "title": "Automatic Fluency Assessment Method for Spontaneous Speech without Reference Text",
+    "authors": ["Jiajun Liu", "Aishan Wumaier", "Cong Fan", "Shen Guo"],
+    "year": 2023,
+    "venue": "Electronics",
+    "expectedSha256": "9d6f76e4739e021674a35263e1027c151ddcbb9efabca98a1315253cfbe4e8ff"
   }
 ];
 
@@ -41,6 +77,8 @@ const articles = [
       ? await readResearchPdf({ url: article.url, startPage: 1, pageCount: 1 })
       : await readResearchDocument({ url: article.url, sectionCount: 1 });
     assert.ok('pages' in document);
+    if (article.expectedSha256) assert.equal(document.sha256, article.expectedSha256,
+      'The public PDF changed; recheck its identity before updating the expected hash.');
     const identity = await verifyResearchDocumentIdentity({ url: article.url, format: 'pdf',
       expectedSha256: document.sha256, expectedTitle: article.title, expectedDoi: article.doi,
       expectedAuthors: article.authors, expectedYear: article.year, expectedVenue: article.venue,

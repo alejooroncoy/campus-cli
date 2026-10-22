@@ -121,6 +121,24 @@ Luego pasa una URL PDF devuelta por el catálogo a `campus_research_read_pdf`, c
 
 Si un PDF ACM coloca el DOI después del resumen bajo `ACM Reference Format`, proporciona a `campus_research_verify_document_identity` la lista completa de autores y el año canónicos. El verificador exige que esa autocita repita título, autores, año y DOI antes de asociar el archivo al registro; una referencia a otro trabajo no basta.
 
+## Páginas MDPI que rechazan la lectura automática
+
+Un HTTP 403 de `www.mdpi.com` identifica un rechazo del editor; no prueba falta de
+sesión Campus ni que el artículo sea de pago. Para seis artículos concretos, el
+lector reconoce copias editoriales públicas en `mdpi-res.com`, cuya identidad se
+verificó por título, DOI y bytes. La lista incluye `10.3390/app15116335`,
+`10.3390/electronics12092055`, `10.3390/inventions10040046` y
+`10.3390/electronics12081775`, además de los dos artículos previamente admitidos.
+Se admiten el enlace editorial, su ruta `/pdf` y el DOI exacto; se conserva
+`requestedUrl`, la URL realmente leída, SHA-256 y cobertura de páginas.
+
+No se construyen rutas para artículos desconocidos ni se sustituyen URLs con
+`version`, otras consultas o fragmentos por un PDF actual. La clasificación
+`sourceRoute=official_alternate` indica la ruta utilizada, no una validación
+científica. La comprobación de red opcional `node --import tsx scripts/research-mdpi-check.cjs`
+lee una página por artículo y verifica la identidad sobre esos mismos bytes;
+las pruebas normales usan simulaciones y no requieren acceso al editor.
+
 ## Cómo elaborar una investigación con evidencia
 
 1. Define pregunta, términos, años y criterios de inclusión/exclusión.
