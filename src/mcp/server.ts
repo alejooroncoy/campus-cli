@@ -4,6 +4,9 @@ import { registerBlackboardTools } from '../providers/blackboard/mcp-tools.js';
 import { registerBannerTools } from '../providers/banner/mcp-tools.js';
 import { registerUclassTools } from '../providers/uclass/mcp-tools.js';
 import { registerResearchTools } from '../providers/academic/research-mcp-tools.js';
+import { registerBrowserResearchTools } from '../providers/academic/research-browser-mcp-tools.js';
+import { ResearchBrowserReading } from '../providers/academic/research-browser-reading.js';
+import { localResearchBrowser } from '../providers/academic/research-browser.js';
 import { registerMendeleyTools } from '../providers/academic/mendeley-mcp-tools.js';
 import { LocalMendeleyTokenStore, MendeleyService } from '../providers/academic/mendeley-service.js';
 import { isSessionValid, loadOrRefreshSession } from '../providers/blackboard/auth/session.js';
@@ -79,6 +82,19 @@ Si el editor falla pero el estudiante adjunta el PDF descargado, usa
 campus_research_read_source_file para extraer páginas del archivo. Un enlace
 de descarga por sí solo no demuestra lectura; comprueba título, autores y
 publicación dentro del PDF antes de atribuirlo a su URL de origen.
+En este cliente local, si el editor requiere una verificación humana y el usuario
+solicita continuar, usa campus_research_start_browser_reading con el DOI y la
+página editorial. Abre una ventana local aislada: el usuario completa allí la
+verificación. El lector captura el PDF y retoma las páginas solicitadas sin otra
+intervención del agente. Consulta campus_research_browser_reading_status con jobId;
+solo ready contiene texto e identidad verificada. Continúa con
+campus_research_browser_read_pages, nextPage y el mismo SHA-256. Coteja fragmentos
+con campus_research_browser_verify_evidence. La identidad no valida resultados;
+declara las páginas realmente leídas y revisa tablas visualmente. No automatices
+CAPTCHAs, exportes cookies ni confundas una página abierta con un PDF recibido.
+Las sesiones expiran a los quince minutos. cancel_browser_reading cierra la
+ventana y libera memoria; conserva el PDF ya guardado. Estas herramientas son
+locales y no abren navegadores en el servidor compartido del plugin remoto.
 
 Para guardar referencias usa campus_mendeley_list, campus_mendeley_list_groups,
 campus_mendeley_list_group_documents, campus_mendeley_save_doi y
@@ -180,6 +196,12 @@ export async function startMcpServer() {
   registerResearchTools(server, {
     authorize: async () => isSessionValid(await loadOrRefreshSession()),
   });
+  const browserReader = new ResearchBrowserReading({ openBrowser: localResearchBrowser() });
+  registerBrowserResearchTools(server, {
+    authorize: async () => isSessionValid(await loadOrRefreshSession()), reader: browserReader,
+  });
+  const onclose = server.server.onclose;
+  server.server.onclose = () => { onclose?.(); void browserReader.dispose(); };
   registerMendeleyTools(server, {
     authorize: async () => isSessionValid(await loadOrRefreshSession()),
     service: new MendeleyService(new LocalMendeleyTokenStore()),
