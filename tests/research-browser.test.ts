@@ -187,3 +187,32 @@ for (const manualPopup of [false, true]) test(`real Chromium resumes after the d
       await new Promise<void>(resolve => server.close(() => resolve())); await rm(directory, { recursive: true, force: true });
     }
   });
+
+test('a publisher rotating signed query strings does not cause repeated automatic PDF attempts',
+  { skip: process.env.CAMPUS_BROWSER_TESTS !== '1', timeout: 20_000 }, async () => {
+    let attempts = 0; let generation = 0; let browser: Browser | undefined;
+    const server = createServer((request, response) => {
+      if (request.url?.startsWith('/paper.pdf')) {
+        attempts++; response.writeHead(302, { Location: `/article?return=${attempts}` }); response.end(); return;
+      }
+      response.writeHead(200, { 'Content-Type': 'text/html' });
+      response.end(`<title>Publisher demo</title><a href="/paper.pdf?token=${++generation}">View PDF</a>`);
+    });
+    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+    const origin = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+    const validate = async (value: string) => { const parsed = new URL(value); assert.equal(parsed.origin, origin); return parsed; };
+    const reader = new ResearchBrowserReading({ validateUrl: validate, verifyDoi: registry.verifyDoi.bind(registry),
+      openBrowser: localResearchBrowser({ validateUrl: validate, launch: async () => { browser = await chromium.launch({ headless: true }); return browser; } }),
+    });
+    try {
+      const job = await reader.start({ doi, url: `${origin}/article` });
+      for (let i = 0; i < 70 && attempts === 0; i++) await new Promise(resolve => setTimeout(resolve, 100));
+      assert.equal(attempts, 1);
+      await new Promise(resolve => setTimeout(resolve, 3500));
+      assert.equal(attempts, 1); assert.equal(reader.status(job).status, 'awaiting_user');
+      assert.equal('document' in reader.status(job), false);
+    } finally {
+      await reader.dispose(); await browser?.close().catch(() => {});
+      await new Promise<void>(resolve => server.close(() => resolve()));
+    }
+  });

@@ -17,6 +17,8 @@ Las tareas y sus bytes pertenecen al proceso MCP local. Expiran quince minutos d
 
 Una ventana cerrada cancela la espera. Los estados `failed`, `cancelled` y `expired` no devuelven texto de archivo. Un PDF ajeno al DOI, un HTML de bloqueo o un archivo demasiado grande no se guardan como fuente verificada. La primera descarga PDF reclama la tarea de forma exclusiva para evitar procesarla dos veces. La comprobación de identidad puede rechazar una copia si los metadatos no aparecen en sus primeras páginas; el fallo no certifica que el artículo sea falso.
 
+Los enlaces firmados que cambian de parámetros siguen contando como la misma ruta PDF. Campus no inicia automáticamente otro intento si esa ruta vuelve a la página editorial. Si la verificación del editor se repite después de completarla, el usuario puede cancelar la tarea; no se considera que haya terminado ni se presenta un PDF inexistente.
+
 La verificación compara título, DOI y, cuando están disponibles, autores, año y revista contra el registro canónico usando los bytes capturados. No verifica científicamente las afirmaciones, no identifica por sí sola la versión publicada y no convierte extracción de texto en revisión completa. Inspeccionar tablas e imágenes y conservar el contexto sigue siendo necesario. `sourceUrlClaim` es una atribución bibliográfica; no se presenta el enlace firmado de descarga como prueba de identidad.
 
 ## Integración y privacidad

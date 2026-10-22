@@ -131,7 +131,11 @@ export function localResearchBrowser(options: {
               if (!href) continue;
               const target = new URL(href, candidate.url()).toString();
               await validateUrl(target);
-              const key = candidate.url() + '\n' + target;
+              // Signed query strings can rotate after a failed challenge. They are still
+              // the same PDF route: never turn that rotation into an automatic retry loop.
+              const sourceRoute = new URL(candidate.url());
+              const pdfRoute = new URL(target);
+              const key = sourceRoute.origin + sourceRoute.pathname + '\n' + pdfRoute.origin + pdfRoute.pathname;
               if (clicked.has(key)) continue;
               clicked.add(key);
               // Follow the actual PDF link in this observed page, retaining the same cookies.
