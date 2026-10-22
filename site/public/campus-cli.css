@@ -10,8 +10,25 @@
 #campus-cli .price-card__topline { flex-wrap:wrap; gap:10px; }
 #campus-cli .price-card li svg { color:var(--sky); }
 #campus-cli .price-card h3 { text-wrap:balance; }
+#campus-cli #acceso-anticipado { scroll-margin-top:96px; }
+#campus-cli .pricing-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+#campus-cli .price-card,#campus-cli .price-card li > span { min-width:0; }
+#campus-cli .price { flex-wrap:wrap; row-gap:10px; }
+#campus-cli .price small { max-width:100%; white-space:normal; line-height:1.4; }
+/* Stack plans before their copy and prices become cramped on tablets. */
+@media(max-width:900px) {
+ #campus-cli .founder-stage { padding:36px clamp(16px,4vw,36px) 24px; }
+ #campus-cli .founder-heading h2 { font-size:clamp(32px,5vw,42px); text-wrap:balance; }
+ #campus-cli .pricing-grid { grid-template-columns:minmax(0,1fr); max-width:560px; gap:20px; margin-top:32px; }
+ #campus-cli .price-card { min-height:0; padding:28px; }
+ #campus-cli .price-card__summary { min-height:0; }
+ #campus-cli .pricing-includes { max-width:560px; grid-template-columns:minmax(0,1fr); }
+}
 @media(max-width:620px) {
+ #campus-cli .founder-stage { padding:28px 16px 20px; }
  #campus-cli .founder-heading > p:last-child { display:block; font-size:16px; }
+ #campus-cli .pricing-grid { gap:16px; margin-top:24px; }
+ #campus-cli .price-card { padding:24px 20px; }
  #campus-cli .price-card h3,#campus-cli .price-card__summary,#campus-cli .price-card__includes { display:block; }
  #campus-cli .price-card__divider { display:block; }
  #campus-cli .price-card li:nth-child(n + 3) { display:flex; }
@@ -19,8 +36,12 @@
  #campus-cli .price-card h3 { margin-top:20px; font-size:28px; }
  #campus-cli .price-card__eyebrow { font-size:12px; }
  #campus-cli .price-card li { font-size:15px; line-height:1.6; }
+ #campus-cli .pricing-includes { display:grid; gap:12px; margin-top:20px; padding:16px; }
  #campus-cli .cli-pricing-terms { text-align:left; }
  #campus-cli .story-copy .text-link { display:inline-flex; min-height:44px; align-items:center; }
  #campus-cli .story-copy p + p { margin-top:16px; }
  #campus-cli .story-visual .transcript-example-note { display:block; }
+}
+@media(max-width:360px) {
+ #campus-cli .price small { flex-basis:100%; margin:4px 0 0; }
 }
