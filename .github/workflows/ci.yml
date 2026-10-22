@@ -49,7 +49,11 @@ jobs:
       - run: npm --prefix site run check
       - run: npm --prefix site run test:app
       - run: npm --prefix site run test:analytics
+      - name: Bound Ubuntu dependency downloads
+        run: |
+          printf 'Acquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::Retries "1";\n' | sudo tee /etc/apt/apt.conf.d/99-campus-ci-network >/dev/null
       - run: npx playwright install --with-deps chromium
+        timeout-minutes: 5
       - name: Browser PDF reading continuation
         run: CAMPUS_BROWSER_TESTS=1 node --import tsx --test tests/research-browser.test.ts
       - run: npm --prefix site run test:analytics:transport
