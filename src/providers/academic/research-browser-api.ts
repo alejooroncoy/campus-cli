@@ -4,3 +4,4 @@
 export { automaticResearchBrowser, browserRecoveryEligible } from './research-browserbase.js';
 export { ResearchBrowserReading, MAX_BROWSER_PDF_BYTES } from './research-browser-reading.js';
 export type { BrowserReadingOpen, BrowserReadingHandle } from './research-browser-reading.js';
+export { readResearchPdfBytes } from './research-pdf.js';
