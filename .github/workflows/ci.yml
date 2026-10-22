@@ -50,6 +50,8 @@ jobs:
       - run: npm --prefix site run test:app
       - run: npm --prefix site run test:analytics
       - run: npx playwright install --with-deps chromium
+      - name: Browser PDF reading continuation
+        run: CAMPUS_BROWSER_TESTS=1 node --import tsx --test tests/research-browser.test.ts
       - run: npm --prefix site run test:analytics:transport
 
       - name: Turnitin public pause and reactivation
