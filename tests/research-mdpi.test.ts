@@ -12,6 +12,14 @@ const routes = [
     'https://mdpi-res.com/d_attachment/informatics/informatics-13-00019/article_deploy/informatics-13-00019.pdf'],
   ['https://www.mdpi.com/2076-3417/16/18/8936',
     'https://mdpi-res.com/d_attachment/applsci/applsci-16-08936/article_deploy/applsci-16-08936.pdf'],
+  ['https://www.mdpi.com/2076-3417/15/11/6335',
+    'https://mdpi-res.com/d_attachment/applsci/applsci-15-06335/article_deploy/applsci-15-06335.pdf'],
+  ['https://www.mdpi.com/2079-9292/12/9/2055',
+    'https://mdpi-res.com/d_attachment/electronics/electronics-12-02055/article_deploy/electronics-12-02055.pdf'],
+  ['https://www.mdpi.com/2411-5134/10/4/46',
+    'https://mdpi-res.com/d_attachment/inventions/inventions-10-00046/article_deploy/inventions-10-00046.pdf'],
+  ['https://www.mdpi.com/2079-9292/12/8/1775',
+    'https://mdpi-res.com/d_attachment/electronics/electronics-12-01775/article_deploy/electronics-12-01775.pdf'],
 ];
 
 test('verified MDPI landing and PDF routes use public editorial files without changing versions', () => {
@@ -27,6 +35,27 @@ test('verified MDPI landing and PDF routes use public editorial files without ch
     assert.equal(officialResearchAlternate(source.replace('https://', 'https://secret@')), null);
   }
   assert.equal(officialResearchAlternate('https://www.mdpi.com/2076-3417/16/18/8937'), null);
+});
+
+test('only exact verified DOI aliases select the corresponding public editorial PDF', () => {
+  const dois = ['10.3390/informatics13020019', '10.3390/app16188936', '10.3390/app15116335',
+    '10.3390/electronics12092055', '10.3390/inventions10040046', '10.3390/electronics12081775'];
+  for (const [index, doi] of dois.entries()) {
+    for (const host of ['doi.org', 'dx.doi.org']) {
+      for (const path of [doi, doi.toUpperCase(), encodeURIComponent(doi)]) {
+        assert.equal(officialResearchPdf(`https://${host}/${path}`), routes[index][1]);
+      }
+    }
+  }
+  for (const url of [
+    'https://doi.org/10.3390/app15116336', // Unverified neighboring record.
+    'https://doi.org/10.3390/electronics12081775?version=1681024993',
+    'https://doi.org/10.3390/electronics12081775#section',
+    'https://doi.org:8443/10.3390/electronics12081775',
+    'https://user:secret@doi.org/10.3390/electronics12081775',
+    'https://doi.org.evil.example/10.3390/electronics12081775',
+    'https://doi.org/10.3390%ZZ',
+  ]) assert.equal(officialResearchAlternate(url), null, url);
 });
 
 test('MDPI aliases also work for background PDF indexing', async () => {

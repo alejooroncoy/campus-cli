@@ -1,21 +1,31 @@
+// Exact editorial copies whose first pages were read and matched to their DOI.
+// Unknown MDPI records must still go through discovery and identity verification.
+const verifiedMdpiArticles = [
+  { path: '/2227-9709/13/2/19', file: 'informatics/informatics-13-00019', doi: '10.3390/informatics13020019' },
+  { path: '/2076-3417/16/18/8936', file: 'applsci/applsci-16-08936', doi: '10.3390/app16188936' },
+  { path: '/2076-3417/15/11/6335', file: 'applsci/applsci-15-06335', doi: '10.3390/app15116335' },
+  { path: '/2079-9292/12/9/2055', file: 'electronics/electronics-12-02055', doi: '10.3390/electronics12092055' },
+  { path: '/2411-5134/10/4/46', file: 'inventions/inventions-10-00046', doi: '10.3390/inventions10040046' },
+  { path: '/2079-9292/12/8/1775', file: 'electronics/electronics-12-01775', doi: '10.3390/electronics12081775' },
+] as const;
+
 /** Verified public routes published by the same organizations as blocked landing pages.
  * Keep this list narrow: a catalog preview must never be presented as full text. */
 export function officialResearchAlternate(value: string): { url: string; scope: 'full_report' | 'full_article' | 'public_catalog' } | null {
   let source: URL;
   try { source = new URL(value); } catch { return null; }
   if (source.protocol !== 'https:' || source.username || source.password || source.port || source.search || source.hash) return null;
-  // These two public editorial PDFs were read and matched to the article
-  // titles/DOIs. Do not manufacture a CDN path for an arbitrary MDPI record,
-  // or substitute the current PDF for a version-specific URL.
-  if (source.hostname === 'www.mdpi.com') {
-    const articles: Record<string, string> = {
-      '/2227-9709/13/2/19': 'informatics/informatics-13-00019',
-      '/2076-3417/16/18/8936': 'applsci/applsci-16-08936',
-    };
-    const article = articles[source.pathname.replace(/\/(?:pdf\/?)?$/, '')];
+  // Do not manufacture a CDN path or replace a version-specific URL with
+  // today's file. DOI aliases use the same exact verified article allowlist.
+  if (source.hostname === 'www.mdpi.com' || source.hostname === 'doi.org' || source.hostname === 'dx.doi.org') {
+    let doi: string;
+    try { doi = decodeURIComponent(source.pathname.slice(1)).toLowerCase(); } catch { return null; }
+    const article = source.hostname === 'www.mdpi.com'
+      ? verifiedMdpiArticles.find(item => item.path === source.pathname.replace(/\/(?:pdf\/?)?$/, ''))
+      : verifiedMdpiArticles.find(item => item.doi === doi);
     if (article) {
-      const filename = article.split('/')[1];
-      return { url: `https://mdpi-res.com/d_attachment/${article}/article_deploy/${filename}.pdf`,
+      const filename = article.file.split('/')[1];
+      return { url: `https://mdpi-res.com/d_attachment/${article.file}/article_deploy/${filename}.pdf`,
         scope: 'full_article' };
     }
   }
