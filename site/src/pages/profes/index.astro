@@ -2,6 +2,8 @@
 import Base from "../../layouts/Base.astro";
 // Kept as raw html so the markup that is already indexed ships byte for byte.
 import body from "../../html/profes/index.html?raw";
+const title = "Opiniones de profesores UPC por curso | Campus";
+const description = "Consulta opiniones y calificaciones de profesores UPC antes de matricularte. Busca por profesor o curso y revisa las experiencias disponibles.";
 
 const schemas = [
   {
@@ -9,12 +11,12 @@ const schemas = [
     "@type": "WebPage",
     "@id": "https://campuscli.com/profes/#webpage",
     "url": "https://campuscli.com/profes/",
-    "name": "Campus | Elige profesores universitarios antes de matricularte",
-    "description": "Campus ayuda a estudiantes en Perú a comparar calificaciones, comentarios y horarios de profesores universitarios antes de matricularse.",
+    "name": title,
+    "description": description,
     "inLanguage": "es-PE",
     "isPartOf": { "@id": "https://campuscli.com/#website" },
     "mainEntity": { "@id": "https://campuscli.com/profes/#service" },
-    "about": ["profesores universitarios", "matrícula universitaria", "horarios de cursos", "reseñas de estudiantes"]
+    "about": ["profesores UPC", "matrícula universitaria", "cursos UPC", "reseñas de estudiantes"]
   },
   {
     "@context": "https://schema.org",
@@ -48,7 +50,7 @@ const schemas = [
       "name": "Campus",
       "url": "https://campuscli.com/"
     },
-    "description": "La consulta de profesores de Campus ayuda a estudiantes en Perú a comparar calificaciones, comentarios y horarios de profesores antes de matricularse.",
+    "description": description,
     "audience": { "@type": "EducationalAudience", "educationalRole": "student" },
     "offers": {
       "@type": "Offer",
@@ -115,11 +117,11 @@ const schemas = [
 ---
 
 <Base
-  title={"Campus | Elige profesores antes de matricularte"}
-  description={"Opiniones de profesores en Campus: compara calificaciones y comentarios de estudiantes antes de matricularte."}
+  title={title}
+  description={description}
   canonical={"https://campuscli.com/profes/"}
-  ogTitle={"Campus | Elige a tu profesor desde la web"}
-  ogDescription={"Profes, horarios y una matrícula mejor como parte de Campus."}
+  ogTitle={title}
+  ogDescription={description}
   markdownUrl={"https://campuscli.com/profes/index.md"}
   ogImageAlt={"Campus: calificaciones y horarios de profesores en la web"}
   schemas={schemas}

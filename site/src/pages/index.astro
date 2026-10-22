@@ -4,6 +4,8 @@ import Base from "../layouts/Base.astro";
 import rawBody from "../html/index.html?raw";
 import { publicHomeHtml } from "../../feature-flags.mjs";
 const body = publicHomeHtml(rawBody);
+const title = "Campus UPC: profesores, notas y Blackboard con IA";
+const description = "Compara reseñas de profesores UPC y conecta Blackboard con tu IA para consultar tareas, notas y materiales. Prueba Campus gratis.";
 
 const schemas = [
   {
@@ -55,16 +57,16 @@ const schemas = [
       {
         "@type": "ListItem",
         "position": 1,
-        "name": "Asistente de Campus",
-        "description": "Consulta profesores, notas actuales y cuánto necesitas para aprobar.",
-        "url": "https://campuscli.com/app/asistente/"
+        "name": "Opiniones de profesores UPC",
+        "description": "Consulta reseñas de profesores y cursos antes de elegir tu sección.",
+        "url": "https://campuscli.com/profes/"
       },
       {
         "@type": "ListItem",
         "position": 2,
         "name": "Blackboard conectado",
         "description": "Consulta cursos, tareas, notas y anuncios de Blackboard UPC desde asistentes compatibles.",
-        "url": "https://campuscli.com/campus-cli/"
+        "url": "https://campuscli.com/blackboard-upc/"
       }
     ]
   },
@@ -134,12 +136,12 @@ const schemas = [
 ---
 
 <Base
-  title={"Campus | Tu ciclo en UPC, un poco más fácil"}
-  description={"Conoce Campus Free y Campus Plus para UPC. Plus: S/5 el primer mes y luego S/10 al mes para los primeros 25 usuarios de pago. Después, S/15 al mes para nuevos usuarios."}
+  title={title}
+  description={description}
   canonical={"https://campuscli.com/"}
   markdownUrl={"https://campuscli.com/index.md"}
-  ogTitle={"Campus Free y Campus Plus | Tu universidad, más fácil"}
-  ogDescription={"Empieza gratis con Campus Free. Campus Plus para los primeros 25 de pago: S/5 el primer mes y luego S/10 al mes. Nuevos usuarios después: S/15 al mes."}
+  ogTitle={title}
+  ogDescription={description}
   ogImageAlt={"Campus: matrícula, horarios y Blackboard UPC"}
   schemas={schemas}
 >

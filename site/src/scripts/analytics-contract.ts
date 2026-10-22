@@ -13,8 +13,8 @@ export const events = new Set([
   'campus_turnitin_submitted', 'campus_logout_completed',
 ]);
 const categories: Record<string, readonly string[]> = {
-  page: ['home', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'cli', 'mcp', 'blog', 'privacy', 'other'],
-  target: ['app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'cli', 'mcp', 'blog', 'privacy', 'other', 'plans', 'features', 'whatsapp', 'auth'],
+  page: ['home', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'other'],
+  target: ['app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'other', 'plans', 'features', 'whatsapp', 'auth'],
   location: ['header', 'hero', 'trial', 'free', 'plus', 'features', 'research', 'onboarding', 'faq', 'closing', 'footer', 'app', 'other'],
   section: ['plans', 'features', 'research', 'onboarding', 'faq', 'closing'],
   intent: ['trial', 'free', 'plus', 'connect', 'turnitin', 'signup', 'support', 'navigate'],
@@ -41,6 +41,6 @@ export function safeAnalyticsProperties(input: Record<string, unknown>): Record<
 }
 export function analyticsPage(path: string): string {
   if (/^\/app\/(?:profes|asistente)\//.test(path)) return 'assistant';
-  const routes: Record<string, string> = { '/': 'home', '/app/': 'app', '/app/asistente/': 'assistant', '/app/plus/': 'plus', '/app/copilot/': 'connect', '/app/perfil/': 'profile', '/app/turnitin/': 'turnitin_app', '/turnitin/': 'turnitin', '/profes/': 'professors', '/campus-cli/': 'cli', '/blackboard-mcp/': 'mcp', '/privacidad/': 'privacy' };
-  return routes[path] ?? (path.startsWith('/blog/') ? 'blog' : 'other');
+  const routes: Record<string, string> = { '/': 'home', '/app/': 'app', '/app/asistente/': 'assistant', '/app/plus/': 'plus', '/app/copilot/': 'connect', '/app/perfil/': 'profile', '/app/turnitin/': 'turnitin_app', '/turnitin/': 'turnitin', '/profes/': 'professors', '/campus-cli/': 'cli', '/blackboard-upc/': 'blackboard_upc', '/blackboard-chatgpt/': 'chatgpt', '/blackboard-cli/': 'terminal', '/blackboard-mcp/': 'mcp', '/privacidad/': 'privacy' };
+  return routes[path] ?? (path.startsWith('/blog/') ? 'blog' : path.startsWith('/blackboard-mcp/') ? 'mcp' : 'other');
 }

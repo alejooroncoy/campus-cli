@@ -5,7 +5,7 @@ import { htmlToMarkdown } from "../../lib/html-to-markdown";
 /** A plain-text version lets assistants and readers use the same landing copy. */
 export const GET: APIRoute = () => {
   const markdown = [
-    "# Blackboard UPC: tareas, notas y materiales con IA",
+    "# Blackboard UPC con IA: consulta tareas y notas",
     "",
     "> Consulta tu Aula Virtual UPC desde ChatGPT o Claude con Campus.",
     "",
