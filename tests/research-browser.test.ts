@@ -62,6 +62,7 @@ test('human handoff automatically captures, verifies and reads the requested pag
     assert.equal(ready.status, 'ready'); assert.equal(ready.identityAllowed, true);
     assert.equal(ready.document?.pages[0].page, 2); assert.equal(ready.document?.nextPage, null);
     assert.equal(ready.sha256, createHash('sha256').update(pdfFixture()).digest('hex'));
+    assert.doesNotMatch(JSON.stringify(ready.document?.guidance), /campus_research_index_pdf|campus_research_verify_evidence/);
     assert.equal(h.saved.length, 1); assert.deepEqual(h.saved[0], pdfFixture());
     assert.doesNotMatch(JSON.stringify(ready), /private-token|temporary=/);
     assert.equal(ready.citationReady, false); assert.ok(h.closes() >= 1);
