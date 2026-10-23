@@ -21,7 +21,7 @@ export async function professorsPage(request,{fetchData=fetch,loadTemplate=()=>r
   }catch{return new Response('No pudimos cargar las reseñas. Vuelve a intentarlo.',{status:503,headers:{'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});}
  }
  if(legacy){const id=url.searchParams.get('professorId');if(!/^[1-9]\d{0,8}$/.test(id??''))return new Response('Profesor no encontrado',{status:404});params.set('id',id);}
- else if(match)params.set('slug',match[1]);
+ else if(match){params.set('slug',match[1]);if(url.searchParams.has('before'))params.set('before',url.searchParams.get('before'));}
  else if(sitemap)params.set('view','sitemap');
  else{params.set('q',url.searchParams.get('q')??'');params.set('page',url.searchParams.get('page')??'1');}
  try{
@@ -35,12 +35,13 @@ export async function professorsPage(request,{fetchData=fetch,loadTemplate=()=>r
    return new Response(request.method==='HEAD'?null:xml,{headers:{'Content-Type':'application/xml; charset=utf-8','Cache-Control':'public, max-age=300'}});
   }
   const write=!!match?.[2];
+  if(match)data.catalogBefore=url.searchParams.has('before');
   if(match&&(!data.professor||!validSlug(data.professor.slug)||data.professor.slug!==match[1]||!Array.isArray(data.reviews)||!Array.isArray(data.courses)))throw new Error('invalid profile');
   if(directory&&!Array.isArray(data.professors))throw new Error('invalid directory');
   const canonical=directory?`${origin}/profes/upc/${data.page>1?`?page=${data.page}`:''}`:`${origin}${professorPath(data.professor.slug)}${write?'escribir/':''}`;
   const title=directory?'Profesores UPC: cursos y reseñas de estudiantes | Campus':write?`Escribe tu reseña de ${data.professor.name} | Campus`:`${data.professor.name}: reseñas y cursos UPC | Campus`;
   const description=directory?'Busca profesores UPC por nombre o curso. Lee reseñas de estudiantes y comparte tu experiencia en Campus.':`Cursos y reseñas de ${data.professor.name}, profesor UPC. Experiencias compartidas directamente por estudiantes en Campus.`;
-  let html=renderPublicPage(await loadTemplate(),{title,description,canonical,body:directory?directoryBody(data):write?formBody(data,{preview}):profileBody(data),noindex:write||!!url.searchParams.get('q')||(!directory&&!data.stats.reviewCount)});
+  let html=renderPublicPage(await loadTemplate(),{title,description,canonical,body:directory?directoryBody(data):write?formBody(data,{preview}):profileBody(data),noindex:write||url.searchParams.has('before')||!!url.searchParams.get('q')||(!directory&&!data.stats.reviewCount)});
   if(match&&!write){
    const schema={'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[
     {'@type':'ListItem',position:1,name:'Profesores UPC',item:origin+'/profes/upc/'},
