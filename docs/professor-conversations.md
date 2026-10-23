@@ -19,7 +19,7 @@ El formulario conserva el borrador por reseña, mantiene el texto tras un error,
 
 ## Backend y publicación pendiente
 
-La implementación complementaria está en el checkout `campus-profes/.tmp/professor-conversations`, rama `codex/professor-conversations`:
+La implementación complementaria está en [campus-profes PR #123](https://github.com/alejooroncoy/campus-profes/pull/123):
 
 - `sql/165_native_review_replies.sql`: nueva tabla, índices y clave de reintento.
 - `src/app/review-replies.ts`: lectura pública, privacidad, moderación, límites y persistencia.
@@ -30,8 +30,8 @@ Para publicar, aplicar la migración y desplegar el backend antes del frontend. 
 
 ## Validación
 
-- Compilación Astro y renderizadores de fichas: 14 pruebas aprobadas.
-- Suite backend: 295 pruebas aprobadas; 14 pruebas de integración omitidas sin sus servicios configurados.
+- Compilación Astro y renderizadores de fichas: 15 pruebas aprobadas.
+- Suite backend: 301 pruebas aprobadas; 13 pruebas de integración omitidas sin sus servicios configurados.
 - Las pruebas nuevas de respuestas sí se ejecutaron con PostgreSQL local: paginación, cuentas de otra universidad, moderación, registros ocultos, reintentos, límites y errores HTTP.
 - Navegador: 320, 375, 768, 1024 y 1440 px sin desbordamiento, envío en memoria, recarga, borrador tras error, lectura sin sesión y reintento de carga. Sin errores JavaScript.
 
@@ -59,7 +59,7 @@ La lectura tiene caché de 15 minutos, máximo de dos solicitudes simultáneas, 
 
 La vista previa de Juan Carlos Morales contiene 13 comentarios públicos de Base de Datos y 5 de HCI, consultados el 23 de octubre de 2026. Se muestran por curso con el enlace de fuente junto a los textos. El número de comentarios puede ser menor que el total de valoraciones. Los comentarios importados no reciben respuestas de Campus en esta versión.
 
-Se añadieron pruebas de formato de fuente, privacidad, caché, errores, tamaño máximo, escape HTML y atribución. El renderizador completa ahora 14 pruebas. La vista previa utiliza una captura de datos públicos en `output/professor-conversations/profematch-preview.json`; producción utilizará el lector del backend al desplegarlo.
+Se añadieron pruebas de formato de fuente, privacidad, caché, errores, tamaño máximo, escape HTML y atribución. El renderizador completa ahora 15 pruebas, además de las 8 pruebas de comentarios completos de ProfeMatch. La vista previa utiliza una captura de datos públicos en `output/professor-conversations/profematch-preview.json`; producción utilizará el lector del backend al desplegarlo.
 
 ## Subcomentarios y diseño común
 
@@ -68,3 +68,9 @@ El lector conserva cada `respuestas` bajo el ID de su reseña, con identificador
 Las tres fuentes comparten cabecera de tarjeta, avatar, puntuación, contexto, texto y fecha. Campus y ProfeMatch usan el mismo renderizador de respuesta y estilos de hilo. Las respuestas externas se despliegan en contexto; el enlace «Responder en ProfeMatch» continúa la conversación en su sitio de origen. Los formularios de Campus solo publican en reseñas propias.
 
 Verificación al 23 de octubre: las fichas 5 y 57 entregan 18 comentarios y ninguna respuesta pública. Las pruebas de jerarquía usan un caso ficticio separado; `thread-fixture.png` está marcado como prueba y no representa contenido de estudiantes. Se verificó apertura de ambos niveles y ausencia de desbordamiento a 320, 375 y 1440 px. Pruebas backend focalizadas: 43 aprobadas. Astro: 0 errores y 0 advertencias (42 sugerencias previas).
+
+## Compatibilidad con la publicación actual
+
+La ficha conserva la copia completa ya publicada de ProfeMatch cuando el backend confirma exactamente la fuente, el profesor y el curso, y todavía no entrega comentarios en vivo. Esa copia usa el mismo diseño, indica su fecha y remite las respuestas a la fuente. Una respuesta en vivo exitosa tiene prioridad, incluso si no contiene comentarios. Se conservan los enlaces de cursos con coincidencia exacta, sin inferir alias.
+
+Las pruebas del sitio (`test:app`), Astro y el recorrido del navegador pasan sobre la rama principal actualizada. Los enlaces «Leer comentarios» abren automáticamente el bloque de destino y usan un icono discreto de 14 px. La dependencia transitiva Zod del sitio se actualiza dentro de su rango permitido para superar la comprobación de seguridad de CI.
