@@ -1,2 +1,4 @@
 # Versioned PDF reader support files are copied from the locked dependency.
 /public/assets/pdfjs-*/
+
+/.generated/

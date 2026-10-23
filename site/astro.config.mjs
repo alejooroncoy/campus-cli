@@ -80,11 +80,12 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      filter: (page) => !new URL(page).pathname.startsWith("/app/") && (turnitinServiceEnabled || !new URL(page).pathname.startsWith("/turnitin/")),
+      filter: (page) => !new URL(page).pathname.startsWith("/app/") && !new URL(page).pathname.startsWith("/profes/plantilla/") && (turnitinServiceEnabled || !new URL(page).pathname.startsWith("/turnitin/")),
       // A sitemap has no line breaks, so a browser shows one unreadable run of
       // text and the file looks broken even when it validates. Crawlers ignore
       // the stylesheet; it is there so a person can check the list.
       xslURL: "/sitemap.xsl",
+      customSitemaps: ["https://campuscli.com/profes/sitemap.xml"],
       serialize(item) {
         const route = item.url.replace("https://campuscli.com", "");
         const date = lastmod.get(route);

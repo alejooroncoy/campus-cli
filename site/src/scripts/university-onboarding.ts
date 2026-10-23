@@ -2,6 +2,7 @@ import { assistantReturnPath, connectAiHref } from './assistant-handoff';
 
 export function universityReturnPath(value: string | null): string | null {
   if (!value) return null;
+  if (value.length < 220 && /^\/profes\/upc\/[a-z0-9]+(?:-[a-z0-9]+)*\/escribir\/$/.test(value)) return value;
   const chat = assistantReturnPath(value);
   if (chat) return chat;
   if (value === '/app/') return '/app/asistente/';

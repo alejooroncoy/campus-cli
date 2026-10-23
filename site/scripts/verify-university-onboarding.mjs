@@ -22,3 +22,8 @@ for(const value of ['https://evil.test/','//evil.test/','javascript:alert(1)','/
 }
 assert.equal(universityReturnPath('/app/copilot/?return=https%3A%2F%2Fevil.test'),'/app/copilot/');
 console.log('University onboarding: preserves chat and connector destinations, profile edits and legacy links; external/malformed returns fail closed.');
+
+const review='/profes/upc/juan-carlos-morales-arevalo/escribir/';
+assert.equal(universityDoneHref('?universidad=pendiente&return='+encodeURIComponent(review)),review);
+assert.equal(universityReturnPath('https://evil.test'+review),null);
+assert.equal(universityReturnPath(review+'?next=evil'),null);

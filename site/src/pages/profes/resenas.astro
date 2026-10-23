@@ -1,0 +1,157 @@
+---
+import Base from "../../layouts/Base.astro";
+import Icon from "../../components/LucideIcon.astro";
+---
+<Base title="Reseñas de profesores UPC de la comunidad | Campus"
+  description="Lee reseñas de estudiantes sobre profesores y cursos UPC. Busca por nombre o curso y cuenta tu experiencia en Campus."
+  canonical="https://campuscli.com/profes/resenas/">
+  <main id="professor-community" class="community shell" data-native-community>
+    <nav class="community__crumbs" aria-label="Ruta de navegación">
+      <a href="/profes/">Profesores</a><Icon name="arrow-right" size={14} /><span aria-current="page">Reseñas de estudiantes</span>
+    </nav>
+    <header class="community__hero">
+      <div>
+        <p class="community__eyebrow"><Icon name="message-circle" size={16} /> De estudiante a estudiante</p>
+        <h1>Reseñas de profesores UPC</h1>
+        <p>Conoce cómo enseñan y evalúan, según quienes llevaron sus cursos.</p>
+      </div>
+      <a class="button" href="/profes/upc/"><Icon name="file-text" /> Escribir una reseña</a>
+    </header>
+    <div class="community__columns">
+      <section class="community__feed" aria-labelledby="community-reviews-heading">
+        <form class="community__search" data-native-search role="search">
+          <label for="community-query">¿Qué profesor o curso buscas?</label>
+          <div class="community__search-row">
+            <div class="community__search-input"><Icon name="search" /><input id="community-query" name="q" type="search" maxlength="100" placeholder="Nombre, apellido o curso" autocomplete="off" aria-describedby="community-search-help" /></div>
+            <button class="button" type="submit">Buscar</button>
+          </div>
+          <a class="community__professor-link" href="/profes/upc/">Buscar entre todos los profesores UPC <Icon name="arrow-right" size={17} /></a>
+          <p id="community-search-help">Por ejemplo: Morales o Packaging. Deja el campo vacío para ver todas.</p>
+        </form>
+        <div class="community__filter" data-native-filter hidden><span data-native-filter-label>Reseñas de un profesor</span><a href="/profes/resenas/"><Icon name="x" size={16} /> Quitar filtros</a></div>
+        <div class="community__feed-heading"><h2 id="community-reviews-heading">Reseñas recientes</h2><span><Icon name="message-circle" size={15} /> Compartidas en Campus</span></div>
+        <div class="community__stats" aria-label="Resumen de los resultados">
+          <span><Icon name="message-circle" size={16} /><strong data-native-count>—</strong><span data-native-count-label>reseñas</span></span>
+          <span><Icon name="graduation-cap" size={17} /><strong data-native-professors>—</strong><span data-native-professors-label>profesores</span></span>
+          <span data-native-rating-stat hidden><Icon name="star" size={16} /><strong data-native-rating>—</strong><span data-native-rating-label>valoración media</span></span>
+        </div>
+        <p class="community__status" data-native-status role="status" aria-live="polite">Cargando reseñas…</p>
+        <button class="community__retry" data-native-retry type="button" hidden>Volver a intentar <Icon name="arrow-right" size={17} /></button>
+        <div class="community__list" data-native-list></div>
+        <div class="community__empty" data-native-empty hidden>
+          <span class="community__empty-icon"><Icon name="search" size={26} /></span>
+          <h3>No encontramos reseñas con esos datos</h3>
+          <p>Prueba con otro apellido o con el nombre del curso. Si lo llevaste, puedes escribir la primera reseña.</p>
+          <a href="/profes/upc/"><Icon name="file-text" size={18} /> Escribir una reseña</a>
+        </div>
+        <button class="community__more" data-native-more type="button" hidden>Leer más reseñas <Icon name="arrow-down" size={18} /></button>
+        <p class="community__reading-note"><Icon name="message-circle" size={17} /> Cada reseña cuenta una experiencia personal. Lee varias antes de elegir.</p>
+      </section>
+      <aside class="community__aside" aria-label="Cómo escribir una reseña">
+        <div class="community__invite">
+          <span class="community__invite-icon"><Icon name="file-text" size={24} /></span>
+          <h2>¿Ya llevaste el curso?</h2>
+          <p>Tu experiencia puede ayudar a otro estudiante a elegir.</p>
+          <ol class="community__steps">
+            <li><span>1</span><div><strong>Elige al profesor</strong><p>Búscalo por su nombre o por el curso.</p></div></li>
+            <li><span>2</span><div><strong>Cuenta cómo te fue</strong><p>Cómo explica, cómo evalúa y qué te sirvió.</p></div></li>
+            <li><span>3</span><div><strong>Revisa y envía</strong><p>Comprueba tu texto antes de compartirlo.</p></div></li>
+          </ol>
+          <a class="button" href="/profes/upc/">Escribir una reseña <Icon name="arrow-right" size={18} /></a>
+          <small><Icon name="lock-keyhole" size={16} /> Inicia sesión con tu cuenta Campus. Tu nombre no se muestra en la reseña.</small>
+        </div>
+        <div class="community__trust">
+          <h3><Icon name="shield-check" size={20} /> Un espacio para tu experiencia</h3>
+          <p>Puedes contar lo bueno y lo que podría mejorar. Comparte ejemplos del curso y evita insultos o datos personales.</p>
+          <p>La cuenta identifica a quien escribe. Cada estudiante declara qué curso llevó.</p>
+          <a href="/app/asistente/">Preguntar al asistente <Icon name="arrow-right" size={17} /></a>
+        </div>
+      </aside>
+    </div>
+    <noscript><p>Puedes buscar más reseñas con JavaScript. También puedes <a href="/profes/upc/">escribir una reseña desde Campus</a>.</p></noscript>
+  </main>
+  <script src="../../scripts/native-review-community.ts"></script>
+</Base>
+
+<style is:global>
+  .community{padding-block:28px 72px;--community-ink:#102e3d;--community-muted:#526e7b;--community-line:#d8e6eb;color:var(--community-ink)}
+  .community [hidden]{display:none!important}
+  .community svg{flex-shrink:0}
+  .community__crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:.8rem;color:var(--community-muted);margin-bottom:30px}
+  .community__crumbs a{color:inherit}
+  .community__hero{display:flex;align-items:center;justify-content:space-between;gap:28px;margin-bottom:32px}
+  .community__hero>div{max-width:760px;min-width:0}
+  .community__eyebrow{display:flex;align-items:center;gap:8px;color:#25718c;font-size:.76rem;font-weight:700;margin:0}
+  .community__hero h1{font-size:clamp(1.9rem,3.4vw,2.8rem);line-height:1.12;letter-spacing:-.045em;margin:12px 0 14px;text-wrap:balance}
+  .community__hero p:not(.community__eyebrow){font-size:1rem;line-height:1.65;color:var(--community-muted);max-width:600px;margin:0}
+  .community__hero>.button{flex-shrink:0}
+  .community .button{display:inline-flex;align-items:center;gap:10px;justify-content:center;border:0;font:inherit;font-size:.9rem;font-weight:700;cursor:pointer;min-height:48px;padding:12px 18px;text-decoration:none}
+  .community__columns{display:grid;grid-template-columns:minmax(0,1fr) 300px;align-items:start;gap:32px}
+  .community__feed,.community__aside{min-width:0}
+  .community__search{border:1px solid var(--community-line);background:#fff;border-radius:16px;padding:22px;margin-bottom:26px}
+  .community__search label{display:block;font-size:1.05rem;font-weight:750;margin-bottom:13px;letter-spacing:-.02em}
+  .community__search-row{display:flex;gap:10px}
+  .community__search-input{display:flex;align-items:center;gap:10px;min-width:0;flex:1;border:1px solid #bbced6;border-radius:10px;padding-left:13px;background:#fff;color:#5d7986}
+  .community__search-input:focus-within{outline:3px solid #0aa5c7;outline-offset:2px}
+  .community__search input{min-width:0;width:100%;border:0;border-radius:10px;background:transparent;color:var(--community-ink);padding:13px 10px 13px 0;font:inherit;font-size:.9rem}
+  .community__search input:focus-visible{outline:none!important}
+  .community__search>p{color:var(--community-muted);font-size:.76rem;line-height:1.6;margin:11px 0 0}
+  .community__feed-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:12px}
+  .community__feed-heading h2{font-size:1.2rem;margin:0;letter-spacing:-.03em}
+  .community__feed-heading>span{display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--community-muted)}
+  .community__stats{display:flex;flex-wrap:wrap;gap:10px 20px;color:var(--community-muted);font-size:.79rem}
+  .community__stats>span{display:inline-flex;align-items:center;gap:6px}
+  .community__stats strong{color:var(--community-ink);font-weight:750}
+  .community__status{color:var(--community-muted);font-size:.8rem;line-height:1.6;margin:12px 0 16px;min-height:1.6em}
+  .community__filter{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#eaf7fa;border:1px solid #cbe5ed;border-radius:10px;padding:12px;font-size:.8rem;margin-bottom:22px}
+  .community__filter>span{min-width:0;overflow-wrap:anywhere}
+  .community__filter a{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;min-height:32px;color:#076583;font-weight:700}
+  .community__list{display:grid;gap:16px}
+  .community__card{border:1px solid var(--community-line);border-radius:16px;padding:24px;background:#fff;min-width:0}
+  .community__card-top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:17px}
+  .community__author{font-size:.74rem;color:var(--community-muted);display:flex;align-items:center;gap:8px}
+  .community__avatar{display:grid;place-items:center;background:#eef6f8;color:#25718c;border-radius:50%;width:30px;height:30px;flex-shrink:0}
+  .community__score-wrap{display:grid;gap:3px;justify-items:end;flex-shrink:0}
+  .community__score-label{font-size:.65rem;color:var(--community-muted)}
+  .community__score{display:flex;align-items:center;gap:5px;color:var(--community-ink);font-weight:800;font-size:1.15rem;white-space:nowrap}
+  .community__score small{color:var(--community-muted);font-size:.73rem;font-weight:500}
+  .community__score--empty{font-size:.75rem;font-weight:500;color:var(--community-muted)}
+  .community__professor{font-size:1.15rem;line-height:1.4;font-weight:800;overflow-wrap:anywhere;margin:0;letter-spacing:-.02em}
+  .community__context{display:flex;flex-wrap:wrap;gap:7px;margin:11px 0 16px}
+  .community__chip{display:inline-flex;align-items:center;gap:6px;background:#f0f6f8;color:var(--community-muted);border-radius:6px;padding:6px 8px;font-size:.73rem;overflow-wrap:anywhere;min-width:0}
+  .community__text{margin:0;line-height:1.8;font-size:.94rem;color:#314f5f;white-space:pre-wrap;overflow-wrap:anywhere}
+  .community__card-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;border-top:1px solid #edf2f4;padding-top:14px;margin-top:20px}
+  .community__date{font-size:.7rem;color:#617a85}
+  .community__professor-link{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;font-weight:700;min-height:34px;color:#076583;text-decoration:none}
+  .community__professor-link:hover{text-decoration:underline}
+  .community__reading-note{display:flex;align-items:flex-start;gap:8px;color:var(--community-muted);font-size:.76rem;line-height:1.7;margin-top:22px}
+  .community__reading-note svg{margin-top:2px}
+  .community__invite{border:1px solid #cae5ec;background:#eaf7fa;border-radius:18px;padding:23px}
+  .community__invite-icon,.community__empty-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#d6eef4;color:#12627b;margin-bottom:18px}
+  .community__invite h2{font-size:1.35rem;line-height:1.25;letter-spacing:-.025em;margin:0 0 10px}
+  .community__invite>p{line-height:1.65;color:var(--community-muted);font-size:.85rem;margin:0}
+  .community__steps{list-style:none;padding:0;margin:23px 0;display:grid;gap:19px}
+  .community__steps li{display:flex;align-items:flex-start;gap:10px}
+  .community__steps li>span{display:grid;place-items:center;flex-shrink:0;width:24px;height:24px;border:1px solid #bedce5;background:#fff;border-radius:50%;font-size:.7rem;color:#12627b;font-weight:750}
+  .community__steps strong{font-size:.82rem;line-height:1.5}
+  .community__steps p{font-size:.77rem;line-height:1.6;color:var(--community-muted);margin:3px 0 0}
+  .community__invite .button{width:100%;margin-bottom:15px;font-size:.84rem;padding:12px}
+  .community__invite small{display:flex;align-items:flex-start;gap:7px;color:var(--community-muted);font-size:.73rem;line-height:1.65}
+  .community__invite small svg{margin-top:2px}
+  .community__trust{padding:24px 4px}
+  .community__trust h3{display:flex;align-items:center;gap:8px;font-size:.87rem;line-height:1.5;margin:0 0 12px}
+  .community__trust p{font-size:.76rem;line-height:1.75;color:var(--community-muted);margin:10px 0}
+  .community__trust>a{display:inline-flex;align-items:center;gap:7px;font-size:.78rem;font-weight:700;color:#076583;text-decoration:none;min-height:38px}
+  .community__more,.community__retry{display:inline-flex;justify-content:center;align-items:center;gap:9px;border:1px solid var(--community-line);background:#fff;color:var(--community-ink);border-radius:10px;font:inherit;font-weight:700;padding:13px 20px;cursor:pointer}
+  .community__more{width:100%;margin-top:20px}
+  .community__more:disabled{opacity:.6;cursor:wait}
+  .community__empty{text-align:center;border:1px dashed #bbced6;border-radius:16px;padding:30px 22px;background:#fff}
+  .community__empty-icon{margin:0 auto 15px}
+  .community__empty h3{font-size:1.1rem;line-height:1.4;margin:0 0 10px}
+  .community__empty p{color:var(--community-muted);line-height:1.75;font-size:.85rem;margin:0 auto;max-width:420px}
+  .community__empty a{display:inline-flex;align-items:center;gap:7px;min-height:44px;margin-top:12px;color:#076583;font-weight:700;font-size:.84rem}
+  .community :is(a,button,input):focus-visible{outline:3px solid #0aa5c7;outline-offset:4px}
+  @media(max-width:1000px){.community__hero{align-items:flex-start;flex-direction:column;gap:20px}.community__columns{grid-template-columns:minmax(0,1fr) 270px;gap:22px}.community__invite{padding:20px}}
+  @media(max-width:820px){.community__columns{grid-template-columns:minmax(0,1fr)}.community__aside{margin-top:8px}.community__invite{padding:24px}.community__steps{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.community__invite>.button{width:auto;min-width:220px}.community__invite small{max-width:410px}.community__trust{max-width:620px}}
+  @media(max-width:560px){.community{padding-block:20px 48px}.community__crumbs{font-size:.73rem;margin-bottom:25px;gap:8px}.community__hero{gap:18px;margin-bottom:24px}.community__hero h1{font-size:2rem;margin-block:12px}.community__hero p:not(.community__eyebrow){font-size:.94rem}.community__hero>.button{width:100%}.community__search{padding:17px;margin-bottom:24px}.community__search label{font-size:.96rem}.community__search-row{gap:8px;flex-wrap:wrap}.community__search-input{flex-basis:100%;padding-left:11px}.community__search input{font-size:16px}.community__search button{width:100%}.community__search>p{font-size:.74rem}.community__feed-heading{align-items:flex-start;flex-direction:column;gap:7px}.community__feed-heading h2{font-size:1.15rem}.community__filter{align-items:flex-start;flex-direction:column;gap:4px}.community__card{padding:18px}.community__card-top{gap:8px;align-items:flex-start}.community__author{font-size:.69rem;gap:6px}.community__score-label{font-size:.6rem}.community__score{font-size:1.05rem}.community__score--empty{font-size:.7rem}.community__avatar{width:25px;height:25px}.community__professor{font-size:1.1rem}.community__steps{grid-template-columns:minmax(0,1fr);gap:17px}.community__invite>.button{width:100%;min-width:0}.community__invite{padding:21px}}
+</style>
