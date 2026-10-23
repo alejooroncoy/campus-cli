@@ -16,3 +16,23 @@
 #campus-profes .price-card .button { margin-top:0; border-radius:9px; }
 #campus-profes .profes-plans-link { font-size:14px; line-height:1.5; }
 @media(max-width:620px) { #campus-profes .founder-stage { padding:28px 18px; } #campus-profes .price-card { padding:24px; } }
+
+/* The entry actions must remain inside the copy column beside the example. */
+#campus-profes .hero__copy,
+#campus-profes .product-stage { min-width:0; }
+#campus-profes .hero h1 { font-size:clamp(36px,4.1vw,56px); line-height:1.08; text-wrap:balance; }
+#campus-profes .hero__actions { flex-wrap:wrap; gap:12px 20px; max-width:100%; }
+#campus-profes .hero__actions > a { min-width:0; max-width:100%; min-height:48px; white-space:normal; line-height:1.5; }
+#campus-profes .hero__actions .button { padding:12px 18px; text-align:center; }
+#campus-profes .hero__actions .text-link { display:inline-flex; }
+#campus-profes .profes-hero-assistant { margin:16px 0 0; font-size:14px; line-height:1.65; color:var(--muted); }
+#campus-profes .profes-hero-assistant a { display:inline-flex; align-items:center; gap:6px; min-height:44px; color:#076583; text-decoration:underline; text-underline-offset:3px; }
+#campus-profes .profes-hero-assistant svg { flex-shrink:0; }
+#campus-profes .profes-hero-assistant a:focus-visible { outline:2px solid #087fa4; outline-offset:4px; border-radius:3px; }
+#campus-profes .profes-hero-assistant a:hover { color:var(--ink); }
+@media(max-width:620px) {
+ #campus-profes .hero h1 { font-size:clamp(32px,8.5vw,40px); }
+ #campus-profes .hero__actions { width:100%; }
+ #campus-profes .hero__actions > a { flex:1 1 100%; justify-content:center; }
+ #campus-profes .profes-hero-assistant { text-align:center; }
+}
