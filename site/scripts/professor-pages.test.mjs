@@ -56,3 +56,12 @@ test('rewritten canonical URLs resolve without a slash redirect before the rende
  const form=await run('/api/professors/?route=/profes/upc/juan-carlos-morales-arevalo/escribir/');
  assert.equal(form.status,200);assert.match(await form.text(),/data-review-form-root/);
 });
+
+test('existing catalog reviews retain their source and scale, escape text and paginate on the same professor',async()=>{
+ const catalog={...data,catalogReviews:{stats:{reviewCount:17,ratingCount:17,averageRating:8.9},sourceUrls:['https://peru.misprofesores.com/profesores/Jonathan-Sueros_18445','javascript:alert(1)'],reviews:[{id:9,text:'Explica <b>bien</b>',rating:10,course:'Matemática discreta',courseStatus:'source_label',date:'2026-01-01'}],nextCursor:9}};
+ const html=profileBody(catalog);for(const text of ['8.9/10','MisProfesores','Curso indicado en la fuente','Explica &lt;b&gt;bien&lt;/b&gt;','?before=9#resenas-catalogo'])assert.ok(html.includes(text),text);
+ assert.doesNotMatch(html,/href="javascript/);assert.match(html,/<strong>2\/10<\/strong>/);
+ let before;await run('/profes/upc/juan-carlos-morales-arevalo/?before=9',{fetchData:async url=>{before=new URL(url).searchParams.get('before');return Response.json(catalog);}});assert.equal(before,'9');
+ const directory=directoryBody({query:'Jonathan',page:1,pages:1,total:1,professors:[{...data.professor,courses:[],reviewCount:1,averageRating:2,catalogReviewCount:17,catalogAverageRating:8.9}]});
+ assert.match(directory,/2\/10 · 1 reseña de Campus/);assert.match(directory,/8.9\/10 · 17 valoraciones de MisProfesores/);
+});
