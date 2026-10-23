@@ -3,8 +3,8 @@ import Base from "../../layouts/Base.astro";
 import body from "../../html/blackboard-upc/index.html?raw";
 
 const url = "https://campuscli.com/blackboard-upc/";
-const title = "Blackboard UPC con IA: consulta tareas y notas | Campus";
-const description = "Conecta tu Aula Virtual UPC con una IA compatible y consulta cursos, tareas y notas. Revisa cómo funciona Campus y qué necesitas para empezar.";
+const title = "Blackboard UPC: acceso, tareas y notas | Campus";
+const description = "Entra al Aula Virtual oficial de la UPC y encuentra guías para ver cursos, tareas y notas. Conoce cómo consultarlos con IA en Campus.";
 
 const schemas = [
   {
@@ -64,5 +64,6 @@ const schemas = [
   markdownUrl={`${url}index.md`}
   schemas={schemas}
 >
+  <link slot="head" rel="stylesheet" href="/blackboard-upc.css" />
   <Fragment set:html={body} />
 </Base>
