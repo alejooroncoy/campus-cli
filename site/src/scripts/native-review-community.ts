@@ -41,7 +41,7 @@ function initNativeCommunity() {
     svg.setAttribute("viewBox","0 0 24 24");svg.setAttribute("width","16");svg.setAttribute("height","16");
     svg.setAttribute("aria-hidden","true");svg.setAttribute("focusable","false");
     const use=document.createElementNS("http://www.w3.org/2000/svg","use");
-    use.setAttribute("href",`/assets/lucide.svg#${name}`);svg.append(use);return svg;
+    use.setAttribute("href",`/assets/lucide.svg?v=profes-20261023#${name}`);svg.append(use);return svg;
   };
   function card(review:CommunityReview) {
     const article=element("article","community__card");

@@ -2,7 +2,7 @@ export const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&a
 export const validSlug=slug=>typeof slug==='string'&&slug.length<=180&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 export const professorPath=slug=>`/profes/upc/${slug}/`;
 const e=escapeHTML;
-export const icon=name=>`<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#${name}"></use></svg>`;
+export const icon=name=>`<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg?v=profes-20261023#${name}"></use></svg>`;
 const link=(url,text,cls='')=>`<a class="${cls}" href="${e(url)}">${text}</a>`;
 const writingURL=slug=>`${professorPath(slug)}escribir/`;
 export function reviewCard(r){
