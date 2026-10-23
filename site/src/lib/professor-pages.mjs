@@ -1,4 +1,4 @@
-import {matchedExcerpts,courseSourceRatings} from './profematch-excerpts.mjs';
+import {matchedComments,courseSourceRatings} from './profematch-excerpts.mjs';
 export const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const validSlug=slug=>typeof slug==='string'&&slug.length<=180&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 export const professorPath=slug=>`/profes/upc/${slug}/`;
@@ -20,12 +20,12 @@ export function externalRatingsSection(ratings=[],professor=null){
 }
 
 export function profeMatchComments(professor,rating){
- const recap=matchedExcerpts(professor,rating);
+ const recap=matchedComments(professor,rating);
  if(!recap)return '';
  const date=new Intl.DateTimeFormat('es-PE',{day:'numeric',month:'short',year:'numeric',timeZone:'America/Lima'}).format(new Date(recap.observedAt));
- const card=c=>`<article class="prof-public__review prof-public__source-comment" data-profematch-comment="${e(c.id)}"><div class="prof-public__review-top"><span>${icon('message-circle')} Fragmento de ProfeMatch</span><span>${icon('star')}<strong>${c.rating}/5</strong></span></div><p class="prof-public__help">${e(c.author)} · ${e(c.dateLabel)}</p><p class="prof-public__comment">${e(c.text)}${c.truncated?'…':''}</p><footer><a href="${e(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">Leer en ProfeMatch ${icon('arrow-up-right')}<span class="visually-hidden"> (abre la ficha de origen en otra pestaña)</span></a></footer></article>`;
+ const card=c=>`<article class="prof-public__review prof-public__source-comment" data-profematch-comment="${e(c.id)}"><div class="prof-public__review-top"><span>${icon('message-circle')} Comentario de ProfeMatch</span><span>${icon('star')}<strong>${c.rating}/5</strong></span></div><p class="prof-public__help">${e(c.author)} · ${e(c.dateLabel)}</p><p class="prof-public__comment">${e(c.text)}</p><footer><a href="${e(c.sourceUrl)}" target="_blank" rel="noopener noreferrer">Leer en ProfeMatch ${icon('arrow-up-right')}<span class="visually-hidden"> (abre la ficha de origen en otra pestaña)</span></a></footer></article>`;
  const first=recap.comments.slice(0,3),remaining=recap.comments.slice(3);
- return `<div class="prof-public__source-recap"><h4>Lo que cuentan sus estudiantes</h4><p class="prof-public__help">${recap.comments.length} fragmentos disponibles · Consultados el ${e(date)}. Fragmentos de opiniones publicadas en ProfeMatch; no son reseñas verificadas por Campus. Cada enlace abre la ficha de origen.</p>${first.map(card).join('')}${remaining.length?`<details class="prof-public__catalog-details prof-public__source-more"><summary>Ver ${remaining.length} comentarios más ${icon('arrow-down')}</summary>${remaining.map(card).join('')}</details>`:''}</div>`;
+ return `<div class="prof-public__source-recap"><h4>Lo que cuentan sus estudiantes</h4><p class="prof-public__help">${recap.comments.length} ${recap.comments.length===1?'comentario disponible':'comentarios disponibles'} · Consultados el ${e(date)}. Opiniones publicadas en ProfeMatch; no son reseñas verificadas por Campus. Cada enlace abre la ficha de origen.</p>${first.map(card).join('')}${remaining.length?`<details class="prof-public__catalog-details prof-public__source-more"><summary>Ver ${remaining.length} comentarios más ${icon('arrow-down')}</summary>${remaining.map(card).join('')}</details>`:''}</div>`;
 }
 
 export function catalogReviewCard(r){

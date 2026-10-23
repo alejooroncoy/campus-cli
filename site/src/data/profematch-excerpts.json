@@ -1,6 +1,7 @@
 {
-  "schemaVersion": 1,
-  "generatedAt": "2026-10-23T17:00:53.908Z",
+  "schemaVersion": 2,
+  "contentMode": "full",
+  "generatedAt": "2026-10-23T17:52:59.796Z",
   "expectedSources": 269,
   "complete": true,
   "profiles": [
@@ -12,7 +13,7 @@
       "courseLabel": "Cálculo 1",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:19.212Z",
+      "observedAt": "2026-10-23T17:48:30.231Z",
       "comments": [
         {
           "id": "d47d0788e49b3c6f6465",
@@ -36,7 +37,7 @@
       "courseLabel": "Taller 4",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:20.235Z",
+      "observedAt": "2026-10-23T17:48:31.245Z",
       "comments": [
         {
           "id": "475b28ca949e4ce1e707",
@@ -60,7 +61,7 @@
       "courseLabel": "Taller 4",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:21.237Z",
+      "observedAt": "2026-10-23T17:48:32.289Z",
       "comments": [
         {
           "id": "ff2ab89940e05ba96123",
@@ -84,7 +85,7 @@
       "courseLabel": "Taller 4",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:22.246Z",
+      "observedAt": "2026-10-23T17:48:33.391Z",
       "comments": [
         {
           "id": "f4194f098e44181bf899",
@@ -92,8 +93,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Ambos son los mejores profes de T4, son comprensivos con las entregas y realmente ven el esfuerzo que tengas // XMIL, son los más TOP enseñan muy bien y le encuentran la solución a todo pq saben bastaaaante del tema , pueden ser un poco",
-          "truncated": true,
+          "text": "Ambos son los mejores profes de T4, son comprensivos con las entregas y realmente ven el esfuerzo que tengas // XMIL, son los más TOP enseñan muy bien y le encuentran la solución a todo pq saben bastaaaante del tema , pueden ser un poco serios al inicio pero luego son mucho mas amigables //",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/136-jorge-alfonso-zaldivar-suarez"
         }
       ],
@@ -108,7 +109,7 @@
       "courseLabel": "Taller 4",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:23.297Z",
+      "observedAt": "2026-10-23T17:48:34.451Z",
       "comments": [
         {
           "id": "4aa5abd475288b58e85d",
@@ -116,8 +117,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Ambos son los mejores profes de T4, son comprensivos con las entregas y realmente ven el esfuerzo que tengas // XMIL, son los más TOP enseñan muy bien y le encuentran la solución a todo pq saben bastaaaante del tema , pueden ser un poco",
-          "truncated": true,
+          "text": "Ambos son los mejores profes de T4, son comprensivos con las entregas y realmente ven el esfuerzo que tengas // XMIL, son los más TOP enseñan muy bien y le encuentran la solución a todo pq saben bastaaaante del tema , pueden ser un poco serios al inicio pero luego son mucho mas amigables //",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/137-jaime-franco-solano"
         }
       ],
@@ -132,7 +133,7 @@
       "courseLabel": "Topografía",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:24.296Z",
+      "observedAt": "2026-10-23T17:48:35.456Z",
       "comments": [
         {
           "id": "e993033aafc184a8be9e",
@@ -156,7 +157,7 @@
       "courseLabel": "Taller 5",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:25.287Z",
+      "observedAt": "2026-10-23T17:48:36.454Z",
       "comments": [
         {
           "id": "9baa0b1a8d89a61bdc06",
@@ -164,8 +165,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Habla bastante pero aprendes mucho, quiere que trabajes todo a mano y califica lo justo. No dejan mucho trabajo, y si aprendes, te motivan a ser creativo y califican bien, incluso si no trabajaste mucho, te ayudan. TIENES QUE SABER DIBUJAR",
-          "truncated": true,
+          "text": "Habla bastante pero aprendes mucho, quiere que trabajes todo a mano y califica lo justo. No dejan mucho trabajo, y si aprendes, te motivan a ser creativo y califican bien, incluso si no trabajaste mucho, te ayudan. TIENES QUE SABER DIBUJAR A MANO SI NO SABES MEJOR NI TE METAS O VAS A MORIR :) GENTE YO TMB TENIA MIEDO DE METERME CON ÉL POR LO QUE ES A MANO PERO SE LOS RECOMIENDO BASTANTE DESDE MI PUNTO DE VISTA PESE A QUE ES UN POCO MÁS TRABAJOSO PORQUE ES A MANO EL PROFE DA UNAS BUENAS CRITICAS Y SI LE SACAS HABLA NO SOLO DE TU TALLER SINO PARA TU CARRERA, le gusta que le pregunten porque asi les puede enseñar más. es un buen docente. califica desde mi opinión alto porque lo hacen a mano, solo terminen lo que esta en la rubrica y asi este feo o aun falte desarrollar con que cumplas con la rubrica vas a aprobar asi que no se perturben. EN MI SALON POR PRESENTAR SACABA 17 POR AHI Y SI JALAS ES PORQUE NO CUMPLES CON TODOS LOS ITEMS POR EJEMPLO TE PIDEN CORTES, ELEVACIONES, PLANATA Y 3D TODO A MANO PERO SI NO HACES UNO TE RESTAN LO DE LA RUBRICA NOMAS PERO SI LO HACES TE CALIFICAN CON UN PUNTO Y ASI SOBRAO LA HACES. Es un excelente profe! Le encanta enseñar y tiene mucho que decir, sue",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/144-soracco-fulchi-gino-angel"
         }
       ],
@@ -180,7 +181,7 @@
       "courseLabel": "Taller 5",
       "score": 1,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:26.297Z",
+      "observedAt": "2026-10-23T17:48:37.467Z",
       "comments": [
         {
           "id": "dfe7030cac542b9b9fbc",
@@ -204,7 +205,7 @@
       "courseLabel": "Taller 5",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:27.328Z",
+      "observedAt": "2026-10-23T17:48:38.468Z",
       "comments": [
         {
           "id": "4caa6222c1678eb05562",
@@ -212,8 +213,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Mariano es estricto y un capo, con él tienes q trabajar siosí. Se aprende mucho, pero no se pongan con él si son flojos. es churro,churro x2, the best. /// Muchos alumnos le tienen cariño, es un profe que comprende a los alumnos y por eso",
-          "truncated": true,
+          "text": "Mariano es estricto y un capo, con él tienes q trabajar siosí. Se aprende mucho, pero no se pongan con él si son flojos. es churro,churro x2, the best. /// Muchos alumnos le tienen cariño, es un profe que comprende a los alumnos y por eso trata de exigirles y que sean constanate, le gusta que critiques asi sea poco, trata de plasmar tus ideas aunque sea en dibujos para que lo pueda visualizar (psdt: dibuja hermoso en las bitacoras de critica) hazte su pata, es buen profe, diria yo que es de los mas reconocdos y recordados. // Tienes que ser chamba, era grupal hasta el parcial, debes tener un buen grupo sino fuiste y criticar siempre. En ocasiones te puede tratar mal o pedirte que le traigas café o agua xd, pero cuando explica algún tema es interesante como lo hace, debes chambear bien la vdd.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/152-mariano-quiroga-robles"
         }
       ],
@@ -228,7 +229,7 @@
       "courseLabel": "Matemática Computacional",
       "score": 5,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:56:28.321Z",
+      "observedAt": "2026-10-23T17:48:39.484Z",
       "comments": [
         {
           "id": "4008b70d8df4be294943",
@@ -272,7 +273,7 @@
       "courseLabel": "Taller 6",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:29.327Z",
+      "observedAt": "2026-10-23T17:48:40.473Z",
       "comments": [
         {
           "id": "33deb6d1e1466afae291",
@@ -296,7 +297,7 @@
       "courseLabel": "Taller 6",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:30.337Z",
+      "observedAt": "2026-10-23T17:48:41.465Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -309,7 +310,7 @@
       "courseLabel": "Taller 6",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:31.362Z",
+      "observedAt": "2026-10-23T17:48:42.459Z",
       "comments": [
         {
           "id": "76210a33d566484bbe72",
@@ -333,7 +334,7 @@
       "courseLabel": "Taller 6",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:32.432Z",
+      "observedAt": "2026-10-23T17:48:43.450Z",
       "comments": [
         {
           "id": "c8b6aaac9f89076ff1a3",
@@ -341,8 +342,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Es exigente, pero aprendes bastante con él. Es mejor en dupla con Francis. Lleve con él y es super bueno aprendes demasiado con él otros dicen que es estricto por ser profe te tesis pero te apoya demasiado, es estricto pero si vas criticas",
-          "truncated": true,
+          "text": "Es exigente, pero aprendes bastante con él. Es mejor en dupla con Francis. Lleve con él y es super bueno aprendes demasiado con él otros dicen que es estricto por ser profe te tesis pero te apoya demasiado, es estricto pero si vas criticas y preguntas la verdad es muy bueno",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/193-tony-paul-antezana-pauyac"
         }
       ],
@@ -357,7 +358,7 @@
       "courseLabel": "Taller 6",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:33.472Z",
+      "observedAt": "2026-10-23T17:48:44.453Z",
       "comments": [
         {
           "id": "d9b3d2b2575dc4c9427f",
@@ -381,7 +382,7 @@
       "courseLabel": "Base de Datos",
       "score": 1.9,
       "ratingCount": 9,
-      "observedAt": "2026-10-23T16:56:34.493Z",
+      "observedAt": "2026-10-23T17:48:45.464Z",
       "comments": [
         {
           "id": "a1857cf66b425807f34f",
@@ -389,8 +390,8 @@
           "dateLabel": "setiembre de 2026",
           "rating": 1,
           "recommends": false,
-          "text": "Un amigo llevó con él y me dijo que es recontra malo, que, si te ponía baja nota, reclamar sería por las puras ya que no hace caso. Y bueno, he oido experiencias parecidas asi que por su bien no se metan con este profe (yo casi cometo ese",
-          "truncated": true,
+          "text": "Un amigo llevó con él y me dijo que es recontra malo, que, si te ponía baja nota, reclamar sería por las puras ya que no hace caso. Y bueno, he oido experiencias parecidas asi que por su bien no se metan con este profe (yo casi cometo ese error)",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/2-walter-juan-requejo-chaname"
         },
         {
@@ -409,8 +410,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Buen profe, confirmo eso de que ncesitas buen grupo. Por otro lado, el profesor si explica su clase, tmpc esperen q profundice, literlmanete le dan 2 horas de clase :/. Si quieres pasar el curso, solo consiguete buen grupito y ya la haces,",
-          "truncated": true,
+          "text": "Buen profe, confirmo eso de que ncesitas buen grupo. Por otro lado, el profesor si explica su clase, tmpc esperen q profundice, literlmanete le dan 2 horas de clase :/. Si quieres pasar el curso, solo consiguete buen grupito y ya la haces, ya que el profe califica segun la rubrica",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/2-walter-juan-requejo-chaname"
         },
         {
@@ -449,8 +450,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Es estricto con la rubrica en los tf, sus clases un tanto monótonas pero comprensible a pesar de todo, lleve Especificacion, IHC con él. En las exposiciones parciales y finales sólo 1 sale a exponer a elección de él y la nota del grupo",
-          "truncated": true,
+          "text": "Es estricto con la rubrica en los tf, sus clases un tanto monótonas pero comprensible a pesar de todo, lleve Especificacion, IHC con él. En las exposiciones parciales y finales sólo 1 sale a exponer a elección de él y la nota del grupo depende únicamente de esa persona que salga a exponer, por ello siempre asegúrense com un grupo que trabaje realmente. Y siempre corrijan las observaciones que les haga.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/2-walter-juan-requejo-chaname"
         },
         {
@@ -485,7 +486,7 @@
       "courseLabel": "Aplicaciones Web",
       "score": 2.5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:56:35.529Z",
+      "observedAt": "2026-10-23T17:48:46.482Z",
       "comments": [
         {
           "id": "ed4077f5e627d48eeca8",
@@ -519,7 +520,7 @@
       "courseLabel": "Taller 7",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:36.536Z",
+      "observedAt": "2026-10-23T17:48:47.486Z",
       "comments": [
         {
           "id": "fe156f7ac72c30b0a37b",
@@ -527,8 +528,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "alguien???? :c ... Ramos enseña historia . Si es el mismo españolcito , pues enseña bien pero es bien mrd con sus comentarios/ Yo lleve con ellos el taller, y al inicio hay trabajos en grupos de 3-4 y su final en duplas. Califican bien, y",
-          "truncated": true,
+          "text": "alguien???? :c ... Ramos enseña historia . Si es el mismo españolcito , pues enseña bien pero es bien mrd con sus comentarios/ Yo lleve con ellos el taller, y al inicio hay trabajos en grupos de 3-4 y su final en duplas. Califican bien, y se complementan bien con sus comentarios. Les gusta que critiques siempre, y ahi esta el detalle para que te vayan conociendo y les guste mas criticarte el proyecto. Me gusta eso sí las criticas de Jessica que son mas completas y van al grano de lo que te sugiere que consideres.QUE TAL SON???? CALIFICAN BIEN? AYUDA PLISSS Carmen es super tranquila, te critica con paciencia, le da más valor a la expresión grafica, califica lo justo. Sobre Fernando Diez me comentaron que califica lo justo mientras critiques, ambos son buenos como dupla.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/201-fernando-diez-garrido"
         }
       ],
@@ -543,7 +544,7 @@
       "courseLabel": "Taller 7",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:37.525Z",
+      "observedAt": "2026-10-23T17:48:48.499Z",
       "comments": [
         {
           "id": "3439a52cdcc5e659f8fe",
@@ -567,7 +568,7 @@
       "courseLabel": "Algoritmos",
       "score": 4.4,
       "ratingCount": 9,
-      "observedAt": "2026-10-23T16:56:38.537Z",
+      "observedAt": "2026-10-23T17:48:49.504Z",
       "comments": [
         {
           "id": "2f2778b779dbbdd672c4",
@@ -585,8 +586,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Enseña muy bien, es el indicado si quieres aprender de verdad, si dejas de prestar atención en un ratito te pierdes. El lado \"malo\" es que es muy exquisito con la rúbrica y tiene una obsesión con el orden del código xd. Ni se te ocurra",
-          "truncated": true,
+          "text": "Enseña muy bien, es el indicado si quieres aprender de verdad, si dejas de prestar atención en un ratito te pierdes. El lado \"malo\" es que es muy exquisito con la rúbrica y tiene una obsesión con el orden del código xd. Ni se te ocurra copiar o usar IA en un examen. Si tienes suerte te sube algún punto. Tira tu for 🗣️",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/21-henry-mendoza-puerta"
         },
         {
@@ -671,7 +672,7 @@
       "courseLabel": "Taller 7",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:39.537Z",
+      "observedAt": "2026-10-23T17:48:50.513Z",
       "comments": [
         {
           "id": "9208ac519be1d3facc8e",
@@ -695,7 +696,7 @@
       "courseLabel": "Taller 7",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:40.529Z",
+      "observedAt": "2026-10-23T17:48:51.505Z",
       "comments": [
         {
           "id": "cb25ef915a84ad188f81",
@@ -719,7 +720,7 @@
       "courseLabel": "Taller 8",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:41.544Z",
+      "observedAt": "2026-10-23T17:48:52.494Z",
       "comments": [
         {
           "id": "9f9ceb2868208cd3f83c",
@@ -743,7 +744,7 @@
       "courseLabel": "Taller 9",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:42.570Z",
+      "observedAt": "2026-10-23T17:48:53.484Z",
       "comments": [
         {
           "id": "47525b6da36e54ee3838",
@@ -751,8 +752,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Aprendes mucho. // Son full chamba, la verdad te seré sincero es un taller muy pero muy exigente, tienes que criticar mucho porque sino también Ana se las agarra contigo, a mi no me paso, pero he visto a varios grupos de compañeros que le",
-          "truncated": true,
+          "text": "Aprendes mucho. // Son full chamba, la verdad te seré sincero es un taller muy pero muy exigente, tienes que criticar mucho porque sino también Ana se las agarra contigo, a mi no me paso, pero he visto a varios grupos de compañeros que le pasó eso, pero si tengo que sacar una conclusión es que aprendí un montón sobretodo de estructuras, solo que es muy quisquilloso, metete si quieres aprender, pero califica lo justo nada más. // Ana es exigente , te cuestiona todo,califican bajisimos pq te quitan puntos de lo mas minimo pero aprendes",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/239-seoane-morla-javier-carlos"
         }
       ],
@@ -767,7 +768,7 @@
       "courseLabel": "Taller 9",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:43.576Z",
+      "observedAt": "2026-10-23T17:48:54.484Z",
       "comments": [
         {
           "id": "fcab4deb3799d4d684db",
@@ -791,7 +792,7 @@
       "courseLabel": "Taller 9",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:44.580Z",
+      "observedAt": "2026-10-23T17:48:55.477Z",
       "comments": [
         {
           "id": "bff3f3c4a0273e85d150",
@@ -815,7 +816,7 @@
       "courseLabel": "Taller 9",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:45.581Z",
+      "observedAt": "2026-10-23T17:48:56.482Z",
       "comments": [
         {
           "id": "325cad674594ed9d2793",
@@ -823,8 +824,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Es buen profe. Muy amable Explica con detalle las cosas. RECOMENDADO / sí, pero tmb tiene bastante favoritismoo /// En mi opinion tiene mucho favoortitismo por los que resalten mas en el salon, si te metiste con un grupo de amigos en un",
-          "truncated": true,
+          "text": "Es buen profe. Muy amable Explica con detalle las cosas. RECOMENDADO / sí, pero tmb tiene bastante favoritismoo /// En mi opinion tiene mucho favoortitismo por los que resalten mas en el salon, si te metiste con un grupo de amigos en un salon y son chacoteros te prestara atención si eres muy callado meh f trata de resaltar.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/243-fernando-enrique-calderon-calderon"
         }
       ],
@@ -839,7 +840,7 @@
       "courseLabel": "Taller 9",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:46.585Z",
+      "observedAt": "2026-10-23T17:48:57.487Z",
       "comments": [
         {
           "id": "9fe76a2f395bb9a8bb6b",
@@ -863,7 +864,7 @@
       "courseLabel": "Taller 9",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:47.782Z",
+      "observedAt": "2026-10-23T17:48:58.487Z",
       "comments": [
         {
           "id": "54c5eedd5569e06a81fa",
@@ -887,7 +888,7 @@
       "courseLabel": "Taller 9",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:48.779Z",
+      "observedAt": "2026-10-23T17:48:59.482Z",
       "comments": [
         {
           "id": "8eb63ad884fc6dec73e5",
@@ -895,8 +896,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "Lleve T6 con él, sabe mucho de sistemas constructivos ya que tiene su hermano ing creo, da buenas críticas y te menciona ejemplos de otros edificios reconocidos para que lo tomes como referencia, en cuanto a la calificación califica",
-          "truncated": true,
+          "text": "Lleve T6 con él, sabe mucho de sistemas constructivos ya que tiene su hermano ing creo, da buenas críticas y te menciona ejemplos de otros edificios reconocidos para que lo tomes como referencia, en cuanto a la calificación califica promedio ni bajo ni alto.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/246-lazarte-reategui-henry-daniel"
         }
       ],
@@ -911,7 +912,7 @@
       "courseLabel": "Taller 9",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:49.792Z",
+      "observedAt": "2026-10-23T17:49:00.481Z",
       "comments": [
         {
           "id": "359349473ec66de9264b",
@@ -935,7 +936,7 @@
       "courseLabel": "Taller 9",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:50.813Z",
+      "observedAt": "2026-10-23T17:49:01.471Z",
       "comments": [
         {
           "id": "6f8bc0792d71da00c13d",
@@ -959,7 +960,7 @@
       "courseLabel": "Taller 9",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:51.808Z",
+      "observedAt": "2026-10-23T17:49:02.500Z",
       "comments": [
         {
           "id": "c4befb1fba6bac65575d",
@@ -967,8 +968,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Mute bueno, te enseña demasiado y te critica bastante. Le gusta que critiques. // A mi me fue bien en su taller, llevé Texas con el y me gustó mucho… tienes q preguntar bastante y te da muy buenas ideas. /// Literal le pedí que no promedie",
-          "truncated": true,
+          "text": "Mute bueno, te enseña demasiado y te critica bastante. Le gusta que critiques. // A mi me fue bien en su taller, llevé Texas con el y me gustó mucho… tienes q preguntar bastante y te da muy buenas ideas. /// Literal le pedí que no promedie todas las notas del final con el proceso y el aceptó y asi aprobamos todos en el salón. La verdad muy buen profesor.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/252-yonel-yupanqui-losno"
         }
       ],
@@ -983,7 +984,7 @@
       "courseLabel": "Estadística Aplicada 1",
       "score": 4.5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:56:52.827Z",
+      "observedAt": "2026-10-23T17:49:03.500Z",
       "comments": [
         {
           "id": "8a7a674a359e67cc72c9",
@@ -1017,7 +1018,7 @@
       "courseLabel": "Física",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:53.831Z",
+      "observedAt": "2026-10-23T17:49:04.498Z",
       "comments": [
         {
           "id": "2f9d2148c50ff0832a2c",
@@ -1041,7 +1042,7 @@
       "courseLabel": "Arquitectura de Computadoras y Sistemas Operativos",
       "score": 5,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:56:54.833Z",
+      "observedAt": "2026-10-23T17:49:05.496Z",
       "comments": [
         {
           "id": "5d6bed3dbd6c3523e4ec",
@@ -1085,7 +1086,7 @@
       "courseLabel": "Fundamentos de Sistemas de la Información",
       "score": 1,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:55.829Z",
+      "observedAt": "2026-10-23T17:49:06.796Z",
       "comments": [
         {
           "id": "65980e6d419154dcc2bf",
@@ -1109,7 +1110,7 @@
       "courseLabel": "Diseño de Base de Datos",
       "score": 4.6,
       "ratingCount": 7,
-      "observedAt": "2026-10-23T16:56:56.823Z",
+      "observedAt": "2026-10-23T17:49:07.784Z",
       "comments": [
         {
           "id": "905924a68fc5573714d4",
@@ -1183,7 +1184,7 @@
       "courseLabel": "Análisis Arquitectónico y Topografía",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:57.833Z",
+      "observedAt": "2026-10-23T17:49:08.800Z",
       "comments": [
         {
           "id": "e8bb1c8e684f4d74d2cb",
@@ -1207,7 +1208,7 @@
       "courseLabel": "Análisis Arquitectónico y Topografía",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:56:58.847Z",
+      "observedAt": "2026-10-23T17:49:09.784Z",
       "comments": [
         {
           "id": "a8abf49fb59213cfd741",
@@ -1215,8 +1216,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": false,
-          "text": "EL PROFE EXPLICA MUY BIEN Y ES DIVERTIDO Y CALIFICA ALTO SI TE ESFUERZAS , el profe es un capo y aprendes un montón no califica tan alto. LLEVE CON EL JANETH Y SI PONEN 20, EXPLICAN BIEN El profe es todo un personaje verdaderamente. Explica",
-          "truncated": true,
+          "text": "EL PROFE EXPLICA MUY BIEN Y ES DIVERTIDO Y CALIFICA ALTO SI TE ESFUERZAS , el profe es un capo y aprendes un montón no califica tan alto. LLEVE CON EL JANETH Y SI PONEN 20, EXPLICAN BIEN El profe es todo un personaje verdaderamente. Explica muy bien, de vez en cuando se desvía del tema pero califica bien si te tiene presente. Solo tienes que ser atento a su clase y te sube puntos por participar repetidamente / Califica bajo en las entregas de todas las semanas y ya al final se pone a calificar bien,no lo recomiendo clase aburrida",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/299-enrique-guzman-garcia"
         }
       ],
@@ -1231,7 +1232,7 @@
       "courseLabel": "Matemática Discreta",
       "score": 4.1,
       "ratingCount": 9,
-      "observedAt": "2026-10-23T16:57:00.305Z",
+      "observedAt": "2026-10-23T17:49:10.778Z",
       "comments": [
         {
           "id": "8ad32558bcef6bda53a9",
@@ -1269,8 +1270,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "Es un profesor que se ciñe demasiado a la rúbrica y demasiado, diría yo, ya que por cada cosa que no esté especificada en la misma te puede bajar puntos bastantes en exámenes de peso. Me tocó llevarlo en Minerva, así que es difícil",
-          "truncated": true,
+          "text": "Es un profesor que se ciñe demasiado a la rúbrica y demasiado, diría yo, ya que por cada cosa que no esté especificada en la misma te puede bajar puntos bastantes en exámenes de peso. Me tocó llevarlo en Minerva, así que es difícil calificar si enseña o no; solo daba retroalimentación y preguntaba. Para los exámenes, sí es bien exacto con los tiempos y no te pasa ni una.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/3-juan-manuel-mattos-quevedo"
         },
         {
@@ -1335,7 +1336,7 @@
       "courseLabel": "Cálculo 1",
       "score": 5,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:57:01.321Z",
+      "observedAt": "2026-10-23T17:49:11.775Z",
       "comments": [
         {
           "id": "9eee36ba5270ec7d263c",
@@ -1379,7 +1380,7 @@
       "courseLabel": "Seminario de Investigación Académica I",
       "score": 4.8,
       "ratingCount": 5,
-      "observedAt": "2026-10-23T16:57:02.317Z",
+      "observedAt": "2026-10-23T17:49:12.773Z",
       "comments": [
         {
           "id": "051f630869478d4aa59a",
@@ -1443,7 +1444,7 @@
       "courseLabel": "Sostenibilidad y Medio Ambiente",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:03.343Z",
+      "observedAt": "2026-10-23T17:49:13.776Z",
       "comments": [
         {
           "id": "699bd1edd442b1e1b23a",
@@ -1467,7 +1468,7 @@
       "courseLabel": "Redes y Comunicación de Datos",
       "score": 3.8,
       "ratingCount": 9,
-      "observedAt": "2026-10-23T16:57:04.359Z",
+      "observedAt": "2026-10-23T17:49:14.835Z",
       "comments": [
         {
           "id": "7a6aa74e8d992ae8944f",
@@ -1495,8 +1496,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Si quieres aprender, Milton es la voz, sino largate con otro profe, a diferencia de otros no es que regale nota si le pides, y duela a quien le duela puro wbn le dice mal profe a aquellos que no les regala medio punto cuando suplican, puede",
-          "truncated": true,
+          "text": "Si quieres aprender, Milton es la voz, sino largate con otro profe, a diferencia de otros no es que regale nota si le pides, y duela a quien le duela puro wbn le dice mal profe a aquellos que no les regala medio punto cuando suplican, puede que te dé una opciones de ganar puntos pero si resuelves problemas que el deja o haces algo innovador en el proyecto o algo de relevancia. Sus exámenes son chiste (si prácticas x tu cuenta el Cisco netacad) y es algo q el mismo te dice al inicio de su curso pero que nadie hace caso y x eso dicen q nunca enseño eso o que está muy difícil el examen. Lo único es que puede ser muy exigente en el proyecto así que es ahí lo único donde debes hechsrle más ganas",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/33-milton-enrique-chinchay-celada"
         },
         {
@@ -1515,8 +1516,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "La verdad, este profe al inicio me caía algo mal, pero con el paso del tiempo te vas dando cuenta que busca que el alumno sea un profesional, el trabajo parece difícil pero en verdad es super sencillo, el profe ayuda con el trabajo siempre",
-          "truncated": true,
+          "text": "La verdad, este profe al inicio me caía algo mal, pero con el paso del tiempo te vas dando cuenta que busca que el alumno sea un profesional, el trabajo parece difícil pero en verdad es super sencillo, el profe ayuda con el trabajo siempre y cuando le preguntes, no esperes a última hora domas",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/33-milton-enrique-chinchay-celada"
         },
         {
@@ -1525,8 +1526,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "En mi experiencia es un profe alzado pero la verdad sus examenes son faciles. Todos sus examenes son de multiple opcion y sus preguntas las hace con notebooklm. Las alternativas suelen ser 4 opciones que son obviamente falsas y 1 que es",
-          "truncated": true,
+          "text": "En mi experiencia es un profe alzado pero la verdad sus examenes son faciles. Todos sus examenes son de multiple opcion y sus preguntas las hace con notebooklm. Las alternativas suelen ser 4 opciones que son obviamente falsas y 1 que es obviamente la correcta. Lo recomiendo si te toca buen salon porque se enoja si no hacen las encuestas y ahi los cagan a todos.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/33-milton-enrique-chinchay-celada"
         },
         {
@@ -1535,8 +1536,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "Si lo recomiendo, siempre y cuando desees aprender y si es un curso importante para tu carrera, sino están los otros profes que no exigen mucho, tienes dos formas de aprobar, la primera es full amanecidas y repasar y la segunda es ser el",
-          "truncated": true,
+          "text": "Si lo recomiendo, siempre y cuando desees aprender y si es un curso importante para tu carrera, sino están los otros profes que no exigen mucho, tienes dos formas de aprobar, la primera es full amanecidas y repasar y la segunda es ser el delegado del curso.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/33-milton-enrique-chinchay-celada"
         }
       ],
@@ -1551,7 +1552,7 @@
       "courseLabel": "Arte y Arquitectura de la Edad Media al Renacimiento",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:05.367Z",
+      "observedAt": "2026-10-23T17:49:15.836Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -1564,7 +1565,7 @@
       "courseLabel": "Arte y Arquitectura de la Edad Media al Renacimiento",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:06.375Z",
+      "observedAt": "2026-10-23T17:49:16.842Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -1577,7 +1578,7 @@
       "courseLabel": "Arte y Arquitectura de la Edad Media al Renacimiento",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:07.395Z",
+      "observedAt": "2026-10-23T17:49:17.830Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -1590,7 +1591,7 @@
       "courseLabel": "Obras Preliminares",
       "score": 3.3,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:57:08.402Z",
+      "observedAt": "2026-10-23T17:49:18.830Z",
       "comments": [
         {
           "id": "59312e0ddeb50d41a350",
@@ -1598,8 +1599,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Es buen profe, aunque a veces aburre pero no por él sino por el tema xd. También si la gente le pide que aplace una entrega, él con gusto lo hace la mayoría de veces. Ricardo junto con Olarte hacen un grupo de la ptm. Muy recomendado. Muy",
-          "truncated": true,
+          "text": "Es buen profe, aunque a veces aburre pero no por él sino por el tema xd. También si la gente le pide que aplace una entrega, él con gusto lo hace la mayoría de veces. Ricardo junto con Olarte hacen un grupo de la ptm. Muy recomendado. Muy cute fue mi crush / BURGOS ES EL mejor de todos, se preocupa y ayuda mucho",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/338-ricardo-daniel-vivar-florez"
         },
         {
@@ -1608,8 +1609,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "Buena dupla, ambos profes son compresivo. en los finales ambos te ayudan para q puedas salir bien. es muy improvable q jales si le metes empeñlo. no faltes a taller de contrucción y siempre pregunta y diviverte en taller. preguntale siempre",
-          "truncated": true,
+          "text": "Buena dupla, ambos profes son compresivo. en los finales ambos te ayudan para q puedas salir bien. es muy improvable q jales si le metes empeñlo. no faltes a taller de contrucción y siempre pregunta y diviverte en taller. preguntale siempre a los maestros q estan ahi te dan las fijas",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/338-ricardo-daniel-vivar-florez"
         }
       ],
@@ -1624,7 +1625,7 @@
       "courseLabel": "Matemática Discreta",
       "score": 4.4,
       "ratingCount": 11,
-      "observedAt": "2026-10-23T16:57:09.413Z",
+      "observedAt": "2026-10-23T17:49:19.827Z",
       "comments": [
         {
           "id": "6e2e4f7c0675d9679f14",
@@ -1738,7 +1739,7 @@
       "courseLabel": "Modelación Estructural 2",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:10.408Z",
+      "observedAt": "2026-10-23T17:49:20.827Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -1751,7 +1752,7 @@
       "courseLabel": "Modelación Estructural 2",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:11.420Z",
+      "observedAt": "2026-10-23T17:49:21.821Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -1764,7 +1765,7 @@
       "courseLabel": "Modelación Estructural 2",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:12.442Z",
+      "observedAt": "2026-10-23T17:49:22.806Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -1777,7 +1778,7 @@
       "courseLabel": "CONOCIMIENTOS DEL CAD",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:13.469Z",
+      "observedAt": "2026-10-23T17:49:23.810Z",
       "comments": [
         {
           "id": "fb567cbccb3a4095da36",
@@ -1801,7 +1802,7 @@
       "courseLabel": "Arte y Arquitectura del Barroco al Art Nouveau",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:14.497Z",
+      "observedAt": "2026-10-23T17:49:24.797Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -1814,7 +1815,7 @@
       "courseLabel": "Arte y Arquitectura del Barroco al Art Nouveau",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:15.678Z",
+      "observedAt": "2026-10-23T17:49:25.812Z",
       "comments": [
         {
           "id": "761cbb10591f865413d7",
@@ -1838,7 +1839,7 @@
       "courseLabel": "ALBAÑILERIA",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:16.665Z",
+      "observedAt": "2026-10-23T17:49:26.800Z",
       "comments": [
         {
           "id": "467ff412e2e36730098f",
@@ -1862,7 +1863,7 @@
       "courseLabel": "ALBAÑILERIA",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:17.695Z",
+      "observedAt": "2026-10-23T17:49:27.798Z",
       "comments": [
         {
           "id": "b83fdab9cbbdf4253957",
@@ -1886,7 +1887,7 @@
       "courseLabel": "ALBAÑILERIA",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:18.693Z",
+      "observedAt": "2026-10-23T17:49:28.785Z",
       "comments": [
         {
           "id": "bb0e3851643ba3686d43",
@@ -1910,7 +1911,7 @@
       "courseLabel": "Especificación y Análisis de Requerimientos",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:19.678Z",
+      "observedAt": "2026-10-23T17:49:29.809Z",
       "comments": [
         {
           "id": "a0ea8256261eca556317",
@@ -1934,7 +1935,7 @@
       "courseLabel": "ALBAÑILERIA",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:20.667Z",
+      "observedAt": "2026-10-23T17:49:30.802Z",
       "comments": [
         {
           "id": "b54572daad905faac489",
@@ -1958,7 +1959,7 @@
       "courseLabel": "HCI",
       "score": 4.8,
       "ratingCount": 13,
-      "observedAt": "2026-10-23T16:57:21.672Z",
+      "observedAt": "2026-10-23T17:49:31.795Z",
       "comments": [
         {
           "id": "a2dd3f4245b78780646c",
@@ -2092,7 +2093,7 @@
       "courseLabel": "CICLO 5",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:22.687Z",
+      "observedAt": "2026-10-23T17:49:32.789Z",
       "comments": [
         {
           "id": "2561a76da62d7debdf85",
@@ -2100,8 +2101,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "da puntos extras por leer diapos, buen profe, es chevere y explica muy bien y critica por correo y responde siempre // SUPER RECOMENDADISIMO aparte te da las fijas en electricas para los examenes o pcs// no enseña a hacer plano de insta//",
-          "truncated": true,
+          "text": "da puntos extras por leer diapos, buen profe, es chevere y explica muy bien y critica por correo y responde siempre // SUPER RECOMENDADISIMO aparte te da las fijas en electricas para los examenes o pcs// no enseña a hacer plano de insta// Es cierto explica muy bien y tiene paciencia, pero no te enseña a hacer los planos de instalaciones",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/402-maximo-jesus-martinez-coronel"
         }
       ],
@@ -2116,7 +2117,7 @@
       "courseLabel": "Arquitectura Peruana",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:23.704Z",
+      "observedAt": "2026-10-23T17:49:33.789Z",
       "comments": [
         {
           "id": "2f4c7bc78aa863629df9",
@@ -2140,7 +2141,7 @@
       "courseLabel": "Arquitectura Peruana",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:24.697Z",
+      "observedAt": "2026-10-23T17:49:34.812Z",
       "comments": [
         {
           "id": "9da87d65a1a1ee74a118",
@@ -2164,7 +2165,7 @@
       "courseLabel": "Arquitectura Peruana",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:25.697Z",
+      "observedAt": "2026-10-23T17:49:35.833Z",
       "comments": [
         {
           "id": "12cc6b1fe22fe04010dc",
@@ -2188,7 +2189,7 @@
       "courseLabel": "Ecuaciones Diferenciales y Álgebra Lineal",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:26.688Z",
+      "observedAt": "2026-10-23T17:49:36.848Z",
       "comments": [
         {
           "id": "1852edfd42c61396cce5",
@@ -2212,7 +2213,7 @@
       "courseLabel": "Arquitectura Peruana",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:27.677Z",
+      "observedAt": "2026-10-23T17:49:37.850Z",
       "comments": [
         {
           "id": "dad46a350bc3002f94a4",
@@ -2236,7 +2237,7 @@
       "courseLabel": "Arquitectura Peruana",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:28.682Z",
+      "observedAt": "2026-10-23T17:49:38.844Z",
       "comments": [
         {
           "id": "cc352e872f7252c5a7d1",
@@ -2244,8 +2245,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "LLeve con ella histo, te tiene bastante paciencia. no pide que participen mucho en clase, sus fichas /// estoy llevando con ella, tiene bastante paciencia, es graciosa, te va a gustar mucho la clase por la dinámica / Califica alto y enseña",
-          "truncated": true,
+          "text": "LLeve con ella histo, te tiene bastante paciencia. no pide que participen mucho en clase, sus fichas /// estoy llevando con ella, tiene bastante paciencia, es graciosa, te va a gustar mucho la clase por la dinámica / Califica alto y enseña bien con dibujos en vivo //// x2 sus dibujos son faciles de entenderr",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/412-canales-cardenas-ana-maria"
         }
       ],
@@ -2260,7 +2261,7 @@
       "courseLabel": "Química",
       "score": 4.3,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:57:29.680Z",
+      "observedAt": "2026-10-23T17:49:39.843Z",
       "comments": [
         {
           "id": "20f12b0679c79cd9f770",
@@ -2304,7 +2305,7 @@
       "courseLabel": "Arte y Arquitectura Moderna y Contemporánea",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:30.684Z",
+      "observedAt": "2026-10-23T17:49:40.836Z",
       "comments": [
         {
           "id": "1bd34a607843bf9c6a23",
@@ -2328,7 +2329,7 @@
       "courseLabel": "Techos Aligerados, Encofrados",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:31.679Z",
+      "observedAt": "2026-10-23T17:49:41.839Z",
       "comments": [
         {
           "id": "3ee18df9f975eb6d8ce1",
@@ -2352,7 +2353,7 @@
       "courseLabel": "Techos Aligerados, Encofrados",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:32.695Z",
+      "observedAt": "2026-10-23T17:49:42.831Z",
       "comments": [
         {
           "id": "ab0c6e037fb2d4b9ab92",
@@ -2376,7 +2377,7 @@
       "courseLabel": "Física 1",
       "score": 4.8,
       "ratingCount": 8,
-      "observedAt": "2026-10-23T16:57:33.704Z",
+      "observedAt": "2026-10-23T17:49:43.819Z",
       "comments": [
         {
           "id": "b626c34b48a7b4226561",
@@ -2460,7 +2461,7 @@
       "courseLabel": "Techos Aligerados, Encofrados",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:34.720Z",
+      "observedAt": "2026-10-23T17:49:44.811Z",
       "comments": [
         {
           "id": "76f3eed03aecb2aa5418",
@@ -2484,7 +2485,7 @@
       "courseLabel": "Techos Aligerados, Encofrados",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:35.735Z",
+      "observedAt": "2026-10-23T17:49:45.805Z",
       "comments": [
         {
           "id": "ad0f328ee017cbe7edce",
@@ -2492,8 +2493,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "?? Es buenisimaa , explica claroo y califica segun tu esfuerzo. // Muy buena, es amigable, estricta pero comprensiva, califica según lo que merezcas en la rúbrica, si haces BIEN BIEN tus planos, (completos y bien valorados), te ira bien en",
-          "truncated": true,
+          "text": "?? Es buenisimaa , explica claroo y califica segun tu esfuerzo. // Muy buena, es amigable, estricta pero comprensiva, califica según lo que merezcas en la rúbrica, si haces BIEN BIEN tus planos, (completos y bien valorados), te ira bien en el curso con ella.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/437-luisa-ly-farfan"
         }
       ],
@@ -2508,7 +2509,7 @@
       "courseLabel": "Estadística Aplicada 1",
       "score": 4,
       "ratingCount": 4,
-      "observedAt": "2026-10-23T16:57:36.747Z",
+      "observedAt": "2026-10-23T17:49:46.796Z",
       "comments": [
         {
           "id": "552322def9ca5913817e",
@@ -2562,7 +2563,7 @@
       "courseLabel": "Techos Aligerados, Encofrados",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:37.785Z",
+      "observedAt": "2026-10-23T17:49:47.783Z",
       "comments": [
         {
           "id": "e2e7429daac2f0e90c7f",
@@ -2586,7 +2587,7 @@
       "courseLabel": "Techos Aligerados, Encofrados",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:38.784Z",
+      "observedAt": "2026-10-23T17:49:48.783Z",
       "comments": [
         {
           "id": "b2b8dffc895751e25c39",
@@ -2610,7 +2611,7 @@
       "courseLabel": "Metodología de la Investigación",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:39.795Z",
+      "observedAt": "2026-10-23T17:49:50.275Z",
       "comments": [
         {
           "id": "5d0e6a88d6ace9bea874",
@@ -2634,7 +2635,7 @@
       "courseLabel": "Metodología de la Investigación",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:40.816Z",
+      "observedAt": "2026-10-23T17:49:51.275Z",
       "comments": [
         {
           "id": "50524adf5c60091f9ff7",
@@ -2658,7 +2659,7 @@
       "courseLabel": "Emprendimiento y Modelo de Negocios",
       "score": 4.7,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:57:41.815Z",
+      "observedAt": "2026-10-23T17:49:52.280Z",
       "comments": [
         {
           "id": "7005a86c9a355b4b684d",
@@ -2702,7 +2703,7 @@
       "courseLabel": "Metodología de la Investigación",
       "score": 1,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:42.838Z",
+      "observedAt": "2026-10-23T17:49:53.287Z",
       "comments": [
         {
           "id": "54edb2a4dc73f9e2e331",
@@ -2726,7 +2727,7 @@
       "courseLabel": "Metodología de la Investigación",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:43.870Z",
+      "observedAt": "2026-10-23T17:49:54.291Z",
       "comments": [
         {
           "id": "a2975e97b781b4e6dc16",
@@ -2750,7 +2751,7 @@
       "courseLabel": "Metodología de la Investigación",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:44.870Z",
+      "observedAt": "2026-10-23T17:49:55.292Z",
       "comments": [
         {
           "id": "57bbce545948ea29feaf",
@@ -2774,7 +2775,7 @@
       "courseLabel": "Urbanismo",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:45.884Z",
+      "observedAt": "2026-10-23T17:49:56.286Z",
       "comments": [
         {
           "id": "3c8dbc17479ebc68c68b",
@@ -2782,8 +2783,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": false,
-          "text": "100% recomendadoo, califica bien alto, igual tienes que conseguir un buen grupo para pasarloo / NO SE METAN CON ELLA, RED FLAG. En mi seccion calificaba bajo, la mayoria jalo el parcial. Para el trabajo grupal explicaba en clase lo que",
-          "truncated": true,
+          "text": "100% recomendadoo, califica bien alto, igual tienes que conseguir un buen grupo para pasarloo / NO SE METAN CON ELLA, RED FLAG. En mi seccion calificaba bajo, la mayoria jalo el parcial. Para el trabajo grupal explicaba en clase lo que habia que hacer y de ahi en la critica cambiaba de opinion y queria otra cosa totalmente distinta. Hace que el curso sea más pesado y explica super mal, se enreda al explicar y no se le entiende. // Es buena en la teoria y explica con ejemplos reales pero x2 no la recomiendo para nada x lo mismo no es organizada para explicar los trabajos nunca es como ella quiere /// Llevé con Diana y la verdad que aprendí y me gustó el curso. El curso consiste en participar(ya que Diana considera participación y te sube mucho la nota) y a la vez cada semana tendrás que realizar unos foros(promedio de desempeño). De la mano te manda a leer ciertas lecturas que vienen en los foros y examenes. Califica alto y en caso de necesitar una corrección si es abierta a escuchar. Los examenes tanto parcial o final consisten e infografías. Algunos se quejan de que tienda a no ser empática y en parte es cierto, pero depende de tu desempeño. En los trabajos finales suele ser estri",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/458-aviles-merens-diana"
         }
       ],
@@ -2798,7 +2799,7 @@
       "courseLabel": "Dirección y Economía para Ingenieros",
       "score": 5,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:57:46.900Z",
+      "observedAt": "2026-10-23T17:49:57.300Z",
       "comments": [
         {
           "id": "838838c1e9be94245661",
@@ -2842,7 +2843,7 @@
       "courseLabel": "Urbanismo",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:47.916Z",
+      "observedAt": "2026-10-23T17:49:58.362Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -2855,7 +2856,7 @@
       "courseLabel": "Urbanismo",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:48.926Z",
+      "observedAt": "2026-10-23T17:49:59.424Z",
       "comments": [
         {
           "id": "528a08880626b6a2bc43",
@@ -2863,8 +2864,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Es un capo, es tiene un conocimiento muy amplio en muchas ramas de arqui, tiene muchisima paciencia y te ayuda con mas nota si ve que de verdad le pones empeño al curso. /// ...LO DEL BUEN GRUPO MASO, Pero la cosa es empezar el trabajo ni",
-          "truncated": true,
+          "text": "Es un capo, es tiene un conocimiento muy amplio en muchas ramas de arqui, tiene muchisima paciencia y te ayuda con mas nota si ve que de verdad le pones empeño al curso. /// ...LO DEL BUEN GRUPO MASO, Pero la cosa es empezar el trabajo ni bien te digan donde sera el tramo, el trabajo es izi no es complicado, es más grafico que escritura, cada diapo debe tener una conclusión, pero con conclusión conclusión y no conclusión descripción, eso simpre dice el profe, después en sus practicas semanales te recomiendo que veas que tienes varios intentos porque te dan 15 min para hacerlo sooo el 1er intento hazlo con lo que sepas pero rapido y ya tomas ss a tus resultados y te ayudara para tu segundo intento... y guarda esos ss porque te ayudaran para tu final <3",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/466-munoz-li-luis-miguel"
         }
       ],
@@ -2879,7 +2880,7 @@
       "courseLabel": "Lógica",
       "score": 3,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:57:49.915Z",
+      "observedAt": "2026-10-23T17:50:00.426Z",
       "comments": [
         {
           "id": "f324a513957e4b9ad8a9",
@@ -2913,7 +2914,7 @@
       "courseLabel": "Acabados/Tecnología de la Madera",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:50.908Z",
+      "observedAt": "2026-10-23T17:50:01.429Z",
       "comments": [
         {
           "id": "0924441c006844295d31",
@@ -2937,7 +2938,7 @@
       "courseLabel": "Acabados/Tecnología de la Madera",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:51.911Z",
+      "observedAt": "2026-10-23T17:50:02.439Z",
       "comments": [
         {
           "id": "6f630ab4e5971317fd92",
@@ -2961,7 +2962,7 @@
       "courseLabel": "Acabados/Tecnología de la Madera",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:52.899Z",
+      "observedAt": "2026-10-23T17:50:03.440Z",
       "comments": [
         {
           "id": "92f1744e6a580e944460",
@@ -2969,8 +2970,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "Sus criticas son completas y si ve q te esfuerzas te ayuda con la nota // gente si se recomienda con eloisa la cosa con ella es sumar puntos con participaciones q te suben un buen //// Recomiendo llevar en Eloisa mas en verano que en ciclo",
-          "truncated": true,
+          "text": "Sus criticas son completas y si ve q te esfuerzas te ayuda con la nota // gente si se recomienda con eloisa la cosa con ella es sumar puntos con participaciones q te suben un buen //// Recomiendo llevar en Eloisa mas en verano que en ciclo regular, ya que te resultara muy pesado. Con ella siempre hay que criticar y esforzarse",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/473-navarro-pimentel-eloisa-ysabel"
         }
       ],
@@ -2985,7 +2986,7 @@
       "courseLabel": "Acabados/Tecnología de la Madera",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:53.896Z",
+      "observedAt": "2026-10-23T17:50:04.440Z",
       "comments": [
         {
           "id": "8ba57b4f0de24aae088e",
@@ -3009,7 +3010,7 @@
       "courseLabel": "Acabados/Tecnología de la Madera",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:54.906Z",
+      "observedAt": "2026-10-23T17:50:05.434Z",
       "comments": [
         {
           "id": "e117096957a615547dc6",
@@ -3033,7 +3034,7 @@
       "courseLabel": "Acabados/Tecnología de la Madera",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:55.931Z",
+      "observedAt": "2026-10-23T17:50:06.435Z",
       "comments": [
         {
           "id": "96dc657cd19f0725062e",
@@ -3057,7 +3058,7 @@
       "courseLabel": "Acabados/Tecnología de la Madera",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:56.932Z",
+      "observedAt": "2026-10-23T17:50:07.435Z",
       "comments": [
         {
           "id": "ccc7e06b90869d44e615",
@@ -3065,8 +3066,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "UNO DE LOS MEJORES PROFESSS<3 / confirmo, el mejor profe que he conocido ///exigente al detalle pero para el curso se espera. Buen profe (lo malo es q se contradice con Juan Diego Carrillo) // confirmo, es el mejor profe, te ayuda en todo y",
-          "truncated": true,
+          "text": "UNO DE LOS MEJORES PROFESSS<3 / confirmo, el mejor profe que he conocido ///exigente al detalle pero para el curso se espera. Buen profe (lo malo es q se contradice con Juan Diego Carrillo) // confirmo, es el mejor profe, te ayuda en todo y siempre le encuentra solución a tu trabajo, además que es muy amable, paciente y comprensivo<3",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/477-solano-franco-jaime"
         }
       ],
@@ -3081,7 +3082,7 @@
       "courseLabel": "Acabados/Tecnología de la Madera",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:57.972Z",
+      "observedAt": "2026-10-23T17:50:08.428Z",
       "comments": [
         {
           "id": "563ee1ba091bc13258ac",
@@ -3089,8 +3090,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 2,
           "recommends": false,
-          "text": "Es divertido con sus clases, por lo general es como \"profesor auxiliar\" asi que casi no da teoría pero cuando toca critica o entrega con el (1 semana es el y otra el otro arqui que lo acompaña) Ricardo puede llegar a calificarte muy alto si",
-          "truncated": true,
+          "text": "Es divertido con sus clases, por lo general es como \"profesor auxiliar\" asi que casi no da teoría pero cuando toca critica o entrega con el (1 semana es el y otra el otro arqui que lo acompaña) Ricardo puede llegar a calificarte muy alto si te lo mereces, no es de jalar.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/478-hurtado-noriega-ricardo"
         }
       ],
@@ -3105,7 +3106,7 @@
       "courseLabel": "Acabados/Tecnología de la Madera",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:58.971Z",
+      "observedAt": "2026-10-23T17:50:09.416Z",
       "comments": [
         {
           "id": "a06e60bc9632a59ecd56",
@@ -3129,7 +3130,7 @@
       "courseLabel": "Equipos e Instalaciones Especiales",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:57:59.970Z",
+      "observedAt": "2026-10-23T17:50:10.411Z",
       "comments": [
         {
           "id": "a34a12a35deefc6a8d4e",
@@ -3153,7 +3154,7 @@
       "courseLabel": "Ingeniería Económica",
       "score": 4.5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:58:00.980Z",
+      "observedAt": "2026-10-23T17:50:11.404Z",
       "comments": [
         {
           "id": "79092ed07825890b84e6",
@@ -3187,7 +3188,7 @@
       "courseLabel": "Equipos e Instalaciones Especiales",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:01.978Z",
+      "observedAt": "2026-10-23T17:50:12.397Z",
       "comments": [
         {
           "id": "957f6c23cb7f6955624e",
@@ -3195,8 +3196,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "capaso / permite críticas extras de los trabajos, buen profe / traumante / MEMORIA DE TRABAJO, si no prestas atencion en clase fuiste. Da criticas extra en los trabajos, eso si, debes prestar atención y de preferencia tomar apuntes de lo",
-          "truncated": true,
+          "text": "capaso / permite críticas extras de los trabajos, buen profe / traumante / MEMORIA DE TRABAJO, si no prestas atencion en clase fuiste. Da criticas extra en los trabajos, eso si, debes prestar atención y de preferencia tomar apuntes de lo que diga en cada clase / 100% recomendado, explica todo muy detallado y paso por paso / es relajado, ciclo 2023.2 faltaba a clases <- confirmo",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/490-jorge-carlos-moy-rivera"
         }
       ],
@@ -3211,7 +3212,7 @@
       "courseLabel": "Base de Datos",
       "score": 1.9,
       "ratingCount": 14,
-      "observedAt": "2026-10-23T16:58:02.996Z",
+      "observedAt": "2026-10-23T17:50:13.384Z",
       "comments": [
         {
           "id": "547d9f626f87cd0c4ee0",
@@ -3309,8 +3310,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 1,
           "recommends": false,
-          "text": "es complicado el profesor, si es un poco grasioso en sus clases, pero de seguro sus comentarios no te gustaran, ademas su humor y presencia puede tampoco no gustarte, califica bajo y tienes que ser estudioso con base para que puedas pasar",
-          "truncated": true,
+          "text": "es complicado el profesor, si es un poco grasioso en sus clases, pero de seguro sus comentarios no te gustaran, ademas su humor y presencia puede tampoco no gustarte, califica bajo y tienes que ser estudioso con base para que puedas pasar con el",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/5-juan-carlos-morales-arevalo"
         },
         {
@@ -3355,7 +3356,7 @@
       "courseLabel": "Algoritmos",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:04.017Z",
+      "observedAt": "2026-10-23T17:50:14.374Z",
       "comments": [
         {
           "id": "faf1e7a99136d3dc8e93",
@@ -3379,7 +3380,7 @@
       "courseLabel": "Investigación Arquitectónica",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:05.035Z",
+      "observedAt": "2026-10-23T17:50:15.383Z",
       "comments": [
         {
           "id": "ad540919983f1fd0ec70",
@@ -3387,8 +3388,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 2,
           "recommends": false,
-          "text": "Es demasiado exigente, califica muy bajo solo por no citar 1 cosita, califica con 06 a muchos solo por temas de apa, no por tu documento como tal. Se especializa en docmentos de investigación, es nuevo en la UPC, viene de otras u con nivel",
-          "truncated": true,
+          "text": "Es demasiado exigente, califica muy bajo solo por no citar 1 cosita, califica con 06 a muchos solo por temas de apa, no por tu documento como tal. Se especializa en docmentos de investigación, es nuevo en la UPC, viene de otras u con nivel alto, es por ello que califica de esa manera en los documentos, jala a muchos y si llegas tan solo 1 min tarde te baja 5pts sobre tu calificacion de alguna entrega.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/508-guillermo-medina-silva"
         }
       ],
@@ -3403,7 +3404,7 @@
       "courseLabel": "Investigación Arquitectónica",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:06.050Z",
+      "observedAt": "2026-10-23T17:50:16.430Z",
       "comments": [
         {
           "id": "9903b9ed98b847ff9822",
@@ -3427,7 +3428,7 @@
       "courseLabel": "Aplicaciones Web",
       "score": 3.7,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:58:07.032Z",
+      "observedAt": "2026-10-23T17:50:17.425Z",
       "comments": [
         {
           "id": "147ed9dfbe3f78d7ef4d",
@@ -3435,8 +3436,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Altamente recomendado, explica bien los temas, da muchos consejos de casos del mundo real, en los exámenes califica alto viniendo parecido a lo que enseña, en los trabajos es estricto a la hora de calificar, pero en las expos no es pesado",
-          "truncated": true,
+          "text": "Altamente recomendado, explica bien los temas, da muchos consejos de casos del mundo real, en los exámenes califica alto viniendo parecido a lo que enseña, en los trabajos es estricto a la hora de calificar, pero en las expos no es pesado ni hace preguntas.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/51-hugo-allan-mori-paiva"
         },
         {
@@ -3471,7 +3472,7 @@
       "courseLabel": "Seminario de Urbanismo",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:08.025Z",
+      "observedAt": "2026-10-23T17:50:18.431Z",
       "comments": [
         {
           "id": "aa6f9d43c8a078f85df3",
@@ -3479,8 +3480,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 2,
           "recommends": false,
-          "text": "Se especializa en todos los cursos de urbanismo, tiene tiempo dictando el curso, te hace buenas criticas, es muy tranqui, es comprensiva y su curso suele aprobar a todos, califica lo justo, rara vez califica bajo. Puedes pasar el curso",
-          "truncated": true,
+          "text": "Se especializa en todos los cursos de urbanismo, tiene tiempo dictando el curso, te hace buenas criticas, es muy tranqui, es comprensiva y su curso suele aprobar a todos, califica lo justo, rara vez califica bajo. Puedes pasar el curso tranqui no te mete presón.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/512-quispe-torre-dalith-lizeth"
         }
       ],
@@ -3495,7 +3496,7 @@
       "courseLabel": "Seminario de Urbanismo",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:09.033Z",
+      "observedAt": "2026-10-23T17:50:19.418Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -3508,7 +3509,7 @@
       "courseLabel": "Seminario de Urbanismo",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:10.037Z",
+      "observedAt": "2026-10-23T17:50:20.433Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -3521,7 +3522,7 @@
       "courseLabel": "Seminario de Urbanismo",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:11.052Z",
+      "observedAt": "2026-10-23T17:50:21.434Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -3534,7 +3535,7 @@
       "courseLabel": "Lineamientos para el Proyecto Profesional",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:12.050Z",
+      "observedAt": "2026-10-23T17:50:22.425Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -3547,7 +3548,7 @@
       "courseLabel": "Lineamientos para el Proyecto Profesional",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:13.047Z",
+      "observedAt": "2026-10-23T17:50:23.410Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -3560,7 +3561,7 @@
       "courseLabel": "Lineamientos para el Proyecto Profesional",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:14.031Z",
+      "observedAt": "2026-10-23T17:50:24.418Z",
       "comments": [
         {
           "id": "5a9a7d17a94aa80ad7ab",
@@ -3584,7 +3585,7 @@
       "courseLabel": "Gestión de Proyectos",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:15.055Z",
+      "observedAt": "2026-10-23T17:50:25.407Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -3597,7 +3598,7 @@
       "courseLabel": "Gestión de Proyectos",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:16.116Z",
+      "observedAt": "2026-10-23T17:50:26.395Z",
       "comments": [
         {
           "id": "7934706a1824e9f328be",
@@ -3621,7 +3622,7 @@
       "courseLabel": "Gestión de Proyectos",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:17.181Z",
+      "observedAt": "2026-10-23T17:50:27.391Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -3634,7 +3635,7 @@
       "courseLabel": "Gestión de Proyectos",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:18.227Z",
+      "observedAt": "2026-10-23T17:50:28.429Z",
       "comments": [
         {
           "id": "44e12290e42ffae37c73",
@@ -3658,7 +3659,7 @@
       "courseLabel": "Gestión de Proyectos",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:19.300Z",
+      "observedAt": "2026-10-23T17:50:29.420Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -3671,7 +3672,7 @@
       "courseLabel": "Teoría de la Arquitectura",
       "score": 4,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:58:20.316Z",
+      "observedAt": "2026-10-23T17:50:30.417Z",
       "comments": [
         {
           "id": "196b079eba0594f70a30",
@@ -3705,7 +3706,7 @@
       "courseLabel": "Circuitos Eléctricos y Electrónicos",
       "score": 5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:58:21.322Z",
+      "observedAt": "2026-10-23T17:50:31.421Z",
       "comments": [
         {
           "id": "2785c85655ba95f88adf",
@@ -3739,7 +3740,7 @@
       "courseLabel": "CAD AVANZADO",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:22.333Z",
+      "observedAt": "2026-10-23T17:50:32.420Z",
       "comments": [],
       "emptyCount": 0,
       "withheldCount": 0
@@ -3752,7 +3753,7 @@
       "courseLabel": "Derecho Administrativo",
       "score": 4.5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:58:23.336Z",
+      "observedAt": "2026-10-23T17:50:33.417Z",
       "comments": [
         {
           "id": "649e62f4918d84baa010",
@@ -3786,7 +3787,7 @@
       "courseLabel": "Taller 4",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:24.336Z",
+      "observedAt": "2026-10-23T17:50:34.433Z",
       "comments": [
         {
           "id": "2069be36e578c17ecf59",
@@ -3794,8 +3795,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Son buenos profesores, aprendes un montón en su taller. Son exigentes en las críticas , pero en parcial y final si te colocan sobre 15 si te esfuerzas / Vargas es muy buena gente, te ayuda si ve que criticas y te da buenas ideas, a mi me",
-          "truncated": true,
+          "text": "Son buenos profesores, aprendes un montón en su taller. Son exigentes en las críticas , pero en parcial y final si te colocan sobre 15 si te esfuerzas / Vargas es muy buena gente, te ayuda si ve que criticas y te da buenas ideas, a mi me cayo de ptm, me ayudo bastante la vrd, al inicio calificaba bajo pero la vrd aprendes full con el. Silva mas bien si una mrd, cambia mucho de opinion, un dia te dice una cosa en la critica y al día siguiente te dice todo lo contrario m",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/568-miguel-angel-vargas-schubert"
         }
       ],
@@ -3810,7 +3811,7 @@
       "courseLabel": "HCI",
       "score": 2.8,
       "ratingCount": 6,
-      "observedAt": "2026-10-23T16:58:25.337Z",
+      "observedAt": "2026-10-23T17:50:35.427Z",
       "comments": [
         {
           "id": "42efb46585fa52d903de",
@@ -3828,8 +3829,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Es buen profe, la verdad nose que tanto dicen que es malo, yo lo lleve con el y pase el curso a la primera, solo deben apegarse a la rúbrica y ya, literal es eso, es chevre hasta cuándo hay evaluaciones, hace que el ambiente se sienta menos",
-          "truncated": true,
+          "text": "Es buen profe, la verdad nose que tanto dicen que es malo, yo lo lleve con el y pase el curso a la primera, solo deben apegarse a la rúbrica y ya, literal es eso, es chevre hasta cuándo hay evaluaciones, hace que el ambiente se sienta menos estresante durante las evaluaciones porque hace reir a la gente, buen profe",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/57-juan-carlos-morales-arevalo"
         },
         {
@@ -3848,8 +3849,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": false,
-          "text": "\"El desempeño del profesor Morales es altamente deficiente debido a su falta de ética y profesionalismo en el aula. Muestra una actitud prepotente, utiliza un tono de voz inadecuado y recurre frecuentemente a comentarios sarcásticos o",
-          "truncated": true,
+          "text": "\"El desempeño del profesor Morales es altamente deficiente debido a su falta de ética y profesionalismo en el aula. Muestra una actitud prepotente, utiliza un tono de voz inadecuado y recurre frecuentemente a comentarios sarcásticos o despectivos que invalidan las dudas de los estudiantes. En lugar de construir un entorno seguro para el aprendizaje, fomenta un clima de tensión, intimidación y hostigamiento académico. Su falta de respeto hacia el alumnado desmerita por completo su rol como educador y exige una intervención inmediata por parte de las autoridades de la institución.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/57-juan-carlos-morales-arevalo"
         },
         {
@@ -3874,7 +3875,7 @@
       "courseLabel": "HCI",
       "score": 3.4,
       "ratingCount": 16,
-      "observedAt": "2026-10-23T16:58:26.339Z",
+      "observedAt": "2026-10-23T17:50:36.449Z",
       "comments": [
         {
           "id": "1c279f2adbd5e11c78fd",
@@ -3902,8 +3903,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 1,
           "recommends": false,
-          "text": "En IHC, sentí que las evaluaciones eran muy estrictas en comparación con la profundidad con la que se revisaban los trabajos. Los criterios de calificación me parecieron poco claros y, en varias entregas, no entendí qué aspectos concretos",
-          "truncated": true,
+          "text": "En IHC, sentí que las evaluaciones eran muy estrictas en comparación con la profundidad con la que se revisaban los trabajos. Los criterios de calificación me parecieron poco claros y, en varias entregas, no entendí qué aspectos concretos debía mejorar. Recomendaría pedir una rúbrica o retroalimentación específica desde el inicio para tener expectativas más claras.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/60-alan-tito-gutierrez"
         },
         {
@@ -4028,7 +4029,7 @@
       "courseLabel": "Cálculo 2",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:27.353Z",
+      "observedAt": "2026-10-23T17:50:37.455Z",
       "comments": [
         {
           "id": "5841b1394276ce8928df",
@@ -4052,7 +4053,7 @@
       "courseLabel": "Taller 6",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:28.354Z",
+      "observedAt": "2026-10-23T17:50:38.452Z",
       "comments": [
         {
           "id": "9cb5e82d37aaa894241b",
@@ -4060,8 +4061,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 2,
           "recommends": false,
-          "text": "Se contradicen mucho, exigentes. Sandra se raya y te cierra la puerta en la cara.// Sandra alguien más conoce??? Estela dicen que es bueno pero solo tiene preferencia con las mujeres//SANDRA ES UNA BRUJA // PENSABA ESTAR EN SU TALLER PERO",
-          "truncated": true,
+          "text": "Se contradicen mucho, exigentes. Sandra se raya y te cierra la puerta en la cara.// Sandra alguien más conoce??? Estela dicen que es bueno pero solo tiene preferencia con las mujeres//SANDRA ES UNA BRUJA // PENSABA ESTAR EN SU TALLER PERO VEO QUE DICEN QUE CON SANDRA ROMAN NO :C // Sandra se la pasa con su celular en crítica y si no le agradas, no aporta a tu proyecto, no la recomiendo para nadiee // x2 x3 // Estela es muy bueno, te aconseja siempre y te da referencias. Sandra dependerá si le gusta tu proyecto desde un incio o no, puede soltar comentarios pasivo-agresivos y miradas raras.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/620-andres-estela-vega-christie"
         }
       ],
@@ -4076,7 +4077,7 @@
       "courseLabel": "Arquitectura de computadoras",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:29.375Z",
+      "observedAt": "2026-10-23T17:50:39.447Z",
       "comments": [
         {
           "id": "001da68ba0decf4350e2",
@@ -4084,8 +4085,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Sí, lo recomiendo. El profesor enseña bien y saca a la pizarra a algunos estudiantes, en especial al delegado xd. Evalúa de acuerdo con la rúbrica y, sobre todo, es bastante estricto con los trabajos, ya que, si no cumplen con lo",
-          "truncated": true,
+          "text": "Sí, lo recomiendo. El profesor enseña bien y saca a la pizarra a algunos estudiantes, en especial al delegado xd. Evalúa de acuerdo con la rúbrica y, sobre todo, es bastante estricto con los trabajos, ya que, si no cumplen con lo solicitado, puede bajar varios puntos. Se fija especialmente en que la carátula esté como ÉL QUIERE, no necesariamente como indica la RÚBRICA, así que hay que tener mucho cuidado con eso.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/622-marco-antonio-leon-baca"
         }
       ],
@@ -4100,7 +4101,7 @@
       "courseLabel": "Arquitectura de Computadoras y Sistemas Operativos",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:30.369Z",
+      "observedAt": "2026-10-23T17:50:40.460Z",
       "comments": [
         {
           "id": "cfe7654a4aa12ef19ca3",
@@ -4108,8 +4109,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Sí, lo recomiendo. El profesor enseña bien y saca a la pizarra a algunos estudiantes, en especial al delegado xd. Evalúa de acuerdo con la rúbrica y, sobre todo, es bastante estricto con los trabajos, ya que, si no cumplen con lo",
-          "truncated": true,
+          "text": "Sí, lo recomiendo. El profesor enseña bien y saca a la pizarra a algunos estudiantes, en especial al delegado xd. Evalúa de acuerdo con la rúbrica y, sobre todo, es bastante estricto con los trabajos, ya que, si no cumplen con lo solicitado, puede bajar varios puntos. Se fija especialmente en que la carátula esté como ÉL QUIERE, no necesariamente como indica la RÚBRICA, así que hay que tener mucho cuidado con eso.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/64-marco-antonio-leon-baca"
         }
       ],
@@ -4124,7 +4125,7 @@
       "courseLabel": "Circuitos Lógicos Digitales",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:31.380Z",
+      "observedAt": "2026-10-23T17:50:41.455Z",
       "comments": [
         {
           "id": "76f93db2d95e66fe70ed",
@@ -4148,7 +4149,7 @@
       "courseLabel": "Matemática Discreta",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:32.407Z",
+      "observedAt": "2026-10-23T17:50:42.475Z",
       "comments": [
         {
           "id": "fdf3c27b7be891718bd2",
@@ -4172,7 +4173,7 @@
       "courseLabel": "Cálculo 1",
       "score": 2,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:58:33.407Z",
+      "observedAt": "2026-10-23T17:50:43.481Z",
       "comments": [
         {
           "id": "b8887867945c3bdd471c",
@@ -4206,7 +4207,7 @@
       "courseLabel": "Lenguaje de Programación",
       "score": 4.5,
       "ratingCount": 4,
-      "observedAt": "2026-10-23T16:58:34.399Z",
+      "observedAt": "2026-10-23T17:50:44.486Z",
       "comments": [
         {
           "id": "dc5436496546e003165b",
@@ -4260,7 +4261,7 @@
       "courseLabel": "Finanzas corporativas",
       "score": 4.5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:58:35.395Z",
+      "observedAt": "2026-10-23T17:50:45.490Z",
       "comments": [
         {
           "id": "6f9ee864ec0fa15a60c7",
@@ -4294,7 +4295,7 @@
       "courseLabel": "Introducción a la Contabilidad Gerencial",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:36.400Z",
+      "observedAt": "2026-10-23T17:50:46.502Z",
       "comments": [
         {
           "id": "56ff36ce304d422ab0c4",
@@ -4302,8 +4303,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "Se recomienda llevar clases con el profe solo si eres bica. Porque si lo llevas por primera vez vas a estar muy perdido. No explica tan bien la parte numérica, solo usa sus diapositivas y a pesar de ser un curso de contabilidad no usa la",
-          "truncated": true,
+          "text": "Se recomienda llevar clases con el profe solo si eres bica. Porque si lo llevas por primera vez vas a estar muy perdido. No explica tan bien la parte numérica, solo usa sus diapositivas y a pesar de ser un curso de contabilidad no usa la pizarra. Si llevas con el, fácil encuentras fijas, para la PC1 Y PC2, reza con el parcial y el final porque esos si son bien random. Califica bajo en el trabajo grupal y la exposición. En lo demás si toma bastante consideración. No logras promedio 20 con el.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/752-rodolfo-adolfo-calonge-sanchez"
         }
       ],
@@ -4318,7 +4319,7 @@
       "courseLabel": "International Economy",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:37.404Z",
+      "observedAt": "2026-10-23T17:50:47.491Z",
       "comments": [
         {
           "id": "8bf1767a5faf5e1312b5",
@@ -4326,8 +4327,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 2,
           "recommends": false,
-          "text": "No sé si en ciclo 2026-1 todos los profes de este curso se pusieron de acuerdo para arruinarle el promedio ponderado a todos los que llevaban ese curso, pero este en especial califica super bajo.Es demasiado estricto, en las sustentaciones",
-          "truncated": true,
+          "text": "No sé si en ciclo 2026-1 todos los profes de este curso se pusieron de acuerdo para arruinarle el promedio ponderado a todos los que llevaban ese curso, pero este en especial califica super bajo.Es demasiado estricto, en las sustentaciones del parcial y final quiere que prendas la cámara, que alces las manos y que no veas de frente, solo arriba. Su enseñanza y lo que explica es difícil de entender, para el los aportes de sus estudiantes no son correctos. Si tus respuestas no son lo que el tiene en mente, no está bien.Hace sus propios cuestionarios y dice que para los trabajos usemos ia y coloquemos los prompts que usamos, y por ello no califica sobre 20. Máximo 16. Terrible.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/753-miguel-angel-chumpitasi-quaglia"
         }
       ],
@@ -4342,7 +4343,7 @@
       "courseLabel": "Comercio Internacional",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:38.456Z",
+      "observedAt": "2026-10-23T17:50:48.494Z",
       "comments": [
         {
           "id": "bbda0d851c6d1333bf68",
@@ -4366,7 +4367,7 @@
       "courseLabel": "Finanzas e Ingenieria Económica",
       "score": 5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:58:39.475Z",
+      "observedAt": "2026-10-23T17:50:49.490Z",
       "comments": [
         {
           "id": "b3c6a13772492a7b7b5c",
@@ -4400,7 +4401,7 @@
       "courseLabel": "Razonamiento e investigacion juridica",
       "score": 5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:58:40.534Z",
+      "observedAt": "2026-10-23T17:50:50.513Z",
       "comments": [
         {
           "id": "561ae6c738a8509ed6fa",
@@ -4434,7 +4435,7 @@
       "courseLabel": "Logica",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:41.543Z",
+      "observedAt": "2026-10-23T17:50:51.520Z",
       "comments": [
         {
           "id": "da09c2c1820029b6b727",
@@ -4458,7 +4459,7 @@
       "courseLabel": "Derecho de las personas",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:42.627Z",
+      "observedAt": "2026-10-23T17:50:52.559Z",
       "comments": [
         {
           "id": "6c7bb62b171f4e7d4166",
@@ -4482,7 +4483,7 @@
       "courseLabel": "Filosofia",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:43.635Z",
+      "observedAt": "2026-10-23T17:50:53.549Z",
       "comments": [
         {
           "id": "1fcf38ba45f3b32b42f2",
@@ -4506,7 +4507,7 @@
       "courseLabel": "Fundamentos De La Gerencia",
       "score": 4,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:58:44.687Z",
+      "observedAt": "2026-10-23T17:50:54.541Z",
       "comments": [
         {
           "id": "53bebf79093a6e47c70b",
@@ -4540,7 +4541,7 @@
       "courseLabel": "Fundamentos De La Gerencia",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:45.742Z",
+      "observedAt": "2026-10-23T17:50:55.548Z",
       "comments": [
         {
           "id": "c8621160f47a25546c7f",
@@ -4564,7 +4565,7 @@
       "courseLabel": "Microeconomia",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:46.739Z",
+      "observedAt": "2026-10-23T17:50:56.531Z",
       "comments": [
         {
           "id": "3dd08407deb52fbf08b0",
@@ -4588,7 +4589,7 @@
       "courseLabel": "Teoria Constitucional",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:47.738Z",
+      "observedAt": "2026-10-23T17:50:57.519Z",
       "comments": [
         {
           "id": "ff37c34fb4a5c3ebf321",
@@ -4612,7 +4613,7 @@
       "courseLabel": "Fundamentos de la contratacion 1",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:48.865Z",
+      "observedAt": "2026-10-23T17:50:58.520Z",
       "comments": [
         {
           "id": "e31ca9780ca129b531f2",
@@ -4636,7 +4637,7 @@
       "courseLabel": "Introduccion a la contabilidad financiera",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:49.982Z",
+      "observedAt": "2026-10-23T17:50:59.510Z",
       "comments": [
         {
           "id": "350efb2459ff15c07c16",
@@ -4660,7 +4661,7 @@
       "courseLabel": "Estadistica Descriptiva",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:51.103Z",
+      "observedAt": "2026-10-23T17:51:00.504Z",
       "comments": [
         {
           "id": "101d150fcd3ab0eadaf2",
@@ -4684,7 +4685,7 @@
       "courseLabel": "Fundamentos de la investigacion academica",
       "score": 5,
       "ratingCount": 4,
-      "observedAt": "2026-10-23T16:58:52.239Z",
+      "observedAt": "2026-10-23T17:51:01.534Z",
       "comments": [
         {
           "id": "092291c7afad8c6d3d59",
@@ -4738,7 +4739,7 @@
       "courseLabel": "Contabilidad General",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:53.746Z",
+      "observedAt": "2026-10-23T17:51:02.549Z",
       "comments": [
         {
           "id": "f4d15f5b607a655b6ee8",
@@ -4762,7 +4763,7 @@
       "courseLabel": "Estadistica Inferencial",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:55.064Z",
+      "observedAt": "2026-10-23T17:51:03.542Z",
       "comments": [
         {
           "id": "520aedbfffc9a1d85089",
@@ -4786,7 +4787,7 @@
       "courseLabel": "Finanzas coorporativas",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:56.156Z",
+      "observedAt": "2026-10-23T17:51:04.530Z",
       "comments": [
         {
           "id": "4f4ce75edb2368734820",
@@ -4810,7 +4811,7 @@
       "courseLabel": "Gestion del capital humano",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:57.143Z",
+      "observedAt": "2026-10-23T17:51:05.536Z",
       "comments": [
         {
           "id": "2626f5289ba0e1801f5a",
@@ -4834,7 +4835,7 @@
       "courseLabel": "Diseño y patrones de software",
       "score": 5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:58:58.137Z",
+      "observedAt": "2026-10-23T17:51:06.533Z",
       "comments": [
         {
           "id": "530401d4b39bdc676bd8",
@@ -4842,8 +4843,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Su método de enseñanza es bastante bueno te da ta las fijas ademas que la teoria lo relaciona con casos o situaciones cotidianas por lo que es muy facil de entender, en cuanto a los trabajos si tienes muy bien planteado tu tema te va a",
-          "truncated": true,
+          "text": "Su método de enseñanza es bastante bueno te da ta las fijas ademas que la teoria lo relaciona con casos o situaciones cotidianas por lo que es muy facil de entender, en cuanto a los trabajos si tienes muy bien planteado tu tema te va a impulsar para que saques buena nota.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/795-jorge-luis-delgado-vite"
         },
         {
@@ -4852,8 +4853,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Su método de enseñanza es bastante bueno te da buenas fijas y siempre debes estar atento a la teoría ya que de ahí sale todo y lo que sí bueno es lo bastante justo en las notas pero excelente profesor y muy práctico con el pasas porque",
-          "truncated": true,
+          "text": "Su método de enseñanza es bastante bueno te da buenas fijas y siempre debes estar atento a la teoría ya que de ahí sale todo y lo que sí bueno es lo bastante justo en las notas pero excelente profesor y muy práctico con el pasas porque pasas",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/795-jorge-luis-delgado-vite"
         }
       ],
@@ -4868,7 +4869,7 @@
       "courseLabel": "Actores de las Relaciones Internacionales",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:58:59.138Z",
+      "observedAt": "2026-10-23T17:51:07.530Z",
       "comments": [
         {
           "id": "414d6c0186ac54fc959b",
@@ -4892,7 +4893,7 @@
       "courseLabel": "Calculo 1",
       "score": 4.6,
       "ratingCount": 7,
-      "observedAt": "2026-10-23T16:59:00.238Z",
+      "observedAt": "2026-10-23T17:51:08.539Z",
       "comments": [
         {
           "id": "48c9f045daef06096e12",
@@ -4976,7 +4977,7 @@
       "courseLabel": "Taller 1",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:01.490Z",
+      "observedAt": "2026-10-23T17:51:09.572Z",
       "comments": [
         {
           "id": "4c57221f8e7ab47e3fa2",
@@ -4984,8 +4985,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "ES EL PROFE MÁS EMPATICÓ Y AMISTOSO DE TODOS, es joven y sabe escuchar tus dudas, además que te guía con los mejores consejos durante las críticas, ES DEMASIADO TOLERANTE si llegas o envias tarde. Califica lo justo y coordina su crítica con",
-          "truncated": true,
+          "text": "ES EL PROFE MÁS EMPATICÓ Y AMISTOSO DE TODOS, es joven y sabe escuchar tus dudas, además que te guía con los mejores consejos durante las críticas, ES DEMASIADO TOLERANTE si llegas o envias tarde. Califica lo justo y coordina su crítica con el o la otra arqui. Muy divertido si te ganas su confianza.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/80-andres-estela-vega-christie"
         }
       ],
@@ -5000,7 +5001,7 @@
       "courseLabel": "Base de Datos",
       "score": 5,
       "ratingCount": 5,
-      "observedAt": "2026-10-23T16:59:02.606Z",
+      "observedAt": "2026-10-23T17:51:10.608Z",
       "comments": [
         {
           "id": "de827aef3e479e0979f2",
@@ -5064,7 +5065,7 @@
       "courseLabel": "Arquitectura de Negocio",
       "score": 3.7,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:59:04.052Z",
+      "observedAt": "2026-10-23T17:51:11.639Z",
       "comments": [
         {
           "id": "dd0ec9ee0f8b736d7477",
@@ -5082,8 +5083,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Es buena para aprender, pero siendo honesto, en los feedbacks generales es algo dispersa como el ciclo en el que llevé se renovó todo el temario y metodología no había una buena organización a nivel de información en sus ppt, pero dejando",
-          "truncated": true,
+          "text": "Es buena para aprender, pero siendo honesto, en los feedbacks generales es algo dispersa como el ciclo en el que llevé se renovó todo el temario y metodología no había una buena organización a nivel de información en sus ppt, pero dejando eso de lado, es paciente y sabe dar muy buenos ejemplos para resolver dudas.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/801-esther-aliaga-cerna"
         },
         {
@@ -5092,8 +5093,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "es buena profesora, eso si, como recomendacion cuando lo lleve virtual, en la exposicion no reclamen a la miss, no le digan en plan \"no profesora pero si esta parte es como usted dijo\", si no le reclamana y simplemente escuchan y si dice q",
-          "truncated": true,
+          "text": "es buena profesora, eso si, como recomendacion cuando lo lleve virtual, en la exposicion no reclamen a la miss, no le digan en plan \"no profesora pero si esta parte es como usted dijo\", si no le reclamana y simplemente escuchan y si dice q este punto esta mal, le dicen \"si profesora lo entiendo\" y asi, la miss no te bajara puntos ni nada.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/801-esther-aliaga-cerna"
         }
       ],
@@ -5108,7 +5109,7 @@
       "courseLabel": "Calculo 2",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:05.081Z",
+      "observedAt": "2026-10-23T17:51:12.630Z",
       "comments": [
         {
           "id": "d18b7c859731c619a5fe",
@@ -5132,7 +5133,7 @@
       "courseLabel": "Fundamentos de Sistemas de Información",
       "score": 4.7,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:59:06.090Z",
+      "observedAt": "2026-10-23T17:51:13.645Z",
       "comments": [
         {
           "id": "cd4ec3fa2a96f6330738",
@@ -5176,7 +5177,7 @@
       "courseLabel": "Estadistica aplicada 1",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:07.122Z",
+      "observedAt": "2026-10-23T17:51:14.643Z",
       "comments": [
         {
           "id": "ca849c7953b6b02c6477",
@@ -5200,7 +5201,7 @@
       "courseLabel": "Estadística Aplicada I",
       "score": 5,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:59:08.116Z",
+      "observedAt": "2026-10-23T17:51:15.644Z",
       "comments": [
         {
           "id": "35cad26e9ea67d008307",
@@ -5244,7 +5245,7 @@
       "courseLabel": "Matematica Basica",
       "score": 4,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:59:09.263Z",
+      "observedAt": "2026-10-23T17:51:16.658Z",
       "comments": [
         {
           "id": "b8dc2a6505f72fa96521",
@@ -5278,7 +5279,7 @@
       "courseLabel": "Gerencia Estratégica en Organizaciones Conscientes",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:10.423Z",
+      "observedAt": "2026-10-23T17:51:17.645Z",
       "comments": [
         {
           "id": "49b27888f04c4fee0e4b",
@@ -5302,7 +5303,7 @@
       "courseLabel": "Taller 1",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:11.414Z",
+      "observedAt": "2026-10-23T17:51:18.636Z",
       "comments": [
         {
           "id": "8fda0d9cb7c4aaf4f5c0",
@@ -5326,7 +5327,7 @@
       "courseLabel": "Programacion Orientada a Objetos",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:12.464Z",
+      "observedAt": "2026-10-23T17:51:19.619Z",
       "comments": [
         {
           "id": "5a6e04be43c5fa159c12",
@@ -5350,7 +5351,7 @@
       "courseLabel": "Administracion en Recursos Humanos en SI",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:13.461Z",
+      "observedAt": "2026-10-23T17:51:20.614Z",
       "comments": [
         {
           "id": "439ca06aa29e2a3b6905",
@@ -5374,7 +5375,7 @@
       "courseLabel": "Física I",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:14.464Z",
+      "observedAt": "2026-10-23T17:51:21.620Z",
       "comments": [
         {
           "id": "142b464a46f372b7a06e",
@@ -5382,8 +5383,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "Les recomiendo buscar un buen grupo desde el principio porque las practicas se dividen en dos partes una parte es grupal y otra que es una sustentación en clase de 20 minutos es individual. Pero si no haces la parte grupal no puedes hacer",
-          "truncated": true,
+          "text": "Les recomiendo buscar un buen grupo desde el principio porque las practicas se dividen en dos partes una parte es grupal y otra que es una sustentación en clase de 20 minutos es individual. Pero si no haces la parte grupal no puedes hacer la individual.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/814-oscar-carlos-castaneda-palacios"
         }
       ],
@@ -5398,7 +5399,7 @@
       "courseLabel": "Aplicaciones de Ingeniería de software",
       "score": 1,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:15.466Z",
+      "observedAt": "2026-10-23T17:51:22.614Z",
       "comments": [
         {
           "id": "8cb15b4a99c68b9beafe",
@@ -5406,8 +5407,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 1,
           "recommends": false,
-          "text": "No lleves este curso con este docente ( que ni debería llamarse docente a este inepto ), un profesor horrible que destaca por su extrema arbitrariedad, egocentrismo y mala fe, razones por las cuales en mi experiencia pude observar como más",
-          "truncated": true,
+          "text": "No lleves este curso con este docente ( que ni debería llamarse docente a este inepto ), un profesor horrible que destaca por su extrema arbitrariedad, egocentrismo y mala fe, razones por las cuales en mi experiencia pude observar como más de la mitad del salón prefirió retirarse a mitad del ciclo. Es un docente nefasto que califica por pura antipatía personal e ignora las rúbricas institucionales afirmando abiertamente que no le importan, asigna notas al azar que solo corrige si le exiges la revisión con prueba en mano, retiene la retroalimentación hasta dos semanas antes del cierre sin permitir reentregas, aplica un trato hostil y humillante frente al aula , y en caso te da la mala suerte que te agarra como su burro con el cual da el ejemplo de como no hacer las cosas ,manipula de manera descarada la exposición final formulando preguntas de trivia ajenas al proyecto y cortando tajantemente el derecho a la defensa para clavar una nota desaprobatoria, aun cuando el jurado de la clase te otorga la nota máxima ; simplemente habrán estudiantes a los cuales el profesor los desaprobara porque si , esconde las notas hasta cuando se le plazca y no da fecback",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/816-alan-tito-gutierrez"
         }
       ],
@@ -5422,7 +5423,7 @@
       "courseLabel": "Lenguaje de programación",
       "score": 4,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:59:16.512Z",
+      "observedAt": "2026-10-23T17:51:23.610Z",
       "comments": [
         {
           "id": "42c4455a4a274e52f30d",
@@ -5466,7 +5467,7 @@
       "courseLabel": "Matemática Básica, Cálculo I",
       "score": 4.7,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:59:17.496Z",
+      "observedAt": "2026-10-23T17:51:24.595Z",
       "comments": [
         {
           "id": "cc19f1c6a2c0b2150a51",
@@ -5494,8 +5495,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Es un profesor estricto, pero garantiza un buen aprendizaje mediante el método Minerva. Además de lo que repasas en casa, él te explica en clase. Los ejercicios de las actividades los resuelve en la pizarra o te pide que pases al frente a",
-          "truncated": true,
+          "text": "Es un profesor estricto, pero garantiza un buen aprendizaje mediante el método Minerva. Además de lo que repasas en casa, él te explica en clase. Los ejercicios de las actividades los resuelve en la pizarra o te pide que pases al frente a hacerlos y te ayuda. Tiene muy buena proyección de voz.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/818-jose-arrue-reyes"
         }
       ],
@@ -5510,7 +5511,7 @@
       "courseLabel": "Estructuras de Datos Avanzadas",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:18.504Z",
+      "observedAt": "2026-10-23T17:51:25.588Z",
       "comments": [
         {
           "id": "5099515236467c9ecdb7",
@@ -5518,8 +5519,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Aunque es riguroso en los exámenes, califica alto. En los trabajos finales, si cumples con la rúbrica al pie de la letra, tienes asegurado el 20. Su método de enseñanza consiste en dar la teoría en la pizarra y resolver los ejercicios",
-          "truncated": true,
+          "text": "Aunque es riguroso en los exámenes, califica alto. En los trabajos finales, si cumples con la rúbrica al pie de la letra, tienes asegurado el 20. Su método de enseñanza consiste en dar la teoría en la pizarra y resolver los ejercicios compartiendo su pantalla. Sus clases pueden ser aburridas aveces.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/819-jorge-eduardo-diaz-suarez"
         }
       ],
@@ -5534,7 +5535,7 @@
       "courseLabel": "Taller 2",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:19.507Z",
+      "observedAt": "2026-10-23T17:51:26.579Z",
       "comments": [
         {
           "id": "769c847bea77c908d7ca",
@@ -5558,7 +5559,7 @@
       "courseLabel": "Pensamiento Crítico Aplicado",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:20.506Z",
+      "observedAt": "2026-10-23T17:51:27.610Z",
       "comments": [
         {
           "id": "7d4bf7f1bd8b15058fbd",
@@ -5582,7 +5583,7 @@
       "courseLabel": "Critica y comunicación",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:21.544Z",
+      "observedAt": "2026-10-23T17:51:28.685Z",
       "comments": [
         {
           "id": "e3af05a97d75b0851752",
@@ -5606,7 +5607,7 @@
       "courseLabel": "Organización y dirección de empresas",
       "score": 5,
       "ratingCount": 6,
-      "observedAt": "2026-10-23T16:59:22.592Z",
+      "observedAt": "2026-10-23T17:51:29.685Z",
       "comments": [
         {
           "id": "c47a68e4728d6c228cea",
@@ -5680,7 +5681,7 @@
       "courseLabel": "Signos y códigos visuales",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:23.641Z",
+      "observedAt": "2026-10-23T17:51:30.721Z",
       "comments": [
         {
           "id": "58f0caab3306f13b1bf9",
@@ -5704,7 +5705,7 @@
       "courseLabel": "Antropometria y Ergonomia",
       "score": 1.5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:59:24.674Z",
+      "observedAt": "2026-10-23T17:51:31.735Z",
       "comments": [
         {
           "id": "3a21b55126f9f96c5f8d",
@@ -5722,8 +5723,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 1,
           "recommends": false,
-          "text": "Primera entrega jalo a todos porque no puso la rubricaSegunda entrega jalo a todos por que no pusimos suficiente informacióntercera entrega jalo a todos porque pusimos demaciada infosi quieres pasar participa en clase y presta mucha",
-          "truncated": true,
+          "text": "Primera entrega jalo a todos porque no puso la rubricaSegunda entrega jalo a todos por que no pusimos suficiente informacióntercera entrega jalo a todos porque pusimos demaciada infosi quieres pasar participa en clase y presta mucha atencion porque el final es el 50% de la notay elige buen grupo porque si no se los jala a todos.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/826-carlos-manuel-escobar-galindo"
         }
       ],
@@ -5738,7 +5739,7 @@
       "courseLabel": "Visualización 3d y Prototipos",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:25.669Z",
+      "observedAt": "2026-10-23T17:51:32.730Z",
       "comments": [
         {
           "id": "08a9864d5446e1d076eb",
@@ -5746,8 +5747,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "casi siempre llega tarde y no le gusta explicar cosas que ya dijo, así que presta atención o no te pierdas sus clases.es común que te de mas tiempo para ciertas entregas y califica bastante alto, por no decir que puedes 20tear el curso",
-          "truncated": true,
+          "text": "casi siempre llega tarde y no le gusta explicar cosas que ya dijo, así que presta atención o no te pierdas sus clases.es común que te de mas tiempo para ciertas entregas y califica bastante alto, por no decir que puedes 20tear el curso aunque en el final te falte algo.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/827-claudio-fernando-velarde-castillo"
         }
       ],
@@ -5762,7 +5763,7 @@
       "courseLabel": "Física I",
       "score": 5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:59:26.669Z",
+      "observedAt": "2026-10-23T17:51:33.746Z",
       "comments": [
         {
           "id": "8c735894ca1279dcbabd",
@@ -5796,7 +5797,7 @@
       "courseLabel": "Diseño y patrones de software",
       "score": 4.7,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:59:27.666Z",
+      "observedAt": "2026-10-23T17:51:34.754Z",
       "comments": [
         {
           "id": "e38620e8fc8dd4d28ed1",
@@ -5840,7 +5841,7 @@
       "courseLabel": "Cálculo I",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:28.664Z",
+      "observedAt": "2026-10-23T17:51:35.749Z",
       "comments": [
         {
           "id": "4a36087b5a2f188e2ece",
@@ -5864,7 +5865,7 @@
       "courseLabel": "Arquitectura de computadoras y sistemas operativos",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:29.663Z",
+      "observedAt": "2026-10-23T17:51:36.758Z",
       "comments": [
         {
           "id": "40c4c9d9de0789cdaccb",
@@ -5872,8 +5873,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 2,
           "recommends": false,
-          "text": "No lo recomiendo tanto, literal no hace ni pincho las clases, nada de teoría y nada de laboratorios , la kgda ese profe ni más con el, uno que quiere aprender pero con profesor que se les nota que solo trabajan para pagar sus deudas no se",
-          "truncated": true,
+          "text": "No lo recomiendo tanto, literal no hace ni pincho las clases, nada de teoría y nada de laboratorios , la kgda ese profe ni más con el, uno que quiere aprender pero con profesor que se les nota que solo trabajan para pagar sus deudas no se pueden, se notaba que ese profesor no quería enseñar y que solo estaba ahí para llegar a su mes",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/833-nilton-cesar-ulloa-pelaez"
         }
       ],
@@ -5888,7 +5889,7 @@
       "courseLabel": "HCI",
       "score": 1,
       "ratingCount": 4,
-      "observedAt": "2026-10-23T16:59:30.661Z",
+      "observedAt": "2026-10-23T17:51:37.745Z",
       "comments": [
         {
           "id": "7b41003947fe693316f3",
@@ -5926,8 +5927,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 1,
           "recommends": false,
-          "text": "Es una profesora que la verdad nunca recomendaría, nisiquiera a mi peor enemigo, califica muy bajo, es muy pendeja en sus evaluaciones porque viene muy rebuscado a lo que enseña, si tienes la oportunidad de meterte con otro profe te lo",
-          "truncated": true,
+          "text": "Es una profesora que la verdad nunca recomendaría, nisiquiera a mi peor enemigo, califica muy bajo, es muy pendeja en sus evaluaciones porque viene muy rebuscado a lo que enseña, si tienes la oportunidad de meterte con otro profe te lo recomiendo, porque con deisy tienes que ser trica para aprobar con ella, y como alguna vez un sabio dijo, lo único de bueno que tiene son sus fotos en bikini",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/838-deisy-acosta-ticse"
         }
       ],
@@ -5942,7 +5943,7 @@
       "courseLabel": "Base de datos/Ingeniería de Datos/Diseño de Base de Datos",
       "score": 5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:59:31.667Z",
+      "observedAt": "2026-10-23T17:51:38.744Z",
       "comments": [
         {
           "id": "d944fce1090126206065",
@@ -5976,7 +5977,7 @@
       "courseLabel": "Algoritmos",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:32.650Z",
+      "observedAt": "2026-10-23T17:51:39.734Z",
       "comments": [
         {
           "id": "0b4e22b6d9009206b265",
@@ -6000,7 +6001,7 @@
       "courseLabel": "Fisica 1",
       "score": 5,
       "ratingCount": 5,
-      "observedAt": "2026-10-23T16:59:33.679Z",
+      "observedAt": "2026-10-23T17:51:40.739Z",
       "comments": [
         {
           "id": "bbe456e5db25fb93f544",
@@ -6064,7 +6065,7 @@
       "courseLabel": "Fundamentos de programación y arquitectura de la computación",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:34.679Z",
+      "observedAt": "2026-10-23T17:51:41.772Z",
       "comments": [
         {
           "id": "b33fdc2caa388708ed3a",
@@ -6088,7 +6089,7 @@
       "courseLabel": "Base de datos",
       "score": 4.8,
       "ratingCount": 5,
-      "observedAt": "2026-10-23T16:59:35.677Z",
+      "observedAt": "2026-10-23T17:51:42.763Z",
       "comments": [
         {
           "id": "9822e392d96e28e36754",
@@ -6152,7 +6153,7 @@
       "courseLabel": "CALCULO 1",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:36.671Z",
+      "observedAt": "2026-10-23T17:51:43.747Z",
       "comments": [
         {
           "id": "8fc52fcbb9fc30ad9c23",
@@ -6176,7 +6177,7 @@
       "courseLabel": "Ingenieria de Requisitos",
       "score": 4.6,
       "ratingCount": 5,
-      "observedAt": "2026-10-23T16:59:37.668Z",
+      "observedAt": "2026-10-23T17:51:44.739Z",
       "comments": [
         {
           "id": "a02ba4994d7b720b4f87",
@@ -6184,8 +6185,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Este profesor explica con calma al inicio de las clases y se deja entender muy bien. Resuelve dudas, hace que la clase sea entretenida y da buena info que te servirá profesionalmente. Suele hacer preguntas que te dan puntos si las respondes",
-          "truncated": true,
+          "text": "Este profesor explica con calma al inicio de las clases y se deja entender muy bien. Resuelve dudas, hace que la clase sea entretenida y da buena info que te servirá profesionalmente. Suele hacer preguntas que te dan puntos si las respondes bien y cumple con dártelos en los exámenes o PC. Elogia el trabajo de sus alumnos, da feedback y destaca las virtudes en uno. Prepárate para los trabajos que llegan a ser extensos, busca un grupo que chambee. Pd: se puede plagiar fácil en las evaluaciones xd.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/846-wilder-aurelio-vega-calero"
         },
         {
@@ -6224,8 +6225,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Es un profe muy explicativo; tiende a veces a depender de qué tan bien el alumno se desenvuelva en clase. Responde sus preguntas y hace notar que apruebas fácil. Se puede perder fácil debido a sus explicaciones más técnicas que otra cosa;",
-          "truncated": true,
+          "text": "Es un profe muy explicativo; tiende a veces a depender de qué tan bien el alumno se desenvuelva en clase. Responde sus preguntas y hace notar que apruebas fácil. Se puede perder fácil debido a sus explicaciones más técnicas que otra cosa; tu nota en exámenes depende más de qué tanto te note el profesor en clase. Si nunca falta y estás pendiente de lo que pregunta, apruebas fácil.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/846-wilder-aurelio-vega-calero"
         }
       ],
@@ -6240,7 +6241,7 @@
       "courseLabel": "Contabilidad y Presupuestos",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:38.759Z",
+      "observedAt": "2026-10-23T17:51:45.726Z",
       "comments": [
         {
           "id": "39a87a0355235f1a98f3",
@@ -6248,8 +6249,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Es un profesor que enseña y explica demasiado bien. El curso de por sí es recontra técnico y eso lo hace difícil de estar al pendiente siempre, pero te deja los tips y siempre guía y responde. Eso sí, en los exámenes, tiende a revisar todo",
-          "truncated": true,
+          "text": "Es un profesor que enseña y explica demasiado bien. El curso de por sí es recontra técnico y eso lo hace difícil de estar al pendiente siempre, pero te deja los tips y siempre guía y responde. Eso sí, en los exámenes, tiende a revisar todo lo que pueda, así que cualquier error te descuenta. No se molesta si no prestas atención o estás en otra, solo no hacer bulla; ya depende del criterio de cada uno.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/847-flor-de-maria-rodriguez-valenzuela"
         }
       ],
@@ -6264,7 +6265,7 @@
       "courseLabel": "Algoritmo",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:39.754Z",
+      "observedAt": "2026-10-23T17:51:46.713Z",
       "comments": [
         {
           "id": "89ff31e01d59c52b19ba",
@@ -6288,7 +6289,7 @@
       "courseLabel": "Matemática Básica",
       "score": 2,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:59:40.747Z",
+      "observedAt": "2026-10-23T17:51:47.709Z",
       "comments": [
         {
           "id": "d6474cd803d819c86d1e",
@@ -6296,8 +6297,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "Es un profesor intermedio a mi parecer, pero muy disruptivo con su metodología de enseñanza, a veces puedes considerarlo un docente muy bueno por sus clases con detalle y otras veces simplemente cumple con leer el título y decir que debiste",
-          "truncated": true,
+          "text": "Es un profesor intermedio a mi parecer, pero muy disruptivo con su metodología de enseñanza, a veces puedes considerarlo un docente muy bueno por sus clases con detalle y otras veces simplemente cumple con leer el título y decir que debiste de haber visto la preclase, a veces viene de mal humor y baja puntos por cosas mínimas como tildes, signos mal escritos, entre otros similares. Pero considero que puede haber peores. Escoger como opción Intermedia.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/850-ruben-jesus-alva-cabrera"
         },
         {
@@ -6322,7 +6323,7 @@
       "courseLabel": "Crítica y Comunicación",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:41.762Z",
+      "observedAt": "2026-10-23T17:51:48.703Z",
       "comments": [
         {
           "id": "a0706b1c10f4061049a9",
@@ -6346,7 +6347,7 @@
       "courseLabel": "Aprendizaje Estratégico y Liderazgo",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:42.803Z",
+      "observedAt": "2026-10-23T17:51:49.693Z",
       "comments": [
         {
           "id": "6047474ebd17863efbe9",
@@ -6370,7 +6371,7 @@
       "courseLabel": "Sistemas y Sociedad",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:43.804Z",
+      "observedAt": "2026-10-23T17:51:50.688Z",
       "comments": [
         {
           "id": "cdc34362bd603cd4eae2",
@@ -6394,7 +6395,7 @@
       "courseLabel": "Pensamiento Crítico Aplicado",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:44.799Z",
+      "observedAt": "2026-10-23T17:51:51.686Z",
       "comments": [
         {
           "id": "a61d42030ccaa1b67424",
@@ -6418,7 +6419,7 @@
       "courseLabel": "Matemática Discreta",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:45.791Z",
+      "observedAt": "2026-10-23T17:51:52.683Z",
       "comments": [
         {
           "id": "b65d8f8fd6de3d85ea07",
@@ -6426,8 +6427,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Profesor serio pero chevere, te muestra ejercicios resueltos de los temas abarcados en clase explicando como dedberias hacerlo paso a paso, no es tan riguroso en momento de poner nota en los examenes, con tal que lleves la estructura del",
-          "truncated": true,
+          "text": "Profesor serio pero chevere, te muestra ejercicios resueltos de los temas abarcados en clase explicando como dedberias hacerlo paso a paso, no es tan riguroso en momento de poner nota en los examenes, con tal que lleves la estructura del procedimiento, estaras bien",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/857-jesus-manuel-acosta-neyra"
         }
       ],
@@ -6442,7 +6443,7 @@
       "courseLabel": "Física 1",
       "score": 4.3,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:59:46.806Z",
+      "observedAt": "2026-10-23T17:51:53.684Z",
       "comments": [
         {
           "id": "97b7352818e413385c57",
@@ -6450,8 +6451,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "El mejor profesor de laboratorio en física 1 y 2. Para profesor de teoría no lo elegíria hace preguntas tranca si le caes mal y califica muy bajo si te equivocas en algo, además no da la nota de la sustentacion al momento te pide que",
-          "truncated": true,
+          "text": "El mejor profesor de laboratorio en física 1 y 2. Para profesor de teoría no lo elegíria hace preguntas tranca si le caes mal y califica muy bajo si te equivocas en algo, además no da la nota de la sustentacion al momento te pide que esperes 1 o 2 semanas para q no tengas derecho a reclamar. Hace buenos chistes y escribe muy mal en la pizarra no se entiende. 2025-01 reference. VENTURA GAD PARA LABORATORIO.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/858-enrique-eduardo-ventura-ponce"
         },
         {
@@ -6460,8 +6461,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": false,
-          "text": "Es chevere y no pregunta tan difícil en las dds pero no lo hace referente a el ejercicio que te tocó sino otro que se inventa ahí mismo, además que si te equivocas o dudas al responder si te baja bastante aunque en el final ya se apiada un",
-          "truncated": true,
+          "text": "Es chevere y no pregunta tan difícil en las dds pero no lo hace referente a el ejercicio que te tocó sino otro que se inventa ahí mismo, además que si te equivocas o dudas al responder si te baja bastante aunque en el final ya se apiada un poco.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/858-enrique-eduardo-ventura-ponce"
         },
         {
@@ -6486,7 +6487,7 @@
       "courseLabel": "Fundamentos de Programación",
       "score": 2.7,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T16:59:47.815Z",
+      "observedAt": "2026-10-23T17:51:54.676Z",
       "comments": [
         {
           "id": "4a266eb49810e1b1ba8c",
@@ -6504,8 +6505,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Dicen que antes de 2024-2 era bastante estricto pero debido a quejas de los alumnos se \"ablandó\". En mi experiencia el profe te ayuda bastante y te considera en las notas si participas en clase y respondes a todo lo que te pregunta. El",
-          "truncated": true,
+          "text": "Dicen que antes de 2024-2 era bastante estricto pero debido a quejas de los alumnos se \"ablandó\". En mi experiencia el profe te ayuda bastante y te considera en las notas si participas en clase y respondes a todo lo que te pregunta. El profesor no perdona fechas asi que si entregas 1 segundo tarde retirate nomas XD. En resumen Pacco es un baje y 9/10",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/860-rodolfo-pacco-palomino"
         },
         {
@@ -6514,8 +6515,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "Califica bien, no diría que alto pero tampoco es kgon, si ve que le metiste empeño al curso, puede regalarte puntos para hacerte aprobar, lo malo es que voto por JP y que no enseña muy bien, si es tu segunda vez llevando el curso o ya",
-          "truncated": true,
+          "text": "Califica bien, no diría que alto pero tampoco es kgon, si ve que le metiste empeño al curso, puede regalarte puntos para hacerte aprobar, lo malo es que voto por JP y que no enseña muy bien, si es tu segunda vez llevando el curso o ya tienes buenas bases, lo recomiendo.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/860-rodolfo-pacco-palomino"
         }
       ],
@@ -6530,7 +6531,7 @@
       "courseLabel": "Estadistica",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:48.939Z",
+      "observedAt": "2026-10-23T17:51:55.663Z",
       "comments": [
         {
           "id": "1d979c10d7e8cd4092bf",
@@ -6554,7 +6555,7 @@
       "courseLabel": "Analisis de Circuitos Electricos 1",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:49.945Z",
+      "observedAt": "2026-10-23T17:51:56.650Z",
       "comments": [
         {
           "id": "a5bdcc97e0d787b0a403",
@@ -6578,7 +6579,7 @@
       "courseLabel": "Topografía",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:50.950Z",
+      "observedAt": "2026-10-23T17:51:57.634Z",
       "comments": [
         {
           "id": "e7eb25b45d9a0d829b68",
@@ -6602,7 +6603,7 @@
       "courseLabel": "Redes y Comunicaciones de Datos",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:51.967Z",
+      "observedAt": "2026-10-23T17:51:58.641Z",
       "comments": [
         {
           "id": "67bd1842e78ce556db7f",
@@ -6610,8 +6611,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Enseña muy bien y califica lo justo. Además de que en los exámenes toma lo que enseña y hasta enfatiza algo cuando sabe que lo va a tomar en los exámenes. puede parecer cagon pero la vdd que es buen profe, además que es un baje de pepa XD",
-          "truncated": true,
+          "text": "Enseña muy bien y califica lo justo. Además de que en los exámenes toma lo que enseña y hasta enfatiza algo cuando sabe que lo va a tomar en los exámenes. puede parecer cagon pero la vdd que es buen profe, además que es un baje de pepa XD lo único malo es que toma asistencia puntual eso si",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/865-felix-gaspar-canales-arias"
         }
       ],
@@ -6626,7 +6627,7 @@
       "courseLabel": "Fisica 1",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:52.984Z",
+      "observedAt": "2026-10-23T17:51:59.633Z",
       "comments": [
         {
           "id": "d6df3569fac7d34701df",
@@ -6650,7 +6651,7 @@
       "courseLabel": "Sistemas y Sociedad",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:53.982Z",
+      "observedAt": "2026-10-23T17:52:00.630Z",
       "comments": [
         {
           "id": "3d467e1a9f56bd17503c",
@@ -6674,7 +6675,7 @@
       "courseLabel": "International Supply Chain Management",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:54.992Z",
+      "observedAt": "2026-10-23T17:52:01.633Z",
       "comments": [
         {
           "id": "546bc1e7c501852139a7",
@@ -6698,7 +6699,7 @@
       "courseLabel": "Costos y Cotizaciones Internacionales",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:55.986Z",
+      "observedAt": "2026-10-23T17:52:02.619Z",
       "comments": [
         {
           "id": "b7d6c04d5f8e52acc0fb",
@@ -6722,7 +6723,7 @@
       "courseLabel": "Algoritmos",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:56.995Z",
+      "observedAt": "2026-10-23T17:52:03.628Z",
       "comments": [
         {
           "id": "820d3d32e4d05f2db111",
@@ -6746,7 +6747,7 @@
       "courseLabel": "Calculo 2",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:58.001Z",
+      "observedAt": "2026-10-23T17:52:04.621Z",
       "comments": [
         {
           "id": "45e2a49bd063b14c9c34",
@@ -6770,7 +6771,7 @@
       "courseLabel": "Complejidad Algoritmica",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T16:59:59.002Z",
+      "observedAt": "2026-10-23T17:52:05.644Z",
       "comments": [
         {
           "id": "ee2894438ffc67d67d40",
@@ -6794,7 +6795,7 @@
       "courseLabel": "Finanzas e Ingeniería Económica",
       "score": 5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T16:59:59.998Z",
+      "observedAt": "2026-10-23T17:52:06.644Z",
       "comments": [
         {
           "id": "43c2d61f13b1f645d0a1",
@@ -6828,7 +6829,7 @@
       "courseLabel": "Matemática Discreta, Matemática Computacional",
       "score": 5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T17:00:01.005Z",
+      "observedAt": "2026-10-23T17:52:07.634Z",
       "comments": [
         {
           "id": "9f03dfaecba3d295e51d",
@@ -6862,7 +6863,7 @@
       "courseLabel": "HCI",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:02.018Z",
+      "observedAt": "2026-10-23T17:52:08.628Z",
       "comments": [
         {
           "id": "2f0cd280357cd238e377",
@@ -6870,8 +6871,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "para el curso de IHC no es mal profe, se basa mucho en la rúbrica, para este curso lo que tienes que tener sí o sí es un buen grupo responsable. Se basa en la rúbrica al 100% (al menos así fue para mi curso), en las exposiciones solo pide",
-          "truncated": true,
+          "text": "para el curso de IHC no es mal profe, se basa mucho en la rúbrica, para este curso lo que tienes que tener sí o sí es un buen grupo responsable. Se basa en la rúbrica al 100% (al menos así fue para mi curso), en las exposiciones solo pide que uno exponga, y responde tus dudas respecto a algun feedback que haga o si te surgio alguna duda en la clase. Si presentas un trabajo mal hecho no esperes buena nota pues. Respecto al curso en sí, es tedioso, mucha documentación y piden mockups y prototipos.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/878-walter-juan-requejo-chaname"
         }
       ],
@@ -6886,7 +6887,7 @@
       "courseLabel": "Taller 2",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:03.038Z",
+      "observedAt": "2026-10-23T17:52:09.635Z",
       "comments": [
         {
           "id": "2aa3d4c1fc525ac5ea82",
@@ -6894,8 +6895,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "ES EL PROFE MÁS EMPATICÓ Y AMISTOSO DE TODOS, es joven y sabe escuchar tus dudas, además que te guía con los mejores consejos durante las críticas, ES DEMASIADO TOLERANTE si llegas o envias tarde. Califica lo justo y coordina su crítica con",
-          "truncated": true,
+          "text": "ES EL PROFE MÁS EMPATICÓ Y AMISTOSO DE TODOS, es joven y sabe escuchar tus dudas, además que te guía con los mejores consejos durante las críticas, ES DEMASIADO TOLERANTE si llegas o envias tarde. Califica lo justo y coordina su crítica con el o la otra arqui. Muy divertido si te ganas su confianza.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/88-andres-estela-vega-christie"
         }
       ],
@@ -6910,7 +6911,7 @@
       "courseLabel": "Física 2",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:04.058Z",
+      "observedAt": "2026-10-23T17:52:10.636Z",
       "comments": [
         {
           "id": "4e67be433e22be2628fd",
@@ -6934,7 +6935,7 @@
       "courseLabel": "Ecuaciones diferenciales y álgebra lineal",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:05.065Z",
+      "observedAt": "2026-10-23T17:52:11.659Z",
       "comments": [
         {
           "id": "09a13c15461a53f55fb7",
@@ -6958,7 +6959,7 @@
       "courseLabel": "Contabilidad y Presupuesto",
       "score": 4.6,
       "ratingCount": 5,
-      "observedAt": "2026-10-23T17:00:06.095Z",
+      "observedAt": "2026-10-23T17:52:12.687Z",
       "comments": [
         {
           "id": "80516f48bb1f15459822",
@@ -7022,7 +7023,7 @@
       "courseLabel": "Representación Visual 1",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:07.084Z",
+      "observedAt": "2026-10-23T17:52:13.702Z",
       "comments": [
         {
           "id": "1a855a02807e58019b97",
@@ -7030,8 +7031,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": false,
-          "text": "Enseña ciertamente bien pero llega a un punto que se fija en pequeñeces y te baja el puntaje de alguna nota, al igual que han habido ocasiones que al preguntar algo se nos queda viendo como si fuera algo sumamente obvio, sinceramente llega",
-          "truncated": true,
+          "text": "Enseña ciertamente bien pero llega a un punto que se fija en pequeñeces y te baja el puntaje de alguna nota, al igual que han habido ocasiones que al preguntar algo se nos queda viendo como si fuera algo sumamente obvio, sinceramente llega a un punto de ser estricto que agobia.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/886-waldo-mendoza-del-castillo"
         }
       ],
@@ -7046,7 +7047,7 @@
       "courseLabel": "Seminario de Investigación Académica I",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:08.073Z",
+      "observedAt": "2026-10-23T17:52:14.703Z",
       "comments": [
         {
           "id": "b84f47d231578486d24a",
@@ -7070,7 +7071,7 @@
       "courseLabel": "Algoritmos",
       "score": 3.5,
       "ratingCount": 2,
-      "observedAt": "2026-10-23T17:00:09.091Z",
+      "observedAt": "2026-10-23T17:52:15.701Z",
       "comments": [
         {
           "id": "faff0838337b7b227e1e",
@@ -7104,7 +7105,7 @@
       "courseLabel": "Dibujo Asistido por el computador y Estática",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:10.094Z",
+      "observedAt": "2026-10-23T17:52:16.703Z",
       "comments": [
         {
           "id": "473e76606d8ea224635e",
@@ -7128,7 +7129,7 @@
       "courseLabel": "Liderazgo",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:11.104Z",
+      "observedAt": "2026-10-23T17:52:17.689Z",
       "comments": [
         {
           "id": "754af374cb5442520e3c",
@@ -7152,7 +7153,7 @@
       "courseLabel": "Sistemas",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:12.097Z",
+      "observedAt": "2026-10-23T17:52:18.697Z",
       "comments": [
         {
           "id": "92f0c267747b551b154a",
@@ -7176,7 +7177,7 @@
       "courseLabel": "Física 1/ Física 2",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:13.096Z",
+      "observedAt": "2026-10-23T17:52:19.702Z",
       "comments": [
         {
           "id": "86283b8a2a4914862276",
@@ -7200,7 +7201,7 @@
       "courseLabel": "Física I / Física  II",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:14.120Z",
+      "observedAt": "2026-10-23T17:52:20.703Z",
       "comments": [
         {
           "id": "b0fbe7e61bb89942609f",
@@ -7224,7 +7225,7 @@
       "courseLabel": "Introducción a los Algoritmos / Algoritmos / Estructuras de Datos Avanzadas",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:15.145Z",
+      "observedAt": "2026-10-23T17:52:21.699Z",
       "comments": [
         {
           "id": "312581c5071f3db07e84",
@@ -7232,8 +7233,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Gran docente, estricto a su manera, es atento con las dudas te da puntos extra si haces las tareas que deja o respondes las preguntas que hace (solo cuando dice que dará puntos por responder). Suele ir algo rápido al explicar la teoría, se",
-          "truncated": true,
+          "text": "Gran docente, estricto a su manera, es atento con las dudas te da puntos extra si haces las tareas que deja o respondes las preguntas que hace (solo cuando dice que dará puntos por responder). Suele ir algo rápido al explicar la teoría, se centra más en programar y suelta algunas fijas así que más vale prestar atención.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/894-luis-alberto-raymundo-chacaltana"
         }
       ],
@@ -7248,7 +7249,7 @@
       "courseLabel": "Aplicaciones de Ingeniería de Software",
       "score": 1,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:16.170Z",
+      "observedAt": "2026-10-23T17:52:22.690Z",
       "comments": [
         {
           "id": "01d4a2424b360ed0b7b4",
@@ -7256,8 +7257,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 1,
           "recommends": true,
-          "text": "Una bazofia de profe xd. Llegaba tarde o faltaba y no explicaba casi nada. Decía que las notas las subirá luego proque tiene otros cursos (seguro no subía a ninguna sección). Se olvidaba de dejar visible el material de la clase y encima",
-          "truncated": true,
+          "text": "Una bazofia de profe xd. Llegaba tarde o faltaba y no explicaba casi nada. Decía que las notas las subirá luego proque tiene otros cursos (seguro no subía a ninguna sección). Se olvidaba de dejar visible el material de la clase y encima calificaba bajo por cosas que no estaban en la rúbrica, estricto con el TP y TF.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/896-daniel-enrique-mori-yzaguirre"
         }
       ],
@@ -7272,7 +7273,7 @@
       "courseLabel": "Física I / Física  II",
       "score": 4.7,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T17:00:17.192Z",
+      "observedAt": "2026-10-23T17:52:23.685Z",
       "comments": [
         {
           "id": "1e88162fbe591a444177",
@@ -7316,7 +7317,7 @@
       "courseLabel": "Dibujo Asistido Por el Computador",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:18.203Z",
+      "observedAt": "2026-10-23T17:52:24.675Z",
       "comments": [
         {
           "id": "e6508daa7a8100211210",
@@ -7340,7 +7341,7 @@
       "courseLabel": "Matematica Discreta",
       "score": 5,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T17:00:19.204Z",
+      "observedAt": "2026-10-23T17:52:25.669Z",
       "comments": [
         {
           "id": "4b042adb65868e866a6a",
@@ -7348,8 +7349,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "El mejor profesor de todo upc, lo encuentras en cálculo 1 y 2, matemática discreta , matemática básica y álgebra lineal, si eres delegado te sube puntos si necesitas para ponderar o aprobar si ve que te esforzastes en el ciclo, enseña muy",
-          "truncated": true,
+          "text": "El mejor profesor de todo upc, lo encuentras en cálculo 1 y 2, matemática discreta , matemática básica y álgebra lineal, si eres delegado te sube puntos si necesitas para ponderar o aprobar si ve que te esforzastes en el ciclo, enseña muy bien sus retroalimentaciónes son gods y da material para los exámenes lo mejor que le pasó a la UPC ojalá no se vaya",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/900-nedin-esteban-fernandez-quispe"
         },
         {
@@ -7384,7 +7385,7 @@
       "courseLabel": "Fisica 1",
       "score": 4.7,
       "ratingCount": 3,
-      "observedAt": "2026-10-23T17:00:20.202Z",
+      "observedAt": "2026-10-23T17:52:26.677Z",
       "comments": [
         {
           "id": "171800c5682e95dc48ce",
@@ -7428,7 +7429,7 @@
       "courseLabel": "Ingenieria de requisitos",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:21.232Z",
+      "observedAt": "2026-10-23T17:52:27.688Z",
       "comments": [
         {
           "id": "c2859072a7622aaeeee4",
@@ -7452,7 +7453,7 @@
       "courseLabel": "Calculo 1 , Calculo 2 y Matematica basica",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:22.239Z",
+      "observedAt": "2026-10-23T17:52:28.696Z",
       "comments": [
         {
           "id": "11058960cf035e031d66",
@@ -7476,7 +7477,7 @@
       "courseLabel": "Finanzas e Ing economica",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:23.298Z",
+      "observedAt": "2026-10-23T17:52:29.703Z",
       "comments": [
         {
           "id": "32031c6fdd5a9270170a",
@@ -7500,7 +7501,7 @@
       "courseLabel": "Matemática Discreta",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:24.358Z",
+      "observedAt": "2026-10-23T17:52:30.697Z",
       "comments": [
         {
           "id": "63274bc416d72f76e14c",
@@ -7508,8 +7509,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Enseña bieen, hace que entiendas el tema a la primera, sabe que los estudiantes vienen repasando el material por la metodología minerva, pero aún asi te enseña en clase haciendo pausas para preguntar si se entiende, resuelve consultas de",
-          "truncated": true,
+          "text": "Enseña bieen, hace que entiendas el tema a la primera, sabe que los estudiantes vienen repasando el material por la metodología minerva, pero aún asi te enseña en clase haciendo pausas para preguntar si se entiende, resuelve consultas de manera amable y califica alto los trabajos.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/907-adalberto-rodrigo-rosales-carrasco"
         }
       ],
@@ -7524,7 +7525,7 @@
       "courseLabel": "Technical Sales and Marketing",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:25.413Z",
+      "observedAt": "2026-10-23T17:52:31.695Z",
       "comments": [
         {
           "id": "4cf32d07e0220e746c0b",
@@ -7548,7 +7549,7 @@
       "courseLabel": "Gestión de Seguridad de Información",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:26.510Z",
+      "observedAt": "2026-10-23T17:52:32.707Z",
       "comments": [
         {
           "id": "254b86345b99f67017f8",
@@ -7572,7 +7573,7 @@
       "courseLabel": "Matematica basica",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:27.576Z",
+      "observedAt": "2026-10-23T17:52:33.729Z",
       "comments": [
         {
           "id": "a503ef6c0da287a9d452",
@@ -7596,7 +7597,7 @@
       "courseLabel": "Fisica 2",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:28.578Z",
+      "observedAt": "2026-10-23T17:52:34.751Z",
       "comments": [
         {
           "id": "0c29f9b941ed18f4cf8d",
@@ -7620,7 +7621,7 @@
       "courseLabel": "Redes y Comunicaciones Datos",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:29.613Z",
+      "observedAt": "2026-10-23T17:52:35.769Z",
       "comments": [
         {
           "id": "50e838ff86768423d7b8",
@@ -7644,7 +7645,7 @@
       "courseLabel": "CONTABILIDAD Y PRESUPUESTOS",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:30.615Z",
+      "observedAt": "2026-10-23T17:52:36.762Z",
       "comments": [
         {
           "id": "121e118511baab6d266a",
@@ -7668,7 +7669,7 @@
       "courseLabel": "Teoria de Tributos",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:31.637Z",
+      "observedAt": "2026-10-23T17:52:37.761Z",
       "comments": [
         {
           "id": "fe15d48a5595c879fcb1",
@@ -7692,7 +7693,7 @@
       "courseLabel": "Finanzas para Abogados",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:32.631Z",
+      "observedAt": "2026-10-23T17:52:38.757Z",
       "comments": [
         {
           "id": "a06ce2907d03188c4098",
@@ -7716,7 +7717,7 @@
       "courseLabel": "Taller de Liderazgo 3",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:33.717Z",
+      "observedAt": "2026-10-23T17:52:39.763Z",
       "comments": [
         {
           "id": "ce34c1661194ddbc4a73",
@@ -7724,8 +7725,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "clases sencillas con dinamicas que promedia la dd que vale 5%, controles virtuales, trabajos y controles virtuales; la profesora es muy puntual y exigente con la asistencia, le gusta molestar a los alumnos pero es chevere si eres sensible a",
-          "truncated": true,
+          "text": "clases sencillas con dinamicas que promedia la dd que vale 5%, controles virtuales, trabajos y controles virtuales; la profesora es muy puntual y exigente con la asistencia, le gusta molestar a los alumnos pero es chevere si eres sensible a que te griten no te lo recomiendo,",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/917-beatriz-leonarda-anderson-jara-de-finetti"
         }
       ],
@@ -7740,7 +7741,7 @@
       "courseLabel": "Ley Penal y Teoria del Delito",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:34.713Z",
+      "observedAt": "2026-10-23T17:52:40.754Z",
       "comments": [
         {
           "id": "db4feb2016af363a67ca",
@@ -7764,7 +7765,7 @@
       "courseLabel": "Etica",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:35.727Z",
+      "observedAt": "2026-10-23T17:52:41.772Z",
       "comments": [
         {
           "id": "3582b44069bc8d4e64b4",
@@ -7788,7 +7789,7 @@
       "courseLabel": "Redes y Comunicaciones de Datos",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:36.776Z",
+      "observedAt": "2026-10-23T17:52:42.787Z",
       "comments": [
         {
           "id": "148a32cbc65e374d551d",
@@ -7796,8 +7797,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Muy buen profesor enseña con pasion y explica bien la clase y siempre da fijas que si se asemejan a lo que toma en practicas, comprensivo y te ayuda mucho(a uno literalmente le pregunto porqe le fue mal y le ayudo con unos puntos, no abusen",
-          "truncated": true,
+          "text": "Muy buen profesor enseña con pasion y explica bien la clase y siempre da fijas que si se asemejan a lo que toma en practicas, comprensivo y te ayuda mucho(a uno literalmente le pregunto porqe le fue mal y le ayudo con unos puntos, no abusen de su confianza)Ya llendonos por el tema \"malo\" para el profe esque se copia demasiado facil con él, lit sacas tu cel y el profe esta mas en su laptop, pero porfa tmpc abusen de eso que sino pierde cierta confianza que les pone al salon, solo si realmente necesitan nota y tbm no revisa mucho las pc's",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/921-ricardo-martin-lesevic-rodriguez"
         }
       ],
@@ -7812,7 +7813,7 @@
       "courseLabel": "Arquitectura Empresarial",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:37.801Z",
+      "observedAt": "2026-10-23T17:52:43.783Z",
       "comments": [
         {
           "id": "81d676f2cba570621ed5",
@@ -7820,8 +7821,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Muy buen profe, aunque enseña en base de full ppt(por si te se hace tedioso), pero tbm hace practicas en arqui y los \"trabajos para desempeño\" son expos faciles solo tienes que leer el ppt.Los examenes son muy faciles(su examen final fue",
-          "truncated": true,
+          "text": "Muy buen profe, aunque enseña en base de full ppt(por si te se hace tedioso), pero tbm hace practicas en arqui y los \"trabajos para desempeño\" son expos faciles solo tienes que leer el ppt.Los examenes son muy faciles(su examen final fue literalmente la pc2)Cae muy bien, pero no hay que hacer mucha bulla aunque lo maximo que dice es \"los de alfondo porfa bajen el volumen\" un pan de dios.Por el lado \"malo\" copiar con el es intermedio depende del salon pero si facil tomas foto con el celular(un conocido lo hacia no yo, soy bien nervioso pa eso XD) eso si si revisa regular las pc's tonces caleta.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/922-isbert-jose-panez-wuchenauer"
         }
       ],
@@ -7836,7 +7837,7 @@
       "courseLabel": "Gestión de Seguridad de Información",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:38.801Z",
+      "observedAt": "2026-10-23T17:52:44.774Z",
       "comments": [
         {
           "id": "3e7f740bf3b045fd8e67",
@@ -7844,8 +7845,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "No tengo nada que decir de él, un pan de dios, excelente profe le gusta lo que hace, lo malo que solo hay en virtual porque esta en Canada(exitoso mi profe csmre)Pone musica al comenzar su clase y da breaks en mitades de clase si esque son",
-          "truncated": true,
+          "text": "No tengo nada que decir de él, un pan de dios, excelente profe le gusta lo que hace, lo malo que solo hay en virtual porque esta en Canada(exitoso mi profe csmre)Pone musica al comenzar su clase y da breaks en mitades de clase si esque son largas.El desempeño es tu participacion tienes que traer una notica de tecnologia a la clase(no es ppt, solo di algo breve pero tmpc corto).Por el apartado \"malo\", no hay literalmente el profe DEJA USAR IA sllo tienes que poner el prompt que usastes y la respuesta tiene que ser que entendistes de lo que te boto la IA(por eso el prompt, pero un parafreasear y reescribirlo y joya)No tengo mas que decir, excelente.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/924-jose-carlos-vargas-medina"
         }
       ],
@@ -7860,7 +7861,7 @@
       "courseLabel": "Implementación de Sistemas Empresariales",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:39.799Z",
+      "observedAt": "2026-10-23T17:52:45.781Z",
       "comments": [
         {
           "id": "4e6553ff71888e1407b8",
@@ -7868,8 +7869,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Sinceramente no me cae mal, enseña bien el SAP y hace que toda la clase lo practique.Eso si su trabajo final tecnicamente no te dice nada y tienes que estar buscando en internet(tranquilos subire mi trabajo para que se guien, igual esta",
-          "truncated": true,
+          "text": "Sinceramente no me cae mal, enseña bien el SAP y hace que toda la clase lo practique.Eso si su trabajo final tecnicamente no te dice nada y tienes que estar buscando en internet(tranquilos subire mi trabajo para que se guien, igual esta desordenado y medio imcompleto pero ojo es mas que lo que esta por internet XD) por eso le pongo 4 estrellas.Deja usar las guias en los examenes.Pc's y finales lit lo de clase solo practiquen(saque 08 en mi parcial porque no practique estaba regalado).Su nota de desempeño es actividades de clase y son lo que se hace en clase regaladaso la DD.Por el apartado \"malo\", es facil usar IA no revisa mucho las pc's pero cuidado que tiene buena vista si esta cerca.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/925-richard-nivaldo-copaja-cornejo"
         }
       ],
@@ -7884,7 +7885,7 @@
       "courseLabel": "Estadistica Aplicada I",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:40.807Z",
+      "observedAt": "2026-10-23T17:52:46.773Z",
       "comments": [
         {
           "id": "0eefb5681811636f0cdf",
@@ -7892,8 +7893,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "Buena profe, trabajo final decente(ESO SI LOS GRUPOS SON EN BASE AL ORDEN DE LISTA cuidado si tenias pensado hacer grupo con sus causas), examenes decentes para faciles.Me cayo bien, te puedes raspar un punto si le ruegas.Por el lado \"malo\"",
-          "truncated": true,
+          "text": "Buena profe, trabajo final decente(ESO SI LOS GRUPOS SON EN BASE AL ORDEN DE LISTA cuidado si tenias pensado hacer grupo con sus causas), examenes decentes para faciles.Me cayo bien, te puedes raspar un punto si le ruegas.Por el lado \"malo\" es dificil copiar porque son carpetas hay que ser flash.4 estrellas porque ese ciclo me dejaron, porfa vuelve te extraño, dea me proyecte gente.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/926-lucila-osorio-mauricio"
         }
       ],
@@ -7908,7 +7909,7 @@
       "courseLabel": "Integración de los sistemas 1",
       "score": 2,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:41.811Z",
+      "observedAt": "2026-10-23T17:52:47.754Z",
       "comments": [
         {
           "id": "fdf51bdcb741f33e2805",
@@ -7932,7 +7933,7 @@
       "courseLabel": "Aprendizaje estratégico y liderazgo",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:42.848Z",
+      "observedAt": "2026-10-23T17:52:48.748Z",
       "comments": [
         {
           "id": "d92f8e442ee3c4a4cf30",
@@ -7956,7 +7957,7 @@
       "courseLabel": "Cpl 1 y 2, pensamiento Crítico",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:43.856Z",
+      "observedAt": "2026-10-23T17:52:49.739Z",
       "comments": [
         {
           "id": "cdfb1cb4420ea00c338f",
@@ -7980,7 +7981,7 @@
       "courseLabel": "Matemática básica, cálculo 1 y 2 , Matemática Discreta, Matemática computaciónal",
       "score": 4,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:44.850Z",
+      "observedAt": "2026-10-23T17:52:50.754Z",
       "comments": [
         {
           "id": "204ee18bbbfb997a2d99",
@@ -7988,8 +7989,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 4,
           "recommends": true,
-          "text": "El profesor es decente, solo que sus clases son un poco aburridas y da sueño cuando explica habla bajo. No sube puntos extra pero es fácil Usar IA con el literalmente en los exámenes se pone a escuchar música en su laptop y con audífonos.",
-          "truncated": true,
+          "text": "El profesor es decente, solo que sus clases son un poco aburridas y da sueño cuando explica habla bajo. No sube puntos extra pero es fácil Usar IA con el literalmente en los exámenes se pone a escuchar música en su laptop y con audífonos. Nada mas q decir si te gusta copiar es la fija solo siéntate al fondo.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/931-edgar-kenny-venegas-palacios"
         }
       ],
@@ -8004,7 +8005,7 @@
       "courseLabel": "Fundamentos de programación, Programación orientada a objetos(POO), Fundamentos",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:45.854Z",
+      "observedAt": "2026-10-23T17:52:51.751Z",
       "comments": [
         {
           "id": "fa7c1c8a8898e65604c6",
@@ -8012,8 +8013,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "Últimamente hablan mal de el pero cuando yo lo lleve literalmente era el goat, es 50/50 osea un ciclo es bueno y otro ciclo es malo, te arriesgas, este profesor deja usar IA Pero debes ser kleta sino te jala y también es bien vago no vas a",
-          "truncated": true,
+          "text": "Últimamente hablan mal de el pero cuando yo lo lleve literalmente era el goat, es 50/50 osea un ciclo es bueno y otro ciclo es malo, te arriesgas, este profesor deja usar IA Pero debes ser kleta sino te jala y también es bien vago no vas a aprender nada para hacer un ejercicio se demora 3 semanas en terminarlo y le gusta hacerlo con IA encima. Si te gusta copiar es la fija. 2024-01 reference",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/932-orestes-manolo-ramirez-garcia"
         }
       ],
@@ -8028,7 +8029,7 @@
       "courseLabel": "HCI",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:46.859Z",
+      "observedAt": "2026-10-23T17:52:52.741Z",
       "comments": [
         {
           "id": "47c0c3fea6e450efe3e6",
@@ -8036,8 +8037,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "La verdad que es lo mejor que hay entre todos los profesores todos son malas opciones y está es el mal menor. La profesora califica bajo en los trabajos nada que decir, los exámenes pc1 y pc2 del curso son medio complicados la única fija es",
-          "truncated": true,
+          "text": "La verdad que es lo mejor que hay entre todos los profesores todos son malas opciones y está es el mal menor. La profesora califica bajo en los trabajos nada que decir, los exámenes pc1 y pc2 del curso son medio complicados la única fija es sentarte al fondo para copiar la profesora casi no se para ni vigila. La nota maxima para sacar es 16 con esta profesora o 17. 2025-01 reference",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/933-silvia-adelma-campos-benites"
         }
       ],
@@ -8052,7 +8053,7 @@
       "courseLabel": "Arquitectura de computadoras y sistemas operativos",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:47.849Z",
+      "observedAt": "2026-10-23T17:52:53.743Z",
       "comments": [
         {
           "id": "a557d4aaeff053981e1d",
@@ -8060,8 +8061,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "Este profesor es un poco curioso hasta 2025-01 era un villano Pero ese mismo ciclo estuvo regalando nota a más no poder, creo que tantas encuestas malas, malos comentarios le han hecho reflexionar. En fin este profesor yo diría que es 50/50",
-          "truncated": true,
+          "text": "Este profesor es un poco curioso hasta 2025-01 era un villano Pero ese mismo ciclo estuvo regalando nota a más no poder, creo que tantas encuestas malas, malos comentarios le han hecho reflexionar. En fin este profesor yo diría que es 50/50 un ciclo god y otro ciclo antifija, si te toco el bueno tienes para veintear el curso y si es el malo GG retiraste nomás depende de ti. 2025-01 reference.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/935-luis-alberto-vives-garnique"
         }
       ],
@@ -8076,7 +8077,7 @@
       "courseLabel": "Física 1 ,2 y laboratorio de fisica",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:48.835Z",
+      "observedAt": "2026-10-23T17:52:54.783Z",
       "comments": [
         {
           "id": "ca233c36ded7c0b7b935",
@@ -8084,8 +8085,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 5,
           "recommends": true,
-          "text": "El mejor profesor de física sin duda alguna, las sustentaciónes son sobre el trabajo que haces y te divides con tu equipo lit, preguntas chiste, primero te pide explicar si explicas literalmente todo lo que hiciste sales sin que te haga",
-          "truncated": true,
+          "text": "El mejor profesor de física sin duda alguna, las sustentaciónes son sobre el trabajo que haces y te divides con tu equipo lit, preguntas chiste, primero te pide explicar si explicas literalmente todo lo que hiciste sales sin que te haga preguntas. No sé cómo es virtual pero dicen q es un villano. Profe kleta hay otras opciones pero en mi opinión este el el top 1 saque 20 en todas las evaluaciones lit. 2025-01 reference.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/936-jorge-enrique-santos-andahua"
         }
       ],
@@ -8100,7 +8101,7 @@
       "courseLabel": "Matematica Basica, Calculo 1, Matematica Discreta Y Matematica Computacional",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:49.823Z",
+      "observedAt": "2026-10-23T17:52:55.803Z",
       "comments": [
         {
           "id": "9f26e425abf2dfae223e",
@@ -8108,8 +8109,8 @@
           "dateLabel": "agosto de 2026",
           "rating": 3,
           "recommends": true,
-          "text": "este profesor es curioso en basica y calculo 1 lo aman porque deja usar apuntes de clase en examenes y tiene su canal de youtube con fijas. pero en discreta y computacional es considerado por bastantes como la antifija. sus videos de",
-          "truncated": true,
+          "text": "este profesor es curioso en basica y calculo 1 lo aman porque deja usar apuntes de clase en examenes y tiene su canal de youtube con fijas. pero en discreta y computacional es considerado por bastantes como la antifija. sus videos de youtube sirven para otros examenes de otros profesores pero no para el mismo, tuve compañeros que el profesor les dijo que en el examen dejo una 3 trampas para que los alumnos pensaran, algo q no pasaba en otras EUs. tambien en ciertos ciclos suele tomar algunas decisiones injustas y cuestionables para sus salones como hacer que la EU3 que en algunos cursos y con algunos profesores es virtual, se realize de manera presencial. simplemente injusto. tambien es bastante creido nose como llego a la UPC siendo profesor de colegio. ademas tiene bronca con el goat de matematica Jorge Daniel Muñoz, en conclusion fija basica y calculo 1. 2025-02 reference.",
+          "truncated": false,
           "sourceUrl": "https://profematchperu.com/u/upc/profesor/937-juan-manuel-mattos-quevedo"
         }
       ],
@@ -8124,7 +8125,7 @@
       "courseLabel": "Integración Clínico Patológica 2",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:50.812Z",
+      "observedAt": "2026-10-23T17:52:56.800Z",
       "comments": [
         {
           "id": "3a323337370bcab32bf6",
@@ -8148,7 +8149,7 @@
       "courseLabel": "Integración Clínico Patológica 2",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:51.803Z",
+      "observedAt": "2026-10-23T17:52:57.817Z",
       "comments": [
         {
           "id": "36462d5f614bd459a45c",
@@ -8172,7 +8173,7 @@
       "courseLabel": "Seminario Integrador 1",
       "score": 5,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:52.811Z",
+      "observedAt": "2026-10-23T17:52:58.806Z",
       "comments": [
         {
           "id": "de71d0e223c5e3b9f006",
@@ -8196,7 +8197,7 @@
       "courseLabel": "Estadistica Aplicada 1",
       "score": 3,
       "ratingCount": 1,
-      "observedAt": "2026-10-23T17:00:53.903Z",
+      "observedAt": "2026-10-23T17:52:59.792Z",
       "comments": [
         {
           "id": "1914a88b067bbbd2da5b",

@@ -2,7 +2,7 @@
 // No network work happens during page rendering or the site build.
 import {readFile,writeFile,rename} from 'node:fs/promises';
 import {setTimeout} from 'node:timers/promises';
-import {parseExcerpts,sourceURL} from './profematch-excerpts.mjs';
+import {parseComments,sourceURL} from './profematch-excerpts.mjs';
 const [manifest,output]=process.argv.slice(2);
 if(!manifest||!output||!process.argv.includes('--authorized'))throw new Error('Usage: node scripts/collect-profematch-excerpts.mjs matches.json output.json --authorized');
 const matches=JSON.parse(await readFile(manifest,'utf8'));
@@ -14,11 +14,11 @@ if(robots.trim()!=='User-agent: *\nAllow: /\nDisallow: /admin.html\nDisallow: /a
 const profiles=[];const errors=[];
 for(const match of matches){
  await setTimeout(800);
- try{profiles.push(parseExcerpts(await page(match.source_url),match));}
+ try{profiles.push(parseComments(await page(match.source_url),match));}
  catch(error){errors.push({sourceId:match.source_id,message:error.message});if(/HTTP (403|429)/.test(error.message))break;}
  if((profiles.length+errors.length)%25===0)console.log(JSON.stringify({collected:profiles.length,errors:errors.length,total:matches.length}));
 }
-const report={schemaVersion:1,generatedAt:new Date().toISOString(),expectedSources:matches.length,complete:profiles.length===matches.length,profiles,errors};
+const report={schemaVersion:2,contentMode:'full',generatedAt:new Date().toISOString(),expectedSources:matches.length,complete:profiles.length===matches.length,profiles,errors};
 await writeFile(`${output}.tmp`,JSON.stringify(report,null,2)+'\n');await rename(`${output}.tmp`,output);
 console.log(JSON.stringify({sources:profiles.length,comments:profiles.reduce((n,p)=>n+p.comments.length,0),errors:errors.length,complete:report.complete}));
 if(!report.complete)process.exitCode=1;

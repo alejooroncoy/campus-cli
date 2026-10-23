@@ -1,4 +1,4 @@
-# ProfeMatch: comentarios breves con su fuente
+# ProfeMatch: comentarios completos con su fuente
 
 El usuario manifestó en este chat el 23/10/2026 que cuenta con autorización expresa
 del creador de ProfeMatch. La implementación se basa en esa manifestación; no
@@ -11,10 +11,11 @@ Se leen únicamente fichas públicas UPC previamente vinculadas en
 `professor_source` y `professor_source_candidate` con `status='matched'`, mismo
 profesor y universidad. No se incorporan identidades pendientes ni se crean
 asociaciones de cursos. El backend debe seguir confirmando el profesor, slug,
-fuente y curso en cada respuesta para mostrar una captura editorial.
+fuente y curso en cada respuesta para mostrar los comentarios.
 
-Cada tarjeta muestra un **fragmento literal** de hasta 240 caracteres, puntuación
-original /5, apodo público, mes que publica la fuente y enlace a la ficha. No son
+Cada tarjeta muestra el **comentario completo**, sin recorte de caracteres, puntuación
+original /5, apodo público, mes que publica la fuente y enlace a la ficha.
+Se conserva el texto de la fuente, normalizando espacios. No son
 resúmenes generados ni reseñas verificadas por Campus. La fuente no publica
 permalinks por comentario: no se inventan enlaces individuales. El apodo y mes
 permiten localizar la opinión dentro de la ficha enlazada.
@@ -50,6 +51,14 @@ se revoca la vinculación en el backend, la entrada deja de mostrarse también.
 269 fichas confirmadas, correspondientes a 238 profesores; 446 comentarios con
 texto en 226 profesores. Cero errores de lectura y cero datos de contacto
 retenidos. Los profesores sin comentarios públicos conservan únicamente sus
-puntuaciones externas. En Juan Carlos Morales hay 13 fragmentos de Base de Datos
+puntuaciones externas. En Juan Carlos Morales hay 13 comentarios de Base de Datos
 y 5 de HCI; cada grupo conserva su fuente y escala. No se ha creado un vínculo
 entre la etiqueta HCI de la fuente y el curso IHC del catálogo.
+
+El 23/10/2026 el usuario pidió ampliar los fragmentos a textos completos. Se
+volvieron a leer las 269 fichas públicas vinculadas para recuperar las partes
+recortadas. El conjunto usa `schemaVersion: 2`, `contentMode: "full"` y
+`truncated: false`; la vista rechaza entradas truncadas. Se conservan el diseño,
+los enlaces de origen y el orden de Campus, MisProfesores y ProfeMatch. Se
+restauró el texto de 86 comentarios antes recortados, sin perder ninguno de
+los 446 comentarios del lote previo.
