@@ -1,4 +1,4 @@
-import {replyCard} from '../lib/professor-pages.mjs';
+import {replyCard,reviewCard} from '../lib/professor-pages.mjs';
 type Reply = {id:number;text:string;createdAt:string;authorLabel:string};
 const node=<K extends keyof HTMLElementTagNameMap>(tag:K,text='',className='')=>{
  const el=document.createElement(tag);el.textContent=text;el.className=className;return el;
@@ -12,19 +12,51 @@ function initReplies(){
   if(!thread.matches('[data-review-thread]')||!thread.open||thread.dataset.bound)return;
   thread.dataset.bound='true';bindThread(thread);
  },true);
- function revealAnchor(hash:string,scroll=false){
+ const pendingAnchors=new Map<string,Promise<HTMLElement|null>>();
+ async function anchoredReview(id:string){
+  const active=pendingAnchors.get(id);if(active)return active;
+  const work=(async()=>{
+   const list=root!.querySelector<HTMLElement>('[data-profile-reviews]');
+   const reviewId=Number(id.slice('review-'.length));
+   if(!list||!Number.isSafeInteger(reviewId)||reviewId<1||reviewId>=2147483647)return null;
+   const url=new URL('/api/app/profes/community/',location.origin);
+   url.search=new URLSearchParams({professorId:list.dataset.professorId!,beforeId:String(reviewId+1),limit:'1'}).toString();
+   const response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(10000)});
+   if(!response.ok)throw new Error('Review unavailable');
+   const data=await response.json(),review=data.reviews?.[0];
+   if(review?.id!==reviewId||review.professorId!==Number(list.dataset.professorId))return null;
+   if(!root!.isConnected)return null;
+   if(!document.getElementById(id))list.insertAdjacentHTML('beforeend',reviewCard(review,{profile:true}));
+   return document.getElementById(id);
+  })();
+  pendingAnchors.set(id,work);
+  try{return await work;}finally{pendingAnchors.delete(id);}
+ }
+ async function revealAnchor(hash:string,scroll=false){
   let id:string;try{id=decodeURIComponent(hash.slice(1));}catch{return;}
-  const target=document.getElementById(id);if(!target||!root!.contains(target))return;
+  let target=document.getElementById(id);
+  if(!target&&/^review-[1-9]\d{0,9}$/.test(id)){
+   const list=root!.querySelector<HTMLElement>('[data-profile-reviews]');if(!list)return;
+   let status=root!.querySelector<HTMLElement>('[data-anchor-status]');
+   if(!status){status=node('div','','prof-public__help');status.dataset.anchorStatus='';status.setAttribute('role','status');list.before(status);}
+   status.textContent='Recuperando la reseña elegida…';
+   try{target=await anchoredReview(id);status.textContent=target?'':'Esta reseña ya no está disponible.';}
+   catch{
+    const retry=node('button','Volver a recuperar la reseña','prof-public__text-button');retry.type='button';retry.addEventListener('click',()=>void revealAnchor(hash,true));
+    status.replaceChildren(node('p','No pudimos recuperar la reseña elegida.'),retry);return;
+   }
+  }
+  if(!target||!root!.contains(target))return;
   for(let parent=target.parentElement;parent&&parent!==root;parent=parent.parentElement){if(parent instanceof HTMLDetailsElement)parent.open=true;}
   if(/^review-[1-9]\d*$/.test(id))target.querySelector<HTMLDetailsElement>('[data-review-thread]')?.setAttribute('open','');
-  if(scroll)requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));
+  if(scroll&&location.hash===hash)requestAnimationFrame(()=>target!.scrollIntoView({block:'start'}));
  }
  root.addEventListener('click',event=>{
   const anchor=(event.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
-  if(anchor)revealAnchor(anchor.hash);
+  if(anchor)void revealAnchor(anchor.hash);
  });
- window.addEventListener('hashchange',()=>revealAnchor(location.hash,true));
- revealAnchor(location.hash,true);
+ window.addEventListener('hashchange',()=>void revealAnchor(location.hash,true));
+ void revealAnchor(location.hash,true);
 }
 function bindThread(thread:HTMLDetailsElement){
  const id=thread.dataset.reviewThread!,endpoint=`/api/app/profes/reviews/${id}/replies/`;

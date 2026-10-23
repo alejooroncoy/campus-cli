@@ -74,3 +74,7 @@ Verificación al 23 de octubre: las fichas 5 y 57 entregan 18 comentarios y ning
 La ficha conserva la copia completa ya publicada de ProfeMatch cuando el backend confirma exactamente la fuente, el profesor y el curso, y todavía no entrega comentarios en vivo. Esa copia usa el mismo diseño, indica su fecha y remite las respuestas a la fuente. Una respuesta en vivo exitosa tiene prioridad, incluso si no contiene comentarios. Se conservan los enlaces de cursos con coincidencia exacta, sin inferir alias.
 
 Las pruebas del sitio (`test:app`), Astro y el recorrido del navegador pasan sobre la rama principal actualizada. Los enlaces «Leer comentarios» abren automáticamente el bloque de destino y usan un icono discreto de 14 px. La dependencia transitiva Zod del sitio se actualiza dentro de su rango permitido para superar la comprobación de seguridad de CI.
+
+## Revisión previa al despliegue
+
+Se corrigió el retorno del login a reseñas fuera de la primera página: el enlace recupera únicamente la reseña pública exacta del mismo profesor, abre su hilo y permite reintentar la carga si falla. La paginación evita duplicarla si después vuelve a encontrarla. La regresión fallaba antes del ajuste y pasa con el caso nuevo del navegador.

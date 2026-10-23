@@ -42,6 +42,15 @@ assert.equal(await page.getByLabel('Tu respuesta',{exact:true}).inputValue(),'Mi
 // Signed-out users can still read; login returns to the same thread.
 await page.route('**/api/app/session/',route=>route.fulfill({json:{authenticated:false}}));await page.reload({waitUntil:'networkidle'});await page.locator('[data-review-thread] > summary').first().click();
 const login=page.getByRole('link',{name:'Entrar para responder',exact:true});await login.waitFor();assert.match(await login.getAttribute('href'),/%23review-/);assert.equal(await page.locator('.prof-public__reply').count(),1);
+// Returning from login to an older review must restore that exact public review.
+const olderReview={id:1,professorSlug:'juan-carlos-morales-arevalo',professor:'Juan Carlos Morales Arevalo',text:'Reseña anterior de prueba',rating:4,createdAt:'2026-01-01T12:00:00Z',course:null};
+await page.route('**/api/app/profes/community/**',route=>route.fulfill({json:{reviews:[{...olderReview,professorId:Number(new URL(route.request().url()).searchParams.get('professorId'))}],nextCursor:null}}));
+await page.goto(url+'#review-1',{waitUntil:'networkidle'});
+await page.locator('#review-1 [data-review-thread][open]').waitFor();
+assert.equal(await page.locator('#review-1').getByText('Reseña anterior de prueba',{exact:true}).isVisible(),true);
+await page.locator('#review-1').getByRole('link',{name:'Entrar para responder',exact:true}).waitFor();
+await page.goto(url,{waitUntil:'networkidle'});
+await page.unroute('**/api/app/profes/community/**');
 // Loading failure has a retry, not a false empty state.
 await page.route('**/replies/',route=>route.fulfill({status:503,json:{error:'No pudimos cargar las respuestas.'}}));await page.reload({waitUntil:'networkidle'});await page.locator('[data-review-thread] > summary').first().click();await page.getByRole('button',{name:'Volver a cargar'}).waitFor();
 // Explicit synthetic fixture: this professor has no public source replies today.
@@ -55,5 +64,5 @@ await page.locator('.prof-public__thread > summary').nth(1).click();
 assert.equal(await page.getByText('Subrespuesta de prueba',{exact:true}).isVisible(),true);
 for(const width of [320,375,1440]){await page.setViewportSize({width,height:900});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width);}
 await page.setViewportSize({width:375,height:900});await page.waitForTimeout(200);assert.equal(await page.locator('.prof-public__thread > summary > svg').first().evaluate(el=>getComputedStyle(el).transform),'none');await page.screenshot({path:out+'/thread-fixture.png',fullPage:true});
-assert.deepEqual(errors,[]);await writeFile(out+'/checks.json',JSON.stringify({layout,errors,submission:true,reload:true,privacyError:true,guest:true,retry:true,externalNestedReplies:true},null,2));
+assert.deepEqual(errors,[]);await writeFile(out+'/checks.json',JSON.stringify({layout,errors,submission:true,reload:true,privacyError:true,guest:true,retry:true,externalNestedReplies:true,olderReviewReturn:true},null,2));
 console.log(JSON.stringify({layout,errors,output:out}));await browser.close();preview.kill();await rm(fixtureDir,{recursive:true,force:true});
