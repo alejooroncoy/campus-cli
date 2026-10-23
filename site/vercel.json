@@ -30,16 +30,20 @@
   ],
   "rewrites": [
     {
-      "source": "/profes/upc/:path*",
-      "destination": "/api/professors?route=/profes/upc/:path*"
+      "source": "/profes/upc/",
+      "destination": "/api/professors/?route=/profes/upc/"
+    },
+    {
+      "source": "/profes/upc/:path*/",
+      "destination": "/api/professors/?route=/profes/upc/:path*/"
     },
     {
       "source": "/profes/sitemap.xml",
-      "destination": "/api/professors?route=/profes/sitemap.xml"
+      "destination": "/api/professors/?route=/profes/sitemap.xml"
     },
     {
       "source": "/profes/resenas/",
-      "destination": "/api/professors?route=/profes/resenas/"
+      "destination": "/api/professors/?route=/profes/resenas/"
     },
     {
       "source": "/api/app/:path*/",
