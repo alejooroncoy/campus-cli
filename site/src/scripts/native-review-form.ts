@@ -57,7 +57,7 @@ async function initProfileMore(){
  button.addEventListener('click',async()=>{
   if(button.disabled)return;button.disabled=true;const status=document.querySelector<HTMLElement>('[data-profile-status]')!;status.textContent='Cargando reseñas…';
   try{const url=new URL('/api/app/profes/community/',location.origin);url.search=new URLSearchParams({professorId:list.dataset.professorId!,beforeId:button.dataset.cursor!,limit:'12'}).toString();const response=await fetch(url,{signal:AbortSignal.timeout(10000)});if(!response.ok)throw new Error();const data=await response.json();
-   const {reviewCard}=await import('../lib/professor-pages.mjs');const parsed=new DOMParser().parseFromString(data.reviews.map(reviewCard).join(''),'text/html');list.append(...parsed.body.children);button.hidden=data.nextCursor===null;if(data.nextCursor)button.dataset.cursor=String(data.nextCursor);status.textContent='Reseñas cargadas.';
+   const {reviewCard}=await import('../lib/professor-pages.mjs');const parsed=new DOMParser().parseFromString(data.reviews.map((r:any)=>reviewCard(r,{profile:true})).join(''),'text/html');list.append(...parsed.body.children);button.hidden=data.nextCursor===null;if(data.nextCursor)button.dataset.cursor=String(data.nextCursor);status.textContent='Reseñas cargadas.';
   }catch{status.textContent='No pudimos cargar más reseñas. Vuelve a intentarlo.';}finally{button.disabled=false;}
  });
 }

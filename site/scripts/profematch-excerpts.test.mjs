@@ -42,15 +42,15 @@ test('only an existing exact course name gets a source link; abbreviations are n
 });
 
 test('the renderer escapes each complete source comment and links it without changing native stats',async()=>{
- const {profeMatchComments,profileBody}=await import('../src/lib/professor-pages.mjs');
+ const {profeMatchCommentsSection,withProfeMatchSnapshots,profileBody}=await import('../src/lib/professor-pages.mjs');
  const corpus=(await import('../src/data/profematch-excerpts.json',{with:{type:'json'}})).default;
  const entry=corpus.profiles.find(p=>p.professorId===468&&p.sourceId==='5');
  assert.ok(entry);
  const original=entry.comments[0].text;
  try{
   entry.comments[0].text='Una experiencia detallada. '.repeat(30)+'<img src=x onerror=alert(1)> FINAL COMPLETO';
-  const section=profeMatchComments(identity,rating);assert.match(section,/&lt;img/);assert.doesNotMatch(section,/<img src=x/);assert.match(section,/FINAL COMPLETO<\/p>/);assert.doesNotMatch(section,/Fragmento de ProfeMatch/);
-  const links=[...section.matchAll(/<a href="([^"]+)"/g)].map(m=>m[1]);assert.equal(links.length,entry.comments.length);assert.ok(links.every(url=>url===match.source_url));
+  const section=profeMatchCommentsSection(withProfeMatchSnapshots([{...rating,score:1.9,scale:5,ratingCount:14,observedAt:entry.observedAt}],identity));assert.match(section,/&lt;img/);assert.doesNotMatch(section,/<img src=x/);assert.match(section,/FINAL COMPLETO<\/p>/);assert.doesNotMatch(section,/Fragmento de ProfeMatch/);
+  const links=[...section.matchAll(/<a\b[^>]*href="([^"]+)"/g)].map(m=>m[1]);assert.equal(links.length,entry.comments.length+1);assert.ok(links.every(url=>url===match.source_url));
   const html=profileBody({professor:{...identity,name:'Juan Carlos Morales Arevalo'},courses:[],stats:{reviewCount:0,ratingCount:0,averageRating:null},reviews:[],externalRatings:[{...rating,score:1.9,scale:5,ratingCount:14,observedAt:entry.observedAt}]});
   assert.match(html,/<strong>0<\/strong> reseñas de Campus/);assert.doesNotMatch(html,/AggregateRating/);assert.ok(html.indexOf('id="resenas"')<html.indexOf('id="puntuaciones"'));
  }finally{entry.comments[0].text=original;}

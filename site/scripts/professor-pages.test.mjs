@@ -65,3 +65,43 @@ test('existing catalog reviews retain their source and scale, escape text and pa
  const directory=directoryBody({query:'Jonathan',page:1,pages:1,total:1,professors:[{...data.professor,courses:[],reviewCount:1,averageRating:2,catalogReviewCount:17,catalogAverageRating:8.9}]});
  assert.match(directory,/2\/10 · 1 reseña de Campus/);assert.match(directory,/8.9\/10 · 17 valoraciones de MisProfesores/);
 });
+
+test('profile conversations belong only to Campus reviews and sources remain independent',()=>{
+ const html=profileBody({...data,catalogReviews:{stats:{reviewCount:1,ratingCount:1,averageRating:9,commentCount:1},sourceUrls:['https://peru.misprofesores.com/profesores/Ana_12'],reviews:[{id:8,text:'Opinión externa',rating:9}],nextCursor:null}});
+ assert.match(html,/id="review-1"/);assert.match(html,/data-review-thread="1"/);
+ assert.doesNotMatch(html,/data-review-thread="8"/);assert.equal((html.match(/<h1>/g)||[]).length,1);
+ assert.doesNotMatch(html,/<h3><a[^>]*>Juan Carlos/);
+ assert.match(html,/class="prof-public__catalog-details" >/);
+ assert.match(profileBody({...data,catalogBefore:9,catalogReviews:{stats:{reviewCount:1,commentCount:1},sourceUrls:['https://peru.misprofesores.com/profesores/Ana_12'],reviews:[],nextCursor:null}}),/class="prof-public__catalog-details" open/);
+});
+
+test('ProfeMatch comments are attributed, escaped and keep their original scale without reply controls',()=>{
+ const html=profileBody({...data,externalRatings:[{...external,commentsStatus:'available',comments:[{text:'Explica <b>bien</b>',rating:4,dateLabel:'agosto de 2026'}]}]});
+ assert.match(html,/Comentarios de ProfeMatch/);assert.match(html,/Explica &lt;b&gt;bien&lt;\/b&gt;/);assert.match(html,/<strong>4\/5<\/strong>/);
+ assert.match(html,/1 comentario disponible/);assert.match(html,/Ver comentarios en ProfeMatch/);
+ assert.equal((html.match(/data-review-thread=/g)||[]).length,1);
+ const failed=profileBody({...data,externalRatings:[{...external,commentsStatus:'unavailable',comments:[]}]});
+ assert.match(failed,/No pudimos cargar los comentarios/);assert.doesNotMatch(failed,/0 comentarios disponibles/);
+});
+
+test('imported replies remain nested under the owning review and share the Campus reply design',()=>{
+ const html=profileBody({...data,externalRatings:[{...external,commentsStatus:'available',comments:[{id:'profematch-5-review-9',text:'Reseña principal',rating:4,repliesStatus:'available',replies:[{text:'Respuesta <script>bad</script>',dateLabel:'23 oct. 2026',replies:[{text:'Respuesta anidada',replies:[]}]}]},{id:'profematch-5-review-10',text:'Otra reseña',rating:2,repliesStatus:'unavailable',replies:[]}]}]});
+ assert.match(html,/id="profematch-5-review-9"/);
+ assert.equal((html.match(/class="prof-public__reply"/g)||[]).length,2);
+ assert.match(html,/Respuesta &lt;script&gt;bad&lt;\/script&gt;/);
+ assert.match(html,/Las respuestas no están disponibles/);
+ assert.match(html,/Responder en ProfeMatch/);
+ assert.equal((html.match(/data-review-thread=/g)||[]).length,1);
+ assert.ok(html.indexOf('Respuesta anidada')<html.indexOf('id="profematch-5-review-10"'));
+});
+
+test('published ProfeMatch snapshot remains readable during rollout; live empty threads are authoritative',async()=>{
+ const {withProfeMatchSnapshots}=await import('../src/lib/professor-pages.mjs');
+ const corpus=(await import('../src/data/profematch-excerpts.json',{with:{type:'json'}})).default;
+ const snapshot=corpus.profiles[0],professor={id:snapshot.professorId,slug:snapshot.professorSlug};
+ const source={source:'profematch',sourceId:snapshot.sourceId,sourceUrl:snapshot.sourceUrl,courseLabel:snapshot.courseLabel};
+ assert.equal(withProfeMatchSnapshots([source],professor)[0].commentsStatus,'snapshot');
+ assert.equal(withProfeMatchSnapshots([{...source,commentsStatus:'unavailable',comments:[]}],professor)[0].comments.length,snapshot.comments.length);
+ assert.deepEqual(withProfeMatchSnapshots([{...source,commentsStatus:'available',comments:[]}],professor)[0].comments,[]);
+ assert.equal(withProfeMatchSnapshots([source],{...professor,id:-1})[0].comments,undefined);
+});
