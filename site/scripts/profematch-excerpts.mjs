@@ -7,13 +7,7 @@ export const sourceURL = value => {
 };
 const normalized=s=>String(s??'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const nameKey=s=>normalized(s).split(' ').sort().join(' ');
-export function excerpt(text,max=240){
- const clean=String(text??'').replace(/\s+/g,' ').trim();
- if(clean.length<=max)return {text:clean,truncated:false};
- const prefix=clean.slice(0,max+1),lastSpace=prefix.lastIndexOf(' ');
- return {text:prefix.slice(0,lastSpace>max/2?lastSpace:max).trimEnd(),truncated:true};
-}
-export function parseExcerpts(html,match,observedAt=new Date().toISOString()){
+export function parseComments(html,match,observedAt=new Date().toISOString()){
  const url=sourceURL(match.source_url),id=new URL(url).pathname.match(/profesor\/(\d+)-/)[1];
  if(id!==String(match.source_id)||!Number.isSafeInteger(match.professor_id)||match.professor_id<1||!/^([a-z0-9]+-)*[a-z0-9]+$/.test(match.professor_slug))throw new Error('Invalid identity mapping');
  const $=load(html);
@@ -38,7 +32,7 @@ export function parseExcerpts(html,match,observedAt=new Date().toISOString()){
   if(!dateLabel||dateLabel.length>80||!author||author.length>100)throw new Error('Unrecognized public review metadata');
   const key=createHash('sha256').update([id,author,meta,raw].join('\n')).digest('hex').slice(0,20);
   if(seen.has(key))continue;seen.add(key);
-  comments.push({id:key,author,dateLabel,rating,recommends:!meta.includes('no lo recomienda'),...excerpt(raw),sourceUrl:url});
+  comments.push({id:key,author,dateLabel,rating,recommends:!meta.includes('no lo recomienda'),text:raw,truncated:false,sourceUrl:url});
  }
  if(comments.length>count)throw new Error('More comments than ratings');
  return {sourceId:id,sourceUrl:url,professorId:match.professor_id,professorSlug:match.professor_slug,courseLabel:course,score,ratingCount:count,observedAt,comments,emptyCount,withheldCount};
