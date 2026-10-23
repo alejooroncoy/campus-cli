@@ -1,0 +1,8 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="__CAMPUS_PUBLIC_TITLE__" description="__CAMPUS_PUBLIC_DESCRIPTION__" canonical="__CAMPUS_PUBLIC_CANONICAL__">
+  <link slot="head" rel="stylesheet" href="/native-professor-pages.css" />
+  <main id="professor-content" class="prof-public shell" set:html="__CAMPUS_PUBLIC_BODY__" />
+  <script src="../../scripts/native-review-form.ts"></script>
+</Base>

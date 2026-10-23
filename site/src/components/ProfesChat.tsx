@@ -1168,6 +1168,7 @@ export default function ProfesChat() {
 
   function changeReviewSearchMode(mode: "course" | "professor") {
     setReviewSearchMode(mode); setReviewQuery("");
+    if (mode === "professor") setReviewCourse(null);
     setReviewProfessor(null);
     setReviewCourses([]); setReviewProfessors([]); setReviewError("");
   }
