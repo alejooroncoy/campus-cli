@@ -141,7 +141,7 @@
 .lib-detail-author > span:last-child { font-size: 11px; }
 .lib-avatar { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--lib-sky); color: #087fa4; }
 .lib-section-nav { display: flex; gap: 20px; border-bottom: 1px solid var(--lib-line); padding: 10px 0; margin: 24px 0; overflow-x: auto; }
-.lib-section-nav a { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; min-height: 40px; border-radius: 5px; }
+.lib-section-nav a { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 12px; min-width: 44px; min-height: 44px; border-radius: 5px; }
 .lib-section-nav span { padding: 1px 5px; background: var(--lib-sky); border-radius: 4px; }
 .lib-detail-summary { margin: 28px 0; }
 .lib-detail-summary h2 { margin-top: 12px; }
@@ -419,7 +419,7 @@
 .lib-evaluation-links a { display:flex; align-items:center; gap:12px; padding:15px 0; min-height:60px; font-size:13px; }
 .lib-evaluation-links a + a { border-top:1px solid var(--lib-line); }
 .lib-evaluation-links a > .lib-icon:first-child { color:#087fa4; }
-.lib-evaluation-links a > .lib-icon:last-child { margin-left:auto; width:15px; }
+.lib-evaluation-links a > .lib-icon:last-child { margin-left:auto; width:15px; height:15px; }
 .lib-evaluation-links a:hover strong { text-decoration:underline; }
 .lib-evaluation-links strong { display:block; font-weight:600; }
 .lib-evaluation-links small { display:block; color:var(--lib-muted); font-size:11px; margin-top:3px; }
@@ -445,6 +445,25 @@
 .lib-detail-updated { color:var(--lib-muted); font-size:11px; line-height:1.8; margin:24px 0 0; }
 .lib-detail-updated a { text-decoration:underline; }
 @media(max-width:760px) {
+ .lib-detail-hero h1 { font-size:clamp(28px,8vw,34px); line-height:1.16; letter-spacing:-1px; }
+ .lib-work-course { display:block; line-height:1.6; }
+ .lib-work-course > .lib-icon { margin-right:6px; }
+ .lib-work-course > span { display:block; margin-top:5px; font-size:12px; }
+ .lib-detail-main .lib-section-nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; overflow:visible; padding:0 0 18px; }
+ .lib-detail-main .lib-section-nav a { justify-content:center; padding:10px; min-height:48px; border:1px solid var(--lib-line); background:var(--lib-paper); white-space:normal; text-align:center; font-size:13px; line-height:1.5; }
+ .lib-detail-main .lib-section-nav a:hover { background:var(--lib-sky); }
+ .lib-detail-main .lib-section-nav a[href="#archivos"] { background:var(--lib-night); border-color:var(--lib-night); color:white; font-weight:600; }
+ .lib-detail-main .lib-section-nav a[href="#archivos"]:hover { background:#244655; }
+ .lib-detail-main .lib-section-nav a[href="#archivos"] span { background:#ffffff24; color:inherit; }
+ .lib-detail-summary .lib-pre { font-size:16px; }
+ .lib-feedback-quote .lib-pre { font-size:16px; }
+ .lib-rubric-criteria .lib-pre { font-size:14px; }
+ .lib-download-content { padding:20px; }
+ .lib-download-content .lib-files strong { font-size:14px; }
+ .lib-download-content .lib-files .lib-button { min-height:48px; font-size:15px; }
+ .lib-download-panel:target { border-color:#087fa4; box-shadow:0 0 0 3px #17b6e71a; }
+ .lib-report { display:flex; align-items:center; min-height:44px; }
+ .lib-academic-context dt .lib-icon, .lib-evaluation-links a > .lib-icon:last-child { width:16px; height:16px; }
  .lib-evaluation-overview { grid-template-columns:.8fr 1.2fr; }
  .lib-grade-summary { padding:20px; }
  .lib-grade-summary .lib-grade { font-size:42px; }
@@ -452,8 +471,14 @@
  .lib-navigation-status { align-items:flex-start; flex-direction:column; }
 }
 @media(max-width:520px) {
- .lib-academic-context { gap:20px 14px; }
- .lib-academic-context dd { font-size:15px; }
+ .lib-academic-context { grid-template-columns:minmax(0,1fr); gap:0; padding:0; border:1px solid var(--lib-line); border-radius:10px; background:var(--lib-paper); overflow:hidden; }
+ .lib-academic-context > div { min-width:0; padding:14px 16px; }
+ .lib-academic-context > div + div { border-top:1px solid var(--lib-line); }
+ .lib-academic-context dt { font-size:12px; }
+ .lib-academic-context dd { font-size:16px; line-height:1.5; margin-top:6px; }
+ .lib-criterion-heading { flex-direction:column; align-items:flex-start; gap:8px; }
+ .lib-criterion-heading h3 { font-size:16px; line-height:1.5; }
+ .lib-criterion-score { max-width:100%; white-space:normal; }
  .lib-evaluation-overview { grid-template-columns:1fr; }
  .lib-grade-summary { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 14px; }
  .lib-grade-summary > .lib-eyebrow { flex-basis:100%; }
