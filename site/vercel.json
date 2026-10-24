@@ -30,6 +30,22 @@
   ],
   "rewrites": [
     {
+      "source": "/biblioteca/sitemap.xml",
+      "destination": "/api/library/?route=/biblioteca/sitemap.xml"
+    },
+    {
+      "source": "/biblioteca/sitemap-:page([0-9]+).xml",
+      "destination": "/api/library/?route=/biblioteca/sitemap-:page.xml"
+    },
+    {
+      "source": "/biblioteca/",
+      "destination": "/api/library/?route=/biblioteca/"
+    },
+    {
+      "source": "/biblioteca/:path*/",
+      "destination": "/api/library/?route=/biblioteca/:path*/"
+    },
+    {
       "source": "/profes/upc/",
       "destination": "/api/professors/?route=/profes/upc/"
     },
@@ -83,6 +99,9 @@
     },
     "api/professors.js": {
       "includeFiles": ".generated/*.html"
+    },
+    "api/library.js": {
+      "includeFiles": ".generated/library.html"
     }
   },
   "headers": [

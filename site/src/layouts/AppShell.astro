@@ -1,12 +1,12 @@
 ---
-import { turnitinServiceEnabled } from "../../feature-flags.mjs";
+import { turnitinServiceEnabled, libraryServiceEnabled } from "../../feature-flags.mjs";
 import { ClientRouter } from "astro:transitions";
 import Analytics from "../components/Analytics.astro";
 import AppSidebar from "../components/AppSidebar.astro";
 
 interface Props {
   title: string;
-  active: "profes" | "asistente" | "copilot" | "perfil" | "turnitin";
+  active: "profes" | "asistente" | "copilot" | "perfil" | "turnitin" | "biblioteca";
 }
 
 const { title, active } = Astro.props;
@@ -14,6 +14,7 @@ const isChat = active === "profes" || active === "asistente";
 const nav = [
   { id: "asistente", label: "Asistente", href: "/app/asistente/", icon: "users" },
   { id: "copilot", label: "Conectar IA", href: "/app/copilot/", icon: "sparkles" },
+  ...(libraryServiceEnabled ? [{ id: "biblioteca", label: "Biblioteca", href: "/biblioteca/", icon: "file-text" }] : []),
   ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
   { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "user" },
 ];

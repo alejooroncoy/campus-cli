@@ -1,0 +1,21 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Biblioteca de trabajos universitarios | Campus" description="Trabajos y apuntes compartidos por estudiantes, con curso, profesor, nota, rúbrica y feedback." canonical="https://campuscli.com/biblioteca/">
+  <link slot="head" rel="stylesheet" href="/biblioteca.css" />
+  <main class="lib-public lib-site shell" data-library-public>
+    <a class="lib-skip" href="#contenido">Saltar al contenido de Biblioteca</a>
+    <div class="lib-section-bar">
+      <a class="lib-section-brand" href="/biblioteca/">Biblioteca <span>de Campus</span></a>
+      <nav class="lib-workspace-nav" aria-label="Biblioteca">
+        <a href="/biblioteca/" aria-current="page">Explorar</a>
+        <a href="/app/biblioteca/">Mis aportes</a>
+        <a class="lib-button" href="/app/biblioteca/#subir">Compartir trabajo <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+    <div class="lib-navigation-status lib-navigation-quiet" data-library-navigation-status role="status" aria-live="polite" aria-atomic="true"><span data-library-navigation-message></span><button class="lib-button lib-secondary" type="button" data-library-navigation-retry hidden>Reintentar</button></div>
+    <div class="lib-container" id="contenido" set:html="__CAMPUS_LIBRARY_BODY__" />
+    <p class="lib-site-disclaimer">Materiales compartidos por estudiantes. <a href="/privacidad/#biblioteca">Cómo se publican los aportes</a> · <a href="mailto:info@campuscli.com">Reportar un material</a></p>
+  </main>
+  <script src="../../scripts/library-public.ts"></script>
+</Base>
