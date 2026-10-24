@@ -73,7 +73,7 @@ globalThis.location = { hostname: 'campuscli.com', pathname: '/app/asistente/', 
 const production = await build({ entryPoints: ['src/scripts/analytics.ts'], bundle: true, format: 'esm', platform: 'node', write: false,
   define: { 'import.meta.env': JSON.stringify({ DEV: false, PUBLIC_POSTHOG_KEY: 'public-test-key', PUBLIC_POSTHOG_HOST: 'https://us.i.posthog.com' }) },
   plugins: [{ name: 'fake-posthog', setup(build) {
-    build.onResolve({ filter: /^posthog-js$/ }, () => ({ path: 'sdk', namespace: 'fixture' }));
+    build.onResolve({ filter: /^posthog-js\/dist\/module\.slim$/ }, () => ({ path: 'sdk', namespace: 'fixture' }));
     build.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: 'export default globalThis.__campusPostHogFixture;', loader: 'js' }));
   } }],
 });
