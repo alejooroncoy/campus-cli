@@ -40,6 +40,16 @@ export function officialResearchAlternate(value: string): { url: string; scope: 
     && /^\/revflacso\/article\/view\/7514\/?$/.test(source.pathname)) {
     return { url: 'https://revistas.uh.cu/revflacso/article/download/7514/6400/9026', scope: 'full_article' };
   }
+  // ALICIA links article 22535 to this DOI; SciELO's citation_doi and
+  // citation_pdf_url publish the same article. The PDF's first page was read
+  // and matched by title, authors, year and the printed DOI. Do not generalize
+  // the route to other UNMSM articles or construct unverified SciELO filenames.
+  if ((source.hostname === 'revistasinvestigacion.unmsm.edu.pe'
+      && /^\/index.php\/lenguaysociedad\/article\/view\/22535(?:\/18891)?\/?$/.test(source.pathname))
+    || (['doi.org', 'dx.doi.org'].includes(source.hostname)
+      && source.pathname.toLowerCase() === '/10.15381/lengsoc.v21i2.22535')) {
+    return { url: 'https://www.scielo.org.pe/pdf/lys/v21n2/2413-2659-lys-21-02-373.pdf', scope: 'full_article' };
+  }
   return null;
 }
 
