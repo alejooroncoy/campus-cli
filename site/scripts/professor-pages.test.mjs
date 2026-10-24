@@ -37,7 +37,7 @@ const external={source:'profematch',sourceLabel:'ProfeMatch',sourceId:'797',sour
 test('external-only profile combines scores on one scale and keeps source links visible',async()=>{
  const empty={...data,stats:{reviewCount:0,ratingCount:0,averageRating:null},reviews:[],externalRatings:[external]};
  const result=await run('/profes/upc/juan-carlos-morales-arevalo/',{fetchData:async()=>Response.json(empty)});const html=await result.text();
- for(const text of ['promedio conjunto de fuentes','9.2/10','1 fuente con puntuaciones','Ver fuente en ProfeMatch','Esta ficha aún no tiene comentarios públicos','noindex,follow'])assert.ok(html.includes(text),text);
+ for(const text of ['promedio conjunto de fuentes','9.2/10','1 fuente con puntuaciones','Puntuación media','7 valoraciones','Ver fuente en ProfeMatch','noindex,follow'])assert.ok(html.includes(text),text);
  assert.doesNotMatch(html,/4.6\/5|Puntuaciones en ProfeMatch|AggregateRating/);
 });
 test('source text cannot inject HTML or unsafe links while all scores share one scale',()=>{
