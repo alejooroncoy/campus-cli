@@ -93,12 +93,12 @@ async function run(browserName){
   await count(native.locator('.prof-public__reply'),2);
   await visible(native.getByLabel('Tu respuesta',{exact:true}));
   const originalSummary=await page.locator('.prof-public__profile-header .prof-public__summary').innerText();
-  await page.getByRole('link',{name:'Leer 1 comentario',exact:true}).tap();
   const imported=page.locator('#profematch-9000-review-9001');
-  await visible(imported);
-  await reload();await visible(imported); // deep link reveals its enclosing course
+  assert.equal(await page.locator('#resenas').count(),1);assert.equal(await imported.count(),1);
+  await visible(imported); // Imported comments are present in the first profile response.
+  await reload();await visible(imported); // Deep links keep the comment in the unified feed.
   await nativeThread.locator(':scope > summary').tap();await count(native.locator('.prof-public__reply'),2);
-  await page.locator('#resenas-catalogo details > summary').tap();
+  assert.equal(await page.locator('#resenas-catalogo, #puntuaciones').count(),0);
   const root=imported.locator(':scope > .prof-public__thread');
   const first=root.locator(':scope > .prof-public__thread-content > div').nth(0);
   const sibling=root.locator(':scope > .prof-public__thread-content > div').nth(1);
