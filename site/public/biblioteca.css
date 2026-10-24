@@ -117,8 +117,8 @@
 .lib-resource footer a { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; font-weight: 600; color: var(--lib-ink); flex-shrink: 0; }
 .lib-resource footer a:hover { text-decoration: underline; }
 .lib-resource-body .lib-context-tags { margin-top: auto; }
-.lib-active-search { display: flex; justify-content: space-between; gap: 14px; font-size: 12px; padding: 4px 0 20px; color: var(--lib-muted); }
-.lib-active-search a { text-decoration: underline; }
+.lib-active-search { display: flex; align-items: center; justify-content: space-between; gap: 14px; font-size: 12px; padding: 4px 0 20px; color: var(--lib-muted); }
+.lib-active-search a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; }
 .lib-empty { grid-column: 1/-1; width: 100%; padding: 48px 24px; border: 1px dashed #bed2dc; border-radius: 12px; background: var(--lib-paper); text-align: center; }
 .lib-empty-symbol { display: grid; place-items: center; width: 46px; height: 46px; margin: 0 auto 16px; background: var(--lib-sky); color: #087fa4; border-radius: 10px; }
 .lib-empty h3 { margin-top: 0; }
