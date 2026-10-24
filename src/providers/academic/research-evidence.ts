@@ -458,8 +458,9 @@ export async function verifyResearchEvidence(
       format: input.format === 'pdf' ? 'auto' : input.format,
       // Include nearby sections so a heading such as "References" and sentence
       // boundaries are not lost merely because the caller selected one section.
-      startSection: Math.max(1, input.section! - 20),
-      sectionCount: input.section! - Math.max(1, input.section! - 20) + 1,
+      // The target itself occupies one of the reader's maximum 20 sections.
+      startSection: Math.max(1, input.section! - 19),
+      sectionCount: input.section! - Math.max(1, input.section! - 19) + 1,
     });
 
   const documentSha256 = document.sha256;

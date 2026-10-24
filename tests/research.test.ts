@@ -3513,7 +3513,7 @@ test('document evidence marks bibliography sections as references', async () => 
       input.startSection - 1 + input.sectionCount), nextSection: null, textCoverage: 'complete',
   })) as any });
   assert.equal(distant.sourceRegion, 'references_continuation_possible');
-  assert.equal(distant.precedingSectionsCoverageStart, 2);
+  assert.equal(distant.precedingSectionsCoverageStart, 3);
 
   const punctuationArtifact = await verifyResearchEvidence({
     url: 'https://example.edu/article.pdf', page: 6, format: 'pdf',
