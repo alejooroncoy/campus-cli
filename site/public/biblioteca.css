@@ -505,3 +505,5 @@
 .lib-cloud-save{padding:.85rem 1rem;margin:0 0 1.5rem;border:1px solid var(--line,#d8e4e8);border-radius:12px;background:var(--surface,#fff)}
 .lib-autosave [role="status"]{flex:1;min-width:0}
 .lib-cloud-save [data-lib-cloud-text]{flex:1;min-width:0}.lib-cloud-save.is-error{background:#fff8f1}
+
+.lib-version-dialog{width:min(32rem,calc(100% - 2rem));max-height:calc(100dvh - 2rem);overflow:auto;border:1px solid #d7e1e4;border-radius:18px;padding:24px;color:#132c39;background:#fff;box-shadow:0 16px 64px #132c3933}.lib-version-dialog::backdrop{background:#132c3970}.lib-version-dialog h2{font-size:1.4rem;margin:0 0 12px}.lib-version-dialog p{line-height:1.6;margin:0 0 20px}
