@@ -70,6 +70,11 @@ export default defineConfig({
   // Local API routes accept the same URLs used by the hosted app.
   trailingSlash: process.env.NODE_ENV === "development" && process.env.CAMPUS_DEV_APP_ORIGIN ? "ignore" : "always",
   vite: {
+    build: {
+      // The deployed CSP blocks inline JavaScript, including small Astro entries.
+      // Keep scripts external while preserving Vite's defaults for other assets.
+      assetsInlineLimit: (filePath) => filePath.endsWith(".js") ? false : undefined,
+    },
     server: {
       proxy: process.env.CAMPUS_DEV_APP_ORIGIN ? {
         "/api/app": { target: process.env.CAMPUS_DEV_APP_ORIGIN, changeOrigin: true },
