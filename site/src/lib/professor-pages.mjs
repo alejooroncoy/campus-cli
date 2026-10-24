@@ -122,32 +122,30 @@ function reviewDateOrder(value,label=''){
  const match=String(label).toLowerCase().match(/(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre) de (20\d{2})/);
  return match?Date.UTC(Number(match[2]),months[match[1]],1):0;
 }
-function publicDate(value){const date=new Date(value??'');return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('es-PE',{day:'numeric',month:'short',year:'numeric',timeZone:'America/Lima'}).format(date):'';}
+function publicDate(value){const input=String(value??''),date=new Date(input);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('es-PE',{day:'numeric',month:'short',year:'numeric',timeZone:/^\d{4}-\d{2}-\d{2}$/.test(input)?'UTC':'America/Lima'}).format(date):'';}
 function unifiedReviewItems(data,ratings){
  const items=[];
  const sourceUrls=data.catalogReviews?.sourceUrls??[];
- for(const review of data.reviews??[])if(typeof review.text==='string'&&review.text.trim())items.push({source:'Campus',sources:['Campus'],rating:review.rating,text:review.text,course:review.course,term:review.term,date:review.createdAt,order:reviewDateOrder(review.createdAt),native:review,urls:[]});
+ for(const review of data.reviews??[])if(typeof review.text==='string'&&review.text.trim())items.push({source:'Campus',sources:['Campus'],identity:review.id==null?null:`Campus:${review.id}`,rating:review.rating,text:review.text,course:review.course,term:review.term,date:review.createdAt,order:reviewDateOrder(review.createdAt),native:review,urls:[]});
  const catalogComments=(data.catalogReviews?.reviews??[]).filter(review=>typeof review.text==='string'&&review.text.trim());
- for(const review of catalogComments)items.push({source:'MisProfesores',sources:['MisProfesores'],rating:review.rating,text:review.text,course:review.course,date:review.date,dateLabel:review.date,order:reviewDateOrder(review.date),urls:sourceUrls.filter(url=>validReviewSourceURL(url,'MisProfesores'))});
+ for(const review of catalogComments)items.push({source:'MisProfesores',sources:['MisProfesores'],identity:review.id==null?null:`MisProfesores:${review.id}`,rating:review.rating,text:review.text,course:review.course,date:review.date,dateLabel:review.date,order:reviewDateOrder(review.date),urls:sourceUrls.filter(url=>validReviewSourceURL(url,'MisProfesores'))});
  const catalogStats=data.catalogReviews?.stats;
- if(!catalogComments.length&&Number(catalogStats?.ratingCount)>0&&Number.isFinite(Number(catalogStats.averageRating)))items.push({source:'MisProfesores',sources:['MisProfesores'],rating:Number(catalogStats.averageRating),course:'',summary:true,ratingCount:Number(catalogStats.ratingCount),order:0,urls:sourceUrls.filter(url=>validReviewSourceURL(url,'MisProfesores'))});
+ if(!catalogComments.length&&Number(catalogStats?.ratingCount)>0&&Number.isFinite(Number(catalogStats.averageRating)))items.push({source:'MisProfesores',sources:['MisProfesores'],identity:'MisProfesores:aggregate',rating:Number(catalogStats.averageRating),course:'',summary:true,ratingCount:Number(catalogStats.ratingCount),order:0,urls:sourceUrls.filter(url=>validReviewSourceURL(url,'MisProfesores'))});
  for(const source of (ratings??[]).filter(r=>externalRatingsSection([r]))){
   const comments=(source.comments??[]).filter(comment=>typeof comment.text==='string'&&comment.text.trim()&&Number.isInteger(Number(comment.rating))&&Number(comment.rating)>=1&&Number(comment.rating)<=5);
-  if(!comments.length)items.push({source:'ProfeMatch',sources:['ProfeMatch'],rating:Number(source.score)*2,course:source.courseLabel,summary:true,ratingCount:Number(source.ratingCount),date:source.observedAt,order:reviewDateOrder(source.observedAt),url:source.sourceUrl});
+  if(!comments.length)items.push({source:'ProfeMatch',sources:['ProfeMatch'],identity:`ProfeMatch:aggregate:${source.sourceId}`,rating:Number(source.score)*2,course:source.courseLabel,summary:true,ratingCount:Number(source.ratingCount),date:source.observedAt,order:reviewDateOrder(source.observedAt),url:source.sourceUrl});
   for(const comment of comments){
-  items.push({source:'ProfeMatch',sources:['ProfeMatch'],rating:Number(comment.rating)*2,text:comment.text,course:source.courseLabel,dateLabel:comment.dateLabel,order:reviewDateOrder(null,comment.dateLabel),url:source.sourceUrl,comment});
+  items.push({source:'ProfeMatch',sources:['ProfeMatch'],identity:comment.id?`ProfeMatch:${comment.id}`:null,rating:Number(comment.rating)*2,text:comment.text,course:source.courseLabel,dateLabel:comment.dateLabel,order:reviewDateOrder(null,comment.dateLabel),url:source.sourceUrl,comment});
   }
  }
- const unique=new Map();
+ const unique=[],seen=new Set();
  for(const item of items){
-  const body=normalizeLabel(item.text);const score=item.rating==null?'':displayScore(item.rating);
-  const key=item.summary?`summary|${item.source}|${normalizeLabel(item.course)}|${score}`:`${body}|${score}`;
-  const old=unique.get(key);
-  if(!body||!old){unique.set(key,item);continue;}
-  old.sources=[...new Set([...old.sources,...item.sources])];
-  old.urls=[...new Set([...(old.urls??[]),...(item.urls??[]),...(item.url?[item.url]:[])])];
+  const key=item.identity;
+  if(key&&seen.has(key))continue;
+  if(key)seen.add(key);
+  unique.push(item);
  }
- return [...unique.values()].sort((a,b)=>b.order-a.order);
+ return unique.sort((a,b)=>b.order-a.order);
 }
 function unifiedReviewCard(item){
  const labels=item.sources.join(' · '),sources=`<span class="prof-public__review-source">Fuente: ${e(labels)}</span>`;
