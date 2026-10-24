@@ -52,6 +52,13 @@ import AppShell from '../../../layouts/AppShell.astro';
       <h2>No pudimos comprobar la activación.</h2><p>Vuelve a intentarlo antes de realizar un pago. Si ya pagaste, conserva tu comprobante y contacta a soporte.</p><button type="button" class="app-button app-button--secondary" data-plus-refresh>Volver a comprobar</button>
     </section>
     <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>100 consultas diarias en la web.</li><li>Consultas ilimitadas con tu IA por MCP.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
+    <details class="app-panel" data-plus-feedback>
+      <summary>¿Qué te falta para decidirte por Plus?</summary>
+      <form data-plus-feedback-form><label for="plus-reason">Tu respuesta nos ayuda a mejorar (opcional).</label>
+        <select id="plus-reason" name="reason" required><option value="">Elige una opción</option><option value="price">El precio</option><option value="unclear_value">No tengo claro qué me aporta</option><option value="payment_difficult">Se me complica pagar</option><option value="not_needed">Todavía no lo necesito</option><option value="technical_problem">Encontré un problema</option><option value="other">Otro motivo</option></select>
+        <button class="app-button app-button--secondary" type="submit">Enviar respuesta</button><p role="status" data-plus-feedback-status></p>
+      </form>
+    </details>
     <p class="plus-support">¿Necesitas ayuda? <a class="app-text-link" href="https://wa.me/51946189585" target="_blank" rel="noopener">WhatsApp +51 946 189 585</a></p>
   </div>
   <script src="../../../scripts/plus.ts"></script>

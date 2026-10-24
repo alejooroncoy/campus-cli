@@ -1,3 +1,4 @@
+import AgentFeedback from './AgentFeedback';
 import { consumeConversationHandoff } from '../scripts/account-onboarding';
 import { analyticsHeaders, track } from '../scripts/analytics';
 import { canRetryQuestion, questionFailure } from '../scripts/question-retry';
@@ -589,6 +590,7 @@ function profesTransport(
   onConversationCreated: (id: string, title?: string) => void,
   onMiupcReconnect: (conversationId: string | null,upcRequired:boolean) => void,
   onMiupcRestored: () => void,
+  onTurn: (traceId:string)=>void,
 ): ChatTransport<UIMessage> {
   return {
     async sendMessages({ messages, abortSignal }) {
@@ -596,6 +598,7 @@ function profesTransport(
       const question = last && last.role === "user" ? messageText(last).trim() : "";
       if (!question) throw new Error("Escribe una pregunta antes de enviarla.");
 
+      const started=performance.now();
       const activeConvId = getConversationId();
       track('campus_question_submitted', { new_conversation: !activeConvId });
       const response = await fetch("/api/app/profes/message", {
@@ -606,6 +609,8 @@ function profesTransport(
         body: JSON.stringify({ message: question, conversationId: activeConvId || undefined,
           universityId: readGuestUniversity()?.id }),
       });
+      const traceId=response.headers.get('X-Campus-Trace-Id');
+      if(traceId)track('campus_agent_response_received',{trace_id:traceId,duration_ms:Math.round(performance.now()-started)});
       const data = response.ok ? null : await response.json().catch(() => ({}));
       if (response.status === 401) {
         if (data?.code === "LOGIN_REQUIRED_GUEST_LIMIT") {
@@ -633,7 +638,7 @@ function profesTransport(
       let miupcConnectionRestored=false;
       const readEvent = (line: string) => {
         const event = JSON.parse(line) as { type: string; activity?: string; answer?: string; usage?: CampusSession["usage"]; error?: string; conversationId?: string; title?: string; miupcReconnectRequired?: boolean; upcReconnectRequired?:boolean; miupcConnectionRestored?:boolean };
-        if (event.type === "status" && event.activity && activityLabels[event.activity]) onActivity(event.activity);
+        if (event.type === "status" && event.activity && activityLabels[event.activity]) {onActivity(event.activity);track('campus_agent_activity',{trace_id:traceId,activity:event.activity,duration_ms:Math.round(performance.now()-started)});}
         if (event.type === "answer") {
           answer = event.answer ?? "";
           usage = event.usage;
@@ -660,7 +665,8 @@ function profesTransport(
       }
       if (pending.trim()) readEvent(pending.trim());
       if (!answer.trim()) throw new Error("Campus no devolvió una respuesta.");
-      track('campus_answer_displayed', { remaining: usage?.remaining, limit: usage?.limit });
+      track('campus_answer_displayed', { trace_id:traceId,remaining: usage?.remaining, limit: usage?.limit,duration_ms:Math.round(performance.now()-started) });
+      if(traceId)onTurn(traceId);
       if(usage)onUsage(usage);
       if (convId) onConversationCreated(convId, convTitle);
       if (miupcReconnectRequired || upcReconnectRequired) onMiupcReconnect(convId ?? activeConvId,upcReconnectRequired);
@@ -824,6 +830,7 @@ export default function ProfesChat() {
     setMiupcReconnectRevision(value=>value+1);
   },[]);
 
+  const [feedbackTrace,setFeedbackTrace]=useState<string|null>(null);
   const transport = useMemo(() => profesTransport(
     value => {
       usageHandler.current(value);
@@ -841,6 +848,7 @@ export default function ProfesChat() {
     handleConversationCreated,
     handleMiupcReconnect,
     ()=>{clearMiupcReconnectNotices();setMiupcReconnectRequired(false);setUpcReconnectRequired(false);},
+    traceId=>setFeedbackTrace(traceId),
   ), [handleConversationCreated,handleMiupcReconnect]);
   const { messages, setMessages, sendMessage, regenerate, status, error, stop } = useChat({ transport, onError: () => track('campus_flow_failed', { step: 'question', error_kind: 'rejected' }) });
   const messagesHandler = useRef(setMessages);
@@ -1204,6 +1212,7 @@ export default function ProfesChat() {
   }
 
   function startNewConversation(updateUrl = true) {
+    setFeedbackTrace(null);
     if (busy) return;
     navigationVersion.current++;
     saveCurrentConversation();
@@ -1226,6 +1235,7 @@ export default function ProfesChat() {
   }
 
   async function selectConversation(id: string, updateUrl = true) {
+    setFeedbackTrace(null);
     if (busy) return;
     if (id === currentConversationId && !loadingConversation) { setHistoryOpen(false); return; }
     const version = ++navigationVersion.current;
@@ -1668,6 +1678,7 @@ export default function ProfesChat() {
         </div>
       </dialog>
 
+      {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={feedbackTrace} traceId={feedbackTrace}/> : null}
       {isGuestLimit ? (
         <div className="app-guest-quota-reminder" role="status">
           <div className="app-guest-quota-reminder__text">
@@ -1694,7 +1705,7 @@ export default function ProfesChat() {
             />
             <div className="app-profes-ai__composer-footer">
               {busy ? (
-                <button type="button" onClick={stop} aria-label="Detener respuesta" title="Detener respuesta" className="app-profes-ai__send app-profes-ai__send--stop"><span aria-hidden="true" /></button>
+                <button type="button" onClick={()=>{track('campus_agent_interrupted',{step:'question'});stop();}} aria-label="Detener respuesta" title="Detener respuesta" className="app-profes-ai__send app-profes-ai__send--stop"><span aria-hidden="true" /></button>
               ) : (
                 <button
                   type="submit"
