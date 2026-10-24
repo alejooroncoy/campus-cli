@@ -778,7 +778,7 @@ export function registerBlackboardTools(server: McpServer) {
       const dir = resolveDownloadDir(outputDir);
       if (filename !== undefined) safeNewFilePath(dir, filename);
       const { client } = await getClient();
-      if (/^https?:/i.test(url)) assertBlackboardFileUrl(url, client.defaults?.baseURL);
+      assertBlackboardFileUrl(url, client.defaults?.baseURL);
       const r = await client.get(url, { responseType: 'stream', headers: { Accept: '*/*' } });
 
       const contentDisposition = r.headers['content-disposition'] as string | undefined;
