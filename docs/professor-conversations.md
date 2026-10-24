@@ -81,7 +81,9 @@ Se corrigió el retorno del login a reseñas fuera de la primera página: el enl
 
 ## Regresión móvil automática con datos locales
 
-`npm --prefix site run test:review-replies` ejecuta Chromium sobre la ficha completa compilada, usando exclusivamente `site/scripts/fixtures/professor-conversations.json`. El profesor, las reseñas y las respuestas son ficticios. La prueba ya no depende de los comentarios públicos disponibles ni solicita perfiles al backend de producción.
+`npm --prefix site run test:review-replies` ejecuta Chromium y WebKit sobre la ficha completa compilada, usando exclusivamente `site/scripts/fixtures/professor-conversations.json`. El profesor, las reseñas y las respuestas son ficticios. La prueba ya no depende de los comentarios públicos disponibles ni solicita perfiles al backend de producción.
+
+Cada motor usa su propio servidor en loopback y una copia inicial de los mismos datos en memoria. WebKit utiliza el perfil `iPhone 13` de Playwright (Safari móvil, pantalla táctil y escala de píxeles del dispositivo); ambos motores usan toques para abrir hilos y enviar respuestas. Es emulación de iPhone sobre WebKit, sin conexión a un teléfono físico. [Referencia de emulación de Playwright](https://playwright.dev/docs/emulation).
 
 El recorrido abre dos ramas de ProfeMatch con dos subniveles, comprueba que cerrar una rama conserva la otra y verifica contenido legible sin desbordamiento a 320, 375 y 430 px. Compara la tipografía de las tarjetas de Campus, MisProfesores y ProfeMatch, y la de sus respuestas. También prueba envío local, recarga, recuperación del borrador, errores de privacidad, lectura sin sesión, retorno a una reseña anterior y recuperación después de un error de carga.
 
@@ -94,11 +96,13 @@ Para reproducir desde la raíz:
 ```sh
 npm --prefix site ci
 npm --prefix site run build
-npm --prefix site exec -- playwright install chromium
+npm --prefix site exec -- playwright install --with-deps chromium webkit
 npm --prefix site run test:review-replies
 ```
 
-CI ejecuta este recorrido en cada PR y push a `main`. Conserva durante siete días el artefacto `mobile-review-threads`, con capturas de los tres anchos y `checks.json`; si falla, incluye `failure.png`. Las salidas locales quedan en `site/.test-results/review-replies/` (ignoradas por Git). El navegador y el servidor temporal se cierran tanto al pasar como al fallar.
+CI ejecuta este recorrido en cada PR y push a `main`. Conserva durante siete días el artefacto `mobile-review-threads`, con carpetas `chromium/` y `webkit/`; cada una contiene capturas de los tres anchos y `checks.json`, con el motor, su versión y las propiedades de emulación. Si falla, incluye `failure.png`. Se intenta ejecutar ambos motores aunque falle el primero y cualquier fallo hace fallar CI. Las salidas locales quedan en `site/.test-results/review-replies/` (ignoradas por Git). Cada navegador y servidor temporal se cierran tanto al pasar como al fallar.
+
+Para depurar un solo motor: `npm --prefix site run test:review-replies -- --browser=webkit` (o `--browser=chromium`). El comando sin argumentos siempre ejecuta ambos; no omite WebKit si falta el navegador instalado.
 
 Para explorar manualmente los mismos datos, después de compilar:
 
