@@ -105,3 +105,31 @@ test('published ProfeMatch snapshot remains readable during rollout; live empty 
  assert.deepEqual(withProfeMatchSnapshots([{...source,commentsStatus:'available',comments:[]}],professor)[0].comments,[]);
  assert.equal(withProfeMatchSnapshots([source],{...professor,id:-1})[0].comments,undefined);
 });
+
+test('Banner assignments appear in initial profile HTML by cycle even without catalog courses or reviews',async()=>{
+ const profile={...data,courses:[],reviews:[],stats:{reviewCount:0,ratingCount:0,averageRating:null},bannerCourses:[
+  {term:'202610',code:'1ADE0158',name:'Razonamiento e Investigación Jurídica',sectionCount:2,source:'banner'},
+  {term:'202620',code:'1ADE0158',name:'Razonamiento e Investigación Jurídica',sectionCount:1,source:'banner'},
+ ]};
+ const response=await run('/profes/upc/juan-carlos-morales-arevalo/',{fetchData:async()=>Response.json(profile)});
+ const html=await response.text();assert.equal(response.status,200);
+ for(const value of ['Cursos según Banner','Ciclo 2026-2','Ciclo 2026-1','1ADE0158','Razonamiento e Investigación Jurídica'])assert.ok(html.includes(value),value);
+ assert.doesNotMatch(html,/\b\d+ secci[oó]n(?:es)?\b/);
+ assert.ok(html.indexOf('Ciclo 2026-2')<html.indexOf('Ciclo 2026-1'));
+ assert.equal((html.match(/id="cursos"/g)||[]).length,1);
+ assert.doesNotMatch(html,/Aún no tenemos cursos asociados/);
+});
+
+test('Banner absence is distinct from unavailable data and never invents a current teaching assignment',()=>{
+ const empty=profileBody({...data,bannerCourses:[]});
+ assert.match(empty,/Aún no tenemos asignaciones de Banner registradas/);
+ assert.doesNotMatch(empty,/Ciclo 2026-2/);
+ assert.match(profileBody({...data,bannerCourses:undefined}),/Las asignaciones de Banner no están disponibles/);
+});
+
+test('Banner course names, codes and unfamiliar cycle labels cannot inject markup',async()=>{
+ const {bannerCoursesSection,bannerTermLabel}=await import('../src/lib/professor-pages.mjs');
+ const html=bannerCoursesSection([{term:'<img src=x>',name:'<script>alert(1)</script>',code:'<svg onload=alert(1)>',sectionCount:1}]);
+ assert.doesNotMatch(html,/<script>|<img src=x>|<svg onload/);
+ assert.match(html,/&lt;script&gt;/);assert.equal(bannerTermLabel('202630'),'202630');
+});

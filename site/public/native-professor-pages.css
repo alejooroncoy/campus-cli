@@ -121,3 +121,5 @@ body:has([data-professor-profile])>.site-header.is-scrolled{position:relative;to
 
 .prof-public__sidebar .prof-public__external-list a[href^="#profematch-"]{gap:5px}
 .prof-public__sidebar .prof-public__external-list a[href^="#profematch-"]>svg{width:14px;height:14px;opacity:.75}
+
+.prof-public__banner-term + .prof-public__banner-term{border-top:1px solid var(--line);margin-top:20px;padding-top:6px}.prof-public__banner-term h3{display:flex;align-items:center;gap:7px;font-size:.85rem}.prof-public__banner-term h3 svg{width:17px;height:17px}.prof-public__banner-courses .prof-public__courses strong{font-weight:600}.prof-public__banner-courses{scroll-margin-top:110px}
