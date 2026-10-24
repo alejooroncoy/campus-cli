@@ -192,7 +192,7 @@ try{
  throw error;
 }finally{
  await browser?.close();
- if(preview&&preview.exitCode===null){
+ if(preview?.pid&&preview.exitCode===null&&preview.signalCode===null){
   await new Promise(resolve=>{
    const timer=setTimeout(()=>{preview.kill('SIGKILL');},2000);
    preview.once('exit',()=>{clearTimeout(timer);resolve();});preview.kill();
