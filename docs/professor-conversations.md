@@ -1,6 +1,6 @@
 # Fichas de profesores y respuestas — 23 octubre 2026
 
-Implementación local basada en las revisiones actuales de producción, sin desplegar ni escribir en la base remota.
+Fichas de profesores y respuestas, con vista previa local y pruebas aisladas de producción.
 
 ## Diseño
 
@@ -17,7 +17,7 @@ Las reseñas son los comentarios principales; las respuestas se agrupan un nivel
 
 El formulario conserva el borrador por reseña, mantiene el texto tras un error, muestra el estado de moderación y permite cargar conversaciones largas en páginas de 20 respuestas. OAuth vuelve a la ficha y a la reseña elegida.
 
-## Backend y publicación pendiente
+## Backend y orden de publicación
 
 La implementación complementaria está en [campus-profes PR #123](https://github.com/alejooroncoy/campus-profes/pull/123):
 
@@ -26,7 +26,7 @@ La implementación complementaria está en [campus-profes PR #123](https://githu
 - `src/app/review-replies-http.ts`: GET/POST `/api/app/profes/reviews/:id/replies/`.
 - Integración en `http.ts`, retorno OAuth y pruebas.
 
-Para publicar, aplicar la migración y desplegar el backend antes del frontend. No se ha ejecutado ninguna migración remota ni desplegado estos cambios. No se modifica la puntuación ni el contenido de las reseñas existentes.
+La migración y el backend se publicaron antes del frontend ([campus-cli PR #186](https://github.com/alejooroncoy/campus-cli/pull/186)). Las pruebas locales descritas aquí no aplican migraciones ni modifican la puntuación o el contenido de reseñas en producción.
 
 ## Validación
 
@@ -47,9 +47,9 @@ node scripts/review-replies.e2e.mjs
 node scripts/preview-professor-conversations.mjs
 ```
 
-La prueba E2E inicia su propio puerto temporal y cierra su servidor. La vista previa usa por defecto `http://127.0.0.1:4397/profes/upc/juan-carlos-morales-arevalo/`. Lee los perfiles públicos reales; las respuestas son datos de prueba en memoria con un aviso visible. Nunca reenvía escrituras a producción.
+La prueba E2E inicia su propio puerto temporal con datos exclusivamente ficticios y cierra su servidor. La vista previa manual sin fixture usa por defecto `http://127.0.0.1:4397/profes/upc/juan-carlos-morales-arevalo/`. Lee los perfiles públicos reales; las respuestas son datos de prueba en memoria con un aviso visible. Nunca reenvía escrituras a producción.
 
-Las capturas y medidas quedan en `output/professor-conversations/`.
+Las capturas y medidas de la prueba automática quedan en `site/.test-results/review-replies/`.
 
 ## Comentarios autorizados de ProfeMatch
 
@@ -78,3 +78,32 @@ Las pruebas del sitio (`test:app`), Astro y el recorrido del navegador pasan sob
 ## Revisión previa al despliegue
 
 Se corrigió el retorno del login a reseñas fuera de la primera página: el enlace recupera únicamente la reseña pública exacta del mismo profesor, abre su hilo y permite reintentar la carga si falla. La paginación evita duplicarla si después vuelve a encontrarla. La regresión fallaba antes del ajuste y pasa con el caso nuevo del navegador.
+
+## Regresión móvil automática con datos locales
+
+`npm --prefix site run test:review-replies` ejecuta Chromium sobre la ficha completa compilada, usando exclusivamente `site/scripts/fixtures/professor-conversations.json`. El profesor, las reseñas y las respuestas son ficticios. La prueba ya no depende de los comentarios públicos disponibles ni solicita perfiles al backend de producción.
+
+El recorrido abre dos ramas de ProfeMatch con dos subniveles, comprueba que cerrar una rama conserva la otra y verifica contenido legible sin desbordamiento a 320, 375 y 430 px. Compara la tipografía de las tarjetas de Campus, MisProfesores y ProfeMatch, y la de sus respuestas. También prueba envío local, recarga, recuperación del borrador, errores de privacidad, lectura sin sesión, retorno a una reseña anterior y recuperación después de un error de carga.
+
+El servidor escucha solo en loopback y guarda los envíos en memoria. Recibe únicamente el entorno mínimo del proceso, sin credenciales de base de datos ni configuración del backend. En modo fixture bloquea llamadas salientes de `fetch`; el navegador bloquea y registra cualquier solicitud fuera del origen local. Los enlaces de las fuentes se muestran pero no se visitan. Las páginas locales llevan `noindex` y `no-store`.
+
+Antes de abrir el navegador, la prueba examina `site/dist` y `site/.generated` y falla si encuentra el identificador del profesor ficticio, el marcador de fixture o cualquier texto sintético del archivo de datos. Un control negativo demuestra que detecta un comentario importado filtrado incluso sin el marcador. Los datos están bajo `scripts/fixtures`, fuera de `public`, del código de la aplicación y de los imports de producción.
+
+Para reproducir desde la raíz:
+
+```sh
+npm --prefix site ci
+npm --prefix site run build
+npm --prefix site exec -- playwright install chromium
+npm --prefix site run test:review-replies
+```
+
+CI ejecuta este recorrido en cada PR y push a `main`. Conserva durante siete días el artefacto `mobile-review-threads`, con capturas de los tres anchos y `checks.json`; si falla, incluye `failure.png`. Las salidas locales quedan en `site/.test-results/review-replies/` (ignoradas por Git). El navegador y el servidor temporal se cierran tanto al pasar como al fallar.
+
+Para explorar manualmente los mismos datos, después de compilar:
+
+```sh
+PROFESSOR_PREVIEW_FIXTURE=site/scripts/fixtures/professor-conversations.json node site/scripts/preview-professor-conversations.mjs
+```
+
+La URL local será `http://127.0.0.1:4397/profes/upc/docente-de-prueba/`. Este modo sustituye también la ficha del profesor; nunca añade reseñas a la ficha pública de Juan Carlos Morales.

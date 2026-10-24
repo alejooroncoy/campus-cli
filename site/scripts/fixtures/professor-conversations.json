@@ -1,0 +1,139 @@
+{
+  "profile": {
+    "professor": {
+      "id": 9000,
+      "slug": "docente-de-prueba",
+      "name": "Docente de prueba",
+      "university": "UPC"
+    },
+    "courses": [
+      {
+        "id": 1,
+        "name": "Base de Datos",
+        "code": "CURSO-DE-PRUEBA"
+      }
+    ],
+    "stats": {
+      "reviewCount": 1,
+      "ratingCount": 1,
+      "averageRating": 8
+    },
+    "reviews": [
+      {
+        "id": 9001,
+        "professorId": 9000,
+        "professor": "Docente de prueba",
+        "professorSlug": "docente-de-prueba",
+        "rating": 8,
+        "text": "CAMPUS_TEST_ONLY_THREAD_9b281c · RESEÑA FICTICIA. ¿Las prácticas incluyen ejemplos de normalización y consultas SQL? Este hilo solo sirve para revisar el diseño.",
+        "course": "Base de Datos",
+        "term": "2026-2",
+        "createdAt": "2026-10-23T15:00:00Z",
+        "editedAt": null
+      }
+    ],
+    "nextCursor": null,
+    "catalogReviews": {
+      "stats": {
+        "reviewCount": 1,
+        "ratingCount": 1,
+        "averageRating": 8,
+        "commentCount": 1
+      },
+      "sourceUrls": [
+        "https://peru.misprofesores.com/profesores/Docente-De-Prueba_9000"
+      ],
+      "reviews": [
+        {
+          "id": 9002,
+          "rating": 8,
+          "course": "Base de Datos",
+          "courseStatus": "source_label",
+          "text": "COMENTARIO FICTICIO de MisProfesores para comparar tipografía, puntuación y espaciado con las otras fuentes.",
+          "date": "2026-10-23"
+        }
+      ],
+      "nextCursor": null
+    },
+    "externalRatings": [
+      {
+        "source": "profematch",
+        "sourceId": "9000",
+        "sourceUrl": "https://profematchperu.com/u/upc/profesor/9000-docente-de-prueba",
+        "courseLabel": "Base de Datos",
+        "score": 4,
+        "scale": 5,
+        "ratingCount": 1,
+        "observedAt": "2026-10-23T15:00:00Z",
+        "commentsStatus": "available",
+        "commentsObservedAt": "2026-10-23T15:00:00Z",
+        "comments": [
+          {
+            "id": "profematch-9000-review-9001",
+            "text": "COMENTARIO FICTICIO. Las guías incluyen ejercicios paso a paso. ¿Qué temas conviene practicar primero?",
+            "rating": 4,
+            "dateLabel": "23 oct. 2026",
+            "repliesStatus": "available",
+            "replies": [
+              {
+                "id": "profematch-9000-review-9001-reply-1",
+                "text": "RESPUESTA DE PRUEBA: comenzaría por claves primarias y relaciones entre tablas.",
+                "dateLabel": "23 oct. 2026",
+                "repliesStatus": "available",
+                "replies": [
+                  {
+                    "id": "profematch-9000-review-9001-reply-11",
+                    "text": "SUBCOMENTARIO DE PRUEBA: ¿también conviene repasar normalización antes de las consultas?",
+                    "dateLabel": "23 oct. 2026",
+                    "repliesStatus": "available",
+                    "replies": [
+                      {
+                        "id": "profematch-9000-review-9001-reply-111",
+                        "text": "SEGUNDO SUBNIVEL DE PRUEBA: sí, primero identifica las dependencias y después practica consultas con JOIN.",
+                        "dateLabel": "23 oct. 2026",
+                        "repliesStatus": "available",
+                        "replies": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "profematch-9000-review-9001-reply-2",
+                "text": "OTRA RESPUESTA FICTICIA: dejé una explicación larga para comprobar cómo se ajusta en una pantalla estrecha. Un buen ejemplo debe mantener legibles las preguntas, las fechas y las respuestas, sin desplazar el contenido hacia fuera de la tarjeta. La conversación sigue perteneciendo a la misma reseña.",
+                "dateLabel": "23 oct. 2026",
+                "repliesStatus": "available",
+                "replies": [
+                  {
+                    "id": "profematch-9000-review-9001-reply-21",
+                    "text": "SUBCOMENTARIO DE PRUEBA: gracias, ahora entiendo el orden de estudio.",
+                    "dateLabel": "23 oct. 2026",
+                    "repliesStatus": "available",
+                    "replies": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "repliesByReview": {
+    "9001": [
+      {
+        "id": 1,
+        "text": "RESPUESTA FICTICIA: en este ejemplo, las prácticas incluyen normalización y consultas con JOIN.",
+        "authorLabel": "Estudiante de Campus",
+        "createdAt": "2026-10-23T16:00:00Z"
+      },
+      {
+        "id": 2,
+        "text": "RESPUESTA FICTICIA DEL AUTOR: gracias. ¿Los ejemplos muestran también el resultado esperado de cada consulta?",
+        "authorLabel": "Autor de la reseña",
+        "createdAt": "2026-10-23T16:30:00Z"
+      }
+    ]
+  },
+  "fixtureSentinel": "CAMPUS_TEST_ONLY_THREAD_9b281c"
+}
