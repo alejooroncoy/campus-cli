@@ -134,7 +134,7 @@ export function initLibrary(root: HTMLElement) {
   function createCloud(copy: CloudCopy<Recovery>) {
     cloudBase = copy.revision;
     cloudLastMutation = copy.mutationId ?? undefined;
-    cloud = new CloudDraftQueue<Recovery>(copy.revision, async (attempt: CloudAttempt<Recovery>) => {
+    const queue = new CloudDraftQueue<Recovery>(copy.revision, async (attempt: CloudAttempt<Recovery>) => {
       let encoded: {name:string;base64:string}[] | undefined;
       if (attempt.files !== undefined) {
         try { encoded=await Promise.all(attempt.files.map(async file=>({name:file.name,base64:await base64(file)}))); }
@@ -143,8 +143,9 @@ export function initLibrary(root: HTMLElement) {
       const payload = {...attempt, scope:copy.scope, ...(encoded !== undefined ? {files:encoded} : {})};
       return (await api("recovery", payload)).recovery;
     }, {
-      before: cacheCloudState,
+      before: () => { if (cloud === queue) cacheCloudState(); },
       saved: copy => {
+        if (cloud !== queue) return;
         transientCloudFailure = false;
         cloudBase = copy.revision;
         cloudLastMutation = copy.mutationId ?? undefined;
@@ -154,6 +155,7 @@ export function initLibrary(root: HTMLElement) {
         updateResumeNotice();
       },
       failed: error => {
+        if (cloud !== queue) return;
         transientCloudFailure = !(error instanceof LibraryApiError) || error.status >= 500;
         cloudSaved = false;
         if (error instanceof LibraryApiError && error.status === 409) {
@@ -172,6 +174,7 @@ export function initLibrary(root: HTMLElement) {
         updateResumeNotice();
       },
     });
+    cloud = queue;
   }
   function queueCloud(filesChanged = false) {
     if (offlineMode) {
@@ -322,12 +325,14 @@ export function initLibrary(root: HTMLElement) {
     $('[data-lib-login]').hidden = false;
     message('La cuenta cambió o se cerró la sesión. Tu borrador local sigue guardado; vuelve a entrar para continuar.');
   });
-  const connectionTimer = setInterval(() => {
+  const checkConnection = () => {
     if (!root.isConnected || !navigator.onLine || busy) return;
     if (offlineMode && retryConnection) void run(reconnectOffline);
     else if (transientCloudFailure && cloud?.dirty && !cloud.paused) void cloud.flush().catch(() => {});
-  }, 10000);
-  window.addEventListener('pagehide', () => clearInterval(connectionTimer), { once: true });
+  };
+  let connectionTimer = setInterval(checkConnection, 10000);
+  window.addEventListener('pagehide', () => clearInterval(connectionTimer));
+  window.addEventListener('pageshow', () => { clearInterval(connectionTimer); connectionTimer = setInterval(checkConnection, 10000); checkConnection(); });
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' as const : 'smooth' as const;
   window.addEventListener("beforeunload", (event) => {
     if (!unsaved || localSaved || cloudSaved) return;
