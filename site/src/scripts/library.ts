@@ -1,4 +1,5 @@
 import { keepBothOperation, type KeepBothOperation } from "../lib/library-versions";
+import { watchLibraryVersions } from "../lib/library-version-sync";
 import { CloudDraftQueue, chooseCloudRecovery, type CloudCopy, type CloudAttempt } from "../lib/library-cloud-draft";
 import { DraftConflictError, LibraryDraftStore, indexedDraftFiles, libraryDraftKey } from "../lib/library-draft";
 import { isLibraryWorkspaceViewHash } from "../lib/library-navigation";
@@ -107,6 +108,7 @@ export function initLibrary(root: HTMLElement) {
   let reconnecting: Promise<void> | null = null;
   let retryConnection = true, transientCloudFailure = false;
   let sessionGeneration = 0;
+  let refreshVersionList = () => {};
   if ('serviceWorker' in navigator) {
     const offlineAvailability = async () => {
       try {
@@ -354,6 +356,23 @@ export function initLibrary(root: HTMLElement) {
     if (offlineMode) void run(reconnectOffline);
     else if (cloud?.dirty && !cloud.paused) void cloud.flush().catch(() => {});
   });
+  const versionSync = watchLibraryVersions({
+    window, document,
+    active: () => root.isConnected && navigator.onLine && document.visibilityState === 'visible'
+      && versionsEnabled && !offlineMode && !busy && view === 'overview' && !$('[data-lib-private]').hidden,
+    refresh: async () => {
+      try { await versions(); }
+      catch { $('[data-lib-versions-sync]').textContent = 'No pudimos actualizar las versiones. Reintentaremos al recuperar la conexión.'; }
+    },
+    interval: callback => {
+      const timer = setInterval(() => { if (!root.isConnected) versionSync.stop(); else callback(); }, 15000);
+      return () => clearInterval(timer);
+    },
+  });
+  refreshVersionList = versionSync.refresh;
+  window.addEventListener('offline', () => {
+    if (root.isConnected) $('[data-lib-versions-sync]').textContent = 'Sin conexión. Las versiones se actualizarán al volver internet.';
+  });
   window.addEventListener('storage', event => {
     if (event.key !== LIBRARY_OFFLINE_OWNER && event.key !== 'campus-session-revision-v1') return;
     sessionGeneration++;
@@ -419,6 +438,7 @@ export function initLibrary(root: HTMLElement) {
         link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
+    if (view === 'overview') refreshVersionList();
   }
   function showStage(next: number) {
     stage = next;
@@ -625,14 +645,22 @@ export function initLibrary(root: HTMLElement) {
   }
   type SavedVersion={id:string;side:string;title:string;course:string;createdAt:string;fileCount?:number};
   let visibleVersions:SavedVersion[]=[];
+  let versionRead = 0, versionListSignature = '';
   async function versions(page=versionsPage) {
-    const generation=sessionGeneration;
+    const generation=sessionGeneration, read=++versionRead;
     const data=await api('recovery/versions?page='+page);
     if(generation!==sessionGeneration || !root.isConnected) throw new Error('La cuenta cambió durante la carga.');
+    if(read!==versionRead)return;
     if(page>1 && !data.versions.length)return versions(page-1);
     versionsPage=page;
     visibleVersions=data.versions;
     $('[data-lib-versions]').hidden=false;
+    $('[data-lib-versions-sync]').textContent = 'Actualizado con tu cuenta Campus.';
+    const signature=JSON.stringify({page,versions:data.versions,hasMore:data.hasMore});
+    if(signature===versionListSignature)return; // Preserve keyboard focus when nothing changed.
+    versionListSignature=signature;
+    const dialog=$<HTMLDialogElement>('[data-lib-version-delete-dialog]');
+    if(dialog.open && !visibleVersions.some(v=>v.id===dialog.dataset.versionId))dialog.close();
     $('[data-lib-versions-list]').innerHTML=data.versions.length?data.versions.map((v:SavedVersion)=>`<article class="lib-card"><span class="lib-badge">Borrador privado · ${v.side==='local'?'Copia aportada':'Copia de Campus'}</span><h3>${e(v.title||'Borrador sin título')}</h3><p class="lib-muted">${e(v.course||'Curso pendiente')} · ${e(new Date(v.createdAt).toLocaleString('es-PE'))}</p><div class="lib-actions"><button class="lib-button lib-secondary" type="button" data-version="${e(v.id)}">Retomar esta versión</button>${versionDeletionEnabled?`<button class="lib-button lib-secondary lib-danger" type="button" data-version-delete="${e(v.id)}">${libraryIcon("trash-2")} Eliminar versión</button>`:""}</div></article>`).join(''):'<p class="lib-muted">Aquí aparecerán las dos copias cuando elijas «Conservar ambas» al resolver un conflicto.</p>';
     pages($('[data-lib-versions-pages]'),page,data.hasMore,versions);
   }
@@ -650,6 +678,7 @@ export function initLibrary(root: HTMLElement) {
     await api(`recovery/versions/${id}/delete`,{scope:workspaceScope,confirm:true});
     if(generation!==sessionGeneration || !root.isConnected)return;
     root.querySelector<HTMLButtonElement>(`button[data-version-delete="${id}"]`)?.closest('article')?.remove();
+    versionListSignature='';
     message('Versión eliminada con sus archivos. Tu borrador original y tu avance actual siguen guardados.');
     try { await versions(); }
     catch { message('La versión se eliminó. No pudimos actualizar la lista; pulsa Actualizar versiones.',true); }
