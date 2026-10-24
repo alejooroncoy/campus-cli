@@ -1,7 +1,7 @@
 {
   "name": "campus-cli",
   "version": "2.2.3",
-  "description": "Conecta Blackboard UPC con ChatGPT y Claude vía MCP, o úsalo desde la terminal — CLI/MCP no oficial para el campus universitario (Blackboard, Canvas, Moodle...)",
+  "description": "Conecta Blackboard UPC con ChatGPT y Claude v\u00eda MCP, o \u00fasalo desde la terminal \u2014 CLI/MCP no oficial para el campus universitario (Blackboard, Canvas, Moodle...)",
   "mcpName": "io.github.alejooroncoy/campus-cli",
   "main": "run.js",
   "exports": {
@@ -20,7 +20,12 @@
     "./analytics": "./dist/analytics.js",
     "./mendeley-mcp-tools": "./dist/providers/academic/mendeley-mcp-tools.js",
     "./mendeley-service": "./dist/providers/academic/mendeley-service.js",
-    "./research-browser": "./dist/providers/academic/research-browser-api.js"
+    "./research-browser": "./dist/providers/academic/research-browser-api.js",
+    "./upn": "./dist/providers/upn/service.js",
+    "./upn-mcp-tools": "./dist/providers/upn/mcp-tools.js",
+    "./miupc": "./dist/providers/miupc/service.js",
+    "./miupc-legacy": "./dist/providers/miupc/legacy.js",
+    "./miupc-mcp-tools": "./dist/providers/miupc/mcp-tools.js"
   },
   "files": [
     "dist",
@@ -31,7 +36,9 @@
     "docs/academic-research.md",
     "CHANGELOG.md",
     "SECURITY.md",
-    "scripts/mendeley-connect.cjs"
+    "scripts/mendeley-connect.cjs",
+    "docs/mi-mundo-upn.md",
+    "docs/mi-upc.md"
   ],
   "bin": {
     "campus": "run.js",
@@ -86,7 +93,8 @@
     "pdfjs-dist": "^6.3.289",
     "playwright": "^1.62.1",
     "proper-lockfile": "4.1.2",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "parse5": "8.0.0"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",
