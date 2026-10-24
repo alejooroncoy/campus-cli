@@ -46,7 +46,7 @@ function hasFileSignature(url: string): boolean {
 async function resolveSignedMediaLocation(client: AxiosInstance, location: string, requestUrl: string): Promise<string | null> {
   let uri = resolveMediaLocation(location, requestUrl);
   for (let attempt = 0; attempt < 3; attempt++) {
-    assertBlackboardFileUrl(uri);
+    assertBlackboardFileUrl(uri, client.defaults?.baseURL);
     if (hasFileSignature(uri)) return uri;
     const response = await client.get(uri, {
       responseType: 'stream', maxRedirects: 0, validateStatus: (status) => status >= 200 && status < 400, headers: { Accept: '*/*' },
@@ -66,7 +66,7 @@ export async function resolvedEmbeddedMediaResourceLink(
   client: AxiosInstance, file: { displayName: string; mimeType: string; downloadUrl: string },
 ): Promise<MediaResourceLink | null> {
   if (!isMediaMimeType(file.mimeType)) return null;
-  assertBlackboardFileUrl(file.downloadUrl);
+  assertBlackboardFileUrl(file.downloadUrl, client.defaults?.baseURL);
   const response = await client.get(file.downloadUrl, {
     responseType: 'stream', maxRedirects: 0, validateStatus: (status) => status >= 200 && status < 400, headers: { Accept: '*/*' },
   });
@@ -95,7 +95,7 @@ export async function attachmentMediaResourceLink(
   response.data?.destroy?.();
   const location = response.headers.location as string | undefined;
   if (!location) return null;
-  const requestUrl = new URL(`/learn/api/public/v1/courses/${courseId}/contents/${contentId}/attachments/${attachment.id}/download`, BLACKBOARD_ORIGIN).href;
+  const requestUrl = new URL(`/learn/api/public/v1/courses/${courseId}/contents/${contentId}/attachments/${attachment.id}/download`, client.defaults?.baseURL ?? BLACKBOARD_ORIGIN).href;
   const uri = await resolveSignedMediaLocation(client, location, requestUrl);
   if (!uri) return null;
   return {

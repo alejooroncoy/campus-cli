@@ -74,7 +74,7 @@ function htmlTags(html: string): string[] {
 
 /** Blackboard's document viewer can render a file even when it is not exposed
  * by the REST attachments endpoint. */
-export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
+export function extractEmbeddedFiles(body: string, origin = BLACKBOARD_ORIGIN): EmbeddedFile[] {
   const fileIndexes = new Map<string, number>();
   const authoritativeFields = new Map<string, { displayName: boolean; mimeType: boolean }>();
   const files: EmbeddedFile[] = [];
@@ -109,8 +109,8 @@ export function extractEmbeddedFiles(body: string): EmbeddedFile[] {
     let url: URL | undefined;
     for (const candidate of candidates) {
       try {
-        const parsed = new URL(candidate, BLACKBOARD_ORIGIN);
-        if (parsed.protocol === 'https:' && parsed.origin === BLACKBOARD_ORIGIN && parsed.pathname.startsWith('/bbcswebdav/')) {
+        const parsed = new URL(candidate, origin);
+        if (parsed.protocol === 'https:' && parsed.origin === origin && parsed.pathname.startsWith('/bbcswebdav/')) {
           url = parsed;
           break;
         }

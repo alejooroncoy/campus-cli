@@ -65,8 +65,8 @@ async function mapWithConcurrency<T, U>(
   return output;
 }
 
-function embeddedFilesFromBody(body: unknown) {
-  if (typeof body === 'string') return extractEmbeddedFiles(body);
+function embeddedFilesFromBody(body: unknown, origin?: string) {
+  if (typeof body === 'string') return extractEmbeddedFiles(body, origin);
   if (!body || typeof body !== 'object') return [];
   const value = body as { rawText?: unknown; displayText?: unknown };
   const html = typeof value.rawText === 'string'
@@ -74,7 +74,7 @@ function embeddedFilesFromBody(body: unknown) {
     : typeof value.displayText === 'string'
       ? value.displayText
       : undefined;
-  return html ? extractEmbeddedFiles(html) : [];
+  return html ? extractEmbeddedFiles(html, origin) : [];
 }
 
 async function resourceLinksForEmbeddedFiles(client: any, files: ReturnType<typeof extractEmbeddedFiles>) {
@@ -88,7 +88,7 @@ async function resourceLinksForEmbeddedFiles(client: any, files: ReturnType<type
 }
 
 async function decorateDiscussionEmbeds(client: any, discussion: any) {
-  const files = embeddedFilesFromBody(discussion?.topic?.body);
+  const files = embeddedFilesFromBody(discussion?.topic?.body, client.defaults?.baseURL);
   if (!files.length) return { value: discussion, links: [] };
   return {
     value: {
@@ -103,7 +103,7 @@ async function decorateDiscussionEmbeds(client: any, discussion: any) {
 }
 
 async function decorateMessageEmbeds(client: any, message: any) {
-  const files = embeddedFilesFromBody(message?.body);
+  const files = embeddedFilesFromBody(message?.body, client.defaults?.baseURL);
   if (!files.length) return { value: message, links: [] };
   return {
     value: {
@@ -658,11 +658,11 @@ export function registerBlackboardTools(server: McpServer) {
       const url = directUrl
         ? attachmentId
         : `/learn/api/public/v1/courses/${courseId}/contents/${contentId}/attachments/${attachmentId}/download`;
-      if (directUrl) assertBlackboardFileUrl(url);
 
       const dir = resolveDownloadDir(outputDir);
       if (filename !== undefined) safeNewFilePath(dir, filename);
       const { client } = await getClient();
+      if (/^https?:/i.test(url)) assertBlackboardFileUrl(url, client.defaults?.baseURL);
       const r = await client.get(url, { responseType: 'stream', headers: { Accept: '*/*' } });
 
       const contentDisposition = r.headers['content-disposition'] as string | undefined;
@@ -724,7 +724,7 @@ export function registerBlackboardTools(server: McpServer) {
       );
       const body: string = [r.data?.body, r.data?.contentHandler?.instructions]
         .filter((value): value is string => typeof value === 'string').join('\n');
-      const files = extractEmbeddedFiles(body);
+      const files = extractEmbeddedFiles(body, client.defaults?.baseURL);
       const embeddedLinks = (await mapWithConcurrency(files, MCP_MAX_PARALLELISM, async file => {
         try { return await resolvedEmbeddedMediaResourceLink(client, file); } catch (error) { return rethrowExpiredSession(error); }
       })).filter((link): link is NonNullable<typeof link> => Boolean(link));
@@ -775,10 +775,10 @@ export function registerBlackboardTools(server: McpServer) {
       },
     },
     async ({ url, filename, outputDir }) => {
-      assertBlackboardFileUrl(url);
       const dir = resolveDownloadDir(outputDir);
       if (filename !== undefined) safeNewFilePath(dir, filename);
       const { client } = await getClient();
+      if (/^https?:/i.test(url)) assertBlackboardFileUrl(url, client.defaults?.baseURL);
       const r = await client.get(url, { responseType: 'stream', headers: { Accept: '*/*' } });
 
       const contentDisposition = r.headers['content-disposition'] as string | undefined;
@@ -1072,8 +1072,8 @@ export function registerBlackboardTools(server: McpServer) {
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
     },
     async ({ method, path, query, body }) => {
-      assertPublicApiUrl(path);
       const { client } = await getClient();
+      assertPublicApiUrl(path, client.defaults?.baseURL);
       const params = query ? Object.fromEntries(new URLSearchParams(query)) : undefined;
       const data = body ? JSON.parse(body) : undefined;
       if (method !== 'GET') {
