@@ -20,9 +20,8 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    # Playwright descarga Chromium en el postinstall y aquí no hay navegador que
-    # abrir: el login contra el SSO ocurre en la máquina del estudiante. Bajarlo
-    # costaría minutos por ejecución sin comprobar nada.
+    # Install browsers explicitly after the non-browser checks. Tests use local
+    # fixtures; university SSO and production credentials are never needed.
     env:
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
       POSTHOG_DISABLED: 1
@@ -59,6 +58,21 @@ jobs:
           fi
       - run: npx playwright install --with-deps chromium
         timeout-minutes: 5
+      - name: Install site browser
+        run: npm --prefix site exec -- playwright install chromium
+        timeout-minutes: 5
+      - name: Mobile replies and nested comments (offline fixtures)
+        run: npm --prefix site run test:review-replies
+        timeout-minutes: 3
+      - name: Upload mobile thread screenshots and checks
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mobile-review-threads
+          path: site/.test-results/review-replies/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Browser PDF reading continuation
         run: CAMPUS_BROWSER_TESTS=1 node --import tsx --test tests/research-browser.test.ts
       - run: npm --prefix site run test:analytics:transport

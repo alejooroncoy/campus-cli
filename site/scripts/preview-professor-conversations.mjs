@@ -6,7 +6,10 @@ import {fileURLToPath} from 'node:url';
 import {professorsPage} from '../api/professors.js';
 const root=resolve(fileURLToPath(new URL('../dist/',import.meta.url)));
 const port=Number(process.env.PORT||4397);let origin=`http://127.0.0.1:${port}`;
-const replies=new Map(),keys=new Map();let serial=0;
+const fixture=process.env.PROFESSOR_PREVIEW_FIXTURE?JSON.parse(await readFile(process.env.PROFESSOR_PREVIEW_FIXTURE,'utf8')):null;
+// Fixture mode must stay offline even if a future route accidentally calls fetch.
+if(fixture)globalThis.fetch=async()=>{console.error('Blocked outbound fetch in fixture preview');throw new Error('Fixture preview is offline');};
+const replies=new Map(Object.entries(fixture?.repliesByReview??{})),keys=new Map();let serial=Math.max(0,...Array.from(replies.values()).flat().map(reply=>reply.id));
 const types={'.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.woff2':'font/woff2','.html':'text/html'};
 const server=createServer(async(req,res)=>{
  const url=new URL(req.url,origin),path=url.pathname;
@@ -30,6 +33,7 @@ const server=createServer(async(req,res)=>{
   if(req.method!=='GET')return json(405,{error:'Método no permitido.'});
   if(path.startsWith('/profes/upc/')){
    const response=await professorsPage(new Request(url),{preview:true,fetchData:async(target,options)=>{
+    if(fixture)return Response.json(structuredClone(fixture.profile));
     const response=await fetch(target,options);if(!response.ok)return response;
     const data=await response.json();
     if(Array.isArray(data.externalRatings)){
@@ -39,12 +43,12 @@ const server=createServer(async(req,res)=>{
     return Response.json(data);
    }});
    let html=await response.text();
-   html=html.replace('<main id="professor-content"','<div style="max-width:1120px;margin:12px auto;padding:10px 16px;background:#fff8df;color:#665523;font:13px/1.5 sans-serif;border-radius:8px">Vista previa local · Las respuestas de prueba se guardan solo en memoria. No se publica nada en Campus.</div><main id="professor-content"');
-   res.writeHead(response.status,Object.fromEntries(response.headers));res.end(html);return;
+   html=html.replace('<main id="professor-content"',`<div style="max-width:1120px;margin:12px auto;padding:10px 16px;background:#fff8df;color:#665523;font:13px/1.5 sans-serif;border-radius:8px">${fixture?'PRUEBA LOCAL · Todos los comentarios y respuestas son ficticios. Los envíos se guardan solo en memoria.':'Vista previa local · Las respuestas de prueba se guardan solo en memoria. No se publica nada en Campus.'}</div><main id="professor-content"`);
+   res.writeHead(response.status,{...Object.fromEntries(response.headers),'cache-control':'no-store','x-robots-tag':'noindex'});res.end(html);return;
   }
   let file=resolve(root,'.'+decodeURIComponent(path));if(!file.startsWith(root+sep))return json(404,{});
   if((await stat(file)).isDirectory())file=resolve(file,'index.html');
   res.writeHead(200,{'content-type':types[extname(file)]||'application/octet-stream','cache-control':'no-store'});res.end(await readFile(file));
  }catch{json(503,{error:'No pudimos cargar la vista previa.'});}
 });
-server.listen(port,'127.0.0.1',()=>{origin=`http://127.0.0.1:${server.address().port}`;console.log(`${origin}/profes/upc/juan-carlos-morales-arevalo/`);});
+server.listen(port,'127.0.0.1',()=>{origin=`http://127.0.0.1:${server.address().port}`;console.log(`${origin}/profes/upc/${fixture?.profile.professor.slug??'juan-carlos-morales-arevalo'}/`);});

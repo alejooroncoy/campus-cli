@@ -10,6 +10,7 @@ dist/
 .gstack/
 .astro/
 .vercel/
+/site/.test-results/
 
 # Configuración y salidas de agentes de IA (local, por desarrollador)
 .claude/
