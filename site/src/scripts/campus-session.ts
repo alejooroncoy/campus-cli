@@ -3,6 +3,7 @@ import { analyticsSession, resetAnalytics } from "./analytics";
 import { notifySessionLogout, publishSessionIdentity } from "./session-sync";
 import { CONVERSATION_DRAFTS_KEY, GUEST_DRAFT_HANDOFF_KEY } from "./conversation-drafts";
 import { carryGuestUniversity } from './guest-university';
+import { forgetOfflineOwner } from '../lib/library-offline.ts';
 export type CampusSession = {
   analyticsId?: string;
   authenticated: boolean;
@@ -110,6 +111,7 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
 }
 
 export function clearCampusSession(notify = true): void {
+  try { forgetOfflineOwner(localStorage); } catch { /* Local storage may be unavailable. */ }
   cachedSession = undefined;
   pendingSession = undefined;
   if (typeof window !== "undefined") delete window.__campusSessionBootstrap;

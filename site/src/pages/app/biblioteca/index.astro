@@ -35,6 +35,7 @@ import Icon from '../../../components/LucideIcon.astro';
       <section class="lib-panel lib-editor" id="subir" aria-labelledby="lib-editor-title">
         <div class="lib-heading"><div><span class="lib-eyebrow">Un aporte, paso a paso</span><h2 id="lib-editor-title">Comparte lo que aprendiste.</h2></div><button type="button" class="lib-text-button" data-lib-new>Empezar de nuevo</button></div>
         <p class="lib-private-note" data-lib-persistence-help><Icon name="lock-keyhole" size={16} /> Tu avance y tus archivos se guardan automáticamente en tu cuenta Campus. Cuando veas «Guardado en tu cuenta», podrás continuar desde otro navegador o dispositivo. Tu borrador sigue siendo privado.</p>
+        <p class="lib-muted" data-lib-offline-ready role="status">Preparando la apertura sin conexión en este dispositivo…</p>
         <div class="lib-autosave" data-lib-autosave><span class="lib-autosave-dot" aria-hidden="true"></span><span data-lib-autosave-text role="status" aria-live="polite">Preparando el guardado automático…</span><button class="lib-text-button" type="button" data-lib-autosave-retry hidden>Reintentar guardado</button></div>
         <p class="lib-notice" data-lib-recovered hidden></p>
         <ol class="lib-stepper" aria-label="Progreso del aporte"><li><button type="button" data-lib-step="1" aria-current="step"><span>1</span> Archivo y curso</button></li><li><button type="button" data-lib-step="2"><span>2</span> Evaluación <small>Opcional</small></button></li><li><span data-lib-step-review><b>3</b> Revisar y enviar</span></li></ol>
