@@ -3,5 +3,8 @@ export const turnitinServiceEnabled = process.env.CAMPUS_TURNITIN_SERVICE_ENABLE
 
 /** @param {string} html */
 export function publicHomeHtml(html) {
+  html = libraryServiceEnabled ? html : html.replace(/<!-- library:start -->[\s\S]*?<!-- library:end -->/g, '');
   return turnitinServiceEnabled ? html : html.replace(/<!-- turnitin:start -->[\s\S]*?<!-- turnitin:end -->/g, '');
 }
+
+export const libraryServiceEnabled = process.env.CAMPUS_LIBRARY_ENABLED === "true";

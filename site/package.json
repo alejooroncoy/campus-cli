@@ -5,7 +5,7 @@
   "scripts": {
     "css": "esbuild public/styles.css --minify --outfile=public/styles.min.css --allow-overwrite",
     "dev": "npm run pdf-assets && npm run css && astro dev",
-    "build": "npm run pdf-assets && npm run css && astro build && node scripts/externalize-app-scripts.mjs && node scripts/prepare-professors-template.mjs",
+    "build": "npm run pdf-assets && npm run css && astro build && node scripts/externalize-app-scripts.mjs && node scripts/prepare-professors-template.mjs && node scripts/prepare-library-template.mjs",
     "check": "astro check",
     "preview": "astro preview",
     "test:agent-discovery": "node scripts/verify-agent-discovery.mjs",
