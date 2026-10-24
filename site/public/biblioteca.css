@@ -507,3 +507,7 @@
 .lib-cloud-save [data-lib-cloud-text]{flex:1;min-width:0}.lib-cloud-save.is-error{background:#fff8f1}
 
 .lib-version-dialog{width:min(32rem,calc(100% - 2rem));max-height:calc(100dvh - 2rem);overflow:auto;border:1px solid #d7e1e4;border-radius:18px;padding:24px;color:#132c39;background:#fff;box-shadow:0 16px 64px #132c3933}.lib-version-dialog::backdrop{background:#132c3970}.lib-version-dialog h2{font-size:1.4rem;margin:0 0 12px}.lib-version-dialog p{line-height:1.6;margin:0 0 20px}
+
+.lib-version-dialog{overflow-wrap:anywhere}.lib-version-delete-title{font-weight:700}
+
+.lib-button[data-version-delete]{color:#a13632!important;border-color:#d5aaa8}.lib-version-dialog .lib-button.lib-danger{background:#a13632;border-color:#a13632;color:#fff!important}.lib-version-dialog .lib-button.lib-danger:hover{background:#802a27;border-color:#802a27}
