@@ -1,11 +1,12 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import path from 'path';
+import { createHash } from 'node:crypto';
 import type { Session } from '../types.js';
+import { blackboardUniversity } from '../universities.js';
 import { laneFor, paceFor } from './pace.js';
 import { Reuse, isReusable, keyFor, reuseFor } from './reuse.js';
 
 const BASE_URL = 'https://aulavirtual.upc.edu.pe';
-const ALLOWED_HOST = 'aulavirtual.upc.edu.pe';
 // Blackboard uses several vendor-owned hosts for signed file downloads. These
 // redirects are allowed only within the Blackboard domain; credentials are
 // stripped before following any cross-origin redirect below.
@@ -17,14 +18,14 @@ const BLACKBOARD_DOWNLOAD_HOST = /(?:^|\.)blackboard\.com$/i;
 // (bbcswebdav links, blackboard_raw_api's path) must never be allowed to be
 // absolute unless it targets this exact host, or the student's session leaks
 // to whatever host was supplied.
-export function assertSameOrigin(url: string): void {
+export function assertSameOrigin(url: string, baseUrl = BASE_URL): void {
   let parsed: URL;
   try {
-    parsed = new URL(url, BASE_URL);
+    parsed = new URL(url, baseUrl);
   } catch {
     throw new Error(`Invalid URL: ${url}`);
   }
-  if (parsed.protocol !== 'https:' || parsed.host !== ALLOWED_HOST) {
+  if (parsed.protocol !== 'https:' || parsed.origin !== new URL(baseUrl).origin) {
     throw new Error(
       `Refusing to send the Blackboard session to a non-Blackboard host: ${parsed.hostname}`
     );
@@ -36,16 +37,16 @@ export function assertSameOrigin(url: string): void {
  * can never start a session-authenticated request there. The redirect handler
  * strips credentials before accepting it below.
  */
-export function assertTrustedBlackboardRedirect(url: string): void {
+export function assertTrustedBlackboardRedirect(url: string, baseUrl = BASE_URL): void {
   let parsed: URL;
   try {
-    parsed = new URL(url, BASE_URL);
+    parsed = new URL(url, baseUrl);
   } catch {
     throw new Error(`Invalid URL: ${url}`);
   }
   if (
-    parsed.protocol !== 'https:' ||
-    (parsed.host !== ALLOWED_HOST && !BLACKBOARD_DOWNLOAD_HOST.test(parsed.hostname))
+    parsed.protocol !== 'https:' || parsed.port !== '' || Boolean(parsed.username || parsed.password) ||
+    (parsed.origin !== new URL(baseUrl).origin && !BLACKBOARD_DOWNLOAD_HOST.test(parsed.hostname))
   ) {
     throw new Error(
       `Refusing to follow a Blackboard redirect to an untrusted host: ${parsed.hostname}`
@@ -62,17 +63,17 @@ function stripSessionHeaders(headers: Record<string, unknown> | undefined): void
   }
 }
 
-export function assertPublicApiUrl(url: string): void {
-  assertSameOrigin(url);
-  const parsed = new URL(url, BASE_URL);
+export function assertPublicApiUrl(url: string, baseUrl = BASE_URL): void {
+  assertSameOrigin(url, baseUrl);
+  const parsed = new URL(url, baseUrl);
   if (!parsed.pathname.startsWith('/learn/api/public/')) {
     throw new Error('Raw API calls are restricted to /learn/api/public/ endpoints');
   }
 }
 
-export function assertBlackboardFileUrl(url: string): void {
-  assertSameOrigin(url);
-  const parsed = new URL(url, BASE_URL);
+export function assertBlackboardFileUrl(url: string, baseUrl = BASE_URL): void {
+  assertSameOrigin(url, baseUrl);
+  const parsed = new URL(url, baseUrl);
   if (!parsed.pathname.startsWith('/bbcswebdav/')) {
     throw new Error('Direct downloads are restricted to Blackboard /bbcswebdav/ URLs');
   }
@@ -114,17 +115,19 @@ export type ClientOptions = {
 };
 
 export function createClient(session: Session, options: ClientOptions = {}): AxiosInstance {
+  const baseUrl = blackboardUniversity(session.universityId).origin;
+  const allowedHost = new URL(baseUrl).hostname;
   // Build cookie header string
   const cookieStr = session.cookies
     .filter((c) => {
-      const domain = c.domain.replace(/^\./, '');
-      return ALLOWED_HOST === domain || ALLOWED_HOST.endsWith(`.${domain}`);
+      const domain = c.domain.replace(/^\./, '').toLowerCase();
+      return allowedHost === domain || allowedHost.endsWith(`.${domain}`);
     })
     .map((c) => `${c.name}=${c.value}`)
     .join('; ');
 
   const client = axios.create({
-    baseURL: BASE_URL,
+    baseURL: baseUrl,
     headers: {
       Cookie: cookieStr,
       Accept: 'application/json',
@@ -134,10 +137,10 @@ export function createClient(session: Session, options: ClientOptions = {}): Axi
     withCredentials: true,
     beforeRedirect: (options) => {
       const url = `${options.protocol}//${options.hostname}${options.port ? `:${options.port}` : ''}${options.path ?? '/'}`;
-      assertTrustedBlackboardRedirect(url);
+      assertTrustedBlackboardRedirect(url, baseUrl);
       // Signed Blackboard links authorize the download in their URL. Do not
       // forward a student's Blackboard cookie or XSRF token cross-origin.
-      if (options.hostname !== ALLOWED_HOST) {
+      if (new URL(url).origin !== baseUrl) {
         stripSessionHeaders(options.headers as Record<string, unknown> | undefined);
       }
     },
@@ -148,7 +151,8 @@ export function createClient(session: Session, options: ClientOptions = {}): Axi
   // match each response to its request by hand, and any request that never
   // settled would hold its slot until the process exited.
   const pace = paceFor(options.paceKey ?? 'local');
-  const key = options.paceKey ?? 'local';
+  const identity = createHash('sha256').update(cookieStr).digest('hex');
+  const key = `${baseUrl}:${options.paceKey ?? 'local'}:${identity}`;
   const reuse = options.reuse ?? reuseFor(key);
   const base = axios.getAdapter(client.defaults.adapter);
   client.defaults.adapter = (config) => {
@@ -156,7 +160,8 @@ export function createClient(session: Session, options: ClientOptions = {}): Axi
     // here, so this is where the session leaks if a URL slips through unchecked
     // — enforcing it at each call site instead has already missed one (the `campus
     // api` CLI command shipped without the guard that blackboard_raw_api got).
-    assertSameOrigin(config.url ?? '');
+    assertSameOrigin(config.url ?? '', baseUrl);
+    if (config.baseURL !== baseUrl) throw new Error('Cannot override the university Blackboard origin');
     const send = () => pace.run(laneFor(config), () => base(config));
     if (!isReusable(config)) {
       // A write invalidates everything we remember before it runs, so a reader

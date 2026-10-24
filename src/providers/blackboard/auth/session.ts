@@ -4,13 +4,14 @@ import os from 'os';
 import crypto from 'node:crypto';
 import type { Session } from '../types.js';
 import { track } from '../../../analytics.js';
+import { blackboardUniversity } from '../universities.js';
 
 const SESSION_DIR = path.join(os.homedir(), '.blackboard-cli');
 const SESSION_FILE = path.join(SESSION_DIR, 'session.json');
 const PROFILE_DIR = path.join(SESSION_DIR, 'browser-profile');
 
-export function blackboardCookies(cookies: Session['cookies']): Session['cookies'] {
-  const host = 'aulavirtual.upc.edu.pe';
+export function blackboardCookies(cookies: Session['cookies'], universityId?: string): Session['cookies'] {
+  const host = new URL(blackboardUniversity(universityId).origin).hostname;
   return cookies.filter((cookie) => {
     const domain = cookie.domain.replace(/^\./, '').toLowerCase();
     return host === domain || host.endsWith(`.${domain}`);
@@ -24,7 +25,7 @@ export function saveSession(session: Session): void {
   fs.mkdirSync(SESSION_DIR, { recursive: true, mode: 0o700 });
   fs.chmodSync(SESSION_DIR, 0o700);
 
-  const sanitized = { ...session, cookies: blackboardCookies(session.cookies) };
+  const sanitized = { ...session, cookies: blackboardCookies(session.cookies, session.universityId) };
   const temporary = `${SESSION_FILE}.${process.pid}.${crypto.randomUUID()}.tmp`;
   fs.writeFileSync(temporary, JSON.stringify(sanitized, null, 2), { mode: 0o600, flag: 'wx' });
   fs.renameSync(temporary, SESSION_FILE);
@@ -38,7 +39,7 @@ export function loadSession(): Session | null {
     fs.chmodSync(SESSION_FILE, 0o600);
     const raw = fs.readFileSync(SESSION_FILE, 'utf-8');
     const session: Session = JSON.parse(raw);
-    const filtered = blackboardCookies(session.cookies ?? []);
+    const filtered = blackboardCookies(session.cookies ?? [], session.universityId);
     if (filtered.length !== (session.cookies ?? []).length) {
       session.ssoExpiresAt ??= getLegacySsoExpiry(session.cookies ?? []);
       session.cookies = filtered;

@@ -1,4 +1,6 @@
 export interface Session {
+  /** Selected during MCP onboarding; legacy sessions without this field use UPC. */
+  universityId?: string;
   cookies: Cookie[];
   xsrfToken: string;
   userId?: string;

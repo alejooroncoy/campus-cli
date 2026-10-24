@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import axios from 'axios';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
@@ -20,10 +21,17 @@ async function countingServer() {
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address() as AddressInfo;
+  const previousAdapter = axios.defaults.adapter;
+  const transport = axios.getAdapter(previousAdapter);
+  // Redirect only the test transport, after the production origin guard.
+  axios.defaults.adapter = config => transport({ ...config, baseURL: `http://127.0.0.1:${port}` });
   return {
     port,
     hits: () => hits,
-    close: () => new Promise<void>((resolve) => server.close(() => resolve())),
+    close: () => {
+      axios.defaults.adapter = previousAdapter;
+      return new Promise<void>((resolve) => server.close(() => resolve()));
+    },
   };
 }
 
@@ -96,8 +104,7 @@ test('the client asks the university once for a question repeated in a conversat
   // was two requests for the identical answer, seconds apart.
   const server = await countingServer();
   try {
-    const client = createClient(session(), { paceKey: 'ana' });
-    client.defaults.baseURL = `http://127.0.0.1:${server.port}`;
+    const client = createClient(session(), { paceKey: `ana:${server.port}` });
     const url = '/learn/api/public/v2/courses/_1_1/gradebook/columns';
 
     await client.get(url);
@@ -115,8 +122,7 @@ test('a fan-out over one course collapses to the requests it really needs', asyn
   // within that walk are free now; distinct ones still go out.
   const server = await countingServer();
   try {
-    const client = createClient(session(), { paceKey: 'ana' });
-    client.defaults.baseURL = `http://127.0.0.1:${server.port}`;
+    const client = createClient(session(), { paceKey: `ana:${server.port}` });
 
     await Promise.all([
       ...Array.from({ length: 13 }, () =>
@@ -138,8 +144,7 @@ test('a fan-out over one course collapses to the requests it really needs', asyn
 test('a submission is never answered from memory', async () => {
   const server = await countingServer();
   try {
-    const client = createClient(session(), { paceKey: 'ana' });
-    client.defaults.baseURL = `http://127.0.0.1:${server.port}`;
+    const client = createClient(session(), { paceKey: `ana:${server.port}` });
     const attempts = '/learn/api/public/v2/courses/_1_1/gradebook/columns/_1_1/attempts';
 
     await client.get(attempts);
@@ -162,8 +167,7 @@ test('two tool calls in a row share what was just asked', async () => {
   try {
     const url = '/learn/api/public/v2/courses/_1_1/gradebook/columns';
     const call = () => {
-      const client = createClient(session(), { paceKey: 'ana' });
-      client.defaults.baseURL = `http://127.0.0.1:${server.port}`;
+      const client = createClient(session(), { paceKey: `ana:${server.port}` });
       return client.get(url);
     };
     await call();
@@ -179,8 +183,7 @@ test('one student never reads another student answer', async () => {
   try {
     const url = '/learn/api/public/v1/users/me';
     const call = (who: string) => {
-      const client = createClient(session(), { paceKey: who });
-      client.defaults.baseURL = `http://127.0.0.1:${server.port}`;
+      const client = createClient(session(), { paceKey: `${who}:${server.port}` });
       return client.get(url);
     };
     await call('ana');

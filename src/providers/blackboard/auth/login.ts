@@ -5,9 +5,7 @@ import type { BrowserContext, Page } from 'playwright';
 import type { Session, Cookie } from '../types.js';
 import { blackboardCookies, saveSession } from './session.js';
 import { launchPersistentContextSafe } from '../../../browser-install.js';
-
-const BASE_URL = 'https://aulavirtual.upc.edu.pe';
-const SAML_URL = `${BASE_URL}/auth-saml/saml/login?apId=_4893_1&redirectUrl=${encodeURIComponent(`${BASE_URL}/ultra`)}`;
+import { blackboardUniversity, blackboardLoginUrl } from '../universities.js';
 
 const SESSION_TTL_FALLBACK_MS = 3 * 60 * 60 * 1000; // 3h — matches BbRouter timeout:10800
 const PROFILE_DIR = path.join(os.homedir(), '.blackboard-cli', 'browser-profile');
@@ -17,6 +15,7 @@ const USER_AGENT =
   '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 export interface LoginOptions {
+  universityId?: string;
   headless?: boolean;
   username?: string;
   password?: string;
@@ -96,11 +95,11 @@ function ensureProfileDir(): void {
   fs.chmodSync(PROFILE_DIR, 0o700);
 }
 
-export function isBlackboardUltraUrl(value: string | URL): boolean {
+export function isBlackboardUltraUrl(value: string | URL, universityId?: string): boolean {
   try {
     const url = value instanceof URL ? value : new URL(value);
     return url.protocol === 'https:'
-      && url.hostname === 'aulavirtual.upc.edu.pe'
+      && url.origin === blackboardUniversity(universityId).origin
       && (url.pathname === '/ultra' || url.pathname.startsWith('/ultra/'));
   } catch {
     return false;
@@ -110,6 +109,7 @@ export function isBlackboardUltraUrl(value: string | URL): boolean {
 async function waitForAuthenticationDestination(
   page: Page,
   timeout: number,
+  universityId?: string,
 ): Promise<'microsoft' | 'ultra'> {
   return new Promise((resolve, reject) => {
     let settled = false;
@@ -122,7 +122,7 @@ async function waitForAuthenticationDestination(
       resolve(destination);
     };
     const inspect = () => {
-      if (isBlackboardUltraUrl(page.url())) {
+      if (isBlackboardUltraUrl(page.url(), universityId)) {
         finish('ultra');
         return;
       }
@@ -146,7 +146,7 @@ async function waitForAuthenticationDestination(
   });
 }
 
-async function waitForSessionCookies(context: BrowserContext, timeout = 5_000): Promise<Cookie[]> {
+async function waitForSessionCookies(context: BrowserContext, timeout = 5_000, universityId?: string): Promise<Cookie[]> {
   const deadline = Date.now() + timeout;
   do {
     const cookies = (await context.cookies()).map((cookie) => ({
@@ -159,7 +159,7 @@ async function waitForSessionCookies(context: BrowserContext, timeout = 5_000): 
       secure: cookie.secure,
       sameSite: cookie.sameSite,
     }));
-    if (cookies.some(cookie => cookie.name === 'JSESSIONID' || cookie.name === 'BbRouter')) {
+    if (blackboardCookies(cookies, universityId).some(cookie => cookie.name === 'JSESSIONID' || cookie.name === 'BbRouter')) {
       return cookies;
     }
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -167,7 +167,7 @@ async function waitForSessionCookies(context: BrowserContext, timeout = 5_000): 
   throw new Error('Blackboard redirected to Ultra without creating a session');
 }
 
-async function dismissStaySignedInOrContinue(page: Page, timeout = 8_000): Promise<void> {
+async function dismissStaySignedInOrContinue(page: Page, timeout = 8_000, universityId?: string): Promise<void> {
   await new Promise<void>((resolve) => {
     let settled = false;
     const finish = () => {
@@ -180,7 +180,7 @@ async function dismissStaySignedInOrContinue(page: Page, timeout = 8_000): Promi
       resolve();
     };
     const inspect = () => {
-      if (isBlackboardUltraUrl(page.url())) {
+      if (isBlackboardUltraUrl(page.url(), universityId)) {
         finish();
         return;
       }
@@ -203,6 +203,9 @@ async function dismissStaySignedInOrContinue(page: Page, timeout = 8_000): Promi
 export async function login(opts: LoginOptions = {}): Promise<Session> {
   const { headless = false, timeout = 120_000 } = opts;
 
+  const universityId = opts.universityId ?? 'upc-pe';
+  const university = blackboardUniversity(universityId);
+  const BASE_URL = university.origin;
   ensureProfileDir();
 
   const context = await launchPersistentContextSafe(PROFILE_DIR, {
@@ -213,10 +216,10 @@ export async function login(opts: LoginOptions = {}): Promise<Session> {
   const page = await context.newPage();
 
   try {
-    console.log('Navigating to UPC Aula Virtual...');
-    const destination = waitForAuthenticationDestination(page, timeout);
+    console.log(`Navigating to ${university.name} Aula Virtual...`);
+    const destination = waitForAuthenticationDestination(page, timeout, universityId);
     destination.catch(() => {}); // avoid an unhandled rejection if page.goto throws first
-    await page.goto(SAML_URL, { waitUntil: 'commit', timeout });
+    await page.goto(blackboardLoginUrl(universityId), { waitUntil: 'commit', timeout });
     const needsInteractiveLogin = await destination === 'microsoft';
 
     if (needsInteractiveLogin) {
@@ -233,17 +236,18 @@ export async function login(opts: LoginOptions = {}): Promise<Session> {
         await page.waitForTimeout(1500);
       }
 
-      await dismissStaySignedInOrContinue(page);
+      await dismissStaySignedInOrContinue(page, 8_000, universityId);
     }
 
     console.log('Waiting for authentication to complete...');
-    if (!isBlackboardUltraUrl(page.url())) {
-      await page.waitForURL(url => isBlackboardUltraUrl(url), {
+    if (!isBlackboardUltraUrl(page.url(), universityId)) {
+      await page.waitForURL(url => isBlackboardUltraUrl(url, universityId), {
         waitUntil: 'commit',
         timeout,
       });
     }
-    const cookies = await waitForSessionCookies(context);
+    const allCookies = await waitForSessionCookies(context, 5_000, universityId);
+    const cookies = blackboardCookies(allCookies, universityId);
     await page.waitForLoadState('domcontentloaded', { timeout: 5_000 }).catch(() => undefined);
 
     // Extract XSRF token from BbRouter cookie
@@ -269,7 +273,7 @@ export async function login(opts: LoginOptions = {}): Promise<Session> {
     let userData: any = null;
     try {
       const cookieStrForApi = cookies
-        .filter(c => c.domain.includes('aulavirtual.upc.edu.pe'))
+        .filter(c => blackboardCookies([c], universityId).length > 0)
         .map(c => `${c.name}=${c.value}`)
         .join('; ');
       const resp = await page.request.get(`${BASE_URL}/learn/api/public/v1/users/me`, {
@@ -281,12 +285,13 @@ export async function login(opts: LoginOptions = {}): Promise<Session> {
     const displayName = resolveDisplayName(userData);
 
     const session: Session = {
-      cookies: blackboardCookies(cookies),
+      universityId,
+      cookies: blackboardCookies(cookies, universityId),
       xsrfToken: nonce,
       userId: userData?.id,
       userName: displayName,
       expiresAt: extractBbRouterExpiry(cookies),
-      ssoExpiresAt: getSsoExpiry(cookies),
+      ssoExpiresAt: getSsoExpiry(allCookies),
     };
 
     saveSession(session);
@@ -299,6 +304,8 @@ export async function login(opts: LoginOptions = {}): Promise<Session> {
 }
 
 export async function silentRelogin(previousSession?: Session | null): Promise<Session> {
+  const universityId = previousSession?.universityId ?? 'upc-pe';
+  const BASE_URL = blackboardUniversity(universityId).origin;
   if (!fs.existsSync(PROFILE_DIR)) {
     throw new SilentLoginFailed('No browser profile — run campus login first');
   }
@@ -320,14 +327,15 @@ export async function silentRelogin(previousSession?: Session | null): Promise<S
   const page = await context.newPage();
 
   try {
-    const ultraNavigation = page.waitForURL(url => isBlackboardUltraUrl(url), {
+    const ultraNavigation = page.waitForURL(url => isBlackboardUltraUrl(url, universityId), {
       waitUntil: 'commit',
       timeout: 20_000,
     });
     ultraNavigation.catch(() => {}); // avoid an unhandled rejection if page.goto throws first
-    await page.goto(SAML_URL, { waitUntil: 'commit', timeout: 20_000 });
+    await page.goto(blackboardLoginUrl(universityId), { waitUntil: 'commit', timeout: 20_000 });
     await ultraNavigation;
-    const cookies = await waitForSessionCookies(context, 3_000);
+    const allCookies = await waitForSessionCookies(context, 3_000, universityId);
+    const cookies = blackboardCookies(allCookies, universityId);
 
     if (!cookies.some(c => c.name === 'JSESSIONID' || c.name === 'BbRouter')) {
       throw new SilentLoginFailed('Redirect succeeded but session cookies are missing');
@@ -341,7 +349,7 @@ export async function silentRelogin(previousSession?: Session | null): Promise<S
     if (!userName || !userId) {
       try {
         const cookieStrForApi = cookies
-          .filter(c => c.domain.includes('aulavirtual.upc.edu.pe'))
+          .filter(c => blackboardCookies([c], universityId).length > 0)
           .map(c => `${c.name}=${c.value}`)
           .join('; ');
         const resp = await page.request.get(`${BASE_URL}/learn/api/public/v1/users/me`, {
@@ -356,12 +364,13 @@ export async function silentRelogin(previousSession?: Session | null): Promise<S
     }
 
     const session: Session = {
-      cookies: blackboardCookies(cookies),
+      universityId,
+      cookies: blackboardCookies(cookies, universityId),
       xsrfToken: extractXsrf(cookies),
       userId,
       userName,
       expiresAt: extractBbRouterExpiry(cookies),
-      ssoExpiresAt: getSsoExpiry(cookies),
+      ssoExpiresAt: getSsoExpiry(allCookies),
     };
 
     saveSession(session);
