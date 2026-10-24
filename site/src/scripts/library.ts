@@ -118,7 +118,7 @@ export function initLibrary(root: HTMLElement) {
     }).catch(() => { $('[data-lib-offline-ready]').textContent = 'No pudimos preparar la apertura sin conexión. Mantén esta pestaña abierta hasta recuperar internet.'; });
   } else $('[data-lib-offline-ready]').textContent = 'Este navegador no permite abrir el editor sin conexión.';
   function offlineControls() {
-    $('[data-lib-save]').textContent = offlineMode ? 'Guardar en este navegador' : 'Guardar y revisar';
+    $('[data-lib-save]').firstChild!.textContent = offlineMode ? 'Guardar en este navegador ' : 'Guardar y revisar ';
     $('[data-lib-search]').toggleAttribute('disabled', offlineMode);
     $('[data-lib-new]').toggleAttribute('disabled', offlineMode);
     $<HTMLFormElement>('[data-lib-submit]').hidden = offlineMode || !current;
