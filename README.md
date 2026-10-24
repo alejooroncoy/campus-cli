@@ -546,3 +546,7 @@ Antes de trabajar en un provider nuevo, abre un issue para coordinar el alcance.
 ## Licencia
 
 ISC
+
+### Portales académicos de solo lectura
+
+Además de Blackboard, Campus consulta [Mi Mundo UPN](docs/mi-mundo-upn.md) con 19 herramientas y [Mi UPC y Mis Trámites](docs/mi-upc.md) con 31. Reutiliza la sesión de la universidad correspondiente; los catálogos no acreditan elegibilidad y las consultas no crean solicitudes ni pagos.

@@ -7,6 +7,8 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 ## [Unreleased]
 
 ### Added
+- Mi Mundo UPN: 19 consultas académicas y administrativas de solo lectura mediante CLI/MCP con la sesión UPN existente.
+- Mi UPC: 31 consultas de solo lectura, incluidas las bandejas independientes de Mi UPC y Mis Trámites, con verificación de la cuenta UPC.
 - La retroalimentación de Blackboard incluye comentarios por criterio de rúbrica, puntajes, pesos y niveles de logro, también en entregas grupales. Distingue rúbricas sin evaluación de lecturas restringidas o indisponibles.
 
 ### Fixed

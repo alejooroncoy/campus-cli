@@ -1,6 +1,8 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { registerBlackboardTools } from '../providers/blackboard/mcp-tools.js';
+import { registerMiupcTools } from '../providers/miupc/mcp-tools.js';
+import { registerUpnTools } from '../providers/upn/mcp-tools.js';
 import { registerBannerTools } from '../providers/banner/mcp-tools.js';
 import { registerUclassTools } from '../providers/uclass/mcp-tools.js';
 import { registerResearchTools } from '../providers/academic/research-mcp-tools.js';
@@ -162,6 +164,15 @@ horario semanal de lunes a domingo. Úsala para responder qué clases tiene el
 estudiante, a qué hora y en qué aula; acepta un código de período opcional.
 campus_get_weekly_schedule continúa disponible como alias deprecado.
 
+Para Mi UPC usa miupc_* para matrícula, notas, inasistencias, avance, pagos y trámites.
+Consulta tanto miupc_list_procedure_requests como miupc_list_legacy_procedure_requests al preguntar por solicitudes. No deduzcas tardanzas de las faltas. Los catálogos no certifican elegibilidad ni acceso externo.
+Para Mi Mundo UPN usa upn_get_profile para ciclo/carrera, upn_list_courses
+para matrícula, upn_get_weekly_schedule para clases y las otras herramientas
+upn_* para notas, asistencias, historial, créditos, calendario, servicios, reglamentos y trámites. La visibilidad de un trámite no demuestra elegibilidad y estas herramientas no crean solicitudes ni pagos.
+Requieren una sesión UPN guardada; Banner continúa siendo específico de UPC.
+El ciclo declarado no demuestra un cambio de carrera. Una nota 00 sin estado
+de publicación no confirma un cero definitivo ni cierre del curso.
+
 Para entregas: blackboard_upload_attempt_file sube cada archivo/imagen y
 devuelve un fileUploadId; blackboard_save_attempt_draft guarda texto y/o
 esos fileUploadIds sin enviar (el intento queda abierto para seguir
@@ -194,6 +205,8 @@ export async function startMcpServer() {
 
   registerBlackboardTools(server);
   registerBannerTools(server);
+  registerUpnTools(server);
+  registerMiupcTools(server);
   registerUclassTools(server);
   const browserReader = new ResearchBrowserReading({ openBrowser: automaticResearchBrowser({
     apiKey: process.env.BROWSERBASE_API_KEY, projectId: process.env.BROWSERBASE_PROJECT_ID,
