@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Icon from '../../components/LucideIcon.astro';
 ---
 <Base title="Biblioteca de trabajos universitarios | Campus" description="Trabajos y apuntes compartidos por estudiantes, con curso, profesor, nota, rúbrica y feedback." canonical="https://campuscli.com/biblioteca/">
   <link slot="head" rel="stylesheet" href="/biblioteca.css" />
@@ -10,7 +11,7 @@ import Base from '../../layouts/Base.astro';
       <nav class="lib-workspace-nav" aria-label="Biblioteca">
         <a href="/biblioteca/" aria-current="page">Explorar</a>
         <a href="/app/biblioteca/">Mis aportes</a>
-        <a class="lib-button" href="/app/biblioteca/#subir">Compartir trabajo <span aria-hidden="true">↗</span></a>
+        <a class="lib-button" href="/app/biblioteca/#subir">Compartir trabajo <Icon name="upload" size={18} /></a>
       </nav>
     </div>
     <div class="lib-navigation-status lib-navigation-quiet" data-library-navigation-status role="status" aria-live="polite" aria-atomic="true"><span data-library-navigation-message></span><button class="lib-button lib-secondary" type="button" data-library-navigation-retry hidden>Reintentar</button></div>
