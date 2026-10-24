@@ -91,7 +91,7 @@
 .lib-results .lib-heading p { margin: 6px 0 0; }
 .lib-type-tabs { display: flex; gap: 6px; padding: 3px 3px 14px; margin: 0 0 10px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
 .lib-type-tabs a { display: inline-flex; align-items: center; flex-shrink: 0; padding: 8px 12px; border: 1px solid var(--lib-line); border-radius: 7px; background: var(--lib-paper); color: var(--lib-muted); font-size: 12px; min-height: 44px; text-decoration: none; }
-.lib-type-tabs a[aria-current] { background: var(--lib-night); border-color: var(--lib-night); color: white; }
+.lib-site .lib-type-tabs a[aria-current] { background: var(--lib-night); border-color: var(--lib-night); color: white; }
 .lib-resource-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; }
 .lib-resource { display: flex; flex-direction: column; border: 1px solid var(--lib-line); background: var(--lib-paper); border-radius: 12px; overflow: hidden; min-width: 0; transition: border-color .15s, box-shadow .15s; }
 .lib-resource:hover { border-color: #8db8cb; box-shadow: 0 6px 20px #102a3a08; }
