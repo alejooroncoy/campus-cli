@@ -314,7 +314,7 @@ export function initLibrary(root: HTMLElement) {
   $('[data-lib-versions-refresh]').onclick=()=>void run(()=>versions(1));
   $('[data-lib-version-cancel]').onclick=()=>$<HTMLDialogElement>('[data-lib-version-dialog]').close();
   $('[data-lib-version-confirm]').onclick=()=>{
-    const dialog=$<HTMLDialogElement>('[data-lib-version-dialog]'),id=dialog.dataset.version;
+    const dialog=$<HTMLDialogElement>('[data-lib-version-dialog]'),id=dialog.dataset.versionId;
     dialog.close();if(id)void run(()=>openVersion(id));
   };
   $("[data-lib-cloud-use-local]").onclick = () => void run(async () => {
@@ -1027,13 +1027,13 @@ export function initLibrary(root: HTMLElement) {
   $("[data-lib-admin-refresh]").onclick = () => void run(() => queue());
   root.addEventListener("click", (event) => {
     const target = (event.target as HTMLElement).closest<HTMLElement>(
-      "[data-open],[data-withdraw],[data-review],[data-version]",
+      "[data-open],[data-withdraw],[data-review],button[data-version]",
     );
     if (!target) return;
     if (target.dataset.version) {
       if(unsaved) {
         const dialog=$<HTMLDialogElement>('[data-lib-version-dialog]');
-        dialog.dataset.version=target.dataset.version;
+        dialog.dataset.versionId=target.dataset.version;
         dialog.showModal();
       } else void run(()=>openVersion(target.dataset.version!));
     }
