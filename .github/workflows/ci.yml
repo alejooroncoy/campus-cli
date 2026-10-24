@@ -58,10 +58,10 @@ jobs:
           fi
       - run: npx playwright install --with-deps chromium
         timeout-minutes: 5
-      - name: Install site browser
-        run: npm --prefix site exec -- playwright install chromium
+      - name: Install site browsers (Chromium and WebKit)
+        run: npm --prefix site exec -- playwright install --with-deps chromium webkit
         timeout-minutes: 5
-      - name: Mobile replies and nested comments (offline fixtures)
+      - name: Mobile replies and nested comments (Chromium and iPhone WebKit)
         run: npm --prefix site run test:review-replies
         timeout-minutes: 3
       - name: Upload mobile thread screenshots and checks
