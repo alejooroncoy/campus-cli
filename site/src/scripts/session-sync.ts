@@ -1,4 +1,5 @@
 import type {CampusSession} from './campus-session';
+import { LIBRARY_OFFLINE_OWNER, forgetOfflineOwner } from '../lib/library-offline.ts';
 const KEY='campus-session-revision-v1';
 const CHANNEL='campus-session-events-v1';
 let channel:BroadcastChannel|undefined;
@@ -21,6 +22,10 @@ export async function publishSessionIdentity(session:CampusSession, current:()=>
     const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(owner));
     const identity=session.authenticated ? [...new Uint8Array(bytes)].map(value=>value.toString(16).padStart(2,'0')).join('') : 'guest';
     if(!current())return;
+    try {
+      const offline = JSON.parse(window.localStorage.getItem(LIBRARY_OFFLINE_OWNER) ?? 'null');
+      if (offline && (!session.authenticated || offline.key !== 'campus:library:draft:v1:' + identity)) forgetOfflineOwner(window.localStorage);
+    } catch { /* Identity synchronization also works when storage is blocked. */ }
     let old:{identity?:string}|null=null;
     try { old=JSON.parse(window.localStorage.getItem(KEY)??'null'); } catch { /* Replace an invalid revision. */ }
     const changed=knownIdentity === undefined ? old?.identity!==identity : knownIdentity!==identity;

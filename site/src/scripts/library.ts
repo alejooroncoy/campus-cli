@@ -1,6 +1,8 @@
 import { CloudDraftQueue, chooseCloudRecovery, type CloudCopy, type CloudAttempt } from "../lib/library-cloud-draft";
 import { DraftConflictError, LibraryDraftStore, indexedDraftFiles, libraryDraftKey } from "../lib/library-draft";
 import { isLibraryWorkspaceViewHash } from "../lib/library-navigation";
+import { LIBRARY_OFFLINE_OWNER, readOfflineOwner, rememberOfflineOwner, forgetOfflineOwner } from '../lib/library-offline';
+import { publishSessionIdentity } from './session-sync';
 type Row = {
   name: string;
   score: number | null;
@@ -39,6 +41,7 @@ type Recovery = {
   criteria: Record<string, string>[];
   courses: { value: string; label: string }[];
   current: Pick<Work, 'id' | 'revision'> | null;
+  work?: Work | null;
   cloudRevision?: number;
   cloudMutation?: string;
   cloudDirty?: boolean;
@@ -97,6 +100,29 @@ export function initLibrary(root: HTMLElement) {
   let cloudRemote: CloudCopy<Recovery> | null = null;
   let cloudBase = 0;
   let workspaceScope: string | null = null, workspaceOwner: string | null = null;
+  let offlineMode = false, deferredCurrent: Recovery['current'] = null;
+  let reconnecting: Promise<void> | null = null;
+  let retryConnection = true, transientCloudFailure = false;
+  let sessionGeneration = 0;
+  if ('serviceWorker' in navigator) {
+    const offlineAvailability = async () => {
+      try {
+        if (await caches.match('/library-offline.html')) $('[data-lib-offline-ready]').textContent = 'Editor disponible sin conexión. Comprueba también «Guardado en este navegador» antes de cerrar.';
+      } catch { /* Editing and server saving remain available without CacheStorage. */ }
+    };
+    void navigator.serviceWorker.register('/sw.js').then(async registration => {
+      navigator.serviceWorker.addEventListener('controllerchange', offlineAvailability);
+      registration.addEventListener('updatefound', () => registration.installing?.addEventListener('statechange', offlineAvailability));
+      await navigator.serviceWorker.ready;
+      await offlineAvailability();
+    }).catch(() => { $('[data-lib-offline-ready]').textContent = 'No pudimos preparar la apertura sin conexión. Mantén esta pestaña abierta hasta recuperar internet.'; });
+  } else $('[data-lib-offline-ready]').textContent = 'Este navegador no permite abrir el editor sin conexión.';
+  function offlineControls() {
+    $('[data-lib-save]').firstChild!.textContent = offlineMode ? 'Guardar en este navegador ' : 'Guardar y revisar ';
+    $('[data-lib-search]').toggleAttribute('disabled', offlineMode);
+    $('[data-lib-new]').toggleAttribute('disabled', offlineMode);
+    $<HTMLFormElement>('[data-lib-submit]').hidden = offlineMode || !current;
+  }
   const cloudStatus = (text: string, error = false) => {
     $("[data-lib-cloud-text]").textContent = text;
     $("[data-lib-cloud]").classList.toggle("is-error", error);
@@ -108,7 +134,7 @@ export function initLibrary(root: HTMLElement) {
   function createCloud(copy: CloudCopy<Recovery>) {
     cloudBase = copy.revision;
     cloudLastMutation = copy.mutationId ?? undefined;
-    cloud = new CloudDraftQueue<Recovery>(copy.revision, async (attempt: CloudAttempt<Recovery>) => {
+    const queue = new CloudDraftQueue<Recovery>(copy.revision, async (attempt: CloudAttempt<Recovery>) => {
       let encoded: {name:string;base64:string}[] | undefined;
       if (attempt.files !== undefined) {
         try { encoded=await Promise.all(attempt.files.map(async file=>({name:file.name,base64:await base64(file)}))); }
@@ -117,8 +143,10 @@ export function initLibrary(root: HTMLElement) {
       const payload = {...attempt, scope:copy.scope, ...(encoded !== undefined ? {files:encoded} : {})};
       return (await api("recovery", payload)).recovery;
     }, {
-      before: cacheCloudState,
+      before: () => { if (cloud === queue) cacheCloudState(); },
       saved: copy => {
+        if (cloud !== queue) return;
+        transientCloudFailure = false;
         cloudBase = copy.revision;
         cloudLastMutation = copy.mutationId ?? undefined;
         cloudSaved = !cloud!.dirty;
@@ -127,6 +155,8 @@ export function initLibrary(root: HTMLElement) {
         updateResumeNotice();
       },
       failed: error => {
+        if (cloud !== queue) return;
+        transientCloudFailure = !(error instanceof LibraryApiError) || error.status >= 500;
         cloudSaved = false;
         if (error instanceof LibraryApiError && error.status === 409) {
           cloud!.paused = true;
@@ -144,8 +174,14 @@ export function initLibrary(root: HTMLElement) {
         updateResumeNotice();
       },
     });
+    cloud = queue;
   }
   function queueCloud(filesChanged = false) {
+    if (offlineMode) {
+      cloudSaved = false;
+      cloudStatus('Sin conexión · Tus cambios se guardan en este navegador. Se sincronizarán al volver internet.');
+      return;
+    }
     if (!cloud || missingFiles) return;
     cloudSaved = false;
     cloud.update(snapshot(), filesChanged ? selectedFiles : undefined);
@@ -178,7 +214,7 @@ export function initLibrary(root: HTMLElement) {
         Array.from(box.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[data-field]"), field => [field.dataset.field!, field.value]),
       )),
       courses: Array.from((input("courseId") as HTMLSelectElement).options, option => ({ value: option.value, label: option.text })),
-      current: current ? {id:current.id,revision:current.revision} : null, requestId, stage, unsaved,
+      current: current ? {id:current.id,revision:current.revision} : deferredCurrent, work: current, requestId, stage, unsaved,
       cloudRevision:cloud?.revision ?? cloudBase,
       cloudMutation:cloud?.mutationId ?? cloudLastMutation,
       cloudDirty:cloud ? cloud.dirty : true,
@@ -242,6 +278,7 @@ export function initLibrary(root: HTMLElement) {
     persistDraft(true, conflict);
   };
   $("[data-lib-cloud-retry]").onclick = () => void run(async () => {
+    if (offlineMode) { await reconnectOffline(); return; }
     if (!cloud) await connectCloud(snapshot(), selectedFiles, missingFiles);
     if (cloud && !cloud.paused) await cloud.flush();
   });
@@ -273,7 +310,29 @@ export function initLibrary(root: HTMLElement) {
     updateResumeNotice();
   });
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && cloud?.dirty && !cloud.paused) void cloud.flush().catch(() => {}); });
-  window.addEventListener("online", () => { if (cloud?.dirty && !cloud.paused) void cloud.flush().catch(() => {}); });
+  window.addEventListener("online", () => {
+    if (offlineMode) void run(reconnectOffline);
+    else if (cloud?.dirty && !cloud.paused) void cloud.flush().catch(() => {});
+  });
+  window.addEventListener('storage', event => {
+    if (event.key !== LIBRARY_OFFLINE_OWNER && event.key !== 'campus-session-revision-v1') return;
+    sessionGeneration++;
+    if (!draftStore || readOfflineOwner(localStorage)?.key === draftStore.key) return;
+    if (cloud) cloud.paused = true;
+    cloud = null;
+    recoveryReady = false;
+    $('[data-lib-private]').hidden = true;
+    $('[data-lib-login]').hidden = false;
+    message('La cuenta cambió o se cerró la sesión. Tu borrador local sigue guardado; vuelve a entrar para continuar.');
+  });
+  const checkConnection = () => {
+    if (!root.isConnected || !navigator.onLine || busy) return;
+    if (offlineMode && retryConnection) void run(reconnectOffline);
+    else if (transientCloudFailure && cloud?.dirty && !cloud.paused) void cloud.flush().catch(() => {});
+  };
+  let connectionTimer = setInterval(checkConnection, 10000);
+  window.addEventListener('pagehide', () => clearInterval(connectionTimer));
+  window.addEventListener('pageshow', () => { clearInterval(connectionTimer); connectionTimer = setInterval(checkConnection, 10000); checkConnection(); });
   const scrollBehavior = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' as const : 'smooth' as const;
   window.addEventListener("beforeunload", (event) => {
     if (!unsaved || localSaved || cloudSaved) return;
@@ -297,6 +356,7 @@ export function initLibrary(root: HTMLElement) {
     }
   }
   function showView(next: string) {
+    if (offlineMode) next = 'upload';
     updateResumeNotice();
     view = next === "admin" && !admin ? "overview" : next;
     $("[data-lib-page-title]").textContent =
@@ -474,6 +534,7 @@ export function initLibrary(root: HTMLElement) {
       busy = false;
       root.removeAttribute("aria-busy");
       controls.forEach(({ control, wasDisabled }) => (control.disabled = wasDisabled));
+      offlineControls();
     }
   }
   function pages(
@@ -501,7 +562,9 @@ export function initLibrary(root: HTMLElement) {
   }
   async function mine(page = minePage) {
     minePage = page;
+    const generation = sessionGeneration;
     const data = await api("mine?page=" + page);
+    if (!root.isConnected || generation !== sessionGeneration) throw new LibraryApiError(401, 'La sesión cambió durante la carga. Vuelve a abrir Biblioteca.');
     if (workspaceScope && data.recoveryScope !== workspaceScope) throw new LibraryApiError(401,"Tu cuenta cambió. Abre Biblioteca de nuevo para continuar.");
     workspaceScope ??= typeof data.recoveryScope === "string" ? data.recoveryScope : null;
     workspaceOwner ??= typeof data.recoveryOwner === "string" ? data.recoveryOwner : null;
@@ -550,6 +613,7 @@ export function initLibrary(root: HTMLElement) {
     cloudStatus("Guardado automático en tu cuenta Campus, mientras escribes.");
   }
   function resetEditor() {
+    deferredCurrent = null;
     discarding = false;
     ++saveVersion;
     localSaved = false;
@@ -647,6 +711,8 @@ export function initLibrary(root: HTMLElement) {
       "rejected",
     ].includes(w.status);
     $<HTMLFormElement>("[data-lib-submit]").reset();
+    selectedFiles = await downloadWorkFiles(w);
+    renderSelectedFiles();
     persistDraft(true);
     if (["draft", "rejected"].includes(w.status)) {
       $("#subir").scrollIntoView({ behavior: scrollBehavior() });
@@ -799,6 +865,11 @@ export function initLibrary(root: HTMLElement) {
       return;
     }
     if (!validateStage(2)) return;
+    if (offlineMode) {
+      persistDraft();
+      message('Borrador guardado en este navegador. Se sincronizará al volver internet.');
+      return;
+    }
     void run(async () => {
       if (draftStore) {
         try { await draftStore.save(snapshot()); }
@@ -853,11 +924,10 @@ export function initLibrary(root: HTMLElement) {
       );
       current = result.work;
       unsaved = false;
-      selectedFiles = [];
       missingFiles = false;
       (input("files") as HTMLInputElement).required = false;
       (input("files") as HTMLInputElement).value = "";
-      $("[data-lib-selected]").textContent = "";
+      renderSelectedFiles();
       $("[data-lib-existing]").textContent =
         "Archivos guardados: " + current!.files.map((f) => f.name).join(", ");
       notice.textContent =
@@ -954,6 +1024,15 @@ export function initLibrary(root: HTMLElement) {
       return new File([bytes], file.name, {type:file.mime});
     }));
   }
+  async function downloadWorkFiles(work: Work): Promise<File[]> {
+    return Promise.all(work.files.map(async file => {
+      const response = await fetch(`/api/app/library/works/${work.id}/files/${file.id}`, { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(60000) });
+      if (!response.ok) throw new Error('No pudimos guardar los archivos para usarlos sin conexión. Reintenta antes de cerrar.');
+      const bytes = await response.blob();
+      if (bytes.size !== file.size) throw new Error('La copia local del archivo está incompleta.');
+      return new File([bytes], file.name, { type: bytes.type });
+    }));
+  }
   async function applyRecovery(recovery: Recovery, files: File[], filesMissing: boolean, fromAccount: boolean) {
     if (!recovery.fields || !Array.isArray(recovery.criteria) || !Array.isArray(recovery.courses)) throw new Error("No se pudo leer el borrador.");
     const wasReady = recoveryReady;
@@ -962,15 +1041,20 @@ export function initLibrary(root: HTMLElement) {
       let stale = false;
       let work: Work | null = null;
       if (recovery.current) {
-        try {
+        if (offlineMode) {
+          work = recovery.work ?? null;
+          deferredCurrent = recovery.current;
+        } else try {
           work = (await api("works/" + recovery.current.id)).work;
           stale = work!.revision !== recovery.current.revision || !["draft","rejected"].includes(work!.status);
         } catch { stale = true; }
       }
+      if (!offlineMode) deferredCurrent = null;
       current = stale ? null : work;
       requestId = stale ? crypto.randomUUID() : recovery.requestId;
       unsaved = recovery.unsaved || stale;
       selectedFiles = files.map(file => new File([file],file.name,{type:file.type,lastModified:file.lastModified}));
+      if (!offlineMode && work && !stale && !selectedFiles.length && !recovery.unsaved) selectedFiles = await downloadWorkFiles(work);
       missingFiles = filesMissing || (stale && !selectedFiles.length);
       form.reset();
       (input("files") as HTMLInputElement).value = "";
@@ -991,7 +1075,7 @@ export function initLibrary(root: HTMLElement) {
       renderSelectedFiles();
       $("[data-lib-existing]").textContent=current?"Archivos guardados en Campus: "+current.files.map(file=>file.name).join(", "):"";
       $("#lib-editor-title").textContent=current?"Editar borrador":"Continúa tu aporte.";
-      showStage(recovery.stage===3&&current&&!unsaved?3:recovery.stage===2?2:1);
+      showStage(!offlineMode&&recovery.stage===3&&current&&!unsaved?3:recovery.stage===2?2:1);
       $<HTMLFormElement>("[data-lib-submit]").reset();
       if(stage===3&&current){$("[data-lib-preview-content]").innerHTML=detail(current);preview.hidden=false;}
       $("[data-lib-recovered]").hidden=false;
@@ -1052,7 +1136,13 @@ export function initLibrary(root: HTMLElement) {
     if (recoveryReady) return;
     let saved: Awaited<ReturnType<LibraryDraftStore<Recovery>["load"]>> = null;
     try {
-      draftStore=new LibraryDraftStore<Recovery>(await libraryDraftKey(await recoveryOwnerEmail()),localStorage,indexedDraftFiles());
+      const generation = sessionGeneration;
+      const email = await recoveryOwnerEmail();
+      await publishSessionIdentity({ authenticated: true, email, aiReady: false }, () => root.isConnected && generation === sessionGeneration);
+      if (generation !== sessionGeneration) throw new LibraryApiError(401, 'La sesión cambió durante la recuperación.');
+      const key = await libraryDraftKey(email);
+      draftStore=new LibraryDraftStore<Recovery>(key,localStorage,indexedDraftFiles());
+      if (workspaceScope) rememberOfflineOwner(localStorage, { key, scope: workspaceScope });
       saved=await draftStore.load();
       if (saved) { cloudBase=saved.snapshot.cloudRevision ?? 0; cloudLastMutation=saved.snapshot.cloudMutation; discarding=!!saved.snapshot.cloudDiscarded; }
       if(saved){await applyRecovery(saved.snapshot,saved.files,saved.filesMissing,false);localSaved=!saved.filesMissing;}
@@ -1066,13 +1156,72 @@ export function initLibrary(root: HTMLElement) {
       cloudStatus("No pudimos recuperar el borrador de tu cuenta. Conservamos esta vista; reintenta antes de continuar.",true);
     }
     recoveryReady=true;
+    if (saved && !saved.files.length && selectedFiles.length) persistDraft(true);
     updateResumeNotice();
+  }
+  async function restoreOffline() {
+    const owner = readOfflineOwner(localStorage);
+    if (!owner) return false;
+    const store = new LibraryDraftStore<Recovery>(owner.key, localStorage, indexedDraftFiles());
+    const saved = await store.load();
+    if (!saved || saved.snapshot.cloudDiscarded) return false;
+    draftStore = store;
+    workspaceScope = owner.scope;
+    cloudBase = saved.snapshot.cloudRevision ?? 0;
+    cloudLastMutation = saved.snapshot.cloudMutation;
+    offlineMode = true;
+    cloud = null;
+    cloudSaved = false;
+    await applyRecovery(saved.snapshot, saved.files, saved.filesMissing, false);
+    recoveryReady = true;
+    localSaved = !saved.filesMissing;
+    $('[data-lib-private]').hidden = false;
+    $('[data-lib-login]').hidden = true;
+    $('[data-lib-admin-nav]').hidden = true;
+    showView('upload');
+    replaceWorkspaceHash('#subir');
+    autosaveStatus(saved.filesMissing ? 'Texto recuperado; falta la copia local de un archivo.' : 'Borrador y archivos recuperados de este navegador.', saved.filesMissing);
+    cloudStatus('Sin conexión · Puedes seguir editando. Se sincronizará al volver internet.');
+    message('Estás editando la copia de este dispositivo.');
+    offlineControls();
+    return true;
+  }
+  async function reconnectOffline() {
+    if (!offlineMode || !recoveryReady) return;
+    if (reconnecting) return reconnecting;
+    reconnecting = (async () => {
+      cloudStatus('Comprobando tu cuenta antes de sincronizar…');
+      try {
+        const config = await api('config');
+        if (!config.enabled || !config.cloudDrafts) throw new Error('El guardado de borradores no está disponible.');
+        // mine compares the server's opaque account scope with the offline owner
+        // before any recovery mutation or download can happen.
+        await mine();
+        cloudEnabled = true;
+        const local = snapshot(), files = selectedFiles;
+        offlineMode = false;
+        try { await connectCloud(local, files, missingFiles); }
+        catch (error) { offlineMode = true; cloud = null; throw error; }
+        await flushCloud();
+        message('Conexión recuperada. Tu borrador sigue disponible.');
+      } catch (error) {
+        retryConnection = !(error instanceof LibraryApiError) || error.status >= 500;
+        if (error instanceof LibraryApiError && error.status === 401) $('[data-lib-login]').hidden = false;
+        cloudStatus(error instanceof LibraryApiError && error.status === 401
+          ? 'Entra con la misma cuenta Campus para sincronizar. Conservamos el borrador en este navegador.'
+          : 'No pudimos sincronizar todavía. Conservamos tus cambios y archivos aquí.', true);
+      } finally { offlineControls(); }
+    })();
+    try { await reconnecting; } finally { reconnecting = null; }
   }
   const loadWorkspace = () => void run(async () => {
     $("[data-lib-retry-load]").hidden = true;
     $("[data-lib-login]").hidden = true;
     message("Cargando tu biblioteca…");
-    const config = await api("config");
+    if (!navigator.onLine && await restoreOffline()) return;
+    let config;
+    try { config = await api('config'); }
+    catch (error) { if (await restoreOffline()) return; throw error; }
     cloudEnabled = config.cloudDrafts === true;
     if (!cloudEnabled) $("[data-lib-persistence-help]").textContent = "La copia automática en este navegador sigue activa. El guardado en tu cuenta estará disponible cuando Campus lo habilite.";
     if (!config.enabled) {
@@ -1085,10 +1234,12 @@ export function initLibrary(root: HTMLElement) {
       await mine();
     } catch (err) {
       if (err instanceof Error && err.message.includes("Inicia sesión")) {
+        try { forgetOfflineOwner(localStorage); } catch {}
         $("[data-lib-login]").hidden = false;
         message("");
         return;
       }
+      if (!(err instanceof LibraryApiError && err.status === 401) && await restoreOffline()) return;
       throw err;
     }
     await restoreDraft();
