@@ -34,20 +34,20 @@ test('an unconfirmed historical course is labeled pending without inventing a co
 });
 
 const external={source:'profematch',sourceLabel:'ProfeMatch',sourceId:'797',sourceUrl:'https://profematchperu.com/u/upc/profesor/797-merwil-luciano-arroyo-flores',score:4.6,scale:5,ratingCount:7,courseLabel:'Cálculo 1',observedAt:'2026-10-22T21:18:55Z',includedInCampusScore:false};
-test('external-only profile shows source scores while retaining zero native reviews and noindex',async()=>{
+test('external-only profile combines scores on one scale and keeps source links visible',async()=>{
  const empty={...data,stats:{reviewCount:0,ratingCount:0,averageRating:null},reviews:[],externalRatings:[external]};
  const result=await run('/profes/upc/juan-carlos-morales-arevalo/',{fetchData:async()=>Response.json(empty)});const html=await result.text();
- for(const text of ['Puntuaciones en ProfeMatch','4.6',' / 5','7 valoraciones reportadas','Ver fuente en ProfeMatch','aún no tiene reseñas propias','noindex,follow'])assert.ok(html.includes(text),text);
- assert.doesNotMatch(html,/4.6\/10|AggregateRating/);assert.match(html,/<strong>0<\/strong> reseñas de Campus/);
+ for(const text of ['promedio conjunto de fuentes','9.2/10','1 fuente con puntuaciones','Ver fuente en ProfeMatch','Esta ficha aún no tiene comentarios públicos','noindex,follow'])assert.ok(html.includes(text),text);
+ assert.doesNotMatch(html,/4.6\/5|Puntuaciones en ProfeMatch|AggregateRating/);
 });
-test('external scores never replace the native score and source text cannot inject HTML or links',()=>{
+test('source text cannot inject HTML or unsafe links while all scores share one scale',()=>{
  const body=profileBody({...data,externalRatings:[{...external,courseLabel:'<script>bad</script>'}]});
  assert.match(body,/<strong>2\/10<\/strong>/);assert.match(body,/&lt;script&gt;bad/);assert.doesNotMatch(body,/<script>bad/);
  assert.equal(externalRatingsSection([{...external,sourceUrl:'javascript:alert(1)'}]),'');assert.equal(externalRatingsSection([{...external,score:9}]),'');
 });
-test('directory makes external ratings discoverable without counting them as native reviews',()=>{
- const body=directoryBody({query:'',page:1,pages:1,total:1,professors:[{...data.professor,courses:[],reviewCount:0,hasExternalRatings:true}]});
- assert.match(body,/Puntuaciones disponibles en ProfeMatch/);assert.match(body,/Sé el primero/);
+test('directory shows one public score instead of source-specific rating blocks',()=>{
+ const body=directoryBody({query:'',page:1,pages:1,total:1,professors:[{...data.professor,courses:[],publicRatingSourceCount:1,publicAverageRating:9.2}]});
+ assert.match(body,/9.2\/10 · 1 fuente/);assert.doesNotMatch(body,/ProfeMatch|MisProfesores|reseña de Campus/);
 });
 
 test('rewritten canonical URLs resolve without a slash redirect before the renderer',async()=>{
@@ -57,13 +57,13 @@ test('rewritten canonical URLs resolve without a slash redirect before the rende
  assert.equal(form.status,200);assert.match(await form.text(),/data-review-form-root/);
 });
 
-test('existing catalog reviews retain their source and scale, escape text and paginate on the same professor',async()=>{
+test('catalog opinions appear in the unified feed, keep source links and paginate on the same professor',async()=>{
  const catalog={...data,catalogReviews:{stats:{reviewCount:17,ratingCount:17,averageRating:8.9},sourceUrls:['https://peru.misprofesores.com/profesores/Jonathan-Sueros_18445','javascript:alert(1)'],reviews:[{id:9,text:'Explica <b>bien</b>',rating:10,course:'Matemática discreta',courseStatus:'source_label',date:'2026-01-01'}],nextCursor:9}};
- const ordered={...catalog,externalRatings:[external]};const html=profileBody(ordered);assert.ok(html.indexOf('id="resenas"')<html.indexOf('id="resenas-catalogo"'));assert.ok(html.indexOf('id="resenas-catalogo"')<html.indexOf('id="puntuaciones"'));assert.equal(catalogReviewCard({rating:6,text:null}),'');for(const text of ['8.9/10','MisProfesores','Curso indicado en la fuente','Explica &lt;b&gt;bien&lt;/b&gt;','?before=9#resenas-catalogo'])assert.ok(html.includes(text),text);
+ const ordered={...catalog,externalRatings:[external]};const html=profileBody(ordered);assert.match(html,/id="resenas"/);assert.doesNotMatch(html,/id="resenas-catalogo"|id="puntuaciones"/);assert.equal(catalogReviewCard({rating:6,text:null}),'');for(const text of ['MisProfesores','Fuente: MisProfesores','Explica &lt;b&gt;bien&lt;/b&gt;','?before=9#resenas'])assert.ok(html.includes(text),text);
  assert.doesNotMatch(html,/href="javascript/);assert.match(html,/<strong>2\/10<\/strong>/);
  let before;await run('/profes/upc/juan-carlos-morales-arevalo/?before=9',{fetchData:async url=>{before=new URL(url).searchParams.get('before');return Response.json(catalog);}});assert.equal(before,'9');
- const directory=directoryBody({query:'Jonathan',page:1,pages:1,total:1,professors:[{...data.professor,courses:[],reviewCount:1,averageRating:2,catalogReviewCount:17,catalogAverageRating:8.9}]});
- assert.match(directory,/2\/10 · 1 reseña de Campus/);assert.match(directory,/8.9\/10 · 17 valoraciones de MisProfesores/);
+ const directory=directoryBody({query:'Jonathan',page:1,pages:1,total:1,professors:[{...data.professor,courses:[],publicRatingSourceCount:3,publicAverageRating:6.7}]});
+ assert.match(directory,/6.7\/10 · 3 fuentes/);assert.doesNotMatch(directory,/Campus|MisProfesores|ProfeMatch/);
 });
 
 test('profile conversations belong only to Campus reviews and sources remain independent',()=>{
@@ -71,17 +71,17 @@ test('profile conversations belong only to Campus reviews and sources remain ind
  assert.match(html,/id="review-1"/);assert.match(html,/data-review-thread="1"/);
  assert.doesNotMatch(html,/data-review-thread="8"/);assert.equal((html.match(/<h1>/g)||[]).length,1);
  assert.doesNotMatch(html,/<h3><a[^>]*>Juan Carlos/);
- assert.match(html,/class="prof-public__catalog-details" >/);
- assert.match(profileBody({...data,catalogBefore:9,catalogReviews:{stats:{reviewCount:1,commentCount:1},sourceUrls:['https://peru.misprofesores.com/profesores/Ana_12'],reviews:[],nextCursor:null}}),/class="prof-public__catalog-details" open/);
+ assert.match(html,/class="prof-public__catalog-details"/);
+ assert.match(profileBody({...data,catalogBefore:9,catalogReviews:{stats:{reviewCount:1,commentCount:1},sourceUrls:['https://peru.misprofesores.com/profesores/Ana_12'],reviews:[],nextCursor:null}}),/Volver a las opiniones recientes/);
 });
 
-test('ProfeMatch comments are attributed, escaped and keep their original scale without reply controls',()=>{
+test('ProfeMatch comments join the feed with a shared ten-point score and source attribution',()=>{
  const html=profileBody({...data,externalRatings:[{...external,commentsStatus:'available',comments:[{text:'Explica <b>bien</b>',rating:4,dateLabel:'agosto de 2026'}]}]});
- assert.match(html,/Comentarios de ProfeMatch/);assert.match(html,/Explica &lt;b&gt;bien&lt;\/b&gt;/);assert.match(html,/<strong>4\/5<\/strong>/);
- assert.match(html,/1 comentario disponible/);assert.match(html,/Ver comentarios en ProfeMatch/);
+ assert.match(html,/Opiniones y puntuaciones/);assert.match(html,/Explica &lt;b&gt;bien&lt;\/b&gt;/);assert.match(html,/<strong>8\/10<\/strong>/);
+ assert.match(html,/Fuente: ProfeMatch/);assert.match(html,/Ver fuente en ProfeMatch/);
  assert.equal((html.match(/data-review-thread=/g)||[]).length,1);
  const failed=profileBody({...data,externalRatings:[{...external,commentsStatus:'unavailable',comments:[]}]});
- assert.match(failed,/No pudimos cargar los comentarios/);assert.doesNotMatch(failed,/0 comentarios disponibles/);
+ assert.match(failed,/No pudimos mostrar los comentarios de ProfeMatch/);assert.doesNotMatch(failed,/0 comentarios disponibles/);
 });
 
 test('imported replies remain nested under the owning review and share the Campus reply design',()=>{
@@ -113,7 +113,7 @@ test('Banner assignments appear in initial profile HTML by cycle even without ca
  ]};
  const response=await run('/profes/upc/juan-carlos-morales-arevalo/',{fetchData:async()=>Response.json(profile)});
  const html=await response.text();assert.equal(response.status,200);
- for(const value of ['Cursos según Banner','Ciclo 2026-2','Ciclo 2026-1','1ADE0158','Razonamiento e Investigación Jurídica'])assert.ok(html.includes(value),value);
+ for(const value of ['Cursos','Ciclo 2026-2','Ciclo 2026-1','1ADE0158','Razonamiento e Investigación Jurídica'])assert.ok(html.includes(value),value);
  assert.doesNotMatch(html,/\b\d+ secci[oó]n(?:es)?\b/);
  assert.ok(html.indexOf('Ciclo 2026-2')<html.indexOf('Ciclo 2026-1'));
  assert.equal((html.match(/id="cursos"/g)||[]).length,1);
@@ -122,9 +122,9 @@ test('Banner assignments appear in initial profile HTML by cycle even without ca
 
 test('Banner absence is distinct from unavailable data and never invents a current teaching assignment',()=>{
  const empty=profileBody({...data,bannerCourses:[]});
- assert.match(empty,/Aún no tenemos asignaciones de Banner registradas/);
+ assert.match(empty,/Otros cursos asociados/);
  assert.doesNotMatch(empty,/Ciclo 2026-2/);
- assert.match(profileBody({...data,bannerCourses:undefined}),/Las asignaciones de Banner no están disponibles/);
+ assert.doesNotMatch(profileBody({...data,bannerCourses:undefined}),/Las asignaciones de Banner no están disponibles/);
 });
 
 test('Banner course names, codes and unfamiliar cycle labels cannot inject markup',async()=>{

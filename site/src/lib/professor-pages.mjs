@@ -6,7 +6,9 @@ const e=escapeHTML;
 export const icon=name=>`<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg?v=profes-20261023#${name}"></use></svg>`;
 const link=(url,text,cls='')=>`<a class="${cls}" href="${e(url)}">${text}</a>`;
 const writingURL=slug=>`${professorPath(slug)}escribir/`;
-const reviewHeader=(label,rating,scale)=>`<div class="prof-public__review-top"><span><span class="prof-public__review-avatar">${icon('user')}</span>${e(label)}</span><span class="prof-public__review-rating">${rating==null?'Sin puntuación':`${icon('star')}<strong>${e(rating)}/${scale}</strong>`}</span></div>`;
+const displayScore=value=>Number.isFinite(Number(value))?Number(Number(value).toFixed(1)).toString():'';
+const starRow=value=>{const stars=Math.max(0,Math.min(5,Math.round(Number(value)/2)));return `<span class="prof-public__stars" role="img" aria-label="${stars} de 5 estrellas">${'★'.repeat(stars)}${'☆'.repeat(5-stars)}</span>`;};
+const reviewHeader=(label,rating,scale)=>`<div class="prof-public__review-top"><span><span class="prof-public__review-avatar">${icon('user')}</span>${e(label)}</span><span class="prof-public__review-rating">${rating==null?'Sin puntuación':`${starRow(scale===5?Number(rating)*2:rating)}<strong>${e(displayScore(scale===5?Number(rating)*2:rating))}/10</strong>`}</span></div>`;
 export function replyCard(reply){
  return `<article class="prof-public__reply"><div class="prof-public__reply-meta"><strong>${e(reply.authorLabel)}</strong>${reply.dateLabel?`<span>${e(reply.dateLabel)}</span>`:''}</div><p>${e(reply.text)}</p></article>`;
 }
@@ -23,8 +25,9 @@ export function reviewCard(r,options={}){
  return `<article class="prof-public__review" ${thread?`id="review-${r.id}"`:''}>
  ${reviewHeader('Estudiante de Campus',r.rating,10)}
  ${options.profile?'':`<h3>${link(path,e(r.professor))}</h3>`}
- <div class="prof-public__chips"><span>${e(r.course??(r.courseStatus==='pending'?'Curso por confirmar':'Curso no indicado'))}</span>${r.term?`<span>Ciclo ${e(r.term)}</span>`:''}</div>
+ <div class="prof-public__chips"><span>${e(r.course??(r.courseStatus==='pending'?'Curso por confirmar':'Curso no indicado'))}</span>${r.term?`<span>Ciclo ${e(r.term)}</span>`:''}${options.sourceLabel?`<span class="prof-public__review-source">Fuente: ${e(options.sourceLabel)}</span>`:''}</div>
  <p class="prof-public__comment">${e(r.text)}</p>
+ ${options.sourceLinks?`<div class="prof-public__source-links">${options.sourceLinks}</div>`:''}
  <footer><span>${dateText?`Publicada el ${e(dateText)}`:''}${r.editedAt?' · Editada':''}</span>${options.profile?'':link(path,`Ver ficha del profesor ${icon('arrow-right')}`)}</footer>
  ${thread?`<details class="prof-public__thread" data-review-thread="${r.id}"><summary>${icon('message-circle')}<span data-thread-label>Ver respuestas · Responder</span>${icon('arrow-down')}</summary><div class="prof-public__thread-content"><div data-reply-list></div><p data-reply-status role="status" aria-live="polite"></p><button type="button" class="prof-public__text-button" data-reply-more hidden>Ver más respuestas</button><button type="button" class="prof-public__text-button" data-reply-retry hidden>Volver a cargar</button><div data-reply-composer></div><noscript>Activa JavaScript para leer las respuestas y participar.</noscript></div></details>`:''}</article>`;
 }
@@ -71,36 +74,102 @@ export function catalogReviewsSection(data){
 
 export function directoryBody(data){
  const pageURL=n=>`/profes/upc/?${new URLSearchParams({...data.query?{q:data.query}:{},...n>1?{page:String(n)}:{}})}`;
- return `<nav class="prof-public__crumbs">${link('/profes/resenas/','Reseñas de estudiantes')}${icon('arrow-right')}<span>Profesores UPC</span></nav><header><p class="prof-public__eyebrow">${icon('graduation-cap')} Catálogo de profesores</p><h1>Encuentra a tu profesor UPC</h1><p>Busca su ficha, conoce sus cursos y lee las reseñas que otros estudiantes han compartido en Campus.</p></header><form class="prof-public__search" action="/profes/upc/" method="get"><label for="catalog-query">Nombre del profesor o del curso</label><div><input id="catalog-query" name="q" type="search" maxlength="100" value="${e(data.query)}" placeholder="Ej. Morales o Cálculo"><button class="button">${icon('search')} Buscar</button></div></form><p class="prof-public__muted">${e(data.total.toLocaleString('es-PE'))} ${data.total===1?'profesor':'profesores'}${data.query?(data.total===1?' que coincide con tu búsqueda':' que coinciden con tu búsqueda'):' en el catálogo'}. Las reseñas de Campus y las fuentes externas se identifican por separado.</p><section class="prof-public__directory" aria-label="Profesores encontrados">${data.professors.map(p=>`<article><span class="prof-public__avatar">${icon('graduation-cap')}</span><div><h2>${link(professorPath(p.slug),e(p.name))}</h2><p>${p.courses.length?e(p.courses.join(' · ')):'Cursos por completar'}</p><small>${p.reviewCount?`${p.averageRating!=null?`${e(p.averageRating)}/10 · `:''}${p.reviewCount} ${p.reviewCount===1?'reseña':'reseñas'} de Campus`:p.catalogReviewCount?'Aún sin reseñas de Campus':'Sé el primero en compartir tu experiencia'}</small>${p.catalogReviewCount?`<small class="prof-public__catalog-hint">${icon('star')}${p.catalogAverageRating!=null?`${e(p.catalogAverageRating)}/10 · `:''}${p.catalogReviewCount} valoraciones de MisProfesores</small>`:''}${p.hasExternalRatings?'<small class="prof-public__external-hint">Puntuaciones disponibles en ProfeMatch</small>':''}</div>${link(professorPath(p.slug),`${icon('arrow-right')}<span class="visually-hidden">Ver ficha de ${e(p.name)}</span>`)}</article>`).join('')||'<p>No encontramos profesores. Prueba con otro apellido o curso.</p>'}</section><nav class="prof-public__pagination" aria-label="Páginas de profesores">${data.page>1?link(pageURL(data.page-1),`${icon('arrow-left')} Anterior`):'<span></span>'}<span>Página ${data.page} de ${data.pages}</span>${data.page<data.pages?link(pageURL(data.page+1),`Siguiente ${icon('arrow-right')}`):'<span></span>'}</nav>`;
+ return `<nav class="prof-public__crumbs">${link('/profes/resenas/','Reseñas de estudiantes')}${icon('arrow-right')}<span>Profesores UPC</span></nav><header><p class="prof-public__eyebrow">${icon('graduation-cap')} Catálogo de profesores</p><h1>Encuentra a tu profesor UPC</h1><p>Busca su ficha, consulta sus cursos y ciclos, y lee opiniones de estudiantes.</p></header><form class="prof-public__search" action="/profes/upc/" method="get"><label for="catalog-query">Nombre del profesor o del curso</label><div><input id="catalog-query" name="q" type="search" maxlength="100" value="${e(data.query)}" placeholder="Ej. Morales o Cálculo"><button class="button">${icon('search')} Buscar</button></div></form><p class="prof-public__muted">${e(data.total.toLocaleString('es-PE'))} ${data.total===1?'profesor':'profesores'}${data.query?(data.total===1?' que coincide con tu búsqueda':' que coinciden con tu búsqueda'):' en el catálogo'}. Opiniones y puntuaciones de todas las fuentes aparecen en una sola ficha.</p><section class="prof-public__directory" aria-label="Profesores encontrados">${data.professors.map(p=>{const count=Number(p.publicRatingSourceCount??0),average=p.publicAverageRating==null?null:Number(p.publicAverageRating);return `<article><span class="prof-public__avatar">${icon('graduation-cap')}</span><div><h2>${link(professorPath(p.slug),e(p.name))}</h2><p>${p.courses.length?e(p.courses.join(' · ')):'Cursos por completar'}</p><small>${count&&average!=null?`${starRow(average)} ${e(displayScore(average))}/10 · ${count} ${count===1?'fuente':'fuentes'}`:'Aún sin puntuaciones públicas'}</small></div>${link(professorPath(p.slug),`${icon('arrow-right')}<span class="visually-hidden">Ver ficha de ${e(p.name)}</span>`)}</article>`;}).join('')||'<p>No encontramos profesores. Prueba con otro apellido o curso.</p>'}</section><nav class="prof-public__pagination" aria-label="Páginas de profesores">${data.page>1?link(pageURL(data.page-1),`${icon('arrow-left')} Anterior`):'<span></span>'}<span>Página ${data.page} de ${data.pages}</span>${data.page<data.pages?link(pageURL(data.page+1),`Siguiente ${icon('arrow-right')}`):'<span></span>'}</nav>`;
 }
 export function bannerTermLabel(term){
  const match=String(term).match(/^(\d{4})(10|20)$/);
  return match?`${match[1]}-${match[2]==='10'?'1':'2'}`:String(term);
 }
-export function bannerCoursesSection(courses){
- const groups=new Map();
- for(const course of courses??[]){
+export function bannerCoursesSection(bannerCourses,catalogCourses=[]){
+ const groups=new Map(),used=new Set();
+ for(const course of bannerCourses??[]){
   if(!groups.has(course.term))groups.set(course.term,[]);
   groups.get(course.term).push(course);
+  if(course.code)used.add(String(course.code).toLowerCase());
  }
  const content=[...groups].sort(([a],[b])=>String(b).localeCompare(String(a))).map(([term,items])=>
   `<div class="prof-public__banner-term"><h3>${icon('calendar-days')} Ciclo ${e(bannerTermLabel(term))}</h3><ul class="prof-public__courses">${items.map(course=>`<li><strong>${e(course.name)}</strong><small>${e(course.code)}</small></li>`).join('')}</ul></div>`).join('');
- return `<section id="cursos" class="prof-public__panel prof-public__banner-courses"><h2>${icon('book-open')} Cursos según Banner</h2>${content?`<p class="prof-public__help">Asignaciones publicadas para cada ciclo en la oferta de UPC.</p>${content}`:`<p class="prof-public__help">${Array.isArray(courses)?'Aún no tenemos asignaciones de Banner registradas para este profesor.':'Las asignaciones de Banner no están disponibles en este momento.'}</p>`}</section>`;
+ const other=(catalogCourses??[]).filter(course=>!((course.code&&used.has(String(course.code).toLowerCase()))||(!course.code&&(bannerCourses??[]).some(b=>normalizeLabel(b.name)===normalizeLabel(course.name)))));
+ const otherHTML=other.length?`<details class="prof-public__catalog-details"><summary>Otros cursos asociados${icon('arrow-down')}</summary><ul class="prof-public__courses">${other.map(course=>`<li><strong>${e(course.name)}</strong>${course.code?`<small>${e(course.code)}</small>`:''}</li>`).join('')}</ul></details>`:'';
+ const unavailable=!Array.isArray(bannerCourses);
+ const empty=!content&&!otherHTML;
+ return `<section id="cursos" class="prof-public__panel prof-public__banner-courses"><h2>${icon('book-open')} Cursos</h2>${content?`<p class="prof-public__help">Cursos organizados por ciclo; cada ficha muestra el código registrado.</p>${content}`:''}${otherHTML}${empty?`<p class="prof-public__help">${unavailable?'No pudimos cargar los cursos de este profesor.':'Aún no hay cursos asociados a este profesor.'}</p>`:''}</section>`;
+}
+const normalizeLabel=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+
+function combinedRating(data,ratings){
+ const means=[];
+ const campus=data.stats;
+ if(Number(campus?.ratingCount)>0&&Number.isFinite(Number(campus.averageRating)))means.push(Number(campus.averageRating));
+ const catalog=data.catalogReviews?.stats;
+ if(Number(catalog?.ratingCount)>0&&Number.isFinite(Number(catalog.averageRating)))means.push(Number(catalog.averageRating));
+ const safe=(ratings??[]).filter(r=>externalRatingsSection([r]));
+ const externalCount=safe.reduce((sum,r)=>sum+Number(r.ratingCount),0);
+ const externalSum=safe.reduce((sum,r)=>sum+Number(r.score)*2*Number(r.ratingCount),0);
+ if(externalCount)means.push(externalSum/externalCount);
+ return {average:means.length?means.reduce((sum,value)=>sum+value,0)/means.length:null,sourceCount:means.length};
+}
+
+function validReviewSourceURL(url,source){
+ try{const value=new URL(url);if(value.username||value.password||value.search||value.hash)return false;
+  if(source==='MisProfesores')return value.origin==='https://peru.misprofesores.com'&&/^\/profesores\/[A-Za-z0-9-]+_[0-9]+\/?$/.test(value.pathname);
+  if(source==='ProfeMatch')return value.origin==='https://profematchperu.com'&&/^\/u\/upc\/profesor\/[1-9]\d*-[a-z0-9-]+\/?$/.test(value.pathname);
+  return false;}catch{return false;}
+}
+function reviewDateOrder(value,label=''){
+ const direct=Date.parse(value??'');if(Number.isFinite(direct))return direct;
+ const months={enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11};
+ const match=String(label).toLowerCase().match(/(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre) de (20\d{2})/);
+ return match?Date.UTC(Number(match[2]),months[match[1]],1):0;
+}
+function publicDate(value){const date=new Date(value??'');return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('es-PE',{day:'numeric',month:'short',year:'numeric',timeZone:'America/Lima'}).format(date):'';}
+function unifiedReviewItems(data,ratings){
+ const items=[];
+ const sourceUrls=data.catalogReviews?.sourceUrls??[];
+ for(const review of data.reviews??[])if(typeof review.text==='string'&&review.text.trim())items.push({source:'Campus',sources:['Campus'],rating:review.rating,text:review.text,course:review.course,term:review.term,date:review.createdAt,order:reviewDateOrder(review.createdAt),native:review,urls:[]});
+ for(const review of data.catalogReviews?.reviews??[])if(typeof review.text==='string'&&review.text.trim())items.push({source:'MisProfesores',sources:['MisProfesores'],rating:review.rating,text:review.text,course:review.course,date:review.date,dateLabel:review.date,order:reviewDateOrder(review.date),urls:sourceUrls.filter(url=>validReviewSourceURL(url,'MisProfesores'))});
+ for(const source of (ratings??[]).filter(r=>externalRatingsSection([r])))for(const comment of source.comments??[]){
+  if(typeof comment.text!=='string'||!comment.text.trim())continue;
+  items.push({source:'ProfeMatch',sources:['ProfeMatch'],rating:Number(comment.rating)*2,text:comment.text,course:source.courseLabel,dateLabel:comment.dateLabel,order:reviewDateOrder(null,comment.dateLabel),url:source.sourceUrl,comment});
+ }
+ const unique=new Map();
+ for(const item of items){
+  const body=normalizeLabel(item.text);const score=item.rating==null?'':displayScore(item.rating);
+  const key=`${body}|${score}`;
+  const old=unique.get(key);
+  if(!body||!old){unique.set(key,item);continue;}
+  old.sources=[...new Set([...old.sources,...item.sources])];
+  old.urls=[...new Set([...(old.urls??[]),...(item.urls??[]),...(item.url?[item.url]:[])])];
+ }
+ return [...unique.values()].sort((a,b)=>b.order-a.order);
+}
+function unifiedReviewCard(item){
+ const labels=item.sources.join(' · '),sources=`<span class="prof-public__review-source">Fuente: ${e(labels)}</span>`;
+ const links=[...(item.urls??[]),...(item.url?[item.url]:[])].filter((url,index,list)=>list.indexOf(url)===index);
+ const sourceLinks=links.map(url=>{const source=url.includes('profematchperu.com')?'ProfeMatch':'MisProfesores';if(!validReviewSourceURL(url,source))return '';return `<a href="${e(url)}" target="_blank" rel="noopener noreferrer">Ver fuente en ${e(source)} ${icon('arrow-up-right')}<span class="visually-hidden"> (abre en otra pestaña)</span></a>`;}).join('');
+ if(item.native)return reviewCard({...item.native}, {profile:true,sourceLabel:labels,sourceLinks});
+ const date=item.dateLabel?publicDate(item.dateLabel)||String(item.dateLabel):'';
+ const chips=`<div class="prof-public__chips">${item.course?`<span>${e(item.course)}</span>`:''}${item.term?`<span>Ciclo ${e(item.term)}</span>`:''}${sources}</div>`;
+ const replies=item.comment?externalThread(item.comment,item.url):'';
+ return `<article class="prof-public__review" ${item.comment?.id&&/^profematch-\d+-review-\d+$/.test(item.comment.id)?`id="${e(item.comment.id)}"`:''}>${reviewHeader('Estudiante',item.rating,10)}${chips}<p class="prof-public__comment">${e(item.text)}</p>${date?`<footer>${e(date)}</footer>`:''}${replies}${sourceLinks?`<div class="prof-public__source-links">${sourceLinks}</div>`:''}</article>`;
+}
+function profileReviewsSection(data,ratings){
+ const items=unifiedReviewItems(data,ratings),count=items.length;
+ const catalog=data.catalogReviews,returnLink=data.catalogBefore?link(`${professorPath(data.professor.slug)}#resenas`,`${icon('arrow-left')} Volver a las opiniones recientes`):'';
+ const more=catalog?.nextCursor?link(`${professorPath(data.professor.slug)}?before=${catalog.nextCursor}#resenas`,`Leer más opiniones ${icon('arrow-right')}`,'prof-public__more'):'';
+ const references=[...(catalog?.sourceUrls??[]).filter(url=>validReviewSourceURL(url,'MisProfesores')).map(url=>({url,source:'MisProfesores'})),...(ratings??[]).filter(r=>externalRatingsSection([r])).map(r=>({url:r.sourceUrl,source:'ProfeMatch'}))];
+ const referenceHTML=references.filter((item,index)=>references.findIndex(other=>other.url===item.url)===index).map(item=>`<a href="${e(item.url)}" target="_blank" rel="noopener noreferrer">Ver fuente en ${e(item.source)} ${icon('arrow-up-right')}<span class="visually-hidden"> (abre en otra pestaña)</span></a>`).join('');
+ const unavailable=(ratings??[]).filter(r=>externalRatingsSection([r])&&r.commentsStatus==='unavailable').map(r=>`<p class="prof-public__help">No pudimos mostrar los comentarios de ProfeMatch. ${validReviewSourceURL(r.sourceUrl,'ProfeMatch')?`<a href="${e(r.sourceUrl)}" target="_blank" rel="noopener noreferrer">Ver la fuente ${icon('arrow-up-right')}</a>`:''}</p>`).join('');
+ return `<section id="resenas" class="prof-public__native"><div class="prof-public__section-heading"><h2>Opiniones y puntuaciones</h2><span class="prof-public__help">${count} ${count===1?'opinión visible':'opiniones visibles'}</span></div><p class="prof-public__muted">Reunimos comentarios de Campus, MisProfesores y ProfeMatch en una sola lista. Las puntuaciones se muestran en una escala común de 0 a 10 y cada opinión conserva su fuente.</p>${referenceHTML?`<div class="prof-public__source-links">${referenceHTML}</div>`:''}<a class="prof-public__compose" href="${writingURL(data.professor.slug)}"><span class="prof-public__review-avatar">${icon('user')}</span><span>¿Cómo te fue con este profesor?</span>${icon('arrow-right')}</a>${returnLink}<div class="prof-public__unified-reviews" data-profile-reviews data-professor-id="${data.professor.id}">${items.map(unifiedReviewCard).join('')||`<div class="prof-public__empty"><h3>Esta ficha aún no tiene comentarios públicos</h3><p>Tu experiencia puede ayudar a quien está por matricularse.</p>${link(writingURL(data.professor.slug),'Escribir la primera reseña','button')}</div>`}</div>${data.nextCursor?`<button class="prof-public__more" data-profile-more data-cursor="${data.nextCursor}">Leer más opiniones de Campus</button><p data-profile-status role="status"></p>`:''}${more}${unavailable}</section>`;
 }
 export function profileBody(data){
- const p=data.professor,stats=data.stats,ratings=withProfeMatchSnapshots(data.externalRatings,p);
+ const p=data.professor,ratings=withProfeMatchSnapshots(data.externalRatings,p),score=combinedRating(data,ratings);
  return `<div class="prof-public__profile" data-professor-profile>
  <nav class="prof-public__crumbs" aria-label="Ruta de navegación">${link('/profes/upc/',`${icon('arrow-left')} Profesores UPC`)}<span>/</span><span>${e(p.name)}</span></nav>
- <header class="prof-public__profile-header"><div><p class="prof-public__eyebrow">Profesor · UPC</p><h1>${e(p.name)}</h1><p class="prof-public__muted">Experiencias de estudiantes para elegir mejor.</p><div class="prof-public__summary"><span>${icon('star')}${stats.ratingCount?`<strong>${stats.averageRating}/10</strong> en Campus`:'Sin puntuaciones de Campus'}</span><span><strong>${stats.reviewCount}</strong> ${stats.reviewCount===1?'reseña':'reseñas'} de Campus</span></div></div><div class="prof-public__header-actions">${link(writingURL(p.slug),`${icon('file-text')} Escribir una reseña`,'button')}<span class="prof-public__help">Tu nombre no se muestra.</span></div></header>
- <nav class="prof-public__section-nav" aria-label="En esta ficha">${link('#resenas','Reseñas de Campus')}${data.catalogReviews?.stats.reviewCount?link('#resenas-catalogo','MisProfesores'):''}${data.externalRatings?.length?link('#resenas-profematch','ProfeMatch'):''}${link('#cursos','Cursos')}</nav>
- <div class="prof-public__columns"><div class="prof-public__feed"><section id="resenas" class="prof-public__native"><div class="prof-public__section-heading"><h2>Reseñas de Campus <span class="prof-public__count">${stats.reviewCount}</span></h2><span class="prof-public__help">Más recientes</span></div><p class="prof-public__muted">Comparte tu experiencia o responde a otro estudiante.</p>
- <a class="prof-public__compose" href="${writingURL(p.slug)}"><span class="prof-public__review-avatar">${icon('user')}</span><span>¿Cómo te fue con este profesor?</span>${icon('arrow-right')}</a>
- <div data-profile-reviews data-professor-id="${p.id}">${data.reviews.map(r=>reviewCard(r,{profile:true})).join('')}</div>${data.nextCursor?`<button class="prof-public__more" data-profile-more data-cursor="${data.nextCursor}">Leer más reseñas</button><p data-profile-status role="status"></p>`:''}
- ${!data.reviews.length?`<div class="prof-public__empty"><h3>Esta ficha aún no tiene reseñas propias</h3><p>Tu experiencia puede ayudar a quien está por matricularse.</p>${link(writingURL(p.slug),'Escribir la primera reseña','button')}</div>`:''}</section>
- ${catalogReviewsSection(data)}${profeMatchCommentsSection(ratings)}</div>
- <aside class="prof-public__sidebar" aria-label="Información del profesor">${bannerCoursesSection(data.bannerCourses)}<section class="prof-public__panel prof-public__about"><h2>Sobre estas opiniones</h2><p>Las reseñas y respuestas de Campus se escriben con una cuenta. El nombre del estudiante es privado.</p><p class="prof-public__muted">La puntuación valora al profesor de 0 a 10; no es la nota del curso. Cada fuente mantiene su propia media.</p></section>
- ${externalRatingsSection(ratings)}
- ${data.courses.length?`<section id="cursos-catalogo" class="prof-public__panel"><h2>${icon('book-open')} Cursos en el catálogo</h2><ul class="prof-public__courses">${data.courses.map(c=>`<li>${e(c.name)}${c.code?` <small>${e(c.code)}</small>`:''}${courseSourceRatings(c,ratings).map(r=>`<a class="prof-public__course-source" href="#profematch-${e(r.sourceId)}-comments">Opiniones de este curso en ProfeMatch ${icon('message-circle')}</a>`).join('')}</li>`).join('')}</ul><p class="prof-public__help">No confirman su horario o asignación del ciclo actual.</p></section>`:''}
+ <header class="prof-public__profile-header"><div><p class="prof-public__eyebrow">Profesor · UPC</p><h1>${e(p.name)}</h1><p class="prof-public__muted">Experiencias de estudiantes para elegir mejor.</p><div class="prof-public__summary"><span>${score.average===null?icon('star'):`${starRow(score.average)} <strong>${e(displayScore(score.average))}/10</strong>`}${score.average===null?'Sin puntuaciones públicas':'promedio conjunto de fuentes'}</span><span>${score.sourceCount} ${score.sourceCount===1?'fuente':'fuentes'} con puntuaciones</span></div></div><div class="prof-public__header-actions">${link(writingURL(p.slug),`${icon('file-text')} Escribir una reseña`,'button')}<span class="prof-public__help">Tu nombre no se muestra.</span></div></header>
+ <nav class="prof-public__section-nav" aria-label="En esta ficha">${link('#resenas','Opiniones y puntuaciones')}${link('#cursos','Cursos')}</nav>
+ <div class="prof-public__columns"><div class="prof-public__feed">${profileReviewsSection(data,ratings)}</div>
+ <aside class="prof-public__sidebar" aria-label="Información del profesor">${bannerCoursesSection(data.bannerCourses,data.courses)}<section class="prof-public__panel prof-public__about"><h2>Sobre estas opiniones</h2><p>Las reseñas y respuestas de Campus se escriben con una cuenta. El nombre del estudiante es privado.</p><p class="prof-public__muted">El promedio combina las fuentes en escala de 0 a 10; las notas de 1 a 5 se convierten proporcionalmente. Cada opinión indica su fuente.</p></section>
  </aside></div></div>`;
 }
 export function formBody(data,{preview=false}={}){
