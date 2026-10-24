@@ -2,7 +2,7 @@ import { beginAccountHandoff, completeAccountHandoff } from './account-onboardin
 import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
-import type { PostHog } from 'posthog-js';
+import type { PostHog } from 'posthog-js/dist/module.slim';
 
 type Event = { event: string; properties: Record<string, unknown> };
 const browser = typeof window !== 'undefined' && typeof location !== 'undefined'
@@ -59,7 +59,8 @@ const localSession = local ? identifier('campus-analytics-preview-session') : ''
 // In development the same contracts run into a bounded local buffer. No SDK,
 // ingestion, flags, replay or remote configuration requests are made.
 if (browser && !local && key && host) {
-  void import('posthog-js').then(({ default: posthog }) => {
+  // Only capture/identity are used; replay, surveys and autocapture stay disabled.
+  void import('posthog-js/dist/module.slim').then(({ default: posthog }) => {
     client = posthog.init(key, {
       api_host: host, defaults: '2026-05-30',
       autocapture: false, capture_pageview: false, capture_pageleave: false,
