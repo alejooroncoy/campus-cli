@@ -84,7 +84,7 @@ export function bannerCoursesSection(courses){
   groups.get(course.term).push(course);
  }
  const content=[...groups].sort(([a],[b])=>String(b).localeCompare(String(a))).map(([term,items])=>
-  `<div class="prof-public__banner-term"><h3>${icon('calendar-days')} Ciclo ${e(bannerTermLabel(term))}</h3><ul class="prof-public__courses">${items.map(course=>`<li><strong>${e(course.name)}</strong><small>${e(course.code)}${course.sectionCount?` · ${e(course.sectionCount)} ${course.sectionCount===1?'sección':'secciones'}`:''}</small></li>`).join('')}</ul></div>`).join('');
+  `<div class="prof-public__banner-term"><h3>${icon('calendar-days')} Ciclo ${e(bannerTermLabel(term))}</h3><ul class="prof-public__courses">${items.map(course=>`<li><strong>${e(course.name)}</strong><small>${e(course.code)}</small></li>`).join('')}</ul></div>`).join('');
  return `<section id="cursos" class="prof-public__panel prof-public__banner-courses"><h2>${icon('book-open')} Cursos según Banner</h2>${content?`<p class="prof-public__help">Asignaciones publicadas para cada ciclo en la oferta de UPC.</p>${content}`:`<p class="prof-public__help">${Array.isArray(courses)?'Aún no tenemos asignaciones de Banner registradas para este profesor.':'Las asignaciones de Banner no están disponibles en este momento.'}</p>`}</section>`;
 }
 export function profileBody(data){

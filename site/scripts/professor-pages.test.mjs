@@ -113,7 +113,8 @@ test('Banner assignments appear in initial profile HTML by cycle even without ca
  ]};
  const response=await run('/profes/upc/juan-carlos-morales-arevalo/',{fetchData:async()=>Response.json(profile)});
  const html=await response.text();assert.equal(response.status,200);
- for(const value of ['Cursos según Banner','Ciclo 2026-2','Ciclo 2026-1','1ADE0158','Razonamiento e Investigación Jurídica','1 sección','2 secciones'])assert.ok(html.includes(value),value);
+ for(const value of ['Cursos según Banner','Ciclo 2026-2','Ciclo 2026-1','1ADE0158','Razonamiento e Investigación Jurídica'])assert.ok(html.includes(value),value);
+ assert.doesNotMatch(html,/\b\d+ secci[oó]n(?:es)?\b/);
  assert.ok(html.indexOf('Ciclo 2026-2')<html.indexOf('Ciclo 2026-1'));
  assert.equal((html.match(/id="cursos"/g)||[]).length,1);
  assert.doesNotMatch(html,/Aún no tenemos cursos asociados/);
