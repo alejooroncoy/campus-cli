@@ -854,6 +854,36 @@ test('the verified journal article route reads its full editorial PDF', async ()
   assert.equal(officialResearchAlternate('https://example.com/revflacso/article/view/7514'), null);
 });
 
+test('the blocked UNMSM article reads only its exact published SciELO PDF copy', async () => {
+  const source = 'https://revistasinvestigacion.unmsm.edu.pe/index.php/lenguaysociedad/article/view/22535';
+  const pdf = 'https://www.scielo.org.pe/pdf/lys/v21n2/2413-2659-lys-21-02-373.pdf';
+  for (const url of [source, source + '/', source + '/18891', 'https://doi.org/10.15381/lengsoc.v21i2.22535']) {
+    let requests = 0;
+    const result = await readResearchDocument({ url, format: 'auto', sectionCount: 1 }, {
+      download: async requested => {
+        requests++;
+        assert.equal(requested, pdf);
+        return { bytes: pdfFixture(), url: requested, contentType: 'application/pdf' };
+      },
+    });
+    assert.equal(requests, 1);
+    assert.equal(result.requestedUrl, url);
+    assert.equal(result.resolvedUrl, pdf);
+    assert.equal(result.sourceRoute, 'official_alternate');
+    assert.equal(result.accessScope, 'full_article');
+    assert.ok('pages' in result);
+    assert.equal(officialResearchPdf(url), pdf);
+  }
+  for (const url of [source.replace('22535', '22536'), source + '/18892', source + '?token=private',
+    source + '#other-version', source.replace('unmsm.edu.pe', 'unmsm.edu.pe.evil.example'),
+    'https://doi.org/10.15381/lengsoc.v21i2.22536']) {
+    assert.equal(officialResearchAlternate(url), null, url);
+  }
+  await assert.rejects(readResearchDocument({ url: source, format: 'html' }, {
+    download: async url => ({ bytes: Buffer.from('<html>Access challenge</html>'), url, contentType: 'text/html' }),
+  }), /no devolvió un PDF válido/);
+});
+
 test('the full-report PDF index resolves the official source before downloading', async () => {
   const landing = 'https://www.weforum.org/publications/the-future-of-jobs-report-2025/';
   const pdf = 'https://reports.weforum.org/docs/WEF_Future_of_Jobs_Report_2025.pdf';
