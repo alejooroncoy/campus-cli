@@ -1,11 +1,11 @@
-# Reseñas de Campus para Blackboard
+# Opiniones sobre Campus
 
-El formulario está en `/opiniones-campus/#compartir`, enlazado desde Conectar IA, Mi perfil y `/blackboard-chatgpt/#resenas`. Usa la sesión httpOnly de Campus. No depende de Plus ni de elegir universidad. Cada cuenta tiene una reseña editable; debe declarar experiencia con Blackboard en ChatGPT/Claude y autorizar el nombre público, estrellas y comentario. No se inventan testimonios ni se reutilizan calificaciones de profesores.
+El formulario está en `/opiniones-campus/#compartir`, enlazado desde Conectar IA, Mi perfil y `/blackboard-chatgpt/#resenas`. Usa la sesión httpOnly de Campus. No depende de Plus ni de elegir universidad. Cada cuenta tiene una reseña editable; debe indicar la función usada y declarar experiencia con Campus y autorizar el nombre público, estrellas y comentario. No se inventan testimonios ni se reutilizan calificaciones de profesores.
 
 ## Backend (campus-profes)
 
 - `GET /api/app/blackboard-review`: reseña de la cuenta de la cookie; 401 sin sesión.
-- `POST /api/app/blackboard-review`: `{publicName,rating,text,experienced:true,consent:true}`. Rating entero 1–5; nombre 2–80; comentario 10–1500; rechaza correos/teléfonos e identidades enviadas por el cliente. Origin exacto y JSON obligatorio. Una edición cada 30 segundos; el retiro no espera.
+- `POST /api/app/blackboard-review`: `{publicName,rating,text,useCase,experienced:true,consent:true}`. Rating entero 1–5; nombre 2–80; comentario 10–1500; rechaza correos/teléfonos e identidades enviadas por el cliente. Origin exacto y JSON obligatorio. Una edición cada 30 segundos; el retiro no espera.
 - `POST /api/app/blackboard-review/withdraw`: retira solo la reseña de esa cuenta.
 - `GET /api/app/blackboard-reviews?page=1`: página pública de 10 reseñas, total y promedio calculados en una sola consulta. No lee sesiones ni devuelve cuentas o correos. Incluye todas las calificaciones publicadas sin filtrar por sentimiento.
 
@@ -13,7 +13,7 @@ La migración `161_campus_product_reviews.sql` crea una tabla independiente con 
 
 ## Página pública
 
-Astro compila la página como plantilla y el último paso del build la mueve a `.generated/blackboard-chatgpt.html`. Así Vercel no encuentra un HTML estático que tenga precedencia sobre el rewrite. La función Vercel `site/api/blackboard-chatgpt.js` consulta el feed público y sirve HTML con comentarios y JSON-LD en la misma respuesta. Conserva el Product existente y añade `review` y `aggregateRating` desde los mismos datos. Escapa HTML y JSON dentro de scripts. La paginación permite consultar todas las reseñas; el promedio y total abarcan todas las publicadas. No se emite puntuación si todavía no hay reseñas. Si falla la API, la página sigue disponible, indica el fallo y no inventa un estado vacío ni puntuaciones.
+Astro compila la página como plantilla y el último paso del build la mueve a `.generated/blackboard-chatgpt.html`. Así Vercel no encuentra un HTML estático que tenga precedencia sobre el rewrite. La función Vercel `site/api/blackboard-chatgpt.js` consulta el feed público y sirve HTML con comentarios y JSON-LD en la misma respuesta. Conserva el Product de la conexión y añade `review` y `aggregateRating` desde su feed `scope=blackboard`; la página pública de opiniones muestra todas las funciones. Escapa HTML y JSON dentro de scripts. La paginación permite consultar todas las reseñas; el promedio y total abarcan todas las publicadas. No se emite puntuación si todavía no hay reseñas. Si falla la API, la página sigue disponible, indica el fallo y no inventa un estado vacío ni puntuaciones.
 
 La caché pública dura hasta 60 segundos; no contiene información de sesión. Retirar una reseña la excluye de lista y promedio en la siguiente respuesta sin caché. Los buscadores actualizan sus copias a su propio ritmo. La ruta Markdown se conserva.
 
