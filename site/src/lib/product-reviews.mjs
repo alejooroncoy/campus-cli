@@ -67,6 +67,10 @@ export function renderBlackboardReviewsPage(template, data, requireProduct = tru
   if (requireProduct && !foundProduct) throw new Error("Missing Blackboard product");
   // A callback keeps user-authored $& and $' literal in String.replace.
   const section = renderProductReviews(data);
-  const publicSection = section.replace('<a class="opinion-button" href="/opiniones-campus/#compartir">Escribir una opinión</a>', '<button class="opinion-button" type="button" data-opinion-open>Escribir una opinión</button>');
-  return html.replace(marker, () => requireProduct ? section : publicSection.replace('<h2 id="product-reviews-title">', '<h1 id="product-reviews-title">').replace("</h2>", "</h1>"));
+  return html.replace(marker, () => requireProduct ? section : renderPublicProductReviews(data));
+}
+
+export function renderPublicProductReviews(data) {
+  if (data !== null && !validPublicReviews(data)) throw new Error("Invalid public reviews");
+  return renderProductReviews(data).replace('<a class="opinion-button" href="/opiniones-campus/#compartir">Escribir una opinión</a>', '<button class="opinion-button" type="button" data-opinion-open>Escribir una opinión</button>').replace('<h2 id="product-reviews-title">', '<h1 id="product-reviews-title">').replace("</h2>", "</h1>");
 }
