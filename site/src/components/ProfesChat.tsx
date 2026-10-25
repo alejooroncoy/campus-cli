@@ -1,4 +1,5 @@
 import AgentFeedback from './AgentFeedback';
+import GuestSignupInvite from './GuestSignupInvite';
 import { consumeConversationHandoff } from '../scripts/account-onboarding';
 import { analyticsHeaders, track } from '../scripts/analytics';
 import { canRetryQuestion, questionFailure } from '../scripts/question-retry';
@@ -831,6 +832,7 @@ export default function ProfesChat() {
   },[]);
 
   const [feedbackTrace,setFeedbackTrace]=useState<string|null>(null);
+  const [signupTrace,setSignupTrace]=useState<string|null>(null);
   const transport = useMemo(() => profesTransport(
     value => {
       usageHandler.current(value);
@@ -1678,7 +1680,8 @@ export default function ProfesChat() {
         </div>
       </dialog>
 
-      {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={feedbackTrace} traceId={feedbackTrace}/> : null}
+      {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={feedbackTrace} traceId={feedbackTrace} onResolved={()=>{if(session?.authenticated===false&&!isGuestLimit)setSignupTrace(feedbackTrace);}}/> : null}
+      {!busy&&!isGuestLimit&&session?.authenticated===false&&signupTrace&&signupTrace===feedbackTrace?<GuestSignupInvite key={signupTrace} traceId={signupTrace}/>:null}
       {isGuestLimit ? (
         <div className="app-guest-quota-reminder" role="status">
           <div className="app-guest-quota-reminder__text">

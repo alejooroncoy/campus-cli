@@ -66,6 +66,8 @@ jobs:
         timeout-minutes: 3
       - name: Material request continuation and private clipboard handoff
         run: npm --prefix site run test:materials-handoff
+      - name: Guest signup after resolved answers and explicit correction preference
+        run: npm --prefix site run test:guest-signup
         timeout-minutes: 2
       - name: Upload mobile thread screenshots and checks
         if: always()
