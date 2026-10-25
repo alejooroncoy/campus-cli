@@ -133,3 +133,27 @@ test('Banner course names, codes and unfamiliar cycle labels cannot inject marku
  assert.doesNotMatch(html,/<script>|<img src=x>|<svg onload/);
  assert.match(html,/&lt;script&gt;/);assert.equal(bannerTermLabel('202630'),'202630');
 });
+
+test('archived syllabus courses appear with their original codes, cycles and sources before any reviews',()=>{
+ const html=profileBody({...data,courses:[{id:1,name:'Externado de Cirugía',code:'ME213'}],reviews:[],bannerCourses:[],teachingCourses:[
+  {source:'upc_syllabus',term:'202301',code:'ME213',name:'Externado de Cirugía',sourceUrl:'https://repositorioacademico.upc.edu.pe/handle/10757/680050',documentUrl:'https://repositorioacademico.upc.edu.pe/server/api/core/bitstreams/f8fadfa7-de52-54d2-84bd-960c88e7337c/content'},
+  {source:'upc_syllabus',term:'201502',code:'ME78',name:'Cirugía (20 Semanas)',sourceUrl:'https://repositorioacademico.upc.edu.pe/handle/10757/626870'},
+ ]});
+ for(const value of ['ME213','ME78','Ciclo 2023-1','Ciclo 2015-2','Fuente:','Sílabo UPC','PDF original','data-source-term="202301"'])assert.ok(html.includes(value),value);
+ assert.doesNotMatch(html,/Ciclo 2026|Aún no hay cursos|Otros cursos asociados|\b\d+ secciones?\b/);
+ assert.ok(html.indexOf('Ciclo 2023-1')<html.indexOf('Ciclo 2015-2'));
+});
+
+test('Banner EPE and syllabus periods remain distinct and source URLs are restricted',async()=>{
+ const {bannerCoursesSection}=await import('../src/lib/professor-pages.mjs');
+ const courses=[
+  {source:'banner',term:'202615',code:'1FCE0101',name:'Matemática',sourceUrl:'javascript:alert(1)'},
+  {source:'upc_syllabus',term:'202601',code:'ME213',name:'Cirugía',sourceUrl:'https://repositorioacademico.upc.edu.pe.evil.test/handle/10757/123',documentUrl:'javascript:alert(2)'},
+ ];
+ const html=bannerCoursesSection([...courses,courses[0]]);
+ assert.equal((html.match(/data-teaching-source=/g)||[]).length,2);
+ assert.equal((html.match(/<h3>.*Ciclo 2026-1<\/h3>/g)||[]).length,1);
+ assert.match(html,/1FCE0101 · Ciclo 2026-1 · EPE-WS/);
+ assert.match(html,/ME213 · Ciclo 2026-1/);
+ assert.doesNotMatch(html,/javascript:|evil\.test|Ciclo 202615|Ciclo 202601/);
+});
