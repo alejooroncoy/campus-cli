@@ -205,7 +205,6 @@
 .cp-motion figcaption button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 5px;border:0;background:transparent;font:inherit;font-size:11px;color:var(--muted);cursor:pointer}
 .cp-motion figcaption button[hidden]{display:none}
 .cp-motion figcaption button:hover{color:var(--ink)}
-@media(max-width:720px){.cp-motion figcaption{padding-right:64px}}
 .cp-motion.is-animated .cp-motion__question{animation:campus-question 9s ease-in-out infinite both}
 .cp-motion.is-animated .cp-motion__answer{animation:campus-answer 9s ease-in-out infinite both}
 .cp-motion.is-animated .cp-motion__typing{display:flex;animation:campus-thinking 9s linear infinite both}
