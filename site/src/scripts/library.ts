@@ -1,3 +1,5 @@
+import { keepBothOperation, type KeepBothOperation } from "../lib/library-versions";
+import { watchLibraryVersions } from "../lib/library-version-sync";
 import { CloudDraftQueue, chooseCloudRecovery, type CloudCopy, type CloudAttempt } from "../lib/library-cloud-draft";
 import { DraftConflictError, LibraryDraftStore, indexedDraftFiles, libraryDraftKey } from "../lib/library-draft";
 import { isLibraryWorkspaceViewHash } from "../lib/library-navigation";
@@ -37,6 +39,7 @@ type Work = {
   credits?: number;
 };
 type Recovery = {
+  keepBoth?: KeepBothOperation;
   fields: Record<string, string>;
   criteria: Record<string, string>[];
   courses: { value: string; label: string }[];
@@ -97,6 +100,7 @@ export function initLibrary(root: HTMLElement) {
   let localSaved = false, recoveryReady = false, saveVersion = 0;
   let cloud: CloudDraftQueue<Recovery> | null = null, cloudEnabled = false, cloudSaved = false, discarding = false;
   let cloudLastMutation: string | undefined;
+  let versionsEnabled=false,versionDeletionEnabled=false,versionsPage=1,pendingKeep:KeepBothOperation|undefined;
   let cloudRemote: CloudCopy<Recovery> | null = null;
   let cloudBase = 0;
   let workspaceScope: string | null = null, workspaceOwner: string | null = null;
@@ -104,6 +108,7 @@ export function initLibrary(root: HTMLElement) {
   let reconnecting: Promise<void> | null = null;
   let retryConnection = true, transientCloudFailure = false;
   let sessionGeneration = 0;
+  let refreshVersionList = () => {};
   if ('serviceWorker' in navigator) {
     const offlineAvailability = async () => {
       try {
@@ -219,6 +224,7 @@ export function initLibrary(root: HTMLElement) {
       cloudMutation:cloud?.mutationId ?? cloudLastMutation,
       cloudDirty:cloud ? cloud.dirty : true,
       cloudDiscarded:discarding,
+      keepBoth:pendingKeep,
       expanded: !!form.querySelector<HTMLDetailsElement>("details")?.open,
     };
   }
@@ -282,6 +288,42 @@ export function initLibrary(root: HTMLElement) {
     if (!cloud) await connectCloud(snapshot(), selectedFiles, missingFiles);
     if (cloud && !cloud.paused) await cloud.flush();
   });
+  $('[data-lib-keep-both]').onclick=()=>void run(async()=>{
+    if(missingFiles) throw new Error('Vuelve a elegir los archivos que faltan antes de conservar ambas versiones.');
+    const local=snapshot(),files=selectedFiles;
+    const latest:CloudCopy<Recovery>=(await api('recovery')).recovery;
+    pendingKeep=await keepBothOperation(local,files,pendingKeep);
+    // Persist retry identity and files before the request can commit on the server.
+    if(!draftStore) throw new Error("No pudimos preparar un reintento seguro. Activa el almacenamiento de este navegador y vuelve a intentarlo.");
+    await draftStore.save({...local,keepBoth:pendingKeep,cloudDirty:true},files);
+    const result=await api('recovery/keep-both',{scope:workspaceScope,revision:latest.revision,mutationId:pendingKeep.id,snapshot:local,
+      files:await Promise.all(files.map(async file=>({name:file.name,base64:await base64(file)})))});
+    await versions(1);
+    pendingKeep=undefined;
+    if(result.recovery.revision!==result.preservedRevision) {
+      cacheCloudState();
+      throw new Error('Las dos versiones ya están conservadas. El otro dispositivo hizo cambios nuevos; vuelve a conservar ambas para incluirlos.');
+    }
+    // Continue an independent copy; never update the original saved work.
+    await applyRecovery({...local,keepBoth:undefined,current:null,requestId:crypto.randomUUID(),unsaved:true,stage:local.stage===2?2:1},files,false,false);
+    createCloud(result.recovery);
+    $('[data-lib-cloud-conflict]').hidden=true;
+    persistDraft(true);
+    await flushCloud(); // A newer concurrent save still fails CAS with 409.
+    showView('overview');replaceWorkspaceHash('#aportes');
+    message('Las dos versiones están guardadas en tu cuenta, incluidos sus archivos. Puedes retomar cualquiera en Versiones conservadas.');
+  });
+  $('[data-lib-versions-refresh]').onclick=()=>void run(()=>versions(1));
+  $('[data-lib-version-delete-cancel]').onclick=()=>$<HTMLDialogElement>('[data-lib-version-delete-dialog]').close();
+  $('[data-lib-version-delete-confirm]').onclick=()=>{
+    const dialog=$<HTMLDialogElement>('[data-lib-version-delete-dialog]'),id=dialog.dataset.versionId;
+    dialog.close();if(id)void run(()=>deleteVersion(id));
+  };
+  $('[data-lib-version-cancel]').onclick=()=>$<HTMLDialogElement>('[data-lib-version-dialog]').close();
+  $('[data-lib-version-confirm]').onclick=()=>{
+    const dialog=$<HTMLDialogElement>('[data-lib-version-dialog]'),id=dialog.dataset.versionId;
+    dialog.close();if(id)void run(()=>openVersion(id));
+  };
   $("[data-lib-cloud-use-local]").onclick = () => void run(async () => {
     if (missingFiles) {
       showView("upload"); replaceWorkspaceHash("#subir"); showStage(1);
@@ -313,6 +355,23 @@ export function initLibrary(root: HTMLElement) {
   window.addEventListener("online", () => {
     if (offlineMode) void run(reconnectOffline);
     else if (cloud?.dirty && !cloud.paused) void cloud.flush().catch(() => {});
+  });
+  const versionSync = watchLibraryVersions({
+    window, document,
+    active: () => root.isConnected && navigator.onLine && document.visibilityState === 'visible'
+      && versionsEnabled && !offlineMode && !busy && view === 'overview' && !$('[data-lib-private]').hidden,
+    refresh: async () => {
+      try { await versions(); }
+      catch { $('[data-lib-versions-sync]').textContent = 'No pudimos actualizar las versiones. Reintentaremos al recuperar la conexión.'; }
+    },
+    interval: callback => {
+      const timer = setInterval(() => { if (!root.isConnected) versionSync.stop(); else callback(); }, 15000);
+      return () => clearInterval(timer);
+    },
+  });
+  refreshVersionList = versionSync.refresh;
+  window.addEventListener('offline', () => {
+    if (root.isConnected) $('[data-lib-versions-sync]').textContent = 'Sin conexión. Las versiones se actualizarán al volver internet.';
   });
   window.addEventListener('storage', event => {
     if (event.key !== LIBRARY_OFFLINE_OWNER && event.key !== 'campus-session-revision-v1') return;
@@ -379,6 +438,7 @@ export function initLibrary(root: HTMLElement) {
         link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
+    if (view === 'overview') refreshVersionList();
   }
   function showStage(next: number) {
     stage = next;
@@ -504,7 +564,7 @@ export function initLibrary(root: HTMLElement) {
       );
     }
     if (!r.ok) throw new LibraryApiError(r.status, d.error || "No se pudo completar la operación.");
-    if (path === "recovery" && cloudEnabled && (!workspaceScope || d.recovery?.scope !== workspaceScope)) throw new LibraryApiError(401,"Tu cuenta cambió. Abre Biblioteca de nuevo para continuar.");
+    if (d.recovery && cloudEnabled && (!workspaceScope || d.recovery?.scope !== workspaceScope)) throw new LibraryApiError(401,"Tu cuenta cambió. Abre Biblioteca de nuevo para continuar.");
     return d;
   }
   async function run(action: () => Promise<void>) {
@@ -581,6 +641,59 @@ export function initLibrary(root: HTMLElement) {
       ? data.works.map((w: Work) => card(w)).join("")
       : `<div class="lib-empty"><span class="lib-empty-symbol">${libraryIcon("file-text")}</span><h3>Aquí empieza tu colección de aportes</h3><p>Guarda un trabajo como borrador. Después podrás revisarlo y decidir si lo compartes.</p><a href="/app/biblioteca/#subir" class="lib-button lib-secondary">Subir mi primer trabajo ${libraryIcon("arrow-right")}</a></div>`;
     pages($("[data-lib-mine-pages]"), page, data.hasMore, mine);
+    if(versionsEnabled) await versions();
+  }
+  type SavedVersion={id:string;side:string;title:string;course:string;createdAt:string;fileCount?:number};
+  let visibleVersions:SavedVersion[]=[];
+  let versionRead = 0, versionListSignature = '';
+  async function versions(page=versionsPage) {
+    const generation=sessionGeneration, read=++versionRead;
+    const data=await api('recovery/versions?page='+page);
+    if(generation!==sessionGeneration || !root.isConnected) throw new Error('La cuenta cambió durante la carga.');
+    if(read!==versionRead)return;
+    if(page>1 && !data.versions.length)return versions(page-1);
+    versionsPage=page;
+    visibleVersions=data.versions;
+    $('[data-lib-versions]').hidden=false;
+    $('[data-lib-versions-sync]').textContent = 'Actualizado con tu cuenta Campus.';
+    const signature=JSON.stringify({page,versions:data.versions,hasMore:data.hasMore});
+    if(signature===versionListSignature)return; // Preserve keyboard focus when nothing changed.
+    versionListSignature=signature;
+    const dialog=$<HTMLDialogElement>('[data-lib-version-delete-dialog]');
+    if(dialog.open && !visibleVersions.some(v=>v.id===dialog.dataset.versionId))dialog.close();
+    $('[data-lib-versions-list]').innerHTML=data.versions.length?data.versions.map((v:SavedVersion)=>`<article class="lib-card"><span class="lib-badge">Borrador privado · ${v.side==='local'?'Copia aportada':'Copia de Campus'}</span><h3>${e(v.title||'Borrador sin título')}</h3><p class="lib-muted">${e(v.course||'Curso pendiente')} · ${e(new Date(v.createdAt).toLocaleString('es-PE'))}</p><div class="lib-actions"><button class="lib-button lib-secondary" type="button" data-version="${e(v.id)}">Retomar esta versión</button>${versionDeletionEnabled?`<button class="lib-button lib-secondary lib-danger" type="button" data-version-delete="${e(v.id)}">${libraryIcon("trash-2")} Eliminar versión</button>`:""}</div></article>`).join(''):'<p class="lib-muted">Aquí aparecerán las dos copias cuando elijas «Conservar ambas» al resolver un conflicto.</p>';
+    pages($('[data-lib-versions-pages]'),page,data.hasMore,versions);
+  }
+  function confirmVersionDeletion(id:string) {
+    const version=visibleVersions.find(v=>v.id===id);
+    if(!version || !versionDeletionEnabled || busy)return;
+    const dialog=$<HTMLDialogElement>('[data-lib-version-delete-dialog]');
+    dialog.dataset.versionId=id;
+    $('[data-lib-version-delete-title]').textContent=version.title||'Borrador sin título';
+    $('[data-lib-version-delete-files]').textContent=typeof version.fileCount==='number'?`${version.fileCount} ${version.fileCount===1?'archivo':'archivos'}`:'sus archivos';
+    dialog.showModal();
+  }
+  async function deleteVersion(id:string) {
+    const generation=sessionGeneration;
+    await api(`recovery/versions/${id}/delete`,{scope:workspaceScope,confirm:true});
+    if(generation!==sessionGeneration || !root.isConnected)return;
+    root.querySelector<HTMLButtonElement>(`button[data-version-delete="${id}"]`)?.closest('article')?.remove();
+    versionListSignature='';
+    message('Versión eliminada con sus archivos. Tu borrador original y tu avance actual siguen guardados.');
+    try { await versions(); }
+    catch { message('La versión se eliminó. No pudimos actualizar la lista; pulsa Actualizar versiones.',true); }
+  }
+  async function openVersion(id:string) {
+    if(cloud?.paused) throw new Error('Resuelve primero el conflicto del borrador actual. Tus versiones conservadas siguen a salvo en tu cuenta.');
+    await flushCloud();
+    const {version}=await api('recovery/versions/'+id);
+    const files=await downloadRecoveryFiles(version,`recovery/versions/${id}/files/`);
+    pendingKeep=undefined;
+    await applyRecovery({...version.snapshot,current:null,requestId:crypto.randomUUID(),unsaved:true,stage:version.snapshot.stage===2?2:1},files,false,true);
+    persistDraft(true);
+    await flushCloud();
+    showView('upload');replaceWorkspaceHash('#subir');
+    message('Versión recuperada con todos sus archivos. Las dos copias conservadas siguen en tu cuenta.');
   }
   async function queue(page = queuePage) {
     queuePage = page;
@@ -614,6 +727,7 @@ export function initLibrary(root: HTMLElement) {
   }
   function resetEditor() {
     deferredCurrent = null;
+    pendingKeep=undefined;
     discarding = false;
     ++saveVersion;
     localSaved = false;
@@ -968,9 +1082,17 @@ export function initLibrary(root: HTMLElement) {
   $("[data-lib-admin-refresh]").onclick = () => void run(() => queue());
   root.addEventListener("click", (event) => {
     const target = (event.target as HTMLElement).closest<HTMLElement>(
-      "[data-open],[data-withdraw],[data-review]",
+      "[data-open],[data-withdraw],[data-review],button[data-version],button[data-version-delete]",
     );
     if (!target) return;
+    if(target.dataset.versionDelete)confirmVersionDeletion(target.dataset.versionDelete);
+    if (target.dataset.version) {
+      if(unsaved) {
+        const dialog=$<HTMLDialogElement>('[data-lib-version-dialog]');
+        dialog.dataset.versionId=target.dataset.version;
+        dialog.showModal();
+      } else void run(()=>openVersion(target.dataset.version!));
+    }
     if (target.dataset.open) void run(() => open(target.dataset.open!));
     if (
       target.dataset.withdraw &&
@@ -1015,9 +1137,9 @@ export function initLibrary(root: HTMLElement) {
         panel.scrollIntoView({ behavior: scrollBehavior() });
       });
   });
-  async function downloadRecoveryFiles(copy: CloudCopy<Recovery>) {
+  async function downloadRecoveryFiles(copy: Pick<CloudCopy<Recovery>, "files">,path="recovery/files/") {
     return Promise.all(copy.files.map(async file => {
-      const response = await fetch(`/api/app/library/recovery/files/${file.id}`, {credentials:"same-origin",cache:"no-store",signal:AbortSignal.timeout(60000)});
+      const response = await fetch(`/api/app/library/${path}${file.id}`, {credentials:"same-origin",cache:"no-store",signal:AbortSignal.timeout(60000)});
       if (!response.ok) throw new LibraryApiError(response.status,"No se pudo recuperar el archivo de tu cuenta. Reintenta antes de continuar.");
       const bytes = await response.blob();
       if (bytes.size !== file.size) throw new Error("La descarga del archivo está incompleta.");
@@ -1038,6 +1160,7 @@ export function initLibrary(root: HTMLElement) {
     const wasReady = recoveryReady;
     recoveryReady = false;
     try {
+      pendingKeep=recovery.keepBoth;
       let stale = false;
       let work: Work | null = null;
       if (recovery.current) {
@@ -1196,8 +1319,11 @@ export function initLibrary(root: HTMLElement) {
         if (!config.enabled || !config.cloudDrafts) throw new Error('El guardado de borradores no está disponible.');
         // mine compares the server's opaque account scope with the offline owner
         // before any recovery mutation or download can happen.
+        versionsEnabled=config.recoveryVersions===true;
+        versionDeletionEnabled=config.recoveryVersionDeletion===true;
         await mine();
         cloudEnabled = true;
+        $("[data-lib-keep-both]").hidden=!versionsEnabled;
         const local = snapshot(), files = selectedFiles;
         offlineMode = false;
         try { await connectCloud(local, files, missingFiles); }
@@ -1223,6 +1349,9 @@ export function initLibrary(root: HTMLElement) {
     try { config = await api('config'); }
     catch (error) { if (await restoreOffline()) return; throw error; }
     cloudEnabled = config.cloudDrafts === true;
+    versionsEnabled=config.recoveryVersions===true;
+    versionDeletionEnabled=config.recoveryVersionDeletion===true;
+    $("[data-lib-keep-both]").hidden=!versionsEnabled;
     if (!cloudEnabled) $("[data-lib-persistence-help]").textContent = "La copia automática en este navegador sigue activa. El guardado en tu cuenta estará disponible cuando Campus lo habilite.";
     if (!config.enabled) {
       message(

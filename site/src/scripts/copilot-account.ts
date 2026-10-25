@@ -1,4 +1,5 @@
 import type { CampusSession } from "./campus-session";
+import {connectorLoginHref} from './assistant-handoff';
 
 type AccountState = "loading" | "guest" | "free" | "plus" | "unavailable" | "blocked";
 type AccountView = {
@@ -79,6 +80,9 @@ export function renderCopilotAccount(root: HTMLElement | null, session: CampusSe
     action.hidden = !view.action;
     if (view.action) { action.textContent = view.action.label; action.href = view.action.href; }
     else { action.textContent = ""; action.removeAttribute("href"); }
+  }
+  if (action && view.state === 'guest') {
+    action.href=connectorLoginHref(typeof window==='undefined'?'':window.location.search);
   }
   if (upgrade) upgrade.hidden = !view.upgrade;
   if (retry) retry.hidden = !view.retry;

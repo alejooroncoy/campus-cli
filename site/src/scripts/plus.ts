@@ -21,18 +21,20 @@ function mount(){
     if(loading){const accessible=document.createElement('span');accessible.className='app-sr-only';accessible.textContent=value;const skeleton=document.createElement('span');skeleton.className='app-skeleton plus-message__skeleton';skeleton.setAttribute('aria-hidden','true');status.replaceChildren(accessible,skeleton);}
     else status.textContent=value;
   };
-  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);};
+  let lastView='';let expiryTracked=false;
+  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}const feedback=root.querySelector<HTMLElement>('[data-plus-feedback]');if(feedback)feedback.hidden=view==='active'||view==='pending';};
   async function api(path:string,data?:unknown){
     const response=await fetch(`/api/app/plus/${path}`,{method:data===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(30000),
       headers:{...analyticsHeaders(),...(data===undefined?{}:{'content-type':'application/json'})},...(data===undefined?{}:{body:JSON.stringify(data)})});
     const body=await response.json();if(!response.ok)throw new Error(body.error??'No pudimos comprobar el pago.');return body;
   }
-  function failure(error:unknown){if(disposed)return;message(error instanceof Error?error.message:'No pudimos conectar con Campus. Vuelve a intentarlo sin volver a pagar.',true);track('campus_flow_failed',{step:'plus',error_kind:'rejected'});}
-  function expired(){const ended=quote!==null&&Date.now()>=new Date(quote.expiresAt).getTime();find<HTMLButtonElement>('submit').disabled=busy||ended;find('requote').hidden=!ended;if(ended)message('Tu reserva de precio venció. Vuelve a comprobarlo antes de pagar. Si ya pagaste, contacta a soporte.',true);return ended;}
+  function failure(error:unknown){if(disposed)return;message(error instanceof Error?error.message:'No pudimos conectar con Campus. Vuelve a intentarlo sin volver a pagar.',true);track('campus_flow_failed',{step:'plus',plus_step:lastView,error_kind:error instanceof TypeError?'network':'rejected'});}
+  function expired(){const ended=quote!==null&&Date.now()>=new Date(quote.expiresAt).getTime();find<HTMLButtonElement>('submit').disabled=busy||ended;find('requote').hidden=!ended;if(ended&&!expiryTracked){expiryTracked=true;track('campus_plus_quote_expired',{plus_step:'payment'});}if(ended)message('Tu reserva de precio venció. Vuelve a comprobarlo antes de pagar. Si ya pagaste, contacta a soporte.',true);return ended;}
   async function checkout(){
     if(busy)return;busy=true;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry]').forEach(b=>b.disabled=true);message('Comprobando tu precio…',false,true);
+    track('campus_plus_checkout_started',{plus_step:lastView});
     try{
-      const value=await api('checkout',{});if(disposed)return;
+      const value=await api('checkout',{});expiryTracked=false;if(disposed)return;
       quote=value.order;
       find('qa').hidden=!quote!.isTest;
       if(quote!.status==='payment_review'){await load();return;}
@@ -97,6 +99,15 @@ function mount(){
     }
   };
   window.addEventListener('campus:session-updated',changed);
+  const feedback=root.querySelector<HTMLFormElement>('[data-plus-feedback-form]');
+  if(feedback)feedback.onsubmit=async event=>{
+    event.preventDefault();const button=feedback.querySelector<HTMLButtonElement>('button')!;button.disabled=true;
+    const reason=String(new FormData(feedback).get('reason')??'');
+    const output=root.querySelector<HTMLElement>('[data-plus-feedback-status]')!;
+    try{const response=await fetch('/api/app/product-feedback',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json',...analyticsHeaders()},body:JSON.stringify({kind:'plus',reason}),signal:AbortSignal.timeout(8000)});
+      if(!response.ok)throw Error();output.textContent='Gracias por contarnos.';track('campus_feedback_submitted',{feedback_kind:'plus',reason});
+    }catch{output.textContent='No pudimos guardar tu respuesta. Vuelve a intentarlo.';button.disabled=false;}
+  };
   void load();
   cleanup=()=>{disposed=true;if(timer)clearInterval(timer);window.removeEventListener('campus:session-updated',changed);};
 }

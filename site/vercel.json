@@ -3,6 +3,16 @@
   "outputDirectory": "dist",
   "redirects": [
     {
+      "source": "/app/review",
+      "destination": "/app/asistente/?modal=review",
+      "permanent": false
+    },
+    {
+      "source": "/app/review/",
+      "destination": "/app/asistente/?modal=review",
+      "permanent": false
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/sitemap-index.xml",
       "permanent": true

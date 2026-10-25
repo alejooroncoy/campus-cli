@@ -23,5 +23,5 @@ while (pending.length) {
 }
 await writeFile(new URL('library-offline-assets.json', root), JSON.stringify([...assets]));
 const worker = await readFile(new URL('sw.js', root), 'utf8');
-await writeFile(new URL('sw.js', root), worker.replace('"campus-shell-v14"', JSON.stringify('campus-shell-v14-' + version.digest('hex').slice(0,16))));
+await writeFile(new URL('sw.js', root), worker.replace('"campus-shell-v16"', JSON.stringify('campus-shell-v16-' + version.digest('hex').slice(0,16))));
 console.log(`Library offline shell: ${assets.size} static assets.`);

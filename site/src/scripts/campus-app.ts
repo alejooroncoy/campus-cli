@@ -3,6 +3,7 @@ import { universitySetupHref, universityDoneHref } from "./university-onboarding
 import { readGuestUniversity, universityLabel, type UniversityChoice } from './guest-university';
 import { renderProfileAccount } from "./profile-account";
 import { renderCopilotAccount } from "./copilot-account";
+import {connectorLoginHref} from './assistant-handoff';
 import {markGuestDraftHandoff} from "./conversation-drafts";
 import { watchLiveCampusSession } from "./live-session";
 import { watchSessionChanges } from "./session-sync";
@@ -232,7 +233,7 @@ function initPage() {
       .catch(error => { if (universitiesLoading) universitiesLoading.hidden = true; setUniversityStatus(error.message); });
   }
 
-  const loginUrl = `/api/app/auth/start?return=${encodeURIComponent(location.pathname)}`;
+  const loginUrl = location.pathname==='/app/copilot/'?connectorLoginHref(location.search):`/api/app/auth/start?return=${encodeURIComponent(location.pathname)}`;
   if (login) login.href = loginUrl;
 
   const renderSession = (value: CampusSession) => {

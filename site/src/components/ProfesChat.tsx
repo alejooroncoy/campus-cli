@@ -1,3 +1,5 @@
+import AgentFeedback from './AgentFeedback';
+import GuestSignupInvite from './GuestSignupInvite';
 import { consumeConversationHandoff } from '../scripts/account-onboarding';
 import { analyticsHeaders, track } from '../scripts/analytics';
 import { canRetryQuestion, questionFailure } from '../scripts/question-retry';
@@ -589,6 +591,7 @@ function profesTransport(
   onConversationCreated: (id: string, title?: string) => void,
   onMiupcReconnect: (conversationId: string | null,upcRequired:boolean) => void,
   onMiupcRestored: () => void,
+  onTurn: (traceId:string)=>void,
 ): ChatTransport<UIMessage> {
   return {
     async sendMessages({ messages, abortSignal }) {
@@ -596,6 +599,7 @@ function profesTransport(
       const question = last && last.role === "user" ? messageText(last).trim() : "";
       if (!question) throw new Error("Escribe una pregunta antes de enviarla.");
 
+      const started=performance.now();
       const activeConvId = getConversationId();
       track('campus_question_submitted', { new_conversation: !activeConvId });
       const response = await fetch("/api/app/profes/message", {
@@ -606,6 +610,8 @@ function profesTransport(
         body: JSON.stringify({ message: question, conversationId: activeConvId || undefined,
           universityId: readGuestUniversity()?.id }),
       });
+      const traceId=response.headers.get('X-Campus-Trace-Id');
+      if(traceId)track('campus_agent_response_received',{trace_id:traceId,duration_ms:Math.round(performance.now()-started)});
       const data = response.ok ? null : await response.json().catch(() => ({}));
       if (response.status === 401) {
         if (data?.code === "LOGIN_REQUIRED_GUEST_LIMIT") {
@@ -633,7 +639,7 @@ function profesTransport(
       let miupcConnectionRestored=false;
       const readEvent = (line: string) => {
         const event = JSON.parse(line) as { type: string; activity?: string; answer?: string; usage?: CampusSession["usage"]; error?: string; conversationId?: string; title?: string; miupcReconnectRequired?: boolean; upcReconnectRequired?:boolean; miupcConnectionRestored?:boolean };
-        if (event.type === "status" && event.activity && activityLabels[event.activity]) onActivity(event.activity);
+        if (event.type === "status" && event.activity && activityLabels[event.activity]) {onActivity(event.activity);track('campus_agent_activity',{trace_id:traceId,activity:event.activity,duration_ms:Math.round(performance.now()-started)});}
         if (event.type === "answer") {
           answer = event.answer ?? "";
           usage = event.usage;
@@ -660,7 +666,8 @@ function profesTransport(
       }
       if (pending.trim()) readEvent(pending.trim());
       if (!answer.trim()) throw new Error("Campus no devolvió una respuesta.");
-      track('campus_answer_displayed', { remaining: usage?.remaining, limit: usage?.limit });
+      track('campus_answer_displayed', { trace_id:traceId,remaining: usage?.remaining, limit: usage?.limit,duration_ms:Math.round(performance.now()-started) });
+      if(traceId)onTurn(traceId);
       if(usage)onUsage(usage);
       if (convId) onConversationCreated(convId, convTitle);
       if (miupcReconnectRequired || upcReconnectRequired) onMiupcReconnect(convId ?? activeConvId,upcReconnectRequired);
@@ -712,6 +719,7 @@ export default function ProfesChat() {
   const [reviewSearchMode, setReviewSearchMode] = useState<"course" | "professor">("course");
   const [reviewCourses, setReviewCourses] = useState<ReviewCourse[]>([]);
   const [reviewCourse, setReviewCourse] = useState<ReviewCourse | null>(null);
+  const [reviewCourseName, setReviewCourseName] = useState("");
   const reviewDialog = useRef<HTMLDialogElement>(null);
   const reviewExperience = useRef<HTMLTextAreaElement>(null);
   const reviewSearchInput = useRef<HTMLInputElement>(null);
@@ -824,6 +832,8 @@ export default function ProfesChat() {
     setMiupcReconnectRevision(value=>value+1);
   },[]);
 
+  const [feedbackTrace,setFeedbackTrace]=useState<string|null>(null);
+  const [signupTrace,setSignupTrace]=useState<string|null>(null);
   const transport = useMemo(() => profesTransport(
     value => {
       usageHandler.current(value);
@@ -841,6 +851,7 @@ export default function ProfesChat() {
     handleConversationCreated,
     handleMiupcReconnect,
     ()=>{clearMiupcReconnectNotices();setMiupcReconnectRequired(false);setUpcReconnectRequired(false);},
+    traceId=>setFeedbackTrace(traceId),
   ), [handleConversationCreated,handleMiupcReconnect]);
   const { messages, setMessages, sendMessage, regenerate, status, error, stop } = useChat({ transport, onError: () => track('campus_flow_failed', { step: 'question', error_kind: 'rejected' }) });
   const messagesHandler = useRef(setMessages);
@@ -938,10 +949,10 @@ export default function ProfesChat() {
     try {
       const saved = sessionStorage.getItem("campus-profes-review-draft");
       if (saved) {
-        const draft = JSON.parse(saved) as { query?: string; text?: string; rating?: string; term?: string; professor?: ReviewProfessor; course?: ReviewCourse; mode?: "course" | "professor" };
+        const draft = JSON.parse(saved) as { query?: string; text?: string; rating?: string; term?: string; professor?: ReviewProfessor; course?: ReviewCourse; courseName?: string; mode?: "course" | "professor" };
         setReviewQuery(draft.query ?? ""); setReviewText(draft.text ?? "");
         setReviewRating(draft.rating ?? ""); setReviewTerm(draft.term ?? "");
-        setReviewProfessor(draft.professor ?? null); setReviewCourse(draft.course ?? null);
+        setReviewProfessor(draft.professor ?? null); setReviewCourse(draft.course ?? null); setReviewCourseName(draft.courseName ?? "");
         setReviewSearchMode(draft.mode ?? (draft.query ? "professor" : "course"));
         setReviewStep(draft.professor ? "edit" : "select");
       }
@@ -993,9 +1004,9 @@ export default function ProfesChat() {
 
   useEffect(() => {
     if (!reviewOpen || reviewStep === "done") return;
-    try { sessionStorage.setItem("campus-profes-review-draft", JSON.stringify({ query: reviewQuery, text: reviewText, rating: reviewRating, term: reviewTerm, professor: reviewProfessor, course: reviewCourse, mode: reviewSearchMode })); }
+    try { sessionStorage.setItem("campus-profes-review-draft", JSON.stringify({ query: reviewQuery, text: reviewText, rating: reviewRating, term: reviewTerm, professor: reviewProfessor, course: reviewCourse, courseName: reviewCourseName, mode: reviewSearchMode })); }
     catch { /* The current form still keeps its draft. */ }
-  }, [reviewOpen, reviewStep, reviewQuery, reviewText, reviewRating, reviewTerm, reviewProfessor, reviewCourse, reviewSearchMode]);
+  }, [reviewOpen, reviewStep, reviewQuery, reviewText, reviewRating, reviewTerm, reviewProfessor, reviewCourse, reviewCourseName, reviewSearchMode]);
 
   useEffect(() => {
     const dialog = reviewDialog.current;
@@ -1135,7 +1146,7 @@ export default function ProfesChat() {
 
   function openReview() {
     if (reviewStep === "done") {
-      setReviewProfessor(null); setReviewCourse(null);
+      setReviewProfessor(null); setReviewCourse(null); setReviewCourseName("");
       setReviewQuery(""); setReviewText(""); setReviewRating(""); setReviewTerm("");
       setReviewSearchMode("course");
       setReviewCourses([]); setReviewProfessors([]);
@@ -1147,7 +1158,7 @@ export default function ProfesChat() {
 
   function openReviewForProfessor(profName: string) {
     if (reviewStep === "done") { setReviewText(""); setReviewRating(""); setReviewTerm(""); }
-    setReviewSearchMode("professor"); setReviewCourse(null);
+    setReviewSearchMode("professor"); setReviewCourse(null); setReviewCourseName("");
     setReviewQuery(profName); setReviewProfessor(null);
     setReviewCourses([]); setReviewProfessors([]);
     setReviewStep("select"); setReviewError(""); setReviewOpen(true);
@@ -1168,7 +1179,7 @@ export default function ProfesChat() {
 
   function changeReviewSearchMode(mode: "course" | "professor") {
     setReviewSearchMode(mode); setReviewQuery("");
-    if (mode === "professor") setReviewCourse(null);
+    if (mode === "professor") { setReviewCourse(null); setReviewCourseName(""); }
     setReviewProfessor(null);
     setReviewCourses([]); setReviewProfessors([]); setReviewError("");
   }
@@ -1181,6 +1192,7 @@ export default function ProfesChat() {
         method: "POST", credentials: "same-origin", headers: { "content-type": "application/json", ...analyticsHeaders() },
         body: JSON.stringify({ professorId: reviewProfessor.id, text: reviewText.trim(),
           ...(reviewCourse ? { courseId: reviewCourse.id } : {}),
+          ...(reviewCourseName ? { courseName: reviewCourseName } : {}),
           ...(reviewRating ? { rating: Number(reviewRating) } : {}),
           ...(reviewTerm ? { term: reviewTerm.trim() } : {}) }),
       });
@@ -1204,6 +1216,7 @@ export default function ProfesChat() {
   }
 
   function startNewConversation(updateUrl = true) {
+    setFeedbackTrace(null);
     if (busy) return;
     navigationVersion.current++;
     saveCurrentConversation();
@@ -1226,6 +1239,7 @@ export default function ProfesChat() {
   }
 
   async function selectConversation(id: string, updateUrl = true) {
+    setFeedbackTrace(null);
     if (busy) return;
     if (id === currentConversationId && !loadingConversation) { setHistoryOpen(false); return; }
     const version = ++navigationVersion.current;
@@ -1591,7 +1605,7 @@ export default function ProfesChat() {
               : reviewStep === "confirm" ? (
                 <div className="app-profes-review__preview">
                   <strong>{reviewProfessor?.name}</strong>
-                  <span>{reviewCourse?.name ?? reviewProfessor?.university}</span>
+                  <span>{(reviewCourse?.name ?? reviewCourseName) || reviewProfessor?.university}</span>
                   <p>{reviewText}</p>
                   {reviewRating ? <span>Calificación: {reviewRating} / 10</span> : null}
                   {reviewTerm ? <span>Ciclo: {reviewTerm}</span> : null}
@@ -1604,11 +1618,11 @@ export default function ProfesChat() {
                       <button type="button" aria-pressed={reviewSearchMode === "course"} onClick={() => changeReviewSearchMode("course")}>Por curso</button>
                       <button type="button" aria-pressed={reviewSearchMode === "professor"} onClick={() => changeReviewSearchMode("professor")}>Por nombre</button>
                     </div>
-                    {reviewCourse ? <div className="app-profes-review__selected-course">
-                      <span>{reviewCourse.name}</span>
-                      <button type="button" className="app-profes-review__secondary" onClick={() => { setReviewCourse(null); setReviewProfessor(null); setReviewQuery(""); setReviewProfessors([]); setReviewCourses([]); }}>Cambiar curso</button>
+                    {reviewCourse || reviewCourseName ? <div className="app-profes-review__selected-course">
+                      <span>{reviewCourse?.name ?? reviewCourseName}</span>
+                      <button type="button" className="app-profes-review__secondary" onClick={() => { setReviewCourse(null); setReviewCourseName(""); setReviewProfessor(null); setReviewSearchMode("course"); setReviewQuery(""); setReviewProfessors([]); setReviewCourses([]); }}>Cambiar curso</button>
                     </div> : null}
-                    {reviewSearchMode === "professor" || !reviewCourse ? <>
+                    {reviewSearchMode === "professor" || (!reviewCourse && !reviewCourseName) ? <>
                       <label htmlFor="review-search">{reviewSearchMode === "course" ? "Curso" : "Nombre del docente"}</label>
                       <input ref={reviewSearchInput} id="review-search" value={reviewQuery} onChange={event => { setReviewQuery(event.target.value); setReviewProfessor(null); setReviewCourses([]); setReviewProfessors([]); }}
                         placeholder={reviewSearchMode === "course" ? "Nombre o código del curso" : "Nombre o apellido"} maxLength={100} />
@@ -1625,13 +1639,14 @@ export default function ProfesChat() {
                         </div>
                       ) : !reviewError ? <p role="status">{reviewCourse && reviewSearchMode === "course" ? "No tenemos docentes asociados a este curso todavía. Puedes buscar al tuyo por nombre." : reviewQuery.trim().length >= 2 ? "Sin resultados. Prueba con otro nombre o código." : "Escribe al menos dos letras para buscar."}</p> : null}
                     </div>
+                    {reviewSearchMode === "course" && !reviewCourse && reviewQuery.trim().length >= 2 && !reviewSearching && reviewCourses.length === 0 ? <button type="button" className="app-profes-review__secondary" onClick={() => { setReviewCourseName(reviewQuery.trim()); setReviewCourse(null); setReviewProfessor(null); setReviewSearchMode("professor"); setReviewQuery(""); setReviewCourses([]); setReviewProfessors([]); setReviewError(""); }}>No aparece: añadir “{reviewQuery.trim()}”</button> : null}
                     {reviewCourse && reviewSearchMode === "course" ? <button type="button" className="app-profes-review__secondary" onClick={() => changeReviewSearchMode("professor")}>¿No aparece tu docente? Búscalo por nombre</button> : null}
                   </> : <p>{!authenticated ? "Inicia sesión para elegir al docente y compartir tu experiencia." : "Elige tu universidad en Mi perfil para encontrar tus cursos y docentes."}</p>}
                 </>
               ) : (
                 <>
                   <div className="app-profes-review__selected">
-                    <div><strong>{reviewProfessor?.name}</strong><span>{reviewCourse?.name ?? reviewProfessor?.university}</span></div>
+                    <div><strong>{reviewProfessor?.name}</strong><span>{(reviewCourse?.name ?? reviewCourseName) || reviewProfessor?.university}</span></div>
                     <button type="button" className="app-profes-review__secondary" onClick={() => setReviewStep("select")}>Cambiar</button>
                   </div>
                   <label htmlFor="review-text">Tu experiencia</label>
@@ -1668,6 +1683,8 @@ export default function ProfesChat() {
         </div>
       </dialog>
 
+      {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={feedbackTrace} traceId={feedbackTrace} onResolved={()=>{if(session?.authenticated===false&&!isGuestLimit)setSignupTrace(feedbackTrace);}}/> : null}
+      {!busy&&!isGuestLimit&&session?.authenticated===false&&signupTrace&&signupTrace===feedbackTrace?<GuestSignupInvite key={signupTrace} traceId={signupTrace}/>:null}
       {isGuestLimit ? (
         <div className="app-guest-quota-reminder" role="status">
           <div className="app-guest-quota-reminder__text">
@@ -1694,7 +1711,7 @@ export default function ProfesChat() {
             />
             <div className="app-profes-ai__composer-footer">
               {busy ? (
-                <button type="button" onClick={stop} aria-label="Detener respuesta" title="Detener respuesta" className="app-profes-ai__send app-profes-ai__send--stop"><span aria-hidden="true" /></button>
+                <button type="button" onClick={()=>{track('campus_agent_interrupted',{step:'question'});stop();}} aria-label="Detener respuesta" title="Detener respuesta" className="app-profes-ai__send app-profes-ai__send--stop"><span aria-hidden="true" /></button>
               ) : (
                 <button
                   type="submit"
@@ -1715,6 +1732,7 @@ export default function ProfesChat() {
 
       {(error || (historyError && !historyOpen)) && !isGuestLimit ? <div className="app-profes-ai__recovery">
         <p className="app-profes-ai__error" role="alert">{error?.message ?? historyError}</p>
+        <a href="https://wa.me/51946189585" className="app-text-link" target="_blank" rel="noopener noreferrer">Escribir a soporte por WhatsApp</a>
         {canRetryQuestion(error) && messages.at(-1)?.role === 'user' && access === 'ready' && (usage?.remaining ?? 0) > 0 && !busy ? <button type="button" className="app-profes-ai__retry" onClick={() => {
           track('campus_question_retried', { step: 'question' });
           setActivitySteps(['connecting']); setActivityExpanded(false);

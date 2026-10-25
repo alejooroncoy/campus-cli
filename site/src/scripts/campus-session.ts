@@ -6,6 +6,7 @@ import { carryGuestUniversity } from './guest-university';
 import { forgetOfflineOwner } from '../lib/library-offline.ts';
 export type CampusSession = {
   analyticsId?: string;
+  analyticsAudience?: 'customer'|'internal'|'test'|'unknown';
   authenticated: boolean;
   email?: string;
   plan?: string;

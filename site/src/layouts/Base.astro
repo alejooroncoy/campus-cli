@@ -1,6 +1,7 @@
 ---
 import { turnitinServiceEnabled, libraryServiceEnabled } from "../../feature-flags.mjs";
 import Analytics from "../components/Analytics.astro";
+import WhatsAppSupport from "../components/WhatsAppSupport.astro";
 /**
  * The shell every page shares: announcement bar, header, footer and the head.
  *
@@ -90,6 +91,9 @@ const {
   </head>
   <body>
     <a class="site-skip-link" href="#campus-content">Saltar al contenido</a>
+    <aside class="site-community" aria-label="Comunidad de Campus">
+      <a href="https://chat.whatsapp.com/Hs5SpTt5VAjEzAw8rc5mW4" target="_blank" rel="noopener noreferrer" aria-label="Únete a la comunidad de Campus en WhatsApp (se abre en otra pestaña)">Únete a la comunidad de Campus en WhatsApp</a>
+    </aside>
     <header class="shell site-header">
       <a class="brand" href="/" aria-label="Campus, inicio"><img src="/assets/campus-logo.webp" width="160" height="160" alt="" /><span>Campus</span></a>
       <nav aria-label="Principal"><a href="/#incluye">Qué ofrece</a><a href="/#planes">Planes</a><a class="site-nav__expanded-link" href="/profes/">Profesores</a>{libraryServiceEnabled && <a class="site-nav__expanded-link" href="/biblioteca/">Biblioteca</a>}<a class="site-nav__expanded-link" href="/campus-cli/">Conectar IA</a>{turnitinServiceEnabled && <a class="site-nav__expanded-link" href="/turnitin/">Turnitin</a>}</nav>
@@ -113,8 +117,11 @@ const {
     </header>
     <div id="campus-content" tabindex="-1"></div>
     <slot />
-    <footer class="footer"><div class="shell footer__inner"><div class="footer__brand"><a class="brand" href="/"><img src="/assets/campus-logo.webp" width="160" height="160" loading="lazy" alt="" /><span>Campus</span></a><p>Tu matrícula y tu ciclo, con Campus.</p><a class="footer__support" id="soporte" href="https://wa.me/51946189585" target="_blank" rel="noopener noreferrer" aria-label="Soporte por WhatsApp al +51 946 189 585 (se abre en otra pestaña)"><svg class="site-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#message-circle"></use></svg><span><strong>Soporte por WhatsApp</strong><small>+51 946 189 585</small></span><svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a></div><div class="footer__links"><strong>Explora</strong><a href="/#planes">Campus Free y Plus</a><a href="/campus-cli/">Blackboard conectado</a><a href="/profes/">Opiniones de profesores</a>{libraryServiceEnabled && <a href="/biblioteca/">Biblioteca de trabajos</a>}{turnitinServiceEnabled && <a href="/turnitin/">Turnitin en Perú · S/8</a>}<a href="/blog/">Blog</a></div><div class="footer__links"><strong>Recursos</strong><a href="/blackboard-upc/">Blackboard UPC</a><a href="/blackboard-mcp/">Blackboard MCP</a><a href="/blackboard-cli/">Blackboard CLI</a><a href="/about/">Sobre Campus</a><a href="/contacto/">Contacto</a><a href="https://github.com/alejooroncoy/campus-cli" target="_blank" rel="noreferrer">GitHub <svg class="cp-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a></div><div class="footer__bottom"><small>© 2026 Campus. Proyecto independiente. <a href="/terminos/">Términos</a> · <a href="/privacidad/">Privacidad</a></small><small><a href="/no-afiliacion/">Campus no está afiliado a UPC, Blackboard, OpenAI ni Anthropic.</a></small></div></div></footer>
+    <WhatsAppSupport />
+    <footer class="footer"><div class="shell footer__inner"><div class="footer__brand"><a class="brand" href="/"><img src="/assets/campus-logo.webp" width="160" height="160" loading="lazy" alt="" /><span>Campus</span></a><p>Tu matrícula y tu ciclo, con Campus.</p><a class="footer__support" id="soporte" href="https://wa.me/51946189585" target="_blank" rel="noopener noreferrer" aria-label="Soporte por WhatsApp al +51 946 189 585 (se abre en otra pestaña)"><svg class="site-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#message-circle"></use></svg><span><strong>Soporte por WhatsApp</strong><small>+51 946 189 585</small></span><svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a></div><div class="footer__links"><strong>Explora</strong><a href="/#planes">Campus Free y Plus</a><a href="/campus-cli/">Blackboard conectado</a><a href="/profes/">Opiniones de profesores</a>{libraryServiceEnabled && <a href="/biblioteca/">Biblioteca de trabajos</a>}{turnitinServiceEnabled && <a href="/turnitin/">Turnitin en Perú · S/8</a>}<a href="/blog/">Blog</a></div><div class="footer__links"><strong>Recursos</strong><a href="https://chat.whatsapp.com/Hs5SpTt5VAjEzAw8rc5mW4" target="_blank" rel="noopener noreferrer" aria-label="Comunidad de Campus en WhatsApp (se abre en otra pestaña)">Comunidad en WhatsApp <svg class="cp-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a><a href="/blackboard-upc/">Blackboard UPC</a><a href="/blackboard-mcp/">Blackboard MCP</a><a href="/blackboard-cli/">Blackboard CLI</a><a href="/about/">Sobre Campus</a><a href="/contacto/">Contacto</a><a href="https://github.com/alejooroncoy/campus-cli" target="_blank" rel="noreferrer">GitHub <svg class="cp-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a></div><div class="footer__bottom"><small>© 2026 Campus. Proyecto independiente. <a href="/terminos/">Términos</a> · <a href="/privacidad/">Privacidad</a></small><small><a href="/no-afiliacion/">Campus no está afiliado a UPC, Blackboard, OpenAI ni Anthropic.</a></small></div></div></footer>
     <Analytics />
-    <script src="/app.js" defer></script>
+    <script>
+      import "../../public/app.js";
+    </script>
   </body>
 </html>

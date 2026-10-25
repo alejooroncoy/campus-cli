@@ -1,5 +1,6 @@
 ---
 import AppShell from "../../../layouts/AppShell.astro";
+import CorrectionEmailPreference from '../../../components/CorrectionEmailPreference';
 ---
 <AppShell title="Mi perfil" active="perfil">
   <section class="app-profile-loading" data-app-profile-loading role="status" aria-live="polite" aria-atomic="true">
@@ -80,6 +81,7 @@ import AppShell from "../../../layouts/AppShell.astro";
       </div>
       <div class="app-actions"><button class="app-button app-button--secondary" type="button" data-app-logout hidden>Cerrar sesión</button></div>
     </section><aside class="app-panel"><p class="app-kicker">Una sola cuenta</p><h2>Tu Campus, conectado.</h2><p>Entra con la misma cuenta en la web y en tu conector MCP. Tu plan define el uso disponible en cada canal.</p><ul class="app-info-list"><li>Tu identidad en Campus</li><li>Un plan para la web y el MCP</li><li>Tus consultas web disponibles</li><li>Tu horario y matrícula de Banner</li></ul><a class="app-text-link" href="/app/copilot/">Usar Campus con mi IA <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><p>Campus Free incluye 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web e ilimitadas mediante MCP.</p></aside></div>
+    <CorrectionEmailPreference client:load />
     <details class="app-panel app-memory" data-memory-root>
       <summary><strong>Lo que Campus recuerda de ti</strong></summary>
       <p>Tus preferencias y metas entre chats. Puedes corregirlas u olvidarlas.</p>

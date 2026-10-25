@@ -2,7 +2,7 @@ import { beginAccountHandoff, completeAccountHandoff } from './account-onboardin
 import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
-import type { PostHog } from 'posthog-js';
+import type { AnalyticsClient } from './analytics-client';
 
 type Event = { event: string; properties: Record<string, unknown> };
 const browser = typeof window !== 'undefined' && typeof location !== 'undefined'
@@ -10,7 +10,7 @@ const browser = typeof window !== 'undefined' && typeof location !== 'undefined'
 const local = import.meta.env?.DEV || (browser && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname));
 const key = import.meta.env?.PUBLIC_POSTHOG_KEY;
 const host = import.meta.env?.PUBLIC_POSTHOG_HOST;
-let client: PostHog | undefined;
+let client: AnalyticsClient | undefined;
 const pendingKey = 'campus-analytics-pending-v1';
 let queue: Event[] = [];
 if (browser && !local && key && host) {
@@ -29,6 +29,7 @@ let readyContext = '';
 let lastSessionState = '';
 let currentPlan = 'unavailable';
 let isTest: boolean | undefined;
+let audience='unknown';
 let mounted = false;
 let observer: IntersectionObserver | undefined;
 const sectionTimers = new Map<HTMLElement, ReturnType<typeof setTimeout>>();
@@ -42,7 +43,8 @@ function scheduleSectionView(element: HTMLElement): void {
   sectionTimers.set(element, setTimeout(() => {
     sectionTimers.delete(element);
     if (!visibleHeadings.has(element) || document.visibilityState === 'hidden' || seen.has(`section:${section}`)) return;
-    seen.add(`section:${section}`); track('campus_section_viewed', { section });
+    seen.add(`section:${section}`);
+    if(section==='plus_offer')track('campus_plus_offer_viewed',{location:'plus'});else track('campus_section_viewed', { section });
   }, 800));
 }
 let seen = new Set<string>();
@@ -59,15 +61,10 @@ const localSession = local ? identifier('campus-analytics-preview-session') : ''
 // In development the same contracts run into a bounded local buffer. No SDK,
 // ingestion, flags, replay or remote configuration requests are made.
 if (browser && !local && key && host) {
-  void import('posthog-js').then(({ default: posthog }) => {
-    client = posthog.init(key, {
-      api_host: host, defaults: '2026-05-30',
-      autocapture: false, capture_pageview: false, capture_pageleave: false,
-      disable_session_recording: true, enable_recording_console_log: false,
-      capture_exceptions: false, capture_performance: false,
-      rageclick: false, capture_dead_clicks: false, advanced_disable_flags: true,
-      disable_surveys: true, disable_external_dependency_loading: true,
-      ip: false, persistence: 'localStorage', person_profiles: 'identified_only',
+  // The reduced official SDK supplies the capture/identity APIs Campus uses.
+  void import('./analytics-client').then(({ createAnalyticsClient }) => {
+    client = createAnalyticsClient(key, {
+      host,
       before_send: event => {
         if (!event || (!events.has(event.event) && event.event !== '$identify')) return null;
         const original = event.properties ?? {};
@@ -83,6 +80,7 @@ if (browser && !local && key && host) {
           ...(event.event === '$identify' ? { $anon_distinct_id: original.$anon_distinct_id } : {}),
           $process_person_profile: event.event === '$identify' || Boolean(identity),
           $geoip_disable: true,
+          ...(identity && audience!=='unknown' ? {$set:{analytics_audience:audience,is_test:isTest===true,is_internal:audience==='internal'}} : {}),
         };
         // The real SDK also puts initial URLs/referrers in these top-level
         // person updates. They are outside properties and must be removed too.
@@ -114,6 +112,8 @@ export function track(event: string, properties: Record<string, unknown> = {}): 
     selected_plan: selectedPlan(),
     viewport: innerWidth < 761 ? 'mobile' : innerWidth < 1200 ? 'tablet' : 'desktop',
     environment: local ? 'development' : 'production', ...properties,
+    analytics_audience:audience,is_internal:audience==='internal',
+    ...(isTest!==undefined||properties.is_test===true?{is_test:isTest===true||properties.is_test===true}:{}),
   }) };
   if (local) {
     try { const recent = JSON.parse(sessionStorage.getItem('campus-analytics-debug') ?? '[]');
@@ -133,7 +133,8 @@ export function analyticsSession(session: CampusSession): void {
   if (!browser || session.accessUnavailable) return;
   sessionResolved = true;
   currentPlan = session.authenticated ? (session.plan === 'plus' ? 'plus' : 'free') : 'guest';
-  isTest = session.authenticated && session.plusTest === true;
+  audience=session.analyticsAudience??(session.authenticated?'unknown':'customer');
+  isTest=session.authenticated&&session.plusTest===true?true:audience==='unknown'?undefined:audience==='test';
   // The server normalizes non-numeric/long Google subjects to an opaque
   // google_<sha256> ID. Raw provider subjects are not a browser contract.
   if (session.authenticated && /^campus:(?:google:[0-9]{8,32}|[a-zA-Z0-9_-]{8,100})$/.test(session.analyticsId ?? '')) {
@@ -153,7 +154,7 @@ export function analyticsSession(session: CampusSession): void {
 }
 export function resetAnalytics(): void {
   if (browser) { try { clearMcpHandoff(sessionStorage); } catch { /* Optional. */ } }
-  identity = undefined; currentPlan = 'guest'; isTest = false;
+  identity = undefined; currentPlan = 'guest'; isTest = false;audience='customer';
   readyContext = ''; lastSessionState = '';
   queue = [];
   if (browser && !local) persistQueue();
@@ -187,6 +188,8 @@ function trackPage(): void {
     }
   }, { threshold: 0.5 });
   const sections: Record<string, string> = { '#planes': 'plans', '#incluye': 'features', '#investigacion': 'research', '#como-empezar': 'onboarding', '.cp-faq': 'faq', '.cp-final': 'closing' };
+  const plusOffer=document.querySelector<HTMLElement>('.cp-plan--plus');
+  if(plusOffer){plusOffer.dataset.analyticsSection='plus_offer';observer.observe(plusOffer);}
   for (const [selector, section] of Object.entries(sections)) {
     const container = document.querySelector(selector);
     const heading = container?.querySelector<HTMLElement>('h2');

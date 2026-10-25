@@ -7,7 +7,8 @@ const read = (path) => readFile(new URL(path, publicPath), "utf8");
 
 const robots = await read("robots.txt");
 assert.match(robots, /^Content-Signal: ai-train=no, search=yes, ai-input=yes$/m);
-assert.match(robots, /^Agentmap: https:\/\/campuscli\.com\/.well-known\/ard\.json$/m);
+assert.doesNotMatch(robots, /^Agentmap:/mi, "Agentmap is rejected by the Lighthouse robots.txt validator.");
+assert.match(robots, /^Sitemap: https:\/\/campuscli\.com\/sitemap-index\.xml$/m);
 
 const did = JSON.parse(await read(".well-known/did.json"));
 assert.deepEqual(did["@context"], ["https://www.w3.org/ns/did/v1"]);
@@ -47,6 +48,13 @@ const fallback = await read("404.md");
 assert.match(fallback, /^# Página no encontrada \| Campus$/m);
 
 const vercelConfig = JSON.parse(await readFile(new URL("../vercel.json", import.meta.url), "utf8"));
+const discoveryLink = vercelConfig.headers
+  .filter((rule) => rule.source === "/(.*)")
+  .flatMap((rule) => rule.headers)
+  .find((header) => header.key.toLowerCase() === "link");
+assert.match(discoveryLink?.value ?? "", /<\/\.well-known\/ard\.json>; rel="ard"; type="application\/json"/);
+const baseLayout = await readFile(new URL("../src/layouts/Base.astro", import.meta.url), "utf8");
+assert.match(baseLayout, /<link rel="ard" type="application\/json" href="\/\.well-known\/ard\.json"/);
 const markdownFallback = vercelConfig.rewrites.find(
   (rewrite) => rewrite.source === "/:path*" && rewrite.destination === "/api/markdown-not-found",
 );

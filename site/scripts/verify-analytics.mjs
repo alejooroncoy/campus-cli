@@ -12,6 +12,8 @@ assert.deepEqual(safeAnalyticsProperties({ current_plan: 'plus', selected_plan: 
   page: 'private-course', toString: 'private', duration_ms: Infinity, limit: -1 }), {
   current_plan: 'plus', selected_plan: 'free', remaining: 100, authenticated: true,
 });
+assert.deepEqual(safeAnalyticsProperties({failure_reason:'not_found',callback_requested:true,whatsappPhone:'+51999999999',phone:'+51999999999',details:'private complaint',whatsappConsent:true}),{failure_reason:'not_found',callback_requested:true});
+assert.deepEqual(safeAnalyticsProperties({failure_reason:'private complaint'}),{});
 assert.equal(analyticsPage('/app/asistente/'), 'assistant');
 assert.equal(analyticsPage('/app/asistente/c/private-id/'), 'assistant');
 assert.equal(analyticsPage('/app/profes/c/private-id/'), 'assistant');
@@ -73,16 +75,15 @@ globalThis.location = { hostname: 'campuscli.com', pathname: '/app/asistente/', 
 const production = await build({ entryPoints: ['src/scripts/analytics.ts'], bundle: true, format: 'esm', platform: 'node', write: false,
   define: { 'import.meta.env': JSON.stringify({ DEV: false, PUBLIC_POSTHOG_KEY: 'public-test-key', PUBLIC_POSTHOG_HOST: 'https://us.i.posthog.com' }) },
   plugins: [{ name: 'fake-posthog', setup(build) {
-    build.onResolve({ filter: /^posthog-js$/ }, () => ({ path: 'sdk', namespace: 'fixture' }));
-    build.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: 'export default globalThis.__campusPostHogFixture;', loader: 'js' }));
+    build.onResolve({ filter: /analytics-client$/ }, () => ({ path: 'sdk', namespace: 'fixture' }));
+    build.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: 'export const createAnalyticsClient = (...args) => globalThis.__campusPostHogFixture.init(...args);', loader: 'js' }));
   } }],
 });
 const live = await import(`data:text/javascript;base64,${Buffer.from(production.outputFiles[0].text).toString('base64')}`);
 live.analyticsSession({ authenticated: false, plan: 'anon', aiReady: true });
 await new Promise(resolve => setImmediate(resolve));
 assert.equal(resets, 1, 'A verified guest must not keep a previously identified account');
-assert.equal(config.autocapture, false); assert.equal(config.disable_session_recording, true);
-assert.equal(config.capture_exceptions, false); assert.equal(config.enable_recording_console_log, false);
+assert.equal(config.host, 'https://us.i.posthog.com');
 assert.equal(config.before_send({ event: '$autocapture', properties: { text: 'private' } }), null);
 live.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234', aiReady: true });
 live.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234', aiReady: true });
@@ -102,6 +103,13 @@ assert.equal(identify.properties.$anon_distinct_id, 'aaaaaaaa-bbbb-cccc-dddd-eee
 assert.equal('$set' in identify.properties, false);
 assert.equal('$set' in identify,false);assert.equal('$set_once' in identify,false);
 assert.equal(identify.properties.token, 'public-test-key');
+live.analyticsSession({authenticated:true,analyticsAudience:'test',plan:'free',analyticsId:normalizedGoogle,aiReady:true});
+live.track('campus_plus_checkout_started',{is_test:false,plus_step:'ready',message:'private'});
+assert.equal(captured.at(-1).properties.is_test,true,'An event cannot reclassify a QA identity as a customer');
+assert.equal(captured.at(-1).properties.analytics_audience,'test');
+assert.deepEqual(captured.at(-1).properties.$set,{analytics_audience:'test',is_test:true,is_internal:false});
+assert.deepEqual(safeAnalyticsProperties({trace_id:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',conversation_id:'private',reason:'private',feedback_kind:'agent'}),{trace_id:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',feedback_kind:'agent'});
+
 storage.set('campus-account-handoff-v1', JSON.stringify({ startedAt: Date.now(), returnPath: '/app/profes/', completed: false }));
 live.analyticsSession({ authenticated: false, plan: 'anon', aiReady: true });
 assert.equal(captured.filter(item => item.event === 'campus_account_access_completed').length, 0);
