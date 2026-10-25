@@ -77,16 +77,23 @@ export function directoryBody(data){
  return `<nav class="prof-public__crumbs">${link('/profes/resenas/','Reseñas de estudiantes')}${icon('arrow-right')}<span>Profesores UPC</span></nav><header><p class="prof-public__eyebrow">${icon('graduation-cap')} Catálogo de profesores</p><h1>Encuentra a tu profesor UPC</h1><p>Busca su ficha, consulta sus cursos y ciclos, y lee opiniones de estudiantes.</p></header><form class="prof-public__search" action="/profes/upc/" method="get"><label for="catalog-query">Nombre del profesor o del curso</label><div><input id="catalog-query" name="q" type="search" maxlength="100" value="${e(data.query)}" placeholder="Ej. Morales o Cálculo"><button class="button">${icon('search')} Buscar</button></div></form><p class="prof-public__muted">${e(data.total.toLocaleString('es-PE'))} ${data.total===1?'profesor':'profesores'}${data.query?(data.total===1?' que coincide con tu búsqueda':' que coinciden con tu búsqueda'):' en el catálogo'}. Opiniones y puntuaciones de todas las fuentes aparecen en una sola ficha.</p><section class="prof-public__directory" aria-label="Profesores encontrados">${data.professors.map(p=>{const count=Number(p.publicRatingSourceCount??0),average=p.publicAverageRating==null?null:Number(p.publicAverageRating);return `<article><span class="prof-public__avatar">${icon('graduation-cap')}</span><div><h2>${link(professorPath(p.slug),e(p.name))}</h2><p>${p.courses.length?e(p.courses.join(' · ')):'Cursos por completar'}</p><small>${count&&average!=null?`${starRow(average)} ${e(displayScore(average))}/10 · ${count} ${count===1?'fuente':'fuentes'}`:'Aún sin puntuaciones públicas'}</small></div>${link(professorPath(p.slug),`${icon('arrow-right')}<span class="visually-hidden">Ver ficha de ${e(p.name)}</span>`)}</article>`;}).join('')||'<p>No encontramos profesores. Prueba con otro apellido o curso.</p>'}</section><nav class="prof-public__pagination" aria-label="Páginas de profesores">${data.page>1?link(pageURL(data.page-1),`${icon('arrow-left')} Anterior`):'<span></span>'}<span>Página ${data.page} de ${data.pages}</span>${data.page<data.pages?link(pageURL(data.page+1),`Siguiente ${icon('arrow-right')}`):'<span></span>'}</nav>`;
 }
 export function bannerTermLabel(term){
- const match=String(term).match(/^(\d{4})(10|20|15|25)$/);
+ const match=String(term).match(/^(\d{4})(10|20|15|22|25)$/);
  return match?`${match[1]}-${['10','15'].includes(match[2])?'1':'2'}`:String(term);
 }
 function teachingTermInfo(course){
  const term=String(course.term??'');
  if(course.source==='upc_syllabus'){
   const match=term.match(/^(\d{4})(00|01|02)$/);
-  return {label:match?`${match[1]}-${Number(match[2])}`:term,program:''};
+  if(match&&match[2]==='00')return {label:`Verano ${match[1]}`,sortKey:`${match[1]}-0`,program:''};
+  const label=match?`${match[1]}-${Number(match[2])}`:term;
+  return {label,sortKey:label,program:''};
  }
- return {label:bannerTermLabel(term),program:/^\d{4}(15|25)$/.test(term)?'EPE-WS':/^\d{4}(10|20)$/.test(term)?'Pregrado':''};
+ const match=term.match(/^(\d{4})(01|02|05|10|15|20|22|25)$/);
+ if(!match)return {label:term,sortKey:term,program:''};
+ const [,year,part]=match;
+ if(['01','02','05'].includes(part))return {label:`Verano ${year}`,sortKey:`${year}-0`,program:part==='05'?'EPE-WS':part==='01'?'Pregrado':'Extraacad'};
+ const semester=['10','15'].includes(part)?1:2;
+ return {label:`${year}-${semester}`,sortKey:`${year}-${semester}`,program:['15','25'].includes(part)?'EPE-WS':part==='22'?'Extraacad':'Pregrado'};
 }
 function validTeachingURL(url,source,document=false){
  try{const u=new URL(url);if(u.username||u.password||u.search||u.hash)return false;
@@ -110,7 +117,7 @@ export function bannerCoursesSection(teachingCourses,catalogCourses=[]){
   groups.get(period.label).push({...course,period});
   if(course.code)used.add(String(course.code).toLowerCase());
  }
- const content=[...groups].sort(([a],[b])=>String(b).localeCompare(String(a))).map(([label,items])=>
+ const content=[...groups].sort(([,a],[,b])=>String(b[0]?.period.sortKey??'').localeCompare(String(a[0]?.period.sortKey??''))).map(([label,items])=>
   `<div class="prof-public__banner-term"><h3>${icon('calendar-days')} Ciclo ${e(label)}</h3><ul class="prof-public__courses">${items.sort((a,b)=>String(a.name).localeCompare(String(b.name),'es')).map(course=>`<li data-teaching-source="${e(course.source??'banner')}" data-source-term="${e(course.term)}"><strong>${e(course.name)}</strong><small>${e(course.code)} · Ciclo ${e(course.period.label)}${course.period.program?` · ${e(course.period.program)}`:''}</small>${teachingSourceLinks(course)}</li>`).join('')}</ul></div>`).join('');
  const other=(catalogCourses??[]).filter(course=>!((course.code&&used.has(String(course.code).toLowerCase()))||(!course.code&&(teachingCourses??[]).some(b=>normalizeLabel(b.name)===normalizeLabel(course.name)))));
  const otherHTML=other.length?`<details class="prof-public__catalog-details"><summary>Otros cursos asociados${icon('arrow-down')}</summary><p class="prof-public__help">La fuente no indica el ciclo de estos cursos.</p><ul class="prof-public__courses">${other.map(course=>`<li><strong>${e(course.name)}</strong>${course.code?`<small>${e(course.code)}</small>`:''}</li>`).join('')}</ul></details>`:'';
