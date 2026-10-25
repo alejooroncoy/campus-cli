@@ -8,3 +8,5 @@ await rename(
   new URL("../dist/blackboard-chatgpt/index.html", import.meta.url),
   new URL("../.generated/blackboard-chatgpt.html", import.meta.url),
 );
+
+await rename(new URL("../dist/opiniones-campus/index.html", import.meta.url), new URL("../.generated/opiniones-campus.html", import.meta.url));

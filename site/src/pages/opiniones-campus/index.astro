@@ -1,16 +1,19 @@
 ---
-import AppShell from "../../../layouts/AppShell.astro";
+import Base from "../../layouts/Base.astro";
 ---
-<AppShell title="Tu reseña" active="copilot">
-  <section class="campus-review" data-product-review>
+<Base title="Opiniones sobre Campus" description="Lee experiencias de estudiantes con Campus para Blackboard y comparte tu opinión con estrellas y comentarios." canonical="https://campuscli.com/opiniones-campus/">
+<link rel="stylesheet" href="/product-reviews.css" />
+<main class="campus-opinions">
+<section data-campus-product-reviews id="resenas" class="product-reviews" aria-labelledby="product-reviews-title"><h1 id="product-reviews-title">Opiniones sobre Campus</h1><p>Experiencias usando Campus para consultar Blackboard desde ChatGPT o Claude.</p></section>
+  <section class="campus-review" data-product-review id="compartir">
     <header class="app-page-heading app-page-heading--compact">
       <p class="app-kicker">Campus para Blackboard</p>
-      <h1>¿Cómo te fue con la conexión?</h1>
+      <h1>Comparte tu opinión sobre Campus</h1>
       <p>Cuenta tu experiencia usando Blackboard desde ChatGPT o Claude. Tu opinión ayuda a otros estudiantes a decidir.</p>
     </header>
     <p data-review-status role="status" aria-live="polite">Comprobando tu cuenta…</p>
     <p data-review-login hidden>Entra con tu cuenta Campus para publicar o editar tu reseña.
-      <a class="app-button" href="/api/app/auth/start?return=%2Fapp%2Fresenas%2F" data-astro-reload>Continuar con Campus</a>
+      <a class="app-button" href="/api/app/auth/start?return=%2Fopiniones-campus%2F%23compartir" data-astro-reload>Continuar con Campus</a>
     </p>
     <button class="app-button app-button--secondary" type="button" data-review-retry hidden>Volver a intentar</button>
 
@@ -33,7 +36,7 @@ import AppShell from "../../../layouts/AppShell.astro";
         <textarea id="review-text" name="text" minlength="10" maxlength="1500" rows="6" aria-describedby="review-text-help" required></textarea>
         <p id="review-text-help" class="campus-review__hint">De 10 a 1500 caracteres. ¿Qué te sirvió y qué mejorarías? Evita datos académicos privados, correos y teléfonos.</p>
         <label class="campus-review__check"><input type="checkbox" name="experienced" required /><span>He usado Campus para consultar Blackboard desde ChatGPT o Claude y esta reseña refleja mi experiencia.</span></label>
-        <label class="campus-review__check"><input type="checkbox" name="consent" required /><span>Autorizo publicar este nombre, mi calificación y mi comentario en la <a href="/blackboard-chatgpt/#resenas" target="_blank" rel="noopener">página de Campus para Blackboard</a> y en sus datos para buscadores. Puedo editar o retirar mi reseña desde aquí. <a href="/privacidad/#resenas-campus" target="_blank" rel="noopener">Privacidad</a>.</span></label>
+        <label class="campus-review__check"><input type="checkbox" name="consent" required /><span>Autorizo publicar este nombre, mi calificación y mi comentario en la <a href="/opiniones-campus/#resenas" target="_blank" rel="noopener">página de Campus para Blackboard</a> y en sus datos para buscadores. Puedo editar o retirar mi reseña desde aquí. <a href="/privacidad/#resenas-campus" target="_blank" rel="noopener">Privacidad</a>.</span></label>
       </fieldset>
       <div class="campus-review__actions">
         <button class="app-button" type="submit" data-review-save>Publicar mi reseña</button>
@@ -41,10 +44,11 @@ import AppShell from "../../../layouts/AppShell.astro";
       </div>
       <p class="campus-review__hint">Una reseña por cuenta. Aceptamos opiniones positivas y negativas. Puedes volver para actualizarla.</p>
     </form>
-    <p><a class="app-text-link" href="/blackboard-chatgpt/#resenas" data-astro-reload>Ver las opiniones publicadas →</a></p>
+    <p><a class="app-text-link" href="/opiniones-campus/#resenas" data-astro-reload>Ver las opiniones publicadas →</a></p>
     <noscript>Activa JavaScript para iniciar sesión y compartir tu reseña.</noscript>
   </section>
-</AppShell>
+</main>
+</Base>
 
 <script>
   type OwnReview = { publicName: string; rating: number; text: string; published: boolean; hidden: boolean };
@@ -134,10 +138,17 @@ import AppShell from "../../../layouts/AppShell.astro";
     });
     void load();
   }
+  initProductReview();
   document.addEventListener("astro:page-load", initProductReview);
 </script>
 
 <style>
+  .campus-opinions { --app-line: #d8dee5; --app-canvas: #fff; --app-ink: #182638; --app-muted: #526274; --app-link: #1267a5; --app-sky-pale: #eef7ff; max-width: 800px; padding: 48px 20px; margin: auto; }
+  .campus-opinions :global(.product-reviews) { margin-bottom: 48px; }
+  .campus-review h1 { font-size: clamp(24px, 4vw, 32px); }
+  .campus-review .app-button { display: inline-block; padding: 12px 18px; background: #1267a5; color: white; border: 0; border-radius: 8px; font: inherit; cursor: pointer; }
+  .campus-review .app-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
   .campus-review { max-width: 720px; margin: 0 auto; }
   .campus-review [hidden] { display: none !important; }
   .campus-review__form { padding: clamp(18px, 4vw, 32px); }

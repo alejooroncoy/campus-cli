@@ -17,9 +17,9 @@ export function validPublicReviews(data) {
 
 export function renderProductReviews(data) {
   const header = `<section data-campus-product-reviews id="resenas" class="product-reviews" aria-labelledby="product-reviews-title">
-    <h2 id="product-reviews-title">Opiniones sobre Campus para Blackboard</h2>
+    <h2 id="product-reviews-title">Opiniones sobre Campus</h2>
     <p>Experiencias de usuarios de Campus con la conexión de Blackboard en ChatGPT o Claude.</p>`;
-  const cta = `<p><a class="button" href="/app/resenas/">Dejar o editar mi reseña</a></p>
+  const cta = `<p><a class="button" href="/opiniones-campus/#compartir">Compartir mi opinión sobre Campus</a></p>
     <p class="product-reviews__note">Publicamos opiniones positivas y negativas. Cada cuenta puede compartir una reseña y retirarla cuando quiera.</p>`;
   if (!data) return `${header}<p>No pudimos cargar las reseñas. Vuelve a intentarlo en unos momentos.</p>${cta}</section>`;
   if (!data.reviewCount) return `${header}<p>Todavía no hay reseñas publicadas. Si ya usaste la conexión, comparte cómo te fue.</p>${cta}</section>`;
@@ -44,7 +44,7 @@ export function renderProductReviews(data) {
     ${items || "<p>No hay reseñas en esta página. Vuelve a las páginas anteriores.</p>"}${pagination}${cta}</section>`;
 }
 
-export function renderBlackboardReviewsPage(template, data) {
+export function renderBlackboardReviewsPage(template, data, requireProduct = true) {
   if (data !== null && !validPublicReviews(data)) throw new Error("Invalid public reviews");
   const marker = /<section data-campus-product-reviews\b[\s\S]*?<\/section>/;
   if (!marker.test(template)) throw new Error("Missing reviews section");
@@ -67,7 +67,7 @@ export function renderBlackboardReviewsPage(template, data) {
     }
     return `<script type="application/ld+json">${jsonForHtml(schema)}</script>`;
   });
-  if (!foundProduct) throw new Error("Missing Blackboard product");
+  if (requireProduct && !foundProduct) throw new Error("Missing Blackboard product");
   // A callback keeps user-authored $& and $' literal in String.replace.
   return html.replace(marker, () => renderProductReviews(data));
 }

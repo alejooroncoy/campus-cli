@@ -36,9 +36,18 @@
       "source": "/app/profes/c/:id/",
       "destination": "/app/asistente/c/:id/",
       "permanent": false
+    },
+    {
+      "source": "/app/resenas/",
+      "destination": "/opiniones-campus/#compartir",
+      "permanent": false
     }
   ],
   "rewrites": [
+    {
+      "source": "/opiniones-campus/",
+      "destination": "/api/blackboard-chatgpt?view=opiniones"
+    },
     {
       "source": "/blackboard-chatgpt/",
       "has": [
@@ -141,7 +150,7 @@
       "includeFiles": ".generated/library.html"
     },
     "api/blackboard-chatgpt.js": {
-      "includeFiles": ".generated/blackboard-chatgpt.html"
+      "includeFiles": ".generated/{blackboard-chatgpt,opiniones-campus}.html"
     }
   },
   "headers": [

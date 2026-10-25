@@ -85,7 +85,7 @@ test("server rendering forwards no credentials and handles upstream failure with
 
 test("built page contains the SSR template marker and deployment routes render HTML before the static fallback", async () => {
   const config = JSON.parse(await readFile(new URL("../vercel.json", import.meta.url), "utf8"));
-  assert.equal(config.functions["api/blackboard-chatgpt.js"].includeFiles, ".generated/blackboard-chatgpt.html");
+  assert.equal(config.functions["api/blackboard-chatgpt.js"].includeFiles, ".generated/{blackboard-chatgpt,opiniones-campus}.html");
   const routes = config.rewrites.filter(r => r.source === "/blackboard-chatgpt/");
   assert.equal(routes[0].destination, "/api/markdown-not-found");
   assert.equal(routes[1].destination, "/api/blackboard-chatgpt");
@@ -96,3 +96,5 @@ test("built page contains the SSR template marker and deployment routes render H
   const product = [...html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map(m => JSON.parse(m[1])).find(s => s["@type"] === "Product");
   assert.equal(product.review[0].reviewRating.ratingValue, 2);
 });
+
+test("public opinions render without app shell or requiring a Product schema", async () => { const template = await readFile(new URL("../.generated/opiniones-campus.html", import.meta.url), "utf8"); const html = renderBlackboardReviewsPage(template, data, false); assert.ok(html.includes(review.text)); assert.ok(html.includes("Comparte tu opinión sobre Campus")); assert.ok(!html.includes("Navegación principal</aside>")); });

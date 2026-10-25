@@ -1,6 +1,6 @@
 # Reseñas de Campus para Blackboard
 
-El formulario está en `/app/resenas/`, enlazado desde Conectar IA, Mi perfil y `/blackboard-chatgpt/#resenas`. Usa la sesión httpOnly de Campus. No depende de Plus ni de elegir universidad. Cada cuenta tiene una reseña editable; debe declarar experiencia con Blackboard en ChatGPT/Claude y autorizar el nombre público, estrellas y comentario. No se inventan testimonios ni se reutilizan calificaciones de profesores.
+El formulario está en `/opiniones-campus/#compartir`, enlazado desde Conectar IA, Mi perfil y `/blackboard-chatgpt/#resenas`. Usa la sesión httpOnly de Campus. No depende de Plus ni de elegir universidad. Cada cuenta tiene una reseña editable; debe declarar experiencia con Blackboard en ChatGPT/Claude y autorizar el nombre público, estrellas y comentario. No se inventan testimonios ni se reutilizan calificaciones de profesores.
 
 ## Backend (campus-profes)
 
