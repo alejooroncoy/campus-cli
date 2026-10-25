@@ -29,8 +29,9 @@ import Base from "../../layouts/Base.astro";
       </div></fieldset>
       <label class="opinion-label" for="review-text">Tu opinión</label>
       <textarea id="review-text" name="text" minlength="10" maxlength="1500" rows="3" placeholder="¿Qué te gustó? ¿Qué mejorarías?" required></textarea>
-      <label class="opinion-label" for="review-public-name">Nombre público</label>
-      <input id="review-public-name" name="publicName" type="text" minlength="2" maxlength="80" autocomplete="off" placeholder="Ej. Ana P." required />
+      <label class="opinion-label" for="review-public-name">Nombre o alias</label>
+      <input id="review-public-name" name="publicName" type="text" minlength="2" maxlength="40" autocomplete="off" placeholder="Ej. Ana P." aria-describedby="opinion-name-hint" required />
+      <p id="opinion-name-hint" class="opinion-name-hint">Sin insultos ni nombres de soporte. Revisamos las opiniones antes de publicarlas.</p>
       <label class="opinion-check"><input type="checkbox" name="experienced" required /><span>Mi opinión refleja mi experiencia con Campus.</span></label>
       <label class="opinion-check"><input type="checkbox" name="consent" required /><span>Publicar mi nombre, estrellas y comentario. <a href="/privacidad/#resenas-campus" target="_blank" rel="noopener">Privacidad</a></span></label>
     </fieldset>
@@ -194,6 +195,7 @@ import Base from "../../layouts/Base.astro";
 .opinion-stars input:focus-visible + span { outline:2px solid #176c9d; border-radius:4px; }
 .campus-review select,.campus-review textarea,.campus-review input[type=text] { box-sizing:border-box; width:100%; border:1px solid #dbe3e7; border-radius:10px; background:#fff; color:inherit; padding:12px; font:inherit; font-size:14px; margin-bottom:18px; }
 .campus-review textarea { resize:vertical; min-height:100px; }
+.opinion-name-hint { font-size:12px; line-height:1.5; color:#657783; margin:-10px 0 16px; }
 .opinion-check { display:flex; gap:8px; align-items:flex-start; margin-top:10px; font-size:12px; line-height:1.5; color:#657783; }
 .opinion-check input { margin:3px 0 0; flex-shrink:0; accent-color:#176c9d; }
 .opinion-check a { text-decoration:underline; text-underline-offset:2px; }

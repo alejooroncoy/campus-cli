@@ -35,3 +35,11 @@ En `astro dev` no se ejecutan las funciones ni los rewrites Vercel: se ve la pla
 ## Funciones evaluadas
 
 El formulario público admite Agente de Campus, ChatGPT/Claude, Profesores, Biblioteca y Otra función. `useCase` se guarda y se muestra con la opinión. La migración 174 conserva las opiniones antiguas como `chatgpt_claude`. El feed público incluye todas; `scope=blackboard` calcula el listado y promedio solo de la conexión ChatGPT/Claude para su ficha Product. Las opiniones de Profesores aquí evalúan la función de Campus, no a un docente.
+
+## Protección y revisión
+
+Solo cuentas autenticadas, una opinión editable por cuenta y guardado atómico cada 30 segundos y 20 intentos por cuenta cada 10 minutos, incluidos envíos inválidos (el retiro no consume ese límite). El nombre o alias admite 2–40 caracteres; se rechazan nombres reservados de soporte, insultos evidentes, controles ocultos, enlaces, contactos y repeticiones masivas. Los ataques y cuentas bloqueadas pasan por el gatekeeper existente. Estos filtros no garantizan detectar todos los nombres falsos: por eso las opiniones nuevas y cada edición quedan ocultas hasta revisión humana, sin importar la puntuación. No entran en el promedio ni el JSON-LD hasta ser aprobadas.
+
+Cola privada en campus-profes: `node --env-file=.env scripts/moderate-product-opinions.ts`. Para decidir, usar `--id= --version= --action=approve|reject --reviewer=` (dry run); aplicar requiere `--apply --expected-host=<host-revisado>`. La versión debe coincidir exactamente: no se aprueba una edición nueva, una opinión retirada ni una cuenta bloqueada. Se registra quién decidió y cuándo, sin copiar el comentario en el historial. No hay endpoint público de moderación. Aplicar primero la migración 175 con `scripts/apply-product-opinion-moderation-schema.ts`.
+
+La revisión debe aceptar críticas legítimas de cualquier puntuación y rechazar spam, suplantación, acoso o datos personales con los mismos criterios. No se aprueba por ser favorable ni se rechaza por tener pocas estrellas.
