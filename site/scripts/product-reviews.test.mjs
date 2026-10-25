@@ -31,7 +31,7 @@ test("empty and unavailable feeds never invent ratings or retain stale markup", 
     assert.equal(schemaOf(html).aggregateRating, undefined);
     assert.equal(schemaOf(html).review, undefined);
     assert.ok(!html.includes(review.text));
-    assert.match(html, empty === null ? /No pudimos cargar/ : /Todavía no hay reseñas/);
+    assert.match(html, empty === null ? /No pudimos cargar/ : /La primera opinión/);
   }
 });
 
@@ -97,4 +97,4 @@ test("built page contains the SSR template marker and deployment routes render H
   assert.equal(product.review[0].reviewRating.ratingValue, 2);
 });
 
-test("public opinions render without app shell or requiring a Product schema", async () => { const template = await readFile(new URL("../.generated/opiniones-campus.html", import.meta.url), "utf8"); const html = renderBlackboardReviewsPage(template, data, false); assert.ok(html.includes(review.text)); assert.ok(html.includes("Comparte tu opinión sobre Campus")); assert.ok(!html.includes("Navegación principal</aside>")); });
+test("public opinions render without app shell or requiring a Product schema", async () => { const template = await readFile(new URL("../.generated/opiniones-campus.html", import.meta.url), "utf8"); const html = renderBlackboardReviewsPage(template, data, false); assert.ok(html.includes(review.text)); assert.ok(html.includes("¿Qué te parece Campus?")); assert.ok(!html.includes("Navegación principal</aside>")); });

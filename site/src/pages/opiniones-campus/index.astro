@@ -1,59 +1,40 @@
 ---
 import Base from "../../layouts/Base.astro";
 ---
-<Base title="Opiniones sobre Campus" description="Lee experiencias de estudiantes con Campus para Blackboard y comparte tu opinión con estrellas y comentarios." canonical="https://campuscli.com/opiniones-campus/">
+<Base title="Opiniones sobre Campus" description="Lo que cuentan quienes usan Campus. Lee sus opiniones y comparte la tuya." canonical="https://campuscli.com/opiniones-campus/">
 <link rel="stylesheet" href="/product-reviews.css" />
 <main class="campus-opinions">
-<section data-campus-product-reviews id="resenas" class="product-reviews" aria-labelledby="product-reviews-title"><h1 id="product-reviews-title">Opiniones sobre Campus</h1><p>Experiencias usando Campus para consultar Blackboard desde ChatGPT o Claude.</p></section>
-  <section class="campus-review" data-product-review id="compartir">
-    <header class="app-page-heading app-page-heading--compact">
-      <p class="app-kicker">Campus para Blackboard</p>
-      <h2>Comparte tu opinión sobre Campus</h2>
-      <p>Cuenta tu experiencia usando Blackboard desde ChatGPT o Claude. Tu opinión ayuda a otros estudiantes a decidir.</p>
-    </header>
-    <p data-review-status role="status" aria-live="polite">Comprobando tu cuenta…</p>
-    <p data-review-login hidden>Entra con tu cuenta Campus para publicar o editar tu reseña.
-      <a class="app-button" href="/api/app/auth/start?return=%2Fopiniones-campus%2F%23compartir" data-astro-reload>Continuar con Campus</a>
-    </p>
-    <button class="app-button app-button--secondary" type="button" data-review-retry hidden>Volver a intentar</button>
-
-    <form data-review-form class="app-panel campus-review__form" hidden>
-      <fieldset data-review-fields>
-        <legend>Tu experiencia con Campus para Blackboard</legend>
-        <label for="review-public-name">Nombre público</label>
-        <input id="review-public-name" name="publicName" type="text" minlength="2" maxlength="80" autocomplete="off" aria-describedby="review-name-help" required />
-        <p id="review-name-help" class="campus-review__hint">Por ejemplo, tu nombre y la inicial de tu apellido. No publicamos el correo de tu cuenta.</p>
-
-        <fieldset class="campus-review__rating">
-          <legend>Tu calificación</legend>
-          <div class="campus-review__stars">
-            {[1, 2, 3, 4, 5].map(n => <label><input type="radio" name="rating" value={n} required /><span>{n} <span aria-hidden="true">★</span><span class="app-sr-only"> de 5 estrellas</span></span></label>)}
-          </div>
-          <p class="campus-review__hint">1: muy mala · 5: muy buena</p>
-        </fieldset>
-
-        <label for="review-text">Tu reseña</label>
-        <textarea id="review-text" name="text" minlength="10" maxlength="1500" rows="6" aria-describedby="review-text-help" required></textarea>
-        <p id="review-text-help" class="campus-review__hint">De 10 a 1500 caracteres. ¿Qué te sirvió y qué mejorarías? Evita datos académicos privados, correos y teléfonos.</p>
-        <label class="campus-review__check"><input type="checkbox" name="experienced" required /><span>He usado Campus para consultar Blackboard desde ChatGPT o Claude y esta reseña refleja mi experiencia.</span></label>
-        <label class="campus-review__check"><input type="checkbox" name="consent" required /><span>Autorizo publicar este nombre, mi calificación y mi comentario en la <a href="/opiniones-campus/#resenas" target="_blank" rel="noopener">página de Campus para Blackboard</a> y en sus datos para buscadores. Puedo editar o retirar mi reseña desde aquí. <a href="/privacidad/#resenas-campus" target="_blank" rel="noopener">Privacidad</a>.</span></label>
-      </fieldset>
-      <div class="campus-review__actions">
-        <button class="app-button" type="submit" data-review-save>Publicar mi reseña</button>
-        <button class="app-button app-button--secondary" type="button" data-review-withdraw hidden>Retirar mi reseña</button>
-      </div>
-      <p class="campus-review__hint">Una reseña por cuenta. Aceptamos opiniones positivas y negativas. Puedes volver para actualizarla.</p>
-    </form>
-    <p><a class="app-text-link" href="/opiniones-campus/#resenas" data-astro-reload>Ver las opiniones publicadas →</a></p>
-    <noscript>Activa JavaScript para iniciar sesión y compartir tu reseña.</noscript>
-  </section>
+<section data-campus-product-reviews id="resenas" class="product-reviews" aria-labelledby="product-reviews-title"><h1 id="product-reviews-title">Opiniones sobre Campus</h1><p>Lo que cuentan quienes usan Campus.</p><button class="opinion-button" data-opinion-open>Escribir una opinión</button></section>
+<dialog class="campus-review" data-product-review aria-labelledby="opinion-dialog-title">
+  <button class="opinion-close" type="button" aria-label="Cerrar" data-opinion-close>×</button>
+  <h2 id="opinion-dialog-title">¿Qué te parece Campus?</h2>
+  <p class="opinion-subtitle">Tu experiencia puede ayudar a otros.</p>
+  <p data-review-status role="status" aria-live="polite"></p>
+  <div data-review-login hidden><p>Entra para compartir tu opinión.</p><a class="opinion-button" href="/api/app/auth/start?return=%2Fopiniones-campus%2F%23compartir">Continuar con Campus</a></div>
+  <button class="opinion-secondary" type="button" data-review-retry hidden>Reintentar</button>
+  <form data-review-form hidden>
+    <fieldset data-review-fields>
+      <legend class="opinion-sr">Tu opinión sobre Campus</legend>
+      <fieldset class="opinion-rating"><legend>Tu puntuación</legend><div class="opinion-stars">
+      {[1,2,3,4,5].map(n => <label><input type="radio" name="rating" value={n} required aria-label={`${n} de 5 estrellas`} /><span aria-hidden="true">★</span></label>)}
+      </div></fieldset>
+      <label class="opinion-label" for="review-text">Tu opinión</label>
+      <textarea id="review-text" name="text" minlength="10" maxlength="1500" rows="3" placeholder="¿Qué te gustó? ¿Qué mejorarías?" required></textarea>
+      <label class="opinion-label" for="review-public-name">Nombre público</label>
+      <input id="review-public-name" name="publicName" type="text" minlength="2" maxlength="80" autocomplete="off" placeholder="Ej. Ana P." required />
+      <label class="opinion-check"><input type="checkbox" name="experienced" required /><span>He usado Campus con Blackboard.</span></label>
+      <label class="opinion-check"><input type="checkbox" name="consent" required /><span>Publicar mi nombre, estrellas y comentario. <a href="/privacidad/#resenas-campus" target="_blank" rel="noopener">Privacidad</a></span></label>
+    </fieldset>
+    <div class="opinion-actions"><button class="opinion-secondary" type="button" data-review-withdraw hidden>Retirar opinión</button><button class="opinion-button" type="submit" data-review-save>Publicar opinión</button></div>
+  </form>
+</dialog>
+<noscript>Activa JavaScript para escribir tu opinión.</noscript>
 </main>
 </Base>
-
 <script>
   type OwnReview = { publicName: string; rating: number; text: string; published: boolean; hidden: boolean };
   function initProductReview() {
-    const root = document.querySelector<HTMLElement>("[data-product-review]");
+    const root = document.querySelector<HTMLDialogElement>("[data-product-review]");
     if (!root || root.dataset.bound) return;
     root.dataset.bound = "true";
     const form = root.querySelector<HTMLFormElement>("[data-review-form]")!;
@@ -86,7 +67,7 @@ import Base from "../../layouts/Base.astro";
     }
     function updateActions(review: OwnReview | null) {
       withdraw.hidden = !review?.published;
-      save.textContent = review?.published ? "Guardar cambios" : review ? "Volver a publicar mi reseña" : "Publicar mi reseña";
+      save.textContent = review?.published ? "Guardar cambios" : review ? "Volver a publicar" : "Publicar opinión";
     }
     async function load() {
       retry.hidden = true;
@@ -102,8 +83,8 @@ import Base from "../../layouts/Base.astro";
           experienced.checked = true; consent.checked = review.published;
         }
         updateActions(review);
-        status.textContent = review?.hidden && review.published ? "Tu reseña está pendiente de revisión."
-          : review?.published ? "Tu reseña está publicada. Puedes editarla o retirarla."
+        status.textContent = review?.hidden && review.published ? "Tu opinión está pendiente de revisión."
+          : review?.published ? "Puedes editar o retirar tu opinión."
           : review ? "Tu reseña está retirada y no se muestra en la página pública." : "";
       } catch (error) {
         if (!root!.isConnected) return;
@@ -121,7 +102,7 @@ import Base from "../../layouts/Base.astro";
         const result = await request("", payload);
         if (!root!.isConnected) return;
         updateActions(result.review);
-        status.textContent = `${result.message} La página pública puede tardar hasta un minuto en actualizarse.`;
+        status.textContent = `${result.message}`;
       } catch (error) {
         status.textContent = error instanceof Error && error.name !== "TimeoutError" ? error.message : "No pudimos confirmar el guardado. Vuelve a intentar; tu texto sigue aquí.";
       } finally { setBusy(false); }
@@ -131,48 +112,50 @@ import Base from "../../layouts/Base.astro";
       setBusy(true); status.textContent = "Retirando tu reseña…";
       try {
         const result = await request("/withdraw", {});
-        consent.checked = false; withdraw.hidden = true; save.textContent = "Volver a publicar mi reseña";
-        status.textContent = `${result.message} La página pública puede tardar hasta un minuto en actualizarse.`;
+        consent.checked = false; withdraw.hidden = true; save.textContent = "Volver a publicar";
+        status.textContent = `${result.message}`;
       } catch (error) {
         status.textContent = error instanceof Error && error.name !== "TimeoutError" ? error.message : "No pudimos confirmar el retiro. Inténtalo de nuevo.";
       } finally { setBusy(false); }
     });
-    void load();
+    const open = () => { if (!root.open) root.showModal(); void load(); };
+    document.querySelectorAll<HTMLButtonElement>("[data-opinion-open]").forEach(button => button.addEventListener("click", open));
+    root.querySelector("[data-opinion-close]")!.addEventListener("click", () => root.close());
+    root.addEventListener("click", event => { if (event.target === root) { const rect = root.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) root.close(); } });
+    if (location.hash === "#compartir") open();
   }
   initProductReview();
   document.addEventListener("astro:page-load", initProductReview);
 </script>
 
 <style>
-  .campus-opinions { --app-line: #d8dee5; --app-canvas: #fff; --app-ink: #182638; --app-muted: #526274; --app-link: #1267a5; --app-sky-pale: #eef7ff; max-width: 800px; padding: 48px 20px; margin: auto; }
-  .campus-opinions :global(.product-reviews) { margin-bottom: 48px; }
-  .campus-review h2 { font-size: clamp(24px, 4vw, 32px); }
-  .campus-review .app-button { display: inline-block; padding: 12px 18px; background: #1267a5; color: white; border: 0; border-radius: 8px; font: inherit; cursor: pointer; }
-  .campus-review .app-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-
-  .campus-review { max-width: 720px; margin: 0 auto; }
-  .campus-review [hidden] { display: none !important; }
-  .campus-review__form { padding: clamp(18px, 4vw, 32px); }
-  .campus-review fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
-  .campus-review__form > fieldset > legend { font-weight: 600; margin-bottom: 22px; }
-  .campus-review__form label { display: block; font-size: 14px; font-weight: 500; }
-  .campus-review input[type="text"], .campus-review textarea { width: 100%; box-sizing: border-box; margin-top: 8px; padding: 12px; border: 1px solid var(--app-line); border-radius: 10px; background: var(--app-canvas); color: var(--app-ink); font: inherit; }
-  .campus-review textarea { resize: vertical; min-height: 140px; }
-  .campus-review__hint { color: var(--app-muted); font-size: 13px; line-height: 1.6; margin: 8px 0 24px; }
-  .campus-review .campus-review__rating { margin: 24px 0; }
-  .campus-review__rating legend { font-size: 14px; font-weight: 500; margin-bottom: 10px; }
-  .campus-review__stars { display: flex; flex-wrap: wrap; gap: 8px; }
-  .campus-review__stars label { position: relative; cursor: pointer; }
-  .campus-review__stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-  .campus-review__stars label > span { display: block; padding: 12px 16px; border: 1px solid var(--app-line); border-radius: 10px; }
-  .campus-review__stars input:checked + span { border-color: var(--app-link); background: var(--app-sky-pale); color: var(--app-link); box-shadow: 0 0 0 1px var(--app-link); }
-  .campus-review :is(input, textarea, button, a):focus-visible { outline: 3px solid var(--app-link); outline-offset: 3px; }
-  .campus-review__stars input:focus-visible + span { outline: 3px solid var(--app-link); outline-offset: 3px; }
-  .campus-review__form .campus-review__check { display: flex; align-items: flex-start; gap: 10px; line-height: 1.65; margin-top: 18px; font-weight: 400; }
-  .campus-review__check input { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 3px; accent-color: var(--app-link); }
-  .campus-review__check a { color: var(--app-link); text-decoration: underline; }
-  .campus-review__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-  .campus-review button:disabled { opacity: .6; cursor: wait; }
-  [data-review-status] { line-height: 1.6; }
-  [data-review-login] a { margin-top: 16px; }
+.campus-opinions { max-width: 800px; padding: 72px 24px 100px; margin: auto; min-height: 55vh; }
+.campus-review { box-sizing: border-box; width: min(480px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 28px; border: 1px solid #dfe6e9; border-radius: 20px; background: #fff; color: #172b36; box-shadow: 0 24px 90px #172b3629; }
+.campus-review::backdrop { background: #142b3c66; backdrop-filter: blur(3px); }
+.campus-review [hidden] { display:none!important; }
+.campus-review h2 { font-size: 24px; line-height: 1.25; letter-spacing:-.6px; margin:0 28px 6px 0; }
+.opinion-subtitle { color:#657783; font-size:14px; margin:0 0 24px; }
+.opinion-close { position:absolute; right:18px; top:14px; width:32px; height:32px; border:0; background:transparent; color:#657783; cursor:pointer; font-size:28px; }
+.campus-review fieldset { border:0; margin:0; padding:0; min-width:0; }
+.opinion-rating legend,.opinion-label { display:block; font-size:13px; font-weight:600; margin-bottom:8px; }
+.opinion-stars { display:flex; gap:6px; margin-bottom:20px; }
+.opinion-stars label { position:relative; cursor:pointer; }
+.opinion-stars input { position:absolute; opacity:0; width:1px; height:1px; }
+.opinion-stars span { display:block; color:#dce3e7; font-size:36px; line-height:1.25; padding:2px; transition:color .12s; }
+.opinion-stars label:has(input:checked) span,.opinion-stars label:has(~ label input:checked) span { color:#eeaf32; }
+.opinion-stars label:hover span { color:#d9981c; }
+.opinion-stars input:focus-visible + span { outline:2px solid #176c9d; border-radius:4px; }
+.campus-review textarea,.campus-review input[type=text] { box-sizing:border-box; width:100%; border:1px solid #dbe3e7; border-radius:10px; background:#fff; color:inherit; padding:12px; font:inherit; font-size:14px; margin-bottom:18px; }
+.campus-review textarea { resize:vertical; min-height:100px; }
+.opinion-check { display:flex; gap:8px; align-items:flex-start; margin-top:10px; font-size:12px; line-height:1.5; color:#657783; }
+.opinion-check input { margin:3px 0 0; flex-shrink:0; accent-color:#176c9d; }
+.opinion-check a { text-decoration:underline; text-underline-offset:2px; }
+.opinion-actions { display:flex; gap:12px; justify-content:flex-end; align-items:center; margin-top:24px; }
+.opinion-secondary { border:0; background:transparent; color:#657783; font:inherit; font-size:13px; cursor:pointer; padding:10px 0; }
+[data-review-status] { font-size:13px; line-height:1.5; margin:12px 0; }
+[data-review-status]:empty { display:none; }
+.campus-review :is(input,textarea,button,a):focus-visible { outline:2px solid #176c9d; outline-offset:3px; }
+.campus-review button:disabled { opacity:.5; cursor:wait; }
+.opinion-sr { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+@media(max-width:520px) { .campus-opinions {padding:48px 20px 72px;} .campus-review {padding:24px 20px;} }
 </style>
