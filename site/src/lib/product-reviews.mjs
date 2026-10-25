@@ -69,5 +69,6 @@ export function renderBlackboardReviewsPage(template, data, requireProduct = tru
   });
   if (requireProduct && !foundProduct) throw new Error("Missing Blackboard product");
   // A callback keeps user-authored $& and $' literal in String.replace.
-  return html.replace(marker, () => renderProductReviews(data));
+  const section = renderProductReviews(data);
+  return html.replace(marker, () => requireProduct ? section : section.replace('<h2 id="product-reviews-title">', '<h1 id="product-reviews-title">').replace("</h2>", "</h1>"));
 }

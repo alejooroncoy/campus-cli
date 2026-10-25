@@ -8,7 +8,7 @@ import Base from "../../layouts/Base.astro";
   <section class="campus-review" data-product-review id="compartir">
     <header class="app-page-heading app-page-heading--compact">
       <p class="app-kicker">Campus para Blackboard</p>
-      <h1>Comparte tu opinión sobre Campus</h1>
+      <h2>Comparte tu opinión sobre Campus</h2>
       <p>Cuenta tu experiencia usando Blackboard desde ChatGPT o Claude. Tu opinión ayuda a otros estudiantes a decidir.</p>
     </header>
     <p data-review-status role="status" aria-live="polite">Comprobando tu cuenta…</p>
@@ -79,7 +79,8 @@ import Base from "../../layouts/Base.astro";
         body: payload === undefined ? undefined : JSON.stringify(payload), signal: AbortSignal.timeout(10000),
       });
       if (response.status === 401) { form.hidden = true; login.hidden = false; throw new Error("Inicia sesión en Campus para continuar."); }
-      const data = await response.json();
+      let data;
+      try { data = await response.json(); } catch { throw new Error("No pudimos cargar las opiniones. Inténtalo de nuevo."); }
       if (!response.ok) throw new Error(data.error || "No pudimos guardar la reseña. Inténtalo de nuevo.");
       return data;
     }
@@ -145,7 +146,7 @@ import Base from "../../layouts/Base.astro";
 <style>
   .campus-opinions { --app-line: #d8dee5; --app-canvas: #fff; --app-ink: #182638; --app-muted: #526274; --app-link: #1267a5; --app-sky-pale: #eef7ff; max-width: 800px; padding: 48px 20px; margin: auto; }
   .campus-opinions :global(.product-reviews) { margin-bottom: 48px; }
-  .campus-review h1 { font-size: clamp(24px, 4vw, 32px); }
+  .campus-review h2 { font-size: clamp(24px, 4vw, 32px); }
   .campus-review .app-button { display: inline-block; padding: 12px 18px; background: #1267a5; color: white; border: 0; border-radius: 8px; font: inherit; cursor: pointer; }
   .campus-review .app-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 
