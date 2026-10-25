@@ -82,6 +82,8 @@ export function bannerTermLabel(term){
 }
 function teachingTermInfo(course){
  const term=String(course.term??'');
+ if(course.source==='upc_postgrado'&&course.status==='upcoming')return {label:'Oferta próxima',sortKey:'9999',program:''};
+ if(course.source==='upc_postgrado')return {label:'Ciclo no publicado',sortKey:'',program:''};
  if(course.source==='upc_syllabus'){
   const match=term.match(/^(\d{4})(00|01|02)$/);
   if(match&&match[2]==='00')return {label:`Verano ${match[1]}`,sortKey:`${match[1]}-0`,program:''};
@@ -98,12 +100,13 @@ function teachingTermInfo(course){
 function validTeachingURL(url,source,document=false){
  try{const u=new URL(url);if(u.username||u.password||u.search||u.hash)return false;
   if(source==='upc_syllabus')return u.origin==='https://repositorioacademico.upc.edu.pe'&&(document?/^\/server\/api\/core\/bitstreams\/[a-f0-9-]{36}\/content$/:/^\/handle\/10757\/\d+$/).test(u.pathname);
+  if(source==='upc_postgrado')return !document&&u.origin==='https://postgrado.upc.edu.pe'&&u.pathname==='/landings/cursos-de-especializacion/finanzas-y-contabilidad/gestion-del-riesgo/';
   return !document&&u.href==='https://banner.upc.edu.pe/StudentRegistrationSsb/ssb/classSearch/classSearch';
  }catch{return false;}
 }
 function teachingSourceLinks(course){
- const syllabus=course.source==='upc_syllabus',source=syllabus?'upc_syllabus':'banner',label=syllabus?'Sílabo UPC':'Banner';
- const url=course.sourceUrl??(!syllabus?'https://banner.upc.edu.pe/StudentRegistrationSsb/ssb/classSearch/classSearch':null);
+ const syllabus=course.source==='upc_syllabus',postgrado=course.source==='upc_postgrado',source=syllabus?'upc_syllabus':postgrado?'upc_postgrado':'banner',label=syllabus?'Sílabo UPC':postgrado?'UPC Postgrado':'Banner';
+ const url=course.sourceUrl??(!syllabus&&!postgrado?'https://banner.upc.edu.pe/StudentRegistrationSsb/ssb/classSearch/classSearch':null);
  const reference=validTeachingURL(url,source)?`<a href="${e(url)}" target="_blank" rel="noopener noreferrer">${label} ${icon('arrow-up-right')}<span class="visually-hidden"> (abre en otra pestaña)</span></a>`:label;
  const pdf=syllabus&&validTeachingURL(course.documentUrl,source,true)?` · <a href="${e(course.documentUrl)}" target="_blank" rel="noopener noreferrer">PDF original<span class="visually-hidden"> (abre en otra pestaña)</span></a>`:'';
  return `<small class="prof-public__course-source">Fuente: ${reference}${pdf}</small>`;
@@ -118,11 +121,11 @@ export function bannerCoursesSection(teachingCourses,catalogCourses=[]){
   if(course.code)used.add(String(course.code).toLowerCase());
  }
  const content=[...groups].sort(([,a],[,b])=>String(b[0]?.period.sortKey??'').localeCompare(String(a[0]?.period.sortKey??''))).map(([label,items])=>
-  `<div class="prof-public__banner-term"><h3>${icon('calendar-days')} Ciclo ${e(label)}</h3><ul class="prof-public__courses">${items.sort((a,b)=>String(a.name).localeCompare(String(b.name),'es')).map(course=>`<li data-teaching-source="${e(course.source??'banner')}" data-source-term="${e(course.term)}"><strong>${e(course.name)}</strong><small>${e(course.code)} · Ciclo ${e(course.period.label)}${course.period.program?` · ${e(course.period.program)}`:''}</small>${teachingSourceLinks(course)}</li>`).join('')}</ul></div>`).join('');
+  `<div class="prof-public__banner-term"><h3>${icon('calendar-days')} ${label==='Oferta próxima'?'Oferta próxima':`Ciclo ${e(label)}`}</h3><ul class="prof-public__courses">${items.sort((a,b)=>String(a.name).localeCompare(String(b.name),'es')).map(course=>`<li data-teaching-source="${e(course.source??'banner')}" data-source-term="${e(course.term??'')}"><strong>${e(course.name)}</strong><small>${course.code?`${e(course.code)} · `:'Código no publicado · '}${course.status==='upcoming'?'Inicio de clases: próximamente':course.period.label?`Ciclo ${e(course.period.label)}`:'Ciclo no publicado'}${course.period.program?` · ${e(course.period.program)}`:''}</small>${teachingSourceLinks(course)}</li>`).join('')}</ul></div>`).join('');
  const other=(catalogCourses??[]).filter(course=>!((course.code&&used.has(String(course.code).toLowerCase()))||(!course.code&&(teachingCourses??[]).some(b=>normalizeLabel(b.name)===normalizeLabel(course.name)))));
  const otherHTML=other.length?`<details class="prof-public__catalog-details"><summary>Otros cursos asociados${icon('arrow-down')}</summary><p class="prof-public__help">La fuente no indica el ciclo de estos cursos.</p><ul class="prof-public__courses">${other.map(course=>`<li><strong>${e(course.name)}</strong>${course.code?`<small>${e(course.code)}</small>`:''}</li>`).join('')}</ul></details>`:'';
  const unavailable=!Array.isArray(teachingCourses),empty=!content&&!otherHTML;
- return `<section id="cursos" class="prof-public__panel prof-public__banner-courses"><h2>${icon('book-open')} Cursos</h2>${content?`<p class="prof-public__help">Cada registro conserva el código y el ciclo publicados por su fuente.</p>${content}`:''}${otherHTML}${empty?`<p class="prof-public__help">${unavailable?'No pudimos cargar los cursos de este profesor.':'Aún no hay cursos asociados a este profesor.'}</p>`:''}</section>`;
+ return `<section id="cursos" class="prof-public__panel prof-public__banner-courses"><h2>${icon('book-open')} Cursos</h2>${content?`<p class="prof-public__help">Mostramos el código y el ciclo cuando la fuente los publica.</p>${content}`:''}${otherHTML}${empty?`<p class="prof-public__help">${unavailable?'No pudimos cargar los cursos de este profesor.':'Aún no hay cursos asociados a este profesor.'}</p>`:''}</section>`;
 }
 const normalizeLabel=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 
