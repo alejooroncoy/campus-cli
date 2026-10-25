@@ -21,17 +21,19 @@
     "pdf-assets": "node scripts/copy-pdf-reader-assets.mjs",
     "test:plus:e2e": "node scripts/plus-e2e.mjs",
     "test:analytics": "node scripts/verify-analytics.mjs && node scripts/verify-account-onboarding.mjs",
-    "test:analytics:transport": "node scripts/analytics-transport.test.mjs",
+    "test:analytics:transport": "node scripts/analytics-transport.test.mjs && node scripts/analytics-client.test.mjs",
     "test:review-replies": "node scripts/review-replies.e2e.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.116",
     "@astrojs/react": "^7.0.0",
     "@astrojs/sitemap": "^3.7.3",
+    "@posthog/browser-common": "^0.9.11",
+    "@posthog/core": "^1.60.1",
     "ai": "^7.0.113",
     "astro": "^7.3.2",
     "pdfjs-dist": "6.4.299",
-    "posthog-js": "^1.438.12",
+    "posthog-js-lite": "^4.13.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-markdown": "^10.1.0",
@@ -45,6 +47,7 @@
     "cheerio": "^1.2.0",
     "esbuild": "^0.28.2",
     "playwright": "^1.64.1",
+    "posthog-js": "1.438.12",
     "purgecss": "^8.0.0",
     "typescript": "^6.0.3"
   }
