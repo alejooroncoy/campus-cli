@@ -17,12 +17,9 @@ export function validPublicReviews(data) {
 
 export function renderProductReviews(data) {
   const header = `<section data-campus-product-reviews id="resenas" class="product-reviews" aria-labelledby="product-reviews-title">
-    <h2 id="product-reviews-title">Opiniones sobre Campus</h2>
-    <p>Experiencias de usuarios de Campus con la conexión de Blackboard en ChatGPT o Claude.</p>`;
-  const cta = `<p><a class="button" href="/opiniones-campus/#compartir">Compartir mi opinión sobre Campus</a></p>
-    <p class="product-reviews__note">Publicamos opiniones positivas y negativas. Cada cuenta puede compartir una reseña y retirarla cuando quiera.</p>`;
-  if (!data) return `${header}<p>No pudimos cargar las reseñas. Vuelve a intentarlo en unos momentos.</p>${cta}</section>`;
-  if (!data.reviewCount) return `${header}<p>Todavía no hay reseñas publicadas. Si ya usaste la conexión, comparte cómo te fue.</p>${cta}</section>`;
+    <div class="product-reviews__heading"><div><h2 id="product-reviews-title">Opiniones sobre Campus</h2><p>Lo que cuentan quienes usan Campus.</p></div><a class="opinion-button" href="/opiniones-campus/#compartir">Escribir una opinión</a></div>`;
+  if (!data) return `${header}<div class="product-reviews__empty"><p>No pudimos cargar las opiniones.</p><p>Inténtalo de nuevo en unos momentos.</p></div></section>`;
+  if (!data.reviewCount) return `${header}<div class="product-reviews__empty"><span class="product-reviews__empty-star" aria-hidden="true">☆</span><h3>La primera opinión puede ser la tuya</h3><p>¿Ya probaste Campus? Cuéntanos qué te pareció.</p></div></section>`;
   const average = new Intl.NumberFormat("es-PE", { maximumFractionDigits: 2 }).format(data.ratingValue);
   const totalPages = Math.ceil(data.reviewCount / data.pageSize);
   const items = data.reviews.map(r => {
@@ -41,7 +38,7 @@ export function renderProductReviews(data) {
     ${data.page < totalPages ? pageLink(data.page + 1, "Siguientes →") : ""}
   </nav>` : "";
   return `${header}<p class="product-reviews__summary"><strong>${average} de 5</strong> · ${data.reviewCount} ${data.reviewCount === 1 ? "reseña" : "reseñas"}</p>
-    ${items || "<p>No hay reseñas en esta página. Vuelve a las páginas anteriores.</p>"}${pagination}${cta}</section>`;
+    ${items || "<p>No hay opiniones en esta página.</p>"}${pagination}</section>`;
 }
 
 export function renderBlackboardReviewsPage(template, data, requireProduct = true) {
@@ -70,5 +67,10 @@ export function renderBlackboardReviewsPage(template, data, requireProduct = tru
   if (requireProduct && !foundProduct) throw new Error("Missing Blackboard product");
   // A callback keeps user-authored $& and $' literal in String.replace.
   const section = renderProductReviews(data);
-  return html.replace(marker, () => requireProduct ? section : section.replace('<h2 id="product-reviews-title">', '<h1 id="product-reviews-title">').replace("</h2>", "</h1>"));
+  return html.replace(marker, () => requireProduct ? section : renderPublicProductReviews(data));
+}
+
+export function renderPublicProductReviews(data) {
+  if (data !== null && !validPublicReviews(data)) throw new Error("Invalid public reviews");
+  return renderProductReviews(data).replace('<a class="opinion-button" href="/opiniones-campus/#compartir">Escribir una opinión</a>', '<button class="opinion-button" type="button" data-opinion-open>Escribir una opinión</button>').replace('<h2 id="product-reviews-title">', '<h1 id="product-reviews-title">').replace("</h2>", "</h1>");
 }
