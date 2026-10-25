@@ -718,6 +718,7 @@ export default function ProfesChat() {
   const [reviewSearchMode, setReviewSearchMode] = useState<"course" | "professor">("course");
   const [reviewCourses, setReviewCourses] = useState<ReviewCourse[]>([]);
   const [reviewCourse, setReviewCourse] = useState<ReviewCourse | null>(null);
+  const [reviewCourseName, setReviewCourseName] = useState("");
   const reviewDialog = useRef<HTMLDialogElement>(null);
   const reviewExperience = useRef<HTMLTextAreaElement>(null);
   const reviewSearchInput = useRef<HTMLInputElement>(null);
@@ -946,10 +947,10 @@ export default function ProfesChat() {
     try {
       const saved = sessionStorage.getItem("campus-profes-review-draft");
       if (saved) {
-        const draft = JSON.parse(saved) as { query?: string; text?: string; rating?: string; term?: string; professor?: ReviewProfessor; course?: ReviewCourse; mode?: "course" | "professor" };
+        const draft = JSON.parse(saved) as { query?: string; text?: string; rating?: string; term?: string; professor?: ReviewProfessor; course?: ReviewCourse; courseName?: string; mode?: "course" | "professor" };
         setReviewQuery(draft.query ?? ""); setReviewText(draft.text ?? "");
         setReviewRating(draft.rating ?? ""); setReviewTerm(draft.term ?? "");
-        setReviewProfessor(draft.professor ?? null); setReviewCourse(draft.course ?? null);
+        setReviewProfessor(draft.professor ?? null); setReviewCourse(draft.course ?? null); setReviewCourseName(draft.courseName ?? "");
         setReviewSearchMode(draft.mode ?? (draft.query ? "professor" : "course"));
         setReviewStep(draft.professor ? "edit" : "select");
       }
@@ -1001,9 +1002,9 @@ export default function ProfesChat() {
 
   useEffect(() => {
     if (!reviewOpen || reviewStep === "done") return;
-    try { sessionStorage.setItem("campus-profes-review-draft", JSON.stringify({ query: reviewQuery, text: reviewText, rating: reviewRating, term: reviewTerm, professor: reviewProfessor, course: reviewCourse, mode: reviewSearchMode })); }
+    try { sessionStorage.setItem("campus-profes-review-draft", JSON.stringify({ query: reviewQuery, text: reviewText, rating: reviewRating, term: reviewTerm, professor: reviewProfessor, course: reviewCourse, courseName: reviewCourseName, mode: reviewSearchMode })); }
     catch { /* The current form still keeps its draft. */ }
-  }, [reviewOpen, reviewStep, reviewQuery, reviewText, reviewRating, reviewTerm, reviewProfessor, reviewCourse, reviewSearchMode]);
+  }, [reviewOpen, reviewStep, reviewQuery, reviewText, reviewRating, reviewTerm, reviewProfessor, reviewCourse, reviewCourseName, reviewSearchMode]);
 
   useEffect(() => {
     const dialog = reviewDialog.current;
@@ -1143,7 +1144,7 @@ export default function ProfesChat() {
 
   function openReview() {
     if (reviewStep === "done") {
-      setReviewProfessor(null); setReviewCourse(null);
+      setReviewProfessor(null); setReviewCourse(null); setReviewCourseName("");
       setReviewQuery(""); setReviewText(""); setReviewRating(""); setReviewTerm("");
       setReviewSearchMode("course");
       setReviewCourses([]); setReviewProfessors([]);
@@ -1155,7 +1156,7 @@ export default function ProfesChat() {
 
   function openReviewForProfessor(profName: string) {
     if (reviewStep === "done") { setReviewText(""); setReviewRating(""); setReviewTerm(""); }
-    setReviewSearchMode("professor"); setReviewCourse(null);
+    setReviewSearchMode("professor"); setReviewCourse(null); setReviewCourseName("");
     setReviewQuery(profName); setReviewProfessor(null);
     setReviewCourses([]); setReviewProfessors([]);
     setReviewStep("select"); setReviewError(""); setReviewOpen(true);
@@ -1176,7 +1177,7 @@ export default function ProfesChat() {
 
   function changeReviewSearchMode(mode: "course" | "professor") {
     setReviewSearchMode(mode); setReviewQuery("");
-    if (mode === "professor") setReviewCourse(null);
+    if (mode === "professor") { setReviewCourse(null); setReviewCourseName(""); }
     setReviewProfessor(null);
     setReviewCourses([]); setReviewProfessors([]); setReviewError("");
   }
@@ -1189,6 +1190,7 @@ export default function ProfesChat() {
         method: "POST", credentials: "same-origin", headers: { "content-type": "application/json", ...analyticsHeaders() },
         body: JSON.stringify({ professorId: reviewProfessor.id, text: reviewText.trim(),
           ...(reviewCourse ? { courseId: reviewCourse.id } : {}),
+          ...(reviewCourseName ? { courseName: reviewCourseName } : {}),
           ...(reviewRating ? { rating: Number(reviewRating) } : {}),
           ...(reviewTerm ? { term: reviewTerm.trim() } : {}) }),
       });
@@ -1601,7 +1603,7 @@ export default function ProfesChat() {
               : reviewStep === "confirm" ? (
                 <div className="app-profes-review__preview">
                   <strong>{reviewProfessor?.name}</strong>
-                  <span>{reviewCourse?.name ?? reviewProfessor?.university}</span>
+                  <span>{(reviewCourse?.name ?? reviewCourseName) || reviewProfessor?.university}</span>
                   <p>{reviewText}</p>
                   {reviewRating ? <span>Calificación: {reviewRating} / 10</span> : null}
                   {reviewTerm ? <span>Ciclo: {reviewTerm}</span> : null}
@@ -1614,11 +1616,11 @@ export default function ProfesChat() {
                       <button type="button" aria-pressed={reviewSearchMode === "course"} onClick={() => changeReviewSearchMode("course")}>Por curso</button>
                       <button type="button" aria-pressed={reviewSearchMode === "professor"} onClick={() => changeReviewSearchMode("professor")}>Por nombre</button>
                     </div>
-                    {reviewCourse ? <div className="app-profes-review__selected-course">
-                      <span>{reviewCourse.name}</span>
-                      <button type="button" className="app-profes-review__secondary" onClick={() => { setReviewCourse(null); setReviewProfessor(null); setReviewQuery(""); setReviewProfessors([]); setReviewCourses([]); }}>Cambiar curso</button>
+                    {reviewCourse || reviewCourseName ? <div className="app-profes-review__selected-course">
+                      <span>{reviewCourse?.name ?? reviewCourseName}</span>
+                      <button type="button" className="app-profes-review__secondary" onClick={() => { setReviewCourse(null); setReviewCourseName(""); setReviewProfessor(null); setReviewSearchMode("course"); setReviewQuery(""); setReviewProfessors([]); setReviewCourses([]); }}>Cambiar curso</button>
                     </div> : null}
-                    {reviewSearchMode === "professor" || !reviewCourse ? <>
+                    {reviewSearchMode === "professor" || (!reviewCourse && !reviewCourseName) ? <>
                       <label htmlFor="review-search">{reviewSearchMode === "course" ? "Curso" : "Nombre del docente"}</label>
                       <input ref={reviewSearchInput} id="review-search" value={reviewQuery} onChange={event => { setReviewQuery(event.target.value); setReviewProfessor(null); setReviewCourses([]); setReviewProfessors([]); }}
                         placeholder={reviewSearchMode === "course" ? "Nombre o código del curso" : "Nombre o apellido"} maxLength={100} />
@@ -1635,13 +1637,14 @@ export default function ProfesChat() {
                         </div>
                       ) : !reviewError ? <p role="status">{reviewCourse && reviewSearchMode === "course" ? "No tenemos docentes asociados a este curso todavía. Puedes buscar al tuyo por nombre." : reviewQuery.trim().length >= 2 ? "Sin resultados. Prueba con otro nombre o código." : "Escribe al menos dos letras para buscar."}</p> : null}
                     </div>
+                    {reviewSearchMode === "course" && !reviewCourse && reviewQuery.trim().length >= 2 && !reviewSearching && reviewCourses.length === 0 ? <button type="button" className="app-profes-review__secondary" onClick={() => { setReviewCourseName(reviewQuery.trim()); setReviewCourse(null); setReviewProfessor(null); setReviewSearchMode("professor"); setReviewQuery(""); setReviewCourses([]); setReviewProfessors([]); setReviewError(""); }}>No aparece: añadir “{reviewQuery.trim()}”</button> : null}
                     {reviewCourse && reviewSearchMode === "course" ? <button type="button" className="app-profes-review__secondary" onClick={() => changeReviewSearchMode("professor")}>¿No aparece tu docente? Búscalo por nombre</button> : null}
                   </> : <p>{!authenticated ? "Inicia sesión para elegir al docente y compartir tu experiencia." : "Elige tu universidad en Mi perfil para encontrar tus cursos y docentes."}</p>}
                 </>
               ) : (
                 <>
                   <div className="app-profes-review__selected">
-                    <div><strong>{reviewProfessor?.name}</strong><span>{reviewCourse?.name ?? reviewProfessor?.university}</span></div>
+                    <div><strong>{reviewProfessor?.name}</strong><span>{(reviewCourse?.name ?? reviewCourseName) || reviewProfessor?.university}</span></div>
                     <button type="button" className="app-profes-review__secondary" onClick={() => setReviewStep("select")}>Cambiar</button>
                   </div>
                   <label htmlFor="review-text">Tu experiencia</label>
