@@ -1726,6 +1726,7 @@ export default function ProfesChat() {
 
       {(error || (historyError && !historyOpen)) && !isGuestLimit ? <div className="app-profes-ai__recovery">
         <p className="app-profes-ai__error" role="alert">{error?.message ?? historyError}</p>
+        <a href="https://wa.me/51946189585" className="app-text-link" target="_blank" rel="noopener noreferrer" onClick={()=>track('campus_cta_clicked',{target:'whatsapp',location:'app',intent:'support'})}>Escribir a soporte por WhatsApp</a>
         {canRetryQuestion(error) && messages.at(-1)?.role === 'user' && access === 'ready' && (usage?.remaining ?? 0) > 0 && !busy ? <button type="button" className="app-profes-ai__retry" onClick={() => {
           track('campus_question_retried', { step: 'question' });
           setActivitySteps(['connecting']); setActivityExpanded(false);

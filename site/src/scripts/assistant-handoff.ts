@@ -6,6 +6,11 @@ export function connectAiHref(path:string){
  return back?`/app/copilot/?return=${encodeURIComponent(back)}`:'/app/copilot/';
 }
 
+export function assistantConversationId(path:string|null){
+ const back=assistantReturnPath(path);
+ return back?.match(/^\/app\/(?:profes|asistente)\/c\/([0-9a-f-]{36})\//i)?.[1]??null;
+}
+
 export function assistantLoginHref(path:string, search?: string){
  const modalParam = search && new URLSearchParams(search).get('modal') === 'review' ? '?modal=review' : '';
  const candidate = path.includes('?') ? path : `${path}${modalParam}`;
