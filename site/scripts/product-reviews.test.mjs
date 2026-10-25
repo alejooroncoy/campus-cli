@@ -111,3 +111,10 @@ test("general opinions fetch all use cases rather than the connector scope", asy
   await blackboardPage(new Request(`${productReviewUrl}?view=opiniones`),{loadTemplate:async()=>template,fetchReviews:async(url)=>{assert.equal(url.searchParams.get("scope"),null);checked=true;return Response.json(data);}});
   assert.equal(checked,true);
 });
+
+test("multiple services display together and malformed selections are rejected",()=>{
+ const multi={...data,reviews:[{...review,useCase:"agent",useCases:["agent","library"]}]};
+ assert.equal(validPublicReviews(multi),true);
+ const html=renderBlackboardReviewsPage(template,multi); assert.match(html,/Agente de Campus/);assert.match(html,/Biblioteca/);
+ for(const useCases of [[],["agent","agent"],["invalid"],null,"agent"])assert.equal(validPublicReviews({...data,reviews:[{...review,useCases}]}),false);
+});

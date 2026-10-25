@@ -12,6 +12,7 @@ export function validPublicReviews(data) {
       : typeof data.ratingValue === "number" && Number.isFinite(data.ratingValue) && data.ratingValue >= 1 && data.ratingValue <= 5)
     && data.reviews.every(r => /^\d+$/.test(r.id) && typeof r.publicName === "string" && r.publicName.length >= 2 && r.publicName.length <= 80
       && (r.useCase === undefined || Object.hasOwn(productUseCaseLabels, r.useCase))
+      && (r.useCases === undefined || (Array.isArray(r.useCases) && r.useCases.length>=1 && r.useCases.length<=5 && new Set(r.useCases).size===r.useCases.length && r.useCases.every(v=>Object.hasOwn(productUseCaseLabels,v))))
       && Number.isInteger(r.rating) && r.rating >= 1 && r.rating <= 5
       && typeof r.text === "string" && r.text.length >= 10 && r.text.length <= 1500
       && Number.isFinite(Date.parse(r.createdAt)) && Number.isFinite(Date.parse(r.updatedAt)));
@@ -29,7 +30,7 @@ export function renderProductReviews(data) {
     const dateText = new Intl.DateTimeFormat("es-PE", { dateStyle: "long", timeZone: "America/Lima" }).format(date);
     return `<article id="review-${escapeHtml(r.id)}" class="product-reviews__item">
       <header><strong>${escapeHtml(r.publicName)}</strong><span aria-label="${r.rating} de 5 estrellas">${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)} <span class="product-reviews__score">${r.rating}/5</span></span></header>
-      ${r.useCase ? `<span class="product-reviews__use-case">${productUseCaseLabels[r.useCase]}</span>` : ""}
+      ${(r.useCases ?? (r.useCase ? [r.useCase] : [])).map(value=>`<span class="product-reviews__use-case">${productUseCaseLabels[value]}</span>`).join(" ")}
       <p class="product-reviews__text">${escapeHtml(r.text)}</p>
       <time datetime="${date.toISOString()}">${dateText}</time>
     </article>`;

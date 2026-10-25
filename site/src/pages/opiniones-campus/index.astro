@@ -15,15 +15,11 @@ import Base from "../../layouts/Base.astro";
   <form data-review-form hidden>
     <fieldset data-review-fields>
       <legend class="opinion-sr">Tu opinión sobre Campus</legend>
-      <label class="opinion-label" for="review-use-case">¿Qué usaste?</label>
-      <select id="review-use-case" name="useCase" required>
-        <option value="" disabled selected>Elige una función</option>
-        <option value="agent">Agente de Campus</option>
-        <option value="chatgpt_claude">Campus en ChatGPT o Claude</option>
-        <option value="professors">Buscador de profesores</option>
-        <option value="library">Biblioteca</option>
-        <option value="other">Otra función de Campus</option>
-      </select>
+      <fieldset class="opinion-services"><legend>¿Qué usaste? <span>Elige uno o varios</span></legend>
+        <div class="opinion-service-options">
+          {[["agent","Agente de Campus"],["chatgpt_claude","ChatGPT o Claude"],["professors","Buscador de profesores"],["library","Biblioteca"],["other","Otra función"]].map(([value,label]) => <label><input type="checkbox" name="useCases" value={value} /><span>{label}</span></label>)}
+        </div>
+      </fieldset>
       <fieldset class="opinion-rating"><legend>Tu puntuación</legend><div class="opinion-stars">
       {[1,2,3,4,5].map(n => <label><input type="radio" name="rating" value={n} required aria-label={`${n} de 5 estrellas`} /><span aria-hidden="true">★</span></label>)}
       </div></fieldset>
@@ -44,7 +40,7 @@ import Base from "../../layouts/Base.astro";
 </Base>
 <script>
   import { renderPublicProductReviews, validPublicReviews } from "../../lib/product-reviews.mjs";
-  type OwnReview = { publicName: string; rating: number; text: string; useCase?: string; published: boolean; hidden: boolean };
+  type OwnReview = { publicName: string; rating: number; text: string; useCase?: string; useCases?: string[]; published: boolean; hidden: boolean };
   function initProductReview() {
     const root = document.querySelector<HTMLDialogElement>("[data-product-review]");
     if (!root || root.dataset.bound) return;
@@ -57,7 +53,10 @@ import Base from "../../layouts/Base.astro";
     const save = root.querySelector<HTMLButtonElement>("[data-review-save]")!;
     const withdraw = root.querySelector<HTMLButtonElement>("[data-review-withdraw]")!;
     const publicName = form.elements.namedItem("publicName") as HTMLInputElement;
-    const useCase = form.elements.namedItem("useCase") as HTMLSelectElement;
+    const serviceChoices = [...form.querySelectorAll<HTMLInputElement>('input[name="useCases"]')];
+    function validateServices() { serviceChoices[0].setCustomValidity(serviceChoices.some(input=>input.checked) ? "" : "Elige al menos un servicio de Campus."); }
+    serviceChoices.forEach(input=>input.addEventListener("change", validateServices));
+    validateServices();
     const text = form.elements.namedItem("text") as HTMLTextAreaElement;
     const experienced = form.elements.namedItem("experienced") as HTMLInputElement;
     const consent = form.elements.namedItem("consent") as HTMLInputElement;
@@ -111,7 +110,7 @@ import Base from "../../layouts/Base.astro";
         if (!root!.isConnected) return;
         login.hidden = true; form.hidden = false;
         if (review) {
-          publicName.value = review.publicName; text.value = review.text; useCase.value = review.useCase ?? "chatgpt_claude";
+          publicName.value = review.publicName; text.value = review.text; serviceChoices.forEach(input=>{input.checked=(review.useCases ?? [review.useCase ?? "chatgpt_claude"]).includes(input.value);}); validateServices();
           const rating = form.querySelector<HTMLInputElement>(`input[name="rating"][value="${review.rating}"]`);
           if (rating) rating.checked = true;
           experienced.checked = true; consent.checked = review.published;
@@ -130,7 +129,7 @@ import Base from "../../layouts/Base.astro";
     form.addEventListener("submit", async event => {
       event.preventDefault();
       if (busy || !form.reportValidity()) return;
-      const payload = { useCase: useCase.value, publicName: publicName.value.trim(), rating: Number(new FormData(form).get("rating")), text: text.value.trim(), experienced: experienced.checked, consent: consent.checked };
+      const payload = { useCases: serviceChoices.filter(input=>input.checked).map(input=>input.value), publicName: publicName.value.trim(), rating: Number(new FormData(form).get("rating")), text: text.value.trim(), experienced: experienced.checked, consent: consent.checked };
       setBusy(true); status.textContent = "Guardando tu opinión…";
       try {
         const result = await request("", payload);
@@ -189,7 +188,12 @@ import Base from "../../layouts/Base.astro";
 .opinion-subtitle { color:#657783; font-size:14px; margin:0 0 18px; }
 .opinion-close { position:absolute; right:18px; top:14px; width:32px; height:32px; border:0; background:transparent; color:#657783; cursor:pointer; font-size:28px; }
 .campus-review fieldset { border:0; margin:0; padding:0; min-width:0; }
-.opinion-rating legend,.opinion-label { display:block; font-size:13px; font-weight:600; margin-bottom:8px; }
+.opinion-services legend,.opinion-rating legend,.opinion-label { display:block; font-size:13px; font-weight:600; margin-bottom:8px; }
+ .opinion-services legend span { color:#657783; font-weight:400; font-size:12px; margin-left:6px; }
+.opinion-service-options { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.opinion-service-options label { display:flex; align-items:center; gap:6px; border:1px solid #dbe3e7; border-radius:8px; padding:8px 10px; font-size:12px; line-height:1.25; cursor:pointer; }
+.opinion-service-options label:has(input:checked) { border-color:#176c9d; background:#edf7fd; color:#125a85; }
+.opinion-service-options input { margin:0; width:14px; height:14px; accent-color:#176c9d; }
 .opinion-stars { display:flex; gap:6px; margin-bottom:12px; }
 .opinion-stars label { position:relative; cursor:pointer; }
 .opinion-stars input { position:absolute; opacity:0; width:1px; height:1px; }
