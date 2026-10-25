@@ -33,7 +33,7 @@ export default function AgentFeedbackRecovery({traceId,pending,ensureFeedback}:{
    }}>
     <fieldset disabled={saving}><legend>Elige lo que pasó (opcional)</legend>{reasons.map(([value,label])=><label key={value}><input type="radio" name={id+'-reason'} value={value} checked={reason===value} onChange={()=>setReason(value)}/>{label}</label>)}</fieldset>
     <label htmlFor={id+'-details'}>¿Qué necesitabas? (opcional)</label>
-    <textarea id={id+'-details'} value={details} onChange={e=>setDetails(e.target.value)} maxLength={600} rows={3} disabled={saving} placeholder="Cuéntanos qué faltó o qué salió mal. No incluyas contraseñas."/>
+    <textarea id={id+'-details'} value={details} onChange={e=>setDetails(e.target.value)} maxLength={600} rows={3} disabled={saving} placeholder="Cuéntanos qué faltó o qué salió mal."/>
     <label htmlFor={id+'-phone'}>Tu WhatsApp para avisarte cuando lo resolvamos (opcional)</label>
     <input id={id+'-phone'} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={e=>{setPhone(e.target.value);setError('');}} maxLength={32} disabled={saving} placeholder="+51 999 999 999" aria-describedby={id+'-permission'}/>
     <p id={id+'-permission'} className="app-agent-recovery__note">No necesitas crear una cuenta. Al guardar tu número, permites que el equipo te escriba por WhatsApp sobre la solución de este problema.</p>
