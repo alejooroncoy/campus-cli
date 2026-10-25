@@ -31,3 +31,7 @@ En `astro dev` no se ejecutan las funciones ni los rewrites Vercel: se ve la pla
 - En `campus-profes`: `node --test src/app/product-reviews.test.ts`. Con `CAMPUS_APP_TEST_DATABASE_URL` exclusivamente local ejecuta también la prueba PostgreSQL en un esquema aleatorio que elimina al terminar.
 - En `blackboard-cli/site`: `npm run build` y `node --test scripts/product-reviews.test.mjs`.
 - Cubren consentimiento, CSRF, identidad por cookie, límites, concurrencia, edición, retiro, retención, todas las calificaciones, paginación, fallos del feed, caché y concordancia de HTML/JSON-LD, incluyendo intentos de inyección.
+
+## Funciones evaluadas
+
+El formulario público admite Agente de Campus, ChatGPT/Claude, Profesores, Biblioteca y Otra función. `useCase` se guarda y se muestra con la opinión. La migración 174 conserva las opiniones antiguas como `chatgpt_claude`. El feed público incluye todas; `scope=blackboard` calcula el listado y promedio solo de la conexión ChatGPT/Claude para su ficha Product. Las opiniones de Profesores aquí evalúan la función de Campus, no a un docente.

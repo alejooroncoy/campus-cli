@@ -1,3 +1,4 @@
+export const productUseCaseLabels = { agent: "Agente de Campus", chatgpt_claude: "ChatGPT o Claude", professors: "Profesores", library: "Biblioteca", other: "Otra función" };
 export const productReviewUrl = "https://campuscli.com/blackboard-chatgpt/";
 const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const jsonForHtml = value => JSON.stringify(value).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
@@ -10,6 +11,7 @@ export function validPublicReviews(data) {
     && (data.reviewCount === 0 ? data.ratingValue === null && data.reviews.length === 0
       : typeof data.ratingValue === "number" && Number.isFinite(data.ratingValue) && data.ratingValue >= 1 && data.ratingValue <= 5)
     && data.reviews.every(r => /^\d+$/.test(r.id) && typeof r.publicName === "string" && r.publicName.length >= 2 && r.publicName.length <= 80
+      && (r.useCase === undefined || Object.hasOwn(productUseCaseLabels, r.useCase))
       && Number.isInteger(r.rating) && r.rating >= 1 && r.rating <= 5
       && typeof r.text === "string" && r.text.length >= 10 && r.text.length <= 1500
       && Number.isFinite(Date.parse(r.createdAt)) && Number.isFinite(Date.parse(r.updatedAt)));
@@ -27,6 +29,7 @@ export function renderProductReviews(data) {
     const dateText = new Intl.DateTimeFormat("es-PE", { dateStyle: "long", timeZone: "America/Lima" }).format(date);
     return `<article id="review-${escapeHtml(r.id)}" class="product-reviews__item">
       <header><strong>${escapeHtml(r.publicName)}</strong><span aria-label="${r.rating} de 5 estrellas">${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)} <span class="product-reviews__score">${r.rating}/5</span></span></header>
+      ${r.useCase ? `<span class="product-reviews__use-case">${productUseCaseLabels[r.useCase]}</span>` : ""}
       <p class="product-reviews__text">${escapeHtml(r.text)}</p>
       <time datetime="${date.toISOString()}">${dateText}</time>
     </article>`;

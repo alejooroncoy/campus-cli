@@ -13,6 +13,7 @@ export async function blackboardPage(request, { fetchReviews = fetch, loadTempla
     // Server-configured upstream only; never forward visitors' cookies or auth.
     const upstream = new URL("/api/app/blackboard-reviews", process.env.CAMPUS_REVIEWS_API_ORIGIN || "https://profes.campuscli.com");
     upstream.searchParams.set("page", page);
+    if (view !== "opiniones") upstream.searchParams.set("scope", "blackboard");
     const response = await fetchReviews(upstream, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(5000), redirect: "error" });
     if (!response.ok) throw new Error("Reviews unavailable");
     const body = await response.json();

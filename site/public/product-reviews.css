@@ -20,3 +20,5 @@
 .product-reviews__pages{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;margin:24px 0;font-size:13px}
 .product-reviews__pages a{text-decoration:underline;text-underline-offset:3px}
 @media(max-width:600px){.product-reviews__heading{align-items:flex-start;flex-direction:column;gap:20px;margin-bottom:24px}.product-reviews__empty{padding:36px 16px}.product-reviews__heading h1{font-size:28px}}
+
+.product-reviews__use-case{display:inline-block;font-size:11px;color:#607584;background:#edf3f6;padding:3px 8px;border-radius:5px;margin-top:10px}
