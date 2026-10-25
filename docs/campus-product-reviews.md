@@ -5,7 +5,7 @@ El formulario está en `/opiniones-campus/#compartir`, enlazado desde Conectar I
 ## Backend (campus-profes)
 
 - `GET /api/app/blackboard-review`: reseña de la cuenta de la cookie; 401 sin sesión.
-- `POST /api/app/blackboard-review`: `{publicName,rating,text,useCase,experienced:true,consent:true}`. Rating entero 1–5; nombre 2–80; comentario 10–1500; rechaza correos/teléfonos e identidades enviadas por el cliente. Origin exacto y JSON obligatorio. Una edición cada 30 segundos; el retiro no espera.
+- `POST /api/app/blackboard-review`: `{publicName,rating,text,useCases,experienced:true,consent:true}`. Rating entero 1–5; nombre 2–80; comentario 10–1500; rechaza correos/teléfonos e identidades enviadas por el cliente. Origin exacto y JSON obligatorio. Una edición cada 30 segundos; el retiro no espera.
 - `POST /api/app/blackboard-review/withdraw`: retira solo la reseña de esa cuenta.
 - `GET /api/app/blackboard-reviews?page=1`: página pública de 10 reseñas, total y promedio calculados en una sola consulta. No lee sesiones ni devuelve cuentas o correos. Incluye todas las calificaciones publicadas sin filtrar por sentimiento.
 
@@ -43,3 +43,7 @@ Solo cuentas autenticadas, una opinión editable por cuenta y guardado atómico 
 Cola privada en campus-profes: `node --env-file=.env scripts/moderate-product-opinions.ts`. Para decidir, usar `--id= --version= --action=approve|reject --reviewer=` (dry run); aplicar requiere `--apply --expected-host=<host-revisado>`. La versión debe coincidir exactamente: no se aprueba una edición nueva, una opinión retirada ni una cuenta bloqueada. Se registra quién decidió y cuándo, sin copiar el comentario en el historial. No hay endpoint público de moderación. Aplicar primero la migración 175 con `scripts/apply-product-opinion-moderation-schema.ts`.
 
 La revisión debe aceptar críticas legítimas de cualquier puntuación y rechazar spam, suplantación, acoso o datos personales con los mismos criterios. No se aprueba por ser favorable ni se rechaza por tener pocas estrellas.
+
+## Varios servicios por opinión
+
+`useCases` admite de uno a cinco valores únicos. La migración 176 conserva cada selección anterior como una lista de un elemento. Los clientes antiguos con `useCase` siguen aceptándose. Una opinión mixta aparece con todas sus etiquetas en la página general; la ficha Product de ChatGPT/Claude solo incluye opiniones dedicadas exclusivamente a esa conexión, tanto en su lista como en el promedio. La moderación y los límites se mantienen por cuenta.
