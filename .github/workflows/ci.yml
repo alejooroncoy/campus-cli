@@ -47,6 +47,7 @@ jobs:
       - run: npm --prefix site run build
       - run: npm --prefix site run check
       - run: npm --prefix site run test:app
+      - run: npm --prefix site run test:product-reviews
       - run: npm --prefix site run test:analytics
       - name: Configure Ubuntu dependency downloads
         run: |

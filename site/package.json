@@ -5,7 +5,7 @@
   "scripts": {
     "css": "esbuild public/styles.css --minify --outfile=public/styles.min.css --allow-overwrite",
     "dev": "npm run pdf-assets && npm run css && astro dev",
-    "build": "npm run pdf-assets && npm run css && astro build && node scripts/optimize-home-styles.mjs && node scripts/externalize-app-scripts.mjs && node scripts/prepare-professors-template.mjs && node scripts/prepare-library-template.mjs && node scripts/prepare-library-offline.mjs",
+    "build": "npm run pdf-assets && npm run css && astro build && node scripts/optimize-home-styles.mjs && node scripts/externalize-app-scripts.mjs && node scripts/prepare-professors-template.mjs && node scripts/prepare-library-template.mjs && node scripts/prepare-library-offline.mjs && node scripts/prepare-product-reviews-template.mjs",
     "check": "astro check",
     "preview": "astro preview",
     "test:agent-discovery": "node scripts/verify-agent-discovery.mjs",
@@ -24,7 +24,8 @@
     "test:analytics": "node scripts/verify-analytics.mjs && node scripts/verify-account-onboarding.mjs",
     "test:analytics:transport": "node scripts/analytics-transport.test.mjs && node scripts/analytics-client.test.mjs",
     "test:review-replies": "node scripts/review-replies.e2e.mjs",
-    "test:guest-signup": "node scripts/guest-signup-e2e.mjs"
+    "test:guest-signup": "node scripts/guest-signup-e2e.mjs",
+    "test:product-reviews": "node --test scripts/product-reviews.test.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.116",

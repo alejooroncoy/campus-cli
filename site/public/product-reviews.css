@@ -1,0 +1,10 @@
+.product-reviews{margin-top:3rem;border-top:1px solid var(--line,#d8e2e7);padding-top:1rem}
+.product-reviews__summary{font-size:1.2rem}
+.product-reviews__item{padding:1.3rem 0;border-bottom:1px solid var(--line,#d8e2e7);overflow-wrap:anywhere}
+.product-reviews__item header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem 1rem}
+.product-reviews__item header>span{color:#8b5600;letter-spacing:.08em}
+.product-reviews__score{color:#506d7f;font-size:.85rem;letter-spacing:normal}
+.product-reviews__item .product-reviews__text{white-space:pre-wrap;margin:.7rem 0}
+.product-reviews__item time,.product-reviews__note{font-size:.875rem;color:#506d7f}
+.product-reviews__pages{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;margin:1.5rem 0}
+.product-reviews__pages a{padding:.5rem 0;text-decoration:underline;text-underline-offset:3px}
