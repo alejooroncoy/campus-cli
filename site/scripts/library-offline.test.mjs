@@ -32,5 +32,5 @@ test('the offline shell and all script dependencies are build-produced public fi
       assert.ok(assets.includes(new URL(match[1], 'https://campuscli.com' + path).pathname));
     }
   }
-  assert.match(await readFile(new URL('sw.js', root), 'utf8'), /campus-shell-v14-[a-f0-9]{16}/);
+  assert.match(await readFile(new URL('sw.js', root), 'utf8'), /campus-shell-v15-[a-f0-9]{16}/);
 });
