@@ -65,6 +65,7 @@ test("server rendering forwards no credentials and handles upstream failure with
       called = true;
       assert.equal(url.pathname, "/api/app/blackboard-reviews");
       assert.equal(url.searchParams.get("page"), "1");
+      assert.equal(url.searchParams.get("scope"), "blackboard");
       assert.deepEqual(options.headers, { Accept: "application/json" });
       return Response.json(data);
     },
@@ -98,3 +99,15 @@ test("built page contains the SSR template marker and deployment routes render H
 });
 
 test("public opinions render without app shell or requiring a Product schema", async () => { const template = await readFile(new URL("../.generated/opiniones-campus.html", import.meta.url), "utf8"); const html = renderBlackboardReviewsPage(template, data, false); assert.ok(html.includes(review.text)); assert.ok(html.includes("¿Qué te parece Campus?")); assert.ok(!html.includes("Navegación principal</aside>")); });
+
+test("public opinions show their Campus use case and reject unknown values", () => {
+  const classified = {...data,reviews:[{...review,useCase:"agent"}]};
+  assert.equal(validPublicReviews(classified),true);
+  assert.match(renderBlackboardReviewsPage(template,classified),/Agente de Campus/);
+  assert.equal(validPublicReviews({...classified,reviews:[{...review,useCase:"unknown"}]}),false);
+});
+test("general opinions fetch all use cases rather than the connector scope", async () => {
+  let checked = false;
+  await blackboardPage(new Request(`${productReviewUrl}?view=opiniones`),{loadTemplate:async()=>template,fetchReviews:async(url)=>{assert.equal(url.searchParams.get("scope"),null);checked=true;return Response.json(data);}});
+  assert.equal(checked,true);
+});

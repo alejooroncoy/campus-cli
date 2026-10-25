@@ -15,6 +15,15 @@ import Base from "../../layouts/Base.astro";
   <form data-review-form hidden>
     <fieldset data-review-fields>
       <legend class="opinion-sr">Tu opinión sobre Campus</legend>
+      <label class="opinion-label" for="review-use-case">¿Qué usaste?</label>
+      <select id="review-use-case" name="useCase" required>
+        <option value="" disabled selected>Elige una función</option>
+        <option value="agent">Agente de Campus</option>
+        <option value="chatgpt_claude">Campus en ChatGPT o Claude</option>
+        <option value="professors">Buscador de profesores</option>
+        <option value="library">Biblioteca</option>
+        <option value="other">Otra función de Campus</option>
+      </select>
       <fieldset class="opinion-rating"><legend>Tu puntuación</legend><div class="opinion-stars">
       {[1,2,3,4,5].map(n => <label><input type="radio" name="rating" value={n} required aria-label={`${n} de 5 estrellas`} /><span aria-hidden="true">★</span></label>)}
       </div></fieldset>
@@ -22,7 +31,7 @@ import Base from "../../layouts/Base.astro";
       <textarea id="review-text" name="text" minlength="10" maxlength="1500" rows="3" placeholder="¿Qué te gustó? ¿Qué mejorarías?" required></textarea>
       <label class="opinion-label" for="review-public-name">Nombre público</label>
       <input id="review-public-name" name="publicName" type="text" minlength="2" maxlength="80" autocomplete="off" placeholder="Ej. Ana P." required />
-      <label class="opinion-check"><input type="checkbox" name="experienced" required /><span>He usado Campus con Blackboard.</span></label>
+      <label class="opinion-check"><input type="checkbox" name="experienced" required /><span>Mi opinión refleja mi experiencia con Campus.</span></label>
       <label class="opinion-check"><input type="checkbox" name="consent" required /><span>Publicar mi nombre, estrellas y comentario. <a href="/privacidad/#resenas-campus" target="_blank" rel="noopener">Privacidad</a></span></label>
     </fieldset>
     <div class="opinion-actions"><button class="opinion-secondary" type="button" data-review-withdraw hidden>Retirar opinión</button><button class="opinion-button" type="submit" data-review-save>Publicar opinión</button></div>
@@ -34,7 +43,7 @@ import Base from "../../layouts/Base.astro";
 </Base>
 <script>
   import { renderPublicProductReviews, validPublicReviews } from "../../lib/product-reviews.mjs";
-  type OwnReview = { publicName: string; rating: number; text: string; published: boolean; hidden: boolean };
+  type OwnReview = { publicName: string; rating: number; text: string; useCase?: string; published: boolean; hidden: boolean };
   function initProductReview() {
     const root = document.querySelector<HTMLDialogElement>("[data-product-review]");
     if (!root || root.dataset.bound) return;
@@ -47,6 +56,7 @@ import Base from "../../layouts/Base.astro";
     const save = root.querySelector<HTMLButtonElement>("[data-review-save]")!;
     const withdraw = root.querySelector<HTMLButtonElement>("[data-review-withdraw]")!;
     const publicName = form.elements.namedItem("publicName") as HTMLInputElement;
+    const useCase = form.elements.namedItem("useCase") as HTMLSelectElement;
     const text = form.elements.namedItem("text") as HTMLTextAreaElement;
     const experienced = form.elements.namedItem("experienced") as HTMLInputElement;
     const consent = form.elements.namedItem("consent") as HTMLInputElement;
@@ -100,7 +110,7 @@ import Base from "../../layouts/Base.astro";
         if (!root!.isConnected) return;
         login.hidden = true; form.hidden = false;
         if (review) {
-          publicName.value = review.publicName; text.value = review.text;
+          publicName.value = review.publicName; text.value = review.text; useCase.value = review.useCase ?? "chatgpt_claude";
           const rating = form.querySelector<HTMLInputElement>(`input[name="rating"][value="${review.rating}"]`);
           if (rating) rating.checked = true;
           experienced.checked = true; consent.checked = review.published;
@@ -119,7 +129,7 @@ import Base from "../../layouts/Base.astro";
     form.addEventListener("submit", async event => {
       event.preventDefault();
       if (busy || !form.reportValidity()) return;
-      const payload = { publicName: publicName.value.trim(), rating: Number(new FormData(form).get("rating")), text: text.value.trim(), experienced: experienced.checked, consent: consent.checked };
+      const payload = { useCase: useCase.value, publicName: publicName.value.trim(), rating: Number(new FormData(form).get("rating")), text: text.value.trim(), experienced: experienced.checked, consent: consent.checked };
       setBusy(true); status.textContent = "Guardando tu opinión…";
       try {
         const result = await request("", payload);
@@ -182,7 +192,7 @@ import Base from "../../layouts/Base.astro";
 .opinion-stars label:has(input:checked) span,.opinion-stars label:has(~ label input:checked) span { color:#eeaf32; }
 .opinion-stars label:hover span { color:#d9981c; }
 .opinion-stars input:focus-visible + span { outline:2px solid #176c9d; border-radius:4px; }
-.campus-review textarea,.campus-review input[type=text] { box-sizing:border-box; width:100%; border:1px solid #dbe3e7; border-radius:10px; background:#fff; color:inherit; padding:12px; font:inherit; font-size:14px; margin-bottom:18px; }
+.campus-review select,.campus-review textarea,.campus-review input[type=text] { box-sizing:border-box; width:100%; border:1px solid #dbe3e7; border-radius:10px; background:#fff; color:inherit; padding:12px; font:inherit; font-size:14px; margin-bottom:18px; }
 .campus-review textarea { resize:vertical; min-height:100px; }
 .opinion-check { display:flex; gap:8px; align-items:flex-start; margin-top:10px; font-size:12px; line-height:1.5; color:#657783; }
 .opinion-check input { margin:3px 0 0; flex-shrink:0; accent-color:#176c9d; }
