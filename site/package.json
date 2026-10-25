@@ -18,6 +18,7 @@
     "test:conversation-drafts": "node scripts/verify-conversation-drafts.mjs",
     "test:mobile-keyboard": "node scripts/verify-mobile-keyboard.mjs",
     "test:assistant-handoff": "node scripts/verify-assistant-handoff.mjs",
+    "test:materials-handoff": "node scripts/materials-handoff-e2e.mjs",
     "pdf-assets": "node scripts/copy-pdf-reader-assets.mjs",
     "test:plus:e2e": "node scripts/plus-e2e.mjs",
     "test:analytics": "node scripts/verify-analytics.mjs && node scripts/verify-account-onboarding.mjs",
