@@ -20,7 +20,7 @@ try{
  for(const width of [390,1100]){
   const context=await browser.newContext({viewport:{width,height:844},serviceWorkers:'block'});
   await context.addInitScript(()=>{window.handoffCopies=[];window.handoffCopyFails=false;Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>{if(window.handoffCopyFails)throw Error('denied');window.handoffCopies.push(text);}}});});
-  const page=await context.newPage();let authorized=true,handoffReads=0;const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  const page=await context.newPage();let authorized=true,failRead=false,handoffReads=0;const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.route('**/*',async route=>{
    const url=new URL(route.request().url());
    if(url.origin!==base)return route.abort();
@@ -29,6 +29,7 @@ try{
    if(url.pathname.replace(/\/$/,'')==='/api/app/session')return json(session);
    if(url.pathname.replace(/\/$/,'')==='/api/app/profes/handoff'){
     handoffReads++;assert.equal(url.searchParams.get('conversationId'),id);
+    if(failRead)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
     return json({conversationId:id,request:authorized?request:null});
    }
    return json({});
@@ -47,8 +48,21 @@ try{
    await mkdir('.test-results/materials-handoff',{recursive:true});await page.screenshot({path:`.test-results/materials-handoff/${width}.png`,fullPage:true});
    await page.evaluate(()=>{window.handoffCopyFails=true;});
    await card.getByRole('button',{name:'Copiar pedido para mi IA'}).click();await card.getByRole('status').filter({hasText:'No pudimos copiarlo'}).waitFor();
+   failRead=true;
+   const failedRefresh=page.waitForResponse(response=>response.url().includes('/profes/handoff')&&response.status()===503);
+   await page.evaluate(detail=>window.dispatchEvent(new CustomEvent('campus:session-updated',{detail})),session);
+   await failedRefresh;
+   assert.equal(await card.isVisible(),true);assert.equal(await card.locator('textarea').inputValue(),request);
+   await card.getByRole('status').filter({hasText:'No pudimos copiarlo'}).waitFor();
+   failRead=false;
+   await page.evaluate(()=>{window.handoffCopyFails=false;});
+   await card.getByRole('button',{name:'Copiar pedido para mi IA'}).click();await card.getByRole('status').filter({hasText:'Pedido copiado'}).waitFor();
    authorized=false;await page.evaluate(detail=>window.dispatchEvent(new CustomEvent('campus:session-updated',{detail})),{...session,authenticated:false,plan:'anon',analyticsId:undefined});
    await card.waitFor({state:'hidden'});assert.equal(await card.locator('textarea').inputValue(),'');
+   const login=page.locator('[data-copilot-account-action]');
+   await login.waitFor();
+   const loginUrl=new URL(await login.getAttribute('href'),base);
+   assert.equal(loginUrl.searchParams.get('return'),'/app/copilot/?return='+encodeURIComponent(back));
    const before=handoffReads;await page.goto(base+'/app/copilot/?return='+encodeURIComponent('https://evil.example/'));
    await page.getByRole('heading',{name:'Conecta Campus a tu IA.'}).waitFor();assert.equal(handoffReads,before);
    assert.deepEqual(errors,[]);console.log(JSON.stringify({width,requestPreserved:true,clipboardWorks:true,failedCopyRecoverable:true,privateTextNotStored:true,accountChangeClearsRequest:true,invalidReturnRejected:true}));

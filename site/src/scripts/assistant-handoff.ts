@@ -6,6 +6,11 @@ export function connectAiHref(path:string){
  return back?`/app/copilot/?return=${encodeURIComponent(back)}`:'/app/copilot/';
 }
 
+export function connectorLoginHref(search:string){
+ const back=assistantReturnPath(new URLSearchParams(search).get('return'));
+ return `/api/app/auth/start?return=${encodeURIComponent(back?connectAiHref(back):'/app/copilot/')}`;
+}
+
 export function assistantConversationId(path:string|null){
  const back=assistantReturnPath(path);
  return back?.match(/^\/app\/(?:profes|asistente)\/c\/([0-9a-f-]{36})\//i)?.[1]??null;

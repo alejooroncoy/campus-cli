@@ -130,17 +130,19 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
 <script>
   import {assistantReturnPath} from '../../../scripts/assistant-handoff';
   import {renderMaterialsHandoff} from '../../../scripts/materials-handoff';
-  function restoreAssistantLink(){
+  import {getCampusSession,type CampusSession} from '../../../scripts/campus-session';
+  function restoreAssistantLink(session?:CampusSession){
     const link=document.querySelector<HTMLAnchorElement>('[data-assistant-return]');
     if(!link)return;
     const back=assistantReturnPath(new URLSearchParams(window.location.search).get('return'));
     link.hidden=!back;
     if(back)link.href=back;else link.removeAttribute('href');
-    void renderMaterialsHandoff(document.querySelector<HTMLElement>('[data-materials-handoff]'),back);
+    if(session)void renderMaterialsHandoff(document.querySelector<HTMLElement>('[data-materials-handoff]'),back,session);
+    else void getCampusSession().then(value=>renderMaterialsHandoff(document.querySelector<HTMLElement>('[data-materials-handoff]'),back,value)).catch(()=>{});
   }
   restoreAssistantLink();
-  document.addEventListener('astro:page-load',restoreAssistantLink);
-  window.addEventListener('campus:session-updated',restoreAssistantLink);
+  document.addEventListener('astro:page-load',()=>restoreAssistantLink());
+  window.addEventListener('campus:session-updated',event=>restoreAssistantLink((event as CustomEvent<CampusSession>).detail));
 </script>
 <style>
   .app-connector-task { display:block; }
