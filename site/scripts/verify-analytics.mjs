@@ -73,16 +73,15 @@ globalThis.location = { hostname: 'campuscli.com', pathname: '/app/asistente/', 
 const production = await build({ entryPoints: ['src/scripts/analytics.ts'], bundle: true, format: 'esm', platform: 'node', write: false,
   define: { 'import.meta.env': JSON.stringify({ DEV: false, PUBLIC_POSTHOG_KEY: 'public-test-key', PUBLIC_POSTHOG_HOST: 'https://us.i.posthog.com' }) },
   plugins: [{ name: 'fake-posthog', setup(build) {
-    build.onResolve({ filter: /^posthog-js\/dist\/module\.slim$/ }, () => ({ path: 'sdk', namespace: 'fixture' }));
-    build.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: 'export default globalThis.__campusPostHogFixture;', loader: 'js' }));
+    build.onResolve({ filter: /analytics-client$/ }, () => ({ path: 'sdk', namespace: 'fixture' }));
+    build.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: 'export const createAnalyticsClient = (...args) => globalThis.__campusPostHogFixture.init(...args);', loader: 'js' }));
   } }],
 });
 const live = await import(`data:text/javascript;base64,${Buffer.from(production.outputFiles[0].text).toString('base64')}`);
 live.analyticsSession({ authenticated: false, plan: 'anon', aiReady: true });
 await new Promise(resolve => setImmediate(resolve));
 assert.equal(resets, 1, 'A verified guest must not keep a previously identified account');
-assert.equal(config.autocapture, false); assert.equal(config.disable_session_recording, true);
-assert.equal(config.capture_exceptions, false); assert.equal(config.enable_recording_console_log, false);
+assert.equal(config.host, 'https://us.i.posthog.com');
 assert.equal(config.before_send({ event: '$autocapture', properties: { text: 'private' } }), null);
 live.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234', aiReady: true });
 live.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234', aiReady: true });

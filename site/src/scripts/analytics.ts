@@ -2,7 +2,7 @@ import { beginAccountHandoff, completeAccountHandoff } from './account-onboardin
 import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
-import type { PostHog } from 'posthog-js/dist/module.slim';
+import type { AnalyticsClient } from './analytics-client';
 
 type Event = { event: string; properties: Record<string, unknown> };
 const browser = typeof window !== 'undefined' && typeof location !== 'undefined'
@@ -10,7 +10,7 @@ const browser = typeof window !== 'undefined' && typeof location !== 'undefined'
 const local = import.meta.env?.DEV || (browser && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname));
 const key = import.meta.env?.PUBLIC_POSTHOG_KEY;
 const host = import.meta.env?.PUBLIC_POSTHOG_HOST;
-let client: PostHog | undefined;
+let client: AnalyticsClient | undefined;
 const pendingKey = 'campus-analytics-pending-v1';
 let queue: Event[] = [];
 if (browser && !local && key && host) {
@@ -59,16 +59,10 @@ const localSession = local ? identifier('campus-analytics-preview-session') : ''
 // In development the same contracts run into a bounded local buffer. No SDK,
 // ingestion, flags, replay or remote configuration requests are made.
 if (browser && !local && key && host) {
-  // Only capture/identity are used; replay, surveys and autocapture stay disabled.
-  void import('posthog-js/dist/module.slim').then(({ default: posthog }) => {
-    client = posthog.init(key, {
-      api_host: host, defaults: '2026-05-30',
-      autocapture: false, capture_pageview: false, capture_pageleave: false,
-      disable_session_recording: true, enable_recording_console_log: false,
-      capture_exceptions: false, capture_performance: false,
-      rageclick: false, capture_dead_clicks: false, advanced_disable_flags: true,
-      disable_surveys: true, disable_external_dependency_loading: true,
-      ip: false, persistence: 'localStorage', person_profiles: 'identified_only',
+  // The reduced official SDK supplies the capture/identity APIs Campus uses.
+  void import('./analytics-client').then(({ createAnalyticsClient }) => {
+    client = createAnalyticsClient(key, {
+      host,
       before_send: event => {
         if (!event || (!events.has(event.event) && event.event !== '$identify')) return null;
         const original = event.properties ?? {};
