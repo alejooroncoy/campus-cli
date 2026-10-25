@@ -12,6 +12,8 @@ assert.deepEqual(safeAnalyticsProperties({ current_plan: 'plus', selected_plan: 
   page: 'private-course', toString: 'private', duration_ms: Infinity, limit: -1 }), {
   current_plan: 'plus', selected_plan: 'free', remaining: 100, authenticated: true,
 });
+assert.deepEqual(safeAnalyticsProperties({failure_reason:'not_found',callback_requested:true,whatsappPhone:'+51999999999',phone:'+51999999999',details:'private complaint',whatsappConsent:true}),{failure_reason:'not_found',callback_requested:true});
+assert.deepEqual(safeAnalyticsProperties({failure_reason:'private complaint'}),{});
 assert.equal(analyticsPage('/app/asistente/'), 'assistant');
 assert.equal(analyticsPage('/app/asistente/c/private-id/'), 'assistant');
 assert.equal(analyticsPage('/app/profes/c/private-id/'), 'assistant');

@@ -1,6 +1,7 @@
 // Explicit event/property contracts: never export text, URLs with parameters,
 // academic content, file names, email, OAuth codes or receipts.
 export const events = new Set([
+  'campus_agent_followup_saved','campus_agent_support_opened',
   'campus_guest_signup_invite_viewed','campus_guest_signup_started','campus_guest_signup_dismissed',
   'campus_materials_handoff_ready','campus_materials_handoff_copied',
   'campus_plus_offer_viewed','campus_plus_step_viewed','campus_plus_checkout_started','campus_plus_quote_expired','campus_feedback_submitted',
@@ -17,6 +18,7 @@ export const events = new Set([
   'campus_turnitin_submitted', 'campus_logout_completed',
 ]);
 const categories: Record<string, readonly string[]> = {
+  failure_reason:['wrong_answer','incorrect_information','not_found','technical_problem','other'],
   analytics_audience:['customer','internal','test','unknown'],
   plus_step:['guest','ready','university','payment','pending','active','rejected','unavailable','loading'],
   activity:['connecting','search','course','reviews','answer','academic','grades'],
@@ -40,7 +42,7 @@ const categories: Record<string, readonly string[]> = {
   viewport: ['mobile', 'tablet', 'desktop'], environment: ['development', 'production'],
 };
 const numbers = new Set(['remaining', 'limit', 'duration_ms', 'position', 'amount_cents']);
-const booleans = new Set(['authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test','is_internal']);
+const booleans = new Set(['callback_requested','authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test','is_internal']);
 export function safeAnalyticsProperties(input: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(input).filter(([key, value]) =>
     (['trace_id','conversation_id'].includes(key) && typeof value==='string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value))
