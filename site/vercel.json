@@ -30,6 +30,33 @@
   ],
   "rewrites": [
     {
+      "source": "/blackboard-chatgpt/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*)text/markdown(.*)"
+        }
+      ],
+      "destination": "/api/markdown-not-found"
+    },
+    {
+      "source": "/blackboard-chatgpt/",
+      "destination": "/api/blackboard-chatgpt"
+    },
+    {
+      "source": "/api/app/blackboard-reviews/",
+      "destination": "https://profes.campuscli.com/api/app/blackboard-reviews"
+    },
+    {
+      "source": "/api/app/blackboard-review/",
+      "destination": "https://profes.campuscli.com/api/app/blackboard-review"
+    },
+    {
+      "source": "/api/app/blackboard-review/withdraw/",
+      "destination": "https://profes.campuscli.com/api/app/blackboard-review/withdraw"
+    },
+    {
       "source": "/biblioteca/sitemap.xml",
       "destination": "/api/library/?route=/biblioteca/sitemap.xml"
     },
@@ -102,6 +129,9 @@
     },
     "api/library.js": {
       "includeFiles": ".generated/library.html"
+    },
+    "api/blackboard-chatgpt.js": {
+      "includeFiles": ".generated/blackboard-chatgpt.html"
     }
   },
   "headers": [

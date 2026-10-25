@@ -1,0 +1,166 @@
+---
+import AppShell from "../../../layouts/AppShell.astro";
+---
+<AppShell title="Tu reseña" active="copilot">
+  <section class="campus-review" data-product-review>
+    <header class="app-page-heading app-page-heading--compact">
+      <p class="app-kicker">Campus para Blackboard</p>
+      <h1>¿Cómo te fue con la conexión?</h1>
+      <p>Cuenta tu experiencia usando Blackboard desde ChatGPT o Claude. Tu opinión ayuda a otros estudiantes a decidir.</p>
+    </header>
+    <p data-review-status role="status" aria-live="polite">Comprobando tu cuenta…</p>
+    <p data-review-login hidden>Entra con tu cuenta Campus para publicar o editar tu reseña.
+      <a class="app-button" href="/api/app/auth/start?return=%2Fapp%2Fresenas%2F" data-astro-reload>Continuar con Campus</a>
+    </p>
+    <button class="app-button app-button--secondary" type="button" data-review-retry hidden>Volver a intentar</button>
+
+    <form data-review-form class="app-panel campus-review__form" hidden>
+      <fieldset data-review-fields>
+        <legend>Tu experiencia con Campus para Blackboard</legend>
+        <label for="review-public-name">Nombre público</label>
+        <input id="review-public-name" name="publicName" type="text" minlength="2" maxlength="80" autocomplete="off" aria-describedby="review-name-help" required />
+        <p id="review-name-help" class="campus-review__hint">Por ejemplo, tu nombre y la inicial de tu apellido. No publicamos el correo de tu cuenta.</p>
+
+        <fieldset class="campus-review__rating">
+          <legend>Tu calificación</legend>
+          <div class="campus-review__stars">
+            {[1, 2, 3, 4, 5].map(n => <label><input type="radio" name="rating" value={n} required /><span>{n} <span aria-hidden="true">★</span><span class="app-sr-only"> de 5 estrellas</span></span></label>)}
+          </div>
+          <p class="campus-review__hint">1: muy mala · 5: muy buena</p>
+        </fieldset>
+
+        <label for="review-text">Tu reseña</label>
+        <textarea id="review-text" name="text" minlength="10" maxlength="1500" rows="6" aria-describedby="review-text-help" required></textarea>
+        <p id="review-text-help" class="campus-review__hint">De 10 a 1500 caracteres. ¿Qué te sirvió y qué mejorarías? Evita datos académicos privados, correos y teléfonos.</p>
+        <label class="campus-review__check"><input type="checkbox" name="experienced" required /><span>He usado Campus para consultar Blackboard desde ChatGPT o Claude y esta reseña refleja mi experiencia.</span></label>
+        <label class="campus-review__check"><input type="checkbox" name="consent" required /><span>Autorizo publicar este nombre, mi calificación y mi comentario en la <a href="/blackboard-chatgpt/#resenas" target="_blank" rel="noopener">página de Campus para Blackboard</a> y en sus datos para buscadores. Puedo editar o retirar mi reseña desde aquí. <a href="/privacidad/#resenas-campus" target="_blank" rel="noopener">Privacidad</a>.</span></label>
+      </fieldset>
+      <div class="campus-review__actions">
+        <button class="app-button" type="submit" data-review-save>Publicar mi reseña</button>
+        <button class="app-button app-button--secondary" type="button" data-review-withdraw hidden>Retirar mi reseña</button>
+      </div>
+      <p class="campus-review__hint">Una reseña por cuenta. Aceptamos opiniones positivas y negativas. Puedes volver para actualizarla.</p>
+    </form>
+    <p><a class="app-text-link" href="/blackboard-chatgpt/#resenas" data-astro-reload>Ver las opiniones publicadas →</a></p>
+    <noscript>Activa JavaScript para iniciar sesión y compartir tu reseña.</noscript>
+  </section>
+</AppShell>
+
+<script>
+  type OwnReview = { publicName: string; rating: number; text: string; published: boolean; hidden: boolean };
+  function initProductReview() {
+    const root = document.querySelector<HTMLElement>("[data-product-review]");
+    if (!root || root.dataset.bound) return;
+    root.dataset.bound = "true";
+    const form = root.querySelector<HTMLFormElement>("[data-review-form]")!;
+    const fields = root.querySelector<HTMLFieldSetElement>("[data-review-fields]")!;
+    const status = root.querySelector<HTMLElement>("[data-review-status]")!;
+    const login = root.querySelector<HTMLElement>("[data-review-login]")!;
+    const retry = root.querySelector<HTMLButtonElement>("[data-review-retry]")!;
+    const save = root.querySelector<HTMLButtonElement>("[data-review-save]")!;
+    const withdraw = root.querySelector<HTMLButtonElement>("[data-review-withdraw]")!;
+    const publicName = form.elements.namedItem("publicName") as HTMLInputElement;
+    const text = form.elements.namedItem("text") as HTMLTextAreaElement;
+    const experienced = form.elements.namedItem("experienced") as HTMLInputElement;
+    const consent = form.elements.namedItem("consent") as HTMLInputElement;
+    let busy = false;
+    function setBusy(value: boolean) {
+      busy = value; fields.disabled = value; save.disabled = value; withdraw.disabled = value;
+      form.setAttribute("aria-busy", String(value));
+    }
+    async function request(path: string, payload?: unknown) {
+      const response = await fetch(`/api/app/blackboard-review${path}/`, {
+        method: payload === undefined ? "GET" : "POST", credentials: "same-origin", cache: "no-store",
+        headers: payload === undefined ? {} : { "Content-Type": "application/json" },
+        body: payload === undefined ? undefined : JSON.stringify(payload), signal: AbortSignal.timeout(10000),
+      });
+      if (response.status === 401) { form.hidden = true; login.hidden = false; throw new Error("Inicia sesión en Campus para continuar."); }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "No pudimos guardar la reseña. Inténtalo de nuevo.");
+      return data;
+    }
+    function updateActions(review: OwnReview | null) {
+      withdraw.hidden = !review?.published;
+      save.textContent = review?.published ? "Guardar cambios" : review ? "Volver a publicar mi reseña" : "Publicar mi reseña";
+    }
+    async function load() {
+      retry.hidden = true;
+      status.textContent = "Comprobando tu cuenta…";
+      try {
+        const { review } = await request("") as { review: OwnReview | null };
+        if (!root!.isConnected) return;
+        login.hidden = true; form.hidden = false;
+        if (review) {
+          publicName.value = review.publicName; text.value = review.text;
+          const rating = form.querySelector<HTMLInputElement>(`input[name="rating"][value="${review.rating}"]`);
+          if (rating) rating.checked = true;
+          experienced.checked = true; consent.checked = review.published;
+        }
+        updateActions(review);
+        status.textContent = review?.hidden && review.published ? "Tu reseña está pendiente de revisión."
+          : review?.published ? "Tu reseña está publicada. Puedes editarla o retirarla."
+          : review ? "Tu reseña está retirada y no se muestra en la página pública." : "";
+      } catch (error) {
+        if (!root!.isConnected) return;
+        status.textContent = error instanceof Error && error.name !== "TimeoutError" ? error.message : "No pudimos comprobar tu cuenta. Inténtalo de nuevo.";
+        retry.hidden = !login.hidden;
+      }
+    }
+    retry.addEventListener("click", () => { void load(); });
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (busy || !form.reportValidity()) return;
+      const payload = { publicName: publicName.value.trim(), rating: Number(new FormData(form).get("rating")), text: text.value.trim(), experienced: experienced.checked, consent: consent.checked };
+      setBusy(true); status.textContent = "Guardando tu reseña…";
+      try {
+        const result = await request("", payload);
+        if (!root!.isConnected) return;
+        updateActions(result.review);
+        status.textContent = `${result.message} La página pública puede tardar hasta un minuto en actualizarse.`;
+      } catch (error) {
+        status.textContent = error instanceof Error && error.name !== "TimeoutError" ? error.message : "No pudimos confirmar el guardado. Vuelve a intentar; tu texto sigue aquí.";
+      } finally { setBusy(false); }
+    });
+    withdraw.addEventListener("click", async () => {
+      if (busy) return;
+      setBusy(true); status.textContent = "Retirando tu reseña…";
+      try {
+        const result = await request("/withdraw", {});
+        consent.checked = false; withdraw.hidden = true; save.textContent = "Volver a publicar mi reseña";
+        status.textContent = `${result.message} La página pública puede tardar hasta un minuto en actualizarse.`;
+      } catch (error) {
+        status.textContent = error instanceof Error && error.name !== "TimeoutError" ? error.message : "No pudimos confirmar el retiro. Inténtalo de nuevo.";
+      } finally { setBusy(false); }
+    });
+    void load();
+  }
+  document.addEventListener("astro:page-load", initProductReview);
+</script>
+
+<style>
+  .campus-review { max-width: 720px; margin: 0 auto; }
+  .campus-review [hidden] { display: none !important; }
+  .campus-review__form { padding: clamp(18px, 4vw, 32px); }
+  .campus-review fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .campus-review__form > fieldset > legend { font-weight: 600; margin-bottom: 22px; }
+  .campus-review__form label { display: block; font-size: 14px; font-weight: 500; }
+  .campus-review input[type="text"], .campus-review textarea { width: 100%; box-sizing: border-box; margin-top: 8px; padding: 12px; border: 1px solid var(--app-line); border-radius: 10px; background: var(--app-canvas); color: var(--app-ink); font: inherit; }
+  .campus-review textarea { resize: vertical; min-height: 140px; }
+  .campus-review__hint { color: var(--app-muted); font-size: 13px; line-height: 1.6; margin: 8px 0 24px; }
+  .campus-review .campus-review__rating { margin: 24px 0; }
+  .campus-review__rating legend { font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+  .campus-review__stars { display: flex; flex-wrap: wrap; gap: 8px; }
+  .campus-review__stars label { position: relative; cursor: pointer; }
+  .campus-review__stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .campus-review__stars label > span { display: block; padding: 12px 16px; border: 1px solid var(--app-line); border-radius: 10px; }
+  .campus-review__stars input:checked + span { border-color: var(--app-link); background: var(--app-sky-pale); color: var(--app-link); box-shadow: 0 0 0 1px var(--app-link); }
+  .campus-review :is(input, textarea, button, a):focus-visible { outline: 3px solid var(--app-link); outline-offset: 3px; }
+  .campus-review__stars input:focus-visible + span { outline: 3px solid var(--app-link); outline-offset: 3px; }
+  .campus-review__form .campus-review__check { display: flex; align-items: flex-start; gap: 10px; line-height: 1.65; margin-top: 18px; font-weight: 400; }
+  .campus-review__check input { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 3px; accent-color: var(--app-link); }
+  .campus-review__check a { color: var(--app-link); text-decoration: underline; }
+  .campus-review__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .campus-review button:disabled { opacity: .6; cursor: wait; }
+  [data-review-status] { line-height: 1.6; }
+  [data-review-login] a { margin-top: 16px; }
+</style>
