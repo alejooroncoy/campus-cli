@@ -27,7 +27,7 @@ async function fixture(width,scenario,run,options={}) {
  const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
  const page=await context.newPage(),errors=[],requests=[];
  page.on('pageerror',error=>errors.push(error.message));
- const state={remaining:5,unavailable:false,fail:false,catalogFail:false,...options};
+ const state={remaining:5,unavailable:false,fail:false,catalogFail:false,universityWrites:[],...options};
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url());if(url.origin!==base)return route.abort();
   if(!url.pathname.startsWith('/api/app/'))return route.continue();
@@ -35,11 +35,18 @@ async function fixture(width,scenario,run,options={}) {
   const json=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
   if(path==='/api/app/session'){
    if(state.unavailable)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
-   return json({authenticated:false,analyticsAudience:'test',plan:'anon',aiReady:true,profesAvailable:true,usage:{remaining:state.remaining,limit:5,period:'trial'},banner:{connected:false},features:{schedulePlanning:false}});
+   return json({authenticated:false,analyticsAudience:'test',plan:'anon',aiReady:true,profesAvailable:true,usage:{remaining:state.remaining,limit:5,period:'trial'},banner:{connected:false},features:{schedulePlanning:false},...(state.authenticated?{authenticated:true,email:'fixture@example.test',plan:'free',universityConfirmed:!!state.savedUniversity,university:state.savedUniversity}:{})});
   }
   if(path==='/api/app/universities'){
    if(state.catalogFail)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
    return json({universities:[university,otherUniversity,...addedUniversities]});
+  }
+  if(path==='/api/app/university'){
+   const input=route.request().postDataJSON();state.universityWrites.push(input);
+   await new Promise(resolve=>setTimeout(resolve,50));
+   if(state.universityFail)return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'No se pudo guardar la universidad sintética.'})});
+   state.savedUniversity=addedUniversities.find(u=>u.id===input.universityId);
+   return json({universityConfirmed:true,university:state.savedUniversity});
   }
   if(path==='/api/app/profes/conversations')return json({conversations:[]});
   if(path==='/api/app/profes/message'){
@@ -62,6 +69,21 @@ async function fixture(width,scenario,run,options={}) {
  finally {await context.close();}
 }
 try {
+ for(const choice of addedUniversities.filter(u=>u.code==='UP')){
+  await fixture(390,choice.name+' profile rejects ambiguity and saves once after retry',async({page,state})=>{
+   await page.goto(base+'/app/perfil/');
+   const input=page.getByLabel('Tu universidad',{exact:true});await input.waitFor();
+   await page.waitForFunction(()=>Array.from(document.querySelectorAll('[data-app-university-options] option')).some(o=>o.value.includes('Universidad de Palermo')));
+   await input.fill('UP');await page.getByRole('button',{name:'Guardar y continuar'}).click();
+   await page.locator('[data-app-university-status]').filter({hasText:'UP identifica a dos universidades'}).waitFor();assert.equal(state.universityWrites.length,0);
+   await input.fill(choice.name);await page.getByRole('button',{name:'Guardar y continuar'}).click();
+   await page.locator('[data-app-university-status]').filter({hasText:'No se pudo guardar la universidad sintética.'}).waitFor();assert.equal(state.universityWrites.length,1);
+   state.universityFail=false;
+   await page.getByRole('button',{name:'Guardar y continuar'}).click();
+   await page.locator('[data-app-university-name]').filter({hasText:choice.name+' · '+choice.country}).waitFor();
+   assert.equal(state.universityWrites.length,2);assert.ok(state.universityWrites.every(write=>write.universityId===choice.id));
+  },{authenticated:true,universityFail:true});
+ }
  for(const width of [390,1100]) {
   for(const choice of addedUniversities)for(const method of ['quick','search']) {
    await fixture(width,choice.name+' opens chat via '+method,async({page,requests,events})=>{

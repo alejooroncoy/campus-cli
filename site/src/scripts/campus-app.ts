@@ -366,6 +366,7 @@ function initPage() {
 
   universityForm?.addEventListener("submit", async event => {
     event.preventDefault();
+    if (universityForm.dataset.saving === 'true') return;
     const matches = universitySearchMatches(universityChoices, universityInput?.value ?? '');
     if (matches.length !== 1) {
       setUniversityStatus(matches.length > 1 ? 'UP identifica a dos universidades. Elige Universidad de Palermo (Argentina) o Universidad del Pacífico (Perú).' : "Elige una universidad de las sugerencias.");
@@ -373,6 +374,7 @@ function initPage() {
       return;
     }
     const universityId = matches[0].id;
+    universityForm.dataset.saving = 'true';
     const button = universityForm.querySelector<HTMLButtonElement>("button[type=submit]");
     if (button) {
       button.disabled = true; button.setAttribute("aria-busy", "true"); button.setAttribute("aria-label", "Guardando tu universidad…");
@@ -390,6 +392,7 @@ function initPage() {
       if (!response.ok) throw new Error(data.error ?? "No pudimos guardar tu universidad.");
       location.assign(universityDoneHref(location.search));
     } catch (error) {
+      delete universityForm.dataset.saving;
       setUniversityStatus(error instanceof Error ? error.message : "No pudimos guardar tu universidad.");
       if (button) {
         button.disabled = false; button.removeAttribute("aria-busy"); button.removeAttribute("aria-label");
