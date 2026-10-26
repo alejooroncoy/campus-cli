@@ -301,4 +301,27 @@
 .ti-order-progress li[data-progress=done]{border-color:#8ed4e9;color:var(--app-ink)}
 .ti-order-progress li[data-progress=current]{border-color:var(--app-link);color:var(--app-ink);font-weight:600}
 
-.ti-product-picker{border:0;padding:0;margin:1rem 0 1.4rem;min-width:0}.ti-product-picker legend{font-size:.9rem;font-weight:600;margin-bottom:.6rem}.ti-product-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}.ti-product-options label{display:flex;align-items:flex-start;gap:.5rem;padding:.85rem .7rem;border:1px solid #cadbe3;border-radius:12px;cursor:pointer;background:#fff}.ti-product-options label:has(input:checked){border-color:#087f5b;background:#edf8f3;box-shadow:0 0 0 1px #087f5b}.ti-product-options input{margin-top:.2rem;accent-color:#087f5b}.ti-product-options span{font-size:.85rem;line-height:1.4}.ti-product-options strong{display:block;font-size:1.05rem;margin-top:.25rem}@media(max-width:440px){.ti-product-options{grid-template-columns:1fr}.ti-product-options label{align-items:center}.ti-product-options span{display:flex;justify-content:space-between;align-items:center;flex:1;gap:.5rem}.ti-product-options strong{margin-top:0}}
+/* Report choices show customer availability; provider balances remain internal. */
+.ti-product-picker{border:0;padding:0;margin:1rem 0 1.4rem;min-width:0}
+.ti-product-picker legend{font-size:.9rem;font-weight:600;margin-bottom:.6rem}
+.ti-product-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}
+.ti-product-options label{display:flex;align-items:flex-start;gap:.5rem;padding:.85rem .7rem;margin:0;border:1px solid #cadbe3;border-radius:12px;cursor:pointer;background:#fff}
+.ti-product-options label:has(input:checked){border-color:#087f5b;background:#edf8f3;box-shadow:0 0 0 1px #087f5b}
+.ti-product-options input{margin-top:.2rem;accent-color:#087f5b}
+.ti-product-copy{display:grid;gap:5px;min-width:0;flex:1;font-size:.85rem;line-height:1.4}
+.ti-product-copy strong{font-size:1.05rem}
+.ti-option-status{display:flex;align-items:center;gap:5px;font-size:12px;line-height:1.5;color:var(--app-muted,#506d7f)}
+.ti-option-status:before{content:"";width:6px;height:6px;flex:0 0 auto;border-radius:50%;background:#9cabb3}
+.ti-option-status[data-state=available]{color:#087052}
+.ti-option-status[data-state=available]:before{background:#168763}
+.ti-product-options label:has([data-state=unavailable]){background:#f5f7f8;border-color:#d4dfe4;box-shadow:none}
+.ti-availability-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;margin-top:12px}
+.ti-availability-bar .ti-field-help{margin:0;flex:1 1 220px}
+.ti-availability-bar .ti-capacity-check{padding:8px 12px;border:1px solid #d4e1e6;border-radius:7px;text-decoration:none;background:#fff;font-size:12px;line-height:1.5;min-height:36px}
+.ti-availability-bar .ti-capacity-check:hover{background:#f2f7f9}
+@media(max-width:440px){
+ .ti-product-options{grid-template-columns:1fr}
+ .ti-product-options label{align-items:center;padding:12px}
+ .ti-product-copy{grid-template-columns:1fr auto;column-gap:12px}
+ .ti-option-status{grid-column:1 / -1}
+}
