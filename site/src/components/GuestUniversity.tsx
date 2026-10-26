@@ -28,7 +28,8 @@ export default function GuestUniversity({ selected, onSelect }: {
   function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = input.trim().toLocaleLowerCase('es');
-    const choice = choices.find(item => [universityLabel(item), item.name, item.shortName, chatUniversityCode(item)]
+    const choice = choices.find(item => chatUniversityCode(item)?.toLocaleLowerCase('es') === query)
+      ?? choices.find(item => [universityLabel(item), item.name, item.shortName]
       .some(label => label?.toLocaleLowerCase('es') === query));
     if (!choice) { setError('Elige una universidad de las sugerencias.'); return; }
     choose(choice, 'search');
@@ -48,7 +49,7 @@ export default function GuestUniversity({ selected, onSelect }: {
       {!loading && !choices.length ? <button type="button" className="app-guest-university__continue" onClick={() => setAttempt(value => value + 1)}>Volver a intentar</button>
         : <button type="submit" className="app-guest-university__continue" disabled={loading || !input.trim()}>Continuar<svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg></button>}
     </form>
-    <p className="app-guest-university__note">El asistente está disponible para UPC, UPN y Universidad del Pacífico. Guardamos tu elección en este navegador y la conservamos al crear tu cuenta.</p>
+    <p className="app-guest-university__note">El asistente está disponible para UPC, UPN y Universidad de Palermo. Guardamos tu elección en este navegador y la conservamos al crear tu cuenta.</p>
     {selected && guestUniversitySupported(selected) ? <button type="button" className="app-guest-university__back" onClick={() => choose(selected, 'saved')}>Volver al asistente de {chatUniversityCode(selected)}</button> : null}
   </section>;
 }

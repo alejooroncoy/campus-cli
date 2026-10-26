@@ -33,7 +33,7 @@ export function universityLabel(item: UniversityChoice): string {
 const chatUniversities = [
   ['UPC', 'Universidad Peruana de Ciencias Aplicadas'],
   ['UPN', 'Universidad Privada del Norte'],
-  ['UP', 'Universidad del Pacífico'],
+  ['UP', 'Universidad de Palermo'],
 ] as const;
 const universityNameKey = (name: string) => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
 export function chatUniversityCode(item: UniversityChoice | null): string | undefined {
