@@ -21,11 +21,16 @@ function setupTurnitin() {
   const status = document.querySelector<HTMLElement>('[data-ti-status]')!;
   const fields = document.querySelector<HTMLFieldSetElement>('[data-ti-fields]')!;
   const refresh = document.querySelector<HTMLButtonElement>('[data-ti-refresh]')!;
-  let config: Config;
+  let config!: Config;
+  let authenticated = false;
+  let availabilityUnknown = false;
+  let checkingAvailability = false;
+  let availabilityRefresh: Promise<void> | undefined;
   const requiredReports = (report: Order['report']): ReportKind[] => report === 'ai' ? ['ai'] : report === 'similarity' ? ['similarity'] : ['similarity', 'ai'];
   const productLabel = (report: Order['report']) => report === 'ai' ? 'Solo IA' : report === 'similarity' ? 'Solo similitud' : 'Similitud + IA';
   const selectedReport = () => (form.elements.namedItem('report') as RadioNodeList).value as Product['id'];
   const selectedOffer = () => config.products?.find(product => product.id === selectedReport());
+  const canOrder = () => Boolean(config?.enabled && config.ordersAvailable && !availabilityUnknown && config.availability?.[selectedReport()] !== 0);
   function updatePrice() {
     if (!config || !form) return;
     const offer = selectedOffer();
@@ -35,11 +40,38 @@ function setupTurnitin() {
     document.querySelector<HTMLElement>('[data-ti-product-summary]')!.textContent = productLabel(selectedReport());
     const availability = document.querySelector<HTMLElement>('[data-ti-availability]')!;
     const count = config.availability?.[selectedReport()];
-    availability.hidden = count === undefined;
-    availability.textContent = count === undefined ? '' : count > 0 ? `Hasta ${count} ${count===1?'revisión disponible':'revisiones disponibles'} de esta modalidad. Los cupos se comparten entre las tres opciones.` : 'Sin cupos para esta modalidad. No realices el pago.';
-    form.querySelector<HTMLButtonElement>('[data-ti-next]')!.disabled = count === 0;
+    availability.textContent = availabilityUnknown ? 'No pudimos comprobar los cupos. Actualiza antes de pagar.' : count === undefined ? '' : count > 0 ? `Hasta ${count} ${count===1?'revisión disponible':'revisiones disponibles'} de esta modalidad. Los cupos se comparten entre las tres opciones.` : 'Sin cupos para esta modalidad. No realices el pago.';
+    availability.hidden = count === undefined && !availabilityUnknown;
+    form.querySelector<HTMLButtonElement>('[data-ti-next]')!.disabled = !canOrder() || checkingAvailability;
     const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
-    submit.disabled = count === 0;
+    submit.disabled = !canOrder() || checkingAvailability;
+    document.querySelectorAll<HTMLButtonElement>('[data-ti-check-capacity]').forEach(button => { button.disabled = checkingAvailability; button.textContent = checkingAvailability ? 'Comprobando cupos…' : 'Actualizar cupos'; });
+    document.querySelector<HTMLElement>('[data-ti-payment-availability]')!.textContent = checkingAvailability ? 'Comprobando cupos…' : canOrder() ? 'Cupos comprobados. Completa el pago y envía tu pedido; la disponibilidad puede cambiar.' : 'No realices el pago hasta confirmar que hay cupos.';
+    const notice = document.querySelector<HTMLElement>('[data-ti-capacity-notice]')!;
+    notice.hidden = canOrder();
+    const exhausted = config.availability && !Object.values(config.availability).some(value => value > 0);
+    document.querySelector<HTMLElement>('[data-ti-capacity-title]')!.textContent = availabilityUnknown ? 'No pudimos comprobar la disponibilidad' : exhausted ? 'Por ahora no hay cupos' : count === 0 ? `Sin cupos para ${productLabel(selectedReport())}` : 'Los pedidos nuevos están pausados';
+    document.querySelector<HTMLElement>('[data-ti-capacity-message]')!.textContent = availabilityUnknown ? 'No realices el pago. Vuelve a consultar los cupos; conservamos los archivos que elegiste mientras mantengas esta página abierta.' : exhausted ? 'Se agotaron las revisiones disponibles. No realices el pago. Puedes volver a consultar los cupos y seguir viendo tus pedidos anteriores.' : count === 0 ? 'Elige otra modalidad con disponibilidad o vuelve a consultar más tarde. No realices el pago de esta modalidad.' : 'No realices el pago por ahora. Tus pedidos e informes anteriores siguen disponibles.';
+    requestPanel.hidden = !config.enabled || !config.ordersAvailable;
+    form.hidden = !authenticated || requestPanel.hidden;
+    if (!canOrder() && request.isPayment()) request.document();
+  }
+  async function refreshAvailability() {
+    if (availabilityRefresh) return availabilityRefresh;
+    availabilityRefresh = (async () => {
+      checkingAvailability = true; updatePrice();
+      try {
+        const next: Config = await api('config');
+        if (disposed) return;
+        config = next;
+        config.enabled = config.enabled && requestPanel.dataset.tiServiceEnabled === 'true';
+        availabilityUnknown = false;
+        document.querySelector<HTMLElement>('[data-ti-phone]')!.textContent = config.phone;
+        document.querySelector<HTMLElement>('[data-ti-holder]')!.textContent = config.holder;
+      } catch (error) { availabilityUnknown = true; throw error; }
+      finally { checkingAvailability = false; availabilityRefresh = undefined; if (!disposed) updatePrice(); }
+    })();
+    return availabilityRefresh;
   }
   let requestId = crypto.randomUUID();
   let refreshPending = false;
@@ -65,7 +97,7 @@ function setupTurnitin() {
     const response = await fetch(`/api/app/turnitin/${path}`, { credentials: 'same-origin', cache: 'no-store',
       method: input === undefined ? 'GET' : 'POST',
       headers: { ...analyticsHeaders(), ...(input === undefined ? {} : { 'content-type': 'application/json' }) },
-      body: input === undefined ? undefined : JSON.stringify(input), signal: AbortSignal.timeout(60000) });
+      body: input === undefined ? undefined : JSON.stringify(input), signal: AbortSignal.timeout(path === 'config' ? 12000 : 60000) });
     const result = await response.json().catch(() => ({ error: 'No se pudo conectar con Campus.' }));
     if (!response.ok) throw new Error(result.error ?? 'No se pudo completar la solicitud.');
     return result;
@@ -269,7 +301,7 @@ function setupTurnitin() {
   }
   refresh.onclick = async () => {
     track('campus_turnitin_history_refreshed');
-    try { await loadOrders(); announce('Estado actualizado.'); } catch (error) { announce((error as Error).message); }
+    try { await Promise.all([loadOrders(), refreshAvailability()]); announce('Estado y cupos actualizados.'); } catch (error) { announce((error as Error).message); }
   };
   more.onclick = async () => {
     if (!nextCursor || refreshPending) return;
@@ -292,20 +324,30 @@ function setupTurnitin() {
   search.oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(searchHistory, 300); };
   search.addEventListener('search', searchHistory);
   const uploads = setupTurnitinUploads(form, kind => kind === 'document' ? (config?.maxDocumentBytes ?? 20 * 1024 * 1024) : (config?.maxReceiptBytes ?? 5 * 1024 * 1024));
-  const request = setupTurnitinRequest(form, uploads);
+  const request = setupTurnitinRequest(form, uploads, async () => {
+    try { await refreshAvailability(); return canOrder(); }
+    catch { announce('No pudimos comprobar los cupos. No realices el pago; usa Actualizar cupos para intentarlo de nuevo.'); return false; }
+  });
   const requestPanel = document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!;
   requestPanel.addEventListener('toggle', () => { if (requestPanel.open && !form.hidden && !fields.disabled) request.start(); });
   const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
   const submitText = submit.querySelector<HTMLElement>('[data-ti-submit-text]')!;
   const submissionMessage = form.querySelector<HTMLElement>('[data-ti-submit-status]')!;
   const showSubmission = (message: string) => { submissionMessage.textContent = message; submissionMessage.hidden = !message; };
+  document.querySelectorAll<HTMLButtonElement>('[data-ti-check-capacity]').forEach(button => { button.onclick = async () => {
+    if (!config) { location.reload(); return; }
+    try { await refreshAvailability(); announce(canOrder() ? 'Cupos actualizados. Puedes continuar con tu pedido.' : 'No realices el pago. Revisa el aviso de disponibilidad.'); }
+    catch { announce('No pudimos comprobar los cupos. No realices el pago e inténtalo de nuevo.'); }
+  }; });
   form.addEventListener('change', () => { requestId = crypto.randomUUID(); showSubmission(''); updatePrice(); });
   form.onsubmit = async event => {
     event.preventDefault();
-    if (!config?.enabled || fields.disabled || config.availability?.[selectedReport()] === 0) return;
+    if (!canOrder() || checkingAvailability || fields.disabled) return;
     if (!request.isPayment()) { request.next(); return; }
     if (!uploads.validate('document')) { request.document(); return; }
     if (!uploads.validate() || !form.reportValidity()) { track('campus_flow_failed', { step: 'upload', error_kind: 'validation' }); return; }
+    try { await refreshAvailability(); } catch { announce('No pudimos comprobar los cupos. Conservamos tus archivos. Si ya pagaste, contacta a soporte desde el aviso.'); return; }
+    if (!canOrder()) return;
     track('campus_turnitin_submit_started');
     fields.disabled = true; submit.setAttribute('aria-busy', 'true'); submit.setAttribute('aria-label', 'Enviando tu revisión…'); submitText.hidden = true; submit.querySelector<HTMLElement>('[data-ti-submit-skeleton]')!.hidden = false; showSubmission('Enviando tu documento y comprobante. Mantén esta página abierta.'); announce('Enviando tu documento y comprobante…', true);
     try {
@@ -314,7 +356,7 @@ function setupTurnitin() {
       if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(received.order?.id ?? '')) throw new Error('No pudimos confirmar el envío. Vuelve a intentarlo; conservamos tus archivos.');
       track('campus_turnitin_submitted');
       form.reset(); uploads.reset(); request.reset(); showSubmission(''); requestId = crypto.randomUUID(); updatePrice();
-      try { config = await api('config'); config.enabled = config.enabled && requestPanel.dataset.tiServiceEnabled === 'true'; requestPanel.hidden = !config.enabled; updatePrice(); } catch { /* The received order remains confirmed if availability refresh fails. */ }
+      try { await refreshAvailability(); } catch { /* The received order remains confirmed if availability refresh fails. */ }
       announce('Pedido recibido. Tu comprobante está en revisión. Consulta el estado en Mis revisiones.');
       document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!.open = false;
       const reviewPanel = document.querySelector<HTMLElement>('[data-ti-my-orders-panel]')!;
@@ -323,7 +365,7 @@ function setupTurnitin() {
       historyFilter = 'all'; historySearch = ''; search.value = '';
       document.querySelectorAll<HTMLButtonElement>('[data-ti-filter]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.tiFilter === 'all')));
       try { await loadOrders(false, true); } catch { announce('Tu pedido ya fue recibido. Usa Actualizar estado para consultar su avance.'); }
-    } catch (error) { track('campus_flow_failed', { step: 'turnitin', error_kind: 'rejected' }); showSubmission((error as Error).message); announce((error as Error).message, true); }
+    } catch (error) { track('campus_flow_failed', { step: 'turnitin', error_kind: 'rejected' }); showSubmission((error as Error).message); announce((error as Error).message, true); try { await refreshAvailability(); } catch { /* The availability notice offers payment support. */ } }
     finally { fields.disabled = false; submit.removeAttribute('aria-busy'); submit.removeAttribute('aria-label'); submitText.hidden = false; submit.querySelector<HTMLElement>('[data-ti-submit-skeleton]')!.hidden = true; }
   };
   const cleanup = () => { disposed = true; clearInterval(poll); clearTimeout(searchTimer); };
@@ -331,17 +373,19 @@ function setupTurnitin() {
   window.addEventListener('pagehide', cleanup, { once: true });
   void (async () => {
     try {
-      config = await api('config');
-      config.enabled = config.enabled && requestPanel.dataset.tiServiceEnabled === 'true';
-      requestPanel.hidden = !config.enabled;
+      await refreshAvailability();
+      if (disposed) return;
       const requested = new URLSearchParams(location.search).get('report');
       if (requested && ['ai','similarity','both'].includes(requested)) {
         const radio = form.querySelector<HTMLInputElement>(`input[name="report"][value="${requested}"]`);
         if (radio) radio.checked = true;
       }
       updatePrice();
-      document.querySelector<HTMLElement>('[data-ti-phone]')!.textContent = config.phone;
-      document.querySelector<HTMLElement>('[data-ti-holder]')!.textContent = config.holder;
+      poll = setInterval(() => {
+        if (disposed || fields.disabled || document.visibilityState !== 'visible') return;
+        void refreshAvailability().catch(() => {});
+        if (authenticated && !refreshPending && pendingOrders) void loadOrders().catch(() => {});
+      }, 30000);
       if (!config.ordersAvailable) {
         document.querySelector<HTMLElement>('[data-ti-new-order]')!.hidden = true;
         document.querySelector<HTMLElement>('[data-ti-my-orders-panel]')!.hidden = true;
@@ -352,6 +396,7 @@ function setupTurnitin() {
       if (!response.ok) throw new Error('No se pudo comprobar tu sesión.');
       const session = await response.json();
       if (disposed) return;
+      authenticated = Boolean(session.authenticated);
       if (!session.authenticated) {
         document.querySelector<HTMLElement>('[data-ti-login]')!.hidden = false;
         ordersList.removeAttribute('aria-busy');
@@ -360,18 +405,19 @@ function setupTurnitin() {
         setupTurnitinLogin()?.open(config.amountCents, !config.enabled);
         return;
       }
-      form.hidden = !config.enabled; refresh.hidden = false;
+      updatePrice(); refresh.hidden = false;
       await loadOrders();
       if (config.enabled && requestPanel.open) request.start();
-      // Refresh pending reviews while the student is viewing this page.
-      poll = setInterval(() => {
-        if (!disposed && !refreshPending && pendingOrders && document.visibilityState === 'visible')
-          void loadOrders().catch(() => {});
-      }, 30000);
       announce(linkUnavailable ? 'No pudimos abrir esa revisión. Comprueba que entraste con la cuenta del pedido.' : statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
     } catch (error) {
       ordersList.removeAttribute('aria-busy');
       if (!ordersLoaded) ordersList.replaceChildren(el('p', 'No pudimos cargar tus revisiones. Actualiza para intentarlo.', 'ti-muted'));
+      if (!config) {
+        requestPanel.hidden = true;
+        document.querySelector<HTMLElement>('[data-ti-capacity-notice]')!.hidden = false;
+        document.querySelector<HTMLElement>('[data-ti-capacity-title]')!.textContent = 'No pudimos cargar el servicio';
+        document.querySelector<HTMLElement>('[data-ti-capacity-message]')!.textContent = 'No realices el pago. Usa Actualizar cupos para volver a intentarlo. Si ya pagaste, contacta a soporte.';
+      }
       announce((error as Error).message);
     }
   })();

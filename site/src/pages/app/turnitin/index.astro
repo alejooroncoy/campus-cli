@@ -14,6 +14,10 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
       {turnitinServiceEnabled && <div class="ti-service-facts"><span>10 min a 1 h tras validar el pago y el archivo</span></div>}
     </header>
     <p class="ti-status" data-ti-status role="status" aria-live="polite"><span class="app-sr-only">Comprobando disponibilidad…</span><span class="ti-inline-skeleton" aria-hidden="true"></span></p>
+    <section class="ti-capacity-notice" data-ti-capacity-notice hidden aria-labelledby="ti-capacity-title">
+      <div role="status" aria-live="polite"><h2 id="ti-capacity-title" data-ti-capacity-title>Por ahora no hay cupos</h2><p data-ti-capacity-message></p></div>
+      <div class="ti-capacity-actions"><button type="button" class="app-button app-button--secondary" data-ti-check-capacity>Actualizar cupos</button><a href="https://wa.me/51946189585?text=Hola%2C%20necesito%20ayuda%20con%20mi%20revisi%C3%B3n%20de%20Turnitin%20en%20Campus." target="_blank" rel="noopener noreferrer">Ya pagué · Contactar soporte</a></div>
+    </section>
     <div class="ti-order-layout">
       <section class="ti-panel ti-reviews" aria-labelledby="ti-my-orders" data-ti-my-orders-panel>
         <div class="ti-panel-head"><div><h2 id="ti-my-orders">Mis revisiones</h2><p>Consulta el estado y descarga tus PDF.</p></div><button class="app-button app-button--secondary" type="button" data-ti-refresh hidden><span data-ti-refresh-label>Actualizar</span><span class="ti-inline-skeleton ti-inline-skeleton--button" data-ti-refresh-skeleton aria-hidden="true" hidden></span></button></div>
@@ -57,6 +61,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                     <label><input type="radio" name="report" value="both" checked /><span>Similitud + IA<strong>S/15</strong></span></label>
                   </div>
                   <p class="ti-field-help" data-ti-availability hidden></p>
+                  <button type="button" class="ti-capacity-check" data-ti-check-capacity>Actualizar cupos</button>
                 </fieldset>
                 <label class="ti-upload" data-ti-upload tabindex="0" aria-label="Seleccionar documento para revisar">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
@@ -73,11 +78,12 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
               <section class="ti-step" data-ti-request-step="payment" aria-labelledby="ti-payment-title" hidden>
                 <div class="ti-selected-document"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><use href="/assets/lucide.svg#file-text"></use></svg><div><span>Tu documento</span><strong data-ti-document-summary></strong></div><button type="button" data-ti-go-step="document">Cambiar</button></div>
                 <h3 id="ti-payment-title" tabindex="-1">Confirma tu pago</h3>
-                <p class="ti-muted">Paga por Yape o Plin y adjunta tu comprobante.</p>
+                <p class="ti-muted">Paga por Yape o Plin y adjunta tu comprobante. Recibirás los informes que elegiste en este pedido.</p>
+                <p class="ti-field-help ti-payment-availability" data-ti-payment-availability role="status" aria-live="polite"></p>
                 <div class="ti-payment">
                   <div class="ti-payment-top"><span>Total por tu revisión · <span data-ti-product-summary>Similitud + IA</span></span><strong data-ti-amount>S/15</strong></div>
                   <dl><div><dt>Número de celular</dt><dd><span data-ti-phone>—</span><button type="button" class="ti-copy-phone" data-ti-copy-phone aria-label="Copiar número de Yape o Plin"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#copy"></use></svg><span data-ti-copy-label>Copiar</span></button></dd></div><div><dt>Titular</dt><dd data-ti-holder>—</dd></div></dl>
-                  <p class="ti-field-help">Verifica el titular antes de pagar.</p>
+                  <p class="ti-field-help">Verifica el titular antes de pagar. El cupo se confirma al enviar tu documento y comprobante.</p>
                 </div>
                 <label class="ti-upload ti-upload--receipt" data-ti-upload tabindex="0" aria-label="Adjuntar comprobante de pago">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M4 16v4h16v-4"/></svg>
