@@ -52,7 +52,9 @@ try{
     }
     unexpected.push(url.origin+url.pathname);await route.abort();
   });
-  await page.goto('https://campus.analytics.test/app/turnitin/?source=mcp&ai_client=chatgpt&code=private-oauth',{waitUntil:'domcontentloaded'});
+  await page.goto('https://campus.analytics.test/app/turnitin/?source=mcp&ai_client=chatgpt&code=private-oauth',{
+    waitUntil:'domcontentloaded',referer:'https://www.google.com/search?q=private-academic-question',
+  });
   let timer;
   try{await Promise.race([received,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Real SDK did not deliver the checkout events: '+JSON.stringify({errors,unexpected,requested,messages,shapes:events.map(e=>({keys:Object.keys(e),event:e.event}))}))),15000);})]);}
   finally{clearTimeout(timer);}
@@ -64,6 +66,37 @@ try{
     assert.equal(event.properties.current_plan,'free');assert.equal(event.properties.environment,'production');
   }
   assert.equal(events.find(e=>e.event==='campus_plus_checkout_viewed').properties.amount_cents,500);
+  const view=events.find(e=>e.event==='$pageview');assert.ok(view,'Web Analytics needs the standard pageview event');
+  assert.equal(view.properties.$current_url,'https://campus.analytics.test/app/turnitin/');
+  assert.equal(view.properties.$pathname,'/app/turnitin/');
+  assert.equal(view.properties.$host,'campus.analytics.test');
+  assert.equal(view.properties.$device_type,'Desktop');
+  assert.equal(view.properties.$referrer,'https://www.google.com/');
+  assert.equal(view.properties.$referring_domain,'www.google.com');
+  await page.evaluate(()=>{
+    document.dispatchEvent(new Event('astro:page-load')); // Initial Astro event must not duplicate views.
+    history.pushState({},'', '/app/asistente/c/private-conversation/?code=private#private');
+    document.dispatchEvent(new Event('astro:page-load'));
+    window.dispatchEvent(new PageTransitionEvent('pagehide'));
+    window.dispatchEvent(new PageTransitionEvent('pagehide')); // Only one leave per view.
+  });
+  const deadline=Date.now()+10000;
+  while(events.filter(e=>e.event==='$pageleave').length<2){
+    if(Date.now()>deadline)throw Error('Missing pageleave transport');
+    await new Promise(resolve=>setTimeout(resolve,20));
+  }
+  assert.equal(events.filter(e=>e.event==='$pageview').length,2);
+  const leaves=events.filter(e=>e.event==='$pageleave');assert.equal(leaves.length,2);
+  assert.equal(leaves[0].properties.$pathname,'/app/turnitin/','Route changes leave the old route');
+  assert.equal(leaves[0].properties.page,'turnitin_app');
+  assert.equal(leaves[0].properties.$pageview_id,view.properties.$pageview_id);
+  assert.equal(leaves[1].properties.$pathname,'/app/asistente/','Conversation IDs never enter analytics');
+  assert.ok(leaves.every(e=>Number.isFinite(e.properties.$prev_pageview_duration)&&e.properties.$prev_pageview_duration>=0));
+  await page.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
+  while(events.filter(e=>e.event==='$pageview').length<3){
+    if(Date.now()>deadline)throw Error('BFCache restore did not start a new view');
+    await new Promise(resolve=>setTimeout(resolve,20));
+  }
   assert.equal(JSON.stringify(events).includes('private'),false,'No email, receipt, referrer or OAuth URL reaches transport');
   assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);
   await context.close();

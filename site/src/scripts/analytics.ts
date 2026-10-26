@@ -3,6 +3,12 @@ import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
+import { webEvents, safeWebProperties, webPageProperties } from './web-analytics';
+
+const allowedEvent = (event: string) => events.has(event) || webEvents.has(event);
+const eventProperties = (event: string, properties: Record<string, unknown>) => ({
+  ...safeAnalyticsProperties(properties), ...(webEvents.has(event) ? safeWebProperties(properties) : {}),
+});
 
 type Event = { event: string; properties: Record<string, unknown> };
 const browser = typeof window !== 'undefined' && typeof location !== 'undefined'
@@ -16,8 +22,8 @@ let queue: Event[] = [];
 if (browser && !local && key && host) {
   try {
     const pending = JSON.parse(sessionStorage.getItem(pendingKey) ?? '[]');
-    if (Array.isArray(pending)) queue = pending.slice(-100).filter(item => events.has(item?.event))
-      .map(item => ({ event: item.event, properties: safeAnalyticsProperties(item.properties ?? {}) }));
+    if (Array.isArray(pending)) queue = pending.slice(-100).filter(item => allowedEvent(item?.event))
+      .map(item => ({ event: item.event, properties: eventProperties(item.event, item.properties ?? {}) }));
   } catch { /* Storage may be disabled. */ }
 }
 function persistQueue(): void {
@@ -66,11 +72,11 @@ if (browser && !local && key && host) {
     client = createAnalyticsClient(key, {
       host,
       before_send: event => {
-        if (!event || (!events.has(event.event) && event.event !== '$identify')) return null;
+        if (!event || (!allowedEvent(event.event) && event.event !== '$identify')) return null;
         const original = event.properties ?? {};
         // Discard SDK's implicit referrer, title, search, URL, device and person
         // properties; retain only correlation fields and our closed contract.
-        event.properties = { ...safeAnalyticsProperties(original),
+        event.properties = { ...eventProperties(event.event, original),
           // The browser SDK authenticates ingestion with this public project
           // token. Keep our configured token, never a caller-supplied value.
           token: key,
@@ -104,8 +110,8 @@ export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
   } catch { return undefined; }
 }
 export function track(event: string, properties: Record<string, unknown> = {}): void {
-  if (!browser || !events.has(event)) return;
-  const item = { event, properties: safeAnalyticsProperties({
+  if (!browser || !allowedEvent(event)) return;
+  const item = { event, properties: eventProperties(event, {
     ...(() => { try { return mcpHandoff(location.href, sessionStorage); } catch { return {}; } })(),
     page: analyticsPage(location.pathname), current_plan: currentPlan,
     ...(isTest!==undefined?{is_test:isTest}:{}),
@@ -172,12 +178,25 @@ function locationFor(element: Element): string {
   if (element.closest('.cp-final')) return 'closing';
   return location.pathname.startsWith('/app/') ? 'app' : 'other';
 }
+let webView: { properties: Record<string, unknown>; started: number } | undefined;
+function leavePage(): void {
+  if (!webView) return;
+  track('$pageleave', { ...webView.properties,
+    $prev_pageview_pathname: webView.properties.$pathname,
+    $prev_pageview_duration: Math.max(0, (performance.now() - webView.started) / 1000) });
+  webView = undefined;
+}
 function trackPage(): void {
   // Astro emits page-load initially too. Route identity excludes conversation
   // IDs, hashes and queries, and avoids a duplicate for the same loaded page.
   const page = analyticsPage(location.pathname);
   if (viewPath === location.pathname) return;
+  leavePage();
   viewPath = location.pathname; seen = new Set();
+  webView = { started: performance.now(), properties: {
+    ...webPageProperties(location.pathname, location.origin, document.referrer, innerWidth), page, $pageview_id: crypto.randomUUID(),
+  } };
+  track('$pageview', webView.properties);
   track('campus_page_viewed', { page }); observer?.disconnect(); clearSectionTimers(); visibleHeadings.clear();
   if (typeof IntersectionObserver === 'undefined') return;
   observer = new IntersectionObserver(entries => {
@@ -203,7 +222,8 @@ export function setupAnalytics(): void {
     if (document.visibilityState === 'hidden') clearSectionTimers();
     else visibleHeadings.forEach(scheduleSectionView);
   });
-  window.addEventListener('pagehide', () => { clearSectionTimers(); visibleHeadings.clear(); });
+  window.addEventListener('pagehide', () => { leavePage(); clearSectionTimers(); visibleHeadings.clear(); });
+  window.addEventListener('pageshow', event => { if (event.persisted) { viewPath = ''; trackPage(); } });
   document.addEventListener('click', event => {
     const anchor = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
     if (!anchor) return;
