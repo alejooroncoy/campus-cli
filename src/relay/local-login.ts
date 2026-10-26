@@ -69,12 +69,12 @@ export async function captureLocalLogin(universityId: LoginUniversity, signal: A
     const page = await context.newPage();
     const login = new URL('/auth-saml/saml/login', university.origin);
     login.searchParams.set('apId', university.apId); login.searchParams.set('redirectUrl', `${university.origin}/ultra`);
-    await page.goto(login.href, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-    await page.waitForURL(url => url.origin === university.origin && /^\/ultra(?:\/|$)/.test(url.pathname), { timeout: 180_000 });
+    await page.goto(login.href, { waitUntil: 'commit', timeout: 60_000 });
+    await page.waitForURL(url => url.origin === university.origin && /^\/ultra(?:\/|$)/.test(url.pathname), { timeout: 180_000, waitUntil: 'commit' });
     const deadline = Date.now() + 5_000;
     do {
       signal.throwIfAborted();
-      try { return capturePayload(await context.cookies(university.origin), universityId); } catch (error) {
+      try { return capturePayload(await context.cookies(), universityId); } catch (error) {
         if (Date.now() >= deadline) throw error;
       }
       await page.waitForTimeout(100);

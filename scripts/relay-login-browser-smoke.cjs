@@ -10,6 +10,7 @@ const { captureLocalLogin } = require('../dist/relay/local-login.js');
   browser.newContext = async () => {
     const context = await original();
     await context.addCookies([
+      { name: 'XSRF-TOKEN', value: 'path-fixture', domain: 'aulavirtual.upc.edu.pe', path: '/learn', secure: true },
       { name: 'ESTSAUTH', value: 'identity-fixture', domain: 'login.microsoftonline.com', path: '/', secure: true },
       { name: 'google-fixture', value: 'identity-fixture', domain: 'accounts.google.com', path: '/', secure: true },
     ]);
@@ -32,9 +33,9 @@ const { captureLocalLogin } = require('../dist/relay/local-login.js');
   };
   try {
     const result = await captureLocalLogin('upc-pe', new AbortController().signal, async () => browser);
-    assert.equal(result.cookies.length, 1);
-    assert.equal(result.cookies[0].name, 'BbRouter');
-    assert.equal(result.cookies[0].domain, 'aulavirtual.upc.edu.pe');
+    assert.deepEqual(result.cookies.map(cookie => cookie.name).sort(), ['BbRouter', 'XSRF-TOKEN']);
+    assert.ok(result.cookies.every(cookie => cookie.domain === 'aulavirtual.upc.edu.pe'));
+    assert.equal(result.cookies.find(cookie => cookie.name === 'XSRF-TOKEN').path, '/learn');
     assert.equal(browser.isConnected(), false);
     assert.equal(requests.length, 2);
     console.log('Local Playwright capture passed: real Chromium, temporary context, university-only cookies, no academic queries.');
