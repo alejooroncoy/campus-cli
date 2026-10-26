@@ -84,7 +84,10 @@ if (browser && !local && key && host) {
           $session_id: original.$session_id,
           $window_id: original.$window_id,
           ...(event.event === '$identify' ? { $anon_distinct_id: original.$anon_distinct_id } : {}),
-          $process_person_profile: event.event === '$identify' || Boolean(identity),
+          // A campaign landing needs a person profile so PostHog can join it
+          // with the account if this visitor subsequently signs in.
+          $process_person_profile: event.event === '$identify' || Boolean(identity)
+            || (event.event === '$pageview' && typeof eventProperties(event.event, original).utm_campaign === 'string'),
           $geoip_disable: true,
           ...(identity && audience!=='unknown' ? {$set:{analytics_audience:audience,is_test:isTest===true,is_internal:audience==='internal'}} : {}),
         };
@@ -181,7 +184,8 @@ function locationFor(element: Element): string {
 let webView: { properties: Record<string, unknown>; started: number } | undefined;
 function leavePage(): void {
   if (!webView) return;
-  track('$pageleave', { ...webView.properties,
+  const { utm_source: _source, utm_campaign: _campaign, ...pageProperties } = webView.properties;
+  track('$pageleave', { ...pageProperties,
     $prev_pageview_pathname: webView.properties.$pathname,
     $prev_pageview_duration: Math.max(0, (performance.now() - webView.started) / 1000) });
   webView = undefined;
@@ -194,7 +198,7 @@ function trackPage(): void {
   leavePage();
   viewPath = location.pathname; seen = new Set();
   webView = { started: performance.now(), properties: {
-    ...webPageProperties(location.pathname, location.origin, document.referrer, innerWidth), page, $pageview_id: crypto.randomUUID(),
+    ...webPageProperties(location.pathname, location.origin, document.referrer, innerWidth, location.search), page, $pageview_id: crypto.randomUUID(),
   } };
   track('$pageview', webView.properties);
   track('campus_page_viewed', { page }); observer?.disconnect(); clearSectionTimers(); visibleHeadings.clear();
