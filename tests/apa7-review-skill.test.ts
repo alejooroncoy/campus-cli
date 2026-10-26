@@ -168,9 +168,11 @@ test('review retains entitlement enforcement and validates incompatible selector
   }
 });
 
-test('npm publishes the resources that the compiled MCP review loader needs', async () => {
+test('npm relay client excludes the local academic loader and its library export', async () => {
   const pkg = JSON.parse(await readFile('package.json', 'utf8'));
-  assert.ok(pkg.files.includes('.agents/skills/apa7-review-campus'));
+  assert.ok(!pkg.files.includes('dist'));
+  assert.ok(!pkg.files.some((entry: string) => entry.startsWith('dist/providers/academic')));
+  assert.equal(pkg.exports['./apa7-mcp-tools'], undefined);
 });
 
 test('semantic coverage rejects omissions, stale rules, unsupported mappings and pending review', async () => {

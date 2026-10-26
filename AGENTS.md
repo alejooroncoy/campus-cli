@@ -2,6 +2,10 @@
 
 This CLI/MCP server gives agents direct access to a student's university campus systems. Today only Blackboard Learn (UPC Aula Virtual) is implemented — all its tools use the `blackboard_` prefix. Use it to help students check their courses, assignments, grades, and download materials — all without opening a browser. (Future: `canvas_*`, `moodle_*` for other universities — not implemented yet.)
 
+## CLI/MCP 3.x: relay obligatorio
+
+`campus login` autoriza la cuenta Campus y captura la sesión universitaria con Playwright local. Tras consentimiento, envía solo las cookies del campus al relay, que verifica la identidad y las guarda cifradas. `--university` debe pertenecer al catálogo anunciado por el relay. Las consultas CLI y MCP se ejecutan exclusivamente en el relay y conservan su control de plan/cupo. No hay alternativa local ante errores de pago, red o sesión. La nueva distribución no incluye proveedores de consultas ni exports de biblioteca 2.x. Las reglas de envío descritas más abajo se aplican únicamente a hosts del núcleo que realmente expongan esas herramientas; el relay actual lee Blackboard.
+
 ## Setup
 
 Before using any tool, the user must be authenticated:

@@ -1,4 +1,4 @@
-import type { UclassRecording, UclassSession, UclassTranscript } from './types.js';
+import type { UclassChatItem, UclassRecording, UclassSession, UclassTranscript } from './types.js';
 
 const PLAYER_ORIGIN = 'https://upc.class.com';
 const API_ORIGIN = 'https://upc.rest.pod-2.sa-east-1.prod.class.com';
@@ -39,6 +39,41 @@ export function normalizeTranscriptTiming(transcript: UclassTranscript): UclassT
     ? value
     : Math.max(0, (value - origin) / (milliseconds ? 1_000 : 1));
   return { ...transcript, transcript: transcript.transcript.map((line) => ({ ...line, startSeconds: relative(line.startSeconds), endSeconds: relative(line.endSeconds) })) };
+}
+
+/** Parse only the published speech/chat fields; attendee lists and other
+ * arrays are not evidence of messages. No network or authentication here. */
+export function parseRecordingData(
+  recording: Pick<UclassRecording, 'classId' | 'recordingId' | 'url'>,
+  payload: unknown,
+): UclassTranscript & { chat: UclassChatItem[] } {
+  const object = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown> : {};
+  const data = object(payload);
+  const transcript = (Array.isArray(data.transcripts) ? data.transcripts : []).map((row, index) => {
+    const item = object(row), line = object(item.data);
+    return {
+      id: String(item.class_session_note_id ?? line.message_id ?? index),
+      startSeconds: finite(line.start_time), endSeconds: finite(line.end_time),
+      speaker: stringOrNull(line.user_name), text: stringOrNull(item.override_text) ?? stringOrNull(item.content) ?? '',
+    };
+  }).filter(line => line.text);
+  const chat = (Array.isArray(data.chatMessages) ? data.chatMessages : []).map((row, index) => {
+    const item = object(row);
+    return { id: String(item.id ?? index), timestampSeconds: finite(item.timestamp),
+      sender: stringOrNull(item.sender_name), text: stringOrNull(item.message) ?? '' };
+  }).filter(line => line.text);
+  const epochSeconds = (value: number) => value >= 100_000_000_000 ? value / 1000 : value;
+  const speechTimes = transcript.flatMap(line => [line.startSeconds, line.endSeconds])
+    .filter((value): value is number => value !== null && value >= 1_000_000_000).map(epochSeconds);
+  const chatTimes = chat.map(line => line.timestampSeconds)
+    .filter((value): value is number => value !== null && value >= 1_000_000_000).map(epochSeconds);
+  const origin = speechTimes.length ? Math.min(...speechTimes) : chatTimes.length ? Math.min(...chatTimes) : undefined;
+  return { ...normalizeTranscriptTiming({ recording, title: stringOrNull(data.name), durationSeconds: finite(data.duration), transcript }),
+    chat: chat.map(line => ({ ...line, timestampSeconds: line.timestampSeconds !== null && line.timestampSeconds >= 1_000_000_000
+      ? Math.max(0, epochSeconds(line.timestampSeconds) - origin!) : line.timestampSeconds })),
+    chatTimeline: chatTimes.length && !speechTimes.length ? 'first_chat_message' : 'recording',
+  };
 }
 
 export async function listRecordings(session: UclassSession, classId: string): Promise<UclassRecording[]> {
@@ -83,22 +118,5 @@ export async function readTranscript(session: UclassSession, recording: Pick<Ucl
   if (response.status === 401 || response.status === 403) throw new Error('Class rechazó la sesión; ejecuta campus login y vuelve a intentar');
   if (!response.ok) throw new Error(`Class no pudo abrir la grabación (${response.status})`);
   const payload = await response.json() as { recordingData?: Record<string, unknown> };
-  const data = payload.recordingData ?? {};
-  const rows = Array.isArray(data.transcripts) ? data.transcripts : [];
-  return normalizeTranscriptTiming({
-    recording,
-    title: stringOrNull(data.name),
-    durationSeconds: finite(data.duration),
-    transcript: rows.map((row, index) => {
-      const item = row && typeof row === 'object' ? row as Record<string, unknown> : {};
-      const line = item.data && typeof item.data === 'object' ? item.data as Record<string, unknown> : {};
-      return {
-        id: String(item.class_session_note_id ?? line.message_id ?? index),
-        startSeconds: finite(line.start_time),
-        endSeconds: finite(line.end_time),
-        speaker: stringOrNull(line.user_name),
-        text: stringOrNull(item.override_text) ?? stringOrNull(item.content) ?? '',
-      };
-    }).filter((line) => line.text),
-  });
+  return parseRecordingData(recording, payload.recordingData);
 }

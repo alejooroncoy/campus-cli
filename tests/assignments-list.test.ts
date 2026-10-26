@@ -13,7 +13,7 @@ test('assignments list accepts an optional courseId', () => {
   );
 
   assert.match(output, /Usage: campus assignments list \[options\] \[courseId\]/);
-  assert.match(output, /List assignments and tasks in a course, or across all courses/);
+  assert.match(output, /List assignments and tasks in a course, or the relay weekly view/);
 });
 
 test('messages command exposes inbox filtering and pagination options', () => {

@@ -1,19 +1,19 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.alejooroncoy/campus-cli",
-  "description": "Unofficial Blackboard Learn (LMS) MCP for students: courses, assignments, grades, materials.",
+  "description": "Campus relay MCP client: authenticated access to courses, assignments, grades and materials.",
   "repository": {
     "url": "https://github.com/alejooroncoy/campus-cli",
     "source": "github"
   },
-  "version": "2.2.1",
+  "version": "3.0.0",
   "websiteUrl": "https://campuscli.com/blackboard-mcp/",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "campus-cli",
-      "version": "2.2.1",
+      "version": "3.0.0",
       "transport": {
         "type": "stdio"
       },
