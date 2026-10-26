@@ -43,8 +43,12 @@ try {
     for(const [report,price] of [['ai','S/10'],['similarity','S/10'],['both','S/15']]){
      await page.locator(`input[name="report"][value="${report}"]`).check();
      assert.equal(await page.locator('[data-ti-amount]').textContent(),price);
+     const availability=page.locator(`[data-ti-option-status="${report}"]`);
+     assert.equal(await availability.getAttribute('data-state'),'available');
+     assert.equal(await availability.textContent(),'Disponible');
     }
-    assert.match(await page.locator('[data-ti-availability]').textContent(),/5 revisiones disponibles/);
+    assert.equal(await page.locator('[data-ti-availability]').isVisible(),true);
+    assert.match(await page.locator('[data-ti-availability]').textContent(),/Puedes continuar/);
     await page.locator('input[name="report"][value="ai"]').check();
     await page.locator('input[name="document"]').setInputFiles({name:'Synthetic.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4 local fixture')});
     await page.locator('[data-ti-next]').click();
