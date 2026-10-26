@@ -7,6 +7,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { captureLocalLogin, capturePayload, loginLocally, loginUniversity } from '../src/relay/local-login.js';
 import { RelayCredentialStore } from '../src/relay/auth.js';
+import { loginHosted } from '../src/relay/hosted-login.js';
 
 const cookie = (domain = 'aulavirtual.upc.edu.pe') => ({ name: 'BbRouter', value: 'xsrf:abcd-1234', domain, path: '/', expires: -1, secure: true, httpOnly: true, sameSite: 'Lax' as const });
 
@@ -43,7 +44,7 @@ test('Playwright opens only the selected university and closes its temporary con
   assert.equal(requests.length, 1, 'capture must not query courses, grades or materials');
 });
 
-async function relay(t: any, status = 201) {
+async function relay(t: any, status = 201, hostedUniversity?: string, tokenScope?: string) {
   const dir = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'campus-local-login-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   let base = '', pkce = '';
@@ -61,9 +62,9 @@ async function relay(t: any, status = 201) {
     if (url.pathname === '/oauth/token') {
       const params = new URLSearchParams(raw);
       assert.equal(createHash('sha256').update(params.get('code_verifier')!).digest('base64url'), pkce);
-      return reply({ access_token: 'identity-only', refresh_token: 'identity-refresh', token_type: 'Bearer', scope: 'campus.identity' });
+      return reply({ access_token: 'identity-only', refresh_token: 'identity-refresh', token_type: 'Bearer', scope: tokenScope ?? (hostedUniversity ? 'campus.read' : 'campus.identity') });
     }
-    if (url.pathname === '/v1/account') { assert.equal(req.headers.authorization, 'Bearer identity-only'); return reply({ account: { id: 'google:test', universityId: 'upc-pe' } }); }
+    if (url.pathname === '/v1/account') { assert.equal(req.headers.authorization, 'Bearer identity-only'); return reply({ account: { id: 'google:test', universityId: hostedUniversity ?? 'upc-pe' } }); }
     if (url.pathname === '/v1/cli/login' && req.method === 'GET') return reply({ localLogin: true, universities: ['upc-pe', 'upn-pe'] });
     if (url.pathname === '/v1/cli/login' && req.method === 'POST') {
       assert.equal(req.headers.authorization, 'Bearer identity-only'); received.push(JSON.parse(raw));
@@ -76,7 +77,7 @@ async function relay(t: any, status = 201) {
   t.after(() => { server.closeAllConnections(); server.close(); });
   const url = new URL(`${base}/mcp`), store = new RelayCredentialStore(url, dir);
   return { url, store, received, openBrowser: async (authorize: URL) => {
-    assert.equal(authorize.searchParams.get('scope'), 'campus.identity');
+    assert.equal(authorize.searchParams.get('scope'), hostedUniversity ? 'campus.read' : 'campus.identity');
     pkce = authorize.searchParams.get('code_challenge')!;
     const callback = new URL(authorize.searchParams.get('redirect_uri')!);
     callback.searchParams.set('state', authorize.searchParams.get('state')!); callback.searchParams.set('code', 'test-code');
@@ -109,4 +110,25 @@ test('cancelled consent and unsupported universities stop before Google, Playwri
   await assert.rejects(loginLocally({ ...f, openBrowser, confirm: async () => false }), /cancelado/);
   await assert.rejects(loginLocally({ ...f, openBrowser, consent: true, universityId: 'palermo-ar' }), /universidad todavía/);
   assert.equal(opened, 0); assert.equal(f.received.length, 0); assert.equal(f.store.load(), undefined);
+});
+
+test('hosted Palermo login uses relay onboarding and stores only OAuth credentials without a cookie upload',async t=>{
+  const f=await relay(t,201,'palermo-ar');
+  await loginHosted({...f,universityId:'palermo-ar'});
+  assert.equal(f.received.length,0);
+  assert.equal(f.store.load()?.tokens?.scope,'campus.read');
+  assert.ok(!fs.readFileSync(f.store.file,'utf8').includes('BbRouter'));
+});
+
+test('hosted login cannot silently connect another university or replace the prior authorization on mismatch',async t=>{
+  const f=await relay(t,201,'upc-pe');
+  f.store.save({redirectUrl:'http://127.0.0.1:1/callback',client:{client_id:'previous'},tokens:{access_token:'previous-read',token_type:'Bearer'}});
+  await assert.rejects(loginHosted({...f,universityId:'palermo-ar'}),/no coincide/);
+  assert.equal(f.store.load()?.tokens?.access_token,'previous-read');assert.equal(f.received.length,0);
+});
+
+test('a hosted grant without campus.read cannot enable queries or trigger a local upload',async t=>{
+  const f=await relay(t,201,'palermo-ar','campus.identity');
+  await assert.rejects(loginHosted({...f,universityId:'palermo-ar'}),/no habilitó/);
+  assert.equal(f.store.load(),undefined);assert.equal(f.received.length,0);
 });

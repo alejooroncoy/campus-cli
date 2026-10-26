@@ -12,6 +12,8 @@ La prueba actual de cinco consultas del relay se conserva. Quitar esa prueba req
 
 Los tokens OAuth del relay se guardan con permisos 0600 en un directorio 0700 bajo `~/.blackboard-cli/relay`. El nombre del archivo deriva del endpoint completo, para no reutilizar credenciales al cambiar de servicio. Los refresh tokens se renuevan mediante el mismo relay. El login fallido o cancelado no reemplaza la autorización anterior.
 
+Para conectar Palermo desde el navegador hospedado, usa `campus login --hosted --university palermo-ar`. El onboarding del relay abre el login oficial MyUP en Browserbase; después, el worker reutiliza Blackboard por HTTP. El cliente verifica la universidad de la cuenta antes de guardar su autorización OAuth y nunca recibe ni guarda la contraseña universitaria. Cuando el servidor ofrece reconexión mediante credenciales, el único checkbox «Mantener mi cuenta conectada» explica que Campus guardará cifrados el usuario y la contraseña, con retención máxima de treinta días, para nuevos accesos automáticos. Es voluntario y viene desmarcado; un consentimiento anterior de cookies no lo habilita. MFA, contraseña rechazada o vencimiento del permiso requieren reconectar. Para retirar el permiso desde el asistente o el CLI, usa `campus_revoke_persistent_access` (por ejemplo, `campus tools call campus_revoke_persistent_access`). El relay elimina el acceso guardado sin consumir cupo académico. Esto no garantiza una sesión MyUP de un mes. Sin esa función configurada, la pantalla ofrece únicamente guardar cookies y lo indica expresamente. La captura local existente solo transfiere Blackboard, sin cookies MyUP ni contraseña; todas las consultas y decisiones de acceso siguen en el relay.
+
 ## Compatibilidad CLI
 
 | Entrada | Comportamiento 3.x |

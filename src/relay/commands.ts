@@ -3,6 +3,7 @@ import { Readable } from 'node:stream';
 import { callRelayTool, withRelayClient } from './client.js';
 import { RelayCredentialStore } from './auth.js';
 import { loginLocally } from './local-login.js';
+import { loginHosted } from './hosted-login.js';
 import { relayUrl } from './config.js';
 import { downloadRoot, resolveDownloadDir, safeNewFilePath, writeNamedDownload } from '../security/files.js';
 import { UPN_RELAY_TOOLS, MIUPC_RELAY_TOOLS } from './portal-tools.js';
@@ -35,9 +36,14 @@ function jsonObject(value: string): Record<string, unknown> {
 }
 
 export function relayCommands(program: Command, run: RelayRunner = callRelayTool): void {
-  const login = async (opts: { university?: string; consentSessionUpload?: boolean }) => {
-    console.error('Autorizando tu cuenta Campus e iniciando el login universitario local…');
-    await loginLocally({ universityId: opts.university, consent: opts.consentSessionUpload });
+  const login = async (opts: { university?: string; consentSessionUpload?: boolean; hosted?: boolean }) => {
+    if (opts.hosted) {
+      console.error('Autorizando Campus y conectando tu universidad desde el relay…');
+      await loginHosted({ universityId: opts.university });
+    } else {
+      console.error('Autorizando tu cuenta Campus e iniciando el login universitario local…');
+      await loginLocally({ universityId: opts.university, consent: opts.consentSessionUpload });
+    }
     console.error('Sesión del relay guardada. Las consultas usan el plan y cupo de tu cuenta Campus.');
   };
   const logout = () => {
@@ -45,6 +51,7 @@ export function relayCommands(program: Command, run: RelayRunner = callRelayTool
     console.error('Sesión local del relay eliminada.');
   };
   const configureLogin = (command: Command) => command.option('--university <id>', 'Universidad: upc-pe, upn-pe o palermo-ar')
+    .option('--hosted', 'Completar el acceso universitario en el relay (SSO MyUP de Palermo)')
     .option('--consent-session-upload', 'Autorizar explícitamente el envío de la sesión al relay').action(login);
   configureLogin(program.command('login').description('Autorizar Campus y conectar tu universidad con Playwright local'));
   program.command('logout').description('Eliminar las credenciales del relay de este equipo').action(logout);
