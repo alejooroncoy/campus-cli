@@ -15,7 +15,7 @@ const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
 
 const id='11111111-1111-4111-8111-111111111111';
-const university={id:1,name:'UPC',shortName:'UPC'};
+const university={id:1,name:'Universidad Peruana de Ciencias Aplicadas',shortName:'UPC'};
 async function fixture(width,scenario,run){
  const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
  await context.addInitScript(u=>localStorage.setItem('campus-university-choice-v1',JSON.stringify({version:1,university:u})),university);

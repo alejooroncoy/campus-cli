@@ -17,6 +17,7 @@ const browser=await chromium.launch({headless:true});
 const id='11111111-1111-4111-8111-111111111111';
 const university={id:1,name:'Universidad Peruana de Ciencias Aplicadas',shortName:'UPC'};
 const otherUniversity={id:2,name:'Universidad de prueba',shortName:'PRUEBA'};
+const addedUniversities=[{id:40,name:'Universidad Privada del Norte',shortName:null,code:'UPN'},{id:25,name:'Universidad del Pacífico',shortName:null,code:'UP'}];
 const samples=[
  ['professor_reviews','¿Qué dicen los estudiantes de Luis Vives?'],
  ['course_professors','¿Qué profesores hay para Cálculo I?'],
@@ -38,7 +39,7 @@ async function fixture(width,scenario,run,options={}) {
   }
   if(path==='/api/app/universities'){
    if(state.catalogFail)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
-   return json({universities:[university,otherUniversity]});
+   return json({universities:[university,otherUniversity,...addedUniversities]});
   }
   if(path==='/api/app/profes/conversations')return json({conversations:[]});
   if(path==='/api/app/profes/message'){
@@ -62,6 +63,23 @@ async function fixture(width,scenario,run,options={}) {
 }
 try {
  for(const width of [390,1100]) {
+  for(const choice of addedUniversities)for(const method of ['quick','search']) {
+   await fixture(width,choice.code+' opens chat via '+method,async({page,requests,events})=>{
+    await page.goto(base+'/app/asistente/');
+    await page.getByRole('button',{name:`${choice.code} ${choice.name}`,exact:true}).waitFor();
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    if(method==='quick')await page.getByRole('button',{name:`${choice.code} ${choice.name}`,exact:true}).click();
+    else {await page.getByLabel('Busca tu universidad').fill(choice.code);await page.getByRole('button',{name:'Continuar',exact:true}).click();}
+    await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
+    await page.reload();
+    await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
+    await page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'}).fill('Opiniones de profesores');
+    await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();
+    await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
+    assert.equal(requests.length,1);assert.equal(requests[0].universityId,choice.id);
+    assert.ok((await events()).some(e=>e.event==='campus_university_selected'&&e.properties.supported===true));
+   });
+  }
   for(const [example,prompt] of samples) {
    await fixture(width,'UPC directly opens chat and starts '+example,async({page,requests,events,enter})=>{
     await enter();

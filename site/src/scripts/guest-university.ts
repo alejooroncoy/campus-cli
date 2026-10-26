@@ -27,10 +27,20 @@ export function rememberGuestUniversity(university: UniversityChoice): void {
   catch { /* The selection still lasts for the current visit. */ }
 }
 export function universityLabel(item: UniversityChoice): string {
-  return item.shortName ? `${item.shortName} — ${item.name}` : item.name;
+  const shortName = item.shortName || chatUniversityCode(item);
+  return shortName ? `${shortName} — ${item.name}` : item.name;
+}
+const chatUniversities = [
+  ['UPC', 'Universidad Peruana de Ciencias Aplicadas'],
+  ['UPN', 'Universidad Privada del Norte'],
+  ['UP', 'Universidad del Pacífico'],
+] as const;
+const universityNameKey = (name: string) => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
+export function chatUniversityCode(item: UniversityChoice | null): string | undefined {
+  return item ? chatUniversities.find(([, name]) => universityNameKey(name) === universityNameKey(item.name))?.[0] : undefined;
 }
 export function guestUniversitySupported(item: UniversityChoice | null): boolean {
-  return item?.shortName === 'UPC';
+  return chatUniversityCode(item) !== undefined;
 }
 export function loadUniversityChoices(): Promise<UniversityChoice[]> {
   return choicesRequest ??= fetch('/api/app/universities', {

@@ -886,7 +886,7 @@ export default function ProfesChat() {
         } else {
           setAccess(!session.universityConfirmed ? "setup" : !session.profesAvailable ? "unsupported" : !session.accessUnavailable && session.aiReady ? "ready" : "unavailable");
           setAccessNote(session.universityConfirmed && !session.profesAvailable
-            ? "Campus tiene cobertura para UPC por ahora. Tu universidad ya quedó registrada."
+            ? "El asistente tiene cobertura para UPC, UPN y Universidad del Pacífico. Tu universidad ya quedó registrada."
             : session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
         }
   }
@@ -1474,7 +1474,7 @@ export default function ProfesChat() {
     <p className="app-guest-university__eyebrow">TU UNIVERSIDAD</p>
     <h1 id="university-coverage-title">Aún no llegamos a tu universidad.</h1>
     <p><strong>{guestUniversity?.name}</strong></p>
-    <p>Por ahora, el asistente de Campus está disponible para UPC. Elegir universidad no consume consultas.</p>
+    <p>El asistente de Campus está disponible para UPC, UPN y Universidad del Pacífico. Elegir universidad no consume consultas.</p>
     <button type="button" className="app-guest-university__continue" onClick={() => setChangingUniversity(true)}>Cambiar universidad</button>
     <a className="app-guest-university__back" href={assistantLoginHref(window.location.pathname)}>Crear cuenta y conservar mi universidad</a>
   </section></div>;
