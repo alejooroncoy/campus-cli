@@ -10,7 +10,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
     <header class="ti-order-head">
       <h1>{turnitinServiceEnabled ? "Turnitin" : "Tus revisiones de Turnitin"}</h1>
       {turnitinServiceEnabled && <a class="ti-service-link" href="/turnitin/" aria-label="Detalles del servicio">Detalles <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>}
-      <p>{turnitinServiceEnabled ? "Similitud e IA en dos informes PDF." : "Los pedidos nuevos están pausados. Consulta tus informes anteriores aquí."}</p>
+      <p>{turnitinServiceEnabled ? "Elige IA o similitud por S/10, o ambos informes por S/15." : "Los pedidos nuevos están pausados. Consulta tus informes anteriores aquí."}</p>
       {turnitinServiceEnabled && <div class="ti-service-facts"><span>10 min a 1 h tras validar el pago y el archivo</span></div>}
     </header>
     <p class="ti-status" data-ti-status role="status" aria-live="polite"><span class="app-sr-only">Comprobando disponibilidad…</span><span class="ti-inline-skeleton" aria-hidden="true"></span></p>
@@ -35,7 +35,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
 
       <TurnitinLogin inline />
       <details class="ti-panel ti-new-order" data-ti-new-order data-ti-service-enabled={String(turnitinServiceEnabled)} hidden={!turnitinServiceEnabled} open={turnitinServiceEnabled}>
-        <summary><span class="ti-summary-title">Nueva revisión</span><span class="ti-price-badge" data-ti-price>S/8 · Lanzamiento</span><span class="ti-disclosure" aria-hidden="true"></span></summary>
+        <summary><span class="ti-summary-title">Nueva revisión</span><span class="ti-price-badge" data-ti-price>S/15 · Similitud + IA</span><span class="ti-disclosure" aria-hidden="true"></span></summary>
         <div class="ti-new-order-body">
         <form data-ti-form hidden novalidate>
           <fieldset data-ti-fields style="border:0;padding:0;margin:0">
@@ -47,7 +47,17 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
             <div class="ti-submit-grid">
               <section class="ti-step" data-ti-request-step="document" aria-labelledby="ti-document-title">
                 <h3 id="ti-document-title" tabindex="-1">Sube tu documento</h3>
-                <p class="ti-muted">Elige la versión que quieres revisar.</p>
+                <p class="ti-muted">Elige la revisión y la versión de tu documento.</p>
+                <p class="ti-field-help">Procesamiento mediante TurnitPro. Los resultados pueden diferir de una revisión institucional de Turnitin.</p>
+                <fieldset class="ti-product-picker">
+                  <legend>¿Qué informe necesitas?</legend>
+                  <div class="ti-product-options">
+                    <label><input type="radio" name="report" value="ai" /><span>Solo IA<strong>S/10</strong></span></label>
+                    <label><input type="radio" name="report" value="similarity" /><span>Solo similitud<strong>S/10</strong></span></label>
+                    <label><input type="radio" name="report" value="both" checked /><span>Similitud + IA<strong>S/15</strong></span></label>
+                  </div>
+                  <p class="ti-field-help" data-ti-availability hidden></p>
+                </fieldset>
                 <label class="ti-upload" data-ti-upload tabindex="0" aria-label="Seleccionar documento para revisar">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
                   <span class="ti-upload-title" id="ti-document-label">Seleccionar documento</span>
@@ -57,7 +67,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <p class="ti-upload-methods"><span class="ti-mobile-method">Toca el recuadro para elegir o cambiar el archivo.</span><span class="ti-desktop-method">Haz clic, arrastra o pega un archivo copiado.</span></p>
                 <button class="ti-remove-file" type="button" data-ti-remove="document" hidden>Quitar documento</button>
                 <p class="ti-upload-error" id="ti-document-error" data-ti-upload-error="document" role="alert" hidden></p>
-                <details class="ti-file-requirements"><summary>Requisitos del documento</summary><p class="ti-field-help" id="ti-document-help">PDF con texto seleccionable o Word (.docx). Para el informe de IA: de 300 a 30 000 palabras de prosa.</p></details>
+                <details class="ti-file-requirements"><summary>Requisitos del documento</summary><p class="ti-field-help" id="ti-document-help">PDF con texto seleccionable o Word (.docx). Verificamos que el archivo sea compatible antes de procesarlo.</p></details>
                 <div class="ti-step-action"><button class="app-button" type="button" data-ti-next>Continuar al pago <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></button><span class="ti-field-help">Tu archivo se enviará al confirmar.</span></div>
               </section>
               <section class="ti-step" data-ti-request-step="payment" aria-labelledby="ti-payment-title" hidden>
@@ -65,7 +75,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <h3 id="ti-payment-title" tabindex="-1">Confirma tu pago</h3>
                 <p class="ti-muted">Paga por Yape o Plin y adjunta tu comprobante.</p>
                 <div class="ti-payment">
-                  <div class="ti-payment-top"><span>Total por tu revisión</span><strong data-ti-amount>S/8</strong></div>
+                  <div class="ti-payment-top"><span>Total por tu revisión · <span data-ti-product-summary>Similitud + IA</span></span><strong data-ti-amount>S/15</strong></div>
                   <dl><div><dt>Número de celular</dt><dd><span data-ti-phone>—</span><button type="button" class="ti-copy-phone" data-ti-copy-phone aria-label="Copiar número de Yape o Plin"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#copy"></use></svg><span data-ti-copy-label>Copiar</span></button></dd></div><div><dt>Titular</dt><dd data-ti-holder>—</dd></div></dl>
                   <p class="ti-field-help">Verifica el titular antes de pagar.</p>
                 </div>
@@ -78,7 +88,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <button class="ti-remove-file" type="button" data-ti-remove="receipt" hidden>Quitar comprobante</button>
                 <p class="ti-upload-error" id="ti-receipt-error" data-ti-upload-error="receipt" role="alert" hidden></p>
             <div class="ti-submit-footer">
-            <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo la revisión de mi documento con Turnitin y he leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
+            <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo a Campus a procesar mi documento mediante TurnitPro y he leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
             <div class="ti-submit-action"><p class="ti-field-help">Sigue el estado y descarga tus informes en Mis revisiones.</p><button class="app-button" type="submit"><span data-ti-submit-text>Enviar revisión</span><span class="ti-inline-skeleton ti-inline-skeleton--button" data-ti-submit-skeleton aria-hidden="true" hidden></span> <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button></div>
             <p class="ti-submit-status" data-ti-submit-status role="status" aria-live="polite" hidden></p>
             </div>
