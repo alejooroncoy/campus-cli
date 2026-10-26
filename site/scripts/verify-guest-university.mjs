@@ -8,7 +8,7 @@ const storage = new Map();
 globalThis.window = { localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) } };
 const upc = { id: 1, name: 'Universidad Peruana de Ciencias Aplicadas', shortName: 'UPC' };
 const upn = { id: 40, name: 'Universidad Privada del Norte', shortName: null };
-const pacifico = { id: 25, name: 'Universidad del Pacífico', shortName: null };
+const palermo = { id: 90, name: 'Universidad de Palermo', shortName: 'UP' };
 const other = { id: 2, name: 'Universidad de ejemplo', shortName: null };
 const response = (value, ok = true) => ({ ok, json: async () => value });
 try {
@@ -18,7 +18,7 @@ try {
   api = await load();
   assert.deepEqual(api.readGuestUniversity(), upc, 'The explicit choice survives a new page/module after authentication redirects');
   assert.equal(api.guestUniversitySupported(upc), true);
-  for (const [choice, code] of [[upn, 'UPN'], [pacifico, 'UP']]) {
+  for (const [choice, code] of [[upn, 'UPN'], [palermo, 'UP']]) {
     assert.equal(api.guestUniversitySupported(choice), true, 'Catalog entries without short names still have chat coverage');
     assert.equal(api.chatUniversityCode(choice), code);
     assert.equal(api.universityLabel(choice), `${code} — ${choice.name}`);
@@ -28,11 +28,12 @@ try {
   }
   api.rememberGuestUniversity(upc);
   assert.equal(api.guestUniversitySupported(other), false);
+  assert.equal(api.guestUniversitySupported({id:25,name:'Universidad del Pacífico',shortName:'UP'}),false);
   let calls = [];
   let verifiedUniversity = upc;
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
-    if (url.endsWith('universities')) return response({ universities: [upc, upn, pacifico, other] });
+    if (url.endsWith('universities')) return response({ universities: [upc, upn, palermo, other] });
     if (url.endsWith('university')) return response({ universityConfirmed: true });
     return response({ authenticated: true, email: 'new@example.invalid', universityConfirmed: true, university: verifiedUniversity, profesAvailable: true, aiReady: true });
   };
@@ -42,7 +43,7 @@ try {
   assert.equal(verified.profesAvailable, true);
   assert.equal(JSON.parse(calls.find(call => call.init?.method === 'POST').init.body).universityId, 1);
   assert.deepEqual(calls.map(call => call.url), ['/api/app/universities', '/api/app/university', '/api/app/session']);
-  for (const choice of [upn, pacifico]) {
+  for (const choice of [upn, palermo]) {
     calls = []; verifiedUniversity = choice; api.rememberGuestUniversity(choice);
     const carried = await api.carryGuestUniversity(fresh, () => true);
     assert.equal(carried.university.id, choice.id);
