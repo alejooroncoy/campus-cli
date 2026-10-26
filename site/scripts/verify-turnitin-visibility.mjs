@@ -44,7 +44,8 @@ try {
      await page.locator(`input[name="report"][value="${report}"]`).check();
      assert.equal(await page.locator('[data-ti-amount]').textContent(),price);
     }
-    assert.match(await page.locator('[data-ti-availability]').textContent(),/5 revisiones disponibles/);
+    assert.equal(await page.locator('[data-ti-availability]').textContent(),'Puedes continuar con la revisión que elegiste.');
+    assert.equal(await page.locator('[data-ti-option-status][data-state="available"]').count(),3);
     await page.locator('input[name="report"][value="ai"]').check();
     await page.locator('input[name="document"]').setInputFiles({name:'Synthetic.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4 local fixture')});
     await page.locator('[data-ti-next]').click();
