@@ -1,4 +1,4 @@
-import { analyticsPage } from './analytics-contract';
+import { analyticsPage } from './analytics-contract.ts';
 
 export const webEvents = new Set(['$pageview', '$pageleave']);
 // These are route families, never user-provided paths, slugs or conversation IDs.

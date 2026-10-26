@@ -3,7 +3,7 @@ import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
-import { webEvents, safeWebProperties, webPageProperties } from './web-analytics';
+import { webEvents, safeWebProperties, webPageProperties } from './web-analytics.ts';
 
 const allowedEvent = (event: string) => events.has(event) || webEvents.has(event);
 const eventProperties = (event: string, properties: Record<string, unknown>) => ({
