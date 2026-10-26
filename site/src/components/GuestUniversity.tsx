@@ -1,6 +1,6 @@
 import { selectedPlan, track } from '../scripts/analytics';
 import { useEffect, useState, type SubmitEvent } from 'react';
-import { chatUniversityCode, guestUniversitySupported, loadUniversityChoices, universityLabel, type UniversityChoice } from '../scripts/guest-university';
+import { chatUniversityCode, chatUniversityCountry, guestUniversitySupported, loadUniversityChoices, universityLabel, universitySearchMatches, type UniversityChoice } from '../scripts/guest-university';
 
 export default function GuestUniversity({ selected, onSelect }: {
   selected: UniversityChoice | null; onSelect: (value: UniversityChoice) => void;
@@ -27,10 +27,9 @@ export default function GuestUniversity({ selected, onSelect }: {
   }
   function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    const query = input.trim().toLocaleLowerCase('es');
-    const choice = choices.find(item => chatUniversityCode(item)?.toLocaleLowerCase('es') === query)
-      ?? choices.find(item => [universityLabel(item), item.name, item.shortName]
-      .some(label => label?.toLocaleLowerCase('es') === query));
+    const matches = universitySearchMatches(choices, input);
+    if (matches.length > 1) { setError('UP identifica a dos universidades. Elige Universidad de Palermo (Argentina) o Universidad del Pacífico (Perú).'); return; }
+    const choice = matches[0];
     if (!choice) { setError('Elige una universidad de las sugerencias.'); return; }
     choose(choice, 'search');
   }
@@ -40,7 +39,7 @@ export default function GuestUniversity({ selected, onSelect }: {
     <h1 id="guest-university-title">¿En qué universidad estudias?</h1>
     <p>Elige tu universidad antes de hacer tu primera pregunta. Puedes probar Campus sin crear una cuenta.</p>
     <form onSubmit={submit}>
-      {quickChoices.map(choice => <button key={choice.id} type="button" className="app-guest-university__quick" onClick={() => choose(choice, 'quick')}><strong>{chatUniversityCode(choice)}</strong><span>{choice.name}</span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg></button>)}
+      {quickChoices.map(choice => <button key={choice.id} type="button" className="app-guest-university__quick" onClick={() => choose(choice, 'quick')}><strong>{chatUniversityCode(choice)}</strong><span>{choice.name}{chatUniversityCode(choice) === 'UP' ? ` · ${chatUniversityCountry(choice)}` : ''}</span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg></button>)}
       <label htmlFor="guest-university">Busca tu universidad</label>
       <input id="guest-university" list="guest-universities" value={input} onChange={event => { setInput(event.target.value); setError(''); }} placeholder="Escribe el nombre de tu universidad" autoComplete="off" disabled={loading || !choices.length} />
       {loading ? <div className="app-guest-university__loading" role="status" aria-live="polite"><span className="app-sr-only">Cargando universidades…</span><span className="app-skeleton app-skeleton--line" aria-hidden="true" /><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></div> : null}
@@ -49,7 +48,7 @@ export default function GuestUniversity({ selected, onSelect }: {
       {!loading && !choices.length ? <button type="button" className="app-guest-university__continue" onClick={() => setAttempt(value => value + 1)}>Volver a intentar</button>
         : <button type="submit" className="app-guest-university__continue" disabled={loading || !input.trim()}>Continuar<svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg></button>}
     </form>
-    <p className="app-guest-university__note">El asistente está disponible para UPC, UPN y Universidad de Palermo. Guardamos tu elección en este navegador y la conservamos al crear tu cuenta.</p>
-    {selected && guestUniversitySupported(selected) ? <button type="button" className="app-guest-university__back" onClick={() => choose(selected, 'saved')}>Volver al asistente de {chatUniversityCode(selected)}</button> : null}
+    <p className="app-guest-university__note">El asistente está disponible para UPC, UPN, Universidad de Palermo y Universidad del Pacífico. Guardamos tu elección en este navegador y la conservamos al crear tu cuenta.</p>
+    {selected && guestUniversitySupported(selected) ? <button type="button" className="app-guest-university__back" onClick={() => choose(selected, 'saved')}>Volver al asistente de {selected.name}</button> : null}
   </section>;
 }

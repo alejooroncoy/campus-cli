@@ -17,8 +17,7 @@ const browser=await chromium.launch({headless:true});
 const id='11111111-1111-4111-8111-111111111111';
 const university={id:1,name:'Universidad Peruana de Ciencias Aplicadas',shortName:'UPC'};
 const otherUniversity={id:2,name:'Universidad de prueba',shortName:'PRUEBA'};
-const addedUniversities=[{id:40,name:'Universidad Privada del Norte',shortName:null,code:'UPN'},{id:90,name:'Universidad de Palermo',shortName:'UP',code:'UP'}];
-const pacifico={id:25,name:'Universidad del Pacífico',shortName:'UP'};
+const addedUniversities=[{id:40,name:'Universidad Privada del Norte',shortName:null,code:'UPN'},{id:90,name:'Universidad de Palermo',shortName:'UP',code:'UP',country:'Argentina'},{id:25,name:'Universidad del Pacífico',shortName:null,code:'UP',country:'Perú'}];
 const samples=[
  ['professor_reviews','¿Qué dicen los estudiantes de Luis Vives?'],
  ['course_professors','¿Qué profesores hay para Cálculo I?'],
@@ -36,11 +35,11 @@ async function fixture(width,scenario,run,options={}) {
   const json=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
   if(path==='/api/app/session'){
    if(state.unavailable)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
-   return json({authenticated:false,analyticsAudience:'test',plan:'anon',aiReady:true,profesAvailable:true,universityConfirmed:true,university,usage:{remaining:state.remaining,limit:5,period:'trial'},banner:{connected:false},features:{schedulePlanning:false}});
+   return json({authenticated:false,analyticsAudience:'test',plan:'anon',aiReady:true,profesAvailable:true,usage:{remaining:state.remaining,limit:5,period:'trial'},banner:{connected:false},features:{schedulePlanning:false}});
   }
   if(path==='/api/app/universities'){
    if(state.catalogFail)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
-   return json({universities:[university,otherUniversity,pacifico,...addedUniversities]});
+   return json({universities:[university,otherUniversity,...addedUniversities]});
   }
   if(path==='/api/app/profes/conversations')return json({conversations:[]});
   if(path==='/api/app/profes/message'){
@@ -65,13 +64,22 @@ async function fixture(width,scenario,run,options={}) {
 try {
  for(const width of [390,1100]) {
   for(const choice of addedUniversities)for(const method of ['quick','search']) {
-   await fixture(width,choice.code+' opens chat via '+method,async({page,requests,events})=>{
+   await fixture(width,choice.name+' opens chat via '+method,async({page,requests,events})=>{
     await page.goto(base+'/app/asistente/');
-    await page.getByRole('button',{name:`${choice.code} ${choice.name}`,exact:true}).waitFor();
+    const buttonName=`${choice.code} ${choice.name}${choice.country ? ` · ${choice.country}` : ''}`;
+    await page.getByRole('button',{name:buttonName,exact:true}).waitFor();
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-    if(method==='quick')await page.getByRole('button',{name:`${choice.code} ${choice.name}`,exact:true}).click();
-    else {await page.getByLabel('Busca tu universidad').fill(choice.code);await page.getByRole('button',{name:'Continuar',exact:true}).click();}
+    if(method==='quick')await page.getByRole('button',{name:buttonName,exact:true}).click();
+    else {
+      await page.getByLabel('Busca tu universidad').fill(choice.code);await page.getByRole('button',{name:'Continuar',exact:true}).click();
+      if(choice.code==='UP') {
+        await page.getByRole('alert').filter({hasText:'UP identifica a dos universidades'}).waitFor();
+        assert.equal(requests.length,0);assert.equal(await page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'}).count(),0);
+        await page.getByLabel('Busca tu universidad').fill(choice.name);await page.getByRole('button',{name:'Continuar',exact:true}).click();
+      }
+    }
     await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
+    if(choice.code==='UP')await page.getByRole('button',{name:new RegExp(choice.name+' · '+choice.country)}).waitFor();
     await page.reload();
     await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
     await page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'}).fill('Opiniones de profesores');
