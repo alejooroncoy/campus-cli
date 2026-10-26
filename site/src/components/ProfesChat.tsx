@@ -1700,8 +1700,8 @@ export default function ProfesChat() {
         </div>
       </dialog>
 
-      {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={feedbackTrace} traceId={feedbackTrace} onResolved={()=>{if(session?.authenticated===false&&!isGuestLimit)setSignupTrace(feedbackTrace);}}/> : null}
-      {!busy&&!isGuestLimit&&session?.authenticated===false&&signupTrace&&signupTrace===feedbackTrace?<GuestSignupInvite key={signupTrace} traceId={signupTrace}/>:null}
+      {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={`feedback:${feedbackTrace}`} traceId={feedbackTrace} onResolved={()=>{if(session?.authenticated===false&&!isGuestLimit)setSignupTrace(feedbackTrace);}}/> : null}
+      {!busy&&!isGuestLimit&&session?.authenticated===false&&signupTrace&&signupTrace===feedbackTrace?<GuestSignupInvite key={`signup:${signupTrace}`} traceId={signupTrace}/>:null}
       {isGuestLimit ? (
         <div className="app-guest-quota-reminder" role="status">
           <div className="app-guest-quota-reminder__text">
