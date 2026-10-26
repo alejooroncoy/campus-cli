@@ -1,44 +1,28 @@
 {
   "name": "campus-cli",
-  "version": "2.2.3",
-  "description": "Conecta Blackboard UPC con ChatGPT y Claude v\u00eda MCP, o \u00fasalo desde la terminal \u2014 CLI/MCP no oficial para el campus universitario (Blackboard, Canvas, Moodle...)",
+  "version": "3.0.0",
+  "description": "Cliente CLI y puente MCP del relay de Campus: cursos, tareas, notas y materiales con el acceso de tu cuenta.",
   "mcpName": "io.github.alejooroncoy/campus-cli",
   "main": "run.js",
   "exports": {
-    ".": "./run.js",
-    "./session": "./dist/providers/blackboard/auth/session.js",
-    "./login": "./dist/providers/blackboard/auth/login.js",
-    "./client": "./dist/providers/blackboard/api/client.js",
-    "./courses": "./dist/providers/blackboard/api/courses.js",
-    "./assignments-api": "./dist/providers/blackboard/api/assignments.js",
-    "./assignments": "./dist/providers/blackboard/commands/assignments.js",
-    "./types": "./dist/providers/blackboard/types.js",
-    "./mcp-tools": "./dist/providers/blackboard/mcp-tools.js",
-    "./apa7-mcp-tools": "./dist/providers/academic/apa7-mcp-tools.js",
-    "./research-mcp-tools": "./dist/providers/academic/research-mcp-tools.js",
-    "./banner-schedule": "./dist/providers/banner/schedule.js",
-    "./analytics": "./dist/analytics.js",
-    "./mendeley-mcp-tools": "./dist/providers/academic/mendeley-mcp-tools.js",
-    "./mendeley-service": "./dist/providers/academic/mendeley-service.js",
-    "./research-browser": "./dist/providers/academic/research-browser-api.js",
-    "./upn": "./dist/providers/upn/service.js",
-    "./upn-mcp-tools": "./dist/providers/upn/mcp-tools.js",
-    "./miupc": "./dist/providers/miupc/service.js",
-    "./miupc-legacy": "./dist/providers/miupc/legacy.js",
-    "./miupc-mcp-tools": "./dist/providers/miupc/mcp-tools.js"
+    ".": "./run.js"
   },
   "files": [
-    "dist",
-    ".agents/skills/apa7-campus",
-    ".agents/skills/apa7-review-campus",
+    "dist/index.js",
+    "dist/index.d.ts",
+    "dist/relay",
+    "dist/mcp/server.js",
+    "dist/mcp/server.d.ts",
+    "dist/security/files.js",
+    "dist/security/files.d.ts",
+    "dist/security/urls.js",
+    "dist/security/urls.d.ts",
     "run.js",
-    "README.md",
-    "docs/academic-research.md",
-    "CHANGELOG.md",
-    "SECURITY.md",
     "scripts/mendeley-connect.cjs",
-    "docs/mi-mundo-upn.md",
-    "docs/mi-upc.md"
+    "README.md",
+    "docs/relay-client.md",
+    "CHANGELOG.md",
+    "SECURITY.md"
   ],
   "bin": {
     "campus": "run.js",
@@ -81,9 +65,18 @@
   "type": "commonjs",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.31.0",
-    "axios": "^1.7.0",
     "chalk": "^6.0.0",
     "commander": "^15.0.0",
+    "playwright": "^1.62.1",
+    "proper-lockfile": "4.1.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "@types/proper-lockfile": "4.1.4",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2",
+    "axios": "^1.7.0",
     "entities": "^8.1.0",
     "fflate": "^0.8.3",
     "form-data": "^4.0.5",
@@ -91,16 +84,7 @@
     "ipaddr.js": "^2.5.0",
     "ora": "^9.4.1",
     "pdfjs-dist": "^6.3.289",
-    "playwright": "^1.62.1",
-    "proper-lockfile": "4.1.2",
-    "zod": "^4.4.3",
     "parse5": "8.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^26.4.0",
-    "@types/proper-lockfile": "4.1.4",
-    "tsx": "^4.23.12",
-    "typescript": "^7.0.2"
   },
   "engines": {
     "node": ">=22.13.0 || >=24"

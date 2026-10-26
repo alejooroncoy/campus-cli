@@ -6,6 +6,8 @@ import { loadOrRefreshSession, isSessionValid } from '../blackboard/auth/session
 import type { Cookie } from '../blackboard/types.js';
 import { listRecordings, readTranscript } from './api.js';
 import type { UclassRecording, UclassSession, UclassTranscript } from './types.js';
+import { rankTranscriptLines, selectRecordingForQuery } from './analysis.js';
+export { rankTranscriptLines, selectRecordingForQuery, selectRecordingsForQuery } from './analysis.js';
 
 const PROFILE_DIR = path.join(os.homedir(), '.blackboard-cli', 'browser-profile');
 const sessions = new Map<string, { classId: string; session: UclassSession }>();
@@ -105,10 +107,13 @@ export async function recordingsForCourse(courseId: string): Promise<UclassRecor
   return recordings;
 }
 
-export async function transcriptForCourse(courseId: string, recordingId?: string): Promise<UclassTranscript> {
+export async function transcriptForCourse(courseId: string, recordingId?: string, query?: string): Promise<UclassTranscript> {
   const recordings = await recordingsForCourse(courseId);
-  const recording = recordingId ? recordings.find((item) => item.recordingId === recordingId) : recordings[0];
-  if (!recording) throw new Error(recordingId ? 'La grabación no pertenece a este curso' : 'No hay grabaciones publicadas de Class para este curso');
+  const recording = recordingId ? recordings.find((item) => item.recordingId === recordingId)
+    : selectRecordingForQuery(recordings, query ?? '');
+  if (!recording) throw new Error(recordingId ? 'La grabación no pertenece a este curso'
+    : query ? 'No hay grabaciones publicadas de Class que coincidan con la fecha o clase solicitada'
+    : 'No hay grabaciones publicadas de Class para este curso');
   const key = `${courseId}:${recording.recordingId}`;
   const cached = transcripts.get(key);
   if (cached) return cached;
@@ -128,14 +133,8 @@ function minute(seconds: number | null) {
  * neighboring interventions is crucial: it prevents a candidate, example or
  * preliminary vote from being interpreted as the final answer. */
 export async function searchTranscript(courseId: string, query: string, recordingId?: string) {
-  const transcript = await transcriptForCourse(courseId, recordingId);
-  const terms = query.toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^\p{L}\p{N}]+/u).filter((term) => term.length > 2);
-  const score = (text: string) => {
-    const normalized = text.toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return terms.reduce((total, term) => total + (normalized.includes(term) ? 1 : 0), 0);
-  };
-  const hits = transcript.transcript.map((line, index) => ({ index, score: score(line.text) })).filter((hit) => hit.score > 0)
-    .sort((a, b) => b.score - a.score || a.index - b.index).slice(0, 8);
+  const transcript = await transcriptForCourse(courseId, recordingId, query);
+  const hits = rankTranscriptLines(transcript.transcript, query).slice(0, 8);
   const used = new Set<number>();
   const excerpts = hits.map(({ index }) => {
     const lines = transcript.transcript.slice(Math.max(0, index - 2), Math.min(transcript.transcript.length, index + 3))

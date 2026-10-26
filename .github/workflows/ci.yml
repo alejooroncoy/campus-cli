@@ -59,6 +59,8 @@ jobs:
           fi
       - run: npx playwright install --with-deps chromium
         timeout-minutes: 5
+      - name: Local university login capture (Chromium fixture)
+        run: node scripts/relay-login-browser-smoke.cjs
       - name: Install site browsers (Chromium and WebKit)
         run: npm --prefix site exec -- playwright install --with-deps chromium webkit
         timeout-minutes: 5
