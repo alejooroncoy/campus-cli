@@ -7,13 +7,20 @@
 .turnitin-public .button { min-height:52px; border-radius:9px; gap:12px; }
 .turnitin-public .ti-breadcrumb { display:flex; gap:10px; padding-top:24px; color:var(--muted); font-size:13px; }
 .turnitin-public .ti-breadcrumb a { text-decoration:underline; text-underline-offset:4px; }
-.turnitin-public .ti-hero { display:grid; grid-template-columns:1.2fr .85fr; gap:72px; align-items:center; padding-block:52px 72px; }
+.turnitin-public .ti-hero { display:grid; grid-template-columns:1.2fr .85fr; gap:28px 72px; align-items:center; padding-block:52px 72px; }
 .turnitin-public .ti-hero h1 { font-size:clamp(40px,4.7vw,62px); line-height:1.08; letter-spacing:-2px; margin:0 0 24px; }
 .turnitin-public .ti-lead { max-width:560px; font-size:18px; line-height:1.7; color:var(--muted); margin:0; }
 .turnitin-public .ti-lead strong { color:var(--ink); font-weight:600; }
 .turnitin-public .ti-actions { display:flex; align-items:center; flex-wrap:wrap; gap:22px; margin:28px 0 14px; }
 .turnitin-public .text-link { display:inline-flex; align-items:center; gap:8px; min-height:44px; font-size:14px; }
 .turnitin-public .ti-muted { margin:0; font-size:14px; line-height:1.6; color:var(--muted); }
+.turnitin-public .ti-payment-facts { display:flex; flex-wrap:wrap; gap:8px 22px; padding:0; margin:18px 0 0; list-style:none; color:var(--muted); font-size:13px; line-height:1.6; }
+.turnitin-public .ti-payment-facts li { display:flex; align-items:center; gap:7px; }
+.turnitin-public .ti-payment-facts .ti-icon { color:#087f70; }
+.turnitin-public .ti-provider-note { grid-column:1 / -1; display:flex; align-items:flex-start; gap:12px; padding:16px 20px; border:1px solid var(--line); border-radius:12px; background:var(--sky-pale); color:var(--muted); font-size:13px; line-height:1.6; }
+.turnitin-public .ti-provider-note > .ti-icon { margin-top:1px; color:#087fa4; }
+.turnitin-public .ti-provider-note p { margin:0; }
+.turnitin-public .ti-provider-note strong { color:var(--ink); font-weight:600; }
 .turnitin-public .ti-price { background:var(--night); color:#fff; border:1px solid var(--night); border-radius:16px; padding:32px; }
 .turnitin-public .ti-price .eyebrow { color:#c8dce6; font-size:10px; letter-spacing:1px; }
 .turnitin-public .ti-price-value { display:flex; flex-wrap:wrap; align-items:baseline; gap:14px; margin:0 0 8px; }
