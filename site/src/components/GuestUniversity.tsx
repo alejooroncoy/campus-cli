@@ -1,6 +1,6 @@
 import { selectedPlan, track } from '../scripts/analytics';
 import { useEffect, useState, type SubmitEvent } from 'react';
-import { guestUniversitySupported, loadUniversityChoices, universityLabel, type UniversityChoice } from '../scripts/guest-university';
+import { chatUniversityCode, guestUniversitySupported, loadUniversityChoices, universityLabel, type UniversityChoice } from '../scripts/guest-university';
 
 export default function GuestUniversity({ selected, onSelect }: {
   selected: UniversityChoice | null; onSelect: (value: UniversityChoice) => void;
@@ -20,7 +20,7 @@ export default function GuestUniversity({ selected, onSelect }: {
     return () => { active = false; };
   }, [attempt]);
   useEffect(() => { setEntryPlan(selectedPlan()); track('campus_university_step_viewed'); }, []);
-  const upc = choices.find(item => item.shortName === 'UPC');
+  const quickChoices = ['UPC', 'UPN', 'UP'].flatMap(code => choices.filter(item => chatUniversityCode(item) === code));
   function choose(choice: UniversityChoice, selection_method: 'quick' | 'search' | 'saved') {
     track('campus_university_selected', { supported: guestUniversitySupported(choice), selection_method });
     onSelect(choice);
@@ -28,7 +28,7 @@ export default function GuestUniversity({ selected, onSelect }: {
   function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const query = input.trim().toLocaleLowerCase('es');
-    const choice = choices.find(item => [universityLabel(item), item.name, item.shortName]
+    const choice = choices.find(item => [universityLabel(item), item.name, item.shortName, chatUniversityCode(item)]
       .some(label => label?.toLocaleLowerCase('es') === query));
     if (!choice) { setError('Elige una universidad de las sugerencias.'); return; }
     choose(choice, 'search');
@@ -39,7 +39,7 @@ export default function GuestUniversity({ selected, onSelect }: {
     <h1 id="guest-university-title">¿En qué universidad estudias?</h1>
     <p>Elige tu universidad antes de hacer tu primera pregunta. Puedes probar Campus sin crear una cuenta.</p>
     <form onSubmit={submit}>
-      {upc ? <button type="button" className="app-guest-university__quick" onClick={() => choose(upc, 'quick')}><strong>UPC</strong><span>Universidad Peruana de Ciencias Aplicadas</span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg></button> : null}
+      {quickChoices.map(choice => <button key={choice.id} type="button" className="app-guest-university__quick" onClick={() => choose(choice, 'quick')}><strong>{chatUniversityCode(choice)}</strong><span>{choice.name}</span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg></button>)}
       <label htmlFor="guest-university">Busca tu universidad</label>
       <input id="guest-university" list="guest-universities" value={input} onChange={event => { setInput(event.target.value); setError(''); }} placeholder="Escribe el nombre de tu universidad" autoComplete="off" disabled={loading || !choices.length} />
       {loading ? <div className="app-guest-university__loading" role="status" aria-live="polite"><span className="app-sr-only">Cargando universidades…</span><span className="app-skeleton app-skeleton--line" aria-hidden="true" /><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></div> : null}
@@ -48,7 +48,7 @@ export default function GuestUniversity({ selected, onSelect }: {
       {!loading && !choices.length ? <button type="button" className="app-guest-university__continue" onClick={() => setAttempt(value => value + 1)}>Volver a intentar</button>
         : <button type="submit" className="app-guest-university__continue" disabled={loading || !input.trim()}>Continuar<svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg></button>}
     </form>
-    <p className="app-guest-university__note">Por ahora, el asistente está disponible para UPC. Guardamos tu elección en este navegador y la conservamos al crear tu cuenta.</p>
-    {selected && guestUniversitySupported(selected) ? <button type="button" className="app-guest-university__back" onClick={() => choose(selected, 'saved')}>Volver al asistente de UPC</button> : null}
+    <p className="app-guest-university__note">El asistente está disponible para UPC, UPN y Universidad del Pacífico. Guardamos tu elección en este navegador y la conservamos al crear tu cuenta.</p>
+    {selected && guestUniversitySupported(selected) ? <button type="button" className="app-guest-university__back" onClick={() => choose(selected, 'saved')}>Volver al asistente de {chatUniversityCode(selected)}</button> : null}
   </section>;
 }
