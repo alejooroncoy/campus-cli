@@ -97,11 +97,10 @@ const getLoginUrl = () => assistantLoginHref(typeof window === 'undefined' ? '/a
 const guestQuotaDismissedKey = "campus-profes-quota-dismissed";
 const upcHintDismissedKey = "campus-profes-upc-hint-dismissed";
 const suggestions = [
-  { icon: "users", label: "Opiniones de profesores", prompt: "¿Qué dicen los estudiantes del profesor " },
-  { icon: "book-open", label: "Profesores por curso", prompt: "Quiero encontrar profesores para el curso de " },
-  { icon: "calendar-days", label: "Horario y clases", prompt: "¿Cuál es mi horario de clases y salones este ciclo?" },
-  { icon: "sparkles", label: "Mi malla curricular", prompt: "¿Cuáles son los cursos que me toca llevar en mi carrera?" },
-];
+  { id: "professor_reviews", icon: "users", prompt: "¿Qué dicen los estudiantes de Luis Vives?" },
+  { id: "course_professors", icon: "book-open", prompt: "¿Qué profesores hay para Cálculo I?" },
+  { id: "grade_workbook", icon: "file-text", prompt: "Quiero un Excel para calcular mis promedios." },
+] as const;
 
 function messageText(message: UIMessage) {
   return message.parts.filter(part => part.type === "text").map(part => part.text).join("\n");
@@ -703,6 +702,8 @@ export default function ProfesChat() {
     rememberGuestUniversity(value); setGuestUniversity(value); setChangingUniversity(false);
   }
   const [input, setInput] = useState("");
+  const sendingQuestion = useRef(false);
+  const examplesViewed = useRef(false);
   const [usage, setUsage] = useState<CampusSession["usage"]>();
   const [activitySteps, setActivitySteps] = useState<string[]>([]);
   const [activityExpanded, setActivityExpanded] = useState(false);
@@ -1094,8 +1095,12 @@ export default function ProfesChat() {
 
   async function submit(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
-    const question = input.trim();
-    if (!question || busy || loadingConversation || guestNeedsUniversity || guestUnsupported || access === "checking" || access === "unavailable" || access === "unsupported") return;
+    await sendQuestion(input);
+  }
+
+  async function sendQuestion(raw: string, example?: typeof suggestions[number]["id"]) {
+    const question = raw.trim();
+    if (!question || sendingQuestion.current || busy || loadingConversation || guestNeedsUniversity || guestUnsupported || access === "checking" || access === "unavailable" || access === "unsupported") return;
     if (wantsToReview(question)) {
       openReview();
       setInput("");
@@ -1103,6 +1108,9 @@ export default function ProfesChat() {
     }
     if (isGuestLimit) { markGuestDraftHandoff(); window.location.assign(getLoginUrl()); return; }
     if (access === "setup") { window.location.assign(universitySetupHref(window.location.pathname, window.location.search)); return; }
+    sendingQuestion.current = true;
+    draftEditedBeforeSession.current = true;
+    if (example) track('campus_agent_example_started', { example });
     setActivitySteps(["connecting"]);
     setActivityExpanded(false);
     setInput("");
@@ -1111,7 +1119,7 @@ export default function ProfesChat() {
       if (err?.message !== "LOGIN_REQUIRED_GUEST_LIMIT") {
         setInput(question);
       }
-    }
+    } finally { sendingQuestion.current = false; }
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -1399,7 +1407,6 @@ export default function ProfesChat() {
     ? formatStudentName(session.authenticated ? session.banner?.fullName || session.email?.split("@")[0] || "" : "")
     : previewName;
   const studentFirstName = studentName ? studentName.split(" ")[0] : "";
-  const planningEnabled = session?.features?.schedulePlanning ?? false;
   const lastUserMessage = [...messages].reverse().find(message => message.role === "user");
   const showUpcHint = !authenticated && !isGuestLimit && !upcHintDismissed && !busy
     && messages.at(-1)?.role === "assistant"
@@ -1451,6 +1458,16 @@ export default function ProfesChat() {
           {historyError ? <p className="app-profes-history__status" role="alert">{historyError}</p> : null}
     </section>
   );
+
+  const showStarters = messages.length === 0 && !currentConversationId && !input.trim()
+    && !isGuestLimit && !busy && !loadingConversation && !guestNeedsUniversity && !guestUnsupported
+    && access === 'ready' && !reviewOpen;
+  useEffect(() => {
+    if (showStarters && !examplesViewed.current) {
+      examplesViewed.current = true;
+      track('campus_agent_examples_viewed');
+    }
+  }, [showStarters]);
 
   if (guestNeedsUniversity) return <div className="app-profes-layout"><GuestUniversity selected={guestUniversity} onSelect={selectGuestUniversity} /></div>;
   if (guestUnsupported) return <div className="app-profes-layout"><section className="app-guest-university" aria-labelledby="university-coverage-title">
@@ -1683,8 +1700,8 @@ export default function ProfesChat() {
         </div>
       </dialog>
 
-      {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={feedbackTrace} traceId={feedbackTrace} onResolved={()=>{if(session?.authenticated===false&&!isGuestLimit)setSignupTrace(feedbackTrace);}}/> : null}
-      {!busy&&!isGuestLimit&&session?.authenticated===false&&signupTrace&&signupTrace===feedbackTrace?<GuestSignupInvite key={signupTrace} traceId={signupTrace}/>:null}
+      {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={`feedback:${feedbackTrace}`} traceId={feedbackTrace} onResolved={()=>{if(session?.authenticated===false&&!isGuestLimit)setSignupTrace(feedbackTrace);}}/> : null}
+      {!busy&&!isGuestLimit&&session?.authenticated===false&&signupTrace&&signupTrace===feedbackTrace?<GuestSignupInvite key={`signup:${signupTrace}`} traceId={signupTrace}/>:null}
       {isGuestLimit ? (
         <div className="app-guest-quota-reminder" role="status">
           <div className="app-guest-quota-reminder__text">
@@ -1739,18 +1756,18 @@ export default function ProfesChat() {
           void regenerate();
         }}>Reintentar consulta</button> : null}
       </div> : null}
-      {messages.length === 0 && !currentConversationId && !isGuestLimit ? (
-        <div className="app-profes-ai__suggestions" aria-label="Ideas para empezar">
-          {suggestions.filter(item => planningEnabled || item.icon !== "calendar-days").map(item => (
-            <button type="button" onClick={() => chooseSuggestion(item.prompt)} key={item.label}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><use href={`/assets/lucide.svg#${item.icon}`} /></svg>
-              <span>{item.label}</span>
-            </button>
-          ))}
-          <button type="button" onClick={openReview}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#star" /></svg>
-            <span>Dejar una reseña</span>
-          </button>
+      {showStarters ? (
+        <div className="app-profes-ai__starters">
+          <p>Toca una pregunta para enviarla.</p>
+          <div className="app-profes-ai__suggestions" role="group" aria-label="Ideas para empezar">
+            {suggestions.map(item => (
+              <button type="button" onClick={() => { void sendQuestion(item.prompt, item.id); }} key={item.id}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href={`/assets/lucide.svg#${item.icon}`} /></svg>
+                <span>{item.prompt}</span>
+              </button>
+            ))}
+          </div>
+          <button type="button" className="app-profes-ai__review-start" onClick={openReview}>Dejar una reseña</button>
         </div>
       ) : null}
       {isGuestLimit && quotaDialogOpen ? (

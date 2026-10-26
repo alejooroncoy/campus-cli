@@ -70,6 +70,9 @@ jobs:
       - name: Guest signup, negative feedback recovery and optional callback permission
         run: npm --prefix site run test:guest-signup
         timeout-minutes: 2
+      - name: Direct university choice and one-tap first questions
+        run: npm --prefix site run test:first-question
+        timeout-minutes: 2
       - name: Upload mobile thread screenshots and checks
         if: always()
         uses: actions/upload-artifact@v7

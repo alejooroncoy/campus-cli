@@ -29,6 +29,22 @@ for (const [path, page] of [
   assert.equal(analyticsPage(path), page);
   assert.deepEqual(safeAnalyticsProperties({ page, target: page, url: path + '?code=private' }), { page, target: page });
 }
+for (const [path, page] of [
+  ['/profes/upc/', 'professor_directory'],
+  ['/profes/upc/luis-vives', 'professor_profile'],
+  ['/profes/upc/luis-vives/escribir/?code=private#private', 'professor_review_form'],
+  ['/profes/resenas/', 'professor_reviews'],
+  ['/biblioteca/', 'library'], ['/biblioteca/trabajo-privado/', 'library_item'],
+  ['/app/biblioteca/', 'library_app'], ['/opiniones-campus/', 'campus_reviews'],
+  ['/about/', 'about'], ['/contacto/', 'contact'], ['/terminos/', 'terms'],
+  ['/no-afiliacion/', 'independence'], ['/app/asistente?code=private', 'assistant'],
+]) {
+  assert.equal(analyticsPage(path), page, path);
+  assert.deepEqual(safeAnalyticsProperties({ page, target: page, url: path }), { page, target: page });
+}
+assert.deepEqual(safeAnalyticsProperties({ example: 'professor_reviews', selection_method: 'quick', prompt: 'private' }), { example: 'professor_reviews', selection_method: 'quick' });
+assert.deepEqual(safeAnalyticsProperties({ example: 'private question', selection_method: 'private' }), {});
+assert.equal(analyticsPage('/profes/upc/private/private/?code=secret'), 'other');
 const storage = new Map(); const remote = [];
 globalThis.window = {}; globalThis.location = { hostname: '127.0.0.1', pathname: '/', origin: 'http://127.0.0.1:4336' };
 globalThis.sessionStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) };

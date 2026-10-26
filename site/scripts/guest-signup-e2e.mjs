@@ -79,7 +79,10 @@ try{
    await card.scrollIntoViewIfNeeded();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    await mkdir('.test-results/guest-signup',{recursive:true});await page.screenshot({path:`.test-results/guest-signup/${width}.png`});
    await card.getByRole('button',{name:'Seguir como invitado'}).click();assert.equal(await card.count(),0);
+   // Feedback and signup are sibling components; their keys must stay distinct across turns.
+   assert.equal(await page.getByRole('group',{name:'Valorar la respuesta'}).count(),1);
    await ask();await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Sí',exact:true}).click();await page.getByText('Gracias por contarnos.',{exact:true}).waitFor();assert.equal(await card.count(),0);assert.equal(state.auth,null);
+   assert.equal(await page.getByRole('group',{name:'Valorar la respuesta'}).count(),1);
   });
   await fixture(width,'explicit opt-in and conversation return',async({page,state,ask})=>{
    await page.goto(base+'/app/asistente/');await ask();await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Sí',exact:true}).click();const card=page.locator('[data-guest-signup-invite]');await card.waitFor();assert.equal(await page.locator('[data-agent-recovery]').count(),0);await card.getByRole('checkbox').check();
