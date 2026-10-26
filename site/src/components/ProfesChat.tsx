@@ -699,6 +699,7 @@ export default function ProfesChat() {
   const guestNeedsUniversity = session?.authenticated === false && (changingUniversity || !guestUniversity);
   const guestUnsupported = session?.authenticated === false && !guestUniversitySupported(guestUniversity);
   function selectGuestUniversity(value: UniversityChoice) {
+    if (guestUniversity && guestUniversity.id !== value.id) startNewConversation();
     rememberGuestUniversity(value); setGuestUniversity(value); setChangingUniversity(false);
   }
   const [input, setInput] = useState("");
@@ -1497,8 +1498,8 @@ export default function ProfesChat() {
 
       {/* Top Toolbar for Profes */}
       <div className="app-profes-toolbar">
-        {session?.authenticated && session.universityConfirmed && session.university ? <a className="app-university-context" href="/app/perfil/">{universityLabel(session.university)}<span>Cambiar</span></a>
-          : session?.authenticated === false && guestUniversity ? <button type="button" className="app-university-context" onClick={() => setChangingUniversity(true)} disabled={busy}>{universityLabel(guestUniversity)}<span>Cambiar</span></button> : null}
+        {session?.authenticated && session.universityConfirmed && session.university ? <a className="app-university-context" href="/app/perfil/"><span className="app-university-context__target"><small>Profesores y cursos de</small>{universityLabel(session.university)}</span><span className="app-university-context__change">Cambiar universidad</span></a>
+          : session?.authenticated === false && guestUniversity ? <button type="button" className="app-university-context" onClick={() => setChangingUniversity(true)} disabled={busy}><span className="app-university-context__target"><small>Profesores y cursos de</small>{universityLabel(guestUniversity)}</span><span className="app-university-context__change">Cambiar universidad</span></button> : null}
         <div className="app-assistant-account" data-state={account.state} aria-label="Tu plan y consultas">
           <div className="app-assistant-account__summary">
             <strong className="app-assistant-account__label"><span className="app-assistant-account__dot" aria-hidden="true" />{account.state === "loading" ? <><span className="app-sr-only">{account.label}</span><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></> : account.label}</strong>

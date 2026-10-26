@@ -50,6 +50,19 @@ export function universitySearchMatches(choices: UniversityChoice[], input: stri
   return choices.filter(item => [universityLabel(item), item.name, item.shortName, chatUniversityCode(item)]
     .some(label => label && universityNameKey(label) === query));
 }
+export function filterChatUniversities(choices: UniversityChoice[], input: string): UniversityChoice[] {
+  const query = universityNameKey(input);
+  if (!query) return choices.filter(guestUniversitySupported);
+  // An exact acronym takes precedence over substrings: UP must show both UPs,
+  // without adding UPC and UPN or choosing a university by catalog order.
+  const exact = universitySearchMatches(choices, input);
+  if (exact.length) return exact;
+  const words = query.split(/\s+/);
+  return choices.filter(item => {
+    const label = universityNameKey(`${universityLabel(item)} ${chatUniversityCountry(item) ?? ''}`);
+    return words.every(word => label.includes(word));
+  }).sort((a, b) => Number(guestUniversitySupported(b)) - Number(guestUniversitySupported(a)));
+}
 export function guestUniversitySupported(item: UniversityChoice | null): boolean {
   return chatUniversityCode(item) !== undefined;
 }
