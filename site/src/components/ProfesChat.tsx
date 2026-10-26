@@ -5,7 +5,7 @@ import { analyticsHeaders, track } from '../scripts/analytics';
 import { canRetryQuestion, questionFailure } from '../scripts/question-retry';
 import {universitySetupHref} from "../scripts/university-onboarding";
 import GuestUniversity from './GuestUniversity';
-import { readGuestUniversity, rememberGuestUniversity, guestUniversitySupported, type UniversityChoice } from '../scripts/guest-university';
+import { readGuestUniversity, rememberGuestUniversity, guestUniversitySupported, universityLabel, type UniversityChoice } from '../scripts/guest-university';
 import {assistantAccountView} from "../scripts/assistant-account";
 import {assistantLoginHref} from "../scripts/assistant-handoff";
 import { createConversationDrafts, restoreConversationDrafts, markGuestDraftHandoff } from "../scripts/conversation-drafts";
@@ -886,7 +886,7 @@ export default function ProfesChat() {
         } else {
           setAccess(!session.universityConfirmed ? "setup" : !session.profesAvailable ? "unsupported" : !session.accessUnavailable && session.aiReady ? "ready" : "unavailable");
           setAccessNote(session.universityConfirmed && !session.profesAvailable
-            ? "El asistente tiene cobertura para UPC, UPN y Universidad de Palermo. Tu universidad ya quedó registrada."
+            ? "El asistente tiene cobertura para UPC, UPN, Universidad de Palermo y Universidad del Pacífico. Tu universidad ya quedó registrada."
             : session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
         }
   }
@@ -1474,7 +1474,7 @@ export default function ProfesChat() {
     <p className="app-guest-university__eyebrow">TU UNIVERSIDAD</p>
     <h1 id="university-coverage-title">Aún no llegamos a tu universidad.</h1>
     <p><strong>{guestUniversity?.name}</strong></p>
-    <p>El asistente de Campus está disponible para UPC, UPN y Universidad de Palermo. Elegir universidad no consume consultas.</p>
+    <p>El asistente de Campus está disponible para UPC, UPN, Universidad de Palermo y Universidad del Pacífico. Elegir universidad no consume consultas.</p>
     <button type="button" className="app-guest-university__continue" onClick={() => setChangingUniversity(true)}>Cambiar universidad</button>
     <a className="app-guest-university__back" href={assistantLoginHref(window.location.pathname)}>Crear cuenta y conservar mi universidad</a>
   </section></div>;
@@ -1497,8 +1497,8 @@ export default function ProfesChat() {
 
       {/* Top Toolbar for Profes */}
       <div className="app-profes-toolbar">
-        {session?.universityConfirmed && session.university ? <a className="app-university-context" href="/app/perfil/">{session.university.shortName || session.university.name}<span>Cambiar</span></a>
-          : session?.authenticated === false && guestUniversity ? <button type="button" className="app-university-context" onClick={() => setChangingUniversity(true)} disabled={busy}>{guestUniversity.shortName || guestUniversity.name}<span>Cambiar</span></button> : null}
+        {session?.authenticated && session.universityConfirmed && session.university ? <a className="app-university-context" href="/app/perfil/">{universityLabel(session.university)}<span>Cambiar</span></a>
+          : session?.authenticated === false && guestUniversity ? <button type="button" className="app-university-context" onClick={() => setChangingUniversity(true)} disabled={busy}>{universityLabel(guestUniversity)}<span>Cambiar</span></button> : null}
         <div className="app-assistant-account" data-state={account.state} aria-label="Tu plan y consultas">
           <div className="app-assistant-account__summary">
             <strong className="app-assistant-account__label"><span className="app-assistant-account__dot" aria-hidden="true" />{account.state === "loading" ? <><span className="app-sr-only">{account.label}</span><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></> : account.label}</strong>

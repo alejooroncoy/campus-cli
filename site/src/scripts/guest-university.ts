@@ -28,16 +28,27 @@ export function rememberGuestUniversity(university: UniversityChoice): void {
 }
 export function universityLabel(item: UniversityChoice): string {
   const shortName = item.shortName || chatUniversityCode(item);
-  return shortName ? `${shortName} — ${item.name}` : item.name;
+  const label = shortName ? `${shortName} — ${item.name}` : item.name;
+  const country = chatUniversityCode(item) === 'UP' ? chatUniversityCountry(item) : undefined;
+  return country ? `${label} · ${country}` : label;
 }
 const chatUniversities = [
-  ['UPC', 'Universidad Peruana de Ciencias Aplicadas'],
-  ['UPN', 'Universidad Privada del Norte'],
-  ['UP', 'Universidad de Palermo'],
+  ['UPC', 'Universidad Peruana de Ciencias Aplicadas', 'Perú'],
+  ['UPN', 'Universidad Privada del Norte', 'Perú'],
+  ['UP', 'Universidad de Palermo', 'Argentina'],
+  ['UP', 'Universidad del Pacífico', 'Perú'],
 ] as const;
 const universityNameKey = (name: string) => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
 export function chatUniversityCode(item: UniversityChoice | null): string | undefined {
   return item ? chatUniversities.find(([, name]) => universityNameKey(name) === universityNameKey(item.name))?.[0] : undefined;
+}
+export function chatUniversityCountry(item: UniversityChoice): string | undefined {
+  return chatUniversities.find(([, name]) => universityNameKey(name) === universityNameKey(item.name))?.[2];
+}
+export function universitySearchMatches(choices: UniversityChoice[], input: string): UniversityChoice[] {
+  const query = universityNameKey(input);
+  return choices.filter(item => [universityLabel(item), item.name, item.shortName, chatUniversityCode(item)]
+    .some(label => label && universityNameKey(label) === query));
 }
 export function guestUniversitySupported(item: UniversityChoice | null): boolean {
   return chatUniversityCode(item) !== undefined;
