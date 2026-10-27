@@ -31,7 +31,13 @@ export default function TurnitinChat({close}:{close:()=>void}) {
    const [doc,proof]=await Promise.all([encode(document),encode(receipt)]);
    setUncertain(true);
    const response=await fetch('/api/app/turnitin/orders',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({requestId:request.current,report:product,amountCents:offer.amountCents,consent:true,document:doc,receipt:proof}),signal:AbortSignal.timeout(60000)});
-   const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||'No pudimos confirmar el envío. Reintenta sin cambiar los archivos.');
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok){
+    // A first-attempt client rejection proves this attempt was rejected. A
+    // previous ambiguous attempt can have succeeded, so retain its request ID.
+    if(!uncertain&&[400,401,403,409,413,415,422,429].includes(response.status))setUncertain(false);
+    throw Error(data.error||'No pudimos confirmar el envío. Reintenta sin cambiar los archivos.');
+   }
    if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.order?.id??''))throw Error('No pudimos comprobar el pedido. Reintenta sin cambiar los archivos.');
    setOrder(data.order.id);setUncertain(false);
   } catch(e){setError(e instanceof Error?e.message:'No pudimos completar el envío.');} finally{submitting.current=false;setBusy(false);}
