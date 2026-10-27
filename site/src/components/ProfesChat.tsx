@@ -1,4 +1,5 @@
 import AgentFeedback from './AgentFeedback';
+import TurnitinChat from './TurnitinChat';
 import GuestSignupInvite from './GuestSignupInvite';
 import { consumeConversationHandoff } from '../scripts/account-onboarding';
 import { analyticsHeaders, track } from '../scripts/analytics';
@@ -725,6 +726,7 @@ export default function ProfesChat() {
     rememberGuestUniversity(value); setGuestUniversity(value); setChangingUniversity(false);
   }
   const [input, setInput] = useState("");
+  const [turnitinOpen,setTurnitinOpen] = useState(false);
   const [attachedPdf,setAttachedPdf] = useState<File|null>(null);
   const attachedPdfRef = useRef<File|null>(null);
   const attachmentInput = useRef<HTMLInputElement>(null);
@@ -1732,6 +1734,7 @@ export default function ProfesChat() {
         </div>
       ) : (
         <div className="app-profes-ai__composer-dock">
+          {turnitinOpen ? <TurnitinChat close={()=>setTurnitinOpen(false)} /> : null}
           <form className="app-profes-ai__composer" onSubmit={submit}>
             {attachedPdf ? <div><span>PDF adjunto: {attachedPdf.name} · Solo para esta consulta</span> <button type="button" disabled={busy} onClick={()=>{attachedPdfRef.current=null;setAttachedPdf(null);if(attachmentInput.current)attachmentInput.current.value='';}}>Quitar</button></div> : null}
             {attachmentError ? <p role="alert">{attachmentError}</p> : null}
@@ -1750,6 +1753,7 @@ export default function ProfesChat() {
             />
             <div className="app-profes-ai__composer-footer">
               {authenticated ? <><input ref={attachmentInput} type="file" accept="application/pdf,.pdf" hidden onChange={event=>{const file=event.target.files?.[0];if(!file)return;if(!/\.pdf$/i.test(file.name)||file.size>2*1024*1024||file.size===0){setAttachmentError('Elige un PDF de hasta 2 MB.');event.target.value='';return;}setAttachmentError('');attachedPdfRef.current=file;setAttachedPdf(file);}} /><button type="button" disabled={busy} onClick={()=>attachmentInput.current?.click()}>Adjuntar PDF</button></> : null}
+              {authenticated ? <button type="button" disabled={busy} onClick={()=>setTurnitinOpen(true)}>Solicitar Turnitin</button> : null}
               {busy ? (
                 <button type="button" onClick={()=>{track('campus_agent_interrupted',{step:'question'});stop();}} aria-label="Detener respuesta" title="Detener respuesta" className="app-profes-ai__send app-profes-ai__send--stop"><span aria-hidden="true" /></button>
               ) : (

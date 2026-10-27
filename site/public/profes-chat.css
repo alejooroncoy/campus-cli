@@ -1080,12 +1080,26 @@
   box-shadow: 0 3px 14px rgba(16, 42, 58, .04);
 }
 .app-profes-ai__composer textarea {
+  grid-column: 1 / -1;
   min-height: 42px;
   padding: 8px 0;
 }
 .app-profes-ai__composer-footer {
-  display: contents;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
+.app-profes-ai__composer-footer .app-profes-ai__send { margin-left: auto; }
+.app-profes-ai__composer-footer > button:not(.app-profes-ai__send) { padding: 7px 10px; border: 1px solid var(--app-line); border-radius: 12px; background: var(--app-paper); color: var(--app-link); font: inherit; font-size: 12px; cursor: pointer; }
+.app-profes-ai__composer > div:not(.app-profes-ai__composer-footer), .app-profes-ai__composer > p { grid-column: 1 / -1; overflow-wrap: anywhere; }
+.app-profes-ai__turnitin { max-height: min(60vh, 500px); overflow-y: auto; padding: 16px; margin-bottom: 10px; border: 1px solid var(--app-line); border-radius: 16px; background: var(--app-paper); font-size: 14px; }
+.app-profes-ai__turnitin h2 { display: inline-block; margin: 0 12px 12px 0; font-size: 16px; }
+.app-profes-ai__turnitin fieldset { display: grid; gap: 10px; border: 0; padding: 0; }
+.app-profes-ai__turnitin fieldset label { display: grid; gap: 4px; }
+.app-profes-ai__turnitin input[type=file], .app-profes-ai__turnitin select { max-width: 100%; }
+.app-profes-ai__turnitin button { margin: 8px 8px 0 0; padding: 8px 12px; border: 1px solid var(--app-line); border-radius: 10px; background: var(--app-paper); color: var(--app-link); font: inherit; cursor: pointer; }
+.app-profes-ai__turnitin button:disabled { opacity: .55; cursor: not-allowed; }
 .app-profes-ai__composer-dock {
   background: var(--app-canvas);
 }

@@ -66,6 +66,9 @@ jobs:
       - name: Install site browsers (Chromium and WebKit)
         run: npm --prefix site exec -- playwright install --with-deps chromium webkit
         timeout-minutes: 5
+      - name: Chat attachments and Turnitin confirmation
+        run: cd site && node scripts/attachment-chat-e2e.mjs
+        timeout-minutes: 2
       - name: Mobile replies and nested comments (Chromium and iPhone WebKit)
         run: npm --prefix site run test:review-replies
         timeout-minutes: 3
