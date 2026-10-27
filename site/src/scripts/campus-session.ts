@@ -14,7 +14,7 @@ export type CampusSession = {
   aiReady: boolean;
   accessBlocked?: boolean;
   accessUnavailable?: boolean;
-  university?: { id: number; name: string; shortName: string | null } | null;
+  university?: { id: number | null; name: string; shortName: string | null } | null;
   universityConfirmed?: boolean;
   profesAvailable?: boolean;
   features?: { schedulePlanning: boolean };

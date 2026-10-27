@@ -1,6 +1,6 @@
 import { analyticsHeaders, track } from './analytics';
 import { universitySetupHref, universityDoneHref } from "./university-onboarding";
-import { readGuestUniversity, universityLabel, universitySearchMatches, type UniversityChoice } from './guest-university';
+import { readGuestUniversity, declaredUniversity, universityLabel, universitySearchMatches, universitySelectionPayload, type UniversityChoice } from './guest-university';
 import { renderProfileAccount } from "./profile-account";
 import { renderCopilotAccount } from "./copilot-account";
 import {connectorLoginHref} from './assistant-handoff';
@@ -220,6 +220,8 @@ function initPage() {
     if (profileUniversity) profileUniversity.hidden = false;
     if (profileAuthenticated) profileAuthenticated.hidden = true;
     if (universityInput && !universityInput.value && selected) universityInput.value = universityLabel(selected);
+    const declared = document.querySelector<HTMLInputElement>('[data-app-university-not-listed]');
+    if (declared && selected) declared.checked = selected.id === null;
     if (selected) setUniversityStatus('Conservamos tu elección. Guarda para continuar.');
     if (!universityChoices.length && universitiesLoading) universitiesLoading.hidden = false;
     void loadUniversities(universityOptions).then(() => { if (universitiesLoading) universitiesLoading.hidden = true; })
@@ -234,7 +236,7 @@ function initPage() {
     renderCopilotAccount(copilotAccount, value);
     renderProfileAccount(profileAccount, value);
     if (profileError) profileError.hidden = true;
-    if (value.authenticated && !value.universityConfirmed && !["/app/perfil/", "/app/turnitin/"].includes(location.pathname)) {
+    if (value.authenticated && !value.universityConfirmed && !["/app/perfil/", "/app/turnitin/", "/app/asistente/", "/app/profes/"].includes(location.pathname) && !/^\/app\/(?:asistente|profes)\/c\//.test(location.pathname)) {
       location.assign(universitySetupHref(location.pathname, location.search));
       return;
     }
@@ -368,12 +370,13 @@ function initPage() {
     event.preventDefault();
     if (universityForm.dataset.saving === 'true') return;
     const matches = universitySearchMatches(universityChoices, universityInput?.value ?? '');
-    if (matches.length !== 1) {
+    const declared = document.querySelector<HTMLInputElement>('[data-app-university-not-listed]')?.checked;
+    const choice = declared ? declaredUniversity(universityInput?.value) : matches[0];
+    if (!choice || !declared && matches.length !== 1) {
       setUniversityStatus(matches.length > 1 ? 'UP identifica a dos universidades. Elige Universidad de Palermo (Argentina) o Universidad del Pacífico (Perú).' : "Elige una universidad de las sugerencias.");
       universityInput?.focus();
       return;
     }
-    const universityId = matches[0].id;
     universityForm.dataset.saving = 'true';
     const button = universityForm.querySelector<HTMLButtonElement>("button[type=submit]");
     if (button) {
@@ -386,7 +389,7 @@ function initPage() {
       const response = await fetch("/api/app/university", {
         method: "POST",
         headers: { "content-type": "application/json", ...analyticsHeaders() },
-        body: JSON.stringify({ universityId }),
+        body: JSON.stringify(universitySelectionPayload(choice)),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "No pudimos guardar tu universidad.");

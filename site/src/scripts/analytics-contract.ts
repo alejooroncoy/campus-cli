@@ -19,7 +19,7 @@ export const events = new Set([
   'campus_turnitin_submitted', 'campus_logout_completed',
 ]);
 const categories: Record<string, readonly string[]> = {
-  example:['professor_reviews','course_professors','grade_workbook'],
+  example:['professor_reviews','course_professors','grade_workbook','study_plan','academic_work'],
   selection_method:['quick','search','saved'],
   failure_reason:['wrong_answer','incorrect_information','not_found','technical_problem','other'],
   analytics_audience:['customer','internal','test','unknown'],

@@ -5,7 +5,7 @@ import { analyticsHeaders, track } from '../scripts/analytics';
 import { canRetryQuestion, questionFailure } from '../scripts/question-retry';
 import {universitySetupHref} from "../scripts/university-onboarding";
 import GuestUniversity from './GuestUniversity';
-import { readGuestUniversity, rememberGuestUniversity, guestUniversitySupported, universityLabel, type UniversityChoice } from '../scripts/guest-university';
+import { readGuestUniversity, rememberGuestUniversity, guestUniversitySupported, universityLabel, universitySelectionPayload, type UniversityChoice } from '../scripts/guest-university';
 import {assistantAccountView} from "../scripts/assistant-account";
 import {assistantLoginHref} from "../scripts/assistant-handoff";
 import { createConversationDrafts, restoreConversationDrafts, markGuestDraftHandoff } from "../scripts/conversation-drafts";
@@ -21,7 +21,7 @@ import { getCampusSession, getCampusProfilePreview, type CampusSession } from ".
 
 import { createConversationCache } from "../scripts/conversation-cache";
 
-type Access = "checking" | "ready" | "guest_limit" | "setup" | "unsupported" | "unavailable";
+type Access = "checking" | "ready" | "guest_limit" | "setup" | "unavailable";
 
 interface ConversationItem {
   id: string;
@@ -100,6 +100,11 @@ const suggestions = [
   { id: "professor_reviews", icon: "users", prompt: "¿Qué dicen los estudiantes de Luis Vives?" },
   { id: "course_professors", icon: "book-open", prompt: "¿Qué profesores hay para Cálculo I?" },
   { id: "grade_workbook", icon: "file-text", prompt: "Quiero un Excel para calcular mis promedios." },
+] as const;
+const studySuggestions = [
+  {id:'study_plan',icon:'book-open',prompt:'Ayúdame a organizar mi semana de estudio.'},
+  {id:'academic_work',icon:'file-text',prompt:'¿Cómo puedo estructurar un trabajo académico?'},
+  suggestions[2],
 ] as const;
 
 function messageText(message: UIMessage) {
@@ -607,7 +612,7 @@ function profesTransport(
         credentials: "same-origin",
         signal: abortSignal,
         body: JSON.stringify({ message: question, conversationId: activeConvId || undefined,
-          universityId: readGuestUniversity()?.id }),
+          ...(readGuestUniversity() ? universitySelectionPayload(readGuestUniversity()!) : {}) }),
       });
       const traceId=response.headers.get('X-Campus-Trace-Id');
       if(traceId)track('campus_agent_response_received',{trace_id:traceId,duration_ms:Math.round(performance.now()-started)});
@@ -696,9 +701,18 @@ export default function ProfesChat() {
   const [authenticated, setAuthenticated] = useState(false);
   const [guestUniversity, setGuestUniversity] = useState(readGuestUniversity);
   const [changingUniversity, setChangingUniversity] = useState(false);
-  const guestNeedsUniversity = session?.authenticated === false && (changingUniversity || !guestUniversity);
-  const guestUnsupported = session?.authenticated === false && !guestUniversitySupported(guestUniversity);
-  function selectGuestUniversity(value: UniversityChoice) {
+  const guestNeedsUniversity = session?.authenticated === false && (changingUniversity || !guestUniversity)
+    || session?.authenticated === true && !session.universityConfirmed;
+  const hasCatalogCoverage = session?.authenticated ? session.profesAvailable === true : guestUniversitySupported(guestUniversity);
+  async function selectGuestUniversity(value: UniversityChoice) {
+    if (session?.authenticated) {
+      const response = await fetch('/api/app/university', {method:'POST',credentials:'same-origin',headers:{'content-type':'application/json',...analyticsHeaders()},body:JSON.stringify(universitySelectionPayload(value)),signal:AbortSignal.timeout(8000)});
+      const result = await response.json();
+      if (!response.ok) throw Error(result.error ?? 'No pudimos guardar tu universidad.');
+      const verified = await getCampusSession(true);
+      if (!verified.authenticated || !verified.universityConfirmed || verified.university?.id !== value.id || verified.university?.name !== value.name) throw Error('No pudimos comprobar tu universidad. Inténtalo otra vez.');
+      applyAccessSession(verified);
+    } else if (guestUniversity && (guestUniversity.id !== value.id || guestUniversity.name !== value.name)) startNewConversation();
     rememberGuestUniversity(value); setGuestUniversity(value); setChangingUniversity(false);
   }
   const [input, setInput] = useState("");
@@ -884,10 +898,8 @@ export default function ProfesChat() {
           setAccess(!session.aiReady ? "unavailable" : guestRemaining > 0 ? "ready" : "guest_limit");
           setAccessNote(!session.aiReady ? "Campus no está disponible por ahora." : "");
         } else {
-          setAccess(!session.universityConfirmed ? "setup" : !session.profesAvailable ? "unsupported" : !session.accessUnavailable && session.aiReady ? "ready" : "unavailable");
-          setAccessNote(session.universityConfirmed && !session.profesAvailable
-            ? "El asistente tiene cobertura para UPC, UPN, Universidad de Palermo y Universidad del Pacífico. Tu universidad ya quedó registrada."
-            : session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
+          setAccess(!session.universityConfirmed ? "setup" : !session.accessUnavailable && session.aiReady ? "ready" : "unavailable");
+          setAccessNote(session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
         }
   }
   function restoreAccessDraft(session: CampusSession) {
@@ -1058,18 +1070,18 @@ export default function ProfesChat() {
     || (usage && !authenticated && usage.remaining <= 0));
 
   useEffect(() => {
-    if (!isGuestLimit || guestNeedsUniversity || guestUnsupported) return;
+    if (!isGuestLimit || guestNeedsUniversity) return;
     try { setQuotaDialogOpen(sessionStorage.getItem(guestQuotaDismissedKey) !== "1"); }
     catch { setQuotaDialogOpen(true); }
-  }, [isGuestLimit, guestNeedsUniversity, guestUnsupported]);
+  }, [isGuestLimit, guestNeedsUniversity]);
 
   useEffect(() => {
-    if (!isGuestLimit || !quotaDialogOpen || guestNeedsUniversity || guestUnsupported) return;
+    if (!isGuestLimit || !quotaDialogOpen || guestNeedsUniversity) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     quotaClose.current?.focus();
     return () => { document.body.style.overflow = previousOverflow; };
-  }, [isGuestLimit, quotaDialogOpen, guestNeedsUniversity, guestUnsupported]);
+  }, [isGuestLimit, quotaDialogOpen, guestNeedsUniversity]);
 
   function closeQuotaDialog() {
     try { sessionStorage.setItem(guestQuotaDismissedKey, "1"); } catch { /* El aviso compacto sigue disponible. */ }
@@ -1098,9 +1110,9 @@ export default function ProfesChat() {
     await sendQuestion(input);
   }
 
-  async function sendQuestion(raw: string, example?: typeof suggestions[number]["id"]) {
+  async function sendQuestion(raw: string, example?: (typeof suggestions[number] | typeof studySuggestions[number])["id"]) {
     const question = raw.trim();
-    if (!question || sendingQuestion.current || busy || loadingConversation || guestNeedsUniversity || guestUnsupported || access === "checking" || access === "unavailable" || access === "unsupported") return;
+    if (!question || sendingQuestion.current || busy || loadingConversation || guestNeedsUniversity || access === "checking" || access === "unavailable") return;
     if (wantsToReview(question)) {
       openReview();
       setInput("");
@@ -1399,7 +1411,6 @@ export default function ProfesChat() {
   const hint = isGuestLimit ? "Prueba completada · Continúa con Campus Free"
     : access === "checking" ? "Comprobando acceso…"
     : access === "setup" ? "Elige tu universidad al enviar"
-    : access === "unsupported" ? accessNote
     : access === "unavailable" ? accessNote
     : account.balance;
 
@@ -1460,7 +1471,7 @@ export default function ProfesChat() {
   );
 
   const showStarters = messages.length === 0 && !currentConversationId && !input.trim()
-    && !isGuestLimit && !busy && !loadingConversation && !guestNeedsUniversity && !guestUnsupported
+    && !isGuestLimit && !busy && !loadingConversation && !guestNeedsUniversity
     && access === 'ready' && !reviewOpen;
   useEffect(() => {
     if (showStarters && !examplesViewed.current) {
@@ -1469,15 +1480,7 @@ export default function ProfesChat() {
     }
   }, [showStarters]);
 
-  if (guestNeedsUniversity) return <div className="app-profes-layout"><GuestUniversity selected={guestUniversity} onSelect={selectGuestUniversity} /></div>;
-  if (guestUnsupported) return <div className="app-profes-layout"><section className="app-guest-university" aria-labelledby="university-coverage-title">
-    <p className="app-guest-university__eyebrow">TU UNIVERSIDAD</p>
-    <h1 id="university-coverage-title">Aún no llegamos a tu universidad.</h1>
-    <p><strong>{guestUniversity?.name}</strong></p>
-    <p>El asistente de Campus está disponible para UPC, UPN, Universidad de Palermo y Universidad del Pacífico. Elegir universidad no consume consultas.</p>
-    <button type="button" className="app-guest-university__continue" onClick={() => setChangingUniversity(true)}>Cambiar universidad</button>
-    <a className="app-guest-university__back" href={assistantLoginHref(window.location.pathname)}>Crear cuenta y conservar mi universidad</a>
-  </section></div>;
+  if (guestNeedsUniversity) return <div className="app-profes-layout"><GuestUniversity selected={session?.authenticated ? session.university ?? guestUniversity : guestUniversity} authenticated={session?.authenticated} onSelect={selectGuestUniversity} /></div>;
 
   return (
     <div className="app-profes-layout">
@@ -1497,8 +1500,8 @@ export default function ProfesChat() {
 
       {/* Top Toolbar for Profes */}
       <div className="app-profes-toolbar">
-        {session?.authenticated && session.universityConfirmed && session.university ? <a className="app-university-context" href="/app/perfil/">{universityLabel(session.university)}<span>Cambiar</span></a>
-          : session?.authenticated === false && guestUniversity ? <button type="button" className="app-university-context" onClick={() => setChangingUniversity(true)} disabled={busy}>{universityLabel(guestUniversity)}<span>Cambiar</span></button> : null}
+        {session?.authenticated && session.universityConfirmed && session.university ? <a className="app-university-context" href="/app/perfil/"><span className="app-university-context__target"><small>Tu universidad</small>{universityLabel(session.university)}</span><span className="app-university-context__change">Cambiar universidad</span></a>
+          : session?.authenticated === false && guestUniversity ? <button type="button" className="app-university-context" onClick={() => setChangingUniversity(true)} disabled={busy}><span className="app-university-context__target"><small>Tu universidad</small>{universityLabel(guestUniversity)}</span><span className="app-university-context__change">Cambiar universidad</span></button> : null}
         <div className="app-assistant-account" data-state={account.state} aria-label="Tu plan y consultas">
           <div className="app-assistant-account__summary">
             <strong className="app-assistant-account__label"><span className="app-assistant-account__dot" aria-hidden="true" />{account.state === "loading" ? <><span className="app-sr-only">{account.label}</span><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></> : account.label}</strong>
@@ -1732,7 +1735,7 @@ export default function ProfesChat() {
               ) : (
                 <button
                   type="submit"
-                  disabled={!input.trim() || loadingConversation || access === "checking" || access === "unavailable" || access === "unsupported"}
+                  disabled={!input.trim() || loadingConversation || access === "checking" || access === "unavailable"}
                   aria-label={access === "setup" ? "Elegir universidad y preguntar" : "Enviar pregunta"}
                   title={access === "setup" ? "Elegir universidad y preguntar" : "Enviar pregunta"}
                   className="app-profes-ai__send"
@@ -1760,14 +1763,14 @@ export default function ProfesChat() {
         <div className="app-profes-ai__starters">
           <p>Toca una pregunta para enviarla.</p>
           <div className="app-profes-ai__suggestions" role="group" aria-label="Ideas para empezar">
-            {suggestions.map(item => (
+            {(hasCatalogCoverage ? suggestions : studySuggestions).map(item => (
               <button type="button" onClick={() => { void sendQuestion(item.prompt, item.id); }} key={item.id}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><use href={`/assets/lucide.svg#${item.icon}`} /></svg>
                 <span>{item.prompt}</span>
               </button>
             ))}
           </div>
-          <button type="button" className="app-profes-ai__review-start" onClick={openReview}>Dejar una reseña</button>
+          {hasCatalogCoverage ? <button type="button" className="app-profes-ai__review-start" onClick={openReview}>Dejar una reseña</button> : null}
         </div>
       ) : null}
       {isGuestLimit && quotaDialogOpen ? (

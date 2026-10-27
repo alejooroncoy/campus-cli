@@ -1543,6 +1543,8 @@ button:disabled {
 .app-profile-university input::placeholder {
   color: var(--app-muted);
 }
+.app-profile-university .app-university-declared{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.app-profile-university .app-university-declared input{width:18px;min-height:18px;height:18px;flex:none;padding:0;accent-color:var(--app-link)}
 .app-profile-university form .app-button {
   justify-self: start;
   min-width: 190px;

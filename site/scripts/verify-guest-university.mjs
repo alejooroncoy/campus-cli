@@ -35,6 +35,14 @@ try {
     assert.deepEqual(api.universitySearchMatches([palermo,pacifico],choice.name),[choice]);
     assert.deepEqual(api.universitySearchMatches([palermo,pacifico],api.universityLabel(choice)),[choice]);
   }
+  const catalog=[upc,upn,palermo,pacifico,other];
+  assert.deepEqual(api.filterChatUniversities(catalog,''),[upc,upn,palermo,pacifico]);
+  assert.deepEqual(api.filterChatUniversities(catalog,'UP'),[palermo,pacifico],'A shared acronym keeps both options visible for an explicit choice');
+  assert.deepEqual(api.filterChatUniversities(catalog,'pacifico'),[pacifico]);
+  assert.deepEqual(api.filterChatUniversities(catalog,'norte privada'),[upn]);
+  assert.deepEqual(api.filterChatUniversities(catalog,'argentina'),[palermo]);
+  assert.deepEqual(api.filterChatUniversities(catalog,'ejemplo'),[other],'Unsupported catalog results remain visible with their availability');
+  assert.deepEqual(api.filterChatUniversities(catalog,'inexistente'),[]);
   let calls = [];
   let verifiedUniversity = upc;
   globalThis.fetch = async (url, init) => {
@@ -56,6 +64,14 @@ try {
     assert.equal(JSON.parse(calls.find(call => call.init?.method === 'POST').init.body).universityId, choice.id);
   }
   verifiedUniversity = upc; api.rememberGuestUniversity(upc);
+  const declared=api.declaredUniversity('Universidad fuera del catálogo');
+  api.rememberGuestUniversity(declared);verifiedUniversity=declared;calls=[];
+  assert.equal(api.guestUniversitySupported(declared),false);
+  await api.carryGuestUniversity(fresh,()=>true);
+  assert.deepEqual(JSON.parse(calls.find(call=>call.init?.method==='POST').init.body),{universityName:declared.name});
+  assert.equal(api.readGuestUniversity().name,declared.name);
+  for(const name of ['','a','x'.repeat(161),'x<script>',{}])assert.equal(api.declaredUniversity(name),null);
+  verifiedUniversity=upc;api.rememberGuestUniversity(upc);
   calls = [];
   const configured = { ...fresh, universityConfirmed: true, university: other };
   assert.equal(await api.carryGuestUniversity(configured, () => true), configured);
