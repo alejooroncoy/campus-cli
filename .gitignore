@@ -11,6 +11,7 @@ dist/
 .astro/
 .vercel/
 /site/.test-results/
+/site/public/build-info.json
 
 # Configuración y salidas de agentes de IA (local, por desarrollador)
 .claude/
