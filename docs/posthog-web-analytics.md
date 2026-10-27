@@ -15,13 +15,19 @@ en Desktop/Mobile/Tablet. La geolocalización, autocaptura y grabación de
 sesiones siguen desactivadas. Los filtros de cuentas internas y de prueba
 existentes se conservan.
 
+Las vistas y salidas incluyen el agente de usuario del navegador en
+`$raw_user_agent`, para que PostHog pueda clasificar tráfico automatizado. Sin él,
+PostHog clasifica el agente vacío como Automation.
+
 ## Configuración y despliegue
 
-- Configurar `PUBLIC_POSTHOG_KEY` con el **project token** de 539784 y
-  `PUBLIC_POSTHOG_HOST` con el ingestion host que devuelve PostHog. Nunca usar
-  una personal API key en el frontend.
-- Los valores locales viven en `site/.env`, ignorado por Git. Para producción,
-  configurar ambas variables en el proyecto de hosting **antes de compilar**.
+- Configurar `PUBLIC_POSTHOG_KEY` con el **project token** de 539784. Nunca usar
+  una personal API key en el frontend. El sitio envía eventos por `/c-events`
+  en su propio dominio; las reglas de `site/vercel.json` los remiten a PostHog US.
+- El valor local vive en `site/.env`, ignorado por Git. Para producción,
+  configurar la variable en el proyecto de hosting **antes de compilar**.
+- El transporte usa `credentials: omit` para no enviar cookies del sitio por
+  el proxy. Vercel factura las solicitudes y transferencia que pasan por él.
 - Compilar y desplegar el sitio. Las variables públicas de Astro se incorporan
   al bundle durante el build.
 - El asistente del backend tiene su instrumentación de IA en campus-profes;

@@ -2,6 +2,11 @@ import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 import { readFile } from 'node:fs/promises';
 const deployConfig = JSON.parse(await readFile(new URL('../vercel.json', import.meta.url), 'utf8'));
+assert.deepEqual(deployConfig.rewrites.slice(0, 3), [
+  { source: '/c-events/static/:path(.*)', destination: 'https://us-assets.i.posthog.com/static/:path' },
+  { source: '/c-events/array/:path(.*)', destination: 'https://us-assets.i.posthog.com/array/:path' },
+  { source: '/c-events/:path(.*)', destination: 'https://us.i.posthog.com/:path' },
+]);
 const csp = deployConfig.headers.flatMap(rule => rule.headers).find(header => header.key === 'Content-Security-Policy').value;
 assert.match(csp, /connect-src[^;]*https:\/\/us\.i\.posthog\.com/);
 assert.doesNotMatch(csp.split(';').find(rule => rule.trim().startsWith('script-src')), /posthog|unsafe-eval|unsafe-inline/);
@@ -99,7 +104,7 @@ const live = await import(`data:text/javascript;base64,${Buffer.from(production.
 live.analyticsSession({ authenticated: false, plan: 'anon', aiReady: true });
 await new Promise(resolve => setImmediate(resolve));
 assert.equal(resets, 1, 'A verified guest must not keep a previously identified account');
-assert.equal(config.host, 'https://us.i.posthog.com');
+assert.equal(config.host, 'https://campuscli.com/c-events');
 assert.equal(config.before_send({ event: '$autocapture', properties: { text: 'private' } }), null);
 live.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234', aiReady: true });
 live.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234', aiReady: true });

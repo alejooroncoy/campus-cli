@@ -15,7 +15,7 @@ const browser = typeof window !== 'undefined' && typeof location !== 'undefined'
   && typeof location.pathname === 'string' && typeof location.hostname === 'string';
 const local = import.meta.env?.DEV || (browser && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname));
 const key = import.meta.env?.PUBLIC_POSTHOG_KEY;
-const host = import.meta.env?.PUBLIC_POSTHOG_HOST;
+const host = browser ? `${location.origin}/c-events` : undefined;
 let client: AnalyticsClient | undefined;
 const pendingKey = 'campus-analytics-pending-v1';
 let queue: Event[] = [];
@@ -83,6 +83,10 @@ if (browser && !local && key && host) {
           distinct_id: original.distinct_id,
           $session_id: original.$session_id,
           $window_id: original.$window_id,
+          // PostHog classifies an absent user agent as automation. Read it
+          // from the browser rather than accepting a caller-provided property.
+          ...(webEvents.has(event.event) && typeof navigator !== 'undefined' && navigator.userAgent
+            ? { $raw_user_agent: navigator.userAgent.slice(0, 1024) } : {}),
           ...(event.event === '$identify' ? { $anon_distinct_id: original.$anon_distinct_id } : {}),
           $process_person_profile: event.event === '$identify' || Boolean(identity),
           $geoip_disable: true,
@@ -101,7 +105,7 @@ if (browser && !local && key && host) {
     queue = []; persistQueue();
   }).catch(() => { queue = []; });
 } else if (browser && !local && (!key || !host)) {
-  console.warn('[Campus analytics] Configura PUBLIC_POSTHOG_KEY y PUBLIC_POSTHOG_HOST para activar métricas.');
+  console.warn('[Campus analytics] Configura PUBLIC_POSTHOG_KEY para activar métricas.');
 }
 
 export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
