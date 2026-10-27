@@ -30,30 +30,30 @@
     "test:product-reviews": "node --test scripts/product-reviews.test.mjs"
   },
   "dependencies": {
-    "@ai-sdk/react": "^4.0.116",
-    "@astrojs/react": "^7.0.0",
+    "@ai-sdk/react": "^4.0.156",
+    "@astrojs/react": "^7.1.1",
     "@astrojs/sitemap": "^3.7.3",
     "@posthog/browser-common": "^0.9.11",
     "@posthog/core": "^1.60.1",
     "ai": "^7.0.113",
-    "astro": "^7.3.2",
+    "astro": "^7.4.2",
     "pdfjs-dist": "6.4.299",
     "posthog-js-lite": "^4.13.1",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-markdown": "^10.1.0",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.10",
+    "@astrojs/check": "^0.9.12",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "cheerio": "^1.2.0",
     "esbuild": "^0.28.2",
     "playwright": "^1.64.1",
-    "posthog-js": "1.438.12",
+    "posthog-js": "1.438.21",
     "purgecss": "^8.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   }
 }
