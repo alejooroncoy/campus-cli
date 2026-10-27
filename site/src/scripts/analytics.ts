@@ -15,7 +15,7 @@ const browser = typeof window !== 'undefined' && typeof location !== 'undefined'
   && typeof location.pathname === 'string' && typeof location.hostname === 'string';
 const local = import.meta.env?.DEV || (browser && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname));
 const key = import.meta.env?.PUBLIC_POSTHOG_KEY;
-const host = import.meta.env?.PUBLIC_POSTHOG_HOST;
+const host = browser ? `${location.origin}/c-events` : undefined;
 let client: AnalyticsClient | undefined;
 const pendingKey = 'campus-analytics-pending-v1';
 let queue: Event[] = [];
@@ -83,8 +83,15 @@ if (browser && !local && key && host) {
           distinct_id: original.distinct_id,
           $session_id: original.$session_id,
           $window_id: original.$window_id,
+          // PostHog classifies an absent user agent as automation. Read it
+          // from the browser rather than accepting a caller-provided property.
+          ...(webEvents.has(event.event) && typeof navigator !== 'undefined' && navigator.userAgent
+            ? { $raw_user_agent: navigator.userAgent.slice(0, 1024) } : {}),
           ...(event.event === '$identify' ? { $anon_distinct_id: original.$anon_distinct_id } : {}),
-          $process_person_profile: event.event === '$identify' || Boolean(identity),
+          // A campaign landing needs a person profile so PostHog can join it
+          // with the account if this visitor subsequently signs in.
+          $process_person_profile: event.event === '$identify' || Boolean(identity)
+            || (event.event === '$pageview' && typeof eventProperties(event.event, original).utm_campaign === 'string'),
           $geoip_disable: true,
           ...(identity && audience!=='unknown' ? {$set:{analytics_audience:audience,is_test:isTest===true,is_internal:audience==='internal'}} : {}),
         };
@@ -101,7 +108,7 @@ if (browser && !local && key && host) {
     queue = []; persistQueue();
   }).catch(() => { queue = []; });
 } else if (browser && !local && (!key || !host)) {
-  console.warn('[Campus analytics] Configura PUBLIC_POSTHOG_KEY y PUBLIC_POSTHOG_HOST para activar métricas.');
+  console.warn('[Campus analytics] Configura PUBLIC_POSTHOG_KEY para activar métricas.');
 }
 
 export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
@@ -181,7 +188,8 @@ function locationFor(element: Element): string {
 let webView: { properties: Record<string, unknown>; started: number } | undefined;
 function leavePage(): void {
   if (!webView) return;
-  track('$pageleave', { ...webView.properties,
+  const { utm_source: _source, utm_campaign: _campaign, ...pageProperties } = webView.properties;
+  track('$pageleave', { ...pageProperties,
     $prev_pageview_pathname: webView.properties.$pathname,
     $prev_pageview_duration: Math.max(0, (performance.now() - webView.started) / 1000) });
   webView = undefined;
@@ -194,7 +202,7 @@ function trackPage(): void {
   leavePage();
   viewPath = location.pathname; seen = new Set();
   webView = { started: performance.now(), properties: {
-    ...webPageProperties(location.pathname, location.origin, document.referrer, innerWidth), page, $pageview_id: crypto.randomUUID(),
+    ...webPageProperties(location.pathname, location.origin, document.referrer, innerWidth, location.search), page, $pageview_id: crypto.randomUUID(),
   } };
   track('$pageview', webView.properties);
   track('campus_page_viewed', { page }); observer?.disconnect(); clearSectionTimers(); visibleHeadings.clear();

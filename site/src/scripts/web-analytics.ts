@@ -1,6 +1,16 @@
 import { analyticsPage } from './analytics-contract.ts';
 
 export const webEvents = new Set(['$pageview', '$pageleave']);
+// Only Meta campaign IDs are accepted: campaign names and other query values
+// can contain personal or academic information. Never persist the raw URL.
+export function metaCampaign(search: string): Record<string, string> {
+  const query = new URLSearchParams(search);
+  const sources = query.getAll('utm_source');
+  const campaigns = query.getAll('utm_campaign');
+  if (sources.length !== 1 || campaigns.length !== 1 || sources[0].toLowerCase() !== 'meta'
+    || !/^[0-9]{6,32}$/.test(campaigns[0])) return {};
+  return { utm_source: 'meta', utm_campaign: campaigns[0] };
+}
 // These are route families, never user-provided paths, slugs or conversation IDs.
 const paths: Record<string, string> = {
   home: '/', app: '/app/', assistant: '/app/asistente/', connect: '/app/copilot/',
@@ -22,6 +32,10 @@ const origin = (value: unknown): string | undefined => {
 /** Reapply at the SDK boundary and when restoring a queued event. */
 export function safeWebProperties(input: Record<string, unknown>): Record<string, unknown> {
   const safe: Record<string, unknown> = {};
+  if (input.utm_source === 'meta' && typeof input.utm_campaign === 'string'
+    && /^[0-9]{6,32}$/.test(input.utm_campaign)) {
+    safe.utm_source = 'meta'; safe.utm_campaign = input.utm_campaign;
+  }
   const base = origin(input.$current_url);
   if (base && validPath(input.$pathname)) {
     safe.$current_url = base + input.$pathname;
@@ -39,8 +53,8 @@ export function safeWebProperties(input: Record<string, unknown>): Record<string
   return safe;
 }
 
-export function webPageProperties(pathname: string, siteOrigin: string, referrer: string, width: number) {
+export function webPageProperties(pathname: string, siteOrigin: string, referrer: string, width: number, search = '') {
   const path = paths[analyticsPage(pathname)] ?? paths.other;
   return safeWebProperties({ $current_url: siteOrigin, $pathname: path,
-    $referrer: referrer || '$direct', $device_type: width < 761 ? 'Mobile' : width < 1200 ? 'Tablet' : 'Desktop' });
+    $referrer: referrer || '$direct', $device_type: width < 761 ? 'Mobile' : width < 1200 ? 'Tablet' : 'Desktop', ...metaCampaign(search) });
 }
