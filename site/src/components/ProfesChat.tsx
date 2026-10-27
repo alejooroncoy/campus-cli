@@ -596,6 +596,8 @@ function profesTransport(
   onMiupcReconnect: (conversationId: string | null,upcRequired:boolean) => void,
   onMiupcRestored: () => void,
   onTurn: (traceId:string)=>void,
+  getAttachment: () => File | null,
+  onAttachmentSent: (file: File) => void,
 ): ChatTransport<UIMessage> {
   return {
     async sendMessages({ messages, abortSignal }) {
@@ -605,13 +607,19 @@ function profesTransport(
 
       const started=performance.now();
       const activeConvId = getConversationId();
+      const file = getAttachment();
+      let attachment: {name:string;base64:string}|undefined;
+      if (file) {
+        const data = await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(new Error('No pudimos leer el PDF.'));reader.readAsDataURL(file);});
+        attachment={name:file.name,base64:data.slice(data.indexOf(',')+1)};
+      }
       track('campus_question_submitted', { new_conversation: !activeConvId });
       const response = await fetch("/api/app/profes/message", {
         method: "POST",
         headers: { "content-type": "application/json", accept: "application/x-ndjson", ...analyticsHeaders() },
         credentials: "same-origin",
         signal: abortSignal,
-        body: JSON.stringify({ message: question, conversationId: activeConvId || undefined,
+        body: JSON.stringify({ message: question, conversationId: activeConvId || undefined, attachment,
           ...(readGuestUniversity() ? universitySelectionPayload(readGuestUniversity()!) : {}) }),
       });
       const traceId=response.headers.get('X-Campus-Trace-Id');
@@ -670,6 +678,7 @@ function profesTransport(
       }
       if (pending.trim()) readEvent(pending.trim());
       if (!answer.trim()) throw new Error("Campus no devolvió una respuesta.");
+      if (file) onAttachmentSent(file);
       track('campus_answer_displayed', { trace_id:traceId,remaining: usage?.remaining, limit: usage?.limit,duration_ms:Math.round(performance.now()-started) });
       if(traceId)onTurn(traceId);
       if(usage)onUsage(usage);
@@ -716,6 +725,10 @@ export default function ProfesChat() {
     rememberGuestUniversity(value); setGuestUniversity(value); setChangingUniversity(false);
   }
   const [input, setInput] = useState("");
+  const [attachedPdf,setAttachedPdf] = useState<File|null>(null);
+  const attachedPdfRef = useRef<File|null>(null);
+  const attachmentInput = useRef<HTMLInputElement>(null);
+  const [attachmentError,setAttachmentError] = useState('');
   const sendingQuestion = useRef(false);
   const examplesViewed = useRef(false);
   const [usage, setUsage] = useState<CampusSession["usage"]>();
@@ -867,6 +880,8 @@ export default function ProfesChat() {
     handleMiupcReconnect,
     ()=>{clearMiupcReconnectNotices();setMiupcReconnectRequired(false);setUpcReconnectRequired(false);},
     traceId=>setFeedbackTrace(traceId),
+    ()=>attachedPdfRef.current,
+    file=>{if(attachedPdfRef.current===file){attachedPdfRef.current=null;setAttachedPdf(null);if(attachmentInput.current)attachmentInput.current.value='';}},
   ), [handleConversationCreated,handleMiupcReconnect]);
   const { messages, setMessages, sendMessage, regenerate, status, error, stop } = useChat({ transport, onError: () => track('campus_flow_failed', { step: 'question', error_kind: 'rejected' }) });
   const messagesHandler = useRef(setMessages);
@@ -1238,6 +1253,7 @@ export default function ProfesChat() {
   function startNewConversation(updateUrl = true) {
     setFeedbackTrace(null);
     if (busy) return;
+    attachedPdfRef.current=null;setAttachedPdf(null);setAttachmentError('');if(attachmentInput.current)attachmentInput.current.value='';
     navigationVersion.current++;
     saveCurrentConversation();
     setLoadingConversation(false);
@@ -1262,6 +1278,7 @@ export default function ProfesChat() {
     setFeedbackTrace(null);
     if (busy) return;
     if (id === currentConversationId && !loadingConversation) { setHistoryOpen(false); return; }
+    attachedPdfRef.current=null;setAttachedPdf(null);setAttachmentError('');if(attachmentInput.current)attachmentInput.current.value='';
     const version = ++navigationVersion.current;
     saveCurrentConversation();
     setHistoryError("");
@@ -1716,6 +1733,8 @@ export default function ProfesChat() {
       ) : (
         <div className="app-profes-ai__composer-dock">
           <form className="app-profes-ai__composer" onSubmit={submit}>
+            {attachedPdf ? <div><span>PDF adjunto: {attachedPdf.name} · Solo para esta consulta</span> <button type="button" disabled={busy} onClick={()=>{attachedPdfRef.current=null;setAttachedPdf(null);if(attachmentInput.current)attachmentInput.current.value='';}}>Quitar</button></div> : null}
+            {attachmentError ? <p role="alert">{attachmentError}</p> : null}
             <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta a Campus</label>
             <textarea
               id="profes-message"
@@ -1730,6 +1749,7 @@ export default function ProfesChat() {
               disabled={busy || loadingConversation}
             />
             <div className="app-profes-ai__composer-footer">
+              {authenticated ? <><input ref={attachmentInput} type="file" accept="application/pdf,.pdf" hidden onChange={event=>{const file=event.target.files?.[0];if(!file)return;if(!/\.pdf$/i.test(file.name)||file.size>2*1024*1024||file.size===0){setAttachmentError('Elige un PDF de hasta 2 MB.');event.target.value='';return;}setAttachmentError('');attachedPdfRef.current=file;setAttachedPdf(file);}} /><button type="button" disabled={busy} onClick={()=>attachmentInput.current?.click()}>Adjuntar PDF</button></> : null}
               {busy ? (
                 <button type="button" onClick={()=>{track('campus_agent_interrupted',{step:'question'});stop();}} aria-label="Detener respuesta" title="Detener respuesta" className="app-profes-ai__send app-profes-ai__send--stop"><span aria-hidden="true" /></button>
               ) : (
