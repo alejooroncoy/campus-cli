@@ -1,7 +1,7 @@
 import { analyticsHeaders, track } from './analytics';
 import type { CampusSession } from './campus-session';
 
-export type UniversityChoice = { id: number; name: string; shortName: string | null };
+export type UniversityChoice = { id: number | null; name: string; shortName: string | null };
 export const GUEST_UNIVERSITY_KEY = 'campus-university-choice-v1';
 let memoryChoice: UniversityChoice | null = null;
 let choicesRequest: Promise<UniversityChoice[]> | undefined;
@@ -9,9 +9,19 @@ let choicesRequest: Promise<UniversityChoice[]> | undefined;
 function validChoice(value: unknown): value is UniversityChoice {
   if (!value || typeof value !== 'object') return false;
   const item = value as UniversityChoice;
-  return Number.isSafeInteger(item.id) && item.id > 0 && typeof item.name === 'string'
+  return (item.id === null ? !!declaredUniversity(item.name) : Number.isSafeInteger(item.id) && item.id! > 0) && typeof item.name === 'string'
     && item.name.length > 0 && item.name.length <= 300
+    && (item.id !== null || item.shortName === null)
     && (item.shortName === null || (typeof item.shortName === 'string' && item.shortName.length <= 100));
+}
+export function declaredUniversity(value: unknown): UniversityChoice | null {
+  if (typeof value !== 'string') return null;
+  const name = value.trim().replace(/\s+/g, ' ');
+  return name.length >= 2 && name.length <= 160 && /^[\p{L}\p{N}][\p{L}\p{M}\p{N} .,'’()&/-]+$/u.test(name)
+    ? {id:null,name,shortName:null} : null;
+}
+export function universitySelectionPayload(choice: UniversityChoice) {
+  return choice.id === null ? {universityName:choice.name} : {universityId:choice.id};
 }
 export function readGuestUniversity(): UniversityChoice | null {
   try {
@@ -40,7 +50,7 @@ const chatUniversities = [
 ] as const;
 const universityNameKey = (name: string) => name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
 export function chatUniversityCode(item: UniversityChoice | null): string | undefined {
-  return item ? chatUniversities.find(([, name]) => universityNameKey(name) === universityNameKey(item.name))?.[0] : undefined;
+  return item && item.id !== null ? chatUniversities.find(([, name]) => universityNameKey(name) === universityNameKey(item.name))?.[0] : undefined;
 }
 export function chatUniversityCountry(item: UniversityChoice): string | undefined {
   return chatUniversities.find(([, name]) => universityNameKey(name) === universityNameKey(item.name))?.[2];
@@ -72,7 +82,7 @@ export function loadUniversityChoices(): Promise<UniversityChoice[]> {
   }).then(async response => {
     if (!response.ok) throw new Error('No pudimos cargar las universidades. Inténtalo otra vez.');
     const data = await response.json() as { universities?: unknown[] };
-    const choices = data.universities?.filter(validChoice);
+    const choices = data.universities?.filter((item): item is UniversityChoice => validChoice(item) && item.id !== null);
     if (!choices?.length) throw new Error('No pudimos cargar las universidades. Inténtalo otra vez.');
     return choices;
   }).catch(error => { choicesRequest = undefined; throw error; });
@@ -86,12 +96,12 @@ export async function carryGuestUniversity(session: CampusSession, current: () =
   // After a failed automatic save, the explicit recovery form owns the next write.
   if (window.location?.pathname === '/app/perfil/' && new URLSearchParams(window.location.search).get('universidad') === 'pendiente') return session;
   try {
-    const choices = await loadUniversityChoices();
-    const choice = choices.find(item => item.id === selected.id);
+    const choice = selected.id === null ? declaredUniversity(selected.name)
+      : (await loadUniversityChoices()).find(item => item.id === selected.id);
     if (!choice || !current()) return session;
     const saved = await fetch('/api/app/university', {
       method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', ...analyticsHeaders() },
-      body: JSON.stringify({ universityId: choice.id }), signal: AbortSignal.timeout(8000),
+      body: JSON.stringify(universitySelectionPayload(choice)), signal: AbortSignal.timeout(8000),
     });
     if (!saved.ok || !current()) return session;
     const verified = await fetch('/api/app/session', {
@@ -99,7 +109,7 @@ export async function carryGuestUniversity(session: CampusSession, current: () =
     });
     if (!verified.ok) return session;
     const result = await verified.json() as CampusSession;
-    if (current() && result.authenticated && result.universityConfirmed && result.university?.id === choice.id) {
+    if (current() && result.authenticated && result.universityConfirmed && result.university?.id === choice.id && result.university?.name === choice.name) {
       track('campus_university_carried', { current_plan: result.plan === 'plus' ? 'plus' : 'free', university_confirmed: true, supported: result.profesAvailable === true });
     }
     return current() ? result : session;
