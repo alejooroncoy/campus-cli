@@ -25,6 +25,7 @@ try{
     Object.defineProperty(navigator,'userAgentData',{get:()=>({brands:[{brand:'Chromium',version:'140'}]})});
   });
   const events=[],errors=[],unexpected=[],requested=[],messages=[];
+  await context.addCookies([{name:'campus_session',value:'private-cookie',url:'https://campus.analytics.test'}]);
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',message=>messages.push(message.text()));
   let resolveReceived;
@@ -32,13 +33,14 @@ try{
   await page.route('**/*',async route=>{
     const request=route.request(),url=new URL(request.url());
     requested.push(url.origin+url.pathname);
-    if(url.origin==='https://campus.analytics.test'){
+    if(url.origin==='https://campus.analytics.test' && !url.pathname.startsWith('/c-events/')){
       if(url.pathname==='/analytics-test.js')return route.fulfill({contentType:'text/javascript',body:outputFiles[0].text});
       return route.fulfill({contentType:'text/html',body:'<!doctype html><html lang="es"><body><a href="/app/plus/">Plus</a><script type="module" src="/analytics-test.js"></script></body></html>'});
     }
-    if(url.origin==='https://posthog.analytics.test'){
+    if(url.origin==='https://campus.analytics.test'){
       if(request.method()==='OPTIONS')return route.fulfill({status:204,headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*'}});
-      if(url.pathname==='/batch/'){
+      if(url.pathname==='/c-events/batch/'){
+        assert.equal(request.headers().cookie, undefined, 'The proxy request must not carry site cookies');
         const bytes=request.postDataBuffer();assert.ok(bytes);
         let text;
         if(bytes[0]===0x1f&&bytes[1]===0x8b)text=gunzipSync(bytes).toString('utf8');
@@ -71,6 +73,7 @@ try{
   assert.equal(view.properties.$pathname,'/app/turnitin/');
   assert.equal(view.properties.$host,'campus.analytics.test');
   assert.equal(view.properties.$device_type,'Desktop');
+  assert.match(view.properties.$raw_user_agent, /Chrome\/140/);
   assert.equal(view.properties.$referrer,'https://www.google.com/');
   assert.equal(view.properties.$referring_domain,'www.google.com');
   await page.evaluate(()=>{
@@ -87,6 +90,7 @@ try{
   }
   assert.equal(events.filter(e=>e.event==='$pageview').length,2);
   const leaves=events.filter(e=>e.event==='$pageleave');assert.equal(leaves.length,2);
+  assert.ok(leaves.every(e=>e.properties.$raw_user_agent===view.properties.$raw_user_agent));
   assert.equal(leaves[0].properties.$pathname,'/app/turnitin/','Route changes leave the old route');
   assert.equal(leaves[0].properties.page,'turnitin_app');
   assert.equal(leaves[0].properties.$pageview_id,view.properties.$pageview_id);

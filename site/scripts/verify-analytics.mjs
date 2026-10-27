@@ -4,9 +4,21 @@ import { readFile } from 'node:fs/promises';
 const deployConfig = JSON.parse(await readFile(new URL('../vercel.json', import.meta.url), 'utf8'));
 const csp = deployConfig.headers.flatMap(rule => rule.headers).find(header => header.key === 'Content-Security-Policy').value;
 assert.match(csp, /connect-src[^;]*https:\/\/us\.i\.posthog\.com/);
+assert.deepEqual(deployConfig.rewrites.slice(0, 3), [
+  { source: '/c-events/static/:path(.*)', destination: 'https://us-assets.i.posthog.com/static/:path' },
+  { source: '/c-events/array/:path(.*)', destination: 'https://us-assets.i.posthog.com/array/:path' },
+  { source: '/c-events/:path(.*)', destination: 'https://us.i.posthog.com/:path' },
+]);
 assert.doesNotMatch(csp.split(';').find(rule => rule.trim().startsWith('script-src')), /posthog|unsafe-eval|unsafe-inline/);
 const { outputFiles } = await build({ entryPoints: ['src/scripts/analytics-contract.ts'], bundle: true, format: 'esm', write: false });
 const { safeAnalyticsProperties, analyticsPage } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
+const webBundle = await build({ entryPoints: ['src/scripts/web-analytics.ts'], bundle: true, format: 'esm', write: false });
+const { metaCampaign, safeWebProperties, webPageProperties } = await import(`data:text/javascript;base64,${Buffer.from(webBundle.outputFiles[0].text).toString('base64')}`);
+assert.deepEqual(metaCampaign('?utm_source=meta&utm_campaign=123456789012345&email=private@example.org'), {utm_source:'meta',utm_campaign:'123456789012345'});
+for (const search of ['?utm_source=meta&utm_campaign=private-name', '?utm_source=meta&utm_campaign=123456&utm_campaign=999999', '?utm_source=other&utm_campaign=123456', '?utm_source=meta&utm_campaign=private%40example.org']) assert.deepEqual(metaCampaign(search), {});
+assert.deepEqual(safeWebProperties({utm_source:'meta',utm_campaign:'private@example.org'}), {});
+const landing = webPageProperties('/', 'https://campuscli.com', '', 1000, '?utm_source=meta&utm_campaign=123456789&code=private');
+assert.equal(landing.utm_campaign, '123456789'); assert.equal(JSON.stringify(landing).includes('private'), false);
 assert.deepEqual(safeAnalyticsProperties({ current_plan: 'plus', selected_plan: 'free', remaining: 100, authenticated: true,
   email: 'private@example.org', message: 'private question', receipt: 'base64', $current_url: '/?code=private',
   page: 'private-course', toString: 'private', duration_ms: Infinity, limit: -1 }), {
@@ -99,8 +111,12 @@ const live = await import(`data:text/javascript;base64,${Buffer.from(production.
 live.analyticsSession({ authenticated: false, plan: 'anon', aiReady: true });
 await new Promise(resolve => setImmediate(resolve));
 assert.equal(resets, 1, 'A verified guest must not keep a previously identified account');
-assert.equal(config.host, 'https://us.i.posthog.com');
+assert.equal(config.host, 'https://campuscli.com/c-events');
 assert.equal(config.before_send({ event: '$autocapture', properties: { text: 'private' } }), null);
+const campaignLanding = config.before_send({event:'$pageview',properties:{$current_url:'https://campuscli.com/', $pathname:'/',utm_source:'meta',utm_campaign:'123456789',email:'private@example.org'}});
+assert.equal(campaignLanding.properties.$process_person_profile, true);
+assert.equal(campaignLanding.properties.utm_campaign, '123456789');
+assert.equal(JSON.stringify(campaignLanding).includes('private'), false);
 live.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234', aiReady: true });
 live.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234', aiReady: true });
 assert.deepEqual(identified, ['campus:account_uuid1234']);
