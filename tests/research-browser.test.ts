@@ -78,7 +78,9 @@ test('Browserbase fallback delivers the real API download to identity verificati
   const h = harness({ openBrowser });
   try {
     const started = await h.reader.start({ doi, url, pageCount: 1 });
-    for (let i = 0; i < 100 && h.reader.status(started).status !== 'ready'; i++) await new Promise(resolve => setTimeout(resolve, 20));
+    // A worker PDF parse can take more than two seconds on a loaded CI runner.
+    // Stop promptly on terminal failures while allowing normal scheduling delay.
+    for (let i = 0; i < 500 && !['ready', 'failed'].includes(h.reader.status(started).status); i++) await new Promise(resolve => setTimeout(resolve, 20));
     const ready = h.reader.status(started);
     assert.equal(ready.status, 'ready'); assert.equal(ready.identityAllowed, true);
     const continued = await h.reader.read({ jobId: started.jobId, expectedSha256: ready.sha256!, startPage: 2, pageCount: 1 });
