@@ -1,5 +1,22 @@
 # campus-cli — Agent Guide
 
+## Publicación del sitio en producción
+
+- Publicar mediante PR a `main` y el workflow `Publish site from checked main`.
+- No ejecutar `vercel --prod`, `vercel deploy --prebuilt --prod`, `vercel promote`,
+  `vercel rollback` ni `vercel alias set` para publicar cambios locales. Una subida
+  reemplaza todo el sitio y puede restaurar pantallas antiguas de otro checkout.
+- Vercel compila `main` sin asignar automáticamente el dominio. Solo el workflow
+  protegido `Production` puede asignar `campuscli.com` después de CI y de verificar
+  que el commit sigue siendo el último de `main` y no retrocede producción.
+- Para reintentar una publicación usar `gh workflow run site-production.yml --ref main`.
+  No acepta commits antiguos ni el contenido de un directorio local.
+- Mantener `autoAssignCustomDomains=false`. Una recuperación intencional se hace
+  con un commit de reversión en `main`, con los checks normales.
+- Verificar `https://campuscli.com/build-info.json` contra el SHA publicado.
+
+Consulta [docs/site-production.md](docs/site-production.md) para el procedimiento.
+
 This CLI/MCP server gives agents direct access to a student's university campus systems. Today only Blackboard Learn (UPC Aula Virtual) is implemented — all its tools use the `blackboard_` prefix. Use it to help students check their courses, assignments, grades, and download materials — all without opening a browser. (Future: `canvas_*`, `moodle_*` for other universities — not implemented yet.)
 
 ## CLI/MCP 3.x: relay obligatorio

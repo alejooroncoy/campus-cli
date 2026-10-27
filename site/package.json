@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/production-build.mjs",
     "css": "esbuild public/styles.css --minify --outfile=public/styles.min.css --allow-overwrite",
     "dev": "npm run pdf-assets && npm run css && astro dev",
     "build": "npm run pdf-assets && npm run css && astro build && node scripts/optimize-home-styles.mjs && node scripts/externalize-app-scripts.mjs && node scripts/prepare-professors-template.mjs && node scripts/prepare-library-template.mjs && node scripts/prepare-library-offline.mjs && node scripts/prepare-product-reviews-template.mjs",
