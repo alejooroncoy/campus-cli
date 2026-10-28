@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { test, type TestContext } from 'node:test';
 import axios from 'axios';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -13,12 +13,13 @@ const session = (): Session =>
     cookies: [{ name: 'BbRouter', value: 'x', domain: 'aulavirtual.upc.edu.pe' }],
   }) as unknown as Session;
 
-/** Redirect only the HTTP transport; keep production origin validation and pacing. */
-function localTransport(port: number): () => void {
+/** Retarget only the inner HTTP transport. createClient still installs its
+ * real origin guard, cache and pacing wrapper around this adapter. */
+function routeTestTransport(t: TestContext, port: number) {
   const previous = axios.defaults.adapter;
   const transport = axios.getAdapter(previous);
-  axios.defaults.adapter = config => transport({ ...config, baseURL: `http://127.0.0.1:${port}` });
-  return () => { axios.defaults.adapter = previous; };
+  axios.defaults.adapter = config => transport({ ...config, baseURL: `http://127.0.0.1:${port}`, proxy: false });
+  t.after(() => { axios.defaults.adapter = previous; });
 }
 
 /** Runs `n` tasks through a lane and reports the highest overlap seen. */
@@ -97,15 +98,14 @@ test('lane detection covers how Blackboard actually serves bytes', () => {
   assert.equal(laneFor({ url: '/anything', responseType: 'arraybuffer' }), 'file');
 });
 
-test('the client paces a recursive fan-out without anyone asking it to', async () => {
+test('the client paces a recursive fan-out without anyone asking it to', async t => {
   // The risk this covers: collectFiles walks the content tree with Promise.all
   // over every folder, recursively. Before pacing, a course with nested folders
   // produced dozens of simultaneous requests to the university from one
   // student, which is the shape that gets an address blocked.
   //
-  // Measured against a real server rather than a stub adapter: replacing
-  // `defaults.adapter` in the test would overwrite the very wrapper that does
-  // the pacing, and the test would pass while proving nothing.
+  // Measured against a real server. Retarget the inner transport before
+  // createClient wraps it, preserving both origin validation and pacing.
   let active = 0;
   let peak = 0;
   const server = createServer(async (_req, res) => {
@@ -118,10 +118,14 @@ test('the client paces a recursive fan-out without anyone asking it to', async (
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address() as AddressInfo;
-  const restoreTransport = localTransport(port);
+  routeTestTransport(t, port);
 
   try {
     const client = createClient(session());
+    await assert.rejects(client.get('/learn/api/public/v1/users/me', {
+      baseURL: `http://127.0.0.1:${port}`,
+    }), /Cannot override the university Blackboard origin/);
+    assert.equal(peak, 0, 'the forbidden origin reached the transport');
 
     await Promise.all(
       Array.from({ length: 16 }, (_, i) =>
@@ -132,12 +136,11 @@ test('the client paces a recursive fan-out without anyone asking it to', async (
     assert.ok(peak > 0, 'the server never saw a request');
     assert.ok(peak <= API_CONCURRENCY, `sixteen folders opened ${peak} connections at once`);
   } finally {
-    restoreTransport();
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });
 
-test('a folder of downloads reaches the server one at a time', async () => {
+test('a folder of downloads reaches the server one at a time', async t => {
   let active = 0;
   let peak = 0;
   const server = createServer(async (_req, res) => {
@@ -150,7 +153,7 @@ test('a folder of downloads reaches the server one at a time', async () => {
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address() as AddressInfo;
-  const restoreTransport = localTransport(port);
+  routeTestTransport(t, port);
 
   try {
     const client = createClient(session());
@@ -165,50 +168,52 @@ test('a folder of downloads reaches the server one at a time', async () => {
 
     assert.equal(peak, 1, `five downloads overlapped ${peak} at a time`);
   } finally {
-    restoreTransport();
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });
 
-test('one student download does not block another student', async () => {
+test('one student download does not block another student', async t => {
   // The hosted relay serves many students from one process. A single global
   // pace would be correct for the CLI and wrong here: with downloads
   // serialised across everyone, one slow file would stall the whole service.
   let serving = 0;
   let peak = 0;
+  let releaseGroup!: () => void;
+  const allStarted = new Promise<void>(resolve => { releaseGroup = resolve; });
   const server = createServer(async (_req, res) => {
     serving += 1;
     peak = Math.max(peak, serving);
-    await new Promise((r) => setTimeout(r, 40));
+    if (serving === 3) releaseGroup();
+    // A rendezvous measures overlap without a fragile wall-clock threshold.
+    // The timeout lets a broken global limiter fail instead of hanging.
+    await new Promise<void>(resolve => {
+      const timeout = setTimeout(resolve, 1_000);
+      void allStarted.then(() => { clearTimeout(timeout); resolve(); });
+    });
     serving -= 1;
     res.writeHead(200);
     res.end('bytes');
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address() as AddressInfo;
-  const restoreTransport = localTransport(port);
+  routeTestTransport(t, port);
 
   try {
     const download = (who: string) => {
-      const client = createClient(session(), { paceKey: who });
+      const client = createClient(session(), { paceKey: `${who}:${port}` });
       return client.get('/learn/api/public/v1/courses/_1_1/contents/_1_1/attachments/_1_1/download', {
         responseType: 'arraybuffer',
       });
     };
 
-    const started = Date.now();
     await Promise.all([download('ana'), download('beto'), download('caro')]);
-    const elapsed = Date.now() - started;
-
-    assert.ok(peak > 1, 'three students were serialised against each other');
-    assert.ok(elapsed < 110, `three parallel students took ${elapsed}ms, as if queued`);
+    assert.equal(peak, 3, 'three students were serialised against each other');
   } finally {
-    restoreTransport();
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });
 
-test('the same student is still serialised across clients', async () => {
+test('the same student is still serialised across clients', async t => {
   let serving = 0;
   let peak = 0;
   const server = createServer(async (_req, res) => {
@@ -221,13 +226,13 @@ test('the same student is still serialised across clients', async () => {
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address() as AddressInfo;
-  const restoreTransport = localTransport(port);
+  routeTestTransport(t, port);
 
   try {
     // Two clients, one person: rebuilding the client must not buy a fresh
     // allowance, which is how a per-call limiter enforces nothing.
     const download = () => {
-      const client = createClient(session(), { paceKey: 'ana' });
+      const client = createClient(session(), { paceKey: `ana:${port}` });
       return client.get('/learn/api/public/v1/courses/_1_1/contents/_1_1/attachments/_1_1/download', {
         responseType: 'arraybuffer',
       });
@@ -235,7 +240,6 @@ test('the same student is still serialised across clients', async () => {
     await Promise.all([download(), download(), download()]);
     assert.equal(peak, 1, `one student reached the server ${peak} times at once`);
   } finally {
-    restoreTransport();
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
 });

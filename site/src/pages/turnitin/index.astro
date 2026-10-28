@@ -5,12 +5,12 @@ import Base from '../../layouts/Base.astro';
 import TurnitinLogin from '../../components/TurnitinLogin.astro';
 import body from '../../html/turnitin/index.html?raw';
 const url = 'https://campuscli.com/turnitin/';
-const description = 'Servicio de Turnitin en Perú por S/8 de lanzamiento. Informes de similitud e IA para tu trabajo. Paga con Yape o Plin; entrega de 10 min a 1 h tras validar el pago.';
-const image = 'https://campuscli.com/assets/turnitin-peru-s8-v2.png';
+const description = 'Informes de IA o similitud por S/10; ambos por S/15. Gestión de revisión mediante Turnitin API. Paga con Yape o Plin; entrega de 10 min a 1 h tras validar el pago.';
+const image = 'https://campuscli.com/assets/og-default.jpg';
 const schemas = [
   { '@context': 'https://schema.org', '@type': 'WebPage', '@id': url + '#webpage',
-    url, name: 'Servicio de Turnitin en Perú por S/8 | Campus', description,
-    inLanguage: 'es-PE', dateModified: '2026-10-15',
+    url, name: 'Informes de IA y similitud desde S/10 | Campus', description,
+    inLanguage: 'es-PE', dateModified: '2026-10-26',
     primaryImageOfPage: { '@type': 'ImageObject', url: image, width: 1200, height: 630 },
     mainEntity: { '@id': url + '#service' }, breadcrumb: { '@id': url + '#breadcrumb' } },
   { '@context': 'https://schema.org', '@type': 'Service', '@id': url + '#service',
@@ -21,21 +21,22 @@ const schemas = [
       name: 'Campus', url: 'https://campuscli.com/' },
     availableChannel: { '@type': 'ServiceChannel', serviceUrl: 'https://campuscli.com/app/turnitin/',
       availableLanguage: 'es' },
-    offers: { '@type': 'Offer', price: '8.00', priceCurrency: 'PEN', url,
-      description: 'Promoción de lanzamiento: S/8 por documento. Regular S/10. Incluye informes de similitud e IA.',
-      priceSpecification: { '@type': 'UnitPriceSpecification', price: '8.00',
-        priceCurrency: 'PEN', unitText: 'por documento' } } },
+    offers: [
+      { '@type': 'Offer', name: 'Solo IA', price: '10.00', priceCurrency: 'PEN', url },
+      { '@type': 'Offer', name: 'Solo similitud', price: '10.00', priceCurrency: 'PEN', url },
+      { '@type': 'Offer', name: 'Similitud + IA', price: '15.00', priceCurrency: 'PEN', url },
+    ] },
   { '@context': 'https://schema.org', '@type': 'BreadcrumbList', '@id': url + '#breadcrumb',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://campuscli.com/' },
       { '@type': 'ListItem', position: 2, name: 'Turnitin Perú', item: url } ] },
 ];
 ---
-<Base title="Servicio de Turnitin en Perú por S/8 | Campus" description={description}
+<Base title="Informes de IA y similitud desde S/10 | Campus" description={description}
   canonical={url} markdownUrl={url + 'index.md'} schemas={schemas}
-  ogTitle="Turnitin Perú · Similitud + IA por S/8"
-  ogImage={image} ogImageType="image/png"
-  ogImageAlt="Campus: servicio de Turnitin en Perú. Informes de similitud e IA por S/8 de lanzamiento, regular S/10.">
+  ogTitle="IA o similitud S/10 · Ambos S/15"
+  ogImage={image} ogImageType="image/jpeg"
+  ogImageAlt="Campus: IA o similitud por S/10; ambos informes por S/15.">
   <link slot="head" rel="stylesheet" href="/turnitin.css?v=2" />
   <Fragment set:html={body} />
   <TurnitinLogin />

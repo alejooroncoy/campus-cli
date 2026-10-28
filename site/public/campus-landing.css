@@ -86,6 +86,10 @@
 .cp-extra__action strong { color:var(--cp-ink); font-size:29px; letter-spacing:-1px; }
 .cp-extra__action p span { font-size:10px; }
 .cp-extra__action a { display:inline-block; margin-top:10px; font-size:12px; font-weight:600; }
+/* Give the last card room before the footer and keep its actions together. */
+.cp-extra--library { margin-bottom:64px; }
+.cp-extra--library .cp-extra__action { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+.cp-extra--library .cp-extra__action a { min-height:44px; margin-top:0; }
 .cp-faq { display:grid; grid-template-columns:1fr 1.3fr; gap:70px; padding-block:85px 70px; }
 .cp-faq h2 { margin-bottom:25px; }
 .cp-faq__items details { border-bottom:1px solid var(--line); }
@@ -118,6 +122,8 @@
  .cp-plan__top { flex-wrap:nowrap; } .cp-plan__top h3 { font-size:23px; } .cp-plan__top .cp-plan__badge { font-size:8px; }
  .cp-extra { grid-template-columns:1fr; gap:15px; padding:23px; margin-top:25px; } .cp-extra__icon { display:none; }
  .cp-extra h2 { font-size:23px; } .cp-extra__action { text-align:left; } .cp-extra__action p { flex-direction:row; align-items:baseline; gap:12px; }
+ .cp-extra--library { margin-bottom:38px; }
+ .cp-extra--library .cp-extra__action { align-items:flex-start; }
  .cp-faq { grid-template-columns:1fr; gap:28px; padding-block:55px; } .cp-faq h2 { margin-bottom:18px; }
  .cp-final { margin-bottom:38px; padding:35px 20px; } .cp-final h2 { font-size:30px; }
 }
@@ -205,6 +211,7 @@
 .cp-motion figcaption button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 5px;border:0;background:transparent;font:inherit;font-size:11px;color:var(--muted);cursor:pointer}
 .cp-motion figcaption button[hidden]{display:none}
 .cp-motion figcaption button:hover{color:var(--ink)}
+@media(max-width:720px){.cp-motion figcaption{padding-right:64px}}
 .cp-motion.is-animated .cp-motion__question{animation:campus-question 9s ease-in-out infinite both}
 .cp-motion.is-animated .cp-motion__answer{animation:campus-answer 9s ease-in-out infinite both}
 .cp-motion.is-animated .cp-motion__typing{display:flex;animation:campus-thinking 9s linear infinite both}

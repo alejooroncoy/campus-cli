@@ -3,6 +3,16 @@
   "outputDirectory": "dist",
   "redirects": [
     {
+      "source": "/app/review",
+      "destination": "/app/asistente/?modal=review",
+      "permanent": false
+    },
+    {
+      "source": "/app/review/",
+      "destination": "/app/asistente/?modal=review",
+      "permanent": false
+    },
+    {
       "source": "/sitemap.xml",
       "destination": "/sitemap-index.xml",
       "permanent": true
@@ -26,9 +36,57 @@
       "source": "/app/profes/c/:id/",
       "destination": "/app/asistente/c/:id/",
       "permanent": false
+    },
+    {
+      "source": "/app/resenas/",
+      "destination": "/opiniones-campus/#compartir",
+      "permanent": false
     }
   ],
   "rewrites": [
+    {
+      "source": "/c-events/static/:path(.*)",
+      "destination": "https://us-assets.i.posthog.com/static/:path"
+    },
+    {
+      "source": "/c-events/array/:path(.*)",
+      "destination": "https://us-assets.i.posthog.com/array/:path"
+    },
+    {
+      "source": "/c-events/:path(.*)",
+      "destination": "https://us.i.posthog.com/:path"
+    },
+    {
+      "source": "/opiniones-campus/",
+      "destination": "/api/blackboard-chatgpt?view=opiniones"
+    },
+    {
+      "source": "/blackboard-chatgpt/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": "(.*)text/markdown(.*)"
+        }
+      ],
+      "destination": "/api/markdown-not-found"
+    },
+    {
+      "source": "/blackboard-chatgpt/",
+      "destination": "/api/blackboard-chatgpt"
+    },
+    {
+      "source": "/api/app/blackboard-reviews/",
+      "destination": "https://profes.campuscli.com/api/app/blackboard-reviews"
+    },
+    {
+      "source": "/api/app/blackboard-review/",
+      "destination": "https://profes.campuscli.com/api/app/blackboard-review"
+    },
+    {
+      "source": "/api/app/blackboard-review/withdraw/",
+      "destination": "https://profes.campuscli.com/api/app/blackboard-review/withdraw"
+    },
     {
       "source": "/biblioteca/sitemap.xml",
       "destination": "/api/library/?route=/biblioteca/sitemap.xml"
@@ -102,6 +160,9 @@
     },
     "api/library.js": {
       "includeFiles": ".generated/library.html"
+    },
+    "api/blackboard-chatgpt.js": {
+      "includeFiles": ".generated/{blackboard-chatgpt,opiniones-campus}.html"
     }
   },
   "headers": [

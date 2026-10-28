@@ -1,7 +1,7 @@
 import { track } from './analytics.ts';
 
 type Step = 'document' | 'payment';
-export function setupTurnitinRequest(form: HTMLFormElement, uploads: { validate: (kind?: 'document' | 'receipt') => boolean }) {
+export function setupTurnitinRequest(form: HTMLFormElement, uploads: { validate: (kind?: 'document' | 'receipt') => boolean }, beforePayment: () => Promise<boolean> = async () => true) {
   const panels = [...form.querySelectorAll<HTMLElement>('[data-ti-request-step]')];
   const progress = [...form.querySelectorAll<HTMLButtonElement>('.ti-request-progress [data-ti-go-step]')];
   const summary = form.querySelector<HTMLElement>('[data-ti-document-summary]')!;
@@ -24,13 +24,21 @@ export function setupTurnitinRequest(form: HTMLFormElement, uploads: { validate:
       form.scrollIntoView({ block: 'start', behavior: 'instant' });
     }
   }
-  function next() {
+  let checking = false;
+  async function next() {
+    if (checking) return false;
     if (!uploads.validate('document')) { show('document'); return false; }
-    show('payment', true); return true;
+    checking = true;
+    try {
+      if (!await beforePayment()) return false;
+      // The document may have been removed while availability was loading.
+      if (!uploads.validate('document')) { show('document'); return false; }
+      show('payment', true); return true;
+    } finally { checking = false; }
   }
   form.querySelector<HTMLButtonElement>('[data-ti-next]')!.onclick = next;
   form.querySelectorAll<HTMLButtonElement>('[data-ti-go-step]').forEach(button => {
-    button.onclick = () => { if (button.dataset.tiGoStep === 'payment') next(); else show('document', true); };
+    button.onclick = () => { if (button.dataset.tiGoStep === 'payment') void next(); else show('document', true); };
   });
   documentInput.addEventListener('change', () => {
     summary.textContent = documentInput.files?.[0]?.name ?? '';
