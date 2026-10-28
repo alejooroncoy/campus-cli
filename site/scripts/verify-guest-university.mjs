@@ -7,6 +7,9 @@ const saved = { window: globalThis.window, fetch: globalThis.fetch };
 const storage = new Map();
 globalThis.window = { localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) } };
 const upc = { id: 1, name: 'Universidad Peruana de Ciencias Aplicadas', shortName: 'UPC' };
+const upn = { id: 40, name: 'Universidad Privada del Norte', shortName: null };
+const palermo = { id: 90, name: 'Universidad de Palermo', shortName: 'UP' };
+const pacifico = { id: 25, name: 'Universidad del Pacífico', shortName: null };
 const other = { id: 2, name: 'Universidad de ejemplo', shortName: null };
 const response = (value, ok = true) => ({ ok, json: async () => value });
 try {
@@ -16,13 +19,37 @@ try {
   api = await load();
   assert.deepEqual(api.readGuestUniversity(), upc, 'The explicit choice survives a new page/module after authentication redirects');
   assert.equal(api.guestUniversitySupported(upc), true);
+  for (const [choice, code] of [[upn, 'UPN'], [palermo, 'UP'], [pacifico, 'UP']]) {
+    assert.equal(api.guestUniversitySupported(choice), true, 'Catalog entries without short names still have chat coverage');
+    assert.equal(api.chatUniversityCode(choice), code);
+    assert.equal(api.universityLabel(choice), `${code} — ${choice.name}${code === 'UP' ? ` · ${choice === palermo ? 'Argentina' : 'Perú'}` : ''}`);
+    api.rememberGuestUniversity(choice);
+    api = await load();
+    assert.deepEqual(api.readGuestUniversity(), choice);
+  }
+  api.rememberGuestUniversity(upc);
   assert.equal(api.guestUniversitySupported(other), false);
+  assert.deepEqual(api.universitySearchMatches([palermo,pacifico], 'UP').map(u=>u.id),[90,25]);
+  assert.deepEqual(api.universitySearchMatches([pacifico,palermo], 'UP').map(u=>u.id),[25,90],'Catalog order cannot resolve an ambiguous acronym');
+  for (const choice of [palermo,pacifico]) {
+    assert.deepEqual(api.universitySearchMatches([palermo,pacifico],choice.name),[choice]);
+    assert.deepEqual(api.universitySearchMatches([palermo,pacifico],api.universityLabel(choice)),[choice]);
+  }
+  const catalog=[upc,upn,palermo,pacifico,other];
+  assert.deepEqual(api.filterChatUniversities(catalog,''),[upc,upn,palermo,pacifico]);
+  assert.deepEqual(api.filterChatUniversities(catalog,'UP'),[palermo,pacifico],'A shared acronym keeps both options visible for an explicit choice');
+  assert.deepEqual(api.filterChatUniversities(catalog,'pacifico'),[pacifico]);
+  assert.deepEqual(api.filterChatUniversities(catalog,'norte privada'),[upn]);
+  assert.deepEqual(api.filterChatUniversities(catalog,'argentina'),[palermo]);
+  assert.deepEqual(api.filterChatUniversities(catalog,'ejemplo'),[other],'Unsupported catalog results remain visible with their availability');
+  assert.deepEqual(api.filterChatUniversities(catalog,'inexistente'),[]);
   let calls = [];
+  let verifiedUniversity = upc;
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
-    if (url.endsWith('universities')) return response({ universities: [upc, other] });
+    if (url.endsWith('universities')) return response({ universities: [upc, upn, palermo, pacifico, other] });
     if (url.endsWith('university')) return response({ universityConfirmed: true });
-    return response({ authenticated: true, email: 'new@example.invalid', universityConfirmed: true, university: upc, profesAvailable: true, aiReady: true });
+    return response({ authenticated: true, email: 'new@example.invalid', universityConfirmed: true, university: verifiedUniversity, profesAvailable: true, aiReady: true });
   };
   const fresh = { authenticated: true, email: 'new@example.invalid', universityConfirmed: false, aiReady: true };
   const verified = await api.carryGuestUniversity(fresh, () => true);
@@ -30,6 +57,21 @@ try {
   assert.equal(verified.profesAvailable, true);
   assert.equal(JSON.parse(calls.find(call => call.init?.method === 'POST').init.body).universityId, 1);
   assert.deepEqual(calls.map(call => call.url), ['/api/app/universities', '/api/app/university', '/api/app/session']);
+  for (const choice of [upn, palermo, pacifico]) {
+    calls = []; verifiedUniversity = choice; api.rememberGuestUniversity(choice);
+    const carried = await api.carryGuestUniversity(fresh, () => true);
+    assert.equal(carried.university.id, choice.id);
+    assert.equal(JSON.parse(calls.find(call => call.init?.method === 'POST').init.body).universityId, choice.id);
+  }
+  verifiedUniversity = upc; api.rememberGuestUniversity(upc);
+  const declared=api.declaredUniversity('Universidad fuera del catálogo');
+  api.rememberGuestUniversity(declared);verifiedUniversity=declared;calls=[];
+  assert.equal(api.guestUniversitySupported(declared),false);
+  await api.carryGuestUniversity(fresh,()=>true);
+  assert.deepEqual(JSON.parse(calls.find(call=>call.init?.method==='POST').init.body),{universityName:declared.name});
+  assert.equal(api.readGuestUniversity().name,declared.name);
+  for(const name of ['','a','x'.repeat(161),'x<script>',{}])assert.equal(api.declaredUniversity(name),null);
+  verifiedUniversity=upc;api.rememberGuestUniversity(upc);
   calls = [];
   const configured = { ...fresh, universityConfirmed: true, university: other };
   assert.equal(await api.carryGuestUniversity(configured, () => true), configured);

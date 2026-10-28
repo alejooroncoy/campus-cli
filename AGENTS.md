@@ -1,6 +1,27 @@
 # campus-cli — Agent Guide
 
+## Publicación del sitio en producción
+
+- Publicar mediante PR a `main` y el workflow `Publish site from checked main`.
+- No ejecutar `vercel --prod`, `vercel deploy --prebuilt --prod`, `vercel promote`,
+  `vercel rollback` ni `vercel alias set` para publicar cambios locales. Una subida
+  reemplaza todo el sitio y puede restaurar pantallas antiguas de otro checkout.
+- Vercel compila `main` sin asignar automáticamente el dominio. Solo el workflow
+  protegido `Production` puede asignar `campuscli.com` después de CI y de verificar
+  que el commit sigue siendo el último de `main` y no retrocede producción.
+- Para reintentar una publicación usar `gh workflow run site-production.yml --ref main`.
+  No acepta commits antiguos ni el contenido de un directorio local.
+- Mantener `autoAssignCustomDomains=false`. Una recuperación intencional se hace
+  con un commit de reversión en `main`, con los checks normales.
+- Verificar `https://campuscli.com/build-info.json` contra el SHA publicado.
+
+Consulta [docs/site-production.md](docs/site-production.md) para el procedimiento.
+
 This CLI/MCP server gives agents direct access to a student's university campus systems. Today only Blackboard Learn (UPC Aula Virtual) is implemented — all its tools use the `blackboard_` prefix. Use it to help students check their courses, assignments, grades, and download materials — all without opening a browser. (Future: `canvas_*`, `moodle_*` for other universities — not implemented yet.)
+
+## CLI/MCP 3.x: relay obligatorio
+
+`campus login` autoriza la cuenta Campus y captura la sesión universitaria con Playwright local. Tras consentimiento, envía solo las cookies del campus al relay, que verifica la identidad y las guarda cifradas. `--university` debe pertenecer al catálogo anunciado por el relay. Las consultas CLI y MCP se ejecutan exclusivamente en el relay y conservan su control de plan/cupo. No hay alternativa local ante errores de pago, red o sesión. La nueva distribución no incluye proveedores de consultas ni exports de biblioteca 2.x. Las reglas de envío descritas más abajo se aplican únicamente a hosts del núcleo que realmente expongan esas herramientas; el relay actual lee Blackboard.
 
 ## Setup
 
@@ -96,3 +117,18 @@ GET /learn/api/public/v1/courses/{courseId}/contents/{id}/attachments/{id}/downl
 | `blackboard_get_assignment_feedback` | Scores + instructor comments + feedback files for all assignments in a course |
 | `blackboard_download_feedback_file` | **[EXPERIMENTAL]** Download a file the professor attached to a graded attempt |
 | `blackboard_raw_api` | Any other Blackboard endpoint |
+
+## Mi Mundo UPN
+
+Use the 19 `upn_*` tools for portal academic and administrative reads. Reuse the existing UPN session; local explicit login is `campus login --university upn-pe`, while `campus login` keeps UPC as default. A session from another university must fail rather than switch accounts automatically. See [Mi Mundo UPN](docs/mi-mundo-upn.md) for the full CLI/MCP list.
+
+- `upn_get_profile` supplies the declared cycle and current career. Neither this profile nor a single registered program establishes past career changes.
+- Resolve courses with `upn_list_courses` before `upn_get_grades`, `upn_get_attendance` or `upn_get_course_schedule`. UPN course codes are not Blackboard IDs. Preserve raw `00` values with publication status unknown; do not invent a final posted grade.
+- Use the weekly/period schedule, academic history, registered programs, academic record and calendar tools for their respective sources. Banner remains UPC-specific.
+- Services/documents/procedures tools list published information. External service links do not prove access to those portals; listing a PDF does not mean its content was read. Visible procedure buttons do not establish eligibility.
+- `upn_get_procedure_details` reads published study-certificate conditions, price and delivery time, without creating a preview. Requests, letters, enrollment-document availability and notices are reads only. Do not create applications, pay, download state-changing procedure documents or mark notifications as read through a raw endpoint.
+- The hosted relay uses the actual account-bound connection university and sends an opaque SSO grant to its worker. Portal errors must not revoke or replace the student's Blackboard/Banner connection. No user-selected student code or arbitrary URL is accepted.
+
+## Mi UPC (UPC)
+
+Usa `miupc_*` para matrícula, notas, horarios, inasistencias, avance, pagos y trámites con la sesión UPC guardada. Consulta **ambas** `miupc_list_procedure_requests` y `miupc_list_legacy_procedure_requests` al revisar solicitudes: son sistemas separados. No afirmar que no hay trámites porque una sola bandeja está vacía. `PROCEDE` no equivale a entregado. No deducir tardanzas de los totales de asistencia: el contador no está disponible. Catálogos, precios, requisitos y botones no prueban elegibilidad ni cupos. Mantén separados Mi UPC, historial oficial Banner y evaluación/retroalimentación Blackboard. Consulta [docs/mi-upc.md](docs/mi-upc.md) para cobertura y límites. Las 31 herramientas solo leen; no crean solicitudes, vistas previas, pagos ni reservas.

@@ -8,7 +8,12 @@ function initReviewForm(){
  const step=(n:number)=>{root.querySelectorAll<HTMLElement>('[data-review-step]').forEach(el=>{if(Number(el.dataset.reviewStep)===n)el.setAttribute('aria-current','step');else el.removeAttribute('aria-current');});};
  const showError=(message:string)=>{error.textContent=message;error.hidden=false;};
  const key=`campus-native-review:${root.dataset.professorSlug}`;
- const draft=()=>{try{sessionStorage.setItem(key,JSON.stringify({text:field('text').value,rating:field('rating').value,term:field('term').value,courseId:field('courseId').value}));}catch{}};
+ const customCourse=find<HTMLElement>('[data-review-custom-course]');
+ const courseSelect=field('courseId') as HTMLSelectElement;
+ const courseName=field('courseName') as HTMLInputElement;
+ const syncCustomCourse=()=>{const active=courseSelect.value==='__other__';customCourse.hidden=!active;courseName.required=active;};
+ courseSelect.addEventListener('change',syncCustomCourse);
+ const draft=()=>{try{sessionStorage.setItem(key,JSON.stringify({text:field('text').value,rating:field('rating').value,term:field('term').value,courseId:courseSelect.value,courseName:courseName.value}));}catch{}};
  async function session(){
   try{
    const data=preview?{authenticated:true,universityConfirmed:true,university:{shortName:'UPC'}}:await fetch('/api/app/session/',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(10000)}).then(r=>{if(!r.ok)throw new Error();return r.json();});
@@ -22,7 +27,7 @@ function initReviewForm(){
     const a=document.createElement('a');a.className='button';a.href=`/app/perfil/?universidad=pendiente&return=${encodeURIComponent(location.pathname)}`;a.textContent='Ir a Mi perfil';gate.append(p,a);step(1);return;
    }
    gate.hidden=true;editor.hidden=false;step(2);
-   try{const saved=JSON.parse(sessionStorage.getItem(key)??'null');if(saved)for(const name of ['text','rating','term','courseId'])if(typeof saved[name]==='string')field(name).value=saved[name];}catch{}
+   try{const saved=JSON.parse(sessionStorage.getItem(key)??'null');if(saved)for(const name of ['text','rating','term','courseId','courseName'])if(typeof saved[name]==='string')field(name).value=saved[name];syncCustomCourse();}catch{}
   }catch{gate.textContent='No pudimos comprobar tu cuenta. Recarga la página para volver a intentarlo.';}
  }
  editor.addEventListener('input',draft);
@@ -31,8 +36,9 @@ function initReviewForm(){
   const text=field('text').value.trim();if(text.length<10){showError('Escribe al menos 10 caracteres sobre tu experiencia.');return;}
   if(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(text)||/(?:\+?51)?\s*9(?:[\s-]*\d){8}\b/.test(text)){showError('Quita correos y teléfonos del texto antes de compartirlo.');return;}
   error.hidden=true;find('[data-review-text]').textContent=text;
-  const course=field('courseId') as HTMLSelectElement;
-  find('[data-review-context]').textContent=[course.value?course.selectedOptions[0].textContent:'Curso no indicado',field('term').value?`Ciclo ${field('term').value}`:null].filter(Boolean).join(' · ');
+  const course=courseSelect;
+  const courseLabel=course.value==='__other__'?courseName.value.trim():course.value?course.selectedOptions[0].textContent:'Curso no indicado';
+  find('[data-review-context]').textContent=[courseLabel,field('term').value?`Ciclo ${field('term').value}`:null].filter(Boolean).join(' · ');
   find('[data-review-score]').textContent=field('rating').value?`Valoración al profesor: ${field('rating').value}/10`:'Sin puntuación numérica';
   editor.hidden=true;confirm.hidden=false;step(3);confirm.querySelector('h2')!.setAttribute('tabindex','-1');confirm.querySelector('h2')!.focus();confirm.scrollIntoView({block:'start'});
  });
@@ -41,7 +47,7 @@ function initReviewForm(){
   if(sending)return;sending=true;error.hidden=true;
   const button=find<HTMLButtonElement>('[data-review-submit]');button.disabled=true;button.setAttribute('aria-busy','true');
   try{
-   const input={professorId:Number(root.dataset.professorId),text:field('text').value.trim(),...(field('courseId').value?{courseId:Number(field('courseId').value)}:{}),...(field('rating').value?{rating:Number(field('rating').value)}:{}),...(field('term').value?{term:field('term').value}:{})};
+   const input={professorId:Number(root.dataset.professorId),text:field('text').value.trim(),...(courseSelect.value&&courseSelect.value!=='__other__'?{courseId:Number(courseSelect.value)}:{}),...(courseSelect.value==='__other__'?{courseName:courseName.value.trim()}:{}),...(field('rating').value?{rating:Number(field('rating').value)}:{}),...(field('term').value?{term:field('term').value}:{})};
    let message='Simulación completada. No se ha guardado ni publicado ninguna reseña.';
    if(!preview){const response=await fetch('/api/app/profes/reviews/',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify(input),signal:AbortSignal.timeout(15000)});const result=await response.json();if(!response.ok)throw new Error(result.error??'No pudimos recibir la reseña.');message=result.message;}
    confirm.hidden=true;done.hidden=false;find('[data-review-done-title]').textContent=preview?'Prueba del formulario completada':'Reseña recibida';find('[data-review-done-message]').textContent=message;

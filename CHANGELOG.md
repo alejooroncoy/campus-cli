@@ -4,9 +4,26 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
+## [3.0.0] — 2026-10-26
+
+### Changed
+- La CLI y el MCP stdio ejecutan todas las consultas a través del relay autenticado de Campus y sus controles actuales de plan, prueba y cupo. No existe una alternativa local ante rechazos o fallos de red.
+- `campus login` (alias `campus account login`) autoriza la identidad Campus con PKCE y abre Playwright local para el login universitario y MFA. Con consentimiento, envía únicamente cookies del campus; el relay verifica la identidad y almacena la sesión cifrada antes de emitir acceso MCP.
+- El cliente distribuye Playwright para login, pero excluye proveedores de consultas, sesiones universitarias heredadas y los exports de biblioteca 2.x. El backend mantiene su artefacto privado de núcleo fijado por versión.
+- El catálogo MCP, recursos, instrucciones y confirmaciones provienen del relay. `tools list` y `tools call` exponen ese catálogo; las descargas usan tickets autorizados del relay.
+- El relay actual ofrece lecturas de Blackboard; envíos, borradores y escrituras directas deben hacerse en Aula Virtual. Véase la [compatibilidad 3.x](docs/relay-client.md).
+
+### Fixed
+- Las pruebas de ritmo de solicitudes retargetean únicamente el transporte interno y mantienen la protección de origen activa.
+- El núcleo conservado completa selección de grabaciones por fecha/semana, ranking léxico y parsing separado de chat/transcripción de UPC Class. Las fechas de prueba usan Lima y un reloj explícito; estos módulos siguen fuera del paquete CLI.
+
+---
+
 ## [Unreleased]
 
 ### Added
+- Mi Mundo UPN: 19 consultas académicas y administrativas de solo lectura mediante CLI/MCP con la sesión UPN existente.
+- Mi UPC: 31 consultas de solo lectura, incluidas las bandejas independientes de Mi UPC y Mis Trámites, con verificación de la cuenta UPC.
 - La retroalimentación de Blackboard incluye comentarios por criterio de rúbrica, puntajes, pesos y niveles de logro, también en entregas grupales. Distingue rúbricas sin evaluación de lecturas restringidas o indisponibles.
 
 ### Fixed

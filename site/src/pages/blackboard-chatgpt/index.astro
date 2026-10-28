@@ -13,6 +13,7 @@ import body from "../../html/blackboard-chatgpt/index.html?raw";
  * ("blackboard chatgpt") landed on a guide that told them to open a terminal.
  */
 const url = "https://campuscli.com/blackboard-chatgpt/";
+const productImage = "https://campuscli.com/assets/og-default.jpg";
 
 const schemas = [
   {
@@ -28,6 +29,7 @@ const schemas = [
     "@context": "https://schema.org",
     "@type": "Product",
     name: "Campus para Blackboard UPC",
+    image: productImage,
     description:
       "Conecta el Aula Virtual de la UPC con ChatGPT o Claude, desde el navegador y el móvil, sin instalar nada.",
     brand: { "@type": "Brand", name: "Campus" },
@@ -88,9 +90,11 @@ const schemas = [
   canonical={url}
   ogTitle={"Tu Aula Virtual UPC dentro de ChatGPT"}
   ogDescription={"Pregunta por tus cursos, tareas y notas desde ChatGPT o Claude, también en el móvil. Sin instalar nada."}
+  ogImage={productImage}
   ogImageAlt={"Campus: Blackboard UPC dentro de ChatGPT"}
   markdownUrl={`${url}index.md`}
   schemas={schemas}
 >
+  <link rel="stylesheet" href="/product-reviews.css" />
   <Fragment set:html={body} />
 </Base>

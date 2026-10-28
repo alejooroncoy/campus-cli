@@ -1,6 +1,12 @@
 // Explicit event/property contracts: never export text, URLs with parameters,
 // academic content, file names, email, OAuth codes or receipts.
 export const events = new Set([
+  'campus_agent_examples_viewed','campus_agent_example_started',
+  'campus_agent_followup_saved','campus_agent_support_opened',
+  'campus_guest_signup_invite_viewed','campus_guest_signup_started','campus_guest_signup_dismissed',
+  'campus_materials_handoff_ready','campus_materials_handoff_copied',
+  'campus_plus_offer_viewed','campus_plus_step_viewed','campus_plus_checkout_started','campus_plus_quote_expired','campus_feedback_submitted',
+  'campus_agent_response_received','campus_agent_activity','campus_agent_interrupted',
   'campus_memory_viewed', 'campus_plus_checkout_viewed', 'campus_plus_receipt_selected', 'campus_plus_submit_started', 'campus_plus_status_viewed', 'campus_plus_payment_copied',
   'campus_page_viewed', 'campus_section_viewed', 'campus_cta_clicked',
   'campus_details_opened', 'campus_university_step_viewed', 'campus_university_selected',
@@ -13,8 +19,15 @@ export const events = new Set([
   'campus_turnitin_submitted', 'campus_logout_completed',
 ]);
 const categories: Record<string, readonly string[]> = {
-  page: ['home', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'other'],
-  target: ['app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'other', 'plans', 'features', 'whatsapp', 'auth'],
+  example:['professor_reviews','course_professors','grade_workbook','study_plan','academic_work'],
+  selection_method:['quick','search','saved'],
+  failure_reason:['wrong_answer','incorrect_information','not_found','technical_problem','other'],
+  analytics_audience:['customer','internal','test','unknown'],
+  plus_step:['guest','ready','university','payment','pending','active','rejected','unavailable','loading'],
+  activity:['connecting','search','course','reviews','answer','academic','grades'],
+  feedback_kind:['agent','plus'],reason:['resolved','not_resolved','price','unclear_value','payment_difficult','not_needed','technical_problem','other'],
+  page: ['home', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'other'],
+  target: ['app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'other', 'plans', 'features', 'whatsapp', 'auth'],
   location: ['header', 'hero', 'trial', 'free', 'plus', 'features', 'research', 'onboarding', 'faq', 'closing', 'footer', 'app', 'other'],
   section: ['plans', 'features', 'research', 'onboarding', 'faq', 'closing'],
   intent: ['trial', 'free', 'plus', 'connect', 'turnitin', 'signup', 'support', 'navigate'],
@@ -32,15 +45,21 @@ const categories: Record<string, readonly string[]> = {
   viewport: ['mobile', 'tablet', 'desktop'], environment: ['development', 'production'],
 };
 const numbers = new Set(['remaining', 'limit', 'duration_ms', 'position', 'amount_cents']);
-const booleans = new Set(['authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test']);
+const booleans = new Set(['callback_requested','authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test','is_internal']);
 export function safeAnalyticsProperties(input: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(input).filter(([key, value]) =>
-    (Object.hasOwn(categories, key) && categories[key].includes(value as string))
+    (['trace_id','conversation_id'].includes(key) && typeof value==='string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value))
+    || (Object.hasOwn(categories, key) && categories[key].includes(value as string))
     || (numbers.has(key) && typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 86_400_000)
     || (booleans.has(key) && typeof value === 'boolean')));
 }
 export function analyticsPage(path: string): string {
+  path = path.split(/[?#]/, 1)[0].replace(/\/$/, '') + '/';
   if (/^\/app\/(?:profes|asistente)\//.test(path)) return 'assistant';
-  const routes: Record<string, string> = { '/': 'home', '/app/': 'app', '/app/asistente/': 'assistant', '/app/plus/': 'plus', '/app/copilot/': 'connect', '/app/perfil/': 'profile', '/app/turnitin/': 'turnitin_app', '/turnitin/': 'turnitin', '/profes/': 'professors', '/campus-cli/': 'cli', '/blackboard-upc/': 'blackboard_upc', '/blackboard-chatgpt/': 'chatgpt', '/blackboard-cli/': 'terminal', '/blackboard-mcp/': 'mcp', '/privacidad/': 'privacy' };
+  // Classify public route families without exporting names, slugs or document IDs.
+  if (/^\/profes\/upc\/[a-z0-9]+(?:-[a-z0-9]+)*\/escribir\/$/.test(path)) return 'professor_review_form';
+  if (/^\/profes\/upc\/[a-z0-9]+(?:-[a-z0-9]+)*\/$/.test(path)) return 'professor_profile';
+  if (path.startsWith('/biblioteca/') && path !== '/biblioteca/') return 'library_item';
+  const routes: Record<string, string> = { '/profes/upc/': 'professor_directory', '/profes/resenas/': 'professor_reviews', '/biblioteca/': 'library', '/app/biblioteca/': 'library_app', '/opiniones-campus/': 'campus_reviews', '/app/resenas/': 'campus_reviews', '/about/': 'about', '/contacto/': 'contact', '/terminos/': 'terms', '/no-afiliacion/': 'independence', '/': 'home', '/app/': 'app', '/app/asistente/': 'assistant', '/app/plus/': 'plus', '/app/copilot/': 'connect', '/app/perfil/': 'profile', '/app/turnitin/': 'turnitin_app', '/turnitin/': 'turnitin', '/profes/': 'professors', '/campus-cli/': 'cli', '/blackboard-upc/': 'blackboard_upc', '/blackboard-chatgpt/': 'chatgpt', '/blackboard-cli/': 'terminal', '/blackboard-mcp/': 'mcp', '/privacidad/': 'privacy' };
   return routes[path] ?? (path.startsWith('/blog/') ? 'blog' : path.startsWith('/blackboard-mcp/') ? 'mcp' : 'other');
 }

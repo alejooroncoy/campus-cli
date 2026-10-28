@@ -1,12 +1,12 @@
 // Service Worker de Campus PWA
 // Regla fundamental de seguridad académica:
 // NO almacenar en caché datos privados de consultas, notas, profesores ni respuestas de la API.
-// Solo cachea recursos estáticos del shell (CSS, fuentes, íconos, logos).
+// Solo cachea recursos estáticos del shell y el formulario vacío de Biblioteca.
 
-const CACHE_NAME = "campus-shell-v13";
+const CACHE_NAME = "campus-shell-v16";
 const STATIC_ASSETS = [
-  "/app-dashboard.css?v=22",
-  "/profes-chat.css?v=24",
+  "/app-dashboard.css?v=25",
+  "/profes-chat.css?v=25",
   "/assets/fonts/GoogleSansFlex-Regular.woff2",
   "/assets/fonts/GoogleSansFlex-SemiBold.woff2",
   "/assets/campus-logo.webp",
@@ -95,7 +95,15 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(STATIC_ASSETS);
-    }).then(() => self.skipWaiting())
+    }).then(async () => {
+      const manifest = await fetch('/library-offline-assets.json', { credentials: 'omit', cache: 'reload' });
+      if (!manifest.ok) throw new Error('Library offline manifest unavailable');
+      const assets = await manifest.json();
+      if (!Array.isArray(assets) || assets.some(path => typeof path !== 'string' || !/^\/(?!\/)/.test(path) || !(path === '/library-offline.html' || /\.(?:js|css|woff2|svg|webp|ico|png)(?:\?[^#]*)?$/.test(path)) || path.startsWith('/api/'))) throw new Error('Invalid static manifest');
+      const cache = await caches.open(CACHE_NAME);
+      await cache.addAll(assets.map(path => new Request(path, { credentials: 'omit', cache: 'reload' })));
+      return self.skipWaiting();
+    })
   );
 });
 
@@ -175,6 +183,10 @@ self.addEventListener("fetch", (event) => {
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request).catch(async () => {
+        if (url.pathname === '/app/biblioteca/' || url.pathname === '/app/biblioteca') {
+          const editor = await caches.match('/library-offline.html');
+          if (editor) return editor;
+        }
         return new Response(
           OFFLINE_HTML,
           {
@@ -188,5 +200,9 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Por defecto, fetch normal
+  if ((url.pathname.startsWith('/_astro/') && url.pathname.endsWith('.js')) || url.pathname === '/app.js') {
+    event.respondWith(fetch(request).catch(async () => (await caches.match(request)) || Response.error()));
+    return;
+  }
   event.respondWith(fetch(request));
 });

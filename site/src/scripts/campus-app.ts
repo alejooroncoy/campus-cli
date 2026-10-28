@@ -1,8 +1,9 @@
 import { analyticsHeaders, track } from './analytics';
 import { universitySetupHref, universityDoneHref } from "./university-onboarding";
-import { readGuestUniversity, universityLabel, type UniversityChoice } from './guest-university';
+import { readGuestUniversity, declaredUniversity, universityLabel, universitySearchMatches, universitySelectionPayload, type UniversityChoice } from './guest-university';
 import { renderProfileAccount } from "./profile-account";
 import { renderCopilotAccount } from "./copilot-account";
+import {connectorLoginHref} from './assistant-handoff';
 import {markGuestDraftHandoff} from "./conversation-drafts";
 import { watchLiveCampusSession } from "./live-session";
 import { watchSessionChanges } from "./session-sync";
@@ -146,8 +147,6 @@ function applyAccountUI(profile: UIProfileCache | null): void {
   }
 }
 
-const universities = new Map<string, number>();
-const universityKey = (value: string) => value.trim().toLocaleLowerCase("es-PE");
 let universityChoices: UniversityChoice[] = [];
 let universityRequest: Promise<void> | undefined;
 async function loadUniversities(optionsEl: HTMLDataListElement | null) {
@@ -157,18 +156,13 @@ async function loadUniversities(optionsEl: HTMLDataListElement | null) {
       if (!response.ok) throw new Error("No pudimos cargar las universidades. Recarga para intentarlo.");
       const data = await response.json() as { universities: UniversityChoice[] };
       universityChoices = data.universities;
-      for (const item of universityChoices) {
-        const label = item.shortName ? `${item.shortName} — ${item.name}` : item.name;
-        universities.set(universityKey(label), item.id);
-        if (item.shortName) universities.set(universityKey(item.shortName), item.id);
-      }
     }).catch(error => { universityRequest = undefined; throw error; });
     await universityRequest;
   }
   if (!optionsEl.isConnected) return;
   optionsEl.replaceChildren(...universityChoices.map(item => {
     const option = document.createElement("option");
-    option.value = item.shortName ? `${item.shortName} — ${item.name}` : item.name;
+    option.value = universityLabel(item);
     return option;
   }));
   const upc = universityChoices.find(item => item.shortName?.toUpperCase() === 'UPC');
@@ -226,13 +220,15 @@ function initPage() {
     if (profileUniversity) profileUniversity.hidden = false;
     if (profileAuthenticated) profileAuthenticated.hidden = true;
     if (universityInput && !universityInput.value && selected) universityInput.value = universityLabel(selected);
+    const declared = document.querySelector<HTMLInputElement>('[data-app-university-not-listed]');
+    if (declared && selected) declared.checked = selected.id === null;
     if (selected) setUniversityStatus('Conservamos tu elección. Guarda para continuar.');
     if (!universityChoices.length && universitiesLoading) universitiesLoading.hidden = false;
     void loadUniversities(universityOptions).then(() => { if (universitiesLoading) universitiesLoading.hidden = true; })
       .catch(error => { if (universitiesLoading) universitiesLoading.hidden = true; setUniversityStatus(error.message); });
   }
 
-  const loginUrl = `/api/app/auth/start?return=${encodeURIComponent(location.pathname)}`;
+  const loginUrl = location.pathname==='/app/copilot/'?connectorLoginHref(location.search):`/api/app/auth/start?return=${encodeURIComponent(location.pathname)}`;
   if (login) login.href = loginUrl;
 
   const renderSession = (value: CampusSession) => {
@@ -240,7 +236,7 @@ function initPage() {
     renderCopilotAccount(copilotAccount, value);
     renderProfileAccount(profileAccount, value);
     if (profileError) profileError.hidden = true;
-    if (value.authenticated && !value.universityConfirmed && !["/app/perfil/", "/app/turnitin/"].includes(location.pathname)) {
+    if (value.authenticated && !value.universityConfirmed && !["/app/perfil/", "/app/turnitin/", "/app/asistente/", "/app/profes/"].includes(location.pathname) && !/^\/app\/(?:asistente|profes)\/c\//.test(location.pathname)) {
       location.assign(universitySetupHref(location.pathname, location.search));
       return;
     }
@@ -253,7 +249,7 @@ function initPage() {
     const email = document.querySelector("[data-app-email]");
     if (email) email.textContent = value.email ?? "Inicia sesión con tu cuenta Campus.";
     const universityName = document.querySelector("[data-app-university-name]");
-    if (universityName) universityName.textContent = value.university?.shortName ? `${value.university.shortName} — ${value.university.name}` : value.university?.name ?? "Sin universidad";
+    if (universityName) universityName.textContent = value.university ? universityLabel(value.university) : "Sin universidad";
     const miupcConnector = document.querySelector<HTMLElement>("#miupc");
     if (miupcConnector) miupcConnector.hidden = !canConnectMiupc(value);
     const coverage = document.querySelector<HTMLElement>("[data-app-profile-coverage]");
@@ -372,12 +368,16 @@ function initPage() {
 
   universityForm?.addEventListener("submit", async event => {
     event.preventDefault();
-    const universityId = universities.get(universityKey(universityInput?.value ?? ""));
-    if (!universityId) {
-      setUniversityStatus("Elige una universidad de las sugerencias.");
+    if (universityForm.dataset.saving === 'true') return;
+    const matches = universitySearchMatches(universityChoices, universityInput?.value ?? '');
+    const declared = document.querySelector<HTMLInputElement>('[data-app-university-not-listed]')?.checked;
+    const choice = declared ? declaredUniversity(universityInput?.value) : matches[0];
+    if (!choice || !declared && matches.length !== 1) {
+      setUniversityStatus(matches.length > 1 ? 'UP identifica a dos universidades. Elige Universidad de Palermo (Argentina) o Universidad del Pacífico (Perú).' : "Elige una universidad de las sugerencias.");
       universityInput?.focus();
       return;
     }
+    universityForm.dataset.saving = 'true';
     const button = universityForm.querySelector<HTMLButtonElement>("button[type=submit]");
     if (button) {
       button.disabled = true; button.setAttribute("aria-busy", "true"); button.setAttribute("aria-label", "Guardando tu universidad…");
@@ -389,12 +389,13 @@ function initPage() {
       const response = await fetch("/api/app/university", {
         method: "POST",
         headers: { "content-type": "application/json", ...analyticsHeaders() },
-        body: JSON.stringify({ universityId }),
+        body: JSON.stringify(universitySelectionPayload(choice)),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "No pudimos guardar tu universidad.");
       location.assign(universityDoneHref(location.search));
     } catch (error) {
+      delete universityForm.dataset.saving;
       setUniversityStatus(error instanceof Error ? error.message : "No pudimos guardar tu universidad.");
       if (button) {
         button.disabled = false; button.removeAttribute("aria-busy"); button.removeAttribute("aria-label");

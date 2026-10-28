@@ -4,14 +4,28 @@ import { readFile } from 'node:fs/promises';
 const deployConfig = JSON.parse(await readFile(new URL('../vercel.json', import.meta.url), 'utf8'));
 const csp = deployConfig.headers.flatMap(rule => rule.headers).find(header => header.key === 'Content-Security-Policy').value;
 assert.match(csp, /connect-src[^;]*https:\/\/us\.i\.posthog\.com/);
+assert.deepEqual(deployConfig.rewrites.slice(0, 3), [
+  { source: '/c-events/static/:path(.*)', destination: 'https://us-assets.i.posthog.com/static/:path' },
+  { source: '/c-events/array/:path(.*)', destination: 'https://us-assets.i.posthog.com/array/:path' },
+  { source: '/c-events/:path(.*)', destination: 'https://us.i.posthog.com/:path' },
+]);
 assert.doesNotMatch(csp.split(';').find(rule => rule.trim().startsWith('script-src')), /posthog|unsafe-eval|unsafe-inline/);
 const { outputFiles } = await build({ entryPoints: ['src/scripts/analytics-contract.ts'], bundle: true, format: 'esm', write: false });
 const { safeAnalyticsProperties, analyticsPage } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
+const webBundle = await build({ entryPoints: ['src/scripts/web-analytics.ts'], bundle: true, format: 'esm', write: false });
+const { metaCampaign, safeWebProperties, webPageProperties } = await import(`data:text/javascript;base64,${Buffer.from(webBundle.outputFiles[0].text).toString('base64')}`);
+assert.deepEqual(metaCampaign('?utm_source=meta&utm_campaign=123456789012345&email=private@example.org'), {utm_source:'meta',utm_campaign:'123456789012345'});
+for (const search of ['?utm_source=meta&utm_campaign=private-name', '?utm_source=meta&utm_campaign=123456&utm_campaign=999999', '?utm_source=other&utm_campaign=123456', '?utm_source=meta&utm_campaign=private%40example.org']) assert.deepEqual(metaCampaign(search), {});
+assert.deepEqual(safeWebProperties({utm_source:'meta',utm_campaign:'private@example.org'}), {});
+const landing = webPageProperties('/', 'https://campuscli.com', '', 1000, '?utm_source=meta&utm_campaign=123456789&code=private');
+assert.equal(landing.utm_campaign, '123456789'); assert.equal(JSON.stringify(landing).includes('private'), false);
 assert.deepEqual(safeAnalyticsProperties({ current_plan: 'plus', selected_plan: 'free', remaining: 100, authenticated: true,
   email: 'private@example.org', message: 'private question', receipt: 'base64', $current_url: '/?code=private',
   page: 'private-course', toString: 'private', duration_ms: Infinity, limit: -1 }), {
   current_plan: 'plus', selected_plan: 'free', remaining: 100, authenticated: true,
 });
+assert.deepEqual(safeAnalyticsProperties({failure_reason:'not_found',callback_requested:true,whatsappPhone:'+51999999999',phone:'+51999999999',details:'private complaint',whatsappConsent:true}),{failure_reason:'not_found',callback_requested:true});
+assert.deepEqual(safeAnalyticsProperties({failure_reason:'private complaint'}),{});
 assert.equal(analyticsPage('/app/asistente/'), 'assistant');
 assert.equal(analyticsPage('/app/asistente/c/private-id/'), 'assistant');
 assert.equal(analyticsPage('/app/profes/c/private-id/'), 'assistant');
@@ -27,6 +41,22 @@ for (const [path, page] of [
   assert.equal(analyticsPage(path), page);
   assert.deepEqual(safeAnalyticsProperties({ page, target: page, url: path + '?code=private' }), { page, target: page });
 }
+for (const [path, page] of [
+  ['/profes/upc/', 'professor_directory'],
+  ['/profes/upc/luis-vives', 'professor_profile'],
+  ['/profes/upc/luis-vives/escribir/?code=private#private', 'professor_review_form'],
+  ['/profes/resenas/', 'professor_reviews'],
+  ['/biblioteca/', 'library'], ['/biblioteca/trabajo-privado/', 'library_item'],
+  ['/app/biblioteca/', 'library_app'], ['/opiniones-campus/', 'campus_reviews'],
+  ['/about/', 'about'], ['/contacto/', 'contact'], ['/terminos/', 'terms'],
+  ['/no-afiliacion/', 'independence'], ['/app/asistente?code=private', 'assistant'],
+]) {
+  assert.equal(analyticsPage(path), page, path);
+  assert.deepEqual(safeAnalyticsProperties({ page, target: page, url: path }), { page, target: page });
+}
+assert.deepEqual(safeAnalyticsProperties({ example: 'professor_reviews', selection_method: 'quick', prompt: 'private' }), { example: 'professor_reviews', selection_method: 'quick' });
+assert.deepEqual(safeAnalyticsProperties({ example: 'private question', selection_method: 'private' }), {});
+assert.equal(analyticsPage('/profes/upc/private/private/?code=secret'), 'other');
 const storage = new Map(); const remote = [];
 globalThis.window = {}; globalThis.location = { hostname: '127.0.0.1', pathname: '/', origin: 'http://127.0.0.1:4336' };
 globalThis.sessionStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) };
@@ -73,17 +103,20 @@ globalThis.location = { hostname: 'campuscli.com', pathname: '/app/asistente/', 
 const production = await build({ entryPoints: ['src/scripts/analytics.ts'], bundle: true, format: 'esm', platform: 'node', write: false,
   define: { 'import.meta.env': JSON.stringify({ DEV: false, PUBLIC_POSTHOG_KEY: 'public-test-key', PUBLIC_POSTHOG_HOST: 'https://us.i.posthog.com' }) },
   plugins: [{ name: 'fake-posthog', setup(build) {
-    build.onResolve({ filter: /^posthog-js$/ }, () => ({ path: 'sdk', namespace: 'fixture' }));
-    build.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: 'export default globalThis.__campusPostHogFixture;', loader: 'js' }));
+    build.onResolve({ filter: /analytics-client$/ }, () => ({ path: 'sdk', namespace: 'fixture' }));
+    build.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: 'export const createAnalyticsClient = (...args) => globalThis.__campusPostHogFixture.init(...args);', loader: 'js' }));
   } }],
 });
 const live = await import(`data:text/javascript;base64,${Buffer.from(production.outputFiles[0].text).toString('base64')}`);
 live.analyticsSession({ authenticated: false, plan: 'anon', aiReady: true });
 await new Promise(resolve => setImmediate(resolve));
 assert.equal(resets, 1, 'A verified guest must not keep a previously identified account');
-assert.equal(config.autocapture, false); assert.equal(config.disable_session_recording, true);
-assert.equal(config.capture_exceptions, false); assert.equal(config.enable_recording_console_log, false);
+assert.equal(config.host, 'https://campuscli.com/c-events');
 assert.equal(config.before_send({ event: '$autocapture', properties: { text: 'private' } }), null);
+const campaignLanding = config.before_send({event:'$pageview',properties:{$current_url:'https://campuscli.com/', $pathname:'/',utm_source:'meta',utm_campaign:'123456789',email:'private@example.org'}});
+assert.equal(campaignLanding.properties.$process_person_profile, true);
+assert.equal(campaignLanding.properties.utm_campaign, '123456789');
+assert.equal(JSON.stringify(campaignLanding).includes('private'), false);
 live.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234', aiReady: true });
 live.analyticsSession({ authenticated: true, plan: 'plus', analyticsId: 'campus:account_uuid1234', aiReady: true });
 assert.deepEqual(identified, ['campus:account_uuid1234']);
@@ -102,6 +135,13 @@ assert.equal(identify.properties.$anon_distinct_id, 'aaaaaaaa-bbbb-cccc-dddd-eee
 assert.equal('$set' in identify.properties, false);
 assert.equal('$set' in identify,false);assert.equal('$set_once' in identify,false);
 assert.equal(identify.properties.token, 'public-test-key');
+live.analyticsSession({authenticated:true,analyticsAudience:'test',plan:'free',analyticsId:normalizedGoogle,aiReady:true});
+live.track('campus_plus_checkout_started',{is_test:false,plus_step:'ready',message:'private'});
+assert.equal(captured.at(-1).properties.is_test,true,'An event cannot reclassify a QA identity as a customer');
+assert.equal(captured.at(-1).properties.analytics_audience,'test');
+assert.deepEqual(captured.at(-1).properties.$set,{analytics_audience:'test',is_test:true,is_internal:false});
+assert.deepEqual(safeAnalyticsProperties({trace_id:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',conversation_id:'private',reason:'private',feedback_kind:'agent'}),{trace_id:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',feedback_kind:'agent'});
+
 storage.set('campus-account-handoff-v1', JSON.stringify({ startedAt: Date.now(), returnPath: '/app/profes/', completed: false }));
 live.analyticsSession({ authenticated: false, plan: 'anon', aiReady: true });
 assert.equal(captured.filter(item => item.event === 'campus_account_access_completed').length, 0);

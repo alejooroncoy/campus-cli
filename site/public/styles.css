@@ -1720,3 +1720,14 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
 .site-menu :is(summary,a):focus-visible{outline:2px solid #087fa4;outline-offset:3px}
 @media(max-width:900px){.site-menu__panel .site-menu__mobile-link{display:flex}}
 @media(max-width:720px){.site-header__actions,.site-header.is-scrolled .site-header__actions{gap:10px}.site-menu summary{width:44px;padding:0}.site-menu summary>span,.site-menu__chevron{display:none}.site-menu__mobile-icon{display:block}.site-menu__panel{top:calc(100% + 9px)}}
+
+/* Community invitation and WhatsApp support on public pages. */
+.site-community{display:flex;justify-content:center;padding-inline:16px;text-align:center}
+.site-community a{display:flex;align-items:center;justify-content:center;min-height:44px;padding-block:8px;color:var(--muted);font-size:12px;line-height:1.5}
+.site-community a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.site-community a:focus-visible{outline:2px solid #087fa4;outline-offset:2px;border-radius:2px}
+.whatsapp-support{position:fixed;z-index:25;right:max(24px,env(safe-area-inset-right));bottom:calc(24px + env(safe-area-inset-bottom));display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:54px;padding:12px 20px;border-radius:999px;background:#087f5b;color:#fff;font-size:14px;font-weight:600;box-shadow:0 4px 18px #102a3a26}
+.whatsapp-support svg{flex:0 0 auto;width:26px;height:26px}
+.whatsapp-support:hover{background:#066649}
+.whatsapp-support:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+@media(max-width:720px){.whatsapp-support{right:max(12px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));width:50px;min-height:50px;padding:0}.whatsapp-support>span{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.footer__inner{padding-bottom:calc(88px + env(safe-area-inset-bottom))!important}}

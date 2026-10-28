@@ -2,22 +2,28 @@ import { beginAccountHandoff, completeAccountHandoff } from './account-onboardin
 import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
-import type { PostHog } from 'posthog-js';
+import type { AnalyticsClient } from './analytics-client';
+import { webEvents, safeWebProperties, webPageProperties } from './web-analytics.ts';
+
+const allowedEvent = (event: string) => events.has(event) || webEvents.has(event);
+const eventProperties = (event: string, properties: Record<string, unknown>) => ({
+  ...safeAnalyticsProperties(properties), ...(webEvents.has(event) ? safeWebProperties(properties) : {}),
+});
 
 type Event = { event: string; properties: Record<string, unknown> };
 const browser = typeof window !== 'undefined' && typeof location !== 'undefined'
   && typeof location.pathname === 'string' && typeof location.hostname === 'string';
 const local = import.meta.env?.DEV || (browser && ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname));
 const key = import.meta.env?.PUBLIC_POSTHOG_KEY;
-const host = import.meta.env?.PUBLIC_POSTHOG_HOST;
-let client: PostHog | undefined;
+const host = browser ? `${location.origin}/c-events` : undefined;
+let client: AnalyticsClient | undefined;
 const pendingKey = 'campus-analytics-pending-v1';
 let queue: Event[] = [];
 if (browser && !local && key && host) {
   try {
     const pending = JSON.parse(sessionStorage.getItem(pendingKey) ?? '[]');
-    if (Array.isArray(pending)) queue = pending.slice(-100).filter(item => events.has(item?.event))
-      .map(item => ({ event: item.event, properties: safeAnalyticsProperties(item.properties ?? {}) }));
+    if (Array.isArray(pending)) queue = pending.slice(-100).filter(item => allowedEvent(item?.event))
+      .map(item => ({ event: item.event, properties: eventProperties(item.event, item.properties ?? {}) }));
   } catch { /* Storage may be disabled. */ }
 }
 function persistQueue(): void {
@@ -29,6 +35,7 @@ let readyContext = '';
 let lastSessionState = '';
 let currentPlan = 'unavailable';
 let isTest: boolean | undefined;
+let audience='unknown';
 let mounted = false;
 let observer: IntersectionObserver | undefined;
 const sectionTimers = new Map<HTMLElement, ReturnType<typeof setTimeout>>();
@@ -42,7 +49,8 @@ function scheduleSectionView(element: HTMLElement): void {
   sectionTimers.set(element, setTimeout(() => {
     sectionTimers.delete(element);
     if (!visibleHeadings.has(element) || document.visibilityState === 'hidden' || seen.has(`section:${section}`)) return;
-    seen.add(`section:${section}`); track('campus_section_viewed', { section });
+    seen.add(`section:${section}`);
+    if(section==='plus_offer')track('campus_plus_offer_viewed',{location:'plus'});else track('campus_section_viewed', { section });
   }, 800));
 }
 let seen = new Set<string>();
@@ -59,30 +67,33 @@ const localSession = local ? identifier('campus-analytics-preview-session') : ''
 // In development the same contracts run into a bounded local buffer. No SDK,
 // ingestion, flags, replay or remote configuration requests are made.
 if (browser && !local && key && host) {
-  void import('posthog-js').then(({ default: posthog }) => {
-    client = posthog.init(key, {
-      api_host: host, defaults: '2026-05-30',
-      autocapture: false, capture_pageview: false, capture_pageleave: false,
-      disable_session_recording: true, enable_recording_console_log: false,
-      capture_exceptions: false, capture_performance: false,
-      rageclick: false, capture_dead_clicks: false, advanced_disable_flags: true,
-      disable_surveys: true, disable_external_dependency_loading: true,
-      ip: false, persistence: 'localStorage', person_profiles: 'identified_only',
+  // The reduced official SDK supplies the capture/identity APIs Campus uses.
+  void import('./analytics-client').then(({ createAnalyticsClient }) => {
+    client = createAnalyticsClient(key, {
+      host,
       before_send: event => {
-        if (!event || (!events.has(event.event) && event.event !== '$identify')) return null;
+        if (!event || (!allowedEvent(event.event) && event.event !== '$identify')) return null;
         const original = event.properties ?? {};
         // Discard SDK's implicit referrer, title, search, URL, device and person
         // properties; retain only correlation fields and our closed contract.
-        event.properties = { ...safeAnalyticsProperties(original),
+        event.properties = { ...eventProperties(event.event, original),
           // The browser SDK authenticates ingestion with this public project
           // token. Keep our configured token, never a caller-supplied value.
           token: key,
           distinct_id: original.distinct_id,
           $session_id: original.$session_id,
           $window_id: original.$window_id,
+          // PostHog classifies an absent user agent as automation. Read it
+          // from the browser rather than accepting a caller-provided property.
+          ...(webEvents.has(event.event) && typeof navigator !== 'undefined' && navigator.userAgent
+            ? { $raw_user_agent: navigator.userAgent.slice(0, 1024) } : {}),
           ...(event.event === '$identify' ? { $anon_distinct_id: original.$anon_distinct_id } : {}),
-          $process_person_profile: event.event === '$identify' || Boolean(identity),
+          // A campaign landing needs a person profile so PostHog can join it
+          // with the account if this visitor subsequently signs in.
+          $process_person_profile: event.event === '$identify' || Boolean(identity)
+            || (event.event === '$pageview' && typeof eventProperties(event.event, original).utm_campaign === 'string'),
           $geoip_disable: true,
+          ...(identity && audience!=='unknown' ? {$set:{analytics_audience:audience,is_test:isTest===true,is_internal:audience==='internal'}} : {}),
         };
         // The real SDK also puts initial URLs/referrers in these top-level
         // person updates. They are outside properties and must be removed too.
@@ -97,7 +108,7 @@ if (browser && !local && key && host) {
     queue = []; persistQueue();
   }).catch(() => { queue = []; });
 } else if (browser && !local && (!key || !host)) {
-  console.warn('[Campus analytics] Configura PUBLIC_POSTHOG_KEY y PUBLIC_POSTHOG_HOST para activar métricas.');
+  console.warn('[Campus analytics] Configura PUBLIC_POSTHOG_KEY para activar métricas.');
 }
 
 export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
@@ -106,14 +117,16 @@ export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
   } catch { return undefined; }
 }
 export function track(event: string, properties: Record<string, unknown> = {}): void {
-  if (!browser || !events.has(event)) return;
-  const item = { event, properties: safeAnalyticsProperties({
+  if (!browser || !allowedEvent(event)) return;
+  const item = { event, properties: eventProperties(event, {
     ...(() => { try { return mcpHandoff(location.href, sessionStorage); } catch { return {}; } })(),
     page: analyticsPage(location.pathname), current_plan: currentPlan,
     ...(isTest!==undefined?{is_test:isTest}:{}),
     selected_plan: selectedPlan(),
     viewport: innerWidth < 761 ? 'mobile' : innerWidth < 1200 ? 'tablet' : 'desktop',
     environment: local ? 'development' : 'production', ...properties,
+    analytics_audience:audience,is_internal:audience==='internal',
+    ...(isTest!==undefined||properties.is_test===true?{is_test:isTest===true||properties.is_test===true}:{}),
   }) };
   if (local) {
     try { const recent = JSON.parse(sessionStorage.getItem('campus-analytics-debug') ?? '[]');
@@ -133,7 +146,8 @@ export function analyticsSession(session: CampusSession): void {
   if (!browser || session.accessUnavailable) return;
   sessionResolved = true;
   currentPlan = session.authenticated ? (session.plan === 'plus' ? 'plus' : 'free') : 'guest';
-  isTest = session.authenticated && session.plusTest === true;
+  audience=session.analyticsAudience??(session.authenticated?'unknown':'customer');
+  isTest=session.authenticated&&session.plusTest===true?true:audience==='unknown'?undefined:audience==='test';
   // The server normalizes non-numeric/long Google subjects to an opaque
   // google_<sha256> ID. Raw provider subjects are not a browser contract.
   if (session.authenticated && /^campus:(?:google:[0-9]{8,32}|[a-zA-Z0-9_-]{8,100})$/.test(session.analyticsId ?? '')) {
@@ -153,7 +167,7 @@ export function analyticsSession(session: CampusSession): void {
 }
 export function resetAnalytics(): void {
   if (browser) { try { clearMcpHandoff(sessionStorage); } catch { /* Optional. */ } }
-  identity = undefined; currentPlan = 'guest'; isTest = false;
+  identity = undefined; currentPlan = 'guest'; isTest = false;audience='customer';
   readyContext = ''; lastSessionState = '';
   queue = [];
   if (browser && !local) persistQueue();
@@ -171,12 +185,26 @@ function locationFor(element: Element): string {
   if (element.closest('.cp-final')) return 'closing';
   return location.pathname.startsWith('/app/') ? 'app' : 'other';
 }
+let webView: { properties: Record<string, unknown>; started: number } | undefined;
+function leavePage(): void {
+  if (!webView) return;
+  const { utm_source: _source, utm_campaign: _campaign, ...pageProperties } = webView.properties;
+  track('$pageleave', { ...pageProperties,
+    $prev_pageview_pathname: webView.properties.$pathname,
+    $prev_pageview_duration: Math.max(0, (performance.now() - webView.started) / 1000) });
+  webView = undefined;
+}
 function trackPage(): void {
   // Astro emits page-load initially too. Route identity excludes conversation
   // IDs, hashes and queries, and avoids a duplicate for the same loaded page.
   const page = analyticsPage(location.pathname);
   if (viewPath === location.pathname) return;
+  leavePage();
   viewPath = location.pathname; seen = new Set();
+  webView = { started: performance.now(), properties: {
+    ...webPageProperties(location.pathname, location.origin, document.referrer, innerWidth, location.search), page, $pageview_id: crypto.randomUUID(),
+  } };
+  track('$pageview', webView.properties);
   track('campus_page_viewed', { page }); observer?.disconnect(); clearSectionTimers(); visibleHeadings.clear();
   if (typeof IntersectionObserver === 'undefined') return;
   observer = new IntersectionObserver(entries => {
@@ -187,6 +215,8 @@ function trackPage(): void {
     }
   }, { threshold: 0.5 });
   const sections: Record<string, string> = { '#planes': 'plans', '#incluye': 'features', '#investigacion': 'research', '#como-empezar': 'onboarding', '.cp-faq': 'faq', '.cp-final': 'closing' };
+  const plusOffer=document.querySelector<HTMLElement>('.cp-plan--plus');
+  if(plusOffer){plusOffer.dataset.analyticsSection='plus_offer';observer.observe(plusOffer);}
   for (const [selector, section] of Object.entries(sections)) {
     const container = document.querySelector(selector);
     const heading = container?.querySelector<HTMLElement>('h2');
@@ -200,7 +230,8 @@ export function setupAnalytics(): void {
     if (document.visibilityState === 'hidden') clearSectionTimers();
     else visibleHeadings.forEach(scheduleSectionView);
   });
-  window.addEventListener('pagehide', () => { clearSectionTimers(); visibleHeadings.clear(); });
+  window.addEventListener('pagehide', () => { leavePage(); clearSectionTimers(); visibleHeadings.clear(); });
+  window.addEventListener('pageshow', event => { if (event.persisted) { viewPath = ''; trackPage(); } });
   document.addEventListener('click', event => {
     const anchor = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
     if (!anchor) return;

@@ -1,7 +1,7 @@
 import { isLibraryPage, isLibraryRoute, isLibraryWorkspace, isLibraryWorkspaceViewHash, isSameLibraryDocument, librarySearchURL } from '../lib/library-navigation';
 import { initLibrary } from './library';
 
-type Position = { x: number; y: number };
+type Position = { x: number; y: number; filterX?: number; courseX?: number };
 type LibraryHistory = { position: Position; url: string };
 type Metadata = { title: string; nodes: Element[] };
 const initialRoot = document.querySelector<HTMLElement>('[data-library-public], [data-library]');
@@ -30,8 +30,18 @@ if (initialRoot && !initialRoot.dataset.navigationReady) {
     metadata.nodes.forEach(node => document.head.append(node.cloneNode(true)));
   }
   const contentOf = (element: HTMLElement) => element.querySelector<HTMLElement>('#contenido, #lib-workspace')!;
-  const position = (): Position => ({ x: scrollX, y: scrollY });
-  const restorePosition = (pos: Position) => scrollTo({ left: pos.x, top: pos.y, behavior: 'instant' });
+  const position = (): Position => ({
+    x: scrollX, y: scrollY,
+    filterX: root.querySelector<HTMLElement>('.lib-type-tabs')?.scrollLeft ?? 0,
+    courseX: root.querySelector<HTMLElement>('.lib-course-sidebar nav')?.scrollLeft ?? 0,
+  });
+  const restorePosition = (pos: Position) => {
+    const filters = root.querySelector<HTMLElement>('.lib-type-tabs');
+    const courses = root.querySelector<HTMLElement>('.lib-course-sidebar nav');
+    if (filters && pos.filterX !== undefined) filters.scrollLeft = pos.filterX;
+    if (courses && pos.courseX !== undefined) courses.scrollLeft = pos.courseX;
+    scrollTo({ left: pos.x, top: pos.y, behavior: 'instant' });
+  };
   const stateFor = (url: URL, pos: Position) => ({ ...history.state, campusLibrary: { url: url.href, position: pos } satisfies LibraryHistory });
   const viewKey = (url: URL) => url.hash || '#aportes';
   function rememberPosition() {
@@ -65,6 +75,11 @@ if (initialRoot && !initialRoot.dataset.navigationReady) {
     if (frame) return;
     frame = requestAnimationFrame(() => { frame = 0; rememberPosition(); });
   }, { passive: true });
+  document.addEventListener('scroll', event => {
+    const target = event.target;
+    if (target instanceof Element && root.contains(target) &&
+      target.matches('.lib-type-tabs, .lib-course-sidebar nav')) rememberPosition();
+  }, { capture: true, passive: true });
   addEventListener('pagehide', () => {
     history.scrollRestoration = previousRestoration;
     const pending = controller;
@@ -95,7 +110,6 @@ if (initialRoot && !initialRoot.dataset.navigationReady) {
     if (!pop) rememberPosition();
     const oldPosition = position();
     const samePath = url.pathname === rendered.pathname;
-    const oldTabs = root.querySelector<HTMLElement>('.lib-type-tabs')?.scrollLeft ?? 0;
     const requestRoot = root;
     const active = new AbortController();
     controller = active;
@@ -133,8 +147,6 @@ if (initialRoot && !initialRoot.dataset.navigationReady) {
       syncMetadata(metadata);
       if (root.matches('[data-library]')) initializeWorkspace(root);
       retryURL = null;
-      const tabs = root.querySelector<HTMLElement>('.lib-type-tabs');
-      if (tabs && samePath) tabs.scrollLeft = oldTabs;
       const resumedPosition = isLibraryWorkspace(finalURL, location.origin) ? workspacePositions.get(viewKey(finalURL)) : undefined;
       if (pop && restored) restorePosition(restored);
       else if (resumedPosition) restorePosition(resumedPosition);

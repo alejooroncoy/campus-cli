@@ -1,5 +1,6 @@
 ---
 import AppShell from "../../../layouts/AppShell.astro";
+import CorrectionEmailPreference from '../../../components/CorrectionEmailPreference';
 ---
 <AppShell title="Mi perfil" active="perfil">
   <section class="app-profile-loading" data-app-profile-loading role="status" aria-live="polite" aria-atomic="true">
@@ -36,11 +37,12 @@ import AppShell from "../../../layouts/AppShell.astro";
     <button class="app-profile-university__cancel" type="button" data-app-cancel-university hidden><svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-left"></use></svg> Volver a mi perfil</button>
     <p class="app-profile-entry__eyebrow">PERSONALIZA TU CAMPUS</p>
     <h1>¿En qué universidad estudias?</h1>
-    <p>Elige dónde estudias para mostrarte las funciones disponibles. Hoy las reseñas y la conexión con Blackboard están disponibles para UPC.</p>
+    <p>Cuéntanos dónde estudias para personalizar Campus. Puedes usar el agente aunque todavía no tengamos datos de tus profesores o cursos.</p>
     <form data-app-university-form>
       <label for="app-university">Tu universidad</label>
       <input id="app-university" name="university" list="app-university-options" autocomplete="off" placeholder="Busca tu universidad…" required />
       <datalist id="app-university-options" data-app-university-options></datalist>
+      <label class="app-university-declared"><input type="checkbox" data-app-university-not-listed /> Mi universidad no aparece en la lista</label>
       <div class="app-university-loading" data-app-universities-loading role="status" aria-live="polite" hidden><span class="app-sr-only">Cargando universidades…</span><span class="app-skeleton app-skeleton--line" aria-hidden="true"></span><span class="app-skeleton app-skeleton--short" aria-hidden="true"></span></div>
       <button class="app-university-quick" type="button" data-app-select-upc aria-pressed="false" hidden>Estudio en UPC</button>
       <button class="app-button" type="submit"><span data-app-university-submit-label>Guardar y continuar</span><span class="app-skeleton app-skeleton--short" data-app-university-submit-skeleton aria-hidden="true" hidden></span><svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button>
@@ -68,7 +70,7 @@ import AppShell from "../../../layouts/AppShell.astro";
       <h2>Datos de tu cuenta</h2>
       <div class="app-profile-row"><span>Correo de tu cuenta</span><p data-app-email>Comprobando tu sesión…</p></div>
       <div class="app-profile-row"><span>Universidad</span><p data-app-university-name>Por comprobar</p><button class="app-profile-change-university" type="button" data-app-change-university>Cambiar universidad</button></div>
-      <p class="app-profile-coverage" data-app-profile-coverage hidden>La consulta de profesores todavía no está disponible para tu universidad. La registramos para saber dónde ampliar la cobertura.</p>
+      <p class="app-profile-coverage" data-app-profile-coverage hidden>Puedes usar el agente para estudiar y preparar trabajos. Todavía no tenemos datos verificados de profesores o cursos de tu universidad.</p>
       <div class="app-profile-row"><span>Matrícula (Banner)</span><p data-app-banner-status>Por comprobar</p></div>
       <div class="app-profile-row" id="miupc" hidden>
         <span>Notas actuales · Mi UPC</span>
@@ -80,6 +82,7 @@ import AppShell from "../../../layouts/AppShell.astro";
       </div>
       <div class="app-actions"><button class="app-button app-button--secondary" type="button" data-app-logout hidden>Cerrar sesión</button></div>
     </section><aside class="app-panel"><p class="app-kicker">Una sola cuenta</p><h2>Tu Campus, conectado.</h2><p>Entra con la misma cuenta en la web y en tu conector MCP. Tu plan define el uso disponible en cada canal.</p><ul class="app-info-list"><li>Tu identidad en Campus</li><li>Un plan para la web y el MCP</li><li>Tus consultas web disponibles</li><li>Tu horario y matrícula de Banner</li></ul><a class="app-text-link" href="/app/copilot/">Usar Campus con mi IA <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><p>Campus Free incluye 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web e ilimitadas mediante MCP.</p></aside></div>
+    <CorrectionEmailPreference client:load />
     <details class="app-panel app-memory" data-memory-root>
       <summary><strong>Lo que Campus recuerda de ti</strong></summary>
       <p>Tus preferencias y metas entre chats. Puedes corregirlas u olvidarlas.</p>
@@ -93,6 +96,7 @@ import AppShell from "../../../layouts/AppShell.astro";
       </div>
     </details>
   </div>
+<p><a class="app-text-link" href="/opiniones-campus/#compartir">Mi opinión sobre Campus →</a></p>
 </AppShell>
 
 <script>

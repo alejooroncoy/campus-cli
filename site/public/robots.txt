@@ -12,4 +12,5 @@ Sitemap: https://campuscli.com/sitemap-index.xml
 # entrenar modelos con su contenido. El catálogo describe los recursos para
 # agentes que sí están disponibles públicamente.
 Content-Signal: ai-train=no, search=yes, ai-input=yes
-Agentmap: https://campuscli.com/.well-known/ard.json
+# Catálogo de agentes: https://campuscli.com/.well-known/ard.json
+# También se anuncia mediante Link y <link rel="ard"> en las páginas HTML.

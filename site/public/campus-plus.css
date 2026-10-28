@@ -2,3 +2,5 @@
 .plus-page .plus-muted{font-size:14px;line-height:1.55}.plus-price strong{color:#102a3a}.plus-payment button{border:0;background:transparent;min-height:44px;padding:0 6px;font:inherit;color:#087fa4;cursor:pointer}.plus-upload{position:relative;display:grid;align-items:center;min-height:64px;padding:16px;border:1px dashed #9bcbd9;border-radius:12px;background:#f4fbfd;color:#087fa4;font-weight:600;overflow-wrap:anywhere}.plus-upload input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.plus-upload:focus-within{outline:3px solid #17b6e7;outline-offset:3px}
 .plus-message[data-loading="true"]{display:flex;align-items:center;min-height:20px}.plus-message__skeleton{width:min(100%,260px);height:13px}.plus-message[data-loading="true"][data-error="true"]{background:transparent;padding:0}
 .plus-page [data-plus-submit-skeleton]{width:104px;height:11px}
+
+[data-plus-feedback-form] select{display:block;width:100%;margin:12px 0;padding:12px;border:1px solid #bed5df;border-radius:10px;background:#fff;color:inherit;font:inherit}
