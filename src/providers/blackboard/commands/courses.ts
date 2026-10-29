@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
-import { loadSession, isSessionValid } from '../auth/session.js';
+import { loadOrRefreshSession, isSessionValid } from '../auth/session.js';
 import { createClient } from '../api/client.js';
 import {
   getMe,
@@ -19,8 +19,8 @@ import {
   getGrades,
 } from '../api/courses.js';
 
-function requireSession() {
-  const session = loadSession();
+async function requireSession() {
+  const session = await loadOrRefreshSession();
   if (!isSessionValid(session)) {
     console.error(chalk.red('Not logged in. Run: campus login'));
     process.exit(1);
@@ -50,7 +50,7 @@ export function coursesCommand(program: Command) {
     .option('--json', 'Output raw JSON')
     .option('--limit <n>', 'Max results', '50')
     .action(async (opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching courses...', stream: process.stderr }).start();
 
@@ -108,7 +108,7 @@ export function coursesCommand(program: Command) {
     .description('Get details of a specific course')
     .option('--json', 'Output raw JSON')
     .action(async (courseId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching course...', stream: process.stderr }).start();
 
@@ -142,7 +142,7 @@ export function coursesCommand(program: Command) {
     .option('--type <type>', 'Filter by type: folder, file, assignment, document, externallink')
     .option('--json', 'Output raw JSON')
     .action(async (courseId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching course content...', stream: process.stderr }).start();
 
@@ -208,7 +208,7 @@ export function coursesCommand(program: Command) {
     .description('List course announcements')
     .option('--json', 'Output raw JSON')
     .action(async (courseId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching announcements...', stream: process.stderr }).start();
 
@@ -262,7 +262,7 @@ export function coursesCommand(program: Command) {
             ? false
             : (() => { throw new Error('--gradable must be true or false'); })();
 
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching discussions...', stream: process.stderr }).start();
 
@@ -312,7 +312,7 @@ export function coursesCommand(program: Command) {
     .description('Read one Ultra discussion topic')
     .option('--json', 'Output raw JSON')
     .action(async (courseId, discussionId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching discussion...', stream: process.stderr }).start();
 
@@ -352,7 +352,7 @@ export function coursesCommand(program: Command) {
       if (!Number.isInteger(offset) || offset < 0) throw new Error('--offset must be a non-negative integer');
       if (!['Published', 'Deleted', 'Draft'].includes(opts.status)) throw new Error('--status must be Published, Deleted, or Draft');
 
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching discussion messages...', stream: process.stderr }).start();
 
@@ -409,7 +409,7 @@ export function coursesCommand(program: Command) {
       if (!Number.isInteger(offset) || offset < 0) throw new Error('--offset must be a non-negative integer');
       if (!['Published', 'Deleted', 'Draft'].includes(opts.status)) throw new Error('--status must be Published, Deleted, or Draft');
 
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching discussion replies...', stream: process.stderr }).start();
 
@@ -457,7 +457,7 @@ export function coursesCommand(program: Command) {
     .option('--json', 'Output raw JSON')
     .option('--role <role>', 'Filter by role: Student, Instructor')
     .action(async (courseId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching course members...', stream: process.stderr }).start();
 
@@ -513,7 +513,7 @@ export function coursesCommand(program: Command) {
     .description('List your grades for a course')
     .option('--json', 'Output raw JSON')
     .action(async (courseId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching grades...', stream: process.stderr }).start();
 
@@ -573,7 +573,7 @@ export function messagesCommand(program: Command) {
       if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('--limit must be an integer from 1 to 100');
       if (!Number.isInteger(offset) || offset < 0) throw new Error('--offset must be a non-negative integer');
 
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching Blackboard messages...', stream: process.stderr }).start();
       try {

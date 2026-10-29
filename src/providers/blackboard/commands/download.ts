@@ -3,11 +3,11 @@ import chalk from 'chalk';
 import ora from 'ora';
 import fs from 'fs';
 import path from 'path';
-import { loadSession, isSessionValid } from '../auth/session.js';
+import { loadOrRefreshSession, isSessionValid } from '../auth/session.js';
 import { createClient, safeDestPath } from '../api/client.js';
 
-function requireSession() {
-  const session = loadSession();
+async function requireSession() {
+  const session = await loadOrRefreshSession();
   if (!isSessionValid(session)) {
     console.error(chalk.red('Not logged in. Run: campus login'));
     process.exit(1);
@@ -75,7 +75,7 @@ export function downloadCommand(program: Command) {
     .description('Download a file attachment from a course content item')
     .option('-o, --out <dir>', 'Output directory', '.')
     .action(async (courseId, contentId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
 
       const spinner = ora({ text: 'Getting attachment info...', stream: process.stderr }).start();
@@ -107,7 +107,7 @@ export function downloadCommand(program: Command) {
     .option('-o, --out <dir>', 'Output directory', './downloads')
     .option('--filter <keyword>', 'Only download files matching keyword (case-insensitive)')
     .action(async (courseId, folderId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
 
       const spinner = ora({ text: 'Scanning folder...', stream: process.stderr }).start();

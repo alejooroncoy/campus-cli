@@ -167,7 +167,7 @@ async function waitForSessionCookies(context: BrowserContext, timeout = 5_000, u
   throw new Error('Blackboard redirected to Ultra without creating a session');
 }
 
-async function dismissStaySignedInOrContinue(page: Page, timeout = 8_000, universityId?: string): Promise<void> {
+export async function dismissStaySignedInOrContinue(page: Page, timeout = 8_000, universityId?: string): Promise<void> {
   await new Promise<void>((resolve) => {
     let settled = false;
     const finish = () => {
@@ -184,10 +184,13 @@ async function dismissStaySignedInOrContinue(page: Page, timeout = 8_000, univer
         finish();
         return;
       }
+      // #idBtn_Back ("No") solo existe en la pantalla "¿Mantener la sesión iniciada?".
+      // Se responde "Sí" (#idSIButton9) para que Microsoft emita ESTSAUTHPERSISTENT,
+      // que sobrevive al cierre del perfil y permite renovar sin pedir login.
       void page.locator('#idBtn_Back').isVisible()
         .then(async visible => {
           if (!visible || settled) return;
-          await page.locator('#idBtn_Back').click();
+          await page.locator('#idSIButton9').click();
           finish();
         })
         .catch(() => undefined);

@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import path from 'path';
 import fs from 'fs';
-import { loadSession, isSessionValid } from '../auth/session.js';
+import { loadOrRefreshSession, isSessionValid } from '../auth/session.js';
 import { createClient } from '../api/client.js';
 import { getMe, getMyCourses, getGrades } from '../api/courses.js';
 import {
@@ -17,8 +17,8 @@ import {
 import { getAttemptFeedback } from '../api/feedback.js';
 import { track } from '../../../analytics.js';
 
-function requireSession() {
-  const session = loadSession();
+async function requireSession() {
+  const session = await loadOrRefreshSession();
   if (!isSessionValid(session)) {
     console.error(chalk.red('Not logged in. Run: campus login'));
     process.exit(1);
@@ -122,7 +122,7 @@ export function assignmentsCommand(program: Command) {
     .option('--json', 'Output raw JSON')
     .option('--pending', 'Show only assignments without a submission')
     .action(async (courseId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({
         text: courseId ? 'Fetching assignments...' : 'Fetching assignments across courses...',
@@ -268,7 +268,7 @@ export function assignmentsCommand(program: Command) {
     .description('List your submission attempts for an assignment')
     .option('--json', 'Output raw JSON')
     .action(async (courseId, columnId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const spinner = ora({ text: 'Fetching attempts...', stream: process.stderr }).start();
 
@@ -322,7 +322,7 @@ export function assignmentsCommand(program: Command) {
     .option('--attempt <attemptId>', 'Read a specific submission attempt')
     .option('--json', 'Output structured JSON')
     .action(async (courseId, columnId, opts) => {
-      const client = createClient(requireSession());
+      const client = createClient(await requireSession());
       const spinner = ora({ text: 'Fetching feedback...', stream: process.stderr }).start();
       try {
         const column = await getAssignment(client, courseId, columnId);
@@ -370,7 +370,7 @@ export function assignmentsCommand(program: Command) {
     .option('--draft', 'Save as draft (InProgress) instead of submitting')
     .option('--json', 'Output raw JSON')
     .action(async (courseId, columnId, opts) => {
-      const session = requireSession();
+      const session = await requireSession();
       const client = createClient(session);
       const startedAt = Date.now();
       const mode = opts.draft ? 'draft' : 'submit';
