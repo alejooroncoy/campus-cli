@@ -2,6 +2,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { isJSONRPCRequest, isJSONRPCResultResponse, type RequestId } from '@modelcontextprotocol/sdk/types.js';
 import { relayTransport } from '../relay/client.js';
+import { keepSessionRenewed } from '../relay/session-renewal.js';
 
 /** Forward the protocol intact, including capabilities, elicitation and resources.
  * No local provider is registered when the relay denies access or is unavailable.
@@ -44,5 +45,6 @@ export async function bridgeRelay(local: Transport, remote: Transport, report: (
 
 export async function startMcpServer(): Promise<void> {
   const close = await bridgeRelay(new StdioServerTransport(), relayTransport());
-  for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => { void close().finally(() => process.exit(0)); });
+  const stopRenewal = keepSessionRenewed();
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => { stopRenewal(); void close().finally(() => process.exit(0)); });
 }

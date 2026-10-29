@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { Readable } from 'node:stream';
 import { callRelayTool, withRelayClient } from './client.js';
 import { RelayCredentialStore } from './auth.js';
-import { loginLocally } from './local-login.js';
+import { loginLocally, clearLoginProfiles } from './local-login.js';
 import { loginHosted } from './hosted-login.js';
 import { relayUrl } from './config.js';
 import { downloadRoot, resolveDownloadDir, safeNewFilePath, writeNamedDownload } from '../security/files.js';
@@ -48,6 +48,7 @@ export function relayCommands(program: Command, run: RelayRunner = callRelayTool
   };
   const logout = () => {
     new RelayCredentialStore(relayUrl()).clear();
+    clearLoginProfiles(); // sin esto el siguiente login reutilizaría en silencio la cuenta anterior
     console.error('Sesión local del relay eliminada.');
   };
   const configureLogin = (command: Command) => command.option('--university <id>', 'Universidad: upc-pe, upn-pe o palermo-ar')

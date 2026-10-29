@@ -2,6 +2,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { RelayAuthProvider, RelayCredentialStore, LOGIN_REQUIRED } from './auth.js';
 import { relayUrl, relayFetch } from './config.js';
+import { renewRelaySession } from './session-renewal.js';
 
 export function relayTransport(): StreamableHTTPClientTransport {
   const url = relayUrl();
@@ -21,5 +22,6 @@ export async function withRelayClient<T>(run: (client: Client) => Promise<T>): P
 }
 
 export async function callRelayTool(name: string, args: Record<string, unknown> = {}) {
+  if (await renewRelaySession() === 'renewed') console.error('Sesión universitaria renovada.');
   return withRelayClient(client => client.callTool({ name, arguments: args }, undefined, { timeout: 300_000 }));
 }
