@@ -10,7 +10,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
     <header class="ti-order-head">
       <h1>{turnitinServiceEnabled ? "Turnitin" : "Tus revisiones de Turnitin"}</h1>
       {turnitinServiceEnabled && <a class="ti-service-link" href="/turnitin/" aria-label="Detalles del servicio">Detalles <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>}
-      <p>{turnitinServiceEnabled ? "Elige IA o similitud por S/10, o ambos informes por S/15." : "Los pedidos nuevos están pausados. Consulta tus informes anteriores aquí."}</p>
+      <p>{turnitinServiceEnabled ? "Elige IA o similitud por S/9, o ambos informes por S/14." : "Los pedidos nuevos están pausados. Consulta tus informes anteriores aquí."}</p>
       {turnitinServiceEnabled && <div class="ti-service-facts"><span>10 min a 1 h tras validar el pago y el archivo</span></div>}
     </header>
     <p class="ti-status" data-ti-status role="status" aria-live="polite"><span class="app-sr-only">Comprobando disponibilidad…</span><span class="ti-inline-skeleton" aria-hidden="true"></span></p>
@@ -39,7 +39,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
 
       <TurnitinLogin inline />
       <details class="ti-panel ti-new-order" data-ti-new-order data-ti-service-enabled={String(turnitinServiceEnabled)} hidden={!turnitinServiceEnabled} open={turnitinServiceEnabled}>
-        <summary><span class="ti-summary-title">Nueva revisión</span><span class="ti-price-badge" data-ti-price>S/15 · Similitud + IA</span><span class="ti-disclosure" aria-hidden="true"></span></summary>
+        <summary><span class="ti-summary-title">Nueva revisión</span><span class="ti-price-badge" data-ti-price>S/14 · Similitud + IA</span><span class="ti-disclosure" aria-hidden="true"></span></summary>
         <div class="ti-new-order-body">
         <form data-ti-form hidden novalidate>
           <fieldset data-ti-fields style="border:0;padding:0;margin:0">
@@ -56,9 +56,9 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <fieldset class="ti-product-picker">
                   <legend>¿Qué informe necesitas?</legend>
                   <div class="ti-product-options">
-                    <label><input type="radio" name="report" value="ai" /><span class="ti-product-copy"><span>Solo IA</span><strong>S/10</strong><small class="ti-option-status" data-ti-option-status="ai">Comprobando…</small></span></label>
-                    <label><input type="radio" name="report" value="similarity" /><span class="ti-product-copy"><span>Solo similitud</span><strong>S/10</strong><small class="ti-option-status" data-ti-option-status="similarity">Comprobando…</small></span></label>
-                    <label><input type="radio" name="report" value="both" checked /><span class="ti-product-copy"><span>Similitud + IA</span><strong>S/15</strong><small class="ti-option-status" data-ti-option-status="both">Comprobando…</small></span></label>
+                    <label><input type="radio" name="report" value="ai" /><span class="ti-product-copy"><span>Solo IA</span><strong>S/9</strong><small class="ti-option-status" data-ti-option-status="ai">Comprobando…</small></span></label>
+                    <label><input type="radio" name="report" value="similarity" /><span class="ti-product-copy"><span>Solo similitud</span><strong>S/9</strong><small class="ti-option-status" data-ti-option-status="similarity">Comprobando…</small></span></label>
+                    <label><input type="radio" name="report" value="both" checked /><span class="ti-product-copy"><span>Similitud + IA</span><strong>S/14</strong><small class="ti-option-status" data-ti-option-status="both">Comprobando…</small></span></label>
                   </div>
                   <div class="ti-availability-bar"><p class="ti-field-help" data-ti-availability role="status" aria-live="polite" hidden></p><button type="button" class="ti-capacity-check" data-ti-check-capacity>Comprobar disponibilidad</button></div>
                 </fieldset>
@@ -80,7 +80,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <p class="ti-muted">Paga por Yape o Plin y adjunta tu comprobante. Recibirás los informes que elegiste en este pedido.</p>
                 <p class="ti-field-help ti-payment-availability" data-ti-payment-availability role="status" aria-live="polite"></p>
                 <div class="ti-payment">
-                  <div class="ti-payment-top"><span>Total por tu revisión · <span data-ti-product-summary>Similitud + IA</span></span><strong data-ti-amount>S/15</strong></div>
+                  <div class="ti-payment-top"><span>Total por tu revisión · <span data-ti-product-summary>Similitud + IA</span></span><strong data-ti-amount>S/14</strong></div>
                   <dl><div><dt>Número de celular</dt><dd><span data-ti-phone>—</span><button type="button" class="ti-copy-phone" data-ti-copy-phone aria-label="Copiar número de Yape o Plin"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#copy"></use></svg><span data-ti-copy-label>Copiar</span></button></dd></div><div><dt>Titular</dt><dd data-ti-holder>—</dd></div></dl>
                   <p class="ti-field-help">Verifica el titular antes de pagar. La disponibilidad se confirma al enviar tu documento y comprobante.</p>
                 </div>
