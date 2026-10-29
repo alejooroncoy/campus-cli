@@ -4,6 +4,7 @@
 El comprobador (apa7-check-format.py) lee las propiedades reales del documento, resolviendo
 estilos, para decidir si una IA detectó y corrigió el formato sin tocar el contenido.
 """
+import argparse
 from pathlib import Path
 
 from docx import Document
@@ -13,7 +14,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt
 
-OUT = Path('output/auditoria-manual-apa7/prueba-formato-20261029')
+DEFAULT_OUT = Path(__file__).resolve().parents[1] / 'output' / 'prueba-formato'
 
 TITLE = 'Uso de tableros de aprendizaje en cursos virtuales de ingeniería'
 PARAS = [
@@ -151,7 +152,10 @@ def build(path, *, good):
 
 
 if __name__ == '__main__':
-    (OUT / 'entrada').mkdir(parents=True, exist_ok=True)
-    build(OUT / 'entrada/trabajo-con-defectos.docx', good=False)
-    build(OUT / 'entrada/trabajo-correcto.docx', good=True)
-    print('Generados en', OUT / 'entrada')
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--out', type=Path, default=DEFAULT_OUT, help='carpeta de salida (por defecto output/prueba-formato)')
+    args = parser.parse_args()
+    (args.out / 'entrada').mkdir(parents=True, exist_ok=True)
+    build(args.out / 'entrada/trabajo-con-defectos.docx', good=False)
+    build(args.out / 'entrada/trabajo-correcto.docx', good=True)
+    print('Generados en', args.out / 'entrada')

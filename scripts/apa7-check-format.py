@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Comprueba el formato real de un .docx de prueba (ver apa7-generate-format-fixtures.py).
+"""Comprueba el formato real de los .docx de prueba que genera apa7-generate-format-fixtures.py.
+
+Solo valida esos documentos: el título, los encabezados y las tres referencias están fijados a ese
+documento de prueba (constantes TITLE y kind()). No es un verificador general de trabajos.
 
 --mode apa      : valores por defecto APA 7 (interlineado doble, márgenes 2,54 cm, etc.)
 --mode teacher  : instrucciones del docente: Arial 11 en todo, interlineado 1,5 en el cuerpo,
@@ -138,7 +141,6 @@ def check(path, mode, original):
         results.append((name, bool(cond), str(detail)))
 
     document, rows, margins, header, footer = analyse(path)
-    body = [r for r in rows if r['kind'] in ('title', 'body')]
     paras = [r for r in rows if r['kind'] == 'body']
     refs = [r for r in rows if r['kind'] == 'ref']
     teacher = mode == 'teacher'

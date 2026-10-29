@@ -6,7 +6,8 @@ import '../../styles/apa-format-tool.css';
 const canonical = 'https://campuscli.com/herramientas/normas-apa-7ma-edicion/';
 const title = 'Normas APA 7.ª edición: lo esencial y qué cambió | Campus';
 const description = 'Las normas APA 7.ª edición que más se usan en trabajos universitarios: citas, referencias y formato, y qué cambió desde la 6.ª. Con un texto para que tu IA revise tu trabajo.';
-const appLink = (slot: string) => `/app/?utm_source=herramientas&utm_medium=pagina&utm_campaign=normas-apa-7ma-edicion&utm_content=${slot}`;
+// `ref` y no `utm_*`: es un enlace interno y los UTM podrían pisar el origen real de la visita.
+const appLink = (slot: string) => `/app/?ref=normas-apa-7ma-edicion-${slot}`;
 
 const essentials = [
   ['Cita en el texto', 'Autor (año) o (Autor, año). Con tres o más autores, solo el primero y «et al.», desde la primera cita. Con dos autores, «y» dentro de la frase y «&» entre paréntesis.'],
@@ -53,7 +54,7 @@ const schemas = [{
         <h1>Normas APA 7.ª edición: lo esencial<em>.</em></h1>
         <p class="tools-lead">Citas, referencias y formato, en un solo lugar, y qué cambió desde la 6.ª edición. Con un texto para que tu IA revise tu trabajo con ellas.</p>
         <div class="apa-hero-cta"><a class="apa-join" href={appLink('hero')}>Unirme a Campus <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a class="tools-jump" href="#herramienta" data-apa-jump>Ir a copiar el texto <svg class="tools-icon apa-jump-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div>
-        <ul class="apa-trust">
+        <ul class="apa-trust" role="list">
           <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Copiar el texto es gratis y no pide registro.</span></li>
           <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Te pregunta antes de cambiar nada y, si puede editar el archivo, guarda una copia.</span></li>
           <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Con Campus, tu IA puede leer en tu aula lo que pidió tu docente. El texto le pide que solo lea.</span></li>
@@ -63,10 +64,10 @@ const schemas = [{
       <div class="tools-card" id="herramienta">
         <div class="tools-card-head"><span>COPIA Y PEGA</span><span class="tools-card-num">BETA</span></div>
         <h2>Tres pasos.</h2>
-        <ol class="apa-steps">
-          <li><b>01</b><span><strong>Copia el texto.</strong> Es un archivo de instrucciones para tu IA, de unos <span data-apa-size>111 KB</span>.</span></li>
-          <li><b>02</b><span><strong>Pégalo en tu asistente de IA</strong> y adjunta tu trabajo. Con un archivo de Word puede corregirlo; con un PDF, solo detectar problemas.</span></li>
-          <li><b>03</b><span><strong>Confirma los cambios.</strong> Te muestra una lista y espera tu respuesta antes de tocar nada.</span></li>
+        <ol class="apa-steps" role="list">
+          <li><b aria-hidden="true">01</b><span><strong>Copia el texto.</strong> Es un archivo de instrucciones para tu IA, de unos <span data-apa-size>111 KB</span>.</span></li>
+          <li><b aria-hidden="true">02</b><span><strong>Pégalo en tu asistente de IA</strong> y adjunta tu trabajo. Con un archivo de Word puede corregirlo; con un PDF, solo detectar problemas.</span></li>
+          <li><b aria-hidden="true">03</b><span><strong>Confirma los cambios.</strong> Te muestra una lista y espera tu respuesta antes de tocar nada.</span></li>
         </ol>
         <div class="apa-actions">
           <button type="button" class="apa-copy" data-apa-copy hidden>Copiar texto para mi IA</button><noscript><span class="apa-note">Activa JavaScript para copiar, o usa «Descargar como archivo».</span></noscript>
@@ -104,7 +105,7 @@ const schemas = [{
             </tbody>
           </table>
         </div>
-        <p>Es un resumen hecho con guías de bibliotecas universitarias, como las de <a href="https://owll.massey.ac.nz/referencing/apa-6th-vs-7th-edition.php" target="_blank" rel="noopener noreferrer">Massey University <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a> y <a href="https://libguides.nova.edu/apa/differences_from_6th_ed" target="_blank" rel="noopener noreferrer">Nova Southeastern University <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>. No es el manual oficial: confirma los detalles en APA Style.</p>
+        <p>Es un resumen hecho con guías de bibliotecas universitarias, como las de <a href="https://owll.massey.ac.nz/referencing/apa-6th-vs-7th-edition.php" target="_blank" rel="noopener noreferrer" aria-label="Massey University (se abre en otra pestaña)">Massey University <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a> y <a href="https://libguides.nova.edu/apa/differences_from_6th_ed" target="_blank" rel="noopener noreferrer" aria-label="Nova Southeastern University (se abre en otra pestaña)">Nova Southeastern University <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>. No es el manual oficial: confirma los detalles en APA Style.</p>
       </div>
     </section>
 
@@ -129,9 +130,9 @@ const schemas = [{
       <div><p class="tools-eyebrow"><span></span>FUENTES Y ALCANCE</p><h2>De dónde sale<br/><em>y hasta dónde llega.</em></h2></div>
       <div>
         <p>Cuando las fuentes no coinciden manda este orden: lo que pida tu docente, la guía de Biblioteca UPC y el manual APA 7.</p>
-        <ul class="apa-sources">
-          <li><a href="https://apastyle.apa.org" target="_blank" rel="noopener noreferrer">APA Style, páginas oficiales <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a> y el <em>Publication Manual</em> de la APA, 7.ª edición.</li>
-          <li><a href="https://biblioteca.upc.edu.pe/citas-referencias-APA7" target="_blank" rel="noopener noreferrer">Citas y referencias en APA 7, Biblioteca UPC <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>.</li>
+        <ul class="apa-sources" role="list">
+          <li><a href="https://apastyle.apa.org" target="_blank" rel="noopener noreferrer" aria-label="APA Style, páginas oficiales (se abre en otra pestaña)">APA Style, páginas oficiales <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a> y el <em>Publication Manual</em> de la APA, 7.ª edición.</li>
+          <li><a href="https://biblioteca.upc.edu.pe/citas-referencias-APA7" target="_blank" rel="noopener noreferrer" aria-label="Citas y referencias en APA 7, Biblioteca UPC (se abre en otra pestaña)">Citas y referencias en APA 7, Biblioteca UPC <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>.</li>
         </ul>
         <p><strong>No es una guía oficial ni está avalada por ninguna institución.</strong> Campus es independiente (<a href="/no-afiliacion/">aviso de no afiliación</a>). Puede equivocarse: revisa lo que cambie antes de entregar.</p>
       </div>
