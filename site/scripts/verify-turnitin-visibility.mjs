@@ -26,7 +26,7 @@ try {
   await page.route('**/api/app/**',async route=>{
    const pathname=new URL(route.request().url()).pathname;
    let body={};
-   if(pathname.endsWith('/turnitin/config'))body={enabled:backendEnabled,ordersAvailable:true,amountCents:1500,availability:{ai:12,similarity:8,both:5},products:[{id:'ai',label:'Solo IA',amountCents:1000,reports:['ai']},{id:'similarity',label:'Solo similitud',amountCents:1000,reports:['similarity']},{id:'both',label:'Similitud + IA',amountCents:1500,reports:['similarity','ai']}],phone:'fixture',holder:'fixture',maxDocumentBytes:20971520,maxReceiptBytes:5242880};
+   if(pathname.endsWith('/turnitin/config'))body={enabled:backendEnabled,ordersAvailable:true,amountCents:1400,availability:{ai:12,similarity:8,both:5},products:[{id:'ai',label:'Solo IA',amountCents:900,reports:['ai']},{id:'similarity',label:'Solo similitud',amountCents:900,reports:['similarity']},{id:'both',label:'Similitud + IA',amountCents:1400,reports:['similarity','ai']}],phone:'fixture',holder:'fixture',maxDocumentBytes:20971520,maxReceiptBytes:5242880};
    else if(pathname.endsWith('/turnitin/orders')&&route.request().method()==='POST'){submission=route.request().postDataJSON();body={order:{id:'22222222-2222-4222-8222-222222222222'}};}
    else if(pathname.endsWith('/session'))body={authenticated,universityConfirmed:true,account:{id:'fixture',email:'fixture@example.test'}};
    else if(pathname.endsWith('/turnitin/orders'))body={orders:[{id:'11111111-1111-4111-8111-111111111111',status:'completed',amountCents:800,documentName:'Fixture preserved.pdf',createdAt:'2026-10-01T12:00:00Z',availableReports:['similarity','ai']}],counts:{all:1,completed:1,payment_review:0,processing:0,payment_rejected:0},nextCursor:null};
@@ -40,7 +40,7 @@ try {
    assert.ok(await page.locator('a[href*="/files/ai"]').count());
    if(turnitinServiceEnabled&&backendEnabled){
     await page.locator('[data-ti-new-order] > summary').click();
-    for(const [report,price] of [['ai','S/10'],['similarity','S/10'],['both','S/15']]){
+    for(const [report,price] of [['ai','S/9'],['similarity','S/9'],['both','S/14']]){
      await page.locator(`input[name="report"][value="${report}"]`).check();
      assert.equal(await page.locator('[data-ti-amount]').textContent(),price);
      const availability=page.locator(`[data-ti-option-status="${report}"]`);
@@ -58,7 +58,7 @@ try {
     await page.locator('input[name="consent"]').check();
     await page.locator('button[type="submit"]').click();
     await page.waitForFunction(()=>document.querySelector('[data-ti-status]').textContent.includes('Pedido recibido')).catch(async error=>{console.error({submission,errors,status:await page.locator('[data-ti-status]').textContent(),submit:await page.locator('[data-ti-submit-status]').textContent(),form:await page.locator('[data-ti-form]').innerText()});throw error;});
-    assert.equal(submission.report,'ai');assert.equal(submission.amountCents,1000);
+    assert.equal(submission.report,'ai');assert.equal(submission.amountCents,900);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile page does not overflow');
    }
   }else await page.getByRole('link',{name:'Continuar con Google'}).waitFor({state:'visible'});
