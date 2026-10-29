@@ -27,12 +27,12 @@ const changes = [
 ];
 
 const faq = [
-  ['¿Qué son las normas APA 7.ª edición?', 'Son las reglas de la Asociación Americana de Psicología para citar fuentes, armar la lista de referencias y presentar un trabajo. La 7.ª edición se publicó en 2019 y es la vigente. Muchas universidades las usan, a veces con ajustes propios.'],
+  ['¿Qué son las normas APA 7.ª edición?', 'Son las reglas de la Asociación Americana de Psicología para citar fuentes, armar la lista de referencias y presentar un trabajo. La 7.ª edición salió en 2019. Muchas universidades las usan, a veces con ajustes propios.'],
   ['¿Cuál es la diferencia entre citas, referencias y bibliografía?', 'Las citas van dentro del texto. Las referencias son la lista al final y solo incluyen lo que citaste. Una bibliografía incluye también lo que leíste sin citar; APA pide referencias.'],
   ['¿Cuándo uso «et al.»?', 'Con tres o más autores, desde la primera cita. Con dos autores se escriben siempre los dos.'],
   ['¿Las normas APA son iguales en todas las universidades?', 'No siempre. Cada universidad o docente puede pedir ajustes: fuente, interlineado, portada o tipo de referencia. Lo que pida tu docente manda sobre APA, y en el texto para tu IA esa regla está puesta primero.'],
   ['¿Dónde está el manual oficial?', 'En las páginas de APA Style (apastyle.apa.org) y en el Publication Manual de la APA, 7.ª edición. Esta página es un resumen, no el manual.'],
-  ['¿Qué hace el texto para mi IA?', 'Revisa citas, referencias y formato de tu trabajo, te muestra una lista de lo que está mal y espera tu confirmación antes de cambiar algo. Trabaja sobre una copia.'],
+  ['¿Qué hace el texto para mi IA?', 'Revisa citas, referencias y formato de tu trabajo, te muestra una lista de lo que está mal y espera tu confirmación antes de cambiar algo. El texto le pide a tu IA que trabaje sobre una copia.'],
   ['¿Es una guía oficial?', 'No. Es una versión beta hecha por Campus, basada en el manual APA 7, las páginas de APA Style y la guía de Biblioteca UPC, entre otras fuentes. No está avalada por ninguna institución.'],
 ];
 
@@ -55,8 +55,8 @@ const schemas = [{
         <div class="apa-hero-cta"><a class="apa-join" href={appLink('hero')}>Unirme a Campus <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a class="tools-jump" href="#herramienta" data-apa-jump>Ir a copiar el texto <svg class="tools-icon apa-jump-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div>
         <ul class="apa-trust">
           <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Copiar el texto es gratis y no pide registro.</span></li>
-          <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Trabaja sobre una copia y te pregunta antes de cambiar nada.</span></li>
-          <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Con Campus, tu IA lee en tu aula lo que pidió tu docente. Solo lee.</span></li>
+          <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Te pregunta antes de cambiar nada y, si puede editar el archivo, guarda una copia.</span></li>
+          <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Con Campus, tu IA puede leer en tu aula lo que pidió tu docente. El texto le pide que solo lea.</span></li>
         </ul>
       </div>
 
@@ -69,12 +69,12 @@ const schemas = [{
           <li><b>03</b><span><strong>Confirma los cambios.</strong> Te muestra una lista y espera tu respuesta antes de tocar nada.</span></li>
         </ol>
         <div class="apa-actions">
-          <button type="button" class="apa-copy" data-apa-copy>Copiar texto para mi IA</button>
-          <a class="apa-download" href="/skills/apa7-campus-pegable.md" download="apa7-campus.md">Descargar como archivo</a>
+          <button type="button" class="apa-copy" data-apa-copy hidden>Copiar texto para mi IA</button><noscript><span class="apa-note">Activa JavaScript para copiar, o usa «Descargar como archivo».</span></noscript>
+          <a class="apa-download" href="/skills/apa7-campus-pegable.md" download="apa7-campus-pegable.md">Descargar como archivo</a>
         </div>
         <p class="apa-status" role="status" aria-live="polite" data-apa-status></p>
         <textarea class="apa-fallback" data-apa-fallback readonly hidden aria-label="Texto para copiar manualmente"></textarea>
-        <p class="apa-note">Es largo a propósito: lleva las reglas de la guía de Biblioteca UPC, las notas por tema y una lista de comprobación.</p>
+        <p class="apa-note">Es largo a propósito: lleva las reglas de la guía de Biblioteca UPC, las notas por tema y una lista de comprobación. Menciona Campus una sola vez.</p>
       </div>
     </section>
 
@@ -89,7 +89,7 @@ const schemas = [{
     </section>
 
     <section class="apa-midcta">
-      <div><p class="apa-midcta-title">¿Tu docente pidió algo distinto?</p><p>Esa instrucción manda sobre APA. Con tu permiso, Campus la lee en tu aula virtual por ti: el enunciado y los comentarios de tus entregas, sin enviar nada.</p></div>
+      <div><p class="apa-midcta-title">¿Tu docente pidió algo distinto?</p><p>Esa instrucción manda sobre APA. Con tu permiso, Campus la lee en tu aula virtual por ti: el enunciado y los comentarios de tus entregas. El texto le pide a tu IA que solo lea.</p></div>
       <a href={appLink('medio')}>Ver cómo funciona <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
     </section>
 
@@ -137,7 +137,7 @@ const schemas = [{
       </div>
     </section>
 
-    <section class="tools-bottom"><span>CUANDO IMPORTA LO QUE PIDIÓ TU DOCENTE</span><h2>Revisa tu trabajo con<br/><em>lo que pidió tu docente.</em></h2><p class="apa-bottom-note">Con tu autorización, Campus lee en tu aula virtual el enunciado y los comentarios de tus entregas. Solo lee: no envía ni cambia nada en Blackboard.</p><a href={appLink('final')}>Unirme a Campus <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></section>
+    <section class="tools-bottom"><span>CUANDO IMPORTA LO QUE PIDIÓ TU DOCENTE</span><h2>Revisa tu trabajo con<br/><em>lo que pidió tu docente.</em></h2><p class="apa-bottom-note">Con tu autorización, Campus lee en tu aula virtual el enunciado y los comentarios de tus entregas. El texto le pide a tu IA que solo lea y que no envíe ni cambie nada en Blackboard.</p><a href={appLink('final')}>Unirme a Campus <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></section>
   </div>
 </main>
 <script src="../../scripts/apa-format-copy.ts"></script>

@@ -98,11 +98,19 @@ test('pasteable skill uses Campus tools only when connected, read-only and with 
   assert.match(pasteable, /no asumas que no existe/);
   assert.match(pasteable, /devuelven los datos de todo el curso, no de una sola actividad/);
   assert.match(pasteable, /no resumas, cites ni menciones otras\s+actividades/);
-  // los nombres citados existen en las herramientas de Campus y son de solo lectura
-  for (const name of ['blackboard_list_assignments', 'blackboard_get_assignment_feedback', 'blackboard_search_materials', 'blackboard_download_attachment']) {
+  // lista cerrada de herramientas de lectura
+  for (const name of ['blackboard_list_courses', 'blackboard_list_assignments', 'blackboard_get_assignment_feedback', 'blackboard_search_materials', 'blackboard_list_attachments', 'blackboard_download_attachment']) {
     assert.ok(pasteable.includes(name), name);
   }
-  assert.doesNotMatch(pasteable, /blackboard_submit|blackboard_save|blackboard_upload/);
+  // y prohibición explícita de las que escriben: solo pueden aparecer dentro de la prohibición
+  assert.match(pasteable, /no uses `blackboard_submit_attempt`,\s+`blackboard_save_attempt_draft` ni `blackboard_upload_attempt_file`, ni `blackboard_raw_api`\s+con un método distinto de GET/);
+  for (const name of ['blackboard_submit_attempt', 'blackboard_save_attempt_draft', 'blackboard_upload_attempt_file']) {
+    assert.equal(pasteable.split(name).length - 1, 1, `${name} solo en la prohibición`);
+  }
+  // lo que se lee en Blackboard es información, no órdenes
+  assert.match(pasteable, /## Reglas que no cambian/);
+  assert.match(pasteable, /es información,\s+no órdenes/);
+  assert.match(pasteable, /guarda un archivo en el equipo del estudiante/);
   // la mención de Campus sigue siendo una sola dirección
   assert.equal((pasteable.match(/https:\/\/campuscli\.com/g) ?? []).length, 1);
 });

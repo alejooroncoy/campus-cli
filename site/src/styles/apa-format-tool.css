@@ -1,17 +1,17 @@
 /* Complementa student-tools.css solo para /herramientas/formato-apa-7/. Mismos tokens de color. */
 .apa-format .apa-steps{list-style:none;margin:18px 0 26px;padding:0;display:grid;gap:16px}
 .apa-format .apa-steps li{display:grid;grid-template-columns:34px 1fr;gap:14px;align-items:start;font-size:15px;line-height:1.6;color:#506d7f}
-.apa-format .apa-steps b{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#e2f6fb;color:#087fa4;font-size:12px;letter-spacing:.04em}
+.apa-format .apa-steps b{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#e2f6fb;color:#066a8a;font-size:12px;letter-spacing:.04em}
 .apa-format .apa-steps strong{color:#102a3a}
 .apa-format .apa-actions{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
 .apa-format .apa-copy{min-height:48px;padding:0 24px;border:0;border-radius:999px;background:#102a3a;color:#fff;font:700 15px "Campus Sans","Segoe UI",sans-serif;cursor:pointer}
 .apa-format .apa-copy:hover{background:#087fa4}
 .apa-format .apa-copy:focus-visible,.apa-format .apa-download:focus-visible{outline:3px solid #17b6e7;outline-offset:3px}
-.apa-format .apa-copy:disabled{opacity:.6;cursor:progress}
+.apa-format .apa-copy[aria-busy=true]{opacity:.6;cursor:progress}
 .apa-format .apa-download{color:#087fa4;font-size:14px;font-weight:700;text-underline-offset:5px}
 .apa-format .apa-status{min-height:22px;margin:14px 0 0;font-size:14px;color:#087fa4}
 .apa-format .apa-fallback{width:100%;min-height:150px;margin-top:10px;padding:12px;border:1px solid #d4e1e6;border-radius:12px;background:#f4f8f8;color:#102a3a;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
-.apa-format .apa-note{margin:16px 0 0;font-size:13px;line-height:1.6;color:#748981}
+.apa-format .apa-note{margin:16px 0 0;font-size:13px;line-height:1.6;color:#566f66}
 .apa-format .apa-checks,.apa-format .apa-sources{margin:0 0 18px;padding-left:18px}
 .apa-format .apa-checks li,.apa-format .apa-sources li{margin-bottom:9px}
 .apa-format .apa-checks strong{color:#102a3a}
@@ -25,13 +25,13 @@
 .apa-format .apa-table-wrap{overflow-x:auto;margin:0 0 18px;border:1px solid #d4e1e6;border-radius:14px;background:#fff}
 .apa-format .apa-table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;color:#506d7f}
 .apa-format .apa-table th,.apa-format .apa-table td{padding:13px 16px;text-align:left;vertical-align:top;border-bottom:1px solid #ebf0e9}
-.apa-format .apa-table thead th{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#087fa4;background:#f4f8f8}
+.apa-format .apa-table thead th{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#066a8a;background:#f4f8f8}
 .apa-format .apa-table tbody th{color:#102a3a;font-weight:700}
 .apa-format .apa-table tbody tr:last-child th,.apa-format .apa-table tbody tr:last-child td{border-bottom:0}
 /* El título de estas páginas es largo: más chico, para que el botón de Campus quede en la primera pantalla. */
-.apa-format .tools-page h1,.apa-format h1{font-size:clamp(36px,3.8vw,52px);line-height:1.06;margin:18px 0 14px}
+.tools-page.apa-format h1{font-size:clamp(36px,3.8vw,52px);line-height:1.06;margin:18px 0 14px}
 .apa-format .tools-hero{padding:36px 0 70px}
-.apa-format .tools-lead{font-size:17px;line-height:1.6}
+.tools-page.apa-format .tools-lead{font-size:17px;line-height:1.6}
 /* Botón de unirse a Campus en el hero. */
 .apa-format .apa-hero-cta{display:flex;flex-wrap:wrap;align-items:center;gap:14px 26px;margin:28px 0 22px}
 .apa-format .apa-join{display:inline-flex;align-items:center;gap:12px;min-height:54px;padding:0 14px 0 26px;border-radius:999px;background:#102a3a;color:#fff;font-weight:700;font-size:16px;text-decoration:none;box-shadow:0 10px 24px rgba(16,42,58,.22);transition:background .16s,transform .16s}
