@@ -61,3 +61,9 @@ test('el instalador de Chromium no bloquea el event loop del servidor MCP', () =
   assert.doesNotMatch(source, /\b(?:execFileSync|spawnSync|execSync)\(/);
   assert.match(source, /timeout:\s*180_000/, 'la descarga debe tener un límite');
 });
+
+test('la renovación en segundo plano se cancela desde el cierre del puente y no solo con señales', () => {
+  const source = fs.readFileSync(path.join(root, 'src/mcp/server.ts'), 'utf8');
+  assert.match(source, /stopRenewal\?\.\(\)/, 'el gancho de cierre del puente debe detener la renovación');
+  assert.match(source, /if \(!bridgeClosed\) stopRenewal = keepSessionRenewed\(\)/, 'no arrancar la renovación si el puente ya se cerró');
+});
