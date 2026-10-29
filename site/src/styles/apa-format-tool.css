@@ -33,14 +33,12 @@
 .apa-format .tools-hero{padding:36px 0 70px}
 .tools-page.apa-format .tools-lead{font-size:17px;line-height:1.6}
 /* Botón de unirse a Campus en el hero. */
-.apa-format .apa-hero-cta{display:flex;flex-wrap:wrap;align-items:center;gap:14px 26px;margin:28px 0 22px}
+.apa-format .apa-hero-cta{display:flex;flex-wrap:wrap;align-items:center;gap:14px 26px;margin:26px 0 14px}
 .apa-format .apa-join{display:inline-flex;align-items:center;gap:12px;min-height:54px;padding:0 14px 0 26px;border-radius:999px;background:#102a3a;color:#fff;font-weight:700;font-size:16px;text-decoration:none;box-shadow:0 10px 24px rgba(16,42,58,.22);transition:background .16s,transform .16s}
 .apa-format .apa-join .tools-icon{width:34px;height:34px;padding:8px;border-radius:50%;background:#17b6e7;color:#06293a;box-sizing:border-box}
 .apa-format .apa-join:hover{background:#0b3a52;transform:translateY(-1px)}
 .apa-format .apa-join:focus-visible{outline:3px solid #17b6e7;outline-offset:3px}
-.apa-format .apa-trust{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.apa-format .apa-trust li{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;font-size:14px;line-height:1.5;color:#506d7f}
-.apa-format .apa-trust .tools-icon{width:18px;height:18px;margin-top:2px;color:#087fa4}
+.apa-format .apa-trust-line{margin:0;font-size:14px;color:#506d7f}
 /* La flecha apunta a la tarjeta: a la derecha en escritorio, hacia abajo cuando la tarjeta queda debajo. */
 @media(max-width:800px){.apa-format .apa-join{width:100%;justify-content:space-between}.apa-format .apa-jump-icon{transform:rotate(90deg)}}
 /* Llamado a mitad de página y enlaces a otras herramientas. */

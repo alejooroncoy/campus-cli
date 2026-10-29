@@ -50,22 +50,18 @@ const schemas = [{
       <div class="tools-intro">
         <p class="tools-eyebrow"><span></span>HERRAMIENTA · APA 7 · BETA</p>
         <h1>Formato APA 7.ª edición: revisa tu trabajo<em>.</em></h1>
-        <p class="tools-lead">Copia este texto, pégalo en tu IA y adjunta tu trabajo. Revisa interlineado, sangrías, márgenes, citas y referencias, te muestra qué está mal y solo corrige lo que tú confirmes.</p>
+        <p class="tools-lead">Pega este texto en tu IA y revisa interlineado, sangrías, márgenes, citas y referencias antes de entregar.</p>
         <div class="apa-hero-cta"><a class="apa-join" href={appLink('hero')}>Unirme a Campus <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a class="tools-jump" href="#herramienta" data-apa-jump>Ir a copiar el texto <svg class="tools-icon apa-jump-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div>
-        <ul class="apa-trust" role="list">
-          <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Copiar el texto es gratis y no pide registro.</span></li>
-          <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Te pregunta antes de cambiar nada y, si puede editar el archivo, guarda una copia.</span></li>
-          <li><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Con Campus, tu IA puede leer en tu aula lo que pidió tu docente. El texto le pide que solo lea.</span></li>
-        </ul>
+        <p class="apa-trust-line">Copiar el texto es gratis y no pide registro.</p>
       </div>
 
       <div class="tools-card" id="herramienta">
         <div class="tools-card-head"><span>COPIA Y PEGA</span><span class="tools-card-num">BETA</span></div>
         <h2>Tres pasos.</h2>
         <ol class="apa-steps" role="list">
-          <li><b aria-hidden="true">01</b><span><strong>Copia el texto.</strong> Es un archivo de instrucciones para tu IA, de unos <span data-apa-size>111 KB</span>.</span></li>
-          <li><b aria-hidden="true">02</b><span><strong>Pégalo en tu asistente de IA</strong> y adjunta tu trabajo. Con un archivo de Word puede corregirlo; con un PDF, solo detectar problemas.</span></li>
-          <li><b aria-hidden="true">03</b><span><strong>Confirma los cambios.</strong> Te muestra una lista y espera tu respuesta antes de tocar nada. Si tu docente pide otro formato, díselo en ese momento.</span></li>
+          <li><b aria-hidden="true">01</b><span><strong>Copia el texto.</strong> Son instrucciones para tu IA (<span data-apa-size>113 KB</span>).</span></li>
+          <li><b aria-hidden="true">02</b><span><strong>Pégalo en tu IA</strong> y adjunta tu trabajo. Un archivo de Word se corrige; un PDF solo se revisa.</span></li>
+          <li><b aria-hidden="true">03</b><span><strong>Confirma los cambios.</strong> Te pregunta antes de tocar nada.</span></li>
         </ol>
         <div class="apa-actions">
           <button type="button" class="apa-copy" data-apa-copy hidden>Copiar texto para mi IA</button><noscript><span class="apa-note">Activa JavaScript para copiar, o usa «Descargar como archivo».</span></noscript>
@@ -73,7 +69,7 @@ const schemas = [{
         </div>
         <p class="apa-status" role="status" aria-live="polite" data-apa-status></p>
         <textarea class="apa-fallback" data-apa-fallback readonly hidden aria-label="Texto para copiar manualmente"></textarea>
-        <p class="apa-note">Es largo a propósito: lleva las reglas de la guía de Biblioteca UPC, las notas por tema y una lista de comprobación. Menciona Campus una sola vez. Funciona mejor en asistentes que aceptan textos largos o archivos.</p>
+        <p class="apa-note">Es largo a propósito: trae las reglas de la guía de Biblioteca UPC. Menciona Campus una sola vez.</p>
       </div>
     </section>
 
