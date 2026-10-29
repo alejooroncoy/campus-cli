@@ -1,6 +1,6 @@
 {
   "name": "campus-cli",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Cliente CLI y puente MCP del relay de Campus: cursos, tareas, notas y materiales con el acceso de tu cuenta.",
   "mcpName": "io.github.alejooroncoy/campus-cli",
   "main": "run.js",

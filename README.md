@@ -4,7 +4,7 @@
 
 Conecta tu campus universitario con tu terminal o cliente de IA mediante el relay de [Campus](https://campuscli.com).
 
-**Versión 3.0.0.** Esta versión cambia la arquitectura: todos los comandos de datos y el MCP por stdio usan el relay autenticado. El servidor aplica el plan y el cupo de la cuenta en cada operación. Instalar la CLI no concede acceso gratuito ni permite omitir esos controles.
+**Versión 3.1.0.** Desde la 3.0.0 todos los comandos de datos y el MCP por stdio usan el relay autenticado. El servidor aplica el plan y el cupo de la cuenta en cada operación. Instalar la CLI no concede acceso gratuito ni permite omitir esos controles.
 
 La política actual del relay conserva sus cinco consultas de prueba. Esta migración cierra la alternativa local de la nueva distribución; no cambia la política de pruebas del servidor ni puede retirar código o versiones 2.x ya descargados.
 
@@ -15,7 +15,7 @@ Campus es una integración no oficial. Blackboard, UPC, UPN y las demás univers
 Requiere Node.js 22.13 o superior y un navegador para autorizar la cuenta.
 
 ```bash
-npm install -g campus-cli@3.0.0
+npm install -g campus-cli@3.1.0
 campus login
 campus courses list --json
 campus assignments list <courseId> --json

@@ -4,6 +4,19 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
+## [3.1.0] — 2026-10-29
+
+### Added
+- La sesión universitaria se renueva sola. `campus login` guarda el acceso de tu universidad en un perfil local por universidad (UPC conserva `~/.blackboard-cli/browser-profile`) y, con el consentimiento que das en ese login, el servidor MCP y los comandos reenvían al relay únicamente cookies de la universidad cuando a la sesión le quedan menos de 2 horas. Ya no hay que repetir el login con MFA cada 3 horas. Las cookies de Microsoft y Google siguen sin salir de tu equipo.
+- El consentimiento de renovación automática dura 30 días; después hay que ejecutar `campus login` otra vez. `campus logout` borra también los perfiles locales.
+
+### Fixed
+- El paquete npm incluye `browser-install` y `concurrency`, que el login local necesita para arrancar.
+- El instalador de Chromium usa el Playwright del propio paquete, es asíncrono, tiene límite de 180 s y escribe solo en stderr, de modo que no interfiere con el canal JSON-RPC del MCP. La renovación en segundo plano nunca descarga Chromium por su cuenta.
+- La renovación se cancela al cerrarse el puente MCP, nunca corre varias veces a la vez entre procesos y descarta su resultado si cambian las credenciales mientras renueva (login o logout).
+
+---
+
 ## [3.0.0] — 2026-10-26
 
 ### Changed
