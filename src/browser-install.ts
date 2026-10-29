@@ -99,9 +99,10 @@ async function launchPersistentContextExclusive(
     // chromium` is idempotent — near-instant if already installed — so this
     // costs nothing when the failure wasn't actually about a missing
     // browser, and the retry below still surfaces the real error either way.
-    console.log('Verificando el navegador de Playwright (solo la primera vez)...');
+    // stdout es el canal JSON-RPC cuando esto corre dentro de `campus mcp`: todo va a stderr.
+    console.error('Verificando el navegador de Playwright (solo la primera vez)...');
     try {
-      execFileSync('npx', ['playwright', 'install', 'chromium'], { stdio: 'inherit' });
+      execFileSync('npx', ['playwright', 'install', 'chromium'], { stdio: ['ignore', 2, 2] });
     } catch {
       throw err; // install itself failed — surface the original launch error
     }
