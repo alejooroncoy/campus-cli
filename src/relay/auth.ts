@@ -9,10 +9,19 @@ import { OAuthClientInformationSchema, OAuthTokensSchema, type OAuthClientInform
 import { relayUrl, relayFetch } from './config.js';
 
 export const LOGIN_REQUIRED = 'Inicia sesión en el relay de Campus: campus login. El acceso depende del plan y cupo de tu cuenta.';
+/** Autorización dada en `campus login` para volver a subir solo cookies de la universidad. */
+export type SessionUpload = {
+  universityId: string; expiresAt: number;
+  /** Cuándo dio el estudiante el consentimiento (el último `campus login`); la renovación caduca a los 30 días. */
+  authorizedAt: number;
+  /** No se vuelve a intentar renovar antes de esta hora, ni tras un éxito ni tras un fallo. */
+  nextAttemptAt?: number;
+};
 export type RelayCredentials = {
   redirectUrl: string;
   client: OAuthClientInformationMixed;
   tokens?: OAuthTokens;
+  sessionUpload?: SessionUpload;
 };
 
 /** Separate from legacy Campus identity and Blackboard cookies; bound to the full MCP URL. */
@@ -34,8 +43,12 @@ export class RelayCredentialStore {
     fs.chmodSync(this.file, 0o600);
     const value = JSON.parse(fs.readFileSync(this.file, 'utf8'));
     if (typeof value.redirectUrl !== 'string') throw new Error(LOGIN_REQUIRED);
+    const upload = value.sessionUpload;
+    const validUpload = typeof upload?.universityId === 'string' && Number.isFinite(upload.expiresAt) && Number.isFinite(upload.authorizedAt);
     return { redirectUrl: value.redirectUrl, client: OAuthClientInformationSchema.parse(value.client),
-      ...(value.tokens ? { tokens: OAuthTokensSchema.parse(value.tokens) } : {}) };
+      ...(value.tokens ? { tokens: OAuthTokensSchema.parse(value.tokens) } : {}),
+      ...(validUpload ? { sessionUpload: { universityId: upload.universityId, expiresAt: upload.expiresAt, authorizedAt: upload.authorizedAt,
+        ...(Number.isFinite(upload.nextAttemptAt) ? { nextAttemptAt: upload.nextAttemptAt } : {}) } } : {}) };
   }
   save(value: RelayCredentials): void {
     this.checkParents();
@@ -57,7 +70,8 @@ export class RelayCredentialStore {
 
 export class RelayAuthProvider implements OAuthClientProvider {
   private verifier?: string;
-  constructor(readonly store: RelayCredentialStore) {}
+  /** `expectedClientId` ata este proveedor a un login concreto: si las credenciales cambian, no guarda tokens del anterior. */
+  constructor(readonly store: RelayCredentialStore, private readonly expectedClientId?: string) {}
   get redirectUrl(): string { return this.store.load()?.redirectUrl ?? 'http://127.0.0.1/callback'; }
   get clientMetadata() {
     return { client_name: 'campus-cli', redirect_uris: [this.redirectUrl], grant_types: ['authorization_code', 'refresh_token'],
@@ -68,6 +82,7 @@ export class RelayAuthProvider implements OAuthClientProvider {
   saveTokens(tokens: OAuthTokens) {
     const current = this.store.load();
     if (!current) throw new Error(LOGIN_REQUIRED);
+    if (this.expectedClientId !== undefined && current.client.client_id !== this.expectedClientId) throw new Error(LOGIN_REQUIRED);
     this.store.save({ ...current, tokens });
   }
   redirectToAuthorization(_url: URL): void { throw new Error(LOGIN_REQUIRED); }

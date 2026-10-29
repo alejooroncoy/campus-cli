@@ -2,17 +2,24 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { isJSONRPCRequest, isJSONRPCResultResponse, type RequestId } from '@modelcontextprotocol/sdk/types.js';
 import { relayTransport } from '../relay/client.js';
+import { keepSessionRenewed } from '../relay/session-renewal.js';
 
 /** Forward the protocol intact, including capabilities, elicitation and resources.
  * No local provider is registered when the relay denies access or is unavailable.
  */
-export async function bridgeRelay(local: Transport, remote: Transport, report: (error: Error) => void = console.error) {
+export async function bridgeRelay(
+  local: Transport,
+  remote: Transport,
+  report: (error: Error) => void = console.error,
+  /** Se ejecuta una sola vez al cerrar el puente, sea por señal o porque cualquiera de los transportes se cerró. */
+  onClose: () => Promise<void> | void = () => {},
+) {
   let closed = false;
   let initializeId: RequestId | undefined;
   const close = async () => {
     if (closed) return;
     closed = true;
-    await Promise.allSettled([local.close(), remote.close()]);
+    await Promise.allSettled([local.close(), remote.close(), Promise.resolve().then(onClose)]);
   };
   local.onmessage = message => {
     if (isJSONRPCRequest(message) && message.method === 'initialize') initializeId = message.id;
@@ -43,6 +50,10 @@ export async function bridgeRelay(local: Transport, remote: Transport, report: (
 }
 
 export async function startMcpServer(): Promise<void> {
-  const close = await bridgeRelay(new StdioServerTransport(), relayTransport());
+  let stopRenewal: (() => Promise<void>) | undefined;
+  let bridgeClosed = false;
+  // La renovación se cancela con el cierre normal del puente (el cliente MCP se desconecta o el relay corta), no solo con señales.
+  const close = await bridgeRelay(new StdioServerTransport(), relayTransport(), console.error, () => { bridgeClosed = true; return stopRenewal?.(); });
+  if (!bridgeClosed) stopRenewal = keepSessionRenewed();
   for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => { void close().finally(() => process.exit(0)); });
 }

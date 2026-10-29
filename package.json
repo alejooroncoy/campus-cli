@@ -10,6 +10,10 @@
   "files": [
     "dist/index.js",
     "dist/index.d.ts",
+    "dist/browser-install.js",
+    "dist/browser-install.d.ts",
+    "dist/concurrency.js",
+    "dist/concurrency.d.ts",
     "dist/relay",
     "dist/mcp/server.js",
     "dist/mcp/server.d.ts",

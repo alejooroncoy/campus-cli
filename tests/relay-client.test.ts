@@ -203,6 +203,21 @@ test('stdio bridge preserves handshake, payment results, resources, cancellation
   await close();
 });
 
+test('stdio bridge runs its close hook once when either transport closes, so background renewal stops', async () => {
+  for (const side of ['client', 'relay'] as const) {
+    const [caller, local] = InMemoryTransport.createLinkedPair();
+    const [remote, relay] = InMemoryTransport.createLinkedPair();
+    await caller.start(); await relay.start();
+    let closes = 0;
+    const close = await bridgeRelay(local, remote, () => {}, async () => { closes++; });
+    await (side === 'client' ? caller : relay).close();
+    await tick(); await tick();
+    assert.equal(closes, 1, `cierre iniciado por ${side}`);
+    await close(); await close();
+    assert.equal(closes, 1, 'el gancho no se repite');
+  }
+});
+
 test('CLI reads route to relay, preserve payment guidance, and reject local mutations', async () => {
   const calls: any[] = [];
   const lines: string[] = [];

@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { Readable } from 'node:stream';
 import { callRelayTool, withRelayClient } from './client.js';
 import { RelayCredentialStore } from './auth.js';
-import { loginLocally } from './local-login.js';
+import { loginLocally, clearLoginProfiles } from './local-login.js';
 import { loginHosted } from './hosted-login.js';
 import { relayUrl } from './config.js';
 import { downloadRoot, resolveDownloadDir, safeNewFilePath, writeNamedDownload } from '../security/files.js';
@@ -48,13 +48,14 @@ export function relayCommands(program: Command, run: RelayRunner = callRelayTool
   };
   const logout = () => {
     new RelayCredentialStore(relayUrl()).clear();
+    clearLoginProfiles(); // sin esto el siguiente login reutilizaría en silencio la cuenta anterior
     console.error('Sesión local del relay eliminada.');
   };
   const configureLogin = (command: Command) => command.option('--university <id>', 'Universidad: upc-pe, upn-pe o palermo-ar')
     .option('--hosted', 'Completar el acceso universitario en el relay (SSO MyUP de Palermo)')
-    .option('--consent-session-upload', 'Autorizar explícitamente el envío de la sesión al relay').action(login);
+    .option('--consent-session-upload', 'Autorizar el envío de la sesión al relay y su renovación automática durante 30 días').action(login);
   configureLogin(program.command('login').description('Autorizar Campus y conectar tu universidad con Playwright local'));
-  program.command('logout').description('Eliminar las credenciales del relay de este equipo').action(logout);
+  program.command('logout').description('Eliminar las credenciales del relay y el acceso guardado de tu universidad en este equipo').action(logout);
   const account = program.command('account').description('Cuenta conectada al relay de Campus');
   configureLogin(account.command('login').description('Alias de campus login'));
   account.command('logout').description('Alias de campus logout').action(logout);

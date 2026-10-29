@@ -92,6 +92,7 @@ test('complete local login uses identity-only OAuth, sends only filtered cookies
   assert.deepEqual(Object.keys(f.received[0]).sort(), ['consent', 'cookies', 'expiresAt', 'universityId']);
   assert.equal(f.received[0].cookies.length, 1);
   assert.equal(f.store.load()?.tokens?.access_token, 'verified-relay-read');
+  assert.equal(f.store.load()?.sessionUpload?.universityId, 'upc-pe', 'el consentimiento queda registrado para renovar después');
   const file = fs.readFileSync(f.store.file, 'utf8');
   assert.ok(!file.includes('BbRouter') && !file.includes('xsrf:') && !file.includes('identity-refresh'));
 });
