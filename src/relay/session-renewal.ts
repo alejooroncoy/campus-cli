@@ -49,9 +49,9 @@ async function withRenewalLock<T>(store: RelayCredentialStore, run: () => Promis
   try { return await run(); } finally { await release().catch(() => undefined); }
 }
 
-function defer(store: RelayCredentialStore, now: number, delayMs: number): void {
+function defer(store: RelayCredentialStore, now: number, delayMs: number, sameLogin: (credentials: RelayCredentials) => boolean): void {
   const latest = store.load();
-  if (latest?.sessionUpload) store.save({ ...latest, sessionUpload: { ...latest.sessionUpload, nextAttemptAt: now + delayMs } });
+  if (latest?.sessionUpload && sameLogin(latest)) store.save({ ...latest, sessionUpload: { ...latest.sessionUpload, nextAttemptAt: now + delayMs } });
 }
 
 /**
@@ -75,13 +75,17 @@ export async function renewRelaySession(options: RenewalOptions = {}): Promise<R
       if (again !== 'due') return again === 'unauthorized' ? 'unavailable' : again;
       const upload = current!.sessionUpload!;
       const universityId = loginUniversity(upload.universityId);
+      // `campus login` y `logout` escriben sin este candado: si cambian las credenciales mientras renovamos
+      // (otra cuenta, otro registro de cliente), el resultado pertenece al login anterior y se descarta.
+      const clientId = current!.client.client_id;
+      const sameLogin = (credentials: RelayCredentials) => credentials.client.client_id === clientId && credentials.sessionUpload?.authorizedAt === upload.authorizedAt;
       let result: RenewalResult = 'unavailable';
       try {
         const captured = await (options.capture ?? ((id, abort) => captureWithProfile(id, abort, { headless: true })))(universityId, withSignal(CAPTURE_TIMEOUT_MS, options.signal));
         const payload = capturePayload(captured.cookies, universityId);
         const signal = withSignal(UPLOAD_TIMEOUT_MS, options.signal);
         // El SDK refresca el token del relay si hace falta; sin refresh válido no hay renovación posible.
-        const provider = new RelayAuthProvider(store!);
+        const provider = new RelayAuthProvider(store!, clientId);
         if (await auth(provider, { serverUrl: url, scope: 'campus.read', fetchFn: relayFetch(url, signal, 20_000) }) === 'AUTHORIZED') {
           const access = provider.tokens()?.access_token;
           const expiresAt = Math.min(payload.expiresAt, captured.expiresAt);
@@ -91,7 +95,7 @@ export async function renewRelaySession(options: RenewalOptions = {}): Promise<R
           if (response?.ok) {
             const tokens = OAuthTokensSchema.parse((await response.json()).tokens);
             const latest = store!.load();
-            if (latest && tokens.scope?.split(/\s+/).includes('campus.read') === true) {
+            if (latest && sameLogin(latest) && tokens.scope?.split(/\s+/).includes('campus.read') === true) {
               store!.save({ ...latest, tokens: { ...tokens, ...(tokens.refresh_token ? {} : { refresh_token: latest.tokens?.refresh_token }) },
                 sessionUpload: { universityId, expiresAt, authorizedAt: upload.authorizedAt, nextAttemptAt: now + AFTER_SUCCESS_MS } });
               result = 'renewed';
@@ -99,7 +103,7 @@ export async function renewRelaySession(options: RenewalOptions = {}): Promise<R
           }
         }
       } catch { /* el SSO ya no sirve, no hay red o el relay rechazó: se reporta como no disponible */ }
-      if (result !== 'renewed') defer(store!, now, AFTER_FAILURE_MS);
+      if (result !== 'renewed') defer(store!, now, AFTER_FAILURE_MS, sameLogin);
       return result;
     });
     return outcome ?? 'fresh'; // otro proceso está renovando ahora mismo

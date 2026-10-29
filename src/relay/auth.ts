@@ -70,7 +70,8 @@ export class RelayCredentialStore {
 
 export class RelayAuthProvider implements OAuthClientProvider {
   private verifier?: string;
-  constructor(readonly store: RelayCredentialStore) {}
+  /** `expectedClientId` ata este proveedor a un login concreto: si las credenciales cambian, no guarda tokens del anterior. */
+  constructor(readonly store: RelayCredentialStore, private readonly expectedClientId?: string) {}
   get redirectUrl(): string { return this.store.load()?.redirectUrl ?? 'http://127.0.0.1/callback'; }
   get clientMetadata() {
     return { client_name: 'campus-cli', redirect_uris: [this.redirectUrl], grant_types: ['authorization_code', 'refresh_token'],
@@ -81,6 +82,7 @@ export class RelayAuthProvider implements OAuthClientProvider {
   saveTokens(tokens: OAuthTokens) {
     const current = this.store.load();
     if (!current) throw new Error(LOGIN_REQUIRED);
+    if (this.expectedClientId !== undefined && current.client.client_id !== this.expectedClientId) throw new Error(LOGIN_REQUIRED);
     this.store.save({ ...current, tokens });
   }
   redirectToAuthorization(_url: URL): void { throw new Error(LOGIN_REQUIRED); }

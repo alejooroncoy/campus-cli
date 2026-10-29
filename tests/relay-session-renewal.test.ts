@@ -4,7 +4,7 @@ import { createServer } from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { RelayCredentialStore } from '../src/relay/auth.js';
+import { RelayAuthProvider, RelayCredentialStore } from '../src/relay/auth.js';
 import { captureWithProfile, clearLoginProfiles, loginProfileDir, SilentLoginUnavailable } from '../src/relay/local-login.js';
 import { keepSessionRenewed, renewRelaySession, RENEW_BEFORE_MS, RENEWAL_AUTHORIZATION_MS } from '../src/relay/session-renewal.js';
 
@@ -16,6 +16,7 @@ async function relay(t: any, loginStatus = 201) {
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   let base = '';
   const uploads: Array<{ authorization?: string; body: any }> = [];
+  const hooks: { onUpload?: () => void } = {};
   const server = createServer(async (req, res) => {
     const url = new URL(req.url!, base);
     const chunks: Buffer[] = []; for await (const chunk of req) chunks.push(Buffer.from(chunk));
@@ -31,6 +32,7 @@ async function relay(t: any, loginStatus = 201) {
     }
     if (url.pathname === '/v1/cli/login' && req.method === 'POST') {
       uploads.push({ authorization: req.headers.authorization, body: JSON.parse(raw) });
+      hooks.onUpload?.();
       return reply({ tokens: { access_token: 'renewed-read', refresh_token: 'renewed-refresh', token_type: 'Bearer', scope: 'campus.read' } }, loginStatus);
     }
     return reply({ error: 'unexpected path' }, 404);
@@ -41,7 +43,7 @@ async function relay(t: any, loginStatus = 201) {
   const url = new URL(`${base}/mcp`), store = new RelayCredentialStore(url, dir);
   const enroll = (expiresAt: number, authorizedAt = Date.now()) => store.save({ redirectUrl: 'http://127.0.0.1:1/callback', client: { client_id: 'local-cli' },
     tokens: { access_token: 'old-read', refresh_token: 'old-refresh', token_type: 'Bearer', scope: 'campus.read' }, sessionUpload: { universityId: 'upc-pe', expiresAt, authorizedAt } });
-  return { url, store, uploads, enroll };
+  return { url, store, uploads, enroll, hooks };
 }
 
 test('sin autorización guardada no se abre el navegador ni se sube nada', async t => {
@@ -177,6 +179,40 @@ test('dos procesos con la misma sesión vencida renuevan una sola vez', async t 
   const results = await Promise.all([renewRelaySession({ ...f, capture: slow }), renewRelaySession({ ...f, capture: slow })]);
   assert.deepEqual(results.sort(), ['fresh', 'renewed']);
   assert.equal(captures, 1); assert.equal(f.uploads.length, 1);
+});
+
+test('un login nuevo mientras se renueva descarta el resultado y no mezcla cuentas', async t => {
+  const f = await relay(t);
+  f.enroll(Date.now() + 60_000);
+  f.hooks.onUpload = () => f.store.save({ redirectUrl: 'http://127.0.0.1:2/callback', client: { client_id: 'new-login' },
+    tokens: { access_token: 'new-account-read', refresh_token: 'new-refresh', token_type: 'Bearer', scope: 'campus.read' },
+    sessionUpload: { universityId: 'upn-pe', expiresAt: Date.now() + 3 * 3600_000, authorizedAt: Date.now() + 5 } });
+  assert.equal(await renewRelaySession({ ...f, capture: sessionCapture }), 'unavailable');
+  const saved = f.store.load()!;
+  assert.equal(saved.client.client_id, 'new-login');
+  assert.equal(saved.tokens?.access_token, 'new-account-read');
+  assert.equal(saved.tokens?.refresh_token, 'new-refresh');
+  assert.equal(saved.sessionUpload?.universityId, 'upn-pe');
+  assert.equal(saved.sessionUpload?.nextAttemptAt, undefined, 'no se hereda la espera del login anterior');
+});
+
+test('un logout mientras se renueva no reescribe credenciales', async t => {
+  const f = await relay(t);
+  f.enroll(Date.now() + 60_000);
+  f.hooks.onUpload = () => f.store.clear();
+  assert.equal(await renewRelaySession({ ...f, capture: sessionCapture }), 'unavailable');
+  assert.equal(f.store.load(), undefined);
+});
+
+test('un proveedor atado a un login no guarda tokens si las credenciales cambiaron', async t => {
+  const f = await relay(t);
+  f.enroll(Date.now() + 60_000);
+  const provider = new RelayAuthProvider(f.store, 'local-cli');
+  provider.saveTokens({ access_token: 'same-login', token_type: 'Bearer' });
+  assert.equal(f.store.load()?.tokens?.access_token, 'same-login');
+  f.store.save({ ...f.store.load()!, client: { client_id: 'other-login' } });
+  assert.throws(() => provider.saveTokens({ access_token: 'stale-login', token_type: 'Bearer' }), /campus login/);
+  assert.equal(f.store.load()?.tokens?.access_token, 'same-login');
 });
 
 test('un archivo de credenciales dañado no lanza: devuelve no disponible', async t => {
