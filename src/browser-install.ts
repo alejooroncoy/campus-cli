@@ -1,5 +1,6 @@
 import { chromium, type BrowserContext } from 'playwright';
 import { execFileSync } from 'child_process';
+import path from 'node:path';
 import { sequentializeByKey } from './concurrency.js';
 
 type PersistentContextOptions = Parameters<typeof chromium.launchPersistentContext>[1];
@@ -102,7 +103,10 @@ async function launchPersistentContextExclusive(
     // stdout es el canal JSON-RPC cuando esto corre dentro de `campus mcp`: todo va a stderr.
     console.error('Verificando el navegador de Playwright (solo la primera vez)...');
     try {
-      execFileSync('npx', ['playwright', 'install', 'chromium'], { stdio: ['ignore', 2, 2] });
+      // Se ejecuta el cli.js del Playwright de este paquete: `npx playwright` usaría el del proyecto donde se
+      // lance el comando y descargaría otra revisión de Chromium.
+      const cli = path.join(path.dirname(require.resolve('playwright/package.json')), 'cli.js');
+      execFileSync(process.execPath, [cli, 'install', 'chromium'], { stdio: ['ignore', 2, 2] });
     } catch {
       throw err; // install itself failed — surface the original launch error
     }

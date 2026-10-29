@@ -47,3 +47,11 @@ test('los módulos que carga `campus mcp` nunca escriben en stdout, que es el ca
   });
   assert.deepEqual(offenders, []);
 });
+
+test('el instalador de Chromium usa el Playwright de este paquete y no el del proyecto en curso', () => {
+  const source = fs.readFileSync(path.join(root, 'src/browser-install.ts'), 'utf8');
+  assert.doesNotMatch(source, /execFileSync\(\s*'npx'/, 'npx resolvería la versión de Playwright del directorio actual');
+  assert.match(source, /process\.execPath/);
+  const cli = path.join(path.dirname(require.resolve('playwright/package.json')), 'cli.js');
+  assert.ok(fs.existsSync(cli), 'playwright/cli.js debe existir para poder instalar el navegador');
+});
