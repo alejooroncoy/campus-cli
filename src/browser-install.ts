@@ -1,5 +1,5 @@
 import { chromium, type BrowserContext } from 'playwright';
-import { execFileSync } from 'child_process';
+import { execFile } from 'child_process';
 import path from 'node:path';
 import { sequentializeByKey } from './concurrency.js';
 
@@ -60,16 +60,19 @@ const launchQueues = new Map<string, Promise<void>>();
 
 export async function launchPersistentContextSafe(
   profileDir: string,
-  options: PersistentContextOptions
+  options: PersistentContextOptions,
+  // Un proceso en segundo plano (renovación del MCP) no debe descargar Chromium por su cuenta.
+  extra: { install?: boolean } = {}
 ): Promise<BrowserContext> {
   return sequentializeByKey(launchQueues, profileDir, () =>
-    launchPersistentContextExclusive(profileDir, options)
+    launchPersistentContextExclusive(profileDir, options, extra.install ?? true)
   );
 }
 
 async function launchPersistentContextExclusive(
   profileDir: string,
-  options: PersistentContextOptions
+  options: PersistentContextOptions,
+  install: boolean
 ): Promise<BrowserContext> {
   // Prefer a Chromium-based browser already installed on this machine —
   // avoids Playwright's ~150MB Chromium download entirely in the common
@@ -92,7 +95,7 @@ async function launchPersistentContextExclusive(
   try {
     return await doLaunch(profileDir, options);
   } catch (err: any) {
-    if (installAttempted.has(profileDir)) throw err;
+    if (!install || installAttempted.has(profileDir)) throw err;
     installAttempted.add(profileDir);
     // Playwright doesn't expose a stable error code for "browser not
     // installed" (just an English message), so instead of pattern-matching
@@ -106,7 +109,12 @@ async function launchPersistentContextExclusive(
       // Se ejecuta el cli.js del Playwright de este paquete: `npx playwright` usaría el del proyecto donde se
       // lance el comando y descargaría otra revisión de Chromium.
       const cli = path.join(path.dirname(require.resolve('playwright/package.json')), 'cli.js');
-      execFileSync(process.execPath, [cli, 'install', 'chromium'], { stdio: ['ignore', 2, 2] });
+      // Asíncrono y acotado: execFileSync congelaría el event loop (en `campus mcp` pararía el puente JSON-RPC).
+      await new Promise<void>((resolve, reject) => {
+        const child = execFile(process.execPath, [cli, 'install', 'chromium'], { timeout: 180_000 }, error => error ? reject(error) : resolve());
+        child.stdout?.pipe(process.stderr, { end: false });
+        child.stderr?.pipe(process.stderr, { end: false });
+      });
     } catch {
       throw err; // install itself failed — surface the original launch error
     }

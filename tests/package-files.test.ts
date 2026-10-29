@@ -55,3 +55,9 @@ test('el instalador de Chromium usa el Playwright de este paquete y no el del pr
   const cli = path.join(path.dirname(require.resolve('playwright/package.json')), 'cli.js');
   assert.ok(fs.existsSync(cli), 'playwright/cli.js debe existir para poder instalar el navegador');
 });
+
+test('el instalador de Chromium no bloquea el event loop del servidor MCP', () => {
+  const source = fs.readFileSync(path.join(root, 'src/browser-install.ts'), 'utf8');
+  assert.doesNotMatch(source, /\b(?:execFileSync|spawnSync|execSync)\(/);
+  assert.match(source, /timeout:\s*180_000/, 'la descarga debe tener un límite');
+});

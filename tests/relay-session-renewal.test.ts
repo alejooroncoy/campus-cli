@@ -100,10 +100,12 @@ test('captureWithProfile reutiliza el perfil, va en headless y cierra el context
     let closes = 0;
     const page = { goto: async () => {}, waitForURL: async () => {}, waitForTimeout: async () => {} };
     const context = { newPage: async () => page, cookies: async () => [cookie()], close: async () => { closes++; } };
-    const launch = (async (profile: string, options: any) => { launches.push({ dir: profile, headless: options.headless }); return context; }) as any;
+    const installs: Array<boolean | undefined> = [];
+    const launch = (async (profile: string, options: any, extra?: { install?: boolean }) => { launches.push({ dir: profile, headless: options.headless }); installs.push(extra?.install); return context; }) as any;
     const capture = await captureWithProfile('upc-pe', new AbortController().signal, { headless: true, profileDir: path.join(dir, 'p'), launch });
     assert.equal(capture.cookies[0].domain, 'aulavirtual.upc.edu.pe');
     assert.deepEqual(launches, [{ dir: path.join(dir, 'p'), headless: true }]);
+    assert.deepEqual(installs, [false], 'la captura en segundo plano nunca descarga Chromium');
     assert.equal(fs.statSync(path.join(dir, 'p')).mode & 0o777, 0o700);
     assert.equal(closes, 1);
     const stuck = { ...context, newPage: async () => ({ ...page, waitForURL: async () => { throw new Error('timeout en Microsoft'); } }) };

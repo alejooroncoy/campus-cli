@@ -157,7 +157,7 @@ export async function captureWithProfile(universityId: LoginUniversity, signal: 
   const headless = options.headless ?? false;
   const dir = options.profileDir ?? loginProfileDir(universityId);
   prepareProfileDir(dir);
-  const context = await (options.launch ?? launchPersistentContextSafe)(dir, { headless, userAgent: USER_AGENT });
+  const context = await (options.launch ?? launchPersistentContextSafe)(dir, { headless, userAgent: USER_AGENT }, { install: !headless });
   const onAbort = () => { void context.close(); };
   signal.addEventListener('abort', onAbort, { once: true });
   let stopPicker = () => {};
