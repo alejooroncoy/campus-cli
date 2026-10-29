@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { RelayCredentialStore } from '../src/relay/auth.js';
 import { captureWithProfile, clearLoginProfiles, loginProfileDir, SilentLoginUnavailable } from '../src/relay/local-login.js';
-import { keepSessionRenewed, renewRelaySession, RENEW_BEFORE_MS } from '../src/relay/session-renewal.js';
+import { keepSessionRenewed, renewRelaySession, RENEW_BEFORE_MS, RENEWAL_AUTHORIZATION_MS } from '../src/relay/session-renewal.js';
 
 const cookie = (domain = 'aulavirtual.upc.edu.pe') => ({ name: 'BbRouter', value: 'xsrf:abcd-1234', domain, path: '/', expires: -1, secure: true, httpOnly: true, sameSite: 'Lax' as const });
 const sessionCapture = async () => ({ cookies: [cookie(), cookie('login.microsoftonline.com')], expiresAt: Date.now() + 3 * 3600_000 });
@@ -39,8 +39,8 @@ async function relay(t: any, loginStatus = 201) {
   base = `http://127.0.0.1:${(server.address() as any).port}`;
   t.after(() => { server.closeAllConnections(); server.close(); });
   const url = new URL(`${base}/mcp`), store = new RelayCredentialStore(url, dir);
-  const enroll = (expiresAt: number) => store.save({ redirectUrl: 'http://127.0.0.1:1/callback', client: { client_id: 'local-cli' },
-    tokens: { access_token: 'old-read', refresh_token: 'old-refresh', token_type: 'Bearer', scope: 'campus.read' }, sessionUpload: { universityId: 'upc-pe', expiresAt } });
+  const enroll = (expiresAt: number, authorizedAt = Date.now()) => store.save({ redirectUrl: 'http://127.0.0.1:1/callback', client: { client_id: 'local-cli' },
+    tokens: { access_token: 'old-read', refresh_token: 'old-refresh', token_type: 'Bearer', scope: 'campus.read' }, sessionUpload: { universityId: 'upc-pe', expiresAt, authorizedAt } });
   return { url, store, uploads, enroll };
 }
 
@@ -123,12 +123,68 @@ test('UPC conserva su perfil histórico y cada universidad tiene el suyo; logout
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
-test('el temporizador renueva, reporta el fallo y se detiene', async () => {
+test('un fallo deja una espera: no se vuelve a abrir el navegador hasta que pase', async t => {
+  const f = await relay(t);
+  f.enroll(Date.now() + 60_000);
+  let captures = 0;
+  const capture = async () => { captures++; throw new SilentLoginUnavailable(); };
+  assert.equal(await renewRelaySession({ ...f, capture }), 'unavailable');
+  assert.equal(await renewRelaySession({ ...f, capture }), 'fresh');
+  assert.equal(captures, 1);
+  assert.ok(f.store.load()!.sessionUpload!.nextAttemptAt! > Date.now() + 50 * 60_000);
+});
+
+test('tras renovar no se vuelve a intentar antes de 30 minutos aunque la cookie capturada sea vieja', async t => {
+  const f = await relay(t);
+  f.enroll(Date.now() + 60_000);
+  let captures = 0;
+  const stale = async () => { captures++; return { cookies: [cookie()], expiresAt: Date.now() + 5 * 60_000 }; };
+  assert.equal(await renewRelaySession({ ...f, capture: stale }), 'renewed');
+  assert.equal(await renewRelaySession({ ...f, capture: stale }), 'fresh');
+  assert.equal(captures, 1);
+});
+
+test('la autorización de renovar caduca a los 30 días y exige un nuevo campus login', async t => {
+  const f = await relay(t);
+  f.enroll(Date.now() + 60_000, Date.now() - RENEWAL_AUTHORIZATION_MS - 1000);
+  let captures = 0;
+  assert.equal(await renewRelaySession({ ...f, capture: async () => { captures++; return sessionCapture(); } }), 'unavailable');
+  assert.equal(captures, 0); assert.equal(f.uploads.length, 0);
+});
+
+test('dos procesos con la misma sesión vencida renuevan una sola vez', async t => {
+  const f = await relay(t);
+  f.enroll(Date.now() + 60_000);
+  let captures = 0;
+  const slow = async () => { captures++; await new Promise(resolve => setTimeout(resolve, 150)); return sessionCapture(); };
+  const results = await Promise.all([renewRelaySession({ ...f, capture: slow }), renewRelaySession({ ...f, capture: slow })]);
+  assert.deepEqual(results.sort(), ['fresh', 'renewed']);
+  assert.equal(captures, 1); assert.equal(f.uploads.length, 1);
+});
+
+test('un archivo de credenciales dañado no lanza: devuelve no disponible', async t => {
+  const f = await relay(t);
+  fs.mkdirSync(path.dirname(f.store.file), { recursive: true });
+  fs.writeFileSync(f.store.file, '{ no es json');
+  assert.equal(await renewRelaySession({ ...f, capture: sessionCapture }), 'unavailable');
+});
+
+test('el temporizador sobrevive a una renovación que lanza y reporta el fallo', async () => {
   const messages: string[] = [];
   let calls = 0;
-  const stop = keepSessionRenewed(message => messages.push(message), async () => { calls++; return 'unavailable'; });
+  const stop = keepSessionRenewed(message => messages.push(message), async () => { calls++; throw new Error('boom'); });
   await new Promise(resolve => setTimeout(resolve, 20));
-  stop();
+  await stop();
   assert.equal(calls, 1);
   assert.match(messages[0], /campus login/);
+});
+
+test('al detenerse aborta la renovación en curso y espera a que termine', async () => {
+  let sawAbort = false, finished = false;
+  const stop = keepSessionRenewed(() => {}, signal => new Promise(resolve => {
+    signal.addEventListener('abort', () => { sawAbort = true; setTimeout(() => { finished = true; resolve('unavailable'); }, 30); });
+  }));
+  await new Promise(resolve => setTimeout(resolve, 10));
+  await stop();
+  assert.ok(sawAbort); assert.ok(finished, 'stop() no debe volver antes de que la renovación cierre el navegador');
 });

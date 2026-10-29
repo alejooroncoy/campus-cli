@@ -46,5 +46,5 @@ export async function bridgeRelay(local: Transport, remote: Transport, report: (
 export async function startMcpServer(): Promise<void> {
   const close = await bridgeRelay(new StdioServerTransport(), relayTransport());
   const stopRenewal = keepSessionRenewed();
-  for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => { stopRenewal(); void close().finally(() => process.exit(0)); });
+  for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => { void stopRenewal().then(close).finally(() => process.exit(0)); });
 }

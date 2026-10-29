@@ -22,6 +22,8 @@ export async function withRelayClient<T>(run: (client: Client) => Promise<T>): P
 }
 
 export async function callRelayTool(name: string, args: Record<string, unknown> = {}) {
-  if (await renewRelaySession() === 'renewed') console.error('Sesión universitaria renovada.');
+  const renewal = await renewRelaySession();
+  if (renewal === 'renewed') console.error('Sesión universitaria renovada.');
+  else if (renewal === 'unavailable') console.error('No se pudo renovar la sesión universitaria sola. Si la consulta falla, ejecuta campus login.');
   return withRelayClient(client => client.callTool({ name, arguments: args }, undefined, { timeout: 300_000 }));
 }

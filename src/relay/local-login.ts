@@ -49,9 +49,9 @@ function universityLoginUrl(universityId: LoginUniversity): string {
 }
 
 /** Espera a Ultra y devuelve solo las cookies de la universidad; reintenta 5 s por si tardan. */
-async function awaitUniversityCookies(context: BrowserContext, page: Page, universityId: LoginUniversity, signal: AbortSignal, timeout: number): Promise<LoginCapture> {
+async function awaitUniversityCookies(context: BrowserContext, page: Page, universityId: LoginUniversity, signal: AbortSignal, timeout: number, gotoTimeout = 60_000): Promise<LoginCapture> {
   const university = LOGIN_UNIVERSITIES[universityId];
-  await page.goto(universityLoginUrl(universityId), { waitUntil: 'commit', timeout: 60_000 });
+  await page.goto(universityLoginUrl(universityId), { waitUntil: 'commit', timeout: gotoTimeout });
   await page.waitForURL(url => url.origin === university.origin && /^\/ultra(?:\/|$)/.test(url.pathname), { timeout, waitUntil: 'commit' });
   const deadline = Date.now() + 5_000;
   do {
@@ -101,7 +101,11 @@ export async function captureLocalLogin(universityId: LoginUniversity, signal: A
   }
 }
 
-const USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+// Coherente con la plataforma real: un UA de macOS en Windows/Linux delata automatización a Entra.
+const USER_AGENT = {
+  darwin: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  win32: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+}[process.platform as string] ?? 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 /** UPC conserva `browser-profile` para aprovechar el SSO que ya existe; el resto usa un perfil propio. */
 export function loginProfileDir(universityId: LoginUniversity, root = path.join(os.homedir(), '.blackboard-cli')): string {
@@ -160,7 +164,7 @@ export async function captureWithProfile(universityId: LoginUniversity, signal: 
   try {
     const page = await context.newPage();
     if (headless) stopPicker = rememberedAccountPicker(page);
-    return await awaitUniversityCookies(context, page, universityId, signal, headless ? 25_000 : 180_000);
+    return await awaitUniversityCookies(context, page, universityId, signal, headless ? 25_000 : 180_000, headless ? 25_000 : 60_000);
   } catch {
     if (signal.aborted) throw signal.reason;
     if (headless) throw new SilentLoginUnavailable();
@@ -175,13 +179,13 @@ export async function captureWithProfile(universityId: LoginUniversity, signal: 
 async function confirmSessionUpload(): Promise<boolean> {
   if (!process.stdin.isTTY || !process.stderr.isTTY) throw new Error('El login requiere una terminal interactiva o --consent-session-upload.');
   const prompt = createInterface({ input: process.stdin, output: process.stderr });
-  try { return /^(s|si|sí|y|yes)$/i.test((await prompt.question('¿Autorizas enviar tu sesión universitaria al relay para consultar tu campus? [s/N] ')).trim()); }
+  try { return /^(s|si|sí|y|yes)$/i.test((await prompt.question('¿Autorizas enviar tu sesión universitaria al relay para consultar tu campus? Mientras uses el MCP se renovará sola, reenviando solo cookies de tu universidad con el acceso que queda guardado en este equipo, hasta 30 días o hasta campus logout. [s/N] ')).trim()); }
   finally { prompt.close(); }
 }
 
 export async function loginLocally(options: {
   universityId?: string; consent?: boolean; url?: URL; store?: RelayCredentialStore;
-  openBrowser?: (url: URL) => Promise<void>; capture?: typeof captureLocalLogin; confirm?: () => Promise<boolean>;
+  openBrowser?: (url: URL) => Promise<void>; capture?: (universityId: LoginUniversity, signal: AbortSignal) => Promise<LoginCapture>; confirm?: () => Promise<boolean>;
 } = {}): Promise<void> {
   const url = options.url ?? relayUrl();
   if (options.universityId) loginUniversity(options.universityId);
@@ -213,7 +217,7 @@ export async function loginLocally(options: {
       });
       if (!response.ok) throw new Error(`El relay no aceptó la sesión universitaria (${response.status}). No se guardó una autorización nueva.`);
       const result = await response.json();
-      uploaded = { universityId, expiresAt: Math.min(payload.expiresAt, captured.expiresAt) };
+      uploaded = { universityId, expiresAt: Math.min(payload.expiresAt, captured.expiresAt), authorizedAt: Date.now() };
       const upgraded = OAuthTokensSchema.parse(result.tokens);
       if (upgraded.scope?.split(/\s+/).includes('campus.read') !== true) throw new Error('El relay no habilitó el acceso MCP de esta cuenta.');
       return { ...upgraded, issuer: tokens.issuer };

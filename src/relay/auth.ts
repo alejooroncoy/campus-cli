@@ -10,7 +10,13 @@ import { relayUrl, relayFetch } from './config.js';
 
 export const LOGIN_REQUIRED = 'Inicia sesión en el relay de Campus: campus login. El acceso depende del plan y cupo de tu cuenta.';
 /** Autorización dada en `campus login` para volver a subir solo cookies de la universidad. */
-export type SessionUpload = { universityId: string; expiresAt: number };
+export type SessionUpload = {
+  universityId: string; expiresAt: number;
+  /** Cuándo dio el estudiante el consentimiento (el último `campus login`); la renovación caduca a los 30 días. */
+  authorizedAt: number;
+  /** No se vuelve a intentar renovar antes de esta hora, ni tras un éxito ni tras un fallo. */
+  nextAttemptAt?: number;
+};
 export type RelayCredentials = {
   redirectUrl: string;
   client: OAuthClientInformationMixed;
@@ -38,10 +44,11 @@ export class RelayCredentialStore {
     const value = JSON.parse(fs.readFileSync(this.file, 'utf8'));
     if (typeof value.redirectUrl !== 'string') throw new Error(LOGIN_REQUIRED);
     const upload = value.sessionUpload;
-    const validUpload = typeof upload?.universityId === 'string' && Number.isFinite(upload.expiresAt);
+    const validUpload = typeof upload?.universityId === 'string' && Number.isFinite(upload.expiresAt) && Number.isFinite(upload.authorizedAt);
     return { redirectUrl: value.redirectUrl, client: OAuthClientInformationSchema.parse(value.client),
       ...(value.tokens ? { tokens: OAuthTokensSchema.parse(value.tokens) } : {}),
-      ...(validUpload ? { sessionUpload: { universityId: upload.universityId, expiresAt: upload.expiresAt } } : {}) };
+      ...(validUpload ? { sessionUpload: { universityId: upload.universityId, expiresAt: upload.expiresAt, authorizedAt: upload.authorizedAt,
+        ...(Number.isFinite(upload.nextAttemptAt) ? { nextAttemptAt: upload.nextAttemptAt } : {}) } } : {}) };
   }
   save(value: RelayCredentials): void {
     this.checkParents();
