@@ -114,6 +114,21 @@ test('captureWithProfile reutiliza el perfil, va en headless y cierra el context
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
+test('captureWithProfile cierra el contexto sin navegar si se canceló mientras se lanzaba', async () => {
+  const dir = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'campus-profile-'));
+  try {
+    const controller = new AbortController();
+    let navigations = 0, pages = 0, closes = 0;
+    const page = { goto: async () => { navigations++; }, waitForURL: async () => { navigations++; }, waitForTimeout: async () => {} };
+    const context = { newPage: async () => { pages++; return page; }, cookies: async () => [cookie()], close: async () => { closes++; } };
+    const launch = (async () => { await new Promise(resolve => setTimeout(resolve, 20)); controller.abort(new Error('puente cerrado')); return context; }) as any;
+    await assert.rejects(captureWithProfile('upc-pe', controller.signal, { headless: true, profileDir: path.join(dir, 'p'), launch }), /puente cerrado/);
+    assert.equal(navigations, 0, 'no debe navegar tras cancelarse');
+    assert.equal(pages, 0, 'ni abrir una página');
+    assert.equal(closes, 1, 'el navegador recién lanzado se cierra');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 test('UPC conserva su perfil histórico y cada universidad tiene el suyo; logout los borra', () => {
   const root = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'campus-root-'));
   try {

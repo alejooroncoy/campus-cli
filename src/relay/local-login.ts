@@ -162,6 +162,8 @@ export async function captureWithProfile(universityId: LoginUniversity, signal: 
   signal.addEventListener('abort', onAbort, { once: true });
   let stopPicker = () => {};
   try {
+    // Un abort ocurrido mientras el navegador se lanzaba no dispara onAbort (los eventos no se reproducen).
+    signal.throwIfAborted();
     const page = await context.newPage();
     if (headless) stopPicker = rememberedAccountPicker(page);
     return await awaitUniversityCookies(context, page, universityId, signal, headless ? 25_000 : 180_000, headless ? 25_000 : 60_000);
