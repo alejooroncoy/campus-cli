@@ -19,7 +19,7 @@ test('public library shares the main website header and footer while keeping its
   const response = await run('/biblioteca/');
   const html = await response.text();
   assert.equal(response.status, 200);
-  for (const text of ['site-header', 'Qué ofrece', 'Planes', 'Conectar Campus a tu IA', 'href="/app/copilot/"', 'footer__inner', 'LearningResource', '<h1>Proyecto &amp; apuntes</h1>', '$& &lt;script&gt;texto&lt;/script&gt;', 'index,follow']) assert.ok(html.includes(text), text);
+  for (const text of ['site-header', 'Qué ofrece', 'Planes', 'Campus con IA', 'Conectar IA', 'href="/app/copilot/"', 'footer__inner', 'LearningResource', '<h1>Proyecto &amp; apuntes</h1>', '$& &lt;script&gt;texto&lt;/script&gt;', 'index,follow']) assert.ok(html.includes(text), text);
   assert.doesNotMatch(html, /OLD APP|__CAMPUS_LIBRARY_BODY__|shadcn-sidebar|app-mobile-nav/);
   assert.equal((html.match(/id="campus-content"/g) ?? []).length, 1);
   assert.equal((html.match(/<title>/g) ?? []).length, 1);
