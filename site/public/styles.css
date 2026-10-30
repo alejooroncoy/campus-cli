@@ -1720,6 +1720,11 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
 .site-menu :is(summary,a):focus-visible{outline:2px solid #087fa4;outline-offset:3px}
 @media(max-width:900px){.site-menu__panel .site-menu__mobile-link{display:flex}}
 @media(max-width:720px){.site-header__actions,.site-header.is-scrolled .site-header__actions{gap:10px}.site-menu summary{width:44px;padding:0}.site-menu summary>span,.site-menu__chevron{display:none}.site-menu__mobile-icon{display:block}.site-menu__panel{top:calc(100% + 9px)}}
+@media(max-width:380px){
+  .site-header,.site-header.is-scrolled{gap:8px}
+  .site-header__actions,.site-header.is-scrolled .site-header__actions{gap:4px}
+  .site-header .button .cp-icon{display:none}
+}
 
 /* Community invitation and WhatsApp support on public pages. */
 .site-community{display:flex;justify-content:center;padding-inline:16px;text-align:center}

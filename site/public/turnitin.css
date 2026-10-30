@@ -325,11 +325,6 @@
  .ti-product-copy{grid-template-columns:1fr auto;column-gap:12px}
  .ti-option-status{grid-column:1 / -1}
 }
-@media (max-width: 380px) {
-  .site-header { gap: 8px; }
-  .site-header__actions { gap: 4px; }
-  .site-header .button .cp-icon { display: none; }
-}
 .ti-pending-reports { margin-top:18px; padding-top:16px; border-top:1px solid var(--app-line); }
 .ti-pending-reports h4 { margin:0 0 6px; font-size:14px; font-weight:600; }
 .ti-pending-reports p { margin:0; font-size:13px; line-height:1.6; }
