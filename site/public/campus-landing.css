@@ -60,6 +60,7 @@
 .cp-plan__price span { color:var(--cp-muted); font-size:14px; }
 .cp-plan__description { min-height:48px; font-size:14px; color:var(--cp-muted); max-width:390px; line-height:1.6; margin:0 0 24px; }
 .cp-plan--plus .cp-plan__description,.cp-plan--plus .cp-plan__price span { color:#c8dce6; }
+.cp-plan--plus .cp-plan__payment { margin:12px 0 0; color:#c8dce6; font-size:14px; line-height:1.6; }
 .cp-plan .button { width:100%; justify-content:space-between; }
 .cp-button--outline { color:var(--cp-ink); background:transparent; border-color:var(--line); }
 .cp-button--outline:hover { color:var(--cp-ink); background:var(--sky-pale); }

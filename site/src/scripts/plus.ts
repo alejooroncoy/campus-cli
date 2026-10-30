@@ -44,12 +44,15 @@ function mount(){
       if(quote!.status==='payment_review'){await load();return;}
       form.reset();
       text('filename','Seleccionar comprobante');
+      find('file-feedback').hidden=true;input.removeAttribute('aria-invalid');
+      text('copy','Copiar número');
       text('offer',quote!.cohort==='founder'?'PROMOCIÓN · PRIMEROS 25 DE PAGO':'CAMPUS PLUS');
-      text('amount',money(quote!.amountCents));text('renewal',`Después, ${money(quote!.renewalCents)} al mes. Sin cobros automáticos.`);
+      text('amount',money(quote!.amountCents));text('pay-amount',money(quote!.amountCents));text('renewal',`Después, ${money(quote!.renewalCents)} al mes. Solo si decides renovar; sin cobros automáticos.`);
       text('expiry',`Precio reservado hasta las ${new Date(quote!.expiresAt).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}. Si vence antes de pagar, vuelve a comprobar tu precio.`);
       text('phone',value.phone);text('holder',value.holder);show('payment');message();
       track('campus_plus_checkout_viewed',{offer:quote!.cohort,amount_cents:quote!.amountCents});
       find('view="payment"')?.scrollIntoView?.({block:'start',behavior:'smooth'});
+      root.querySelector<HTMLElement>('#plus-pay-title')?.focus({preventScroll:true});
     }catch(error){failure(error);}finally{busy=false;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry]').forEach(b=>b.disabled=false);expired();}
   }
   async function load(){
@@ -77,14 +80,14 @@ function mount(){
       else if(!state.eligible){show('university');message();}
       else if(state.orders[0]?.status==='rejected'){
         show('rejected');text('rejection',state.orders[0].note);message();track('campus_plus_status_viewed',{plus_status:'rejected'});
-      }else{show('ready');message();find('checkout').textContent=state.orders.some(o=>o.status==='quoted')?'Retomar mi pago':state.subscription?'Renovar mi mes':'Ver mi precio';}
+      }else{show('ready');message();find('checkout').textContent=state.orders.some(o=>o.status==='quoted')?'Retomar instrucciones de pago':'Ver precio y cómo pagar';}
     }catch(error){if(!disposed){show('unavailable');failure(error);}}
   }
   find<HTMLButtonElement>('checkout').onclick=()=>void checkout();find<HTMLButtonElement>('renew').onclick=()=>void checkout();find<HTMLButtonElement>('retry').onclick=()=>void checkout();
   find<HTMLButtonElement>('requote').onclick=()=>void checkout();
   root.querySelectorAll<HTMLButtonElement>('[data-plus-refresh]').forEach(button=>button.onclick=()=>void load());
-  find<HTMLButtonElement>('copy').onclick=async()=>{try{await navigator.clipboard.writeText(find('phone').textContent??'');message('Número copiado.');track('campus_plus_payment_copied');}catch{message('Selecciona el número y cópialo desde tu dispositivo.',true);}};
-  input.onchange=()=>{const error=uploadError(Array.from(input.files??[]),'receipt',5*1024*1024);message(error??'',Boolean(error));text('filename',error?'Selecciona otro comprobante':input.files?.[0]?.name??'Seleccionar comprobante');track('campus_plus_receipt_selected',{valid:!error});};
+  find<HTMLButtonElement>('copy').onclick=async()=>{try{await navigator.clipboard.writeText(find('phone').textContent??'');text('copy','Copiado');message('Número copiado. Abre Yape o Plin para realizar el pago.');track('campus_plus_payment_copied');}catch{message('Selecciona el número y cópialo desde tu dispositivo.',true);}};
+  input.onchange=()=>{const error=uploadError(Array.from(input.files??[]),'receipt',5*1024*1024);message(error??'',Boolean(error));text('filename',error?'Selecciona otro comprobante':input.files?.[0]?.name??'Seleccionar comprobante');input.setAttribute('aria-invalid',String(Boolean(error)));text('file-feedback',error??'Comprobante listo. Confirma la revisión y envíalo.');find('file-feedback').dataset.error=String(Boolean(error));find('file-feedback').hidden=false;track('campus_plus_receipt_selected',{valid:!error});};
   form.onsubmit=async(event)=>{
     event.preventDefault();if(!quote||busy||expired())return;
     const error=uploadError(Array.from(input.files??[]),'receipt',5*1024*1024);if(error){message(error,true);return;}
