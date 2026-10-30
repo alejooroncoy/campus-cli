@@ -4,7 +4,7 @@ const connectorName = "Campus";
 const connectorUrl = "https://mcp.campuscli.com/mcp";
 const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&connectorName=${encodeURIComponent(connectorName)}&connectorUrl=${encodeURIComponent(connectorUrl)}#settings/customize-connectors`;
 ---
-<AppShell title="Conectar Campus" active="copilot">
+<AppShell title="Conectar Campus a tu IA" active="copilot">
   <a class="app-assistant-return" data-assistant-return hidden>
     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>
     <span>Volver a mi conversación</span>
@@ -22,8 +22,8 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
   </section>
   <section class="app-page-heading app-page-heading--compact connector-heading">
     <p class="app-kicker">Conector Campus</p>
-    <h1>Tu campus, dentro de tu IA.</h1>
-    <p>Campus funciona como un plugin: lo añades a tu IA para consultar Blackboard UPC desde tu chat.</p>
+    <h1>Conecta Campus a tu IA.</h1>
+    <p>Añade Campus como plugin a tu ChatGPT, Claude u otra IA compatible para consultar Blackboard UPC desde allí. El asistente web de Campus se usa por separado.</p>
     <div class="connector-explainer" role="img" aria-label="Tu IA usa el conector Campus para consultar tus cursos y tareas de Blackboard UPC, después de autorizar tu cuenta.">
       <div class="connector-explainer__node"><span class="connector-explainer__providers" aria-hidden="true"><img src="/assets/openai-mark.svg" width="22" height="22" alt="" /><img src="/assets/claude-mark.svg" width="22" height="22" alt="" /></span><strong>Tu IA</strong><span>Tu chat habitual</span></div>
       <svg class="connector-explainer__arrow" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6" /></svg>
@@ -41,11 +41,14 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
         <div role="status" aria-live="polite" aria-atomic="true"><p data-copilot-account-description><span class="app-sr-only">Estamos comprobando tu cuenta y tu plan de Campus.</span><span class="app-skeleton app-skeleton--line" aria-hidden="true"></span></p></div>
       </div>
     </div>
-    <div class="app-connector-account__actions"><a class="app-button app-button--secondary" data-copilot-account-action hidden></a><a class="app-button connector-plus-action" href="/app/plus/" data-copilot-account-upgrade hidden>Ver Plus para conectar</a><button class="app-button app-button--secondary" type="button" data-copilot-account-retry hidden>Volver a comprobar</button></div>
+    <div class="app-connector-account__actions"><a class="app-button app-button--secondary" data-copilot-account-action hidden></a><a class="app-button connector-plus-action" href="/app/plus/" data-copilot-account-upgrade hidden>Activar Plus para conectar</a><button class="app-button app-button--secondary" type="button" data-copilot-account-retry hidden>Volver a comprobar</button></div>
   </section>
 
-  <div class="connector-intro"><h2>¿En qué IA quieres usar Campus?</h2><p>Elige una para ver cómo añadir el conector.</p></div>
-  <section class="app-connector-grid" aria-label="Elige tu asistente">
+  <div class="connector-intro">
+    <div><h2>¿En qué IA quieres usar Campus?</h2><p>Elige una para ver cómo añadir el conector.</p></div>
+    <div class="connector-feedback"><span>¿Ya lo probaste?</span><a class="connector-feedback__action" href="/opiniones-campus/#compartir" aria-label="Dar mi opinión sobre Campus"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#message-circle"></use></svg>Dar mi opinión<span aria-hidden="true">→</span></a></div>
+  </div>
+  <section class="app-connector-grid" aria-label="Elige tu IA para conectar Campus">
     <details class="app-connector-card connector-provider" id="conectar-chatgpt" name="campus-ai-guide">
       <summary class="connector-provider__summary"><span class="app-provider-icon app-provider-icon--chatgpt"><img src="/assets/openai-mark.svg" width="23" height="23" alt="" /></span><span class="connector-provider__label"><strong>ChatGPT</strong><span>Añade Campus como plugin</span></span><span class="connector-provider__action"><span class="connector-provider__closed">Ver pasos</span><span class="connector-provider__opened">Ocultar</span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg></span></summary>
       <div class="connector-provider__body">
@@ -112,8 +115,7 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
     </a>
   </section>
 
-  <p class="app-connector-footnote">Tu Aula Virtual se autoriza en el asistente. Campus nunca necesita que escribas tu contraseña universitaria aquí.</p>
-<p><a class="app-text-link" href="/opiniones-campus/#compartir">¿Ya conectaste Blackboard? Comparte tu experiencia con Campus →</a></p>
+  <p class="app-connector-footnote">Autorizarás tu Aula Virtual al usar Campus desde tu IA. Campus nunca necesita que escribas tu contraseña universitaria aquí.</p>
 </AppShell>
 <script>
   import {assistantReturnPath} from '../../../scripts/assistant-handoff';
@@ -156,7 +158,7 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
   .connector-explainer__node strong { font-size:14px; color:var(--app-ink); line-height:1.3; }
   .connector-explainer__node span:not(.connector-explainer__providers) { font-size:12px; line-height:1.4; color:var(--app-muted); }
   .connector-explainer svg { fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; color:var(--app-muted); }
-  .connector-plus-action { background:var(--app-ink); border-color:var(--app-ink); color:white; text-align:center; }
+  .connector-plus-action { background:var(--app-ink); border-color:var(--app-ink); color:white; text-align:center; min-height:48px; }
   .connector-plus-action:hover { background:#1f485b; border-color:#1f485b; color:white; }
   @media(max-width:480px) { .connector-explainer { gap:5px; margin-top:18px; padding:14px 0; } .connector-explainer__node strong { font-size:13px; } .connector-explainer__node span:not(.connector-explainer__providers) { font-size:11px; } [data-copilot-account] .app-connector-account__actions { width:100%; } .connector-plus-action { width:100%; box-sizing:border-box; } }
   .connector-help-action { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:48px; padding:12px 18px; background:#166547; border:1px solid #166547; border-radius:10px; color:#fff; font-size:14px; font-weight:600; line-height:1.4; text-decoration:none; flex-shrink:0; box-sizing:border-box; }
@@ -164,7 +166,13 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
   .connector-help-action:focus-visible { outline:3px solid var(--app-link); outline-offset:3px; }
   .connector-help-action svg { flex-shrink:0; fill:none; }
   @media(max-width:700px) { .connector-help-action { width:100%; } }
-  .connector-intro { margin: 30px 0 16px; }
+  .connector-intro { display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px 24px; margin:30px 0 16px; }
+  .connector-intro > div { min-width:0; }
+  .connector-feedback { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--app-muted); }
+  .connector-feedback__action { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:10px 12px; border:1px solid var(--app-line); border-radius:9px; background:var(--app-paper); color:var(--app-ink); font-size:13px; font-weight:600; line-height:1.4; text-decoration:none; }
+  .connector-feedback__action:hover { background:var(--app-sky-pale); border-color:var(--app-link); }
+  .connector-feedback__action:focus-visible { outline:3px solid var(--app-link); outline-offset:3px; }
+  .connector-feedback__action svg { fill:none; flex-shrink:0; }
   [data-copilot-account] { padding:16px 18px; gap:12px 18px; }
   [data-copilot-account] .app-connector-account__heading { margin-bottom:4px; }
   [data-copilot-account] .app-connector-account__icon { width:34px; height:34px; border-radius:9px; }

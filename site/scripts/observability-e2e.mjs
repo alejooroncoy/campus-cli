@@ -33,7 +33,7 @@ try{
  await page.goto(base+'/app/plus/');
  await page.locator('[data-plus-view=ready]:visible').waitFor();
  assert.equal(await page.locator('[data-plus-survey]').isVisible(),false,'Localhost never loads remote surveys or records responses.');
- await page.getByRole('button',{name:'Ver mi precio',exact:true}).click();
+ await page.getByRole('button',{name:'Ver precio y cómo pagar',exact:true}).click();
  await page.locator('[data-plus-view=payment]:visible').waitFor();
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
  const metrics=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('campus-analytics-debug')??'[]'));
