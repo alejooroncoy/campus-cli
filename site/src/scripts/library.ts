@@ -469,9 +469,9 @@ export function initLibrary(root: HTMLElement) {
         return false;
       }
       const files = chosenFiles();
-      if (files.length > 3 || files.some((file) => !file.size || file.size > 5 * 1024 * 1024 || !/\.(pdf|docx)$/i.test(file.name)) || files.reduce((total, file) => total + file.size, 0) > 12 * 1024 * 1024) {
+      if (files.length > 3 || files.some((file) => !file.size || file.size > 5 * 1024 * 1024 || !/\.(pdf|docx|md)$/i.test(file.name)) || files.reduce((total, file) => total + file.size, 0) > 12 * 1024 * 1024) {
         const notice = $("[data-lib-form-status]");
-        notice.textContent = "Selecciona hasta 3 archivos PDF o DOCX. Máximo 5 MB por archivo y 12 MB en total.";
+        notice.textContent = "Selecciona hasta 3 archivos PDF, DOCX o Markdown (.md). Máximo 5 MB por archivo y 12 MB en total.";
         notice.hidden = false;
         notice.classList.add("is-error");
         (form.elements.namedItem("files") as HTMLInputElement).focus();
@@ -1004,12 +1004,12 @@ export function initLibrary(root: HTMLElement) {
           (f) =>
             !f.size ||
             f.size > 5 * 1024 * 1024 ||
-            !/\.(pdf|docx)$/i.test(f.name),
+            !/\.(pdf|docx|md)$/i.test(f.name),
         ) ||
         files.reduce((s, f) => s + f.size, 0) > 12 * 1024 * 1024
       )
         throw new Error(
-          "Sube hasta tres PDF o DOCX de 5 MB como máximo; 12 MB en total.",
+          "Sube hasta tres archivos PDF, DOCX o Markdown de 5 MB como máximo; 12 MB en total.",
         );
       if (!current && !files.length)
         throw new Error("Selecciona el archivo de tu trabajo.");
