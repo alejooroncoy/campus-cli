@@ -23,7 +23,7 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
   <section class="app-page-heading app-page-heading--compact">
     <p class="app-kicker">Campus en tu IA</p>
     <h1>Conecta Campus a tu IA.</h1>
-    <p>Consulta Blackboard UPC, repasa tus clases y trabaja las fuentes de tu tesis desde tu IA. <a class="app-text-link" href="/campus-cli/#investigacion">Mendeley y lectura experimental</a>.</p>
+    <p>Usa Campus en ChatGPT, Claude u otra IA compatible para consultar Blackboard UPC, repasar clases y trabajar tus fuentes. Elige tu IA y sigue sus pasos de conexión.</p>
   </section>
 
   <section class="app-connector-account" data-copilot-account data-state="loading" aria-busy="true" aria-labelledby="copilot-account-title">
@@ -31,11 +31,58 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
       <span class="app-connector-account__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><use href="/assets/lucide.svg#user"></use></svg></span>
       <div>
         <div class="app-connector-account__heading"><h2 id="copilot-account-title">Tu cuenta Campus</h2><span class="app-connector-account__badge" data-copilot-account-label><span class="app-sr-only">Comprobando…</span><span class="app-skeleton app-skeleton--short" aria-hidden="true"></span></span></div>
-        <div role="status" aria-live="polite" aria-atomic="true"><p data-copilot-account-description><span class="app-sr-only">Estamos comprobando tu cuenta y tu plan de Campus.</span><span class="app-skeleton app-skeleton--line" aria-hidden="true"></span></p><p class="app-connector-account__usage" data-copilot-account-usage hidden></p></div>
+        <div role="status" aria-live="polite" aria-atomic="true"><p data-copilot-account-description><span class="app-sr-only">Estamos comprobando tu cuenta y tu plan de Campus.</span><span class="app-skeleton app-skeleton--line" aria-hidden="true"></span></p></div>
       </div>
     </div>
     <div class="app-connector-account__actions"><a class="app-button app-button--secondary" data-copilot-account-action hidden></a><a class="app-text-link" href="/app/plus/" data-copilot-account-upgrade hidden>Activar Campus Plus</a><button class="app-button app-button--secondary" type="button" data-copilot-account-retry hidden>Volver a comprobar</button></div>
-    <p class="app-connector-account__note">Este es tu plan de Campus. Es independiente del plan que tengas en ChatGPT, Claude o Gemini.</p>
+  </section>
+
+  <div class="connector-intro"><h2>Elige la IA que usas</h2><p>Abre las instrucciones de tu IA y sigue los pasos.</p><nav class="connector-choices" aria-label="Elegir IA"><a href="#conectar-chatgpt">ChatGPT</a><a href="#conectar-claude">Claude</a><a href="#conectar-gemini">Gemini</a></nav></div>
+  <section class="app-connector-grid" aria-label="Elige tu asistente">
+    <article class="app-connector-card" id="conectar-chatgpt">
+      <div class="app-connector-card__top">
+        <span class="app-provider-icon app-provider-icon--chatgpt"><img src="/assets/openai-mark.svg" width="23" height="23" alt="" /></span>
+        <h2>ChatGPT</h2>
+        <a class="app-provider-link" href="https://chatgpt.com/plugins" target="_blank" rel="noopener noreferrer" aria-label="Abrir Plugins de ChatGPT en otra pestaña">Abrir ChatGPT <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
+      </div>
+      <ol class="app-connector-steps">
+        <li><strong>Inicia sesión en ChatGPT</strong><p>Usa tu cuenta de ChatGPT. La opción de añadir servidores puede depender de tu cuenta y sus permisos.</p></li>
+        <li><strong>Abre el formulario</strong><p>Pulsa “Abrir ChatGPT”. En Plugins, pulsa “+” y elige añadir un servidor MCP personalizado.</p></li>
+        <li><strong>Introduce los datos</strong><p>Copia estos datos en el formulario, añade una descripción y crea el plugin.</p><div class="connector-copy"><div class="connector-copy__row"><div><span>Nombre</span><strong>{connectorName}</strong></div><button type="button" data-copy-value={connectorName} data-copy-label="Nombre" aria-label="Copiar nombre Campus">Copiar</button></div><div class="connector-copy__row"><div><span>URL del servidor</span><code>{connectorUrl}</code></div><button type="button" data-copy-value={connectorUrl} data-copy-label="URL" aria-label="Copiar URL de Campus">Copiar</button></div><p data-copy-status role="status" aria-live="polite"></p></div></li>
+        <li><strong>Autoriza y empieza</strong><p>Instala y conecta el plugin, autoriza tu cuenta Campus y selecciónalo con @ en una conversación. Prueba: “Muéstrame mis cursos”.</p></li>
+      </ol>
+      <p class="app-connector-card__note">Si no aparece la opción, comprueba los permisos de tu cuenta o espacio de trabajo. <a href="https://developers.openai.com/plugins/deploy/connect-chatgpt" target="_blank" rel="noopener noreferrer">Ver la guía de OpenAI</a>.</p>
+    </article>
+
+    <article class="app-connector-card" id="conectar-claude">
+      <div class="app-connector-card__top">
+        <span class="app-provider-icon app-provider-icon--claude"><img src="/assets/claude-mark.svg" width="23" height="23" alt="" /></span>
+        <h2>Claude</h2>
+        <a class="app-provider-link" href={claudeConnectorUrl} target="_blank" rel="noopener noreferrer" aria-label="Conectar Campus en Claude en otra pestaña">Conectar <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
+      </div>
+      <ol class="app-connector-steps">
+        <li><strong>Inicia sesión en Claude</strong><p>La conexión personalizada también funciona con su plan gratuito.</p></li>
+        <li><strong>Abre el conector</strong><p>Pulsa “Conectar”. Claude abrirá el formulario con Campus y su URL ya completados.</p></li>
+        <li><strong>Revisa y añade</strong><p>Comprueba el nombre y la URL. Si necesitas introducirlos manualmente, cópialos aquí.</p><div class="connector-copy"><div class="connector-copy__row"><div><span>Nombre</span><strong>{connectorName}</strong></div><button type="button" data-copy-value={connectorName} data-copy-label="Nombre" aria-label="Copiar nombre Campus">Copiar</button></div><div class="connector-copy__row"><div><span>URL del servidor</span><code>{connectorUrl}</code></div><button type="button" data-copy-value={connectorUrl} data-copy-label="URL" aria-label="Copiar URL de Campus">Copiar</button></div><p data-copy-status role="status" aria-live="polite"></p></div></li>
+        <li><strong>Autoriza y empieza</strong><p>Conecta tu cuenta Campus y prueba “Muéstrame mis cursos”.</p></li>
+      </ol>
+      <p class="app-connector-card__note">¿No se abre el formulario? Ve a Personalizar → Conectores → Añadir conector personalizado y pega los datos manualmente.</p>
+    </article>
+
+    <article class="app-connector-card" id="conectar-gemini">
+      <div class="app-connector-card__top">
+        <span class="app-provider-icon app-provider-icon--gemini"><img src="/assets/gemini-mark.png" width="24" height="24" alt="" /></span>
+        <h2>Gemini</h2>
+        <a class="app-provider-link" href="https://gemini.google.com/customize/connectors?pageId=none&amp;hl=en" target="_blank" rel="noopener noreferrer" data-copy-connector-url={connectorUrl} aria-label="Copiar URL de Campus y abrir las apps conectadas de Gemini en otra pestaña">Copiar URL y abrir <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
+      </div>
+      <ol class="app-connector-steps">
+        <li><strong>Abre Gemini</strong><p>Pulsa “Copiar URL y abrir” y elige “Create custom app”.</p></li>
+        <li><strong>Pega la URL</strong><p>Pégala en “MCP Server URL” y pulsa “Next”. Si no se copió al abrir Gemini, cópiala aquí.</p><div class="connector-copy"><div class="connector-copy__row"><div><span>URL del servidor</span><code>{connectorUrl}</code></div><button type="button" data-copy-value={connectorUrl} data-copy-label="URL" aria-label="Copiar URL de Campus">Copiar</button></div><p data-copy-status role="status" aria-live="polite"></p></div></li>
+        <li><strong>Empieza a preguntar</strong><p>Autoriza Campus, abre un chat y selecciona @Campus. Prueba: “Muéstrame mis cursos”.</p></li>
+      </ol>
+      <p class="app-connector-card__note">Si ya usas @Campus Relay, sigue con esa app.</p>
+      <details class="app-connector-card__note"><summary>Disponibilidad y requisitos</summary><p>Google exige 18 años o más, cuenta personal, Estados Unidos, inglés y Guardar actividad activado. No está anunciado para todas las cuentas de Perú. <a href="/blog/conectar-blackboard-gemini-spark-campus/">Ver guía →</a></p></details>
+    </article>
   </section>
 
   <section class="app-connector-help" aria-label="Ayuda para conectar Campus">
@@ -45,84 +92,20 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
       </span>
       <div>
         <h2>¿Necesitas ayuda?</h2>
-        <p>Escríbenos por WhatsApp al 946 189 585 para ayudarte a conectar Campus.</p>
+        <p>Te ayudamos a conectar Campus con tu IA.</p>
       </div>
     </div>
     <a
-      class="app-button app-button--secondary"
+      class="app-button connector-help-action"
       href="https://wa.me/51946189585"
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Pedir ayuda por WhatsApp al 946 189 585 (se abre en otra pestaña)"
     >
       <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="/assets/lucide.svg#message-circle"></use></svg>
-      <span>Ayuda por WhatsApp</span>
+      <span>Escríbenos por WhatsApp</span>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-up-right"></use></svg>
     </a>
-  </section>
-
-  <section class="app-connector-bar" aria-labelledby="connector-values-title">
-    <div>
-      <h2 id="connector-values-title">Los datos de tu conector</h2>
-      <p>Copia el nombre y la URL en tu asistente para conectar Campus.</p>
-    </div>
-    <div class="app-connector-values">
-      <div class="app-connector-value">
-        <div><span>Nombre del conector</span><strong>{connectorName}</strong></div>
-        <button type="button" data-copy-value={connectorName} data-copy-label="Nombre" aria-label="Copiar nombre del conector">Copiar</button>
-      </div>
-      <div class="app-connector-value">
-        <div><span>URL del servidor</span><code>{connectorUrl}</code></div>
-        <button type="button" data-copy-value={connectorUrl} data-copy-label="URL" aria-label="Copiar URL del servidor">Copiar</button>
-      </div>
-    </div>
-    <p class="app-connector-bar__status" data-app-status role="status" aria-live="polite"></p>
-  </section>
-
-  <section class="app-connector-grid" aria-label="Elige tu asistente">
-    <article class="app-connector-card">
-      <div class="app-connector-card__top">
-        <span class="app-provider-icon app-provider-icon--claude"><img src="/assets/claude-mark.svg" width="23" height="23" alt="" /></span>
-        <h2>Claude</h2>
-        <a class="app-provider-link" href={claudeConnectorUrl} target="_blank" rel="noopener noreferrer" aria-label="Conectar Campus en Claude en otra pestaña">Conectar <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
-      </div>
-      <ol class="app-connector-steps">
-        <li><strong>Inicia sesión en Claude</strong><p>La conexión personalizada también funciona con su plan gratuito.</p></li>
-        <li><strong>Abre el conector</strong><p>Pulsa “Conectar”. Claude abrirá el formulario con Campus y su URL ya completados.</p></li>
-        <li><strong>Revisa y añade</strong><p>Comprueba los datos de arriba y confirma la incorporación del conector.</p></li>
-        <li><strong>Autoriza y empieza</strong><p>Conecta tu cuenta Campus y prueba “Muéstrame mis cursos”.</p></li>
-      </ol>
-      <p class="app-connector-card__note">¿No se abre el formulario? Ve a Personalizar → Conectores → Añadir conector personalizado y pega los datos manualmente.</p>
-    </article>
-
-    <article class="app-connector-card">
-      <div class="app-connector-card__top">
-        <span class="app-provider-icon app-provider-icon--chatgpt"><img src="/assets/openai-mark.svg" width="23" height="23" alt="" /></span>
-        <h2>ChatGPT</h2>
-        <a class="app-provider-link" href="https://chatgpt.com/plugins#settings/Connectors?create-connector=true&amp;redirectAfter=%2Fplugins" target="_blank" rel="noopener noreferrer" aria-label="Crear conector de Campus en ChatGPT en otra pestaña">Conectar <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
-      </div>
-      <ol class="app-connector-steps">
-        <li><strong>Inicia sesión en ChatGPT</strong><p>Puedes comenzar con la cuenta que ya usas, incluso Free.</p></li>
-        <li><strong>Abre el formulario</strong><p>Pulsa “Conectar” para ir directamente a la creación del conector. Si ChatGPT no abre el formulario, entra a Plugins y pulsa “+”.</p></li>
-        <li><strong>Introduce los datos</strong><p>Usa el nombre y la URL de Campus que aparecen arriba.</p></li>
-        <li><strong>Autoriza y empieza</strong><p>Conecta tu cuenta Campus, actívalo en un chat y prueba “Muéstrame mis cursos”.</p></li>
-      </ol>
-      <p class="app-connector-card__note">Si no aparece la opción de añadir, revisa el modo desarrollador en la configuración de ChatGPT.</p>
-    </article>
-
-    <article class="app-connector-card">
-      <div class="app-connector-card__top">
-        <span class="app-provider-icon app-provider-icon--gemini"><img src="/assets/gemini-mark.png" width="24" height="24" alt="" /></span>
-        <h2>Gemini</h2>
-        <a class="app-provider-link" href="https://gemini.google.com/customize/connectors?pageId=none&amp;hl=en" target="_blank" rel="noopener noreferrer" data-copy-connector-url={connectorUrl} aria-label="Copiar URL de Campus y abrir las apps conectadas de Gemini en otra pestaña">Copiar URL y abrir <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
-      </div>
-      <ol class="app-connector-steps">
-        <li><strong>Abre Gemini</strong><p>Pulsa “Copiar URL y abrir” y elige “Create custom app”.</p></li>
-        <li><strong>Pega la URL</strong><p>Pégala en “MCP Server URL” y pulsa “Next”. Puedes copiarla arriba.</p></li>
-        <li><strong>Empieza a preguntar</strong><p>Autoriza Campus, abre un chat y selecciona @Campus. Prueba: “Muéstrame mis cursos”.</p></li>
-      </ol>
-      <p class="app-connector-card__note">Si ya usas @Campus Relay, sigue con esa app.</p>
-      <details class="app-connector-card__note"><summary>Disponibilidad y requisitos</summary><p>Google exige 18 años o más, cuenta personal, Estados Unidos, inglés y Guardar actividad activado. No está anunciado para todas las cuentas de Perú. <a href="/blog/conectar-blackboard-gemini-spark-campus/">Ver guía →</a></p></details>
-    </article>
   </section>
 
   <p class="app-connector-footnote">Tu Aula Virtual se autoriza en el asistente. Campus nunca necesita que escribas tu contraseña universitaria aquí.</p>
@@ -146,6 +129,37 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
   window.addEventListener('campus:session-updated',event=>restoreAssistantLink((event as CustomEvent<CampusSession>).detail));
 </script>
 <style>
+  .connector-help-action { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:48px; padding:12px 18px; background:#166547; border:1px solid #166547; border-radius:10px; color:#fff; font-size:14px; font-weight:600; line-height:1.4; text-decoration:none; flex-shrink:0; box-sizing:border-box; }
+  .connector-help-action:hover { background:#104f37; border-color:#104f37; color:#fff; }
+  .connector-help-action:focus-visible { outline:3px solid var(--app-link); outline-offset:3px; }
+  .connector-help-action svg { flex-shrink:0; fill:none; }
+  @media(max-width:700px) { .connector-help-action { width:100%; } }
+  .connector-intro { margin: 30px 0 16px; }
+  [data-copilot-account] { padding:16px 18px; gap:12px 18px; }
+  [data-copilot-account] .app-connector-account__heading { margin-bottom:4px; }
+  [data-copilot-account] .app-connector-account__icon { width:34px; height:34px; border-radius:9px; }
+  .app-connector-account[data-state="unavailable"] .app-connector-account__note,
+  .app-connector-account[data-state="guest"] .app-connector-account__note,
+  .app-connector-account[data-state="loading"] .app-connector-account__note { display:none; }
+  .app-connector-account[data-state="guest"] [data-copilot-account-action] { background:var(--app-ink); color:white; border-color:var(--app-ink); }
+  .connector-intro h2 { font-size: 20px; margin: 0 0 6px; }
+  .connector-intro p { color: var(--app-muted); font-size: 14px; line-height: 1.6; margin: 0; }
+  .connector-choices { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .connector-choices a { display:inline-flex; align-items:center; min-height:44px; padding:0 15px; border:1px solid var(--app-line); border-radius:8px; background:var(--app-paper); color:var(--app-link); font-size:14px; font-weight:600; text-decoration:none; }
+  .connector-choices a:hover { background:var(--app-sky-pale); }
+  .connector-choices a:focus-visible { outline:3px solid var(--app-link); outline-offset:3px; }
+  .app-connector-card { scroll-margin-top:24px; }
+  .app-connector-grid { margin-bottom: 20px; }
+  .connector-copy { margin-top:12px; border:1px solid var(--app-line); border-radius:10px; overflow:hidden; background:var(--app-canvas); }
+  .connector-copy__row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; }
+  .connector-copy__row + .connector-copy__row { border-top:1px solid var(--app-line); }
+  .connector-copy__row div { min-width:0; }
+  .connector-copy__row span { display:block; color:var(--app-muted); font-size:11px; margin-bottom:3px; }
+  .connector-copy__row strong, .connector-copy__row code { font:inherit; font-size:12px; color:var(--app-ink); overflow-wrap:anywhere; }
+  .connector-copy__row button { flex-shrink:0; min-height:36px; padding:0 10px; border:1px solid var(--app-line); border-radius:7px; background:var(--app-paper); color:var(--app-link); font-weight:600; cursor:pointer; }
+  .connector-copy__row button:focus-visible { outline:3px solid var(--app-link); outline-offset:2px; }
+  .connector-copy [data-copy-status]:empty { display:none; }
+  .connector-copy [data-copy-status]:not(:empty) { padding:0 12px 10px; color:var(--app-link); }
   .app-connector-task { display:block; }
   .app-connector-task[hidden] { display:none; }
   .app-connector-task h2 { margin:0 0 .5rem; }

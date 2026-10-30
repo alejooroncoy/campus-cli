@@ -325,3 +325,24 @@
  .ti-product-copy{grid-template-columns:1fr auto;column-gap:12px}
  .ti-option-status{grid-column:1 / -1}
 }
+@media (max-width: 380px) {
+  .site-header { gap: 8px; }
+  .site-header__actions { gap: 4px; }
+  .site-header .button .cp-icon { display: none; }
+}
+.ti-pending-reports { margin-top:18px; padding-top:16px; border-top:1px solid var(--app-line); }
+.ti-pending-reports h4 { margin:0 0 6px; font-size:14px; font-weight:600; }
+.ti-pending-reports p { margin:0; font-size:13px; line-height:1.6; }
+@media (max-width:650px) {
+  .ti-order .ti-file-actions { display:grid; grid-template-columns:1fr; gap:8px; }
+  .ti-file-actions .app-button { width:100%; min-height:44px; margin:0; justify-content:center; box-sizing:border-box; }
+}
+@media (max-width:380px) {
+  .ti-report-dialog .ti-report-toolbar { gap:6px; }
+  .ti-report-dialog .ti-report-switch button { padding-inline:9px; min-height:44px; }
+  .ti-report-dialog .ti-report-toolbar .app-button { white-space:nowrap; }
+}
+.ti-payment-observation { margin:16px 0; padding:14px; border-left:3px solid #b97720; background:#fff8ec; border-radius:0 8px 8px 0; }
+.ti-payment-observation h4 { margin:0 0 6px; font-size:14px; font-weight:600; color:#775019; }
+.ti-payment-observation p { margin:0; font-size:13px; line-height:1.6; color:#634c2e; }
+@media(max-width:650px) { .ti-order .ti-payment-help { display:flex; justify-content:center; width:100%; min-height:44px; margin:16px 0 8px; box-sizing:border-box; text-align:center; } }

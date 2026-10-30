@@ -155,8 +155,8 @@ const schemas = [
     <h3 id="turnitin">Pedidos de informes de Turnitin</h3>
     <ul>
       <li><strong>Qué:</strong> la cuenta Campus asociada al pedido, tu documento, el comprobante de Yape/Plin, el monto, las fechas, el estado y los informes entregados.</li>
-      <li><strong>Para qué:</strong> validar el pago, procesar el documento mediante el proveedor TurnitPro y permitirte descargar los informes desde tu cuenta. Al enviar el pedido autorizas expresamente ese procesamiento.</li>
-      <li><strong>Acceso:</strong> el equipo de Campus autorizado para atender los pedidos accede al documento y al comprobante. El documento se procesa mediante TurnitPro; el comprobante no se envía al proveedor. Los archivos se guardan cifrados en la base de datos y se descargan mediante una sesión autenticada.</li>
+      <li><strong>Para qué:</strong> validar el pago, procesar el documento mediante el proveedor Turnitin API y permitirte descargar los informes desde tu cuenta. Al enviar el pedido autorizas expresamente ese procesamiento.</li>
+      <li><strong>Acceso:</strong> el equipo de Campus autorizado para atender los pedidos accede al documento y al comprobante. El documento se procesa mediante Turnitin API; el comprobante no se envía al proveedor. Los archivos se guardan cifrados en la base de datos y se descargan mediante una sesión autenticada.</li>
       <li><strong>Avisos al equipo:</strong> usamos Resend para enviar a info@campuscli.com un aviso con el identificador del pedido, el monto y los nombres de los archivos. El correo enlaza al panel privado; no adjunta el trabajo ni el comprobante.</li>
       <li><strong>Conservación:</strong> los datos y archivos del pedido permanecen asociados a tu cuenta hasta su eliminación. Puedes solicitar su eliminación a <a class="prose-link" href="mailto:info@campuscli.com">info@campuscli.com</a>. La eliminación del registro de cuenta elimina también sus pedidos y archivos de esta base.</li>
     </ul>
@@ -203,7 +203,7 @@ const schemas = [
     </p>
     <ul>
       <li>
-        <strong>TurnitPro</strong> — procesa el documento que eliges enviar cuando solicitas el servicio de informes. Ese procesamiento depende de su configuración y de las condiciones del proveedor.
+        <strong>Turnitin API</strong> — procesa el documento que eliges enviar cuando solicitas el servicio de informes. Ese procesamiento depende de su configuración y de las condiciones del proveedor.
       </li>
       <li>
         <strong>PostHog</strong> (Estados Unidos) — recibe las métricas de uso
@@ -229,7 +229,7 @@ const schemas = [
     <p>
       Algunos de estos proveedores están fuera del Perú, así que existe un
       flujo transfronterizo de datos. Al aceptar esta política consientes esa
-      transferencia. Si solicitas una revisión, el documento elegido se comparte con TurnitPro para ese análisis. No compartimos tu contraseña universitaria.
+      transferencia. Si solicitas una revisión, el documento elegido se comparte con Turnitin API para ese análisis. No compartimos tu contraseña universitaria.
     </p>
     <p>
       También podríamos entregar información si nos lo exige una autoridad

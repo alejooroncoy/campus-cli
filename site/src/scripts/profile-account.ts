@@ -10,9 +10,11 @@ export function profileAccountView(session: CampusSession | 'loading' | 'error')
     && Number.isInteger(usage.limit) && usage.limit >= 0 && usage.remaining <= usage.limit;
   return {
     state: account.state,
-    label: account.label,
+    label: account.state === 'guest' ? 'Prueba gratis' : account.label,
     usage: validUsage ? `${usage.remaining} de ${usage.limit} consultas disponibles${usage.period === 'day' ? ' hoy' : ''}` : undefined,
-    note: !verified ? account.description : !validUsage
+    note: account.state === 'guest'
+      ? 'Prueba Campus con 5 consultas. Crea tu cuenta Campus Free para recibir 25 consultas de bienvenida.'
+      : !verified ? account.description : !validUsage
       ? 'No pudimos comprobar tus consultas disponibles. Actualiza el saldo para volver a intentarlo.'
       : usage.period === 'day'
         ? usage.remaining === 0 ? 'Has usado tus consultas web de hoy. Tu cuota se renueva cada día.' : 'Tu cuota web se renueva cada día.'

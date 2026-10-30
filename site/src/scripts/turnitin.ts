@@ -11,7 +11,7 @@ type Order = {
 };
 type Product = {id: 'ai' | 'similarity' | 'both'; label: string; amountCents: number; reports: ReportKind[]};
 type Config = { enabled: boolean; ordersAvailable: boolean; amountCents: number; products?: Product[]; availability?: Record<Product['id'],number>; phone: string; holder: string; maxDocumentBytes: number; maxReceiptBytes: number };
-const labels: Record<string,string> = { payment_review: 'Comprobante en revisión', processing: 'Preparando tus informes', completed: 'Informes listos', payment_rejected: 'Pago observado' };
+const labels: Record<string,string> = { payment_review: 'Pago en revisión', processing: 'Preparando tus informes', completed: 'Informes listos', payment_rejected: 'Pago observado' };
 const money = (cents: number) => `S/${(cents / 100).toLocaleString('es-PE')}`;
 
 function setupTurnitin() {
@@ -146,7 +146,7 @@ function setupTurnitin() {
   }
   function renderOrders(orders: Order[], target: HTMLElement) {
     target.replaceChildren();
-    document.querySelector<HTMLElement>('.ti-report-note')!.hidden = orders.length === 0;
+    document.querySelector<HTMLElement>('.ti-report-note')!.hidden = !orders.some(order => (order.availableReports ?? (order.status === 'completed' ? requiredReports(order.report) : [])).includes('ai'));
     if (!orders.length) {
       const empty = el('div', '', 'ti-empty');
       const filtered = (historyFilter !== 'all' || Boolean(historySearch));
@@ -172,7 +172,16 @@ function setupTurnitin() {
       }
       card.append(el('p', `${productLabel(order.report)} · ${money(order.amountCents)} · ${new Date(order.createdAt).toLocaleString('es-PE', { timeZone: 'America/Lima', dateStyle: 'short', timeStyle: 'short' })} · Pedido ${order.id.slice(0,8)}`, 'ti-small'));
       if (order.isTest) card.append(el('p', 'Prueba sin abono · PDF ficticios, sin análisis real.', 'ti-small'));
-      if (order.note) card.append(el('p', order.note));
+      if (order.status === 'payment_rejected') {
+        const observation = el('div', '', 'ti-payment-observation');
+        observation.append(el('h4', 'Motivo de la observación'), el('p', order.note || 'No se indicó un motivo. Contacta a soporte para revisar tu pedido.'));
+        card.append(observation, el('p', 'El pago no está aprobado. Si ya pagaste, no vuelvas a pagar ni crees otro pedido: revisémoslo contigo.', 'ti-muted'));
+        const help = el('a', 'Consultar mi pago por WhatsApp', 'app-button app-button--secondary ti-payment-help');
+        help.href = `https://wa.me/51946189585?text=${encodeURIComponent(`Hola, necesito ayuda con el pago observado de mi pedido de Turnitin ${order.id.slice(0,8)}.`)}`;
+        help.target = '_blank'; help.rel = 'noopener noreferrer';
+        help.setAttribute('aria-label', 'Consultar mi pago observado por WhatsApp (se abre en otra pestaña)');
+        card.append(help, el('p', 'Ten a mano tu comprobante y el número de operación para que podamos revisarlos.', 'ti-small'));
+      } else if (order.note) card.append(el('p', order.note));
       if (order.status === 'processing' && order.paidAt) card.append(el('p', 'Entrega de 10 minutos a 1 hora desde la validación del pago.', 'ti-small'));
       const availableReports = order.availableReports ?? (order.status === 'completed' ? requiredReports(order.report) : []);
       if (availableReports.length) {
@@ -194,8 +203,14 @@ function setupTurnitin() {
           const pending = requiredReports(order.report).filter(kind => !availableReports.includes(kind));
           if (pending.length) card.append(el('p', `El informe de ${pending.map(kind => kind === 'similarity' ? 'similitud' : 'IA').join(' e ')} aparecerá aquí cuando esté listo.`, 'ti-muted'));
         }
-      } else {
-        card.append(el('p', order.status === 'payment_rejected' ? 'Revisa la observación del pago antes de solicitar una nueva revisión.' : order.status === 'payment_review' ? 'Recibimos tu documento y comprobante. Ahora validamos el pago.' : order.isTest ? 'Estamos preparando los PDF de prueba.' : 'Pago validado. Estamos preparando tus informes.', 'ti-muted'));
+      } else if (order.status !== 'payment_rejected') {
+        card.append(el('p', order.status === 'payment_review' ? 'Recibimos tu documento y comprobante. Estamos verificando el abono; el pago aún no está aprobado.' : order.isTest ? 'Estamos preparando los PDF de prueba.' : 'Pago validado. Estamos preparando tus informes.', 'ti-muted'));
+        if (order.status === 'payment_review' && !order.isTest) card.append(el('p', 'No necesitas volver a pagar ni enviar otro pedido.', 'ti-muted'));
+        if (['payment_review', 'processing'].includes(order.status)) {
+          const pending = el('div', '', 'ti-pending-reports');
+          pending.append(el('h4', 'Aquí aparecerán tus informes'), el('p', 'Cuando estén listos, podrás verlos y descargar los PDF en esta misma revisión. Vuelve a Turnitin con tu cuenta para consultar el avance.', 'ti-muted'));
+          card.append(pending);
+        }
       }
       target.append(card);
     }
@@ -244,7 +259,10 @@ function setupTurnitin() {
         if (ordersLoaded && previous && previous !== progress) {
           const previousReports = previous.slice(previous.indexOf(':') + 1).split(',').filter(Boolean);
           const addedReports = available.filter(kind => !previousReports.includes(kind));
-          if (order.status === 'completed' && !previous.startsWith('completed:')) announce('Tus informes ya están listos. Ábrelos en Mis revisiones.');
+          if (order.status === 'completed' && !previous.startsWith('completed:')) {
+            openReports.add(order.id);
+            announce('Tus informes ya están listos. Ábrelos en Mis revisiones.');
+          }
           else if (addedReports.length) announce('Ya tienes un informe disponible. Puedes abrirlo o descargarlo en Mis revisiones.');
         }
         if (previous !== progress) track('campus_turnitin_status_updated', { order_status: order.status, previous_status: previous?.split(':')[0], is_test: Boolean(order.isTest) });
@@ -279,6 +297,7 @@ function setupTurnitin() {
           } catch { linkUnavailable = true; }
         }
         if (linkedId) openReports.add(linkedId);
+        if (historyOrders.length === 1 && historyOrders[0].status === 'completed') openReports.add(historyOrders[0].id);
       }
       ordersLoaded = true;
       updateHistoryCount();

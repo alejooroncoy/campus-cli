@@ -454,25 +454,29 @@ function initPage() {
     if (!value) return;
     const copiedMessage = label === "URL" ? "URL copiada. Pégala" : "Nombre copiado. Pégalo";
     const copyTarget = label === "URL" ? "la URL" : "el nombre";
+    const copyStatus = button.closest(".connector-copy")?.querySelector<HTMLElement>("[data-copy-status]");
+    const announceCopy = (message: string) => { if (copyStatus) copyStatus.textContent = message; else say(message); };
     try {
       await navigator.clipboard.writeText(value);
       track('campus_connector_copied', { copy_kind: label === 'URL' ? 'url' : 'name' });
-      say(`${copiedMessage} en la configuración de tu asistente.`);
+      announceCopy(`${copiedMessage} en la configuración de tu asistente.`);
     } catch {
       track('campus_flow_failed', { step: 'connector', error_kind: 'clipboard' });
-      say(`No pudimos copiar ${copyTarget}. Selecciona el dato y cópialo manualmente.`);
+      announceCopy(`No pudimos copiar ${copyTarget}. Selecciona el dato y cópialo manualmente.`);
     }
   }));
 
   document.querySelectorAll<HTMLAnchorElement>("[data-copy-connector-url]").forEach(link => link.addEventListener("click", () => {
     const url = link.dataset.copyConnectorUrl;
     if (!url) return;
+    const copyStatus = link.closest(".app-connector-card")?.querySelector<HTMLElement>("[data-copy-status]");
+    const announceCopy = (message: string) => { if (copyStatus) copyStatus.textContent = message; else say(message); };
     try {
       void navigator.clipboard.writeText(url)
-        .then(() => say("URL de Campus copiada. En Gemini, abre Apps personalizadas y pégala."))
-        .catch(() => say("No se pudo copiar la URL. Usa el botón Copiar de arriba antes de pegarla en Gemini."));
+        .then(() => announceCopy("URL de Campus copiada. En Gemini, abre Apps personalizadas y pégala."))
+        .catch(() => announceCopy("No se pudo copiar la URL. Usa el botón Copiar del paso 2 antes de pegarla en Gemini."));
     } catch {
-      say("No se pudo copiar la URL. Usa el botón Copiar de arriba antes de pegarla en Gemini.");
+      announceCopy("No se pudo copiar la URL. Usa el botón Copiar del paso 2 antes de pegarla en Gemini.");
     }
   }));
 }
