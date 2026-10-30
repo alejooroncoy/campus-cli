@@ -19,6 +19,7 @@
 .cp-hero h1 em::after { content:""; position:absolute; height:16px; background:#cdeef8; bottom:5px; left:-3px; right:-7px; z-index:-1; transform:rotate(-3deg); }
 .cp-lead { color:var(--cp-muted); font-size:18px; line-height:1.65; max-width:480px; margin-bottom:28px; }
 .cp-actions { display:flex; align-items:center; flex-wrap:wrap; gap:23px; }
+.cp-hero__choice { color:var(--cp-muted); font-size:14px; line-height:1.6; margin:16px 0 0; }
 .cp-link { display:inline-flex; align-items:center; gap:12px; font-size:14px; font-weight:600; }
 .cp-link:hover,.cp-features a:hover,.cp-extra a:hover { text-decoration:underline; text-underline-offset:4px; }
 .cp-connect { border-block:1px solid var(--line); padding-block:23px; display:flex; gap:25px; justify-content:space-between; align-items:center; font-size:12px; }

@@ -55,6 +55,8 @@ const nav = [
             <img src="/assets/campus-logo.webp" width="36" height="36" alt="" />
             <span>Campus</span>
           </a>
+          {isChat && <a class="app-topbar-connect" href="/app/copilot/">Conectar mi IA <span aria-hidden="true">→</span></a>}
+          {active === "copilot" && <a class="app-topbar-connect app-topbar-assistant" href="/app/asistente/" aria-label="Preguntar al asistente"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><use href="/assets/lucide.svg#message-circle"></use></svg><span class="app-topbar-assistant__full">Preguntar al asistente</span><span class="app-topbar-assistant__short" aria-hidden="true">Preguntar</span><span aria-hidden="true">→</span></a>}
         </header>
 
         <div id="app-pwa-banner" class="app-pwa-banner" hidden>

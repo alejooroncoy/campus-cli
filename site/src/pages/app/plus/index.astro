@@ -6,7 +6,7 @@ import AppShell from '../../../layouts/AppShell.astro';
   <link rel="stylesheet" href="/campus-plus.css?v=2" />
   <div class="plus-page" data-plus-root>
     <a class="app-text-link" href="/app/perfil/">Volver a Mi perfil</a>
-    <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Más Campus para tu ciclo.</h1><p>100 consultas al día en la web y consultas ilimitadas con tu IA por MCP.</p></section>
+    <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Campus también en tu IA.</h1><p>Conecta Campus a ChatGPT, Claude u otra IA compatible y consulta sin límite de Campus desde allí. Además, tienes 100 consultas al día en el asistente web.</p><p>La suscripción de tu IA, si la requiere, se paga aparte. <a class="app-text-link" href="/app/copilot/">Ver cómo conectar mi IA</a></p></section>
     <p class="plus-message" role="status" aria-live="polite" aria-atomic="true" aria-busy="true" data-plus-message data-loading="true"><span class="app-sr-only">Comprobando tu cuenta…</span><span class="app-skeleton plus-message__skeleton" aria-hidden="true"></span></p>
     <p class="app-panel" role="note" data-plus-qa hidden><strong>PRUEBA EN PRODUCCIÓN · SIN PAGO</strong><br />Este comprobante es sintético. La activación de prueba dura 24 horas y no ocupa un cupo de los primeros 25 de pago.</p>
     <section class="app-panel" data-plus-view="guest" hidden>
@@ -42,7 +42,7 @@ import AppShell from '../../../layouts/AppShell.astro';
     </section>
     <section class="app-panel" data-plus-view="active" hidden>
       <p class="app-kicker">TU PLAN ESTÁ ACTIVO</p><h2>Ya tienes Campus Plus.</h2><p data-plus-active-until></p><p data-plus-active-renewal></p>
-      <a class="app-button" href="/app/asistente/">Ir al asistente</a> <a class="app-text-link" href="/app/copilot/">Conectar mi IA</a>
+      <a class="app-button" href="/app/copilot/">Conectar mi IA</a> <a class="app-text-link" href="/app/asistente/">Ir al asistente web</a>
       <button class="app-button app-button--secondary" type="button" data-plus-renew hidden>Renovar un mes</button>
     </section>
     <section class="app-panel" data-plus-view="rejected" hidden>
@@ -51,7 +51,7 @@ import AppShell from '../../../layouts/AppShell.astro';
     <section class="app-panel" data-plus-view="unavailable" hidden>
       <h2>No pudimos comprobar la activación.</h2><p>Vuelve a intentarlo antes de realizar un pago. Si ya pagaste, conserva tu comprobante y contacta a soporte.</p><button type="button" class="app-button app-button--secondary" data-plus-refresh>Volver a comprobar</button>
     </section>
-    <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>100 consultas diarias en la web.</li><li>Consultas ilimitadas con tu IA por MCP.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
+    <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>Consultas sin límite de Campus desde tu IA compatible.</li><li>100 consultas diarias en el asistente web.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles desde tu IA.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
     <details class="app-panel" data-plus-feedback>
       <summary>¿Qué te falta para decidirte por Plus?</summary>
       <form data-plus-feedback-form><label for="plus-reason">Tu respuesta nos ayuda a mejorar (opcional).</label>

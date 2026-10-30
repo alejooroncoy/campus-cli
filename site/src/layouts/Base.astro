@@ -26,6 +26,7 @@ interface Props {
   schemas?: unknown[];
   robots?: string;
   keywords?: string[];
+  headerAction?: { label: string; href: string };
 }
 
 const {
@@ -42,6 +43,7 @@ const {
   modified,
   markdownUrl,
   schemas = [],
+  headerAction = { label: "Conectar mi IA", href: "/app/copilot/" },
   robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
   keywords,
 } = Astro.props;
@@ -101,10 +103,11 @@ const {
       <a class="brand" href="/" aria-label="Campus, inicio"><img src="/assets/campus-logo.webp" width="160" height="160" alt="" /><span>Campus</span></a>
       <nav aria-label="Principal"><a href="/#incluye">Qué ofrece</a><a href="/#planes">Planes</a><a class="site-nav__expanded-link" href="/profes/">Profesores</a>{libraryServiceEnabled && <a class="site-nav__expanded-link" href="/biblioteca/">Biblioteca</a>}<a class="site-nav__expanded-link" href="/campus-cli/">Conectar IA</a>{turnitinServiceEnabled && <a class="site-nav__expanded-link" href="/turnitin/">Turnitin</a>}</nav>
       <div class="site-header__actions">
-        <a class="button button--small" href="/app/">Entrar <svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
+        <a class="button button--small" href={headerAction.href}>{headerAction.label} <svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
         <details class="site-menu">
           <summary aria-label="Más opciones de Campus"><span>Más</span><svg class="site-menu__chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg><svg class="site-menu__mobile-icon" viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg></summary>
           <div class="site-menu__panel">
+            <a href="/app/asistente/">Preguntar al asistente</a>
             <a class="site-menu__mobile-link" href="/#incluye">Qué ofrece Campus</a>
             <a class="site-menu__mobile-link" href="/#planes">Planes y precios</a>
             <a class="site-menu__secondary-link" href="/profes/">Profesores</a>

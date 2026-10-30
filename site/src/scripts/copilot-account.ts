@@ -14,8 +14,8 @@ type AccountView = {
 
 const unavailable = (): AccountView => ({
   state: "unavailable",
-  label: "No disponible",
-  description: "No pudimos comprobar tu sesión o tu plan. Vuelve a intentarlo; esto no significa que tengas Campus Free o que hayas cerrado sesión.",
+  label: "Sin verificar",
+  description: "No pudimos comprobar tu cuenta. Inténtalo de nuevo para ver tu plan.",
   retry: true,
 });
 
@@ -26,8 +26,8 @@ export function copilotAccountView(session: CampusSession | "loading" | "error")
   };
   if (session === "error" || session.accessUnavailable) return unavailable();
   if (session.authenticated === false) return {
-    state: "guest", label: "Prueba gratis",
-    description: "Prueba Campus con 5 consultas. Crea tu cuenta Campus Free para recibir 25 consultas de bienvenida.",
+    state: "guest", label: "Sin iniciar sesión",
+    description: "Crea tu cuenta gratis o inicia sesión para conectar Campus con tu IA.",
     action: { label: "Crear cuenta o entrar", href: "/api/app/auth/start?return=%2Fapp%2Fcopilot%2F" },
   };
   if (session.authenticated !== true) return unavailable();
@@ -47,8 +47,8 @@ export function copilotAccountView(session: CampusSession | "loading" | "error")
     state: plan,
     label: plan === "plus" ? session.plusTest ? "Campus Plus · prueba" : "Campus Plus" : "Campus Free",
     description: plan === "plus"
-      ? "Has iniciado sesión con Campus Plus. Usa esta misma cuenta al autorizar Campus en tu asistente."
-      : "Tu cuenta Campus Free incluye 25 consultas de bienvenida en la web. Usa esta misma cuenta para autorizar el conector.",
+      ? "Tu cuenta está lista. Úsala al autorizar Campus en tu IA."
+      : "Activa Plus para usar Campus desde tu IA.",
     usage: validUsage ? `En la web: ${usage.remaining} de ${usage.limit} consultas disponibles${usage.period === "day" ? " hoy" : ""}.` : undefined,
     action: { label: "Ver mi cuenta", href: "/app/perfil/" },
     upgrade: plan === "free",
@@ -77,7 +77,7 @@ export function renderCopilotAccount(root: HTMLElement | null, session: CampusSe
   setText(description, view.description, "app-skeleton--line");
   if (usage) { usage.textContent = view.usage ?? ""; usage.hidden = !view.usage; }
   if (action) {
-    action.hidden = !view.action;
+    action.hidden = !view.action || view.state === 'free' || view.state === 'plus';
     if (view.action) { action.textContent = view.action.label; action.href = view.action.href; }
     else { action.textContent = ""; action.removeAttribute("href"); }
   }

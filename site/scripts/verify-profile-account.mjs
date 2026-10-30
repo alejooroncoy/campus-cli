@@ -20,7 +20,10 @@ for(const session of ['error',{...plus,accessUnavailable:true},{...free,plan:'un
 for(const usage of [undefined,{remaining:NaN,limit:100},{remaining:-1,limit:100},{remaining:101,limit:100}]){
  const view=profileAccountView({...plus,usage});assert.equal(view.label,'Campus Plus');assert.equal(view.usage,undefined);assert.match(view.note,/No pudimos comprobar/);
 }
-assert.equal(profileAccountView({...free,authenticated:false,plan:'anon'}).state,'guest');
+const guest=profileAccountView({...free,authenticated:false,plan:'anon'});
+assert.equal(guest.state,'guest');
+assert.equal(guest.label,'Prueba gratis');
+assert.match(guest.note,/5 consultas.*25 consultas de bienvenida/);
 assert.equal(profileAccountView({...plus,accessBlocked:true}).state,'blocked');
 const fields=new Map(['label','usage','note','mcp','upgrade','refresh'].map(name=>[name,{textContent:'',hidden:false,setAttribute(){},replaceChildren(...children){this.children=children;}}]));
 const root={dataset:{},setAttribute(){},querySelector(selector){return fields.get(selector.match(/data-profile-(.*)\]/)[1]);}};

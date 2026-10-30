@@ -51,8 +51,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
             <div class="ti-submit-grid">
               <section class="ti-step" data-ti-request-step="document" aria-labelledby="ti-document-title">
                 <h3 id="ti-document-title" tabindex="-1">Sube tu documento</h3>
-                <p class="ti-muted">Elige la revisión y la versión de tu documento.</p>
-                <p class="ti-field-help">Procesamiento mediante TurnitPro. Los resultados pueden diferir de una revisión institucional de Turnitin.</p>
+                <p class="ti-muted">Elige un informe y adjunta tu archivo. Después verás los datos para pagar.</p>
                 <fieldset class="ti-product-picker">
                   <legend>¿Qué informe necesitas?</legend>
                   <div class="ti-product-options">
@@ -71,19 +70,21 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <p class="ti-upload-methods"><span class="ti-mobile-method">Toca el recuadro para elegir o cambiar el archivo.</span><span class="ti-desktop-method">Haz clic, arrastra o pega un archivo copiado.</span></p>
                 <button class="ti-remove-file" type="button" data-ti-remove="document" hidden>Quitar documento</button>
                 <p class="ti-upload-error" id="ti-document-error" data-ti-upload-error="document" role="alert" hidden></p>
-                <details class="ti-file-requirements"><summary>Requisitos del documento</summary><p class="ti-field-help" id="ti-document-help">PDF con texto seleccionable o Word (.docx). Verificamos que el archivo sea compatible antes de procesarlo.</p></details>
+                <details class="ti-file-requirements"><summary>Requisitos y procesamiento</summary><p class="ti-field-help" id="ti-document-help">PDF con texto seleccionable o Word (.docx). Verificamos que el archivo sea compatible antes de procesarlo.</p><p class="ti-field-help">Procesamiento mediante Turnitin API. Los resultados pueden diferir de una revisión institucional de Turnitin.</p></details>
                 <div class="ti-step-action"><button class="app-button" type="button" data-ti-next>Continuar al pago <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></button><span class="ti-field-help">Tu archivo se enviará al confirmar.</span></div>
               </section>
               <section class="ti-step" data-ti-request-step="payment" aria-labelledby="ti-payment-title" hidden>
                 <div class="ti-selected-document"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><use href="/assets/lucide.svg#file-text"></use></svg><div><span>Tu documento</span><strong data-ti-document-summary></strong></div><button type="button" data-ti-go-step="document">Cambiar</button></div>
-                <h3 id="ti-payment-title" tabindex="-1">Confirma tu pago</h3>
-                <p class="ti-muted">Paga por Yape o Plin y adjunta tu comprobante. Recibirás los informes que elegiste en este pedido.</p>
+                <h3 id="ti-payment-title" tabindex="-1">Paga y envía tu revisión</h3>
+                <p class="ti-muted">Realiza el pago, adjunta el comprobante y envía el pedido. Validaremos el abono antes de preparar tus informes.</p>
                 <p class="ti-field-help ti-payment-availability" data-ti-payment-availability role="status" aria-live="polite"></p>
                 <div class="ti-payment">
+                  <h4 class="ti-payment-step-title">1. Paga por Yape o Plin</h4>
                   <div class="ti-payment-top"><span>Total por tu revisión · <span data-ti-product-summary>Similitud + IA</span></span><strong data-ti-amount>S/14</strong></div>
                   <dl><div><dt>Número de celular</dt><dd><span data-ti-phone>—</span><button type="button" class="ti-copy-phone" data-ti-copy-phone aria-label="Copiar número de Yape o Plin"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#copy"></use></svg><span data-ti-copy-label>Copiar</span></button></dd></div><div><dt>Titular</dt><dd data-ti-holder>—</dd></div></dl>
                   <p class="ti-field-help">Verifica el titular antes de pagar. La disponibilidad se confirma al enviar tu documento y comprobante.</p>
                 </div>
+                <h4 class="ti-payment-step-title">2. Adjunta tu comprobante</h4>
                 <label class="ti-upload ti-upload--receipt" data-ti-upload tabindex="0" aria-label="Adjuntar comprobante de pago">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M4 16v4h16v-4"/></svg>
                   <span><span class="ti-upload-title" id="ti-receipt-label">Adjuntar comprobante</span><span class="ti-upload-name" data-ti-filename="receipt">PNG, JPG o PDF · Hasta 5 MB</span></span>
@@ -93,7 +94,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <button class="ti-remove-file" type="button" data-ti-remove="receipt" hidden>Quitar comprobante</button>
                 <p class="ti-upload-error" id="ti-receipt-error" data-ti-upload-error="receipt" role="alert" hidden></p>
             <div class="ti-submit-footer">
-            <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo a Campus a procesar mi documento mediante TurnitPro y he leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
+            <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo a Campus a procesar mi documento mediante Turnitin API y he leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
             <div class="ti-submit-action"><p class="ti-field-help">Sigue el estado y descarga tus informes en Mis revisiones.</p><button class="app-button" type="submit"><span data-ti-submit-text>Enviar revisión</span><span class="ti-inline-skeleton ti-inline-skeleton--button" data-ti-submit-skeleton aria-hidden="true" hidden></span> <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button></div>
             <p class="ti-submit-status" data-ti-submit-status role="status" aria-live="polite" hidden></p>
             </div>
@@ -111,3 +112,6 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
   <TurnitinReportViewer />
   <script src="../../../scripts/turnitin.ts"></script>
 </AppShell>
+<style>
+  .ti-payment-step-title { font-size:15px; font-weight:600; line-height:1.4; margin:0 0 14px; color:var(--app-ink); }
+</style>

@@ -401,6 +401,27 @@ button:disabled {
   padding: 0 36px;
   border-bottom: 1px solid var(--app-line);
 }
+.app-topbar-connect {
+  margin-left: auto;
+  padding: 10px 14px;
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  color: var(--app-link);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.app-topbar-connect:hover { background: var(--app-sky-pale); }
+.app-topbar-connect:focus-visible { outline: 3px solid var(--app-link); outline-offset: 3px; }
+.app-topbar-assistant { display:inline-flex; align-items:center; gap:8px; min-height:44px; box-sizing:border-box; }
+.app-topbar-assistant svg { fill:none; flex-shrink:0; }
+.app-topbar-assistant__short { display:none; }
+@media(max-width:700px) {
+  .app-topbar-assistant { padding:10px 12px; }
+  .app-topbar-assistant__full { display:none; }
+  .app-topbar-assistant__short { display:inline; }
+}
 .app-breadcrumb {
   color: var(--app-muted);
   font-size: 12px;
