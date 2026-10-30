@@ -1,14 +1,14 @@
 import type { APIRoute } from "astro";
-import { normasMarkdown } from "../../../lib/apa-tool-content";
+import { normasMeta, normasMarkdown } from "../../../lib/apa-tool-content";
 
 /** Versión en Markdown de la página, para asistentes que la leen en vez de renderizarla. */
 export const GET: APIRoute = () => {
   const markdown = [
-    "# Normas APA 7.ª edición: lo esencial y qué cambió",
+    `# ${normasMeta.title}`,
     "",
-    "> Las normas APA 7.ª edición que más se usan en trabajos universitarios y qué cambió desde la 6.ª.",
+    `> ${normasMeta.description}`,
     "",
-    "Fuente: https://campuscli.com/herramientas/normas-apa-7ma-edicion/",
+    `Fuente: ${normasMeta.canonical}`,
     "",
     "---",
     "",

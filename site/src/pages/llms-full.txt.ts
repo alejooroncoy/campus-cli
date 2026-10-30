@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
 import clients from "../data/mcp-clients.json";
 import { htmlToMarkdown } from "../lib/html-to-markdown";
-import { formatMarkdown, normasMarkdown } from "../lib/apa-tool-content";
+import { formatMarkdown, formatMeta, normasMarkdown, normasMeta } from "../lib/apa-tool-content";
 import rawHomeBody from "../html/index.html?raw";
 import { publicHomeHtml, turnitinServiceEnabled } from "../../feature-flags.mjs";
 const homeBody = publicHomeHtml(rawHomeBody);
@@ -94,18 +94,8 @@ export const GET: APIRoute = async () => {
   ].filter((page) => turnitinServiceEnabled || page.body !== turnitinBody).map((page) => section(page.title, page.description, page.url, htmlToMarkdown(page.body)));
 
   const tools = [
-    section(
-      "Formato APA 7.ª edición: revisa tu trabajo",
-      "Texto para pegar en tu IA que revisa interlineado, sangrías, márgenes, citas y referencias en APA 7. Beta, no es una guía oficial.",
-      "https://campuscli.com/herramientas/formato-apa-7/",
-      formatMarkdown(),
-    ),
-    section(
-      "Normas APA 7.ª edición: lo esencial y qué cambió",
-      "Resumen de las normas APA 7.ª edición y de qué cambió desde la 6.ª. No es el manual oficial.",
-      "https://campuscli.com/herramientas/normas-apa-7ma-edicion/",
-      normasMarkdown(),
-    ),
+    section(formatMeta.title, formatMeta.description, formatMeta.canonical, formatMarkdown()),
+    section(normasMeta.title, normasMeta.description, normasMeta.canonical, normasMarkdown()),
   ];
 
   const perClient = Object.entries(clients).flatMap(([slug, data]) => {
@@ -168,8 +158,8 @@ export const GET: APIRoute = async () => {
     "4. Guías del blog.",
     "",
     ...products,
-    ...tools,
     ...perClient,
+    ...tools,
     ...guides,
     // Listed rather than inlined. Their bodies live inside .astro files with
     // template expressions, so there is no raw html to convert, and a legal
