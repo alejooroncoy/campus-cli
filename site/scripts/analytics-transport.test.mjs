@@ -10,9 +10,16 @@ const buyer='campus:google:123456789012345678901';
 const {outputFiles}=await build({stdin:{contents:`
   import {analyticsSession,setupAnalytics,track} from './src/scripts/analytics.ts';
   setupAnalytics();
-  analyticsSession({authenticated:true,plan:'free',analyticsId:'${buyer}',universityConfirmed:true,usage:{remaining:25,limit:25}});
+  analyticsSession({authenticated:true,analyticsAudience:'customer',plan:'free',analyticsId:'${buyer}',universityConfirmed:true,usage:{remaining:25,limit:25}});
   track('campus_cta_clicked',{intent:'plus',email:'private@example.test',receipt:'private-proof'});
   track('campus_plus_checkout_viewed',{offer:'founder',amount_cents:500});
+  const survey={$survey_id:'01a18cc9-dfcf-0000-9228-5fe27651e15d',$survey_iteration:null};
+  track('survey shown',survey);
+  const answer={...survey,$survey_submission_id:'11111111-1111-4111-8111-111111111111',
+    $survey_questions:[{id:'e8c41d6d-d964-46c6-8174-7296eb8e01d2',question:'¿Qué te frena?'}],
+    '$survey_response_e8c41d6d-d964-46c6-8174-7296eb8e01d2':'El precio'};
+  track('survey sent',{...answer,$survey_completed:false});
+  track('survey sent',{...answer,$survey_completed:true});
 `,resolveDir:process.cwd(),loader:'ts'},bundle:true,format:'esm',platform:'browser',write:false,
   define:{'import.meta.env':JSON.stringify({DEV:false,PUBLIC_POSTHOG_KEY:key,PUBLIC_POSTHOG_HOST:'https://posthog.analytics.test'})},
 });
@@ -48,7 +55,7 @@ try{
         const payload=JSON.parse(text),batch=Array.isArray(payload)?payload:payload.batch??[payload];
         events.push(...batch);
         await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:'{"status":"Ok"}'});
-        if(events.some(e=>e.event==='campus_cta_clicked')&&events.some(e=>e.event==='campus_plus_checkout_viewed'))resolveReceived();
+        if(events.some(e=>e.event==='campus_cta_clicked')&&events.some(e=>e.event==='campus_plus_checkout_viewed')&&events.some(e=>e.event==='survey sent'&&e.properties.$survey_completed===true))resolveReceived();
         return;
       }
     }
@@ -68,6 +75,13 @@ try{
     assert.equal(event.properties.current_plan,'free');assert.equal(event.properties.environment,'production');
   }
   assert.equal(events.find(e=>e.event==='campus_plus_checkout_viewed').properties.amount_cents,500);
+  const surveyEvents=events.filter(e=>e.event==='survey sent');
+  assert.equal(surveyEvents.length,2);
+  assert.equal(surveyEvents[0].properties.$survey_submission_id,surveyEvents[1].properties.$survey_submission_id);
+  assert.equal(surveyEvents[1].properties['$survey_response_e8c41d6d-d964-46c6-8174-7296eb8e01d2'],'El precio');
+  assert.equal(surveyEvents[1].properties.$set['$survey_responded/01a18cc9-dfcf-0000-9228-5fe27651e15d'],true,'Real SDK must retain the person property which prevents repeated surveys.');
+  assert.ok(events.find(e=>e.event==='survey shown').properties.$set.$survey_last_seen_date);
+  assert.deepEqual(events.find(e=>e.event==='campus_cta_clicked').properties.$set,{analytics_audience:'customer',is_test:false,is_internal:false});
   const view=events.find(e=>e.event==='$pageview');assert.ok(view,'Web Analytics needs the standard pageview event');
   assert.equal(view.properties.$current_url,'https://campus.analytics.test/app/turnitin/');
   assert.equal(view.properties.$pathname,'/app/turnitin/');

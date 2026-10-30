@@ -4,10 +4,12 @@ import { analyticsPage, events, safeAnalyticsProperties } from './analytics-cont
 import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
 import { webEvents, safeWebProperties, webPageProperties } from './web-analytics.ts';
+import { safeSurveyProperties, surveyEvents, surveyPersonProperties } from './plus-survey-contract.ts';
 
-const allowedEvent = (event: string) => events.has(event) || webEvents.has(event);
+const allowedEvent = (event: string) => events.has(event) || webEvents.has(event) || surveyEvents.has(event);
 const eventProperties = (event: string, properties: Record<string, unknown>) => ({
   ...safeAnalyticsProperties(properties), ...(webEvents.has(event) ? safeWebProperties(properties) : {}),
+  ...safeSurveyProperties(event, properties),
 });
 
 type Event = { event: string; properties: Record<string, unknown> };
@@ -17,6 +19,7 @@ const local = import.meta.env?.DEV || (browser && ['localhost', '127.0.0.1', '[:
 const key = import.meta.env?.PUBLIC_POSTHOG_KEY;
 const host = browser ? `${location.origin}/c-events` : undefined;
 let client: AnalyticsClient | undefined;
+let clientReady: Promise<AnalyticsClient | undefined> = Promise.resolve(undefined);
 const pendingKey = 'campus-analytics-pending-v1';
 let queue: Event[] = [];
 if (browser && !local && key && host) {
@@ -68,12 +71,14 @@ const localSession = local ? identifier('campus-analytics-preview-session') : ''
 // ingestion, flags, replay or remote configuration requests are made.
 if (browser && !local && key && host) {
   // The reduced official SDK supplies the capture/identity APIs Campus uses.
-  void import('./analytics-client').then(({ createAnalyticsClient }) => {
+  clientReady = import('./analytics-client').then(({ createAnalyticsClient }) => {
     client = createAnalyticsClient(key, {
       host,
       before_send: event => {
         if (!event || (!allowedEvent(event.event) && event.event !== '$identify')) return null;
         const original = event.properties ?? {};
+        if (surveyEvents.has(event.event) && !safeSurveyProperties(event.event, original).$survey_id) return null;
+        const surveyPerson = surveyPersonProperties(event.event, original);
         // Discard SDK's implicit referrer, title, search, URL, device and person
         // properties; retain only correlation fields and our closed contract.
         event.properties = { ...eventProperties(event.event, original),
@@ -93,12 +98,16 @@ if (browser && !local && key && host) {
           $process_person_profile: event.event === '$identify' || Boolean(identity)
             || (event.event === '$pageview' && typeof eventProperties(event.event, original).utm_campaign === 'string'),
           $geoip_disable: true,
-          ...(identity && audience!=='unknown' ? {$set:{analytics_audience:audience,is_test:isTest===true,is_internal:audience==='internal'}} : {}),
         };
         // The real SDK also puts initial URLs/referrers in these top-level
         // person updates. They are outside properties and must be removed too.
         delete event.$set;
         delete event.$set_once;
+        // The SDK moves approved top-level updates into properties.$set after
+        // before_send. Writing only properties.$set here is silently discarded.
+        if (identity && audience !== 'unknown') event.$set = {
+          analytics_audience: audience, is_test: isTest === true, is_internal: audience === 'internal', ...surveyPerson,
+        };
         return event;
       },
     });
@@ -106,7 +115,8 @@ if (browser && !local && key && host) {
     else if (sessionResolved && client?.get_distinct_id().startsWith("campus:")) client.reset();
     for (const item of queue) client?.capture(item.event, item.properties);
     queue = []; persistQueue();
-  }).catch(() => { queue = []; });
+    return client;
+  }).catch(() => { queue = []; return undefined; });
 } else if (browser && !local && (!key || !host)) {
   console.warn('[Campus analytics] Configura PUBLIC_POSTHOG_KEY para activar métricas.');
 }
@@ -118,6 +128,7 @@ export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
 }
 export function track(event: string, properties: Record<string, unknown> = {}): void {
   if (!browser || !allowedEvent(event)) return;
+  if (surveyEvents.has(event) && !safeSurveyProperties(event, properties).$survey_id) return;
   const item = { event, properties: eventProperties(event, {
     ...(() => { try { return mcpHandoff(location.href, sessionStorage); } catch { return {}; } })(),
     page: analyticsPage(location.pathname), current_plan: currentPlan,
@@ -142,6 +153,16 @@ export function analyticsHeaders(): Record<string, string> {
   return { ...(distinctId ? { 'X-POSTHOG-DISTINCT-ID': distinctId } : {}),
     ...(sessionId ? { 'X-POSTHOG-SESSION-ID': sessionId } : {}) };
 }
+export async function getPlusSurvey() {
+  // Preview/test sessions never fetch remote survey definitions or targeting.
+  if (local || !identity || audience !== 'customer' || isTest !== false || currentPlan !== 'free') return;
+  const owner = identity;
+  const sdk = await clientReady;
+  if (!sdk || identity !== owner) return;
+  const survey = await sdk.getPlusSurvey({ analytics_audience: audience, is_test: 'false', is_internal: 'false' });
+  if (identity === owner && audience === 'customer' && isTest === false && currentPlan === 'free') return survey;
+}
+export const canAnswerPlusSurvey = (owner: string) => identity === owner && audience === 'customer' && isTest === false && currentPlan === 'free';
 export function analyticsSession(session: CampusSession): void {
   if (!browser || session.accessUnavailable) return;
   sessionResolved = true;

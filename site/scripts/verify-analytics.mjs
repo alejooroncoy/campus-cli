@@ -139,7 +139,7 @@ live.analyticsSession({authenticated:true,analyticsAudience:'test',plan:'free',a
 live.track('campus_plus_checkout_started',{is_test:false,plus_step:'ready',message:'private'});
 assert.equal(captured.at(-1).properties.is_test,true,'An event cannot reclassify a QA identity as a customer');
 assert.equal(captured.at(-1).properties.analytics_audience,'test');
-assert.deepEqual(captured.at(-1).properties.$set,{analytics_audience:'test',is_test:true,is_internal:false});
+assert.deepEqual(captured.at(-1).$set,{analytics_audience:'test',is_test:true,is_internal:false});
 assert.deepEqual(safeAnalyticsProperties({trace_id:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',conversation_id:'private',reason:'private',feedback_kind:'agent'}),{trace_id:'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',feedback_kind:'agent'});
 
 storage.set('campus-account-handoff-v1', JSON.stringify({ startedAt: Date.now(), returnPath: '/app/profes/', completed: false }));
