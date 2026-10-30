@@ -1737,3 +1737,6 @@ details p { max-width: 580px; padding: 0 22px 22px; margin: 0; color: var(--mute
 .whatsapp-support:hover{background:#066649}
 .whatsapp-support:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
 @media(max-width:720px){.whatsapp-support{right:max(12px,env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));width:50px;min-height:50px;padding:0}.whatsapp-support>span{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.footer__inner{padding-bottom:calc(88px + env(safe-area-inset-bottom))!important}}
+
+/* Keep the connector's full name readable in the compact site header. */
+@media(max-width:720px){.site-header__actions{min-width:0}.site-header .button--small,.site-header.is-scrolled .button--small{max-width:132px;white-space:normal;line-height:1.25;text-align:center;min-height:44px}.site-header .button--small svg{flex-shrink:0}}

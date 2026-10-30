@@ -23,7 +23,7 @@
   --app-mint:#d9f1e8;
   --app-green:#087f5b;
   --app-danger:#b42318;
-  --app-mobile-nav-height:calc(78px + env(safe-area-inset-bottom));
+  --app-mobile-nav-height:calc(92px + env(safe-area-inset-bottom));
 }
 * {
   box-sizing: border-box;
@@ -419,6 +419,7 @@ button:disabled {
 .app-topbar-assistant__short { display:none; }
 @media(max-width:700px) {
   .app-topbar-assistant { padding:10px 12px; }
+  .app-topbar-connect { min-width:0; max-width:160px; white-space:normal; line-height:1.25; text-align:center; min-height:44px; }
   .app-topbar-assistant__full { display:none; }
   .app-topbar-assistant__short { display:inline; }
 }
@@ -972,7 +973,9 @@ button:disabled {
     left: 0;
     right: 0;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     align-items: center;
     height: var(--app-mobile-nav-height);
     padding: 12px 8px calc(12px + env(safe-area-inset-bottom));
@@ -981,7 +984,7 @@ button:disabled {
   }
   .app-mobile-nav a {
     display: grid;
-    grid-template-rows: 19px 2.4em;
+    grid-template-rows: 19px 3.6em;
     place-items: center;
     align-content: center;
     gap: 4px;
@@ -2362,6 +2365,8 @@ button:disabled {
 .app-profile-plan [data-profile-note]{font-size:14px;margin:0}
 .app-profile-plan .app-profile-plan__mcp{font-size:14px;border-top:1px solid #b7dfe9;padding-top:16px;margin:18px 0 0}
 .app-profile-plan .app-actions{align-items:center;gap:12px 20px}
+.app-profile-plan .app-profile-upgrade{background:var(--app-ink);border-color:var(--app-ink);color:#fff}
+.app-profile-plan .app-profile-upgrade:hover{background:#1f485b;border-color:#1f485b;color:#fff}
 .app-profile-plan .app-button,.app-profile-plan .app-text-link{min-height:44px}
 .app-profile-plan .app-text-link{display:inline-flex;align-items:center;gap:8px;font-size:14px}
 .app-profile-plan [data-profile-usage] .app-skeleton{width:min(100%,320px);height:28px}.app-profile-plan [data-profile-label] .app-skeleton{width:min(100%,260px);height:28px}.app-profile-plan [data-profile-note] .app-skeleton{width:min(100%,360px);height:13px}.app-profile-plan [data-profile-refresh][aria-busy=true] .app-skeleton{width:92px;height:11px}

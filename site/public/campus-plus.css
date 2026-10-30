@@ -16,3 +16,35 @@
 .plus-survey__actions .app-text-link{min-height:44px;padding:8px 0;border:0;background:transparent;cursor:pointer;font:inherit;font-size:14px}
 .plus-survey [data-survey-status]:empty{display:none}
 @media(max-width:380px){.plus-survey__choices{grid-template-columns:1fr}}
+
+/* Payment instructions: one amount, a clear recipient, then the receipt. */
+.plus-page{max-width:920px;min-width:0}
+.plus-page .app-page-heading>p{max-width:68ch}
+.plus-page .app-button:not(.app-button--secondary){background:#173344;border-color:#173344;color:#fff}
+.plus-page .app-button:not(.app-button--secondary):hover{background:#23485c;border-color:#23485c}
+.plus-page .app-button:disabled{opacity:.6;cursor:not-allowed}
+.plus-overview{list-style:none;display:grid;gap:20px;padding:4px 0;margin:0}
+.plus-overview li{display:flex;gap:14px;align-items:flex-start;min-width:0}
+.plus-overview li>span,.plus-step-number{display:inline-grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:#e2f6fb;color:#08718e;font-size:14px;font-weight:700;line-height:1}
+.plus-overview strong{font-size:16px;color:#102a3a}
+.plus-overview p{font-size:14px;line-height:1.5;color:#506d7f;margin-top:4px}
+.plus-page .plus-account{border-top:1px solid #d2e1e7;padding-top:16px;font-size:13px;color:#506d7f;overflow-wrap:anywhere}
+.plus-order-summary{display:grid;gap:12px;padding-bottom:24px;border-bottom:1px solid #d2e1e7}
+.plus-order-summary>div{display:grid;gap:10px;min-width:0}
+.plus-order-summary h2{font-size:18px;font-weight:600}
+.plus-price{flex-wrap:wrap;gap:8px 12px;color:#506d7f;font-size:14px}
+.plus-price strong{font-size:44px;letter-spacing:-1.5px}
+.plus-steps>li{align-content:start;min-width:0;gap:14px}
+.plus-steps h3{display:flex;align-items:center;gap:10px;line-height:1.4}
+.plus-steps>li>p{font-size:15px;line-height:1.6}
+.plus-payment{background:#f4f9fa;border-color:#d2e1e7;gap:18px;padding:18px}
+.plus-payment dd{align-items:center;gap:6px 10px;overflow-wrap:anywhere}
+.plus-payment [data-plus-phone]{font-size:20px;letter-spacing:.2px;user-select:all}
+.plus-payment button{font-size:14px;text-decoration:underline;text-underline-offset:3px;padding:0;min-height:44px}
+.plus-expiry{padding-top:12px;border-top:1px solid #d2e1e7}
+.plus-file-feedback{font-size:14px;color:#276342;line-height:1.5}
+.plus-file-feedback[data-error=true]{color:#963f32}
+.plus-page [data-plus-submit]{width:100%;justify-content:center}
+@media(min-width:900px){.plus-overview{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}.plus-order-summary{grid-template-columns:1fr 1fr;align-items:end;gap:32px}.plus-order-summary>p{max-width:34ch;justify-self:end}}
+@media(min-width:1100px){.plus-steps{grid-template-columns:1fr 1fr;gap:32px}}
+@media(max-width:600px){.plus-page .app-panel{padding:20px}.plus-price strong{font-size:40px}.plus-overview{gap:16px}.plus-steps{gap:28px}.plus-steps>li+li{border-top:1px solid #d2e1e7;padding-top:24px}.plus-payment dd{display:block}.plus-payment button{display:block}.plus-page .plus-support{line-height:1.7}}

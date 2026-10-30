@@ -43,7 +43,7 @@ const {
   modified,
   markdownUrl,
   schemas = [],
-  headerAction = { label: "Conectar mi IA", href: "/app/copilot/" },
+  headerAction = { label: "Conectar Campus a tu IA", href: "/app/copilot/" },
   robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
   keywords,
 } = Astro.props;
@@ -101,7 +101,7 @@ const {
     </aside>
     <header class="shell site-header">
       <a class="brand" href="/" aria-label="Campus, inicio"><img src="/assets/campus-logo.webp" width="160" height="160" alt="" /><span>Campus</span></a>
-      <nav aria-label="Principal"><a href="/#incluye">Qué ofrece</a><a href="/#planes">Planes</a><a class="site-nav__expanded-link" href="/profes/">Profesores</a>{libraryServiceEnabled && <a class="site-nav__expanded-link" href="/biblioteca/">Biblioteca</a>}<a class="site-nav__expanded-link" href="/campus-cli/">Conectar IA</a>{turnitinServiceEnabled && <a class="site-nav__expanded-link" href="/turnitin/">Turnitin</a>}</nav>
+      <nav aria-label="Principal"><a href="/#incluye">Qué ofrece</a><a href="/#planes">Planes</a><a class="site-nav__expanded-link" href="/profes/">Profesores</a>{libraryServiceEnabled && <a class="site-nav__expanded-link" href="/biblioteca/">Biblioteca</a>}<a class="site-nav__expanded-link" href="/app/copilot/">Conectar Campus a tu IA</a>{turnitinServiceEnabled && <a class="site-nav__expanded-link" href="/turnitin/">Turnitin</a>}</nav>
       <div class="site-header__actions">
         <a class="button button--small" href={headerAction.href}>{headerAction.label} <svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
         <details class="site-menu">
@@ -112,7 +112,7 @@ const {
             <a class="site-menu__mobile-link" href="/#planes">Planes y precios</a>
             <a class="site-menu__secondary-link" href="/profes/">Profesores</a>
             {libraryServiceEnabled && <a class="site-menu__secondary-link" href="/biblioteca/">Biblioteca</a>}
-            <a class="site-menu__secondary-link" href="/campus-cli/">Conectar IA</a>
+            <a class="site-menu__secondary-link" href="/app/copilot/">Conectar Campus a tu IA</a>
             {turnitinServiceEnabled && <a class="site-menu__secondary-link" href="/turnitin/">Turnitin</a>}
             <a href="/blackboard-upc/">Blackboard UPC: tareas y notas</a>
             <a href="/blog/">Guías y recursos</a>
