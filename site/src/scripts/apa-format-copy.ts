@@ -5,7 +5,7 @@ const SKILL_URL = '/skills/apa7-campus-pegable.md';
 const MARKER = 'name: apa7-campus-pegable'; // el archivo real empieza con este frontmatter
 
 const button = document.querySelector<HTMLButtonElement>('[data-apa-copy]');
-const status = document.querySelector<HTMLElement>('[data-apa-status]');
+const statusEl = document.querySelector<HTMLElement>('[data-apa-status]');
 const fallback = document.querySelector<HTMLTextAreaElement>('[data-apa-fallback]');
 const sizeLabel = document.querySelector<HTMLElement>('[data-apa-size]');
 const jump = document.querySelector<HTMLAnchorElement>('[data-apa-jump]');
@@ -30,7 +30,7 @@ function loadText(): Promise<string> {
 }
 
 function say(message: string) {
-  if (status) status.textContent = message;
+  if (statusEl) statusEl.textContent = message;
 }
 
 function showManualCopy(text: string) {
@@ -103,3 +103,6 @@ jump?.addEventListener('click', (event) => {
     setTimeout(highlightCard, 450);
   }
 });
+
+// Módulo: evita que las constantes de arriba choquen con los globales de `window` (por ejemplo `status`).
+export {};
