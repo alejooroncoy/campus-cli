@@ -335,5 +335,9 @@
       ]
     }
   ],
+  "proxy": {
+    "entrypoint": "proxy.ts",
+    "matcher": ["/((?!api/|assets/|_astro/|.*\\..*).*)"]
+  },
   "trailingSlash": true
 }
