@@ -128,6 +128,8 @@
 .ti-file-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:20px}.ti-file-card{padding:20px;border:1px solid #e0eaee;border-radius:12px;background:#f8fbfc;min-width:0}
 .ti-file-label{color:#547a8c;font-size:10px;font-weight:600;letter-spacing:.02em}.ti-file-card h4{font-size:17px;font-weight:600;margin:8px 0}.ti-file-card p{font-size:12px;color:#506d7f;line-height:1.6;margin:0 0 18px}
 .ti-file-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}.ti-file-actions button,.ti-file-actions a{margin:0;font-size:12px;min-height:42px}.ti-file-actions a.app-button--secondary{color:#102a3a;text-decoration:none}
+.ti-file-actions button.app-button{background:var(--app-ink,#102a3a);border-color:var(--app-ink,#102a3a);color:#fff}
+.ti-file-actions button.app-button:hover{background:#183e52;border-color:#183e52;color:#fff}
 .ti-reviews .ti-report-note{border-top:1px solid #e4ecef;padding-top:16px;font-size:11px;line-height:1.6;margin:22px 0 0;color:#506d7f}
 .ti-empty{border-top:1px solid #e4ecef;padding:24px 0 4px}.ti-empty h3{font-size:15px;font-weight:600;margin:0 0 8px}.ti-empty p{font-size:13px;line-height:1.7;max-width:510px;margin:0}
 .ti-new-order summary{display:flex;align-items:center;gap:16px;cursor:pointer;list-style:none}.ti-new-order summary::-webkit-details-marker{display:none}.ti-summary-title{flex:1;min-width:0;font-size:20px;font-weight:600;line-height:1.3}.ti-new-order-hint{display:block;font-size:13px;font-weight:400;color:#506d7f;margin-top:6px}
