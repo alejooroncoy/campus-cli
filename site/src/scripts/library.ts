@@ -533,6 +533,17 @@ export function initLibrary(root: HTMLElement) {
   const input = (name: string) =>
     form.elements.namedItem(name) as
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+  // Una descarga bloqueada vuelve a la app con el motivo (?motivo=login|publicar); se avisa y se limpia la URL.
+  function downloadReason() {
+    const params = new URLSearchParams(location.search), reason = params.get("motivo");
+    if (!params.has("descarga") || !reason) return "";
+    params.delete("descarga"); params.delete("motivo");
+    const rest = params.toString();
+    try { history.replaceState(null, "", location.pathname + (rest ? "?" + rest : "") + location.hash); } catch {}
+    return reason === "publicar"
+      ? "Para descargar este documento publica uno tuyo de algún curso (1 crédito por documento) o activa Campus Plus para descargar sin límite."
+      : "Inicia sesión para descargar. Cada descarga cuesta 1 crédito: publica un documento tuyo o activa Campus Plus.";
+  }
   const message = (text: string, error = false) => {
     status.textContent = text;
     status.hidden = !text;
@@ -1365,14 +1376,14 @@ export function initLibrary(root: HTMLElement) {
       if (err instanceof Error && err.message.includes("Inicia sesión")) {
         try { forgetOfflineOwner(localStorage); } catch {}
         $("[data-lib-login]").hidden = false;
-        message("");
+        message(downloadReason());
         return;
       }
       if (!(err instanceof LibraryApiError && err.status === 401) && await restoreOffline()) return;
       throw err;
     }
     await restoreDraft();
-    message("");
+    message(downloadReason());
     fromHash();
     if (admin) await queue();
   });
