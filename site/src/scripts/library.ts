@@ -540,6 +540,7 @@ export function initLibrary(root: HTMLElement) {
     params.delete("descarga"); params.delete("motivo");
     const rest = params.toString();
     try { history.replaceState(null, "", location.pathname + (rest ? "?" + rest : "") + location.hash); } catch {}
+    if (reason === "repositorio") return "Inicia sesión para desbloquear el enlace al repositorio de GitHub. Es gratis.";
     return reason === "publicar"
       ? "Para descargar este documento publica uno tuyo de algún curso (1 crédito por documento) o activa Campus Plus para descargar sin límite."
       : "Inicia sesión para descargar. Cada descarga cuesta 1 crédito: publica un documento tuyo o activa Campus Plus.";
