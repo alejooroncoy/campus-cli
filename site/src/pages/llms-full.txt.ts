@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
 import clients from "../data/mcp-clients.json";
 import { htmlToMarkdown } from "../lib/html-to-markdown";
+import { formatMarkdown, formatMeta, normasMarkdown, normasMeta } from "../lib/apa-tool-content";
 import rawHomeBody from "../html/index.html?raw";
 import { publicHomeHtml, turnitinServiceEnabled } from "../../feature-flags.mjs";
 const homeBody = publicHomeHtml(rawHomeBody);
@@ -92,6 +93,11 @@ export const GET: APIRoute = async () => {
     },
   ].filter((page) => turnitinServiceEnabled || page.body !== turnitinBody).map((page) => section(page.title, page.description, page.url, htmlToMarkdown(page.body)));
 
+  const tools = [
+    section(formatMeta.title, formatMeta.description, formatMeta.canonical, formatMarkdown()),
+    section(normasMeta.title, normasMeta.description, normasMeta.canonical, normasMarkdown()),
+  ];
+
   const perClient = Object.entries(clients).flatMap(([slug, data]) => {
     const body = bodies[`../html/blackboard-mcp/clients/${slug}.html`];
     if (!body) return [];
@@ -148,10 +154,12 @@ export const GET: APIRoute = async () => {
     "   Campus CLI: alternativa local de código abierto." + (turnitinServiceEnabled ? " Turnitin: servicio por documento." : ""),
     "2. Conexión por asistente: Cursor, Claude Code, Claude Desktop, Codex,",
     "   GitHub Copilot, Windsurf, y la comparativa de servidores MCP.",
-    "3. Guías del blog.",
+    "3. Herramientas gratuitas de APA 7 (formato y normas de la 7.ª edición).",
+    "4. Guías del blog.",
     "",
     ...products,
     ...perClient,
+    ...tools,
     ...guides,
     // Listed rather than inlined. Their bodies live inside .astro files with
     // template expressions, so there is no raw html to convert, and a legal
