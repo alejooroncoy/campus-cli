@@ -511,3 +511,23 @@
 .lib-version-dialog{overflow-wrap:anywhere}.lib-version-delete-title{font-weight:700}
 
 .lib-button[data-version-delete]{color:#a13632!important;border-color:#d5aaa8}.lib-version-dialog .lib-button.lib-danger{background:#a13632;border-color:#a13632;color:#fff!important}.lib-version-dialog .lib-button.lib-danger:hover{background:#802a27;border-color:#802a27}
+
+/* Ficha de un trabajo importado de GitHub: el enlace al repositorio es lo principal. */
+.lib-github-card { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 26px 0 8px; padding: 26px 28px; border-radius: 14px; background: #102a3a; color: #fff; }
+.lib-github-card .lib-eyebrow { color: #7fd6f2; }
+.lib-github-card h2 { margin: 6px 0 6px; font-size: 22px; line-height: 1.2; color: #fff; }
+.lib-github-card p { margin: 0; max-width: 46ch; font-size: 14px; line-height: 1.55; color: #c4dde8; }
+.lib-github-repo { display: block; margin-top: 12px; font: 600 13px ui-monospace, SFMono-Regular, Menlo, monospace; color: #9fe0f5; overflow-wrap: anywhere; }
+.lib-github-card .lib-button { flex: none; min-height: 50px; padding: 0 24px; font-size: 16px; background: #fff; color: #102a3a !important; border-color: #fff; }
+.lib-github-card .lib-button:hover { background: #e2f6fb; border-color: #e2f6fb; }
+.lib-github-card .lib-button:focus-visible { outline: 3px solid #17b6e7; outline-offset: 3px; }
+.lib-fact-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
+.lib-fact-chips li { padding: 6px 12px; font-size: 13px; color: #315b70; background: #eef5f8; border: 1px solid #e0ebf0; border-radius: 999px; }
+/* En la columna derecha, donde antes estaba el panel del archivo. */
+.lib-github-aside { position: sticky; top: 24px; flex-direction: column; align-items: stretch; gap: 20px; margin: 0; padding: 24px; }
+.lib-github-aside .lib-button { width: 100%; }
+@media (max-width: 700px) {
+  .lib-github-aside { position: static; margin-top: 8px; }
+  .lib-github-card { flex-direction: column; align-items: stretch; padding: 22px; }
+  .lib-github-card .lib-button { width: 100%; justify-content: center; }
+}
