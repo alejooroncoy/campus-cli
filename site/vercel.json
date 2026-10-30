@@ -337,7 +337,7 @@
   ],
   "proxy": {
     "entrypoint": "proxy.ts",
-    "matcher": ["/((?!api/|assets/|_astro/|.*\\..*).*)"]
+    "matcher": ["/((?!api/|assets/|_astro/|c-events/|biblioteca/|\\.well-known/|.*\\..*).*)"]
   },
   "trailingSlash": true
 }
