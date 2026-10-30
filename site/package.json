@@ -35,7 +35,6 @@
     "@astrojs/sitemap": "^3.7.3",
     "@posthog/browser-common": "^0.9.11",
     "@posthog/core": "^1.60.1",
-    "@vercel/functions": "3.10.5",
     "ai": "^7.0.113",
     "astro": "^7.3.2",
     "pdfjs-dist": "6.4.299",

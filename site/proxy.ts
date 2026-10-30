@@ -1,5 +1,3 @@
-import { next, rewrite } from "@vercel/functions";
-
 /**
  * Content negotiation for the Markdown twins.
  *
@@ -13,6 +11,16 @@ import { next, rewrite } from "@vercel/functions";
  * whose index.md really exists, is rewritten. Anything else, including a page
  * without a Markdown twin such as /app/, goes through untouched.
  */
+
+/**
+ * The two answers a Vercel Routing Middleware can give are headers on an empty response: `x-middleware-next`
+ * to continue, `x-middleware-rewrite` to serve another URL. They are written here, exactly as `next()` and
+ * `rewrite()` in @vercel/functions write them, so the site does not take that package (and its audit surface)
+ * for two lines.
+ */
+const next = () => new Response(null, { headers: { "x-middleware-next": "1" } });
+const rewrite = (destination: URL, headers: Record<string, string> = {}) =>
+  new Response(null, { headers: { ...headers, "x-middleware-rewrite": destination.href } });
 
 /** A page path made only of letter, digit, `_` and `-` segments, each followed by `/`. Rules out `//`, `\`, `%` and `.`. */
 const PAGE_PATH = /^\/(?:[a-z0-9_-]+\/)*$/i;
@@ -55,7 +63,7 @@ export default async function proxy(request: Request) {
       if (value) forwarded.set(name, value);
     }
     const probe = await fetch(twin, { method: "HEAD", redirect: "manual", headers: forwarded, signal: AbortSignal.timeout(1500) });
-    if (probe.status === 200) return rewrite(twin, { headers: { Vary: "Accept" } });
+    if (probe.status === 200) return rewrite(twin, { Vary: "Accept" });
   } catch {
     // If the probe fails or times out, serve the page as HTML: a normal answer beats an error.
   }

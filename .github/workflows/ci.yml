@@ -41,10 +41,8 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run build
-      # Antes de `npm test`: tests/markdown-negotiation.test.ts importa site/proxy.ts, que usa @vercel/functions
-      # (dependencia de site/, no de la raíz).
-      - run: npm --prefix site ci
       - run: npm test
+      - run: npm --prefix site ci
       - run: npm --prefix site audit --audit-level=high
       - run: npm --prefix site run build
       - run: npm --prefix site run check
