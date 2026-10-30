@@ -27,7 +27,7 @@ export function copilotAccountView(session: CampusSession | "loading" | "error")
   if (session === "error" || session.accessUnavailable) return unavailable();
   if (session.authenticated === false) return {
     state: "guest", label: "Sin iniciar sesión",
-    description: "Crea tu cuenta gratis o inicia sesión para conectar Campus con tu IA.",
+    description: "Crea tu cuenta gratis o inicia sesión. Después podrás activar Plus y añadir el conector a tu IA.",
     action: { label: "Crear cuenta o entrar", href: "/api/app/auth/start?return=%2Fapp%2Fcopilot%2F" },
   };
   if (session.authenticated !== true) return unavailable();
@@ -47,8 +47,8 @@ export function copilotAccountView(session: CampusSession | "loading" | "error")
     state: plan,
     label: plan === "plus" ? session.plusTest ? "Campus Plus · prueba" : "Campus Plus" : "Campus Free",
     description: plan === "plus"
-      ? "Tu cuenta está lista. Úsala al autorizar Campus en tu IA."
-      : "Activa Plus para usar Campus desde tu IA.",
+      ? "Tu plan incluye el conector. Elige tu IA, añade Campus y autoriza esta misma cuenta."
+      : "Activa Campus Plus para usar el conector. Tu plan de ChatGPT o Claude se paga aparte.",
     usage: validUsage ? `En la web: ${usage.remaining} de ${usage.limit} consultas disponibles${usage.period === "day" ? " hoy" : ""}.` : undefined,
     action: { label: "Ver mi cuenta", href: "/app/perfil/" },
     upgrade: plan === "free",
