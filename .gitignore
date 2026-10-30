@@ -26,6 +26,8 @@ dist/
 !.agents/skills/apa7-campus/**
 !.agents/skills/apa7-review-campus/
 !.agents/skills/apa7-review-campus/**
+!.agents/skills/apa7-campus-pegable/
+!.agents/skills/apa7-campus-pegable/**
 .codex-tmp/apa7-*
 skills-lock.json
 .neon

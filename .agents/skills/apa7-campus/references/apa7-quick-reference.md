@@ -57,8 +57,8 @@ Usa cursiva donde se indica mediante asteriscos. Ajusta mayúsculas, edición, n
 | Libro | Con DOI: `Apellido, A. A. (Año). *Título del libro*. Editorial. https://doi.org/xxxxx`; sin DOI con URL pública: termina con la URL; impreso o en base académica común sin localizador: `Apellido, A. A. (Año). *Título del libro*. Editorial.` |
 | Libro con edición | `Apellido, A. A. (Año). *Título del libro* (2.ª ed.). Editorial.` |
 | Capítulo de libro editado | `Apellido, A. A. (Año). Título del capítulo. En A. Editor (Ed.), *Título del libro* (pp. xx-xx). Editorial.` |
-| Artículo científico | Con DOI: `Apellido, A. A., & Apellido, B. B. (Año). Título del artículo. *Revista, volumen*(número), xx-xx. https://doi.org/xxxxx`; sin DOI con URL pública: termina con la URL; impreso o base académica común sin localizador: termina en las páginas o eLocator. |
-| Artículo con eLocator | `Apellido, A. A. (Año). Título. *Revista, volumen*, Artículo e12345. https://doi.org/xxxxx` |
+| Artículo científico | Con DOI: `Apellido, A. A., & Apellido, B. B. (Año). Título del artículo. *Revista*, *volumen*(número), xx-xx. https://doi.org/xxxxx`; sin DOI con URL pública: termina con la URL; impreso o base académica común sin localizador: termina en las páginas o eLocator. |
+| Artículo con eLocator | `Apellido, A. A. (Año). Título. *Revista*, *volumen*, Artículo e12345. https://doi.org/xxxxx` |
 | Página web | `Autor o entidad. (Año, día de mes). *Título de la página*. Nombre del sitio, solo si difiere del autor. URL` |
 | Página web, autor = sitio | `Entidad. (Año, día de mes). *Título de la página*. URL` |
 | Informe | Con número y DOI/URL: `Entidad o Apellido, A. A. (Año). *Título del informe* (N.º de informe xxx). Editorial/Entidad solo si difiere del autor. URL`; sin número: omite todo el paréntesis; impreso o en base académica común sin localizador: termina en la editorial/entidad. |

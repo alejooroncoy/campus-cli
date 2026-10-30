@@ -1,0 +1,154 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/student-tools.css';
+import '../../styles/apa-format-tool.css';
+
+const canonical = 'https://campuscli.com/herramientas/formato-apa-7/';
+const title = 'Formato APA 7.ª edición en Word: revisa tu trabajo | Campus';
+const description = 'Formato APA 7.ª edición en Word: interlineado doble, sangría de 1,27 cm, márgenes de 2,54 cm. Copia un texto, pégalo en tu IA y revisa tu trabajo antes de entregar.';
+// `ref` y no `utm_*`: es un enlace interno y los UTM podrían pisar el origen real de la visita.
+const appLink = (slot: string) => `/app/?ref=formato-apa-7-${slot}`;
+
+const checks = [
+  ['Interlineado', 'Doble en todo el trabajo, también en las referencias.'],
+  ['Espacio entre párrafos', 'Ninguno extra: 0 pt antes y después.'],
+  ['Sangría', 'Primera línea a 1,27 cm; sangría francesa de 1,27 cm en las referencias.'],
+  ['Alineación', 'A la izquierda, sin justificar.'],
+  ['Márgenes y fuente', '2,54 cm por los cuatro lados y una sola fuente legible.'],
+  ['Número de página', 'Arriba a la derecha, en todas las páginas.'],
+  ['Encabezados y citas largas', 'Nivel 1 centrado y en negrita; citas de 40 palabras o más en bloque.'],
+  ['Citas y referencias', 'Autores, año, cursivas, orden alfabético y correspondencia entre el texto y la lista.'],
+  ['Tablas y figuras', 'Rótulo, título, llamado en el texto, bordes y nota de procedencia.'],
+];
+
+const faq = [
+  ['¿Cómo pongo el formato APA 7.ª edición en Word?', 'Interlineado doble y 0 pt de espacio antes y después, sangría de primera línea de 1,27 cm, márgenes de 2,54 cm, una fuente legible y el número de página arriba a la derecha. Más abajo están los pasos de Word, y el texto para tu IA lo revisa contigo.'],
+  ['¿APA 7 pide doble espacio también en las referencias?', 'Sí. Se usa doble espacio en todo el trabajo, incluida la lista de referencias, y sin espacio extra entre una entrada y la siguiente.'],
+  ['¿Qué sangría llevan los párrafos y las referencias?', 'La primera línea de cada párrafo va a 1,27 cm del margen (0,5 pulgadas). Las referencias llevan sangría francesa de 1,27 cm: la primera línea pegada al margen y las siguientes sangradas.'],
+  ['¿Dónde va el número de página?', 'Arriba a la derecha, en el encabezado, en todas las páginas.'],
+  ['¿Y si mi docente pide otro formato?', 'Manda lo que pida tu docente, tu rúbrica o la plantilla del curso. El texto le indica a la IA que te pregunte antes de cambiar nada.'],
+  ['¿Cambia mi archivo original?', 'El texto le pide a tu IA que trabaje sobre una copia y que solo aplique lo que apruebes. Si tu IA edita el documento abierto (complementos de Word o Google Docs), guarda un duplicado antes. Con un PDF puede detectar problemas, pero no editarlo: necesita tu archivo de Word u otro editable.'],
+  ['¿Revisa también mis citas y referencias?', 'Sí, la forma: autores, año, cursivas, orden y que cada cita tenga su referencia. No comprueba que la fuente respalde lo que afirmas; eso lo marca como no verificable.'],
+  ['¿Puedo usarlo con Claude en Word o en Google Docs?', 'Sí, pegándolo en la barra lateral del complemento, según su documentación. Como editan el documento abierto, el texto les pide que uses el control de cambios o el historial de versiones para poder deshacer. No lo hemos probado dentro de esos complementos.'],
+  ['¿Campus lee mis notas o mis comentarios?', 'Solo si tú lo permites. El texto le pide a tu IA que solo lea y que use únicamente la actividad que le indiques, pero las herramientas devuelven los datos de todo el curso y esos datos pasan por tu proveedor de IA. Pide que limite la consulta a un curso y una actividad. El texto le prohíbe enviar, guardar o subir nada en Blackboard.'],
+  ['¿Necesito cuenta para copiar el texto?', 'No. Copiarlo o descargarlo es gratis y no pide registro. Campus solo hace falta si quieres que tu IA lea las instrucciones de tu aula virtual.'],
+  ['¿Es una guía oficial?', 'No. Es una versión beta hecha por Campus, basada en el manual APA 7, las páginas de APA Style y la guía de Biblioteca UPC, entre otras fuentes. No está avalada por ninguna institución.'],
+];
+
+const schemas = [{
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map(([name, text]) => ({ '@type': 'Question', name, acceptedAnswer: { '@type': 'Answer', text } })),
+}];
+---
+<Base title={title} description={description} canonical={canonical} schemas={schemas}>
+<main class="tools-page apa-format" data-tool="formato-apa-7">
+  <div class="tools-wrap">
+    <div class="tools-top"><a href="/herramientas/"><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-left"></use></svg> Todas las herramientas</a><span>HECHO PARA TU CICLO</span></div>
+
+    <section class="tools-hero">
+      <div class="tools-intro">
+        <p class="tools-eyebrow"><span></span>HERRAMIENTA · APA 7 · BETA</p>
+        <h1>Formato APA 7.ª edición: revisa tu trabajo<em>.</em></h1>
+        <p class="tools-lead">Pega este texto en tu IA y revisa interlineado, sangrías, márgenes, citas y referencias antes de entregar.</p>
+        <div class="apa-hero-cta"><a class="apa-join" href={appLink('hero')}>Unirme a Campus <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a class="tools-jump" href="#herramienta" data-apa-jump>Ir a copiar el texto <svg class="tools-icon apa-jump-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div>
+        <p class="apa-trust-line">Copiar el texto es gratis y no pide registro.</p>
+      </div>
+
+      <div class="tools-card" id="herramienta">
+        <div class="tools-card-head"><span>COPIA Y PEGA</span><span class="tools-card-num">BETA</span></div>
+        <h2>Tres pasos.</h2>
+        <ol class="apa-steps" role="list">
+          <li><b aria-hidden="true">01</b><span><strong>Copia el texto.</strong> Son instrucciones para tu IA (<span data-apa-size>113 KB</span>).</span></li>
+          <li><b aria-hidden="true">02</b><span><strong>Pégalo en tu IA</strong> y adjunta tu trabajo. Un archivo de Word se corrige; un PDF solo se revisa.</span></li>
+          <li><b aria-hidden="true">03</b><span><strong>Confirma los cambios.</strong> Te pregunta antes de tocar nada.</span></li>
+        </ol>
+        <div class="apa-actions">
+          <button type="button" class="apa-copy" data-apa-copy hidden>Copiar texto para mi IA</button><noscript><span class="apa-note">Activa JavaScript para copiar, o usa «Descargar como archivo».</span></noscript>
+          <a class="apa-download" href="/skills/apa7-campus-pegable.md" download="apa7-campus-pegable.md">Descargar como archivo</a>
+        </div>
+        <p class="apa-status" role="status" aria-live="polite" data-apa-status></p>
+        <textarea class="apa-fallback" data-apa-fallback readonly hidden aria-label="Texto para copiar manualmente"></textarea>
+        <p class="apa-note">Es largo a propósito: trae las reglas de la guía de Biblioteca UPC. Menciona Campus una sola vez.</p>
+      </div>
+    </section>
+
+    <section class="tools-explain">
+      <div><p class="tools-eyebrow"><span></span>QUÉ REVISA</p><h2>Lo que más se<br/><em>marca en los trabajos.</em></h2></div>
+      <div>
+        <ul class="apa-checks">
+          {checks.map(([name, text]) => <li><strong>{name}.</strong> {text}</li>)}
+        </ul>
+        <p>Los valores de formato son los que usa APA 7 por defecto. Si tu curso pide otros, ellos mandan.</p>
+      </div>
+    </section>
+
+    <section class="apa-midcta">
+      <div><p class="apa-midcta-title">¿Tu docente pidió algo distinto?</p><p>Esa instrucción manda sobre APA. Con tu permiso, Campus la lee en tu aula virtual por ti: el enunciado y los comentarios de tus entregas. El texto le pide a tu IA que solo lea.</p></div>
+      <a href={appLink('medio')}>Ver cómo funciona <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
+    </section>
+
+    <section class="tools-explain">
+      <div><p class="tools-eyebrow"><span></span>HACERLO A MANO EN WORD</p><h2>Los cuatro cambios<br/><em>que más se piden.</em></h2></div>
+      <div>
+        <h3>Interlineado doble y sin espacio entre párrafos</h3>
+        <p>Selecciona todo el texto con Ctrl + A (⌘ + A en Mac). En Inicio, abre Párrafo, elige Interlineado: Doble y pon Espaciado antes y después en 0 pt.</p>
+        <h3>Sangría de primera línea y sangría francesa</h3>
+        <p>En Párrafo, abre Sangría especial. Para los párrafos del texto elige Primera línea con 1,27 cm. Para la lista de referencias elige Francesa con 1,27 cm.</p>
+        <h3>Número de página arriba a la derecha</h3>
+        <p>En Insertar, abre Número de página, elige Principio de página y escoge el que queda a la derecha.</p>
+        <h3>Márgenes de 2,54 cm</h3>
+        <p>En Diseño, abre Márgenes, elige Márgenes personalizados y pon 2,54 cm en Superior, Inferior, Izquierdo y Derecho. Los nombres de los menús pueden cambiar según tu versión de Word.</p>
+      </div>
+    </section>
+
+    <section class="tools-explain">
+      <div><p class="tools-eyebrow"><span></span>PREGUNTAS FRECUENTES</p><h2>Lo que más<br/><em>se pregunta.</em></h2></div>
+      <div class="apa-faq">
+        {faq.map(([q, a]) => <details><summary>{q}<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>{a}</p></details>)}
+      </div>
+    </section>
+
+    <section class="apa-next">
+      <h2>Antes de entregar</h2>
+      <p>Tres herramientas más del kit, para lo que suele quedar al final.</p>
+      <div class="apa-next-links">
+        <a href="/herramientas/citar-tesis-apa-7/"><strong>Cita una tesis</strong><span>La referencia clara, desde el primer dato.</span></a>
+        <a href="/herramientas/citar-figura-apa-7/"><strong>Cita una figura</strong><span>La fuente y el crédito que le corresponde.</span></a>
+        <a href="/herramientas/promedio-ponderado/"><strong>Calcula tu promedio</strong><span>Notas y créditos, sin malabares.</span></a>
+      </div>
+    </section>
+
+    <section class="tools-explain">
+      <div><p class="tools-eyebrow"><span></span>DENTRO DE WORD O GOOGLE DOCS</p><h2>Si tu asistente<br/><em>vive en el documento.</em></h2></div>
+      <div>
+        <p>Algunos asistentes se instalan como complemento y editan el documento que tienes abierto. Ahí no hay copia aparte, así que el texto les pide que te avisen antes y que uses el control de cambios o el historial de versiones para poder deshacer.</p>
+        <h3>Claude para Word</h3>
+        <p>Es un complemento de barra lateral. Según su documentación, tiene un modo de control de cambios: cada edición queda como una revisión que aceptas o rechazas en el panel de Word. Trabaja con archivos .docx (un .doc hay que guardarlo antes como .docx) y pide usarlo solo con documentos de confianza. Pega el texto en la conversación de la barra lateral y pídele que revise el formato. <a href="https://www.claude.com/docs/office-agents/word" target="_blank" rel="noopener noreferrer" aria-label="Documentación oficial (se abre en otra pestaña)">Documentación oficial <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a></p>
+        <h3>Claude en Google Docs</h3>
+        <p>Es un complemento en beta, disponible en los planes de pago de Claude: se abre desde Extensiones, Claude, Abrir Claude. Según su documentación, en el modo por defecto cada cambio aparece como una tarjeta de aprobación y espera tu respuesta; existe otro modo que aplica todo sin preguntar, así que no lo actives. Edita el documento abierto: antes de empezar, guarda un duplicado o confirma que puedes deshacer desde el historial de versiones de Google Docs. <a href="https://claude.com/resources/articles/claude-now-works-in-google-docs-sheets-and-slides" target="_blank" rel="noopener noreferrer" aria-label="Más información (se abre en otra pestaña)">Más información <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a></p>
+        <h3>Codex y ChatGPT en Word</h3>
+        <p>No encontramos un complemento de Codex para Word. OpenAI sí ofrece ChatGPT para Word, disponible en todos los planes, incluido el gratis, y el texto funciona igual: se pega en su barra lateral. <a href="https://help.openai.com/es-es/articles/20001526-chatgpt-for-word" target="_blank" rel="noopener noreferrer" aria-label="Ayuda de OpenAI (se abre en otra pestaña)">Ayuda de OpenAI <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a></p>
+        <p><strong>Lo que no hemos probado:</strong> el texto está probado con asistentes que leen un archivo adjunto, pero no dentro de estos complementos. Su disponibilidad depende de tu plan y de la versión de Word, y pueden limitar el largo de lo que pegas. Si no te deja pegarlo completo, descárgalo y adjúntalo, o cuéntanos qué pasó.</p>
+      </div>
+    </section>
+
+    <section class="tools-explain">
+      <div><p class="tools-eyebrow"><span></span>FUENTES Y ALCANCE</p><h2>De dónde sale<br/><em>y hasta dónde llega.</em></h2></div>
+      <div>
+        <p>Se basa en varias fuentes, y cuando no coinciden manda este orden: lo que pida tu docente, la guía de Biblioteca UPC y el manual APA 7.</p>
+        <ul class="apa-sources" role="list">
+          <li><a href="https://apastyle.apa.org" target="_blank" rel="noopener noreferrer" aria-label="APA Style, páginas oficiales (se abre en otra pestaña)">APA Style, páginas oficiales <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a> y el <em>Publication Manual</em> de la APA, 7.ª edición.</li>
+          <li><a href="https://biblioteca.upc.edu.pe/citas-referencias-APA7" target="_blank" rel="noopener noreferrer" aria-label="Citas y referencias en APA 7, Biblioteca UPC (se abre en otra pestaña)">Citas y referencias en APA 7, Biblioteca UPC <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>, incluida su adaptación a documentos jurídicos.</li>
+          <li>Guía de normas APA 7 de Universidad Central (2019) y otras guías de apoyo.</li>
+        </ul>
+        <p><strong>No es una guía oficial ni está avalada por ninguna institución.</strong> Campus es independiente (<a href="/no-afiliacion/">aviso de no afiliación</a>). Es una versión beta, probada con casos de ejemplo y con documentos reales, todavía sin una evaluación independiente. Puede equivocarse: revisa lo que cambie antes de entregar.</p>
+        <p>El texto trae la fecha de la guía en que se basa. Si la guía cambió después, la guía en línea manda.</p>
+      </div>
+    </section>
+
+    <section class="tools-bottom"><span>CUANDO IMPORTA LO QUE PIDIÓ TU DOCENTE</span><h2>Revisa tu trabajo con<br/><em>lo que pidió tu docente.</em></h2><p class="apa-bottom-note">Con tu autorización, Campus lee en tu aula virtual el enunciado y los comentarios de tus entregas. El texto le pide a tu IA que solo lea y que no envíe ni cambie nada en Blackboard.</p><a href={appLink('final')}>Unirme a Campus <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></section>
+  </div>
+</main>
+<script src="../../scripts/apa-format-copy.ts"></script>
+</Base>

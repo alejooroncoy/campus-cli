@@ -224,7 +224,7 @@
       "sha256": "f1774b5ceb79bc29b6d69e360e0e32713eac8faa8b7bb38107bdf0fea45ed94a",
       "kind": "schema",
       "guidance": [
-        "Si el artículo usa identificador electrónico en vez de páginas, conservar el identificador de artículo; revista/volumen van en cursiva y número no. Añadir DOI/URL."
+        "Si el artículo usa identificador electrónico en vez de páginas, conservar el identificador de artículo; revista/volumen van en cursiva y número no. Añadir DOI/URL. En el ejemplo UPC de Gaete Quezada se indica un rango de páginas, pero la ficha de cita de la revista identifica el artículo como e1073: revisar la versión consultada y la fuente editorial antes de sustituir un dato. Ficha: https://revistas.upc.edu.pe/index.php/docencia/citationstylelanguage/get/apa?issueId=91&publicationId=890&submissionId=1073."
       ],
       "criterionRefs": [
         "periodicals:1",
@@ -380,7 +380,7 @@
       "sha256": "cc7a5204f7b51da1fbb357714442d12dc9659e3212d1d81d26396b28dfee721b",
       "kind": "consideration",
       "guidance": [
-        "En grabación de obra clásica, citar al compositor e identificar entre corchetes después del título a quien interpreta la versión consultada."
+        "En grabación de obra clásica, citar al compositor e identificar entre corchetes después del título a quien interpreta la versión consultada. En el ejemplo UPC, la referencia indica al final el año original de publicación y la cita presenta año original/año de grabación; verificar ambos datos antes de aplicar este patrón a otra obra."
       ],
       "criterionRefs": [
         "audio:2"
@@ -1330,7 +1330,7 @@
       "sha256": "4f7cc41d5f6dec3f6ca01fae1ecefdb064cee88e27371b38a9d5806780aeaadc",
       "kind": "schema",
       "guidance": [
-        "Contribución de conferencia: todos los responsables, fechas del evento completo, título de presentación en cursiva, descriptor flexible entre corchetes, evento, ciudad/país y URL/DOI disponible."
+        "Contribución de conferencia: responsables de la obra, incluso si alguno no asistió, fechas del evento completo, título de presentación en cursiva, descriptor flexible entre corchetes, evento, ciudad/país y URL/DOI disponible. Al escribir la lista, aplicar la regla general de hasta 20 autores o primeros 19, elipsis y último si son 21 o más."
       ],
       "criterionRefs": [
         "conferences:1"
@@ -1343,7 +1343,7 @@
       "sha256": "e19ed44fab140aa5c914e36d90873141ba7c35ef42434dd5a223c58183bdbbdf",
       "kind": "consideration",
       "guidance": [
-        "Incluir a todos los autores de la contribución aunque alguno no haya asistido."
+        "Considerar la autoría completa de la contribución aunque alguno no haya asistido; al escribir la referencia, aplicar la regla general de hasta 20 autores o primeros 19, elipsis y último si son 21 o más."
       ],
       "criterionRefs": [
         "conferences:2"
@@ -1461,7 +1461,7 @@
       "kind": "schema",
       "guidance": [
         "Lección de curso/MOOC: responsable de la lección, fecha, número/título de episodio cuando consten, descriptor; En docentes y curso como contenedor en cursiva, plataforma y URL accesible para el lector.",
-        "Los docentes del contenedor se enumeran sin añadir (Ed.) ni un rótulo de función que el esquema no exige; una misma persona puede ser responsable de la lección y docente del curso."
+        "Los docentes del contenedor se enumeran sin añadir (Ed.) ni un rótulo de función que el esquema no exige; una misma persona puede ser responsable de la lección y docente del curso. El ejemplo UPC escribe E. Mackensie, mientras un programa del mismo curso de 2015 identifica a Emma Mackenzie como productora. Verificar nombre y función de la versión efectivamente citada antes de hacer una corrección; el documento de 2015 por sí solo no confirma el episodio de 2016. Fuente: https://courses.edx.org/asset-v1%3AUQx%2BThink101x%2B2T2015%2Btype%40asset%2Bblock/Think101x-Syllabus2015-v03.pdf."
       ],
       "criterionRefs": [
         "online-courses:2"
@@ -1474,7 +1474,7 @@
       "sha256": "ab214e2196f528ea1eca7976f994c4d83eceb63569435949725eafb2c5c513ff",
       "kind": "consideration",
       "guidance": [
-        "Para curso en línea, identificar instructores, año de creación si se conoce, título, plataforma que lo aloja y URL; no tomar la plataforma como autor."
+        "Para curso en línea, identificar instructores, año de creación si se conoce, título, plataforma que lo aloja y URL; no atribuir autoría a la plataforma únicamente por alojar el curso. Si consta como responsable o instructora, respetar la autoría indicada por la fuente."
       ],
       "criterionRefs": [
         "online-courses:1"
@@ -1784,7 +1784,7 @@
       "sha256": "502c969cb3c42dcbf1f9583228facd031945d4e4a556898ae0d20840a2e1c00d",
       "kind": "consideration",
       "guidance": [
-        "En traducción, reimpresión, republicación o reedición, consignar fecha original y fecha de versión usada, en ese orden y con barra; confirmar ambas fechas."
+        "En traducción, reimpresión, republicación o reedición, consignar fecha original y fecha de versión usada en la cita, en ese orden y con barra; confirmar ambas fechas. El ejemplo UPC de libro traducido identifica en la referencia al traductor y añade al final el año original de publicación. Usar estos datos solo si corresponden y están comprobados para la obra revisada."
       ],
       "criterionRefs": [
         "citation-faq:5"
@@ -2406,7 +2406,7 @@
       "kind": "consideration",
       "guidance": [
         "En el caso ilustrado de composición de más de dos figuras externas, se sugiere usar letras para distinguir cada fuente; no restringir esa posibilidad a un número mínimo obligatorio de paneles.",
-        "Los superíndices vinculan panel y atribución; la atribución particular se sitúa debajo de cada panel y en ella se omite Nota según el modelo UPC. No omitir la procedencia ni generalizar esa omisión a la nota común de cualquier figura."
+        "El texto UPC menciona superíndices para vincular panel y atribución, mientras que la imagen del ejemplo identifica los cuatro paneles con letras en círculos y muestra las atribuciones asociadas debajo de la figura. Conservar la correspondencia inequívoca de cada panel con su fuente y señalar esa diferencia visual. El modelo omite Nota en las atribuciones particulares; no generalizar esa omisión a la nota común de cualquier figura."
       ],
       "criterionRefs": [
         "figures:6"
@@ -2743,7 +2743,7 @@
       "sha256": "9f835aebcd9e719326e32e2a6cc9ca964c57fd7ffdb4f4628941c0fca4270554",
       "kind": "schema",
       "guidance": [
-        "Libro digital: responsables, año, título en cursiva, editorial y DOI/URL del recurso."
+        "Libro digital: responsables, año, título en cursiva, editorial y DOI/URL del recurso. Si el responsable actúa como editor del volumen, verificar y expresar su función. El IEP identifica a Martín Tanaka como editor del libro de su ejemplo; comprobar la ficha y la obra antes de usar ese dato: https://iep.org.pe/actividades/presentacion-del-libro-50-anos-pensando-el-peru-una-reflexion-critica-el-instituto-de-estudios-peruanos-1964-2014/."
       ],
       "criterionRefs": [
         "books:1"
@@ -3060,7 +3060,7 @@
       "sha256": "e139f76f1e35bf7a481ca39e048a0b9a6083d309725c148d151c133e2fe9cb36",
       "kind": "consideration",
       "guidance": [
-        "El clip art incorporado a programas como Word/PowerPoint no requiere cita, permiso ni atribución en la pauta UPC. La excepción es del material incluido, no de cualquier imagen externa insertada."
+        "Según la pauta UPC, el clip art incorporado a Word/PowerPoint no requiere cita ni atribución. La excepción es del material incluido, no de cualquier imagen externa insertada. No concluyas que cualquier uso está autorizado: revisa la licencia aplicable y las condiciones del proveedor para el uso concreto."
       ],
       "criterionRefs": [
         "visual-media:3"
@@ -5033,7 +5033,7 @@
       "sha256": "b02f4dc8511881493689b678d0d7b6c738ad84064a23a406c632708a95bc69cb",
       "kind": "schema",
       "guidance": [
-        "Para ley, usar identificador legal, año de promulgación, título en cursiva e institución; URL opcional."
+        "Para ley, usar identificador legal, año de promulgación, título en cursiva e institución; URL opcional. En un ejemplo UPC se menciona Ley 19990, pero la ONP identifica el instrumento como Decreto Ley 19990: verificar denominación y versión en una fuente oficial antes de corregir o citar; no inferir vigencia de un pasaje por el ejemplo. Fuente: https://www.gob.pe/516."
       ],
       "criterionRefs": [
         "legal-statutes:1"

@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/student-tools.css';
+const tools = [
+  ['01','CALCULADORA','Calcula tu promedio ponderado','Notas y créditos, sin hacer malabares.','promedio-ponderado','graduation-cap'],
+  ['02','APA 7','Cita una tesis','Una referencia clara, desde el primer dato.','citar-tesis-apa-7','file-text'],
+  ['03','APA 7','Cita una figura','Identifica la fuente y dale el crédito que merece.','citar-figura-apa-7','book-open'],
+  ['04','ESTUDIO','Estudia con tus materiales','Una forma más clara de organizar tu repaso.','estudiar-pdf','sparkles'],
+  ['05','MATRÍCULA','Cursos de verano y electivos','Todo lo que necesitas revisar antes de elegir.','cursos-verano-electivos','calendar-days'],
+  ['06','APA 7','Corrige el formato de tu trabajo','Interlineado, sangrías y referencias, con tu confirmación.','formato-apa-7','file-text'],
+  ['07','APA 7','Normas APA 7.ª edición','Lo esencial y qué cambió desde la 6.ª.','normas-apa-7ma-edicion','book-open'],
+];
+const total = String(tools.length).padStart(2, '0');
+---
+<Base title="Herramientas para estudiantes | Campus" description="Calcula tu promedio, prepara referencias APA y organiza tu ciclo con las herramientas de Campus." canonical="https://campuscli.com/herramientas/">
+<main class="tools-page"><div class="tools-wrap tools-directory"><div class="tools-top"><a href="/"><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-left"></use></svg> Volver a Campus</a><span>HECHO PARA TU CICLO</span></div><div class="directory-head"><div><p class="tools-eyebrow"><span></span>EL KIT DEL ESTUDIANTE</p><h1>Un poco más fácil,<br/><em>todos los días.</em></h1></div><p>Pequeñas herramientas para las grandes cosas de tu ciclo. Elige por dónde empezar.</p></div><div class="directory-grid">{tools.map(([n,tag,title,desc,slug,icon]) => <a class="directory-card" href={`/herramientas/${slug}/`}><div class="directory-card-top"><span>{tag}</span><span>{n} / {total}</span></div><div class="directory-visual" aria-hidden="true"><svg class="tools-icon" viewBox="0 0 24 24" focusable="false"><use href={`/assets/lucide.svg#${icon}`}></use></svg></div><div class="directory-card-bottom"><h2>{title}</h2><p>{desc}</p><span class="directory-arrow"><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></span></div></a>)}</div><section class="tools-bottom"><span>TU CICLO, EN UN SOLO LUGAR</span><h2>Menos pestañas.<br/><em>Más tiempo para ti.</em></h2><a href="/app/">Conoce Campus <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></section></div></main>
+</Base>

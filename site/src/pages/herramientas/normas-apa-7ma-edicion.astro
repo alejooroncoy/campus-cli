@@ -1,0 +1,141 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/student-tools.css';
+import '../../styles/apa-format-tool.css';
+
+const canonical = 'https://campuscli.com/herramientas/normas-apa-7ma-edicion/';
+const title = 'Normas APA 7.ª edición: lo esencial y qué cambió | Campus';
+const description = 'Las normas APA 7.ª edición que más se usan en trabajos universitarios: citas, referencias y formato, y qué cambió desde la 6.ª. Con un texto para que tu IA revise tu trabajo.';
+// `ref` y no `utm_*`: es un enlace interno y los UTM podrían pisar el origen real de la visita.
+const appLink = (slot: string) => `/app/?ref=normas-apa-7ma-edicion-${slot}`;
+
+const essentials = [
+  ['Cita en el texto', 'Autor (año) o (Autor, año). Con tres o más autores, solo el primero y «et al.», desde la primera cita. Con dos autores, «y» dentro de la frase y «&» entre paréntesis.'],
+  ['Cita textual corta', 'Menos de 40 palabras: entre comillas, con apellido, año y página.'],
+  ['Cita textual larga', '40 palabras o más: en bloque aparte, sin comillas y con sangría de 1,27 cm.'],
+  ['Lista de referencias', 'Título «Referencias», página nueva, orden alfabético, doble espacio y sangría francesa de 1,27 cm. Solo lleva lo que citaste.'],
+  ['Autores en la referencia', 'Se escriben todos hasta 20. Con 21 o más, los primeros 19, puntos suspensivos y el último.'],
+  ['DOI y enlaces', 'Como enlace completo: https://doi.org/… Sin la etiqueta «DOI:» y sin punto final.'],
+  ['Formato del documento', 'Interlineado doble, márgenes de 2,54 cm y número de página arriba a la derecha. Los pasos de Word están en la guía de formato.'],
+];
+
+const changes = [
+  ['Ciudad de la editorial', 'Se escribía en los libros.', 'Ya no se escribe.'],
+  ['Autores en la referencia', 'Hasta 7.', 'Hasta 20.'],
+  ['Citas con 3 o más autores', 'En la primera cita, 3 a 5 autores completos.', '«et al.» desde la primera cita.'],
+  ['DOI', 'Con la etiqueta «doi:» o como código.', 'Enlace https://doi.org/…, sin etiqueta.'],
+  ['«Recuperado de»', 'Se ponía en casi todo lo que tenía enlace.', 'Solo en contenido que cambia con el tiempo.'],
+];
+
+const faq = [
+  ['¿Qué son las normas APA 7.ª edición?', 'Son las reglas de la Asociación Americana de Psicología para citar fuentes, armar la lista de referencias y presentar un trabajo. La 7.ª edición salió en 2019. Muchas universidades las usan, a veces con ajustes propios.'],
+  ['¿Cuál es la diferencia entre citas, referencias y bibliografía?', 'Las citas van dentro del texto. Las referencias son la lista al final y solo incluyen lo que citaste. Una bibliografía incluye también lo que leíste sin citar; APA pide referencias.'],
+  ['¿Cuándo uso «et al.»?', 'Con tres o más autores, desde la primera cita. Con dos autores se escriben siempre los dos.'],
+  ['¿Las normas APA son iguales en todas las universidades?', 'No siempre. Cada universidad o docente puede pedir ajustes: fuente, interlineado, portada o tipo de referencia. Lo que pida tu docente manda sobre APA, y en el texto para tu IA esa regla está puesta primero.'],
+  ['¿Dónde está el manual oficial?', 'En las páginas de APA Style (apastyle.apa.org) y en el Publication Manual de la APA, 7.ª edición. Esta página es un resumen, no el manual.'],
+  ['¿Qué hace el texto para mi IA?', 'Revisa citas, referencias y formato de tu trabajo, te muestra una lista de lo que está mal y espera tu confirmación antes de cambiar algo. El texto le pide a tu IA que trabaje sobre una copia.'],
+  ['¿Es una guía oficial?', 'No. Es una versión beta hecha por Campus, basada en el manual APA 7, las páginas de APA Style y la guía de Biblioteca UPC, entre otras fuentes. No está avalada por ninguna institución.'],
+];
+
+const schemas = [{
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.map(([name, text]) => ({ '@type': 'Question', name, acceptedAnswer: { '@type': 'Answer', text } })),
+}];
+---
+<Base title={title} description={description} canonical={canonical} schemas={schemas}>
+<main class="tools-page apa-format" data-tool="normas-apa-7ma-edicion">
+  <div class="tools-wrap">
+    <div class="tools-top"><a href="/herramientas/"><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-left"></use></svg> Todas las herramientas</a><span>HECHO PARA TU CICLO</span></div>
+
+    <section class="tools-hero">
+      <div class="tools-intro">
+        <p class="tools-eyebrow"><span></span>GUÍA · APA 7 · BETA</p>
+        <h1>Normas APA 7.ª edición: lo esencial<em>.</em></h1>
+        <p class="tools-lead">Citas, referencias y formato en un solo lugar, y qué cambió desde la 6.ª edición.</p>
+        <div class="apa-hero-cta"><a class="apa-join" href={appLink('hero')}>Unirme a Campus <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a class="tools-jump" href="#herramienta" data-apa-jump>Ir a copiar el texto <svg class="tools-icon apa-jump-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div>
+        <p class="apa-trust-line">Copiar el texto es gratis y no pide registro.</p>
+      </div>
+
+      <div class="tools-card" id="herramienta">
+        <div class="tools-card-head"><span>COPIA Y PEGA</span><span class="tools-card-num">BETA</span></div>
+        <h2>Tres pasos.</h2>
+        <ol class="apa-steps" role="list">
+          <li><b aria-hidden="true">01</b><span><strong>Copia el texto.</strong> Son instrucciones para tu IA (<span data-apa-size>113 KB</span>).</span></li>
+          <li><b aria-hidden="true">02</b><span><strong>Pégalo en tu IA</strong> y adjunta tu trabajo. Un archivo de Word se corrige; un PDF solo se revisa.</span></li>
+          <li><b aria-hidden="true">03</b><span><strong>Confirma los cambios.</strong> Te pregunta antes de tocar nada.</span></li>
+        </ol>
+        <div class="apa-actions">
+          <button type="button" class="apa-copy" data-apa-copy hidden>Copiar texto para mi IA</button><noscript><span class="apa-note">Activa JavaScript para copiar, o usa «Descargar como archivo».</span></noscript>
+          <a class="apa-download" href="/skills/apa7-campus-pegable.md" download="apa7-campus-pegable.md">Descargar como archivo</a>
+        </div>
+        <p class="apa-status" role="status" aria-live="polite" data-apa-status></p>
+        <textarea class="apa-fallback" data-apa-fallback readonly hidden aria-label="Texto para copiar manualmente"></textarea>
+        <p class="apa-note">Es largo a propósito: trae las reglas de la guía de Biblioteca UPC. Menciona Campus una sola vez.</p>
+      </div>
+    </section>
+
+    <section class="tools-explain">
+      <div><p class="tools-eyebrow"><span></span>LO ESENCIAL</p><h2>Las normas APA 7<br/><em>en una lista.</em></h2></div>
+      <div>
+        <ul class="apa-checks">
+          {essentials.map(([name, text]) => <li><strong>{name}.</strong> {text}</li>)}
+        </ul>
+        <p>Si tu docente o tu curso piden otra cosa, esa instrucción manda. <a href="/herramientas/formato-apa-7/">Ver el formato APA 7 paso a paso en Word</a>.</p>
+      </div>
+    </section>
+
+    <section class="apa-midcta">
+      <div><p class="apa-midcta-title">¿Tu docente pidió algo distinto?</p><p>Esa instrucción manda sobre APA. Con tu permiso, Campus la lee en tu aula virtual por ti: el enunciado y los comentarios de tus entregas. El texto le pide a tu IA que solo lea.</p></div>
+      <a href={appLink('medio')}>Ver cómo funciona <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
+    </section>
+
+    <section class="tools-explain">
+      <div><p class="tools-eyebrow"><span></span>DE LA 6.ª A LA 7.ª EDICIÓN</p><h2>Qué cambió<br/><em>y qué sigue igual.</em></h2></div>
+      <div>
+        <div class="apa-table-wrap">
+          <table class="apa-table">
+            <thead><tr><th scope="col">Elemento</th><th scope="col">6.ª edición</th><th scope="col">7.ª edición</th></tr></thead>
+            <tbody>
+              {changes.map(([a, b, c]) => <tr><th scope="row">{a}</th><td>{b}</td><td>{c}</td></tr>)}
+            </tbody>
+          </table>
+        </div>
+        <p>Es un resumen hecho con guías de bibliotecas universitarias, como las de <a href="https://owll.massey.ac.nz/referencing/apa-6th-vs-7th-edition.php" target="_blank" rel="noopener noreferrer" aria-label="Massey University (se abre en otra pestaña)">Massey University <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a> y <a href="https://libguides.nova.edu/apa/differences_from_6th_ed" target="_blank" rel="noopener noreferrer" aria-label="Nova Southeastern University (se abre en otra pestaña)">Nova Southeastern University <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>. No es el manual oficial: confirma los detalles en APA Style.</p>
+      </div>
+    </section>
+
+    <section class="tools-explain">
+      <div><p class="tools-eyebrow"><span></span>PREGUNTAS FRECUENTES</p><h2>Lo que más<br/><em>se pregunta.</em></h2></div>
+      <div class="apa-faq">
+        {faq.map(([q, a]) => <details><summary>{q}<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>{a}</p></details>)}
+      </div>
+    </section>
+
+    <section class="apa-next">
+      <h2>Antes de entregar</h2>
+      <p>Tres herramientas más del kit, para lo que suele quedar al final.</p>
+      <div class="apa-next-links">
+        <a href="/herramientas/formato-apa-7/"><strong>Formato APA 7 en Word</strong><span>Interlineado, sangrías, márgenes y número de página.</span></a>
+        <a href="/herramientas/citar-tesis-apa-7/"><strong>Cita una tesis</strong><span>La referencia clara, desde el primer dato.</span></a>
+        <a href="/herramientas/citar-figura-apa-7/"><strong>Cita una figura</strong><span>La fuente y el crédito que le corresponde.</span></a>
+      </div>
+    </section>
+
+    <section class="tools-explain">
+      <div><p class="tools-eyebrow"><span></span>FUENTES Y ALCANCE</p><h2>De dónde sale<br/><em>y hasta dónde llega.</em></h2></div>
+      <div>
+        <p>Cuando las fuentes no coinciden manda este orden: lo que pida tu docente, la guía de Biblioteca UPC y el manual APA 7.</p>
+        <ul class="apa-sources" role="list">
+          <li><a href="https://apastyle.apa.org" target="_blank" rel="noopener noreferrer" aria-label="APA Style, páginas oficiales (se abre en otra pestaña)">APA Style, páginas oficiales <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a> y el <em>Publication Manual</em> de la APA, 7.ª edición.</li>
+          <li><a href="https://biblioteca.upc.edu.pe/citas-referencias-APA7" target="_blank" rel="noopener noreferrer" aria-label="Citas y referencias en APA 7, Biblioteca UPC (se abre en otra pestaña)">Citas y referencias en APA 7, Biblioteca UPC <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>.</li>
+        </ul>
+        <p><strong>No es una guía oficial ni está avalada por ninguna institución.</strong> Campus es independiente (<a href="/no-afiliacion/">aviso de no afiliación</a>). Puede equivocarse: revisa lo que cambie antes de entregar.</p>
+      </div>
+    </section>
+
+    <section class="tools-bottom"><span>CUANDO IMPORTA LO QUE PIDIÓ TU DOCENTE</span><h2>Revisa tu trabajo con<br/><em>lo que pidió tu docente.</em></h2><p class="apa-bottom-note">Con tu autorización, Campus lee en tu aula virtual el enunciado y los comentarios de tus entregas. El texto le pide a tu IA que solo lea y que no envíe ni cambie nada en Blackboard.</p><a href={appLink('final')}>Unirme a Campus <svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></section>
+  </div>
+</main>
+<script src="../../scripts/apa-format-copy.ts"></script>
+</Base>
