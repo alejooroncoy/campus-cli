@@ -29,7 +29,7 @@ const waitFor = async predicate => {
   while (!predicate()) { if (Date.now() > deadline) throw Error('Timed out waiting for intercepted ingestion'); await new Promise(r => setTimeout(r, 20)); }
 };
 
-async function fixture({ known = false, blockStorage = false, bot = false } = {}) {
+async function fixture({ known = false, blockStorage = false, bot = false, surveyMode } = {}) {
   const context = await browser.newContext({ serviceWorkers: 'block', userAgent: 'Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36' });
   await context.addInitScript(({ known, blockStorage, bot }) => {
     window.knownAccount = known;
@@ -40,7 +40,7 @@ async function fixture({ known = false, blockStorage = false, bot = false } = {}
     const original = window.fetch;
     window.fetch = (url, options) => { window.fetchOptions.push({ keepalive: options?.keepalive, credentials: options?.credentials }); return original(url, options); };
   }, { known, blockStorage, bot });
-  const accepted = [], attempts = [], unexpected = [], errors = [];
+  const accepted = [], attempts = [], unexpected = [], errors = [], surveyRequests = [];
   let failNext = false;
   await context.route('**/*', async route => {
     const req = route.request(), url = new URL(req.url());
@@ -49,6 +49,23 @@ async function fixture({ known = false, blockStorage = false, bot = false } = {}
       return route.fulfill({ contentType: 'text/html', body: `<!doctype html><script type="module" src="${url.pathname === '/seed' ? '/seed.js' : '/modern.js'}"></script>` });
     }
     if (url.origin === 'https://posthog.analytics.test' && req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } });
+    if (surveyMode && url.origin === 'https://posthog.analytics.test' && url.pathname === '/api/surveys/') {
+      surveyRequests.push('definition');
+      return route.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({surveys:[{
+        id:'01a18cc9-dfcf-0000-9228-5fe27651e15d',type:'api',schedule:'once',
+        start_date:surveyMode==='draft'?null:'2026-01-01T00:00:00Z',
+        ...(surveyMode==='expired'?{end_date:'2020-01-01T00:00:00Z'}:{}),
+        targeting_flag_key:'survey-audience',internal_targeting_flag_key:'survey-unanswered',
+        questions:[{id:'e8c41d6d-d964-46c6-8174-7296eb8e01d2',type:'single_choice',question:'¿Qué te frena?',choices:['El precio','No sé conectar mi IA']}],
+      }]})});
+    }
+    if (surveyMode && url.origin === 'https://posthog.analytics.test' && url.pathname.startsWith('/flags')) {
+      surveyRequests.push('flags');
+      const input=req.postDataJSON();
+      assert.equal(input.distinct_id,buyer);
+      assert.deepEqual([...input.flag_keys_to_evaluate].sort(),['survey-audience','survey-unanswered']);
+      return route.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({featureFlags:{'survey-audience':surveyMode!=='target-miss','survey-unanswered':surveyMode!=='already-answered'},featureFlagPayloads:{}})});
+    }
     if (url.origin === 'https://posthog.analytics.test' && url.pathname === '/batch/') {
       const bytes = req.postDataBuffer();
       const payload = JSON.parse((bytes[0] === 0x1f ? gunzipSync(bytes) : bytes).toString());
@@ -62,7 +79,7 @@ async function fixture({ known = false, blockStorage = false, bot = false } = {}
   });
   const page = await context.newPage(); page.on('pageerror', e => errors.push(e.message));
   const open = async path => { await page.goto(origin + path); await page.waitForFunction(path === '/seed' ? 'window.seeded' : 'window.client'); };
-  return { page, context, open, accepted, attempts, errors, unexpected, fail: () => { failNext = true; } };
+  return { page, context, open, accepted, attempts, errors, unexpected, surveyRequests, fail: () => { failNext = true; } };
 }
 
 try {
@@ -115,6 +132,7 @@ try {
       await f.page.evaluate(() => client.capture('continuity_check', {}));
       if (scenario === 'opted-out') {
         assert.equal(await f.page.evaluate(store => JSON.parse(localStorage.getItem(store)).opted_out, store), true);
+        assert.equal(await f.page.evaluate(() => client.getPlusSurvey({analytics_audience:'customer'})),undefined,'Survey lookup must respect analytics opt-out without making a request.');
         await f.page.evaluate(() => { client.reset(); client.capture('opted_out_after_logout', {}); });
         await f.open('/modern');
         await f.page.evaluate(() => client.capture('opted_out_after_reload', {}));
@@ -141,5 +159,15 @@ try {
     assert.equal(retry.accepted.find(e => e.event === 'persisted_conversion').uuid, uuid);
     assert.deepEqual(retry.errors, []); assert.deepEqual(retry.unexpected, []);
   } finally { await retry.context.close(); }
-  console.log('Real SDK migration: anonymous/known users, sessions/windows, account isolation, logout/reload, consent, corrupt/denied storage, bots and persisted conversion retries passed.');
+  for (const surveyMode of ['eligible','target-miss','already-answered','draft','expired']) {
+    const f=await fixture({surveyMode});
+    try {
+      await f.open('/modern'); await f.page.evaluate(id=>client.identify(id),buyer);
+      const survey=await f.page.evaluate(()=>client.getPlusSurvey({analytics_audience:'customer',is_test:'false',is_internal:'false'}));
+      assert.equal(Boolean(survey),surveyMode==='eligible',surveyMode);
+      assert.deepEqual(f.surveyRequests,surveyMode==='draft'||surveyMode==='expired'?['definition']:['definition','flags']);
+      assert.deepEqual(f.errors,[]);assert.deepEqual(f.unexpected,[]);
+    } finally {await f.context.close();}
+  }
+  console.log('Real SDK migration, identity/consent isolation, persisted retries and on-demand survey eligibility (audience, answered, draft, expired) passed.');
 } finally { await browser.close(); }

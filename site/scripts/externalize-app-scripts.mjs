@@ -19,9 +19,14 @@ export async function externalizeAppScripts(root) {
           if (/\bsrc\s*=/i.test(attrs) || !body.trim()) continue;
           const type = attrs.match(/\btype\s*=\s*["']([^"']+)["']/i)?.[1];
           if (type && !['module', 'text/javascript', 'application/javascript'].includes(type)) continue;
-          const digest = createHash('sha256').update(body).digest('hex').slice(0, 24);
+          // ClientRouter can connect an island before its external client:load
+          // bootstrap runs. Give the runtime a namespace so it waits for the
+          // loader's event instead of throwing while reading Astro[client].
+          const source = /customElements\.define\(\s*["']astro-island["']/.test(body)
+            ? `self.Astro ||= {};\n${body}` : body;
+          const digest = createHash('sha256').update(source).digest('hex').slice(0, 24);
           const name = `campus-bootstrap-${digest}.js`;
-          await writeFile(join(assets, name), body);
+          await writeFile(join(assets, name), source);
           next = next.replace(tag, `<script${attrs} src="/assets/${name}"></script>`);
         }
         if (next !== html) await writeFile(path, next);

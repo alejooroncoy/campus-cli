@@ -3,7 +3,7 @@ import { turnitinServiceEnabled } from "../../../../feature-flags.mjs";
 import AppShell from '../../../layouts/AppShell.astro';
 ---
 <AppShell title="Campus Plus" active="perfil">
-  <link rel="stylesheet" href="/campus-plus.css?v=2" />
+  <link rel="stylesheet" href="/campus-plus.css?v=3" />
   <div class="plus-page" data-plus-root>
     <a class="app-text-link" href="/app/perfil/">Volver a Mi perfil</a>
     <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Campus también en tu IA.</h1><p>Conecta Campus a ChatGPT, Claude u otra IA compatible y consulta sin límite de Campus desde allí. Además, tienes 100 consultas al día en el asistente web.</p><p>La suscripción de tu IA, si la requiere, se paga aparte. <a class="app-text-link" href="/app/copilot/">Ver cómo conectar mi IA</a></p></section>
@@ -51,14 +51,19 @@ import AppShell from '../../../layouts/AppShell.astro';
     <section class="app-panel" data-plus-view="unavailable" hidden>
       <h2>No pudimos comprobar la activación.</h2><p>Vuelve a intentarlo antes de realizar un pago. Si ya pagaste, conserva tu comprobante y contacta a soporte.</p><button type="button" class="app-button app-button--secondary" data-plus-refresh>Volver a comprobar</button>
     </section>
-    <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>Consultas sin límite de Campus desde tu IA compatible.</li><li>100 consultas diarias en el asistente web.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles desde tu IA.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
-    <details class="app-panel" data-plus-feedback>
-      <summary>¿Qué te falta para decidirte por Plus?</summary>
-      <form data-plus-feedback-form><label for="plus-reason">Tu respuesta nos ayuda a mejorar (opcional).</label>
-        <select id="plus-reason" name="reason" required><option value="">Elige una opción</option><option value="price">El precio</option><option value="unclear_value">No tengo claro qué me aporta</option><option value="payment_difficult">Se me complica pagar</option><option value="not_needed">Todavía no lo necesito</option><option value="technical_problem">Encontré un problema</option><option value="other">Otro motivo</option></select>
-        <button class="app-button app-button--secondary" type="submit">Enviar respuesta</button><p role="status" data-plus-feedback-status></p>
+    <section class="app-panel plus-survey" data-plus-survey hidden aria-labelledby="plus-survey-title">
+      <div class="plus-survey__header"><p class="app-kicker">TE ESCUCHAMOS</p><button type="button" class="plus-survey__close" data-survey-close aria-label="Cerrar encuesta">×</button></div>
+      <h2 id="plus-survey-title" data-survey-title></h2>
+      <p class="plus-muted">Responder es opcional y nos ayuda a mejorar.</p>
+      <div class="plus-survey__choices" data-survey-choices role="group" aria-labelledby="plus-survey-title"></div>
+      <form data-survey-comment hidden>
+        <label class="app-sr-only" for="plus-survey-comment"></label>
+        <textarea id="plus-survey-comment" rows="3" maxlength="1000" placeholder="Escribe un comentario (opcional)"></textarea>
+        <div class="plus-survey__actions"><button class="app-button" type="submit">Enviar comentario</button><button class="app-text-link" type="button" data-survey-skip>Terminar sin comentario</button></div>
       </form>
-    </details>
+      <p class="plus-muted" data-survey-status role="status" aria-live="polite"></p>
+    </section>
+    <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>Consultas sin límite de Campus desde tu IA compatible.</li><li>100 consultas diarias en el asistente web.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles desde tu IA.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
     <p class="plus-support">¿Necesitas ayuda? <a class="app-text-link" href="https://wa.me/51946189585" target="_blank" rel="noopener">WhatsApp +51 946 189 585</a></p>
   </div>
   <script src="../../../scripts/plus.ts"></script>

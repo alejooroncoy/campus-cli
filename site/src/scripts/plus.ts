@@ -2,6 +2,7 @@ import { getCampusSession } from './campus-session';
 import { analyticsHeaders, track } from './analytics';
 import { uploadError } from './turnitin-upload';
 import type { CampusSession } from './campus-session';
+import { mountPlusSurvey } from './plus-survey.ts';
 
 type Order = {id:string;accountId:number;kind:string;cohort:string;status:string;amountCents:number;renewalCents:number;expiresAt:string;activeUntil:string|null;note:string;isTest?:boolean};
 type State = {orders:Order[];currentPlan:string;subscription:{activeUntil:string;renewalCents:number;isTest?:boolean}|null;admin:boolean;enabled:boolean;eligible:boolean;blocked:boolean;unavailable:boolean};
@@ -12,6 +13,8 @@ function mount(){
   cleanup();
   const candidate=document.querySelector<HTMLElement>('[data-plus-root]');if(!candidate)return;
   const root=candidate;
+  const survey=mountPlusSurvey(root);
+  let surveySession:CampusSession|undefined;
   const find=<T extends HTMLElement>(key:string)=>root.querySelector<T>(`[data-plus-${key}]`)!;
   const text=(key:string,value:string)=>{find(key).textContent=value;};
   const status=find('message'),form=find<HTMLFormElement>('form'),input=form.elements.namedItem('receipt') as HTMLInputElement;
@@ -22,7 +25,7 @@ function mount(){
     else status.textContent=value;
   };
   let lastView='';let expiryTracked=false;
-  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}const feedback=root.querySelector<HTMLElement>('[data-plus-feedback]');if(feedback)feedback.hidden=view==='active'||view==='pending';};
+  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}void survey.update(view,surveySession);};
   async function api(path:string,data?:unknown){
     const response=await fetch(`/api/app/plus/${path}`,{method:data===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(30000),
       headers:{...analyticsHeaders(),...(data===undefined?{}:{'content-type':'application/json'})},...(data===undefined?{}:{body:JSON.stringify(data)})});
@@ -32,6 +35,7 @@ function mount(){
   function expired(){const ended=quote!==null&&Date.now()>=new Date(quote.expiresAt).getTime();find<HTMLButtonElement>('submit').disabled=busy||ended;find('requote').hidden=!ended;if(ended&&!expiryTracked){expiryTracked=true;track('campus_plus_quote_expired',{plus_step:'payment'});}if(ended)message('Tu reserva de precio venció. Vuelve a comprobarlo antes de pagar. Si ya pagaste, contacta a soporte.',true);return ended;}
   async function checkout(){
     if(busy)return;busy=true;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry]').forEach(b=>b.disabled=true);message('Comprobando tu precio…',false,true);
+    void survey.update('payment');
     track('campus_plus_checkout_started',{plus_step:lastView});
     try{
       const value=await api('checkout',{});expiryTracked=false;if(disposed)return;
@@ -52,6 +56,7 @@ function mount(){
     message('Comprobando tu cuenta…',false,true);
     try{
       const [session,config]=await Promise.all([getCampusSession(true),api('config')]);if(disposed)return;
+      surveySession=session;
       find('qa').hidden=true;
       currentOwner=session.authenticated?session.analyticsId??session.email??'account':'guest';
       if(!session.authenticated){pendingPayment=false;show('guest');message();return;}
@@ -95,20 +100,11 @@ function mount(){
     const session=(event as CustomEvent<CampusSession>).detail;
     const owner=session.authenticated?session.analyticsId??session.email??'account':'guest';
     if(currentOwner!==undefined&&owner!==currentOwner){
-      disposed=true;quote=null;form.reset();show('loading');message('Actualizando la cuenta…',false,true);location.reload();
+      survey.dispose();disposed=true;quote=null;form.reset();show('loading');message('Actualizando la cuenta…',false,true);location.reload();
     }
   };
   window.addEventListener('campus:session-updated',changed);
-  const feedback=root.querySelector<HTMLFormElement>('[data-plus-feedback-form]');
-  if(feedback)feedback.onsubmit=async event=>{
-    event.preventDefault();const button=feedback.querySelector<HTMLButtonElement>('button')!;button.disabled=true;
-    const reason=String(new FormData(feedback).get('reason')??'');
-    const output=root.querySelector<HTMLElement>('[data-plus-feedback-status]')!;
-    try{const response=await fetch('/api/app/product-feedback',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json',...analyticsHeaders()},body:JSON.stringify({kind:'plus',reason}),signal:AbortSignal.timeout(8000)});
-      if(!response.ok)throw Error();output.textContent='Gracias por contarnos.';track('campus_feedback_submitted',{feedback_kind:'plus',reason});
-    }catch{output.textContent='No pudimos guardar tu respuesta. Vuelve a intentarlo.';button.disabled=false;}
-  };
   void load();
-  cleanup=()=>{disposed=true;if(timer)clearInterval(timer);window.removeEventListener('campus:session-updated',changed);};
+  cleanup=()=>{survey.dispose();disposed=true;if(timer)clearInterval(timer);window.removeEventListener('campus:session-updated',changed);};
 }
 document.addEventListener('astro:page-load',mount);document.addEventListener('astro:before-swap',()=>cleanup());mount();

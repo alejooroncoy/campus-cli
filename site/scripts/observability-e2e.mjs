@@ -32,11 +32,7 @@ try{
  });
  await page.goto(base+'/app/plus/');
  await page.locator('[data-plus-view=ready]:visible').waitFor();
- await page.getByText('¿Qué te falta para decidirte por Plus?').click();
- await page.locator('#plus-reason').selectOption('unclear_value');
- await page.getByRole('button',{name:'Enviar respuesta',exact:true}).click();
- await page.locator('[data-plus-feedback-status]').filter({hasText:'Gracias'}).waitFor();
- assert.deepEqual(feedback[0],{kind:'plus',reason:'unclear_value'});
+ assert.equal(await page.locator('[data-plus-survey]').isVisible(),false,'Localhost never loads remote surveys or records responses.');
  await page.getByRole('button',{name:'Ver mi precio',exact:true}).click();
  await page.locator('[data-plus-view=payment]:visible').waitFor();
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
@@ -52,12 +48,12 @@ try{
  const group=page.getByRole('group',{name:'Valorar la respuesta'});await group.waitFor();
  await group.getByRole('button',{name:'Todavía no'}).click();
  await group.getByRole('status').filter({hasText:'Gracias'}).waitFor();
- assert.deepEqual(feedback[1],{kind:'agent',reason:'not_resolved',traceId:trace});
+ assert.deepEqual(feedback[0],{kind:'agent',reason:'not_resolved',traceId:trace});
  const agentMetrics=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('campus-analytics-debug')??'[]'));
  assert.ok(agentMetrics.some(e=>e.event==='campus_answer_displayed'&&e.properties.trace_id===trace));
  await page.screenshot({path:'../output/observability-e2e/agent-mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);
- console.log('Mobile browser: Plus rendered steps, optional reason, server trace propagation and owner-scoped response feedback passed. APIs intercepted locally.');
+ console.log('Mobile browser: Plus steps, remote-survey isolation on localhost, server trace propagation and owner-scoped response feedback passed. APIs intercepted locally.');
  await context.close();
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 

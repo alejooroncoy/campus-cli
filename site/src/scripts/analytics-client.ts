@@ -2,6 +2,8 @@ import PostHog from 'posthog-js-lite';
 import { isLikelyBot } from '@posthog/browser-common/utils/blocked-uas';
 import { PostHogPersistedProperty } from '@posthog/core';
 import type { CaptureEvent } from '@posthog/core';
+import { PLUS_SURVEY_ID, supportedPlusSurvey } from './plus-survey-contract.ts';
+import type { PlusSurvey } from './plus-survey-contract.ts';
 
 export interface AnalyticsClient {
   capture(event: string, properties: Record<string, unknown>): void;
@@ -9,6 +11,7 @@ export interface AnalyticsClient {
   reset(): void;
   get_distinct_id(): string;
   get_session_id(): string;
+  getPlusSurvey(properties: Record<string, string>): Promise<PlusSurvey | undefined>;
 }
 
 interface Options {
@@ -55,6 +58,20 @@ function migrateBrowserState(key: string, storageKey: string): void {
 }
 
 class NavigationSafePostHog extends PostHog {
+  async getPlusSurvey(properties: Record<string, string>): Promise<PlusSurvey | undefined> {
+    if (this.optedOut) return;
+    const owner = this.getDistinctId();
+    const survey = (await this.getSurveysStateless()).find(s => s.id === PLUS_SURVEY_ID);
+    if (!survey || !supportedPlusSurvey(survey) || this.optedOut || owner !== this.getDistinctId()) return;
+    const key = (name: string) => survey[name as keyof typeof survey] as string | undefined
+      || survey.feature_flag_keys?.find(f => f.key === name)?.value;
+    const keys = ['linked_flag_key', 'targeting_flag_key', 'internal_targeting_flag_key'].map(key).filter((v): v is string => Boolean(v));
+    // Evaluate only this survey's flags, on demand. General automatic flags stay disabled.
+    if (!key('internal_targeting_flag_key')) return;
+    const result = await this.getFeatureFlagsStateless(owner, {}, properties, {}, true, keys);
+    if (this.optedOut || owner !== this.getDistinctId() || !keys.every(k => result.flags?.[k] === true || typeof result.flags?.[k] === 'string' && Boolean(result.flags[k]))) return;
+    return survey;
+  }
   fetch(url: string, options: Parameters<PostHog['fetch']>[1]) {
     // Flush promptly and let in-flight conversions finish during navigation.
     const request = { ...options, keepalive: true, credentials: 'omit' as const };
@@ -91,7 +108,7 @@ export function createAnalyticsClient(key: string, options: Options): AnalyticsC
   };
   sdk = new NavigationSafePostHog(key, {
     host: options.host, persistence: 'localStorage', persistence_name: persistenceName,
-    preloadFeatureFlags: false, disableRemoteFeatureFlags: true, disableSurveys: true,
+    preloadFeatureFlags: false, disableRemoteFeatureFlags: true, disableSurveys: false,
     captureHistoryEvents: false, disableGeoip: true, personProfiles: 'identified_only',
     flushAt: 1, flushInterval: 1000, maxBatchSize: 20, maxQueueSize: 100,
     // The browser SDK also preserves identity for bots while dropping events.
@@ -113,5 +130,6 @@ export function createAnalyticsClient(key: string, options: Options): AnalyticsC
     reset,
     get_distinct_id: () => sdk.getDistinctId(),
     get_session_id: () => sdk.getSessionId(),
+    getPlusSurvey: properties => (sdk as NavigationSafePostHog).getPlusSurvey(properties),
   };
 }

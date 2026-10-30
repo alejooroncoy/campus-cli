@@ -9,7 +9,7 @@ const receipt=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQ
 try{
   for(const {viewport,isTest} of [{width:390,height:844},{width:1366,height:900}].flatMap(viewport=>[false,true].map(isTest=>({viewport,isTest})))){
     const context=await browser.newContext({viewport,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
-    page.on('pageerror',error=>errors.push(error.message));
+    page.on('pageerror',error=>errors.push(error.stack??error.message));
     await context.request.post(base+'/__fixture/reset');
     await page.goto(base+'/');
     assert.equal(await page.getByRole('link',{name:'Quiero Campus Plus'}).getAttribute('href'),'/app/plus/');
