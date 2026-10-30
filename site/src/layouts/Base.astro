@@ -25,6 +25,7 @@ interface Props {
   markdownUrl?: string;
   schemas?: unknown[];
   robots?: string;
+  keywords?: string[];
 }
 
 const {
@@ -42,6 +43,7 @@ const {
   markdownUrl,
   schemas = [],
   robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
+  keywords,
 } = Astro.props;
 ---
 
@@ -52,6 +54,7 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {keywords?.length ? <meta name="keywords" content={keywords.join(", ")} /> : null}
     <meta name="robots" content={robots} />
     <meta name="theme-color" content="#112633" />
     <link rel="canonical" href={canonical} />
