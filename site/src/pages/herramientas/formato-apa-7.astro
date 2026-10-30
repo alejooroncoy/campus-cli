@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { formatChecks as checks, formatFaq as faq } from '../../lib/apa-tool-content';
 import '../../styles/student-tools.css';
 import '../../styles/apa-format-tool.css';
 
@@ -9,31 +10,7 @@ const description = 'Formato APA 7.ª edición en Word: interlineado doble, sang
 // `ref` y no `utm_*`: es un enlace interno y los UTM podrían pisar el origen real de la visita.
 const appLink = (slot: string) => `/app/?ref=formato-apa-7-${slot}`;
 
-const checks = [
-  ['Interlineado', 'Doble en todo el trabajo, también en las referencias.'],
-  ['Espacio entre párrafos', 'Ninguno extra: 0 pt antes y después.'],
-  ['Sangría', 'Primera línea a 1,27 cm; sangría francesa de 1,27 cm en las referencias.'],
-  ['Alineación', 'A la izquierda, sin justificar.'],
-  ['Márgenes y fuente', '2,54 cm por los cuatro lados y una sola fuente legible.'],
-  ['Número de página', 'Arriba a la derecha, en todas las páginas.'],
-  ['Encabezados y citas largas', 'Nivel 1 centrado y en negrita; citas de 40 palabras o más en bloque.'],
-  ['Citas y referencias', 'Autores, año, cursivas, orden alfabético y correspondencia entre el texto y la lista.'],
-  ['Tablas y figuras', 'Rótulo, título, llamado en el texto, bordes y nota de procedencia.'],
-];
 
-const faq = [
-  ['¿Cómo pongo el formato APA 7.ª edición en Word?', 'Interlineado doble y 0 pt de espacio antes y después, sangría de primera línea de 1,27 cm, márgenes de 2,54 cm, una fuente legible y el número de página arriba a la derecha. Más abajo están los pasos de Word, y el texto para tu IA lo revisa contigo.'],
-  ['¿APA 7 pide doble espacio también en las referencias?', 'Sí. Se usa doble espacio en todo el trabajo, incluida la lista de referencias, y sin espacio extra entre una entrada y la siguiente.'],
-  ['¿Qué sangría llevan los párrafos y las referencias?', 'La primera línea de cada párrafo va a 1,27 cm del margen (0,5 pulgadas). Las referencias llevan sangría francesa de 1,27 cm: la primera línea pegada al margen y las siguientes sangradas.'],
-  ['¿Dónde va el número de página?', 'Arriba a la derecha, en el encabezado, en todas las páginas.'],
-  ['¿Y si mi docente pide otro formato?', 'Manda lo que pida tu docente, tu rúbrica o la plantilla del curso. El texto le indica a la IA que te pregunte antes de cambiar nada.'],
-  ['¿Cambia mi archivo original?', 'El texto le pide a tu IA que trabaje sobre una copia y que solo aplique lo que apruebes. Si tu IA edita el documento abierto (complementos de Word o Google Docs), guarda un duplicado antes. Con un PDF puede detectar problemas, pero no editarlo: necesita tu archivo de Word u otro editable.'],
-  ['¿Revisa también mis citas y referencias?', 'Sí, la forma: autores, año, cursivas, orden y que cada cita tenga su referencia. No comprueba que la fuente respalde lo que afirmas; eso lo marca como no verificable.'],
-  ['¿Puedo usarlo con Claude en Word o en Google Docs?', 'Sí, pegándolo en la barra lateral del complemento, según su documentación. Como editan el documento abierto, el texto les pide que uses el control de cambios o el historial de versiones para poder deshacer. No lo hemos probado dentro de esos complementos.'],
-  ['¿Campus lee mis notas o mis comentarios?', 'Solo si tú lo permites. El texto le pide a tu IA que solo lea y que use únicamente la actividad que le indiques, pero las herramientas devuelven los datos de todo el curso y esos datos pasan por tu proveedor de IA. Pide que limite la consulta a un curso y una actividad. El texto le prohíbe enviar, guardar o subir nada en Blackboard.'],
-  ['¿Necesito cuenta para copiar el texto?', 'No. Copiarlo o descargarlo es gratis y no pide registro. Campus solo hace falta si quieres que tu IA lea las instrucciones de tu aula virtual.'],
-  ['¿Es una guía oficial?', 'No. Es una versión beta hecha por Campus, basada en el manual APA 7, las páginas de APA Style y la guía de Biblioteca UPC, entre otras fuentes. No está avalada por ninguna institución.'],
-];
 
 const schemas = [{
   '@context': 'https://schema.org',
@@ -41,7 +18,7 @@ const schemas = [{
   mainEntity: faq.map(([name, text]) => ({ '@type': 'Question', name, acceptedAnswer: { '@type': 'Answer', text } })),
 }];
 ---
-<Base title={title} description={description} canonical={canonical} schemas={schemas}>
+<Base title={title} description={description} canonical={canonical} schemas={schemas} markdownUrl={`${canonical}index.md`}>
 <main class="tools-page apa-format" data-tool="formato-apa-7">
   <div class="tools-wrap">
     <div class="tools-top"><a href="/herramientas/"><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-left"></use></svg> Todas las herramientas</a><span>HECHO PARA TU CICLO</span></div>
