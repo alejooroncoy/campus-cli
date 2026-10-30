@@ -64,7 +64,7 @@ try{
    const loginUrl=new URL(await login.getAttribute('href'),base);
    assert.equal(loginUrl.searchParams.get('return'),'/app/copilot/?return='+encodeURIComponent(back));
    const before=handoffReads;await page.goto(base+'/app/copilot/?return='+encodeURIComponent('https://evil.example/'));
-   await page.getByRole('heading',{name:'Conecta Campus a tu IA.'}).waitFor();assert.equal(handoffReads,before);
+   await page.getByRole('heading',{name:'Tu campus, dentro de tu IA.'}).waitFor();assert.equal(handoffReads,before);
    assert.deepEqual(errors,[]);console.log(JSON.stringify({width,requestPreserved:true,clipboardWorks:true,failedCopyRecoverable:true,privateTextNotStored:true,accountChangeClearsRequest:true,invalidReturnRejected:true}));
   }finally{await context.close();}
  }
