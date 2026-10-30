@@ -5,6 +5,8 @@ import '../../styles/student-tools.css';
 import '../../styles/apa-format-tool.css';
 
 const keywords = ['normas apa', 'normas apa 7ma edición', 'normas apa 7', 'diferencias apa 6 y 7', 'citas apa', 'referencias apa', 'cita textual apa', 'et al apa', 'doi apa 7', 'apa 7 UPC'];
+const ogImage = 'https://campuscli.com/assets/og-normas-apa-7.jpg';
+const ogImageAlt = 'Campus: Normas APA 7.ª edición. Citas, referencias y formato, y qué cambió desde la 6.ª edición.';
 const canonical = 'https://campuscli.com/herramientas/normas-apa-7ma-edicion/';
 const title = 'Normas APA 7.ª edición: lo esencial y qué cambió | Campus';
 const description = 'Las normas APA 7.ª edición que más se usan en trabajos universitarios: citas, referencias y formato, y qué cambió desde la 6.ª. Con un texto para que tu IA revise tu trabajo.';
@@ -17,7 +19,7 @@ const schemas = [{
   mainEntity: faq.map(([name, text]) => ({ '@type': 'Question', name, acceptedAnswer: { '@type': 'Answer', text } })),
 }];
 ---
-<Base title={title} description={description} canonical={canonical} schemas={schemas} keywords={keywords} markdownUrl={`${canonical}index.md`}>
+<Base title={title} description={description} canonical={canonical} schemas={schemas} keywords={keywords} ogImage={ogImage} ogImageAlt={ogImageAlt} markdownUrl={`${canonical}index.md`}>
 <main class="tools-page apa-format" data-tool="normas-apa-7ma-edicion">
   <div class="tools-wrap">
     <div class="tools-top"><a href="/herramientas/"><svg class="tools-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-left"></use></svg> Todas las herramientas</a><span>HECHO PARA TU CICLO</span></div>
