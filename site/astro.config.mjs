@@ -45,6 +45,12 @@ fromFile("/campus-cli/", "./src/html/campus-cli/index.html");
 fromFile("/profes/", "./src/html/profes/index.html");
 // The service page's content revision, preserved across unrelated deploys.
 lastmod.set("/turnitin/", "2026-10-15");
+// The tools are .astro pages (their text lives in the page and in src/lib/apa-tool-content.ts), so there is
+// no html body to stat, and a file's mtime on a fresh checkout is the checkout time. These are the dates
+// of the last real content change; bump one when its page changes.
+lastmod.set("/herramientas/formato-apa-7/", "2026-10-30");
+lastmod.set("/herramientas/normas-apa-7ma-edicion/", "2026-10-30");
+lastmod.set("/herramientas/", "2026-10-30");
 fromFile("/blackboard-upc/", "./src/html/blackboard-upc/index.html");
 fromFile("/blackboard-chatgpt/", "./src/html/blackboard-chatgpt/index.html");
 fromFile("/blackboard-mcp/", "./src/html/blackboard-mcp/index.html");
