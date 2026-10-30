@@ -4,7 +4,7 @@ import { analyticsPage, events, safeAnalyticsProperties } from './analytics-cont
 import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
 import { webEvents, safeWebProperties, webPageProperties } from './web-analytics.ts';
-import { safeSurveyProperties, surveyEvents, surveyPersonProperties } from './plus-survey-contract.ts';
+import { safeSurveyProperties, surveyEvents, surveyPersonProperties, PLUS_QA_SURVEY_ID, plusSurveyIdForAudience, plusSurveyQaRequested } from './plus-survey-contract.ts';
 
 const allowedEvent = (event: string) => events.has(event) || webEvents.has(event) || surveyEvents.has(event);
 const eventProperties = (event: string, properties: Record<string, unknown>) => ({
@@ -39,6 +39,7 @@ let lastSessionState = '';
 let currentPlan = 'unavailable';
 let isTest: boolean | undefined;
 let audience='unknown';
+const activeSurveyId = () => plusSurveyIdForAudience(audience, isTest, browser && plusSurveyQaRequested(location.pathname, location.search));
 let mounted = false;
 let observer: IntersectionObserver | undefined;
 const sectionTimers = new Map<HTMLElement, ReturnType<typeof setTimeout>>();
@@ -77,7 +78,7 @@ if (browser && !local && key && host) {
       before_send: event => {
         if (!event || (!allowedEvent(event.event) && event.event !== '$identify')) return null;
         const original = event.properties ?? {};
-        if (surveyEvents.has(event.event) && !safeSurveyProperties(event.event, original).$survey_id) return null;
+        if (surveyEvents.has(event.event) && (!safeSurveyProperties(event.event, original).$survey_id || original.$survey_id !== activeSurveyId())) return null;
         const surveyPerson = surveyPersonProperties(event.event, original);
         // Discard SDK's implicit referrer, title, search, URL, device and person
         // properties; retain only correlation fields and our closed contract.
@@ -128,7 +129,7 @@ export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
 }
 export function track(event: string, properties: Record<string, unknown> = {}): void {
   if (!browser || !allowedEvent(event)) return;
-  if (surveyEvents.has(event) && !safeSurveyProperties(event, properties).$survey_id) return;
+  if (surveyEvents.has(event) && (!safeSurveyProperties(event, properties).$survey_id || properties.$survey_id !== activeSurveyId())) return;
   const item = { event, properties: eventProperties(event, {
     ...(() => { try { return mcpHandoff(location.href, sessionStorage); } catch { return {}; } })(),
     page: analyticsPage(location.pathname), current_plan: currentPlan,
@@ -154,15 +155,17 @@ export function analyticsHeaders(): Record<string, string> {
     ...(sessionId ? { 'X-POSTHOG-SESSION-ID': sessionId } : {}) };
 }
 export async function getPlusSurvey() {
-  // Preview/test sessions never fetch remote survey definitions or targeting.
-  if (local || !identity || audience !== 'customer' || isTest !== false || currentPlan !== 'free') return;
+  // Ordinary preview/test sessions still cannot request or answer a survey.
+  const surveyId = activeSurveyId();
+  if (local || !identity || !surveyId || currentPlan !== 'free') return;
   const owner = identity;
   const sdk = await clientReady;
   if (!sdk || identity !== owner) return;
-  const survey = await sdk.getPlusSurvey({ analytics_audience: audience, is_test: 'false', is_internal: 'false' });
-  if (identity === owner && audience === 'customer' && isTest === false && currentPlan === 'free') return survey;
+  const survey = await sdk.getPlusSurvey({ analytics_audience: audience, is_test: String(isTest), is_internal: 'false',
+    ...(surveyId === PLUS_QA_SURVEY_ID ? { qa_account: owner } : {}) }, surveyId);
+  if (identity === owner && activeSurveyId() === surveyId && currentPlan === 'free') return survey;
 }
-export const canAnswerPlusSurvey = (owner: string) => identity === owner && audience === 'customer' && isTest === false && currentPlan === 'free';
+export const canAnswerPlusSurvey = (owner: string) => identity === owner && Boolean(activeSurveyId()) && currentPlan === 'free';
 export function analyticsSession(session: CampusSession): void {
   if (!browser || session.accessUnavailable) return;
   sessionResolved = true;

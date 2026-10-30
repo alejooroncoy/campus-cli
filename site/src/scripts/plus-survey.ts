@@ -1,5 +1,5 @@
 import { canAnswerPlusSurvey, getPlusSurvey, track } from './analytics.ts';
-import { PLUS_SURVEY_ID } from './plus-survey-contract.ts';
+import { PLUS_QA_SURVEY_ID, plusSurveyIdForAudience, plusSurveyQaRequested } from './plus-survey-contract.ts';
 import type { PlusSurvey } from './plus-survey-contract.ts';
 import type { CampusSession } from './campus-session.ts';
 
@@ -78,7 +78,8 @@ export function mountPlusSurvey(root: HTMLElement) {
   async function update(view: string, session?: CampusSession) {
     if (session && owner && owner !== session.analyticsId) { dispose(); return; }
     eligible = view === 'ready' && session?.authenticated === true && session.plan === 'free'
-      && session.analyticsAudience === 'customer' && session.plusTest !== true && Boolean(session.analyticsId)
+      && Boolean(plusSurveyIdForAudience(session.analyticsAudience, session.analyticsAudience === 'test' || session.plusTest === true,
+        plusSurveyQaRequested(location.pathname, location.search))) && Boolean(session.analyticsId)
       && !session.accessBlocked && !session.accessUnavailable;
     panel.hidden = !eligible || !shown || finished;
     if (!eligible) { if (answered && !finished) send(true); return; }
@@ -89,7 +90,8 @@ export function mountPlusSurvey(root: HTMLElement) {
       const result = await getPlusSurvey();
       if (!result || disposed || !eligible) return;
       survey = result;
-      storageKey = `campus-survey:${PLUS_SURVEY_ID}:${owner}:${survey.current_iteration ?? 0}`;
+      if (survey.id === PLUS_QA_SURVEY_ID) panel.querySelector('.app-kicker')!.textContent = 'PRUEBA QA · EXCLUIDA DEL ANÁLISIS DE CLIENTES';
+      storageKey = `campus-survey:${survey.id}:${owner}:${survey.current_iteration ?? 0}`;
       try { if (localStorage.getItem(storageKey)) { finished = true; return; } } catch { /* Remote targeting still applies. */ }
       render();
     } catch { /* Optional survey failures never block Plus. */ }

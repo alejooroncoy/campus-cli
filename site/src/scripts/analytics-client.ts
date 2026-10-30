@@ -11,7 +11,7 @@ export interface AnalyticsClient {
   reset(): void;
   get_distinct_id(): string;
   get_session_id(): string;
-  getPlusSurvey(properties: Record<string, string>): Promise<PlusSurvey | undefined>;
+  getPlusSurvey(properties: Record<string, string>, surveyId?: string): Promise<PlusSurvey | undefined>;
 }
 
 interface Options {
@@ -58,11 +58,11 @@ function migrateBrowserState(key: string, storageKey: string): void {
 }
 
 class NavigationSafePostHog extends PostHog {
-  async getPlusSurvey(properties: Record<string, string>): Promise<PlusSurvey | undefined> {
+  async getPlusSurvey(properties: Record<string, string>, surveyId = PLUS_SURVEY_ID): Promise<PlusSurvey | undefined> {
     if (this.optedOut) return;
     const owner = this.getDistinctId();
-    const survey = (await this.getSurveysStateless()).find(s => s.id === PLUS_SURVEY_ID);
-    if (!survey || !supportedPlusSurvey(survey) || this.optedOut || owner !== this.getDistinctId()) return;
+    const survey = (await this.getSurveysStateless()).find(s => s.id === surveyId);
+    if (!survey || !supportedPlusSurvey(survey, surveyId) || this.optedOut || owner !== this.getDistinctId()) return;
     const key = (name: string) => survey[name as keyof typeof survey] as string | undefined
       || survey.feature_flag_keys?.find(f => f.key === name)?.value;
     const keys = ['linked_flag_key', 'targeting_flag_key', 'internal_targeting_flag_key'].map(key).filter((v): v is string => Boolean(v));
@@ -130,6 +130,6 @@ export function createAnalyticsClient(key: string, options: Options): AnalyticsC
     reset,
     get_distinct_id: () => sdk.getDistinctId(),
     get_session_id: () => sdk.getSessionId(),
-    getPlusSurvey: properties => (sdk as NavigationSafePostHog).getPlusSurvey(properties),
+    getPlusSurvey: (properties, surveyId) => (sdk as NavigationSafePostHog).getPlusSurvey(properties, surveyId),
   };
 }

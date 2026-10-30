@@ -23,7 +23,7 @@
     "pdf-assets": "node scripts/copy-pdf-reader-assets.mjs",
     "test:plus:e2e": "node scripts/plus-e2e.mjs",
     "test:analytics": "node scripts/verify-analytics.mjs && node scripts/verify-account-onboarding.mjs && node scripts/plus-survey.test.mjs",
-    "test:analytics:transport": "node scripts/analytics-transport.test.mjs && node scripts/analytics-client.test.mjs",
+    "test:analytics:transport": "node scripts/analytics-transport.test.mjs && node scripts/analytics-client.test.mjs && node scripts/plus-survey-qa-transport.test.mjs",
     "test:review-replies": "node scripts/review-replies.e2e.mjs",
     "test:first-question": "node scripts/first-question-e2e.mjs",
     "test:guest-signup": "node scripts/guest-signup-e2e.mjs",

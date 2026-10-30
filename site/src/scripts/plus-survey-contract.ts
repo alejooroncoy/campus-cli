@@ -1,6 +1,15 @@
 import type { Survey } from '@posthog/core';
 
 export const PLUS_SURVEY_ID = '01a18cc9-dfcf-0000-9228-5fe27651e15d';
+// QA uses separate questions, responses and targeting, never customer traffic.
+export const PLUS_QA_SURVEY_ID = '01a18d1a-1619-0000-4e77-51afff9780a6';
+export const plusSurveyQaRequested = (pathname: string, search: string) => /^\/app\/plus\/?$/.test(pathname)
+  && new URLSearchParams(search).get('survey_qa') === '1';
+export function plusSurveyIdForAudience(audience: string | undefined, isTest: boolean | undefined, qaRequested: boolean) {
+  if (audience === 'customer' && isTest === false) return PLUS_SURVEY_ID;
+  if (audience === 'test' && isTest === true && qaRequested) return PLUS_QA_SURVEY_ID;
+}
+const allowedSurveyId = (id: unknown) => id === PLUS_SURVEY_ID || id === PLUS_QA_SURVEY_ID;
 export const surveyEvents = new Set(['survey shown', 'survey sent', 'survey dismissed']);
 const uuid = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value);
 export type PlusSurvey = Survey & { questions: [Survey['questions'][number] & { type: 'single_choice'; choices: string[] }, ...Survey['questions']] };
@@ -8,10 +17,10 @@ export type PlusSurvey = Survey & { questions: [Survey['questions'][number] & { 
 // Only this deliberately answered survey may carry response text through analytics.
 // Keep the general analytics contract closed to prompts, documents and form fields.
 export function safeSurveyProperties(event: string, input: Record<string, unknown>): Record<string, unknown> {
-  if (!surveyEvents.has(event) || input.$survey_id !== PLUS_SURVEY_ID) return {};
+  if (!surveyEvents.has(event) || !allowedSurveyId(input.$survey_id)) return {};
   const iteration = input.$survey_iteration;
   if (iteration !== null && !(typeof iteration === 'number' && Number.isSafeInteger(iteration) && iteration >= 0)) return {};
-  const safe: Record<string, unknown> = { $survey_id: PLUS_SURVEY_ID, $survey_iteration: iteration };
+  const safe: Record<string, unknown> = { $survey_id: input.$survey_id, $survey_iteration: iteration };
   if (event !== 'survey sent') return safe;
   if (!uuid(input.$survey_submission_id) || typeof input.$survey_completed !== 'boolean' || !Array.isArray(input.$survey_questions)) return {};
   const questions = input.$survey_questions;
@@ -30,11 +39,11 @@ export function surveyPersonProperties(event: string, input: Record<string, unkn
   if (!safe.$survey_id) return {};
   if (event === 'survey shown') return { $survey_last_seen_date: new Date().toISOString() };
   const suffix = typeof safe.$survey_iteration === 'number' && safe.$survey_iteration > 0 ? `/${safe.$survey_iteration}` : '';
-  return { [`$survey_${event === 'survey sent' ? 'responded' : 'dismissed'}/${PLUS_SURVEY_ID}${suffix}`]: true };
+  return { [`$survey_${event === 'survey sent' ? 'responded' : 'dismissed'}/${safe.$survey_id}${suffix}`]: true };
 }
 
-export function supportedPlusSurvey(survey: Survey): survey is PlusSurvey {
-  if (survey.id !== PLUS_SURVEY_ID || survey.type !== 'api' || survey.schedule && survey.schedule !== 'once'
+export function supportedPlusSurvey(survey: Survey, expectedId: string = PLUS_SURVEY_ID): survey is PlusSurvey {
+  if (!allowedSurveyId(expectedId) || survey.id !== expectedId || survey.type !== 'api' || survey.schedule && survey.schedule !== 'once'
     || survey.current_iteration != null && (!Number.isSafeInteger(survey.current_iteration) || survey.current_iteration < 0)
     || !survey.start_date || !Number.isFinite(Date.parse(survey.start_date)) || Date.parse(survey.start_date) > Date.now()
     || survey.end_date && (!Number.isFinite(Date.parse(survey.end_date)) || Date.parse(survey.end_date) <= Date.now())

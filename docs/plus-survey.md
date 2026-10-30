@@ -15,6 +15,23 @@ Es de tipo API: Campus dibuja las preguntas con su estilo y PostHog conserva las
   se conserva además un marcador local asociado a la cuenta y la iteración.
 - No carga la definición ni envía respuestas desde el desarrollo habitual en localhost.
 
+## Prueba real en producción
+
+`/app/plus/?survey_qa=1` permite una prueba con una cuenta autenticada Free cuya
+audiencia del backend sea `test`. Usa exclusivamente la copia QA
+`01a18d1a-1619-0000-4e77-51afff9780a6`, con sus propias preguntas, resultados y flags.
+La flag QA debe estar habilitada y limitar `qa_account` a la identidad analítica exacta
+de la cuenta de prueba. Esa identidad se obtiene de la sesión; no se toma de la URL.
+El enlace no cambia el plan ni la clasificación de la cuenta. Clientes siguen usando
+la encuesta pública, incluso si abren ese enlace. Internos y cuentas sin clasificar
+no acceden a la copia QA. Sin el parámetro, las cuentas de prueba siguen excluidas.
+
+Los eventos QA conservan `analytics_audience=test`, `is_test=true` y, al ejecutarse
+en el sitio publicado, `environment=production`. No se mezclan con las respuestas
+de la encuesta pública y los filtros del proyecto excluyen pruebas de análisis de
+clientes. Detener la copia QA al terminar. La interfaz muestra una etiqueta QA
+para distinguir la prueba; no hay interceptores ni sustitución de respuestas de sesión.
+
 ## Preguntas y respuestas
 
 Admite una pregunta inicial de selección única y un comentario opcional posterior.
