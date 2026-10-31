@@ -37,6 +37,7 @@
     "@posthog/core": "^1.60.1",
     "ai": "^7.0.113",
     "astro": "^7.3.2",
+    "motion": "^14.9.0",
     "pdfjs-dist": "6.4.299",
     "posthog-js-lite": "^4.13.1",
     "react": "^19.3.0",
