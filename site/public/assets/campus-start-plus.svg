@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 240" fill="none" color="#153545">
+  <ellipse cx="170" cy="145" rx="119" ry="73" fill="#e1f2f6"/>
+  <g transform="rotate(-6 165 125)" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M109 36h120v169l-12-8-12 8-12-8-12 8-12-8-12 8-12-8-12 8-12-8-12 8z" fill="#fff"/>
+    <path d="M128 111h80m-80 15h68m-68 15h77" stroke="#9eb5bf" stroke-linecap="round"/>
+    <path d="m136 164 12 12 24-28" stroke="#0783a5" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+  <text x="133" y="65" transform="rotate(-6 165 125)" fill="#52717f" font-family="Arial,sans-serif" font-size="10" letter-spacing="1.3">CAMPUS</text>
+  <text x="130" y="94" transform="rotate(-6 165 125)" fill="#153545" font-family="Arial,sans-serif" font-size="28" font-weight="600">Plus</text>
+  <g stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M231 169v28c0 11 45 11 45 0v-28" fill="#bce6ef"/>
+    <ellipse cx="253.5" cy="169" rx="22.5" ry="9" fill="#e1f2f6"/>
+    <path d="M231 181c0 11 45 11 45 0m-45 12c0 11 45 11 45 0"/>
+  </g>
+  <path d="m77 79-12-3m15-11-8-11" stroke="#0783a5" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

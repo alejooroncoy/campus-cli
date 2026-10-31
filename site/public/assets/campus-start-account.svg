@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 240" fill="none" color="#153545">
+  <ellipse cx="172" cy="146" rx="119" ry="71" fill="#e1f2f6"/>
+  <g stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M83 180v-41q2-34 32-34 32 0 40 34l15 37" fill="#bce6ef"/>
+    <path d="M116 105v13m-17-1 17 15 16-14"/>
+    <path d="M96 80q-2-25 22-25 23 0 24 25v9q-3 22-23 23-20-1-23-23z" fill="#fff"/>
+    <path d="M95 78q10 1 18-13 11 17 28 16M112 88h1m16 0h1m-13 10q5 4 10-1"/>
+    <path d="m145 119 111 1-12 74H133z" fill="#fff"/>
+    <path d="M126 194h132l-8 10H117z" fill="#dce8ec"/>
+    <path d="m147 162-18-9-21 20 27 12" fill="#bce6ef"/>
+    <path d="M65 205h213"/>
+  </g>
+  <text x="167" y="150" fill="#153545" font-family="Arial,sans-serif" font-size="13" font-weight="600">Campus</text>
+  <path d="m183 166 8 8 16-19" stroke="#0783a5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="m248 74 9-10m1 26 14-3" stroke="#0783a5" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
