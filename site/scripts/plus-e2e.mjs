@@ -13,7 +13,7 @@ try{
     await context.request.post(base+'/__fixture/reset');
     await page.goto(base+'/');
     assert.equal(await page.getByRole('link',{name:'Activar Campus Plus'}).getAttribute('href'),'/app/plus/');
-    assert.equal(await page.locator('#free-title').locator('..').locator('..').getByRole('link',{name:'Empezar',exact:true}).getAttribute('href'),'/app/');
+    assert.equal(await page.locator('#free-title').locator('..').locator('..').getByRole('link',{name:'Usar Campus',exact:true}).getAttribute('href'),'/app/');
     await page.getByRole('link',{name:'Activar Campus Plus'}).click();
     await page.locator('[data-plus-view=guest]:visible').waitFor();
     await page.getByRole('link',{name:'Crear cuenta o entrar',exact:true}).click();
