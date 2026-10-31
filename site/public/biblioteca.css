@@ -579,7 +579,7 @@
 @media (max-width: 700px) { .lib-doc-sheet { padding: 28px 20px; } .lib-doc-name { display: none; } .lib-doc-viewport { padding: 12px 8px; } }
 /* Guardar como PDF: al imprimir solo sale el documento. */
 @media print {
-  body.lib-public > :not(main), .lib-crumbs, .lib-detail-hero, .lib-academic-context, .lib-fact-chips, .lib-disclaimer, .lib-detail-callout, .lib-detail-meta, .lib-github-aside, .lib-doc-bar, .lib-doc-lock { display: none !important; }
+  body > :not(main), .lib-section-bar, .lib-navigation-status, .lib-site-disclaimer, .lib-skip, .lib-crumbs, .lib-detail-hero, .lib-academic-context, .lib-fact-chips, .lib-disclaimer, .lib-detail-callout, .lib-detail-meta, .lib-github-aside, .lib-doc-bar, .lib-doc-lock { display: none !important; }
   .lib-detail-layout { display: block !important; }
   .lib-doc { border: 0; background: #fff; }
   .lib-doc-viewport { padding: 0; }
