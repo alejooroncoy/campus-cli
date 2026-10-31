@@ -164,7 +164,7 @@
 /* Wider screens group the trial and Free path beside Plus. */
 @media(min-width:761px){
  .cp-plans{padding-block:48px 36px}
- .cp-plan-grid{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);grid-template-areas:"trial plus" "free plus";align-items:start}
+ .cp-plan-grid{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);grid-template-rows:auto 1fr;grid-template-areas:"trial plus" "free plus";align-items:stretch}
  .cp-plan-trial{grid-area:trial;align-content:center}
  .cp-plan--free{grid-area:free}
  .cp-plan--plus{grid-area:plus}

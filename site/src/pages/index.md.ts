@@ -16,7 +16,7 @@ export const GET: APIRoute = () => {
   const markdown = [
     "# Campus UPC: profesores, notas y Blackboard con IA",
     "",
-    "> Campus para UPC: Campus Free (S/0) y Campus Plus. Los primeros 25 usuarios de pago: S/5 el primer mes, luego S/10 al mes. Nuevas suscripciones después de ese grupo: S/15 al mes desde el primer mes.",
+    "> Campus para UPC: Campus Free (gratis) y Campus Plus. Los primeros 25 usuarios de pago: S/5 el primer mes, luego S/10 al mes. Nuevas suscripciones después de ese grupo: S/15 al mes desde el primer mes.",
     "",
     "Fuente: https://campuscli.com/",
     "Blackboard UPC: https://campuscli.com/blackboard-upc/",
