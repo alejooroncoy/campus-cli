@@ -16,9 +16,9 @@ export default function AgentFeedback({traceId,onResolved}:{traceId:string;onRes
   }
   return <div className="app-profes-ai__feedback" role="group" aria-label="Valorar la respuesta">
     {state==='done'?<p role="status">Gracias por contarnos.</p>:<>
-      <span>¿Resolviste lo que necesitabas?</span>{' '}
-      <button type="button" className="app-text-link" disabled={state==='sending'} onClick={()=>void send('resolved')}>Sí</button>{' · '}
-      <button type="button" className="app-text-link" disabled={state==='sending'} onClick={()=>void send('not_resolved')}>Todavía no</button>
+      <span>¿Resolviste lo que necesitabas?</span>
+      <button type="button" className="app-profes-ai__feedback-option" disabled={state==='sending'} onClick={()=>void send('resolved')}>Sí</button>
+      <button type="button" className="app-profes-ai__feedback-option" disabled={state==='sending'} onClick={()=>void send('not_resolved')}>Todavía no</button>
       {state==='error'?<p role="status">No pudimos guardar tu respuesta. Puedes intentarlo nuevamente.</p>:null}
     </>}
     {choice==='not_resolved'?<AgentFeedbackRecovery traceId={traceId} pending={state==='sending'} ensureFeedback={()=>send('not_resolved')}/>:null}
