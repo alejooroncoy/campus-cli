@@ -1,5 +1,6 @@
 import { isLibraryPage, isLibraryRoute, isLibraryWorkspace, isLibraryWorkspaceViewHash, isSameLibraryDocument, librarySearchURL } from '../lib/library-navigation';
 import { initLibrary } from './library';
+import { unlockImported } from '../lib/library-unlock';
 
 type Position = { x: number; y: number; filterX?: number; courseX?: number };
 type LibraryHistory = { position: Position; url: string };
@@ -65,6 +66,7 @@ if (initialRoot && !initialRoot.dataset.navigationReady) {
     initLibrary(element);
     element.dispatchEvent(new Event('campus:library-route'));
   }
+  void unlockImported(initialRoot);
   if (initialRoot.matches('[data-library]')) {
     workspace = { root: initialRoot, metadata: metadataFrom(document) };
     initializeWorkspace(initialRoot);
@@ -144,6 +146,7 @@ if (initialRoot && !initialRoot.dataset.navigationReady) {
       if (next !== root) root.replaceWith(next);
       root = next;
       rendered = finalURL;
+      void unlockImported(root);
       syncMetadata(metadata);
       if (root.matches('[data-library]')) initializeWorkspace(root);
       retryURL = null;
