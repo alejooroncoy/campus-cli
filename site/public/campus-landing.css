@@ -114,6 +114,10 @@
 .cp-final h2 { margin-bottom:25px; }
 @media(min-width:1100px) { .cp-hero__copy { padding-block:20px; } }
 @media(max-width:1000px) { .cp-hero { gap:35px; } .cp-hero h1 { font-size:54px; } .cp-plan { padding:27px; } .cp-plan__top { flex-wrap:wrap; } .cp-connect { gap:15px; } .cp-connect p { gap:10px; } }
+@media(min-width:761px) and (max-width:1000px) {
+ .cp-hero { grid-template-columns:1fr; gap:40px; padding-block:48px; }
+ .cp-hero h1 { max-width:700px; }
+}
 @media(max-width:760px) {
  .campus-landing .shell { width:calc(100% - 40px); }
  .cp-hero { grid-template-columns:1fr; padding-block:35px 38px; gap:35px; }
