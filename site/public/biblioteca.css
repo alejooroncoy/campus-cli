@@ -531,3 +531,58 @@
   .lib-github-card { flex-direction: column; align-items: stretch; padding: 22px; }
   .lib-github-card .lib-button { width: 100%; justify-content: center; }
 }
+
+/* Descargo de Campus y documento del informe (README) en la ficha de un trabajo importado. */
+.lib-disclaimer { margin: 0 0 22px; padding: 14px 18px; border: 1px solid #f1d9a6; border-left: 4px solid #e0a82e; border-radius: 10px; background: #fff9ea; color: #4a3b12; font-size: 13px; line-height: 1.65; }
+.lib-disclaimer strong { color: #2f2508; }
+.lib-disclaimer a { color: inherit; text-decoration: underline; }
+.lib-doc { margin: 0 0 32px; border: 1px solid var(--lib-line); border-radius: 14px; background: #e9eff1; overflow: hidden; }
+.lib-doc-bar { display: flex; align-items: center; gap: 14px; padding: 10px 16px; background: var(--lib-night); color: #fff; font-size: 13px; }
+.lib-doc-brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.lib-doc-brand small { font-size: 11px; font-weight: 400; opacity: .7; }
+.lib-doc-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .75; text-align: center; }
+.lib-doc-print { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 6px 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; background: transparent; color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
+.lib-doc-print:hover { background: rgba(255,255,255,.12); }
+.lib-doc-viewport { position: relative; padding: 22px 16px; }
+.lib-doc-sheet { position: relative; max-width: 820px; min-height: 420px; max-height: 760px; margin: 0 auto; padding: 48px 56px; overflow: auto; background: #fff; border-radius: 3px; box-shadow: 0 1px 2px rgba(16,42,58,.12), 0 12px 32px rgba(16,42,58,.14); font-size: 14.5px; line-height: 1.7; color: #1d2b34; overflow-wrap: anywhere; }
+.lib-doc[data-unlocked] .lib-doc-sheet { max-height: 88vh; }
+.lib-doc-sheet h2, .lib-doc-sheet h3, .lib-doc-sheet h4, .lib-doc-sheet h5, .lib-doc-sheet h6 { margin: 1.6em 0 .5em; line-height: 1.25; color: var(--lib-ink); }
+.lib-doc-sheet h2 { font-size: 24px; padding-bottom: 8px; border-bottom: 1px solid var(--lib-line); }
+.lib-doc-sheet h3 { font-size: 19px; }
+.lib-doc-sheet h4 { font-size: 16px; }
+.lib-doc-sheet > :first-child { margin-top: 0; }
+.lib-doc-sheet p, .lib-doc-sheet ul, .lib-doc-sheet ol, .lib-doc-sheet blockquote, .lib-doc-sheet pre { margin: 0 0 1em; }
+.lib-doc-sheet ul, .lib-doc-sheet ol { padding-left: 1.4em; }
+.lib-doc-sheet a { color: #0b6f91; text-decoration: underline; text-underline-offset: 2px; }
+.lib-doc-sheet code { padding: 1px 5px; border-radius: 4px; background: #eef3f5; font-size: .9em; }
+.lib-doc-sheet pre { padding: 14px 16px; overflow: auto; border-radius: 8px; background: #112633; color: #e6f1f5; font-size: 12.5px; line-height: 1.55; }
+.lib-doc-sheet pre code { padding: 0; background: none; color: inherit; }
+.lib-doc-sheet blockquote { padding: 4px 16px; border-left: 3px solid #8ebfcf; color: var(--lib-muted); }
+.lib-doc-sheet hr { border: 0; border-top: 1px solid var(--lib-line); margin: 1.6em 0; }
+.lib-doc-table { margin: 0 0 1em; overflow-x: auto; }
+.lib-doc-table table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.lib-doc-table th, .lib-doc-table td { padding: 7px 10px; border: 1px solid var(--lib-line); text-align: left; vertical-align: top; }
+.lib-doc-table th { background: var(--lib-canvas); }
+.lib-doc-img { display: inline-block; padding: 1px 8px; border: 1px dashed var(--lib-line); border-radius: 6px; color: var(--lib-muted); font-size: 12px; }
+.lib-doc-more { color: var(--lib-muted); font-style: italic; }
+/* Antes de iniciar sesión: una hoja difuminada, sin texto real del informe. */
+.lib-doc-skeleton { display: grid; gap: 14px; filter: blur(3px); opacity: .85; user-select: none; }
+.lib-doc-skeleton i { display: block; height: 11px; border-radius: 6px; background: #cfdde3; }
+.lib-doc-skeleton i:nth-child(1) { width: 52%; height: 22px; margin-bottom: 14px; background: #b9ced7; }
+.lib-doc-skeleton i:nth-child(3n) { width: 86%; }
+.lib-doc-skeleton i:nth-child(4n) { width: 68%; }
+.lib-doc-skeleton i:nth-child(5n) { width: 94%; }
+.lib-doc-lock { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; padding: 24px; text-align: center; background: linear-gradient(180deg, rgba(233,239,241,0) 0%, rgba(233,239,241,.92) 52%); }
+.lib-doc-lock h2 { margin: 0; font-size: 22px; }
+.lib-doc-lock p { margin: 0 0 6px; max-width: 380px; color: var(--lib-muted); font-size: 14px; line-height: 1.6; }
+.lib-doc-lock-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: var(--lib-night); color: #fff; }
+@media (max-width: 700px) { .lib-doc-sheet { padding: 28px 20px; } .lib-doc-name { display: none; } .lib-doc-viewport { padding: 12px 8px; } }
+/* Guardar como PDF: al imprimir solo sale el documento. */
+@media print {
+  body.lib-public > :not(main), .lib-crumbs, .lib-detail-hero, .lib-academic-context, .lib-fact-chips, .lib-disclaimer, .lib-detail-callout, .lib-detail-meta, .lib-github-aside, .lib-doc-bar, .lib-doc-lock { display: none !important; }
+  .lib-detail-layout { display: block !important; }
+  .lib-doc { border: 0; background: #fff; }
+  .lib-doc-viewport { padding: 0; }
+  .lib-doc-sheet { max-height: none !important; overflow: visible; box-shadow: none; padding: 0; max-width: none; }
+  .lib-doc-sheet::before { content: "Campus · Biblioteca · campuscli.com. Trabajo de estudiantes, sin garantía de exactitud."; display: block; margin-bottom: 18px; padding-bottom: 8px; border-bottom: 1px solid #999; font-size: 11px; color: #555; }
+}
