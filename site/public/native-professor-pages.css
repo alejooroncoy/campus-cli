@@ -125,3 +125,34 @@ body:has([data-professor-profile])>.site-header.is-scrolled{position:relative;to
 .prof-public__banner-term + .prof-public__banner-term{border-top:1px solid var(--line);margin-top:20px;padding-top:6px}.prof-public__banner-term h3{display:flex;align-items:center;gap:7px;font-size:.85rem}.prof-public__banner-term h3 svg{width:17px;height:17px}.prof-public__banner-courses .prof-public__courses strong{font-weight:600}.prof-public__banner-courses{scroll-margin-top:110px}
 .prof-public__stars{color:#b87900;letter-spacing:.06em;white-space:nowrap;font-size:.9rem}.prof-public__review-source{border-radius:999px;background:#edf4f3;padding:3px 8px;color:#315e59;font-size:.72rem}.prof-public__unified-reviews{display:grid;gap:14px}.prof-public__unified-reviews>.prof-public__review{margin:0}.prof-public__unified-reviews>.prof-public__review+.prof-public__review{border-top:1px solid var(--line);padding-top:16px}.prof-public__profile .prof-public__unified-reviews .prof-public__source-links{margin:8px 0 0}
 .prof-public__course-source{margin-top:4px}.prof-public__course-source a{display:inline-flex;align-items:center;gap:3px;min-height:28px}.prof-public__course-source svg{width:13px;height:13px}
+/* Opción A: pestañas por programa. Radios nativos: funcionan sin JavaScript y todo el texto queda en el HTML. */
+.prof-public__programs{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:10px 0 0}
+.prof-public__programs li{padding:3px 11px;border-radius:999px;background:#e5f2f6;color:var(--ink);font-size:.72rem;font-weight:700}
+.prof-public__tabs{position:relative;margin-top:10px}
+.prof-public__tab-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.prof-public__tab-list{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.prof-public__tab-list label{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink);font-size:.8rem;font-weight:700;cursor:pointer}
+.prof-public__tab-list label span{color:var(--muted);font-weight:600}
+.prof-public__tab-panel{display:none}
+.prof-public__older-terms{margin-top:14px}
+.prof-public__banner-term .prof-public__catalog-details{margin-top:10px}
+#program-tab-0:checked ~ .prof-public__tab-list label:nth-child(1){background:#102e3d;border-color:#102e3d;color:#fff}
+#program-tab-0:checked ~ .prof-public__tab-list label:nth-child(1) span{color:#cfe3ea}
+#program-tab-0:checked ~ .prof-public__tab-panels .prof-public__tab-panel:nth-child(1){display:block}
+#program-tab-0:focus-visible ~ .prof-public__tab-list label:nth-child(1){outline:3px solid #0b6a8a;outline-offset:2px}
+#program-tab-1:checked ~ .prof-public__tab-list label:nth-child(2){background:#102e3d;border-color:#102e3d;color:#fff}
+#program-tab-1:checked ~ .prof-public__tab-list label:nth-child(2) span{color:#cfe3ea}
+#program-tab-1:checked ~ .prof-public__tab-panels .prof-public__tab-panel:nth-child(2){display:block}
+#program-tab-1:focus-visible ~ .prof-public__tab-list label:nth-child(2){outline:3px solid #0b6a8a;outline-offset:2px}
+#program-tab-2:checked ~ .prof-public__tab-list label:nth-child(3){background:#102e3d;border-color:#102e3d;color:#fff}
+#program-tab-2:checked ~ .prof-public__tab-list label:nth-child(3) span{color:#cfe3ea}
+#program-tab-2:checked ~ .prof-public__tab-panels .prof-public__tab-panel:nth-child(3){display:block}
+#program-tab-2:focus-visible ~ .prof-public__tab-list label:nth-child(3){outline:3px solid #0b6a8a;outline-offset:2px}
+#program-tab-3:checked ~ .prof-public__tab-list label:nth-child(4){background:#102e3d;border-color:#102e3d;color:#fff}
+#program-tab-3:checked ~ .prof-public__tab-list label:nth-child(4) span{color:#cfe3ea}
+#program-tab-3:checked ~ .prof-public__tab-panels .prof-public__tab-panel:nth-child(4){display:block}
+#program-tab-3:focus-visible ~ .prof-public__tab-list label:nth-child(4){outline:3px solid #0b6a8a;outline-offset:2px}
+#program-tab-4:checked ~ .prof-public__tab-list label:nth-child(5){background:#102e3d;border-color:#102e3d;color:#fff}
+#program-tab-4:checked ~ .prof-public__tab-list label:nth-child(5) span{color:#cfe3ea}
+#program-tab-4:checked ~ .prof-public__tab-panels .prof-public__tab-panel:nth-child(5){display:block}
+#program-tab-4:focus-visible ~ .prof-public__tab-list label:nth-child(5){outline:3px solid #0b6a8a;outline-offset:2px}

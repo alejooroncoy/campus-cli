@@ -82,7 +82,7 @@ export function bannerTermLabel(term){
 }
 function teachingTermInfo(course){
  const term=String(course.term??'');
- if(course.source==='upc_postgrado'&&course.status==='upcoming')return {label:'Oferta próxima',sortKey:'9999',program:''};
+ if(course.status==='upcoming')return {label:'Oferta próxima',sortKey:'9999',program:''};
  if(course.source==='upc_postgrado')return {label:'Ciclo no publicado',sortKey:'',program:''};
  if(course.source==='upc_syllabus'){
   const match=term.match(/^(\d{4})(00|01|02)$/);
@@ -90,12 +90,34 @@ function teachingTermInfo(course){
   const label=match?`${match[1]}-${Number(match[2])}`:term;
   return {label,sortKey:label,program:''};
  }
- const match=term.match(/^(\d{4})(01|02|05|10|15|20|22|25)$/);
+ const match=term.match(/^(\d{4})(01|02|05|10|12|15|20|22|25|90)$/);
  if(!match)return {label:term,sortKey:term,program:''};
  const [,year,part]=match;
+ if(part==='90')return {label:`${year} Postgrado`,sortKey:`${year}-2`,program:'Postgrado'};
  if(['01','02','05'].includes(part))return {label:`Verano ${year}`,sortKey:`${year}-0`,program:part==='05'?'EPE-WS':part==='01'?'Pregrado':'Extraacad'};
- const semester=['10','15'].includes(part)?1:2;
- return {label:`${year}-${semester}`,sortKey:`${year}-${semester}`,program:['15','25'].includes(part)?'EPE-WS':part==='22'?'Extraacad':'Pregrado'};
+ const semester=['10','12','15'].includes(part)?1:2;
+ return {label:`${year}-${semester}`,sortKey:`${year}-${semester}`,program:['15','25'].includes(part)?'EPE-WS':['12','22'].includes(part)?'Extraacad':'Pregrado'};
+}
+/** Programa de un curso: el código manda (1F EPE, 2x Postgrado); si no, el ciclo. */
+function teachingProgram(course,period){
+ const code=String(course.code??'').toUpperCase();
+ if(course.source==='upc_postgrado'||/^2[A-Z]/.test(code)||period.program==='Postgrado')return 'Postgrado';
+ if(/^1F/.test(code)||period.program==='EPE-WS')return 'EPE';
+ if(period.program==='Extraacad')return 'Extraacadémico';
+ return 'Pregrado';
+}
+const PROGRAM_ORDER=['Pregrado','EPE','Postgrado','Extraacadémico'];
+/** Programas en los que enseña: el que más cursos tiene primero; el ciclo más reciente desempata. */
+export function teachingPrograms(teachingCourses){
+ const stats=new Map();
+ for(const course of teachingCourses??[]){
+  const period=teachingTermInfo(course),program=teachingProgram(course,period);
+  const entry=stats.get(program)??{courses:new Set(),latest:''};
+  entry.courses.add(`${course.code??''}|${course.name??''}`);
+  if(String(period.sortKey).localeCompare(entry.latest)>0)entry.latest=String(period.sortKey);
+  stats.set(program,entry);
+ }
+ return [...stats].sort(([pa,a],[pb,b])=>b.courses.size-a.courses.size||b.latest.localeCompare(a.latest)||PROGRAM_ORDER.indexOf(pa)-PROGRAM_ORDER.indexOf(pb)).map(([program])=>program);
 }
 function validTeachingURL(url,source,document=false){
  try{const u=new URL(url);if(u.username||u.password||u.search||u.hash)return false;
@@ -111,21 +133,45 @@ function teachingSourceLinks(course){
  const pdf=syllabus&&validTeachingURL(course.documentUrl,source,true)?` · <a href="${e(course.documentUrl)}" target="_blank" rel="noopener noreferrer">PDF original<span class="visually-hidden"> (abre en otra pestaña)</span></a>`:'';
  return `<small class="prof-public__course-source">Fuente: ${reference}${pdf}</small>`;
 }
-export function bannerCoursesSection(teachingCourses,catalogCourses=[]){
- const groups=new Map(),used=new Set(),seen=new Set();
+const VISIBLE_TERMS=2,VISIBLE_COURSES=6;
+function courseItemHTML(course){
+ return `<li data-teaching-source="${e(course.source??'banner')}" data-source-term="${e(course.term??'')}"><strong>${e(course.name)}</strong><small>${course.code?`${e(course.code)} · `:'Código no publicado · '}${course.status==='upcoming'?'Inicio de clases: próximamente':course.period.label?`Ciclo ${e(course.period.label)}`:'Ciclo no publicado'}${course.period.program?` · ${e(course.period.program)}`:''}</small>${teachingSourceLinks(course)}</li>`;
+}
+function termGroupHTML([label,items]){
+ const sorted=[...items].sort((a,b)=>String(a.name).localeCompare(String(b.name),'es')),shown=sorted.slice(0,VISIBLE_COURSES),rest=sorted.slice(VISIBLE_COURSES);
+ const restHTML=rest.length?`<details class="prof-public__catalog-details"><summary>Ver ${rest.length} ${rest.length===1?'curso más':'cursos más'}${icon('arrow-down')}</summary><ul class="prof-public__courses">${rest.map(courseItemHTML).join('')}</ul></details>`:'';
+ return `<div class="prof-public__banner-term"><h3>${icon('calendar-days')} ${label==='Oferta próxima'?'Oferta próxima':`Ciclo ${e(label)}`}</h3><ul class="prof-public__courses">${shown.map(courseItemHTML).join('')}</ul>${restHTML}</div>`;
+}
+function programPanelHTML(groups){
+ const ordered=[...groups].sort(([,a],[,b])=>String(b[0]?.period.sortKey??'').localeCompare(String(a[0]?.period.sortKey??'')));
+ const recent=ordered.slice(0,VISIBLE_TERMS),older=ordered.slice(VISIBLE_TERMS);
+ const olderHTML=older.length?`<details class="prof-public__catalog-details prof-public__older-terms"><summary>Ciclos anteriores (${older.length})${icon('arrow-down')}</summary>${older.map(termGroupHTML).join('')}</details>`:'';
+ return recent.map(termGroupHTML).join('')+olderHTML;
+}
+export function bannerCoursesSection(teachingCourses,catalogCourses=[],role=null,note=null){
+ const programs=new Map(),used=new Set(),seen=new Set();
  for(const course of teachingCourses??[]){
-  const period=teachingTermInfo(course),key=[course.source??'banner',course.term,course.code,course.sourceUrl??''].join('|');
+  const period=teachingTermInfo(course),key=[course.source??'banner',course.term,course.code,course.code?'':normalizeLabel(course.name),course.sourceUrl??''].join('|');
   if(seen.has(key))continue;seen.add(key);
+  const program=teachingProgram(course,period);
+  if(!programs.has(program))programs.set(program,new Map());
+  const groups=programs.get(program);
   if(!groups.has(period.label))groups.set(period.label,[]);
   groups.get(period.label).push({...course,period});
   if(course.code)used.add(String(course.code).toLowerCase());
  }
- const content=[...groups].sort(([,a],[,b])=>String(b[0]?.period.sortKey??'').localeCompare(String(a[0]?.period.sortKey??''))).map(([label,items])=>
-  `<div class="prof-public__banner-term"><h3>${icon('calendar-days')} ${label==='Oferta próxima'?'Oferta próxima':`Ciclo ${e(label)}`}</h3><ul class="prof-public__courses">${items.sort((a,b)=>String(a.name).localeCompare(String(b.name),'es')).map(course=>`<li data-teaching-source="${e(course.source??'banner')}" data-source-term="${e(course.term??'')}"><strong>${e(course.name)}</strong><small>${course.code?`${e(course.code)} · `:'Código no publicado · '}${course.status==='upcoming'?'Inicio de clases: próximamente':course.period.label?`Ciclo ${e(course.period.label)}`:'Ciclo no publicado'}${course.period.program?` · ${e(course.period.program)}`:''}</small>${teachingSourceLinks(course)}</li>`).join('')}</ul></div>`).join('');
+ const order=teachingPrograms(teachingCourses);
+ const names=order.filter(name=>programs.has(name));
+ let content='';
+ if(names.length===1)content=programPanelHTML(programs.get(names[0]));
+ else if(names.length>1){
+  const count=name=>[...programs.get(name).values()].reduce((sum,list)=>sum+new Set(list.map(c=>`${c.code}|${c.name}`)).size,0);
+  content=`<div class="prof-public__tabs" data-program-tabs>${names.map((name,i)=>`<input class="prof-public__tab-input" type="radio" name="program-tab" id="program-tab-${i}"${i===0?' checked':''}>`).join('')}<div class="prof-public__tab-list" role="group" aria-label="Programa">${names.map((name,i)=>`<label for="program-tab-${i}">${e(name)} <span>${count(name)}</span></label>`).join('')}</div><div class="prof-public__tab-panels">${names.map(name=>`<div class="prof-public__tab-panel" data-program="${e(name)}">${programPanelHTML(programs.get(name))}</div>`).join('')}</div></div>`;
+ }
  const other=(catalogCourses??[]).filter(course=>!((course.code&&used.has(String(course.code).toLowerCase()))||(!course.code&&(teachingCourses??[]).some(b=>normalizeLabel(b.name)===normalizeLabel(course.name)))));
  const otherHTML=other.length?`<details class="prof-public__catalog-details"><summary>Otros cursos asociados${icon('arrow-down')}</summary><p class="prof-public__help">La fuente no indica el ciclo de estos cursos.</p><ul class="prof-public__courses">${other.map(course=>`<li><strong>${e(course.name)}</strong>${course.code?`<small>${e(course.code)}</small>`:''}</li>`).join('')}</ul></details>`:'';
  const unavailable=!Array.isArray(teachingCourses),empty=!content&&!otherHTML;
- return `<section id="cursos" class="prof-public__panel prof-public__banner-courses"><h2>${icon('book-open')} Cursos</h2>${content?`<p class="prof-public__help">Mostramos el código y el ciclo cuando la fuente los publica.</p>${content}`:''}${otherHTML}${empty?`<p class="prof-public__help">${unavailable?'No pudimos cargar los cursos de este profesor.':'Aún no hay cursos asociados a este profesor.'}</p>`:''}</section>`;
+ return `<section id="cursos" class="prof-public__panel prof-public__banner-courses"><h2>${icon('book-open')} Cursos</h2>${content?`<p class="prof-public__help">Mostramos el código y el ciclo cuando la fuente los publica.</p>${content}`:''}${otherHTML}${empty?`<p class="prof-public__help">${unavailable?'No pudimos cargar los cursos de este profesor.':role==='clinical_instructor'?'No da clases, pero es instructor clínico de Medicina: acompaña a los estudiantes en sus prácticas en hospital.':String(note??'').trim()?e(String(note).trim()):'Aún no hay cursos asociados a este profesor.'}</p>`:''}</section>`;
 }
 const normalizeLabel=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 
@@ -188,9 +234,20 @@ function unifiedReviewCard(item){
  const chips=`<div class="prof-public__chips">${item.course?`<span>${e(item.course)}</span>`:''}${item.term?`<span>Ciclo ${e(item.term)}</span>`:''}${sources}</div>`;
  const replies=item.comment?externalThread(item.comment,item.url):'';
  const summary=item.summary?`<p class="prof-public__help">Media de ${e(item.ratingCount)} ${item.ratingCount===1?'valoración':'valoraciones'}${date?` · Consultada el ${e(date)}`:''}.</p>`:`<p class="prof-public__comment">${e(item.text)}</p>`;
- const replyLink=item.comment&&item.source==='ProfeMatch'&&validReviewSourceURL(item.url,'ProfeMatch')?`<a href="${e(item.url)}" target="_blank" rel="noopener noreferrer">Responder en ProfeMatch ${icon('arrow-up-right')}<span class="visually-hidden"> (abre en otra pestaña)</span></a>`:'';
- return `<article class="prof-public__review" ${item.comment?.id&&/^profematch-\d+-review-\d+$/.test(item.comment.id)?`id="${e(item.comment.id)}"`:''}>${reviewHeader(item.summary?'Puntuación media':'Estudiante',item.rating,10)}${chips}${summary}${date&&!item.summary?`<footer>${e(date)}</footer>`:''}${replies}${sourceLinks||replyLink?`<div class="prof-public__source-links">${sourceLinks}${replyLink}</div>`:''}</article>`;
+ return `<article class="prof-public__review" ${item.comment?.id&&/^profematch-\d+-review-\d+$/.test(item.comment.id)?`id="${e(item.comment.id)}"`:''}>${reviewHeader(item.summary?'Puntuación media':'Estudiante',item.rating,10)}${chips}${summary}${date&&!item.summary?`<footer>${e(date)}</footer>`:''}${replies}${sourceLinks?`<div class="prof-public__source-links">${sourceLinks}</div>`:''}</article>`;
 }
+/**
+ * Una ficha se indexa solo si muestra comentarios reales: de Campus, de MisProfesores o de ProfeMatch.
+ * Las fichas con solo cursos o con puntuaciones sin texto quedan en noindex para no diluir la calidad
+ * del dominio con páginas casi vacías. El umbral se sube o baja aquí, en un solo sitio.
+ */
+export const INDEXABLE_MIN_COMMENTS=2;
+export const SUBSTANTIVE_COMMENT_CHARS=40;
+export function substantiveCommentCount(data){
+ const ratings=withProfeMatchSnapshots(data?.externalRatings??[],data?.professor);
+ return unifiedReviewItems(data??{},ratings).filter(item=>!item.summary&&String(item.text??'').trim().length>=SUBSTANTIVE_COMMENT_CHARS).length;
+}
+export const isIndexableProfile=data=>substantiveCommentCount(data)>=INDEXABLE_MIN_COMMENTS;
 function profileReviewsSection(data,ratings){
  const items=unifiedReviewItems(data,ratings),count=items.filter(item=>!item.summary).length,summaryCount=items.length-count;
  const catalog=data.catalogReviews,returnLink=data.catalogBefore?link(`${professorPath(data.professor.slug)}#resenas`,`${icon('arrow-left')} Volver a las opiniones recientes`):'';
@@ -201,14 +258,38 @@ function profileReviewsSection(data,ratings){
  const visibleLabel=`${count} ${count===1?'opinión':'opiniones'}${summaryCount?` · ${summaryCount} ${summaryCount===1?'puntuación agregada':'puntuaciones agregadas'}`:''}`;
  return `<section id="resenas" class="prof-public__native"><div class="prof-public__section-heading"><h2>Opiniones y puntuaciones</h2><span class="prof-public__help">${visibleLabel}</span></div><p class="prof-public__muted">Reunimos comentarios de Campus, MisProfesores y ProfeMatch en una sola lista. Las puntuaciones se muestran en una escala común de 0 a 10 y cada opinión conserva su fuente.</p>${referenceHTML?`<div class="prof-public__source-links">${referenceHTML}</div>`:''}<a class="prof-public__compose" href="${writingURL(data.professor.slug)}"><span class="prof-public__review-avatar">${icon('user')}</span><span>¿Cómo te fue con este profesor?</span>${icon('arrow-right')}</a>${returnLink}<div class="prof-public__unified-reviews" data-profile-reviews data-professor-id="${data.professor.id}">${items.map(unifiedReviewCard).join('')||`<div class="prof-public__empty"><h3>Esta ficha aún no tiene comentarios públicos</h3><p>Tu experiencia puede ayudar a quien está por matricularse.</p>${link(writingURL(data.professor.slug),'Escribir la primera reseña','button')}</div>`}</div>${data.nextCursor?`<button class="prof-public__more" data-profile-more data-cursor="${data.nextCursor}">Leer más opiniones de Campus</button><p data-profile-status role="status"></p>`:''}${more}${unavailable}</section>`;
 }
+const joinList=list=>list.length<2?list.join(''):`${list.slice(0,-1).join(', ')} y ${list.at(-1)}`;
+const fit=(text,max)=>text.length<=max?text:`${text.slice(0,max-1).replace(/\s+\S*$/,'')}…`;
+/** Título y descripción con los datos reales de la ficha: es lo que se ve en el resultado de Google. */
+export function profileSEO(data){
+ const name=data.professor.name,ratings=withProfeMatchSnapshots(data.externalRatings??[],data.professor);
+ const comments=unifiedReviewItems(data,ratings).filter(item=>!item.summary&&String(item.text??'').trim()).length;
+ const average=combinedRating(data,ratings).average,rating=average==null?'':displayScore(average);
+ const teaching=data.teachingCourses??data.bannerCourses??[];
+ const courses=new Set(teaching.map(c=>c.code||c.name)).size||(data.courses??[]).length;
+ const programs=teachingPrograms(teaching);
+ const opinions=`${comments} ${comments===1?'opinión':'opiniones'}`;
+ let title=`${name} (UPC): ${rating?`${rating}/10`:'reseñas'}${comments?` · ${opinions}`:' y cursos'} | Campus`;
+ if(title.length>70)title=title.replace(' | Campus','');
+ if(title.length>70)title=`${name} (UPC): reseñas y cursos`;
+ title=fit(title,70);
+ const parts=[`${name}, docente de UPC${programs.length?` en ${joinList(programs)}`:''}.`];
+ if(rating)parts.push(`Nota ${rating}/10${comments?` según ${opinions}`:''}.`);
+ else if(comments)parts.push(`${opinions} de estudiantes.`);
+ if(courses)parts.push(`${courses} ${courses===1?'curso':'cursos'} con código y ciclo.`);
+ parts.push('Lee qué dicen los estudiantes antes de matricularte.');
+ // Si no cabe, se quitan frases del final en vez de cortar una a la mitad.
+ while(parts.length>1&&parts.join(' ').length>160)parts.pop();
+ return {title,description:fit(parts.join(' '),160)};
+}
 export function profileBody(data){
  const p=data.professor,ratings=withProfeMatchSnapshots(data.externalRatings,p),score=combinedRating(data,ratings);
  return `<div class="prof-public__profile" data-professor-profile>
  <nav class="prof-public__crumbs" aria-label="Ruta de navegación">${link('/profes/upc/',`${icon('arrow-left')} Profesores UPC`)}<span>/</span><span>${e(p.name)}</span></nav>
- <header class="prof-public__profile-header"><div><p class="prof-public__eyebrow">Profesor · UPC</p><h1>${e(p.name)}</h1><p class="prof-public__muted">Experiencias de estudiantes para elegir mejor.</p><div class="prof-public__summary"><span>${score.average===null?icon('star'):`${starRow(score.average)} <strong>${e(displayScore(score.average))}/10</strong>`}${score.average===null?'Sin puntuaciones públicas':'promedio conjunto de fuentes'}</span><span>${score.sourceCount} ${score.sourceCount===1?'fuente':'fuentes'} con puntuaciones</span></div></div><div class="prof-public__header-actions">${link(writingURL(p.slug),`${icon('file-text')} Escribir una reseña`,'button')}<span class="prof-public__help">Tu nombre no se muestra.</span></div></header>
+ <header class="prof-public__profile-header"><div><p class="prof-public__eyebrow">Profesor · UPC</p><h1>${e(p.name)}</h1><p class="prof-public__muted">Experiencias de estudiantes para elegir mejor.</p>${(()=>{const programs=teachingPrograms(data.teachingCourses??data.bannerCourses);return programs.length?`<ul class="prof-public__programs" aria-label="Programas en los que enseña">${programs.map(name=>`<li>${e(name)}</li>`).join('')}</ul>`:'';})()}<div class="prof-public__summary"><span>${score.average===null?icon('star'):`${starRow(score.average)} <strong>${e(displayScore(score.average))}/10</strong>`}${score.average===null?'Sin puntuaciones públicas':'promedio conjunto de fuentes'}</span><span>${score.sourceCount} ${score.sourceCount===1?'fuente':'fuentes'} con puntuaciones</span></div></div><div class="prof-public__header-actions">${link(writingURL(p.slug),`${icon('file-text')} Escribir una reseña`,'button')}<span class="prof-public__help">Tu nombre no se muestra.</span></div></header>
  <nav class="prof-public__section-nav" aria-label="En esta ficha">${link('#resenas','Opiniones y puntuaciones')}${link('#cursos','Cursos')}</nav>
  <div class="prof-public__columns"><div class="prof-public__feed">${profileReviewsSection(data,ratings)}</div>
- <aside class="prof-public__sidebar" aria-label="Información del profesor">${bannerCoursesSection(data.teachingCourses??data.bannerCourses,data.courses)}<section class="prof-public__panel prof-public__about"><h2>Sobre estas opiniones</h2><p>Las reseñas y respuestas de Campus se escriben con una cuenta. El nombre del estudiante es privado.</p><p class="prof-public__muted">El promedio combina las fuentes en escala de 0 a 10; las notas de 1 a 5 se convierten proporcionalmente. Cada opinión indica su fuente.</p></section>
+ <aside class="prof-public__sidebar" aria-label="Información del profesor">${bannerCoursesSection(data.teachingCourses??data.bannerCourses,data.courses,p.role,p.teachingNote)}<section class="prof-public__panel prof-public__about"><h2>Sobre estas opiniones</h2><p>Las reseñas y respuestas de Campus se escriben con una cuenta. El nombre del estudiante es privado.</p><p class="prof-public__muted">El promedio combina las fuentes en escala de 0 a 10; las notas de 1 a 5 se convierten proporcionalmente. Cada opinión indica su fuente.</p></section>
  </aside></div></div>`;
 }
 export function formBody(data,{preview=false}={}){
