@@ -1,6 +1,6 @@
-# Comentarios de usuarios en Profes
+# Comentarios de usuarios en Inicio y Profes
 
-La sección «Campus, en sus palabras» distingue los comentarios sobre Campus de las calificaciones de profesores.
+La sección «Campus, en sus palabras» aparece en Inicio (antes de los planes) y en Profes. Distingue los comentarios sobre Campus de las calificaciones de profesores. El HTML, los estilos y la carga del feed público se comparten entre ambas páginas y sus versiones Markdown.
 
 - El extracto de WhatsApp se comprobó en Kapso mediante consultas de lectura y en su contexto: el usuario agradece la atención y dice que recomendará Campus a sus compañeros. Se conserva el texto original, sin publicar nombre, teléfono, identificadores ni detalles académicos. El mensaje es de agosto de 2026. Se muestra una sola cita de esa conversación.
 - La segunda cita utiliza la primera reseña del feed público `/api/app/blackboard-reviews/?page=1`, sin filtrar por estrellas. El feed existente exige experiencia y consentimiento de publicación. Se valida la respuesta y se inserta con `textContent`; no se publican nombres en esta sección. El enlace lleva a la reseña original.

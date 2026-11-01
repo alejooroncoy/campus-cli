@@ -1,7 +1,9 @@
 ---
 import Base from "../../layouts/Base.astro";
 // Shared with the Markdown route so both formats describe the same page.
-import body from "../../html/profes/index.html?raw";
+import rawBody from "../../html/profes/index.html?raw";
+import { includeCampusFeedback } from "../../lib/campus-feedback";
+const body = includeCampusFeedback(rawBody);
 const title = "Opiniones de profesores UPC por curso | Campus";
 const description = "Consulta opiniones y calificaciones de profesores UPC antes de matricularte. Busca por profesor o curso y revisa las experiencias disponibles.";
 
@@ -138,4 +140,5 @@ const schemas = [
   <script src="../../scripts/profes-motion.ts"></script>
   <link slot="head" rel="stylesheet" href="/campus-landing.css" />
   <link slot="head" rel="stylesheet" href="/campus-profes.css" />
+  <link slot="head" rel="stylesheet" href="/campus-feedback.css" />
 </Base>
