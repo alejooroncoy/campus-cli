@@ -274,6 +274,8 @@ function setupCampusFeedback() {
     const text = root.querySelector<HTMLElement>('[data-feedback-text]');
     const link = root.querySelector<HTMLAnchorElement>('[data-feedback-link]');
     if (!card || !text || !link) return;
+    card.hidden = true;
+    text.textContent = '';
     const controller = new AbortController();
     const stopObserving = inView(root, () => {
       void (async () => {
