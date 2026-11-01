@@ -44,7 +44,7 @@ async function fixture(width,scenario,run){
   if(path==='/api/app/auth/start'){state.auth=url;return route.fulfill({contentType:'text/html',body:'<h1>Fixture login</h1>'});}
   return json({});
  });
- const ask=async()=>{await page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'}).fill('Consulta sintética '+(state.turn+1));await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Sí',exact:true}).waitFor();};
+ const ask=async()=>{await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).fill('Consulta sintética '+(state.turn+1));await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Sí',exact:true}).waitFor();};
  try{await run({page,state,ask});assert.deepEqual(errors,[]);console.log(JSON.stringify({width,scenario,result:'passed'}));}finally{await context.close();}
 }
 try{
@@ -65,7 +65,7 @@ try{
    await card.scrollIntoViewIfNeeded();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    await mkdir('.test-results/agent-recovery',{recursive:true});await page.screenshot({path:`.test-results/agent-recovery/${width}.png`});
    state.failFollowup=true;await card.getByRole('button',{name:'Guardar número y avisarme',exact:true}).click();await card.getByRole('alert').waitFor();assert.equal(state.followups.length,0);
-   assert.equal(await card.getByRole('textbox',{name:'Tu WhatsApp para avisarte cuando lo resolvamos (opcional)'}).inputValue(),'999 999 999');assert.equal(await page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'}).isEnabled(),true);
+   assert.equal(await card.getByRole('textbox',{name:'Tu WhatsApp para avisarte cuando lo resolvamos (opcional)'}).inputValue(),'999 999 999');assert.equal(await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).isEnabled(),true);
    assert.ok(await card.getByRole('link',{name:'Hablar con soporte por WhatsApp'}).isVisible());
    state.failFollowup=false;await card.getByRole('button',{name:'Guardar número y avisarme',exact:true}).click();await card.getByText('Guardamos tu WhatsApp para que el equipo pueda avisarte cuando resuelva este problema.',{exact:true}).waitFor();
    assert.equal(state.followups.length,1);assert.equal(state.followups[0].whatsappPhone,'999 999 999');assert.equal(state.followups[0].whatsappConsent,true);assert.equal(state.auth,null);
@@ -75,7 +75,7 @@ try{
    await ask();assert.equal(await card.count(),0);
    await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Todavía no'}).click();await page.getByText('Gracias por contarnos.',{exact:true}).waitFor();assert.equal(await card.count(),0);
    await ask();await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Sí',exact:true}).click();await card.waitFor();
-   assert.equal(await card.getByRole('checkbox').isChecked(),false);assert.equal(await page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'}).isEnabled(),true);
+   assert.equal(await card.getByRole('checkbox').isChecked(),false);assert.equal(await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).isEnabled(),true);
    await card.scrollIntoViewIfNeeded();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
    await mkdir('.test-results/guest-signup',{recursive:true});await page.screenshot({path:`.test-results/guest-signup/${width}.png`});
    await card.getByRole('button',{name:'Seguir como invitado'}).click();assert.equal(await card.count(),0);

@@ -1469,3 +1469,16 @@
 .app-profes-ai__feedback-option:disabled{opacity:.55;cursor:progress}
 @media(max-width:700px){.app-profes-ai__feedback-option{min-height:44px;padding:8px 18px}}
 @media(max-width:700px){.app-profes-ai:not(.has-messages):has(.app-university-context){padding-top:220px}.app-guest-university{margin-top:8px;margin-bottom:24px}.app-university-context{gap:12px}.app-university-context__change{max-width:76px}}
+
+/* Campu introduces the agent while Campus remains the product and account. */
+.app-profes-ai__campu-intro { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:20px; }
+.app-profes-ai__campu-intro>img { display:block; width:64px; height:64px; flex:none; object-fit:contain; }
+.app-profes-ai__campu-intro>p { margin:0; text-align:left; line-height:1.5; }
+.app-profes-ai__campu-intro strong { display:block; color:var(--app-ink); font-size:17px; font-weight:600; }
+.app-profes-ai__campu-intro span { display:block; color:var(--app-muted); font-size:12px; }
+@media(max-width:620px) {
+ .app-profes-ai__campu-intro { gap:10px; margin-bottom:17px; }
+ .app-profes-ai__campu-intro>img { width:54px; height:54px; }
+ .app-profes-ai__campu-intro strong { font-size:16px; }
+ .app-profes-ai__campu-intro span { font-size:11px; }
+}

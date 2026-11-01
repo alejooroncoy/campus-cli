@@ -1496,7 +1496,7 @@ export default function ProfesChat() {
             {historyContent}
           </div>
         </dialog>
-    <section className={`app-profes-ai${messages.length || currentConversationId ? " has-messages" : ""}${isGuestLimit ? " is-guest-limited" : ""}`} aria-label="Asistente de Campus">
+    <section className={`app-profes-ai${messages.length || currentConversationId ? " has-messages" : ""}${isGuestLimit ? " is-guest-limited" : ""}`} aria-label="Campu, asistente de Campus">
 
       {/* Top Toolbar for Profes */}
       <div className="app-profes-toolbar">
@@ -1563,6 +1563,7 @@ export default function ProfesChat() {
         </div>
       ) : messages.length === 0 ? (
         <div className="app-profes-ai__welcome">
+          <div className="app-profes-ai__campu-intro"><img src="/assets/campu/campu-wave-v2-96.webp" srcSet="/assets/campu/campu-wave-v2-96.webp 96w, /assets/campu/campu-wave-v2-192.webp 192w" sizes="(max-width: 620px) 54px, 64px" width="64" height="64" alt="" /><p><strong>Soy Campu</strong><span>Tu agente de Campus</span></p></div>
           <h1>{studentFirstName ? `Hola, ${studentFirstName}. ¿En qué te ayudo?` : "¿En qué te ayudo hoy?"}</h1>
         </div>
       ) : messages.length > 0 ? (
@@ -1581,7 +1582,7 @@ export default function ProfesChat() {
           {messages.map(message => (
             <article className={`app-profes-ai__message app-profes-ai__message--${message.role}`} key={message.id}>
               {!busy && message.role === "assistant" && message.id === messages.at(-1)?.id && activitySteps.length > 0 ? <ChatActivity steps={activitySteps} busy={false} expanded={activityExpanded} onExpandedChange={setActivityExpanded} /> : null}
-              {message.role === "assistant" ? <span className="app-profes-ai__speaker">Campus</span> : null}
+              {message.role === "assistant" ? <span className="app-profes-ai__speaker">Campu</span> : null}
               {message.role === "assistant" ? (
                 <AssistantMessageContent
                   content={messageText(message)}
@@ -1599,7 +1600,7 @@ export default function ProfesChat() {
           {showUpcHint ? (
             <aside className="app-profes-upc-hint" aria-label="Sugerencia para estudiantes de la UPC">
               <button type="button" className="app-profes-upc-hint__close" aria-label="Cerrar sugerencia" onClick={dismissUpcHint}>×</button>
-              <span className="app-profes-ai__speaker">Campus</span>
+              <span className="app-profes-ai__speaker">Campu</span>
               <strong>Ah, estudias en la UPC. Conecta tu cuenta.</strong>
               <p>Así podré consultar tus cursos y horario oficiales cuando los necesites.</p>
               <a className="app-profes-upc-hint__link" onClick={() => markGuestDraftHandoff()} href={getLoginUrl()}>Iniciar sesión para conectar UPC →</a>
@@ -1716,7 +1717,7 @@ export default function ProfesChat() {
       ) : (
         <div className="app-profes-ai__composer-dock">
           <form className="app-profes-ai__composer" onSubmit={submit}>
-            <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta a Campus</label>
+            <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta a Campu</label>
             <textarea
               id="profes-message"
               autoComplete="off"
@@ -1724,7 +1725,7 @@ export default function ProfesChat() {
               value={input}
               onChange={event => { draftEditedBeforeSession.current = true; setInput(event.target.value); }}
               onKeyDown={onKeyDown}
-              placeholder="Pregunta a Campus…"
+              placeholder="Pregunta a Campu…"
               rows={1}
               maxLength={2000}
               disabled={busy || loadingConversation}

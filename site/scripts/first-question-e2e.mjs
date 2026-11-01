@@ -103,20 +103,20 @@ try {
       if(choice.code==='UP') {
         assert.equal(await page.getByRole('radio').count(),2);
         assert.equal(await continueButton.isDisabled(),true);
-        assert.equal(requests.length,0);assert.equal(await page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'}).count(),0);
+        assert.equal(requests.length,0);assert.equal(await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).count(),0);
         if(choice.country==='Argentina')await page.screenshot({path:`.test-results/first-question/up-search-${width}.png`,fullPage:true});
         await page.getByLabel('Busca o elige tu universidad').fill(choice.name);
       }
     }
     await radio.check();
-    assert.equal(await page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'}).count(),0,'Selecting a row waits for the same explicit continue action');
+    assert.equal(await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).count(),0,'Selecting a row waits for the same explicit continue action');
     if(choice.country)await radio.locator('..').getByText('UP · '+choice.country,{exact:true}).waitFor();
     await continueButton.click();
     await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
     if(choice.code==='UP')await page.getByRole('button',{name:new RegExp(choice.name+' · '+choice.country)}).waitFor();
     await page.reload();
     await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
-    await page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'}).fill('Opiniones de profesores');
+    await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).fill('Opiniones de profesores');
     await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();
     await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
     assert.equal(requests.length,1);assert.equal(requests[0].universityId,choice.id);
@@ -149,7 +149,7 @@ try {
    });
   }
   await fixture(width,'typed questions are preserved and hide examples',async({page,requests,events,enter})=>{
-   await enter();const input=page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'});
+   await enter();const input=page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'});
    await input.fill('Mi consulta propia');assert.equal(await page.getByRole('group',{name:'Ideas para empezar'}).count(),0);
    await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();
    await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
@@ -220,7 +220,7 @@ try {
   await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
   assert.equal(await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).count(),0);
-  await page.getByRole('textbox',{name:'Escribe tu pregunta a Campus'}).fill('Consulta de prueba para otra universidad');
+  await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).fill('Consulta de prueba para otra universidad');
   await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();
   await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
   assert.equal(requests.length,2);assert.equal(requests[1].universityId,25);assert.ok(!requests[1].conversationId);

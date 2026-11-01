@@ -1,0 +1,27 @@
+{
+  "mode": "builtin image_gen edit; precise-object-edit",
+  "reference": "public/assets/campu/campu-wave-v2-960.webp",
+  "prompt": "Use case: precise-object-edit.\nAsset type: transparent raster animation clean plate for the existing Campu agent.\nEdit target: the attached Campu image. Make exactly two localized removals ONLY: (1) remove both dark oval eyes and their highlights, smoothly reconstructing the cyan-blue skin and its existing local lighting beneath them, and (2) remove the raised arm on the viewer's RIGHT, smoothly completing the round body contour where the arm joins. Keep the lowered arm on the viewer's LEFT.\nThis is a registered animation layer, NOT a new illustration. Preserve the exact canvas, subject scale, pixel placement, round body silhouette everywhere except the removed right arm, smile and its precise position, feet, left lowered arm, lighting, shadows, color gradients, texture, surface finish, and transparent margins. Do not recenter, rotate, enlarge, reinterpret, redesign, change perspective, add features, or change the smile. The result is the SAME cyan character with a small friendly mouth, NO eyes, and NO raised right arm; the original eyes and raised arm will be overlaid as separate animated raster layers in code. Do not add replacement eyelids, closed eyes, eye sockets, eyelashes, eyebrows, holes, dimples, new arms, accessories, ground, backdrop, or text. Genuine transparent alpha background, preserve original transparency. Square composition identical to input.",
+  "generatedSource": "/Users/USER/.codex/generated_images/01a196f1-13e4-7621-a382-bad3f61afb7c/exec-01c1ca1f-3687-4f78-bfda-e2ab1ffc6da9.png",
+  "outputs": [
+    {
+      "path": "public/assets/campu/campu-body-v3-192.webp",
+      "width": 192,
+      "height": 192,
+      "format": "WebP with alpha"
+    },
+    {
+      "path": "public/assets/campu/campu-body-v3-480.webp",
+      "width": 480,
+      "height": 480,
+      "format": "WebP with alpha"
+    },
+    {
+      "path": "public/assets/campu/campu-body-v3-960.webp",
+      "width": 960,
+      "height": 960,
+      "format": "WebP with alpha"
+    }
+  ],
+  "composition": "Clean body plate, with eye and waving arm layers clipped from original responsive raster image. Motion animates scaleY of the eyes and shoulder rotation independently."
+}
