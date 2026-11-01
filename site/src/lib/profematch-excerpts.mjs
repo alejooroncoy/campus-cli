@@ -18,6 +18,19 @@ export function courseSourceRatings(course,ratings=[]){
 }
 
 /** Comentarios válidos del snapshot por slug, para decidir el sitemap sin abrir cada ficha. */
+/** Comentarios del snapshot por ficha y fuente («slug|sourceId»): una fuente ya sincronizada no los usa. */
+export function profeMatchSourceCommentCounts(minChars=0,profiles=corpus.profiles){
+ const counts=new Map();
+ for(const record of profiles){
+  if(!record||typeof record.professorSlug!=='string'||!Array.isArray(record.comments)||!Number.isFinite(Date.parse(record.observedAt)))continue;
+  const key=`${record.professorSlug}|${record.sourceId}`,seen=new Set();
+  for(const c of record.comments){
+   if(typeof c.text!=='string'||c.text.trim().length<minChars||c.truncated!==false||c.sourceUrl!==record.sourceUrl||!/^\w{20}$/.test(c.id)||seen.has(c.id)||!Number.isInteger(c.rating)||c.rating<1||c.rating>5)continue;
+   seen.add(c.id);counts.set(key,(counts.get(key)??0)+1);
+  }
+ }
+ return counts;
+}
 export function profeMatchCommentCounts(minChars=0,profiles=corpus.profiles){
  const counts=new Map();
  for(const record of profiles){

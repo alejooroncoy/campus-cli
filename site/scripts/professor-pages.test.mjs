@@ -282,6 +282,17 @@ test('el sitemap suma las fuentes y no lista fichas que la propia ficha dejaría
  assert.deepEqual(indexableProfessors(rows,{counts,minComments:1}).map(p=>p.slug),['dos-comentarios','uno-solo','suma-fuentes','profematch-sin-vinculo']);
 });
 
+test('una fuente de ProfeMatch ya sincronizada cuenta lo guardado, aunque el snapshot tenga más',async()=>{
+ const {indexableProfessors}=await import('../api/professors.js');
+ const sourceCounts=new Map([['vacia-en-vivo|17',5],['sin-sincronizar|30',2]]);
+ const rows=[
+  {slug:'vacia-en-vivo',comments:0,profematch:true,profematch_sources:[{sourceId:'17',synced:true,comments:0}]},
+  {slug:'sin-sincronizar',comments:0,profematch:true,profematch_sources:[{sourceId:'30',synced:false,comments:0}]},
+  {slug:'en-vivo-suficiente',comments:1,profematch:true,profematch_sources:[{sourceId:'9',synced:true,comments:1}]},
+ ];
+ assert.deepEqual(indexableProfessors(rows,{counts:new Map([['vacia-en-vivo',5]]),sourceCounts}).map(p=>p.slug),['sin-sincronizar','en-vivo-suficiente']);
+});
+
 test('la ficha sale con noindex o index según sus comentarios, y el sitemap lista solo las indexables',async()=>{
  const {professorsPage}=await import('../api/professors.js');
  const template='<title>__CAMPUS_PUBLIC_TITLE__</title><meta name="description" content="__CAMPUS_PUBLIC_DESCRIPTION__"><link rel="canonical" href="__CAMPUS_PUBLIC_CANONICAL__"><meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"><body>__CAMPUS_PUBLIC_BODY__</body></head>';

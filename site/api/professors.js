@@ -1,6 +1,6 @@
 import {readFile} from 'node:fs/promises';
 import {validSlug,professorPath,directoryBody,profileBody,formBody,renderPublicPage,reviewCard,isIndexableProfile,profileSEO,INDEXABLE_MIN_COMMENTS,SUBSTANTIVE_COMMENT_CHARS} from '../src/lib/professor-pages.mjs';
-import {profeMatchCommentCounts} from '../src/lib/profematch-excerpts.mjs';
+import {profeMatchCommentCounts,profeMatchSourceCommentCounts} from '../src/lib/profematch-excerpts.mjs';
 const origin='https://campuscli.com';
 export async function professorsPage(request,{fetchData=fetch,loadTemplate=()=>readFile(new URL('../.generated/professors.html',import.meta.url),'utf8'),preview=false}={}){
  const url=new URL(request.url),path=(url.searchParams.get('route')||url.pathname).replace(/\/?$/,url.pathname.endsWith('.xml')||url.searchParams.get('route')?.endsWith('.xml')?'':'/');
@@ -59,7 +59,17 @@ export async function professorsPage(request,{fetchData=fetch,loadTemplate=()=>r
 }
 export default {fetch:professorsPage};
 
-/** Fichas que el sitio indexaría: comentarios del backend más los del snapshot de ProfeMatch, si su ficha está vinculada. */
-export function indexableProfessors(rows=[],{minComments=INDEXABLE_MIN_COMMENTS,counts=profeMatchCommentCounts(SUBSTANTIVE_COMMENT_CHARS)}={}){
- return rows.filter(p=>validSlug(p.slug)&&Number(p.comments??0)+(p.profematch?counts.get(p.slug)??0:0)>=minComments);
+/**
+ * Fichas que el sitio indexaría, con los mismos comentarios que mostraría la ficha: los del backend más
+ * los de ProfeMatch. Una fuente ya sincronizada cuenta lo guardado (aunque sea cero), como hace
+ * withProfeMatchSnapshots; si no, cuenta el snapshot de esa fuente. Sin el detalle por fuente (backend
+ * anterior) se usa el snapshot de la ficha.
+ */
+export function indexableProfessors(rows=[],{minComments=INDEXABLE_MIN_COMMENTS,counts=profeMatchCommentCounts(SUBSTANTIVE_COMMENT_CHARS),sourceCounts=profeMatchSourceCommentCounts(SUBSTANTIVE_COMMENT_CHARS)}={}){
+ const profeMatch=p=>{
+  if(!p.profematch)return 0;
+  if(!Array.isArray(p.profematch_sources)||!p.profematch_sources.length)return counts.get(p.slug)??0;
+  return p.profematch_sources.reduce((sum,s)=>sum+(s?.synced?Math.max(0,Number(s.comments)||0):sourceCounts.get(`${p.slug}|${s?.sourceId}`)??0),0);
+ };
+ return rows.filter(p=>validSlug(p.slug)&&Number(p.comments??0)+profeMatch(p)>=minComments);
 }
