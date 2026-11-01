@@ -169,6 +169,15 @@ test('un instructor clínico sin cursos dice que no da clases, en vez de que fal
  assert.doesNotMatch(bannerCoursesSection([{source:'banner',term:'202610',code:'1AME0001',name:'Anatomía'}],[],'clinical_instructor'),/instructor clínico/);
 });
 
+test('sin cursos publicados, la nota revisada dice qué enseña y se escapa',async()=>{
+ const {bannerCoursesSection}=await import('../src/lib/professor-pages.mjs');
+ const html=bannerCoursesSection([],[],null,'Enseña violonchelo en la carrera de Música. <b>x</b>');
+ assert.match(html,/Enseña violonchelo en la carrera de Música\./);
+ assert.doesNotMatch(html,/<b>x<\/b>|Aún no hay cursos/);
+ assert.match(bannerCoursesSection([],[],null,'   '),/Aún no hay cursos asociados/);
+ assert.doesNotMatch(bannerCoursesSection([{source:'banner',term:'202610',code:'1AMS0197',name:'Taller de Instrumento I'}],[],null,'Enseña violonchelo'),/Enseña violonchelo/);
+});
+
 test('con varios programas la ficha muestra pestañas, y todo el texto sigue en el HTML',async()=>{
  const {bannerCoursesSection,teachingPrograms}=await import('../src/lib/professor-pages.mjs');
  const courses=[

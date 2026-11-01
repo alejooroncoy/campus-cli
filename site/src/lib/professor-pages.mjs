@@ -148,7 +148,7 @@ function programPanelHTML(groups){
  const olderHTML=older.length?`<details class="prof-public__catalog-details prof-public__older-terms"><summary>Ciclos anteriores (${older.length})${icon('arrow-down')}</summary>${older.map(termGroupHTML).join('')}</details>`:'';
  return recent.map(termGroupHTML).join('')+olderHTML;
 }
-export function bannerCoursesSection(teachingCourses,catalogCourses=[],role=null){
+export function bannerCoursesSection(teachingCourses,catalogCourses=[],role=null,note=null){
  const programs=new Map(),used=new Set(),seen=new Set();
  for(const course of teachingCourses??[]){
   const period=teachingTermInfo(course),key=[course.source??'banner',course.term,course.code,course.sourceUrl??''].join('|');
@@ -171,7 +171,7 @@ export function bannerCoursesSection(teachingCourses,catalogCourses=[],role=null
  const other=(catalogCourses??[]).filter(course=>!((course.code&&used.has(String(course.code).toLowerCase()))||(!course.code&&(teachingCourses??[]).some(b=>normalizeLabel(b.name)===normalizeLabel(course.name)))));
  const otherHTML=other.length?`<details class="prof-public__catalog-details"><summary>Otros cursos asociados${icon('arrow-down')}</summary><p class="prof-public__help">La fuente no indica el ciclo de estos cursos.</p><ul class="prof-public__courses">${other.map(course=>`<li><strong>${e(course.name)}</strong>${course.code?`<small>${e(course.code)}</small>`:''}</li>`).join('')}</ul></details>`:'';
  const unavailable=!Array.isArray(teachingCourses),empty=!content&&!otherHTML;
- return `<section id="cursos" class="prof-public__panel prof-public__banner-courses"><h2>${icon('book-open')} Cursos</h2>${content?`<p class="prof-public__help">Mostramos el código y el ciclo cuando la fuente los publica.</p>${content}`:''}${otherHTML}${empty?`<p class="prof-public__help">${unavailable?'No pudimos cargar los cursos de este profesor.':role==='clinical_instructor'?'No da clases, pero es instructor clínico de Medicina: acompaña a los estudiantes en sus prácticas en hospital.':'Aún no hay cursos asociados a este profesor.'}</p>`:''}</section>`;
+ return `<section id="cursos" class="prof-public__panel prof-public__banner-courses"><h2>${icon('book-open')} Cursos</h2>${content?`<p class="prof-public__help">Mostramos el código y el ciclo cuando la fuente los publica.</p>${content}`:''}${otherHTML}${empty?`<p class="prof-public__help">${unavailable?'No pudimos cargar los cursos de este profesor.':role==='clinical_instructor'?'No da clases, pero es instructor clínico de Medicina: acompaña a los estudiantes en sus prácticas en hospital.':String(note??'').trim()?e(String(note).trim()):'Aún no hay cursos asociados a este profesor.'}</p>`:''}</section>`;
 }
 const normalizeLabel=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 
@@ -289,7 +289,7 @@ export function profileBody(data){
  <header class="prof-public__profile-header"><div><p class="prof-public__eyebrow">Profesor · UPC</p><h1>${e(p.name)}</h1><p class="prof-public__muted">Experiencias de estudiantes para elegir mejor.</p>${(()=>{const programs=teachingPrograms(data.teachingCourses??data.bannerCourses);return programs.length?`<ul class="prof-public__programs" aria-label="Programas en los que enseña">${programs.map(name=>`<li>${e(name)}</li>`).join('')}</ul>`:'';})()}<div class="prof-public__summary"><span>${score.average===null?icon('star'):`${starRow(score.average)} <strong>${e(displayScore(score.average))}/10</strong>`}${score.average===null?'Sin puntuaciones públicas':'promedio conjunto de fuentes'}</span><span>${score.sourceCount} ${score.sourceCount===1?'fuente':'fuentes'} con puntuaciones</span></div></div><div class="prof-public__header-actions">${link(writingURL(p.slug),`${icon('file-text')} Escribir una reseña`,'button')}<span class="prof-public__help">Tu nombre no se muestra.</span></div></header>
  <nav class="prof-public__section-nav" aria-label="En esta ficha">${link('#resenas','Opiniones y puntuaciones')}${link('#cursos','Cursos')}</nav>
  <div class="prof-public__columns"><div class="prof-public__feed">${profileReviewsSection(data,ratings)}</div>
- <aside class="prof-public__sidebar" aria-label="Información del profesor">${bannerCoursesSection(data.teachingCourses??data.bannerCourses,data.courses,p.role)}<section class="prof-public__panel prof-public__about"><h2>Sobre estas opiniones</h2><p>Las reseñas y respuestas de Campus se escriben con una cuenta. El nombre del estudiante es privado.</p><p class="prof-public__muted">El promedio combina las fuentes en escala de 0 a 10; las notas de 1 a 5 se convierten proporcionalmente. Cada opinión indica su fuente.</p></section>
+ <aside class="prof-public__sidebar" aria-label="Información del profesor">${bannerCoursesSection(data.teachingCourses??data.bannerCourses,data.courses,p.role,p.teachingNote)}<section class="prof-public__panel prof-public__about"><h2>Sobre estas opiniones</h2><p>Las reseñas y respuestas de Campus se escriben con una cuenta. El nombre del estudiante es privado.</p><p class="prof-public__muted">El promedio combina las fuentes en escala de 0 a 10; las notas de 1 a 5 se convierten proporcionalmente. Cada opinión indica su fuente.</p></section>
  </aside></div></div>`;
 }
 export function formBody(data,{preview=false}={}){
