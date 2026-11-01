@@ -1,0 +1,32 @@
+{
+  "mode": "builtin image_gen edit; identity-preserve",
+  "reference": "public/assets/campu-avatar.webp",
+  "prompt": "Use case: identity-preserve. Edit target/reference image: the attached existing Campu mascot. Create a high-resolution, production-ready raster version of EXACTLY this same mascot, preserving its identity and cheerful waving pose. Keep its round cyan-blue squishy body, small left arm extending down-left, raised right arm waving, two tiny feet, shiny dark oval eyes with small white highlights, small curved friendly smile, proportions, facial placement, and soft tactile 3D finish. Improve edge quality and fine material detail so it can be displayed clearly at up to 480 CSS pixels on a website. Full-body view, centered, square composition, complete silhouette entirely within the image with roughly 10 percent clear margins. Genuine transparent background (alpha), no colored background, no floor or cast shadow outside the character, no card, no backdrop, no text, no logos, no accessories, no added features, no altered expression or pose. Keep the original character, not a reinterpretation, and do not turn it into a flat vector illustration.",
+  "generatedSource": "/Users/USER/.codex/generated_images/01a196f1-13e4-7621-a382-bad3f61afb7c/exec-93693b91-f635-4dd7-a4d8-7ca9e5df74b3.png",
+  "outputs": [
+    {
+      "path": "public/assets/campu/campu-wave-v2-96.webp",
+      "width": 96,
+      "height": 96,
+      "format": "WebP with alpha"
+    },
+    {
+      "path": "public/assets/campu/campu-wave-v2-192.webp",
+      "width": 192,
+      "height": 192,
+      "format": "WebP with alpha"
+    },
+    {
+      "path": "public/assets/campu/campu-wave-v2-480.webp",
+      "width": 480,
+      "height": 480,
+      "format": "WebP with alpha"
+    },
+    {
+      "path": "public/assets/campu/campu-wave-v2-960.webp",
+      "width": 960,
+      "height": 960,
+      "format": "WebP with alpha"
+    }
+  ]
+}

@@ -10,7 +10,7 @@ export const GET: APIRoute = () => {
   const markdown = [
     "# Opiniones de profesores UPC por curso",
     "",
-    "> Consulta calificaciones y comentarios de estudiantes UPC. Busca por profesor o curso desde el asistente web de Campus.",
+    "> Consulta calificaciones y comentarios de estudiantes UPC. Busca por profesor o curso en el catálogo de Campus.",
     "",
     "Fuente: https://campuscli.com/profes/",
     "",

@@ -1,6 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
-// Kept as raw html so the markup that is already indexed ships byte for byte.
+// Shared with the Markdown route so both formats describe the same page.
 import body from "../../html/profes/index.html?raw";
 const title = "Opiniones de profesores UPC por curso | Campus";
 const description = "Consulta opiniones y calificaciones de profesores UPC antes de matricularte. Busca por profesor o curso y revisa las experiencias disponibles.";
@@ -31,7 +31,7 @@ const schemas = [
       {
         "@type": "ListItem",
         "position": 2,
-        "name": "Campus",
+        "name": "Profesores",
         "item": "https://campuscli.com/profes/"
       }
     ]
@@ -40,7 +40,7 @@ const schemas = [
     "@context": "https://schema.org",
     "@type": "Service",
     "@id": "https://campuscli.com/profes/#service",
-    "name": "Campus",
+    "name": "Opiniones de profesores UPC",
     "serviceType": "Comparación de profesores universitarios",
     "areaServed": "PE",
     "url": "https://campuscli.com/profes/",
@@ -65,42 +65,10 @@ const schemas = [
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "¿Es lo mismo que Campus para Blackboard?",
+        "name": "¿Quién es Campu?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Las opiniones de profesores son una función de Campus, con el mismo plan que tu asistente web y conector MCP. La conexión a Blackboard te acompaña durante el ciclo con cursos, tareas, notas y anuncios."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿De dónde salen las calificaciones y comentarios?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "De alumnos que usan Campus: califican después de llevar un curso con ese profesor, y esa información queda disponible para quien pregunte después."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Cuesta algo?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Puedes empezar con Campus Free: reseñas, panel y 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web e ilimitadas por MCP. Consulta los precios y condiciones en los planes de Campus."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Cómo evitan reseñas falsas?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Cada calificación queda asociada a quien la escribió y se moderan activamente los reportes de abuso. No se muestran reseñas de cuentas sin actividad real."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Qué universidades o profesores tiene?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "El asistente está disponible inicialmente para UPC. Las opiniones dependen de las reseñas disponibles; puedes aportar tu experiencia desde tu cuenta Campus."
+          "text": "Campu es el agente de Campus. Puedes conversar con él para buscar profesores y consultar las opiniones disponibles de otros estudiantes. Durante el ciclo también puedes usar las funciones de Campus que incluya tu plan."
         }
       },
       {
@@ -108,7 +76,47 @@ const schemas = [
         "name": "¿Puedo buscar profesores de UPC?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Sí. Escribe el nombre del curso o del profesor de UPC que buscas y Campus te muestra la información disponible para comparar antes de matricularte."
+          "text": "Sí. Busca por nombre, apellido o curso en el catálogo de profesores UPC. Cada ficha reúne los cursos y las opiniones disponibles."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿De dónde salen las calificaciones y comentarios?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Las fichas reúnen opiniones compartidas en Campus y las fuentes externas disponibles. Cada opinión indica su origen. Las puntuaciones se muestran en una escala común de 0 a 10; las notas de 1 a 5 se convierten proporcionalmente."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuesta algo?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Puedes explorar las fichas y leer opiniones desde esta web. Campus Free también incluye acceso al panel y 25 consultas de bienvenida en el asistente. Las consultas de bienvenida no se renuevan cada mes."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo evitan reseñas falsas?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Para escribir en Campus necesitas una cuenta y declarar qué curso llevaste. Esto identifica a quien escribe, pero no verifica por sí solo su experiencia. Cada reseña es una opinión personal: lee varias y revisa su fuente antes de elegir."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Puedo compartir mi experiencia?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí. Busca al profesor, entra a su ficha y elige escribir una reseña. Inicia sesión con tu cuenta Campus para compartirla. Tu nombre no se muestra en la reseña."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Es lo mismo que Campus para Blackboard?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Es parte de Campus. Aquí puedes explorar opiniones de profesores; con Campus Plus también puedes conectar Blackboard a tu IA para consultar tus cursos, tareas, notas y materiales."
         }
       }
     ]
@@ -123,9 +131,11 @@ const schemas = [
   ogTitle={title}
   ogDescription={description}
   markdownUrl={"https://campuscli.com/profes/index.md"}
-  ogImageAlt={"Campus: calificaciones y horarios de profesores en la web"}
+  ogImageAlt={"Campus: opiniones de profesores UPC por curso"}
   schemas={schemas}
 >
   <Fragment set:html={body} />
+  <script src="../../scripts/profes-motion.ts"></script>
+  <link slot="head" rel="stylesheet" href="/campus-landing.css" />
   <link slot="head" rel="stylesheet" href="/campus-profes.css" />
 </Base>

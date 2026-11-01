@@ -3,13 +3,15 @@
 // NO almacenar en caché datos privados de consultas, notas, profesores ni respuestas de la API.
 // Solo cachea recursos estáticos del shell y el formulario vacío de Biblioteca.
 
-const CACHE_NAME = "campus-shell-v16";
+const CACHE_NAME = "campus-shell-v17";
 const STATIC_ASSETS = [
   "/app-dashboard.css?v=25",
-  "/profes-chat.css?v=25",
+  "/profes-chat.css?v=26",
   "/assets/fonts/GoogleSansFlex-Regular.woff2",
   "/assets/fonts/GoogleSansFlex-SemiBold.woff2",
   "/assets/campus-logo.webp",
+  "/assets/campu/campu-wave-v2-96.webp",
+  "/assets/campu/campu-wave-v2-192.webp",
   "/assets/lucide.svg",
   "/assets/lucide.svg?v=3",
   "/favicon.svg",

@@ -1,0 +1,55 @@
+{
+  "generator": "Built-in image_gen",
+  "purpose": "Original three-part editorial illustration series for the Campus Profes how-it-works section.",
+  "references": [
+    {
+      "name": "Zipline — How It Works",
+      "url": "https://mobbin.com/sites/sections/7b0ca7a7-caf2-42a6-b315-53b86c8cd190"
+    },
+    {
+      "name": "Braintrust — How it works",
+      "url": "https://mobbin.com/sites/sections/3269321e-bdad-48fc-a49b-c1126a3fed77"
+    }
+  ],
+  "assets": [
+    {
+      "name": "profes-encuentra-v1",
+      "prompt": "Use case: stylized-concept. Asset type: landscape editorial illustration for the first of three matching feature cards on Campus, a university professor discovery website. Primary request: a young adult university student finding a professor for a course. Scene: a carefully art-directed miniature university study scene, a student seated at a simple desk using an open laptop, three small floating professor profile cards with abstract portrait shapes and short blank embossed bars, one card gently highlighted by a translucent sky-blue magnifying lens. Make this a complete visual scene, not an isolated icon. Style: sophisticated tactile 3D editorial illustration, sculpted matte clay and folded ivory paper, soft ceramic forms and subtle translucent acrylic accents. Friendly, human, contemporary, premium craft. Color palette: Campus deep navy #112633, sky blue #17b6e7, ivory, soft powder blue; solid very pale blue #e6f3f8 studio backdrop, no border. Composition: landscape 3:2, orthographic three-quarter view, compact sculptural arrangement in the central 75 percent of the frame, clear readable silhouette, generous 10 percent safety margins, beautiful subtle contact shadows, eye-level slightly elevated camera. Lighting: large soft studio daylight from upper left, gentle ambient occlusion, refined material texture, crisp detail. The student is an adult with warm medium skin, dark hair, navy and ivory casual clothing, simplified expressive face. No readable text, letters, numbers, logos, watermarks or UI screenshots. No excessive decorative symbols, no photorealism, no glossy plastic, no harsh outlines. This is a coherent university illustration series, keep the style and camera consistent.",
+      "outputs": [
+        "public/assets/profes/profes-encuentra-v1.webp",
+        "public/assets/profes/profes-encuentra-v1-640.webp"
+      ],
+      "source_sha256": "feb54f367a01fa5df770acf3dadc09ad10a289cb9844c75908975ad9604dcaef",
+      "native_dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "name": "profes-compara-v1",
+      "prompt": "Use case: stylized-concept. Asset type: landscape editorial illustration for the second of three matching feature cards on Campus, a university professor discovery website. Primary request: university students comparing experiences of a class before choosing a professor. Scene: a carefully art-directed miniature university study scene with two young adult students side by side at a small table, thoughtfully discussing an open notebook, with two sculptural ivory paper speech bubbles above them containing only small embossed abstract lines, a few class note sheets fanned on the table. Make the discussion and shared perspectives easy to understand, a complete visual scene rather than an isolated icon. Style: sophisticated tactile 3D editorial illustration, sculpted matte clay and folded ivory paper, soft ceramic forms and subtle translucent acrylic accents. Friendly, human, contemporary, premium craft. Color palette: Campus deep navy #112633, sky blue #17b6e7, ivory and muted lilac accents; solid very pale lilac #eeecf6 studio backdrop, no border. Composition: landscape 3:2, orthographic three-quarter view, compact sculptural arrangement in the central 75 percent of the frame, clear readable silhouettes, generous 10 percent safety margins, beautiful subtle contact shadows, eye-level slightly elevated camera. Lighting: large soft studio daylight from upper left, gentle ambient occlusion, refined material texture, crisp detail. The students are adults with warm varied medium skin tones, dark hair, navy, ivory and muted blue casual clothing, simplified expressive faces. No readable text, letters, numbers, logos, watermarks or UI screenshots. No excessive decorative symbols, no photorealism, no glossy plastic, no harsh outlines. This is a coherent university illustration series, keep the style and camera consistent.",
+      "outputs": [
+        "public/assets/profes/profes-compara-v1.webp",
+        "public/assets/profes/profes-compara-v1-640.webp"
+      ],
+      "source_sha256": "5b8bb9e111aedefcc4171266585ac2ba2a6489f114c1fd9deee47217df815b7b",
+      "native_dimensions": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "name": "profes-comparte-v1",
+      "prompt": "Use case: stylized-concept. Asset type: landscape editorial illustration for the third of three matching feature cards on Campus, a university professor discovery website. Primary request: an experienced university student sharing a helpful course review with the next student. Scene: a carefully art-directed miniature university study scene with two young adult students, one standing on the left warmly passing a sculptural ivory paper review card to another on the right who receives it, a small neat stack of course notebooks between them, the shared card has an embossed speech bubble and abstract short lines but no writing. The handoff is the focus: generosity, community, practical help. Make this a complete visual scene rather than an isolated icon. Style: sophisticated tactile 3D editorial illustration, sculpted matte clay and folded ivory paper, soft ceramic forms and subtle translucent acrylic accents. Friendly, human, contemporary, premium craft. Color palette: Campus deep navy #112633, sky blue #17b6e7, ivory and soft mint green accents; solid very pale mint #e7f2eb studio backdrop, no border. Composition: landscape 3:2, orthographic three-quarter view, compact sculptural arrangement in the central 75 percent of the frame, clear readable silhouettes, generous 10 percent safety margins, beautiful subtle contact shadows, eye-level slightly elevated camera. Lighting: large soft studio daylight from upper left, gentle ambient occlusion, refined material texture, crisp detail. The students are adults with warm varied medium skin tones, dark hair, navy, ivory and muted teal casual clothing, simplified expressive faces. No readable text, letters, numbers, logos, watermarks or UI screenshots. No excessive decorative symbols, no photorealism, no glossy plastic, no harsh outlines. This is a coherent university illustration series, keep the style and camera consistent.",
+      "outputs": [
+        "public/assets/profes/profes-comparte-v1.webp",
+        "public/assets/profes/profes-comparte-v1-640.webp"
+      ],
+      "source_sha256": "6617b821a7c8546f44a30b6174f36bfbe9a2d2453c96aa8819dade9e57505511",
+      "native_dimensions": [
+        1536,
+        1024
+      ]
+    }
+  ]
+}
