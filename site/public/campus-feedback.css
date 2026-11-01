@@ -1,0 +1,26 @@
+/* Real product feedback, kept separate from professor ratings. */
+.campus-feedback { padding-top:70px; }
+.campus-feedback__heading { display:flex; align-items:flex-end; justify-content:space-between; gap:25px; margin-bottom:34px; }
+.campus-feedback__heading .cp-kicker { margin-bottom:16px; }
+.campus-landing .campus-feedback h2 { font-size:clamp(32px,3.2vw,42px); letter-spacing:-1.5px; margin:0; }
+.campus-feedback__heading>a { flex:none; min-height:44px; font-size:13px; }
+.campus-feedback__quotes { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:36px; }
+.campus-feedback__quote { display:flex; flex-direction:column; min-width:0; margin:0; padding:28px 0 0; border-top:1px solid #c4dce6; }
+.campus-feedback__quote[hidden] { display:none; }
+.campus-feedback__source { color:#38778d; font-size:9px; font-weight:600; letter-spacing:1.3px; }
+.campus-feedback blockquote { margin:18px 0 25px; }
+.campus-feedback blockquote p { max-width:590px; margin:0; color:var(--ink); font-size:clamp(22px,2.15vw,28px); line-height:1.45; letter-spacing:-.6px; }
+.campus-feedback figcaption { display:grid; gap:5px; margin-top:auto; color:var(--muted); font-size:11px; line-height:1.65; }
+.campus-feedback figcaption strong { color:var(--ink); font-size:13px; font-weight:600; }
+.campus-feedback figcaption a { width:fit-content; text-decoration:underline; text-underline-offset:3px; }
+@media(max-width:760px) {
+ .campus-feedback { padding-top:48px; }
+ .campus-feedback__heading { display:block; margin-bottom:22px; }
+ .campus-feedback__heading>a { margin-top:15px; }
+ .campus-feedback__quotes { grid-template-columns:1fr; gap:30px; }
+ .campus-feedback__quote { padding-top:23px; }
+ .campus-feedback blockquote p { font-size:24px; }
+ .campus-feedback figcaption { font-size:12px; }
+}
+
+.cp-start + .campus-feedback { padding-top:0; }

@@ -3,7 +3,8 @@ import Base from "../layouts/Base.astro";
 // Shared with the Markdown route so public plan details stay consistent.
 import rawBody from "../html/index.html?raw";
 import { publicHomeHtml } from "../../feature-flags.mjs";
-const body = publicHomeHtml(rawBody);
+import { includeCampusFeedback } from "../lib/campus-feedback";
+const body = includeCampusFeedback(publicHomeHtml(rawBody));
 const title = "Campus UPC: profesores, notas y Blackboard con IA";
 const description = "Compara reseñas de profesores UPC y conecta Blackboard con tu IA para consultar tareas, notas y materiales. Prueba Campus gratis.";
 
@@ -148,5 +149,7 @@ const schemas = [
   <Fragment set:html={body} />
   <link slot="head" rel="stylesheet" href="/campus-research.css" />
   <script src="../scripts/landing-demo.ts"></script>
+  <script src="../scripts/campus-feedback.ts"></script>
+  <link slot="head" rel="stylesheet" href="/campus-feedback.css" />
   <link slot="head" rel="stylesheet" href="/campus-landing.css" />
 </Base>

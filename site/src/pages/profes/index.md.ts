@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
-import body from "../../html/profes/index.html?raw";
+import rawBody from "../../html/profes/index.html?raw";
+import { includeCampusFeedback } from "../../lib/campus-feedback";
+const body = includeCampusFeedback(rawBody);
 import { htmlToMarkdown } from "../../lib/html-to-markdown";
 
 /**
