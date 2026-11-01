@@ -160,6 +160,15 @@ test('Banner EPE and syllabus periods remain distinct and source URLs are restri
  assert.doesNotMatch(html,/javascript:|evil\.test|Ciclo 202615|Ciclo 202601/);
 });
 
+test('un instructor clínico sin cursos dice que no da clases, en vez de que faltan cursos',async()=>{
+ const {bannerCoursesSection}=await import('../src/lib/professor-pages.mjs');
+ const html=bannerCoursesSection([],[],'clinical_instructor');
+ assert.match(html,/No da clases, pero es instructor clínico de Medicina/);
+ assert.doesNotMatch(html,/Aún no hay cursos/);
+ assert.match(bannerCoursesSection([],[]),/Aún no hay cursos asociados/);
+ assert.doesNotMatch(bannerCoursesSection([{source:'banner',term:'202610',code:'1AME0001',name:'Anatomía'}],[],'clinical_instructor'),/instructor clínico/);
+});
+
 test('con varios programas la ficha muestra pestañas, y todo el texto sigue en el HTML',async()=>{
  const {bannerCoursesSection,teachingPrograms}=await import('../src/lib/professor-pages.mjs');
  const courses=[
