@@ -160,6 +160,13 @@ test('Banner EPE and syllabus periods remain distinct and source URLs are restri
  assert.doesNotMatch(html,/javascript:|evil\.test|Ciclo 202615|Ciclo 202601/);
 });
 
+test('sin código (EDGE0000), dos cursos del mismo periodo se distinguen por el nombre',async()=>{
+ const {bannerCoursesSection}=await import('../src/lib/professor-pages.mjs');
+ const url='https://banner.upc.edu.pe/StudentRegistrationSsb/ssb/classSearch/classSearch';
+ const html=bannerCoursesSection([{source:'banner',term:'202690',code:null,name:'Train the trainers',sourceUrl:url},{source:'banner',term:'202690',code:null,name:'TRAIN THE TRAINERS NIVEL I',sourceUrl:url},{source:'banner',term:'202690',code:null,name:'Train the trainers',sourceUrl:url}]);
+ assert.equal((html.match(/data-teaching-source=/g)||[]).length,2);
+});
+
 test('un instructor clínico sin cursos dice que no da clases, en vez de que faltan cursos',async()=>{
  const {bannerCoursesSection}=await import('../src/lib/professor-pages.mjs');
  const html=bannerCoursesSection([],[],'clinical_instructor');

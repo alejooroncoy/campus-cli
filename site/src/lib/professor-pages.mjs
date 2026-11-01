@@ -151,7 +151,7 @@ function programPanelHTML(groups){
 export function bannerCoursesSection(teachingCourses,catalogCourses=[],role=null,note=null){
  const programs=new Map(),used=new Set(),seen=new Set();
  for(const course of teachingCourses??[]){
-  const period=teachingTermInfo(course),key=[course.source??'banner',course.term,course.code,course.sourceUrl??''].join('|');
+  const period=teachingTermInfo(course),key=[course.source??'banner',course.term,course.code,course.code?'':normalizeLabel(course.name),course.sourceUrl??''].join('|');
   if(seen.has(key))continue;seen.add(key);
   const program=teachingProgram(course,period);
   if(!programs.has(program))programs.set(program,new Map());
