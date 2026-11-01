@@ -1,5 +1,6 @@
 import {readFile} from 'node:fs/promises';
-import {validSlug,professorPath,directoryBody,profileBody,formBody,renderPublicPage,reviewCard} from '../src/lib/professor-pages.mjs';
+import {validSlug,professorPath,directoryBody,profileBody,formBody,renderPublicPage,reviewCard,isIndexableProfile,profileSEO,INDEXABLE_MIN_COMMENTS,SUBSTANTIVE_COMMENT_CHARS} from '../src/lib/professor-pages.mjs';
+import {profeMatchCommentCounts} from '../src/lib/profematch-excerpts.mjs';
 const origin='https://campuscli.com';
 export async function professorsPage(request,{fetchData=fetch,loadTemplate=()=>readFile(new URL('../.generated/professors.html',import.meta.url),'utf8'),preview=false}={}){
  const url=new URL(request.url),path=(url.searchParams.get('route')||url.pathname).replace(/\/?$/,url.pathname.endsWith('.xml')||url.searchParams.get('route')?.endsWith('.xml')?'':'/');
@@ -31,7 +32,7 @@ export async function professorsPage(request,{fetchData=fetch,loadTemplate=()=>r
   const data=await result.json();
   if(legacy)return new Response(null,{status:308,headers:{Location:professorPath(data.professor.slug)}});
   if(sitemap){
-   const xml=`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${origin}/profes/upc/</loc></url>${data.professors.filter(p=>validSlug(p.slug)).map(p=>`<url><loc>${origin}${professorPath(p.slug)}</loc>${/^\d{4}-\d{2}-\d{2}$/.test(p.modified??'')?`<lastmod>${p.modified}</lastmod>`:''}</url>`).join('')}</urlset>`;
+   const xml=`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${origin}/profes/upc/</loc></url>${indexableProfessors(data.professors).map(p=>`<url><loc>${origin}${professorPath(p.slug)}</loc>${/^\d{4}-\d{2}-\d{2}$/.test(p.modified??'')?`<lastmod>${p.modified}</lastmod>`:''}</url>`).join('')}</urlset>`;
    return new Response(request.method==='HEAD'?null:xml,{headers:{'Content-Type':'application/xml; charset=utf-8','Cache-Control':'public, max-age=300'}});
   }
   const write=!!match?.[2];
@@ -39,16 +40,26 @@ export async function professorsPage(request,{fetchData=fetch,loadTemplate=()=>r
   if(match&&(!data.professor||!validSlug(data.professor.slug)||data.professor.slug!==match[1]||!Array.isArray(data.reviews)||!Array.isArray(data.courses)))throw new Error('invalid profile');
   if(directory&&!Array.isArray(data.professors))throw new Error('invalid directory');
   const canonical=directory?`${origin}/profes/upc/${data.page>1?`?page=${data.page}`:''}`:`${origin}${professorPath(data.professor.slug)}${write?'escribir/':''}`;
-  const title=directory?'Profesores UPC: cursos y reseñas de estudiantes | Campus':write?`Escribe tu reseña de ${data.professor.name} | Campus`:`${data.professor.name}: reseñas y cursos UPC | Campus`;
-  const description=directory?'Busca profesores UPC por nombre o curso. Lee reseñas de estudiantes y comparte tu experiencia en Campus.':`Cursos y reseñas de ${data.professor.name}, profesor UPC. Experiencias compartidas directamente por estudiantes en Campus.`;
-  let html=renderPublicPage(await loadTemplate(),{title,description,canonical,body:directory?directoryBody(data):write?formBody(data,{preview}):profileBody(data),noindex:write||url.searchParams.has('before')||!!url.searchParams.get('q')||(!directory&&!data.stats.reviewCount)});
+  const seo=match&&!write?profileSEO(data):null;
+  const title=directory?'Profesores UPC: cursos y reseñas de estudiantes | Campus':write?`Escribe tu reseña de ${data.professor.name} | Campus`:seo.title;
+  const description=directory?'Busca profesores UPC por nombre o curso. Lee reseñas de estudiantes y comparte tu experiencia en Campus.':write?`Cuenta cómo te fue con ${data.professor.name}, profesor UPC. Tu nombre no se muestra.`:seo.description;
+  let html=renderPublicPage(await loadTemplate(),{title,description,canonical,body:directory?directoryBody(data):write?formBody(data,{preview}):profileBody(data),noindex:write||url.searchParams.has('before')||!!url.searchParams.get('q')||(!directory&&!write&&!isIndexableProfile(data))});
   if(match&&!write){
    const schema={'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[
     {'@type':'ListItem',position:1,name:'Profesores UPC',item:origin+'/profes/upc/'},
     {'@type':'ListItem',position:2,name:data.professor.name,item:canonical}]};
-   html=html.replace('</head>',`<script type="application/ld+json">${JSON.stringify(schema).replaceAll('<','\\u003c')}</script></head>`);
+   // ProfilePage + Person: describe quién es la ficha sin marcar reseñas ni valoraciones, que Google restringe.
+   const profile={'@context':'https://schema.org','@type':'ProfilePage',url:canonical,name:seo.title,description:seo.description,
+    mainEntity:{'@type':'Person',name:data.professor.name,jobTitle:'Profesor',worksFor:{'@type':'CollegeOrUniversity',name:'Universidad Peruana de Ciencias Aplicadas (UPC)'}}};
+   const blocks=[schema,...(isIndexableProfile(data)?[profile]:[])].map(item=>`<script type="application/ld+json">${JSON.stringify(item).replaceAll('<','\\u003c')}</script>`).join('');
+   html=html.replace('</head>',`${blocks}</head>`);
   }
   return new Response(request.method==='HEAD'?null:html,{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':write?'no-store':'public, max-age=30','X-Content-Type-Options':'nosniff'}});
  }catch{return new Response('No pudimos cargar esta página. Vuelve a intentarlo.',{status:503,headers:{'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});}
 }
 export default {fetch:professorsPage};
+
+/** Fichas que el sitio indexaría: comentarios del backend más los del snapshot de ProfeMatch, si su ficha está vinculada. */
+export function indexableProfessors(rows=[],{minComments=INDEXABLE_MIN_COMMENTS,counts=profeMatchCommentCounts(SUBSTANTIVE_COMMENT_CHARS)}={}){
+ return rows.filter(p=>validSlug(p.slug)&&Number(p.comments??0)+(p.profematch?counts.get(p.slug)??0:0)>=minComments);
+}

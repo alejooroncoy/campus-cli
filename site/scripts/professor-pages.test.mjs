@@ -90,7 +90,9 @@ test('imported replies remain nested under the owning review and share the Campu
  assert.equal((html.match(/class="prof-public__reply"/g)||[]).length,2);
  assert.match(html,/Respuesta &lt;script&gt;bad&lt;\/script&gt;/);
  assert.match(html,/Las respuestas no están disponibles/);
- assert.match(html,/Responder en ProfeMatch/);
+ // ProfeMatch ya no recibe respuestas: se conserva el enlace a la fuente, no la acción de responder.
+ assert.doesNotMatch(html,/Responder en ProfeMatch/);
+ assert.match(html,/Ver fuente en ProfeMatch/);
  assert.equal((html.match(/data-review-thread=/g)||[]).length,1);
  assert.ok(html.indexOf('Respuesta anidada')<html.indexOf('id="profematch-5-review-10"'));
 });
@@ -156,4 +158,146 @@ test('Banner EPE and syllabus periods remain distinct and source URLs are restri
  assert.match(html,/1FCE0101 · Ciclo 2026-1 · EPE-WS/);
  assert.match(html,/ME213 · Ciclo 2026-1/);
  assert.doesNotMatch(html,/javascript:|evil\.test|Ciclo 202615|Ciclo 202601/);
+});
+
+test('con varios programas la ficha muestra pestañas, y todo el texto sigue en el HTML',async()=>{
+ const {bannerCoursesSection,teachingPrograms}=await import('../src/lib/professor-pages.mjs');
+ const courses=[
+  {source:'banner',term:'202620',code:'1ASI0771',name:'Diseño y Patrones de Software'},
+  {source:'banner',term:'202615',code:'1FCE0101',name:'Matemática para Ejecutivos'},
+  {source:'banner',term:'202690',code:'2PMK1423',name:'Ejecución Estratégica en la Dirección de Ventas'},
+ ];
+ const html=bannerCoursesSection(courses);
+ assert.match(html,/data-program-tabs/);
+ assert.equal((html.match(/type="radio"/g)||[]).length,3);
+ assert.equal((html.match(/class="prof-public__tab-panel"/g)||[]).length,3);
+ // El programa más reciente va primero y queda marcado.
+ assert.deepEqual(teachingPrograms(courses),['Pregrado','Postgrado','EPE']);
+ assert.match(html,/id="program-tab-0" checked/);
+ // Las pestañas ocultas no quitan contenido del HTML: eso es lo que indexan los buscadores.
+ for(const value of ['Diseño y Patrones de Software','Matemática para Ejecutivos','Ejecución Estratégica','1FCE0101','2PMK1423','Ciclo 2026 Postgrado'])assert.ok(html.includes(value),value);
+ assert.match(html,/data-program="Postgrado"/);assert.match(html,/data-program="EPE"/);
+});
+
+test('con un solo programa no hay pestañas',async()=>{
+ const {bannerCoursesSection}=await import('../src/lib/professor-pages.mjs');
+ const html=bannerCoursesSection([{source:'banner',term:'202620',code:'1ASI0771',name:'Diseño y Patrones de Software'}]);
+ assert.doesNotMatch(html,/data-program-tabs|type="radio"/);
+ assert.ok(html.includes('Diseño y Patrones de Software'));
+});
+
+test('el código decide el programa: 1F es EPE y 2x es Postgrado, aunque el ciclo diga otra cosa',async()=>{
+ const {bannerCoursesSection}=await import('../src/lib/professor-pages.mjs');
+ const html=bannerCoursesSection([
+  {source:'banner',term:'202610',code:'1FAP0122',name:'Organización y Dirección'},
+  {source:'banner',term:'202610',code:'2PAD1825',name:'Gerencia de Proyectos de Inversión en Salud'},
+ ]);
+ assert.match(html,/data-program="EPE"[^]*1FAP0122/);
+ assert.match(html,/data-program="Postgrado"[^]*2PAD1825/);
+});
+
+test('los ciclos antiguos y los cursos que sobran quedan plegados, no omitidos',async()=>{
+ const {bannerCoursesSection}=await import('../src/lib/professor-pages.mjs');
+ const terms=['202620','202610','202520','202510'];
+ const courses=terms.flatMap(term=>Array.from({length:8},(_,i)=>({source:'banner',term,code:`1ASI0${i}${term.slice(2,4)}`,name:`Curso ${i} ${term}`})));
+ const html=bannerCoursesSection(courses);
+ assert.match(html,/Ciclos anteriores \(2\)/);
+ assert.match(html,/Ver 2 cursos más/);
+ for(const term of terms)assert.ok(html.includes(`Curso 7 ${term}`),term);
+ assert.ok(html.indexOf('Ciclo 2026-2')<html.indexOf('Ciclo 2026-1'));
+ assert.ok(html.indexOf('Ciclos anteriores')>html.indexOf('Ciclo 2026-1'));
+});
+
+test('la cabecera muestra los programas en los que enseña',()=>{
+ const html=profileBody({...data,courses:[],reviews:[],bannerCourses:[],teachingCourses:[
+  {source:'banner',term:'202690',code:'2PMK1423',name:'Ejecución Estratégica'},
+  {source:'banner',term:'202615',code:'1FCE0101',name:'Matemática'},
+ ]});
+ assert.match(html,/<ul class="prof-public__programs"[^>]*><li>Postgrado<\/li><li>EPE<\/li><\/ul>/);
+ const sinCursos=profileBody({...data,courses:[],reviews:[],bannerCourses:[],teachingCourses:[]});
+ assert.doesNotMatch(sinCursos,/prof-public__programs/);
+});
+
+test('los ciclos de Postgrado ocultos de Banner tienen etiqueta y la oferta 2027 es próxima',async()=>{
+ const {bannerCoursesSection}=await import('../src/lib/professor-pages.mjs');
+ const html=bannerCoursesSection([
+  {source:'banner',term:'202590',code:'2PAD1825',name:'Gerencia'},
+  {source:'banner',term:'202790',code:'2PAD1830',name:'Dirección',status:'upcoming'},
+ ]);
+ assert.match(html,/Ciclo 2025 Postgrado/);assert.match(html,/Oferta próxima/);
+ assert.doesNotMatch(html,/Ciclo 202590|Ciclo 202790/);
+});
+
+test('solo se indexan las fichas con comentarios reales de cualquier fuente',async()=>{
+ const {isIndexableProfile,substantiveCommentCount,INDEXABLE_MIN_COMMENTS}=await import('../src/lib/professor-pages.mjs');
+ const largo='Explica con ejemplos claros y responde todas las dudas.';
+ const catalog=(n,text=largo)=>({stats:{reviewCount:n,commentCount:n,ratingCount:n,averageRating:7},sourceUrls:[],reviews:Array.from({length:n},(_,i)=>({id:i+1,rating:7,text,date:'2024-05-01'}))});
+ const base={...data,reviews:[],externalRatings:[],catalogReviews:null};
+ assert.equal(INDEXABLE_MIN_COMMENTS,2);
+ assert.equal(isIndexableProfile(base),false,'sin comentarios');
+ assert.equal(isIndexableProfile({...base,catalogReviews:catalog(1)}),false,'un solo comentario no alcanza');
+ assert.equal(isIndexableProfile({...base,catalogReviews:catalog(2)}),true,'dos comentarios de MisProfesores');
+ assert.equal(isIndexableProfile({...base,catalogReviews:catalog(5,'Buen profe')}),false,'comentarios demasiado cortos');
+ assert.equal(substantiveCommentCount({...base,catalogReviews:{...catalog(1),stats:{reviewCount:9,commentCount:0,ratingCount:9,averageRating:7},reviews:[]}}),0,'puntuaciones sin texto no cuentan');
+ const campus={...base,reviews:[{id:1,rating:8,text:largo,createdAt:'2026-01-10T00:00:00Z'}],catalogReviews:catalog(1)};
+ assert.equal(isIndexableProfile(campus),true,'Campus y MisProfesores se suman');
+});
+
+test('el sitemap suma las fuentes y no lista fichas que la propia ficha dejaría en noindex',async()=>{
+ const {indexableProfessors}=await import('../api/professors.js');
+ const rows=[
+  {slug:'dos-comentarios',comments:2,profematch:false},
+  {slug:'uno-solo',comments:1,profematch:false},
+  {slug:'suma-fuentes',comments:1,profematch:true},
+  {slug:'profematch-sin-vinculo',comments:1,profematch:false},
+  {slug:'Slug Inválido',comments:9,profematch:false},
+ ];
+ const counts=new Map([['suma-fuentes',1],['profematch-sin-vinculo',5]]);
+ assert.deepEqual(indexableProfessors(rows,{counts}).map(p=>p.slug),['dos-comentarios','suma-fuentes']);
+ assert.deepEqual(indexableProfessors(rows,{counts,minComments:1}).map(p=>p.slug),['dos-comentarios','uno-solo','suma-fuentes','profematch-sin-vinculo']);
+});
+
+test('la ficha sale con noindex o index según sus comentarios, y el sitemap lista solo las indexables',async()=>{
+ const {professorsPage}=await import('../api/professors.js');
+ const template='<title>__CAMPUS_PUBLIC_TITLE__</title><meta name="description" content="__CAMPUS_PUBLIC_DESCRIPTION__"><link rel="canonical" href="__CAMPUS_PUBLIC_CANONICAL__"><meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"><body>__CAMPUS_PUBLIC_BODY__</body></head>';
+ const texto='Explica con ejemplos claros y responde todas las dudas.';
+ const profile=(n)=>({professor:{id:7,slug:'ana-prueba',name:'Ana Prueba'},courses:[],reviews:[],stats:{reviewCount:0,professorCount:0,ratingCount:0,averageRating:null},externalRatings:[],teachingCourses:[],bannerCourses:[],
+  catalogReviews:{stats:{reviewCount:n,commentCount:n,ratingCount:n,averageRating:7},sourceUrls:[],reviews:Array.from({length:n},(_,i)=>({id:i+1,rating:7,text:texto,date:'2024-05-01'}))}});
+ const render=async n=>(await professorsPage(new Request('https://campuscli.com/profes/upc/ana-prueba/'),{loadTemplate:async()=>template,fetchData:async()=>Response.json(profile(n))})).text();
+ assert.match(await render(0),/content="noindex,follow"/);
+ assert.match(await render(1),/content="noindex,follow"/);
+ assert.match(await render(2),/content="index,follow,max-image-preview/);
+ const sitemap=await(await professorsPage(new Request('https://campuscli.com/profes/sitemap.xml'),{fetchData:async()=>Response.json({professors:[{slug:'ana-prueba',comments:3,profematch:false,modified:'2026-10-01'},{slug:'sin-comentarios',comments:1,profematch:false}]})})).text();
+ assert.ok(sitemap.includes('/profes/upc/ana-prueba/'));assert.ok(!sitemap.includes('sin-comentarios'));
+ assert.ok(sitemap.includes('<lastmod>2026-10-01</lastmod>'));
+});
+
+test('el título y la descripción llevan los datos reales de la ficha y caben en el resultado de Google',async()=>{
+ const {profileSEO}=await import('../src/lib/professor-pages.mjs');
+ const texto='Explica con ejemplos claros y responde todas las dudas.';
+ const catalog={stats:{reviewCount:11,commentCount:3,ratingCount:11,averageRating:7.1},sourceUrls:[],reviews:Array.from({length:3},(_,i)=>({id:i+1,rating:7,text:texto,date:'2024-05-01'}))};
+ const rica=profileSEO({...data,stats:{reviewCount:0,ratingCount:0,averageRating:null},professor:{id:1,slug:'ernesto-ocampo-tello',name:'Ernesto Ocampo Tello'},courses:[],reviews:[],externalRatings:[],catalogReviews:catalog,
+  teachingCourses:[{source:'banner',term:'202620',code:'1ASI0771',name:'Diseño y Patrones'},{source:'banner',term:'202615',code:'1FCE0101',name:'Matemática'},{source:'banner',term:'202690',code:'2PMK1423',name:'Dirección de Ventas'}]});
+ assert.equal(rica.title,'Ernesto Ocampo Tello (UPC): 7.1/10 · 3 opiniones | Campus');
+ assert.match(rica.description,/^Ernesto Ocampo Tello, docente de UPC en Pregrado, Postgrado y EPE\. Nota 7\.1\/10 según 3 opiniones\. 3 cursos con código y ciclo\./);
+ assert.ok(rica.title.length<=70);assert.ok(rica.description.length<=160);
+ const vacia=profileSEO({...data,stats:{reviewCount:0,ratingCount:0,averageRating:null},professor:{id:2,slug:'sin-datos',name:'Sin Datos Aún'},courses:[],reviews:[],externalRatings:[],catalogReviews:null,teachingCourses:[]});
+ assert.equal(vacia.title,'Sin Datos Aún (UPC): reseñas y cursos | Campus');
+ assert.doesNotMatch(vacia.description,/undefined|NaN|null/);
+ const larga=profileSEO({...data,stats:{reviewCount:0,ratingCount:0,averageRating:null},professor:{id:3,slug:'x',name:'Pedro Antonio de los Santos Ramírez de Arellano Villanueva'},courses:[],reviews:[],externalRatings:[],catalogReviews:catalog,teachingCourses:[]});
+ assert.ok(larga.title.length<=70,larga.title);assert.ok(larga.description.length<=160);
+ assert.ok(!larga.description.endsWith('…'),'la descripción no se corta a la mitad');
+});
+
+test('la ficha indexable lleva ProfilePage y la que no, solo migas de pan',async()=>{
+ const {professorsPage}=await import('../api/professors.js');
+ const template='<title>__CAMPUS_PUBLIC_TITLE__</title><meta name="description" content="__CAMPUS_PUBLIC_DESCRIPTION__"><link rel="canonical" href="__CAMPUS_PUBLIC_CANONICAL__"><meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"><body>__CAMPUS_PUBLIC_BODY__</body></head>';
+ const texto='Explica con ejemplos claros y responde todas las dudas.';
+ const profile=n=>({professor:{id:7,slug:'ana-prueba',name:'Ana Prueba'},courses:[],reviews:[],stats:{reviewCount:0,professorCount:0,ratingCount:0,averageRating:null},externalRatings:[],teachingCourses:[],bannerCourses:[],catalogReviews:{stats:{reviewCount:n,commentCount:n,ratingCount:n,averageRating:7},sourceUrls:[],reviews:Array.from({length:n},(_,i)=>({id:i+1,rating:7,text:texto,date:'2024-05-01'}))}});
+ const render=async n=>(await professorsPage(new Request('https://campuscli.com/profes/upc/ana-prueba/'),{loadTemplate:async()=>template,fetchData:async()=>Response.json(profile(n))})).text();
+ const con=await render(3),sin=await render(0);
+ assert.match(con,/"@type":"ProfilePage"/);assert.match(con,/"@type":"BreadcrumbList"/);
+ assert.doesNotMatch(sin,/ProfilePage/);assert.match(sin,/BreadcrumbList/);
+ assert.doesNotMatch(con,/AggregateRating|"@type":"Review"/);
+ assert.match(con,/<title>Ana Prueba \(UPC\): 7\/10 · 3 opiniones \| Campus<\/title>/);
 });

@@ -16,3 +16,17 @@ export function matchedComments(professor,rating,profiles=corpus.profiles){
 export function courseSourceRatings(course,ratings=[]){
  return ratings.filter(r=>r.source==='profematch'&&normalize(r.courseLabel)===normalize(course.name)&&/^\d+$/.test(String(r.sourceId)));
 }
+
+/** Comentarios válidos del snapshot por slug, para decidir el sitemap sin abrir cada ficha. */
+export function profeMatchCommentCounts(minChars=0,profiles=corpus.profiles){
+ const counts=new Map();
+ for(const record of profiles){
+  if(!record||typeof record.professorSlug!=='string'||!Array.isArray(record.comments)||!Number.isFinite(Date.parse(record.observedAt)))continue;
+  const seen=new Set();
+  for(const c of record.comments){
+   if(typeof c.text!=='string'||c.text.trim().length<minChars||c.truncated!==false||c.sourceUrl!==record.sourceUrl||!/^\w{20}$/.test(c.id)||seen.has(c.id)||!Number.isInteger(c.rating)||c.rating<1||c.rating>5)continue;
+   seen.add(c.id);counts.set(record.professorSlug,(counts.get(record.professorSlug)??0)+1);
+  }
+ }
+ return counts;
+}
