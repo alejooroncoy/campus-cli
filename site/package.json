@@ -39,6 +39,7 @@
     "astro": "^7.3.2",
     "motion": "^14.9.0",
     "pdfjs-dist": "6.4.299",
+    "postgres": "^3.4.9",
     "posthog-js-lite": "^4.13.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
