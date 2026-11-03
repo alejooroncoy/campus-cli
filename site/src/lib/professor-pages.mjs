@@ -229,6 +229,11 @@ function unifiedReviewItems(data,ratings){
  return unique.sort((a,b)=>b.order-a.order);
 }
 function unifiedReviewCard(item){
+ return withReviewKey(renderUnifiedReviewCard(item),item.identity);
+}
+// Identidad estable de la tarjeta (el scroll infinito deduplica por ella, no por el HTML, que cambia al abrir hilos).
+function withReviewKey(html,identity){return identity?html.replace('<article',`<article data-review-key="${e(identity)}"`):html;}
+function renderUnifiedReviewCard(item){
  const labels=item.sources.join(' · '),sources=`<span class="prof-public__review-source">Fuente: ${e(labels)}</span>`;
  const links=[...(item.urls??[]),...(item.url?[item.url]:[])].filter((url,index,list)=>list.indexOf(url)===index);
  const sourceLinks=links.map(url=>{const source=url.includes('profematchperu.com')?'ProfeMatch':'MisProfesores';if(!validReviewSourceURL(url,source))return '';return `<a href="${e(url)}" target="_blank" rel="noopener noreferrer">Ver fuente en ${e(source)} ${icon('arrow-up-right')}<span class="visually-hidden"> (abre en otra pestaña)</span></a>`;}).join('');

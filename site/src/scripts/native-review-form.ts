@@ -87,9 +87,9 @@ function initCatalogScroll(){
    if(!response.ok)throw new Error('page');
    const doc=new DOMParser().parseFromString(await response.text(),'text/html');
    const next=doc.querySelector('[data-profile-reviews]');if(!next)throw new Error('page');
-   const known=new Set(Array.from(list.children).map(el=>el.outerHTML));
-   list.append(...Array.from(next.children).filter(el=>el.tagName==='ARTICLE'&&!known.has(el.outerHTML)));
-   const total=Number(label?.dataset.total);const shown=list.querySelectorAll('article').length;
+   const known=new Set(Array.from(list.querySelectorAll(':scope > [data-review-key]')).map(el=>(el as HTMLElement).dataset.reviewKey));
+   list.append(...Array.from(next.querySelectorAll(':scope > [data-review-key]')).filter(el=>!known.has((el as HTMLElement).dataset.reviewKey)));
+   const total=Number(label?.dataset.total);const shown=list.querySelectorAll(':scope > [data-review-key]:not([data-review-key*="aggregate"])').length;
    if(label&&Number.isFinite(total))label.textContent=shown<total?`Mostrando ${shown} de ${total} opiniones`:`${total} opiniones`;
    const following=doc.querySelector<HTMLAnchorElement>('a[data-catalog-more]');
    if(following){link.href=following.href;observer.observe(link);}else link.remove();

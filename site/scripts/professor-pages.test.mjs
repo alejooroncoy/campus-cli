@@ -72,7 +72,7 @@ test('con dos perfiles de MisProfesores los enlaces no se repiten en cada tarjet
  const html=mk(two),section=html.slice(html.indexOf('data-profile-reviews'));
  assert.equal((html.match(/Ver fuente en MisProfesores/g)||[]).length,2,'solo los dos de arriba');
  assert.equal((section.match(/Ver fuente en MisProfesores/g)||[]).length,0,'ninguno dentro de las tarjetas');
- assert.match(html,/Mostrando 2 de 37 opiniones/);assert.match(html,/data-reviews-label data-total="37"/);assert.match(html,/<a data-catalog-more [^>]*href="[^"]*\?before=2#resenas"/,'el enlace lleva el gancho del scroll infinito y sigue siendo un enlace normal');
+ assert.equal((section.match(/<article data-review-key="MisProfesores:(2|3)"/g)||[]).length,2,'cada tarjeta lleva su identidad estable');assert.match(html,/Mostrando 2 de 37 opiniones/);assert.match(html,/data-reviews-label data-total="37"/);assert.match(html,/<a data-catalog-more [^>]*href="[^"]*\?before=2#resenas"/,'el enlace lleva el gancho del scroll infinito y sigue siendo un enlace normal');
  const one=mk([two[0]]);assert.equal((one.match(/Ver fuente en MisProfesores/g)||[]).length,3,'con un solo perfil, cada tarjeta conserva su enlace');
 });
 
