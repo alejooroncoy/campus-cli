@@ -156,3 +156,5 @@ body:has([data-professor-profile])>.site-header.is-scrolled{position:relative;to
 #program-tab-4:checked ~ .prof-public__tab-list label:nth-child(5) span{color:#cfe3ea}
 #program-tab-4:checked ~ .prof-public__tab-panels .prof-public__tab-panel:nth-child(5){display:block}
 #program-tab-4:focus-visible ~ .prof-public__tab-list label:nth-child(5){outline:3px solid #0b6a8a;outline-offset:2px}
+
+.prof-public__native>a.prof-public__more{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;margin-top:22px;text-decoration:none;line-height:1.5}

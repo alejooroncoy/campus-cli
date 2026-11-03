@@ -66,6 +66,16 @@ test('catalog opinions appear in the unified feed, keep source links and paginat
  assert.match(directory,/6.7\/10 · 3 fuentes/);assert.doesNotMatch(directory,/Campus|MisProfesores|ProfeMatch/);
 });
 
+test('con dos perfiles de MisProfesores los enlaces no se repiten en cada tarjeta y el total es el real',()=>{
+ const two=['https://peru.misprofesores.com/profesores/Ana-Perez_12','https://peru.misprofesores.com/profesores/Ana_13'];
+ const mk=sourceUrls=>profileBody({...data,reviews:[],catalogReviews:{stats:{reviewCount:50,ratingCount:50,averageRating:3.1,commentCount:37},sourceUrls,reviews:[{id:3,text:'Uno',rating:4},{id:2,text:'Dos',rating:6}],nextCursor:2}});
+ const html=mk(two),section=html.slice(html.indexOf('data-profile-reviews'));
+ assert.equal((html.match(/Ver fuente en MisProfesores/g)||[]).length,2,'solo los dos de arriba');
+ assert.equal((section.match(/Ver fuente en MisProfesores/g)||[]).length,0,'ninguno dentro de las tarjetas');
+ assert.match(html,/Mostrando 2 de 37 opiniones/);
+ const one=mk([two[0]]);assert.equal((one.match(/Ver fuente en MisProfesores/g)||[]).length,3,'con un solo perfil, cada tarjeta conserva su enlace');
+});
+
 test('profile conversations belong only to Campus reviews and sources remain independent',()=>{
  const html=profileBody({...data,catalogReviews:{stats:{reviewCount:1,ratingCount:1,averageRating:9,commentCount:1},sourceUrls:['https://peru.misprofesores.com/profesores/Ana_12'],reviews:[{id:8,text:'Opinión externa',rating:9}],nextCursor:null}});
  assert.match(html,/id="review-1"/);assert.match(html,/data-review-thread="1"/);
