@@ -41,7 +41,7 @@ function setupTurnitin() {
     document.querySelector<HTMLElement>('[data-ti-product-summary]')!.textContent = productLabel(selectedReport());
     const availability = document.querySelector<HTMLElement>('[data-ti-availability]')!;
     const count = config.availability?.[selectedReport()];
-    availability.textContent = checkingAvailability ? 'Comprobando disponibilidad…' : availabilityUnknown ? 'Comprueba la disponibilidad antes de pagar.' : canOrder() ? 'Puedes continuar con la revisión que elegiste.' : 'Esta revisión no está disponible por ahora.';
+    availability.textContent = checkingAvailability ? 'Comprobando disponibilidad…' : availabilityUnknown ? 'Comprueba la disponibilidad antes de pagar.' : canOrder() ? 'Servicio habilitado.' : 'Servicio no habilitado para esta revisión.';
     availability.hidden = false;
     form.querySelectorAll<HTMLElement>('[data-ti-option-status]').forEach(node => {
       const id = node.dataset.tiOptionStatus as Product['id'];
@@ -59,11 +59,11 @@ function setupTurnitin() {
     submit.querySelector<HTMLElement>('[data-ti-submit-text]')!.textContent = qr ? 'Abrir QR de pago' : 'Enviar revisión';
     submit.disabled = !canOrder() || checkingAvailability;
     document.querySelectorAll<HTMLButtonElement>('[data-ti-check-capacity]').forEach(button => { button.disabled = checkingAvailability; button.textContent = checkingAvailability ? 'Comprobando…' : 'Comprobar disponibilidad'; });
-    document.querySelector<HTMLElement>('[data-ti-payment-availability]')!.textContent = checkingAvailability ? 'Comprobando disponibilidad…' : canOrder() ? qr ? 'El cupo se reserva al abrir el QR.' : 'Esta revisión está disponible. Completa el pago y envía tu pedido; la disponibilidad puede cambiar.' : 'No realices el pago hasta confirmar la disponibilidad.';
+    document.querySelector<HTMLElement>('[data-ti-payment-availability]')!.textContent = checkingAvailability ? 'Comprobando disponibilidad…' : canOrder() ? qr ? 'Tu pedido se crea al abrir el QR.' : 'Esta revisión está disponible. Completa el pago y envía tu pedido; la disponibilidad puede cambiar.' : 'No realices el pago hasta confirmar la disponibilidad.';
     const notice = document.querySelector<HTMLElement>('[data-ti-capacity-notice]')!;
     notice.hidden = canOrder();
     const exhausted = config.availability && !Object.values(config.availability).some(value => value > 0);
-    document.querySelector<HTMLElement>('[data-ti-capacity-title]')!.textContent = availabilityUnknown ? 'No pudimos comprobar la disponibilidad' : exhausted ? 'Revisiones no disponibles por ahora' : count === 0 ? `${productLabel(selectedReport())} no está disponible por ahora` : 'Los pedidos nuevos están pausados';
+    document.querySelector<HTMLElement>('[data-ti-capacity-title]')!.textContent = availabilityUnknown ? 'No pudimos comprobar la disponibilidad' : exhausted ? 'Revisiones no disponibles por ahora' : count === 0 ? `${productLabel(selectedReport())} no está disponible por ahora` : 'Servicio no habilitado';
     document.querySelector<HTMLElement>('[data-ti-capacity-message]')!.textContent = availabilityUnknown ? 'No realices el pago. Vuelve a comprobar la disponibilidad; conservamos los archivos que elegiste mientras mantengas esta página abierta.' : exhausted ? 'En este momento no podemos recibir nuevas revisiones. Vuelve a comprobar más tarde. Tus pedidos e informes anteriores siguen disponibles. No realices el pago.' : count === 0 ? 'Puedes elegir otro informe disponible o volver a comprobar más tarde. No realices el pago de esta opción.' : 'No realices el pago por ahora. Tus pedidos e informes anteriores siguen disponibles.';
     requestPanel.hidden = !config.enabled || !config.ordersAvailable;
     form.hidden = !authenticated || requestPanel.hidden;
