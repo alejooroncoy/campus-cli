@@ -10,7 +10,7 @@ inicial; los cambios de ruta cierran la vista anterior y BFCache abre otra.
 `$current_url`, `$pathname` y `$prev_pageview_pathname` usan familias de rutas
 cerradas. Los nombres de profesores, documentos, conversaciones, parámetros
 OAuth, búsquedas y fragmentos nunca se exportan. El referrer conserva solo su
-origen; no se envían UTMs ni parámetros de campañas. El dispositivo se agrupa
+origen. De las UTMs solo se admite la fuente `meta` con un ID numérico de campaña. El dispositivo se agrupa
 en Desktop/Mobile/Tablet. La geolocalización, autocaptura y grabación de
 sesiones siguen desactivadas. Los filtros de cuentas internas y de prueba
 existentes se conservan.
@@ -18,6 +18,26 @@ existentes se conservan.
 Las vistas y salidas incluyen el agente de usuario del navegador en
 `$raw_user_agent`, para que PostHog pueda clasificar tráfico automatizado. Sin él,
 PostHog clasifica el agente vacío como Automation.
+
+## Origen del acceso web
+
+El sitio conserva la primera entrada observada en la pestaña durante un máximo
+de 24 horas. Envía al inicio de OAuth solo el dominio externo, la campaña de Meta
+admitida, el cliente de un enlace MCP reconocido o la categoría `direct` si no
+hay referrer. Las navegaciones internas y el proveedor de inicio de sesión no
+sustituyen esa entrada. Una cookie limitada a las rutas de autenticación permite
+conservar el origen aunque la visita anónima no se vincule al perfil de PostHog.
+
+Tras un acceso válido, campus-profes emite `campus_auth_completed` con la
+identidad Campus y las propiedades `entry_channel`, `entry_source` y, cuando
+corresponde, `entry_campaign`. Las propiedades ausentes indican que no se
+observó el origen. Para analizar nuevos usuarios, toma el primer acceso observado
+por cuenta con todo el historial disponible antes de filtrar por fechas. Esto
+mide el primer acceso registrado y no la fecha de creación de la cuenta.
+
+Despliega primero el backend de campus-profes y después el sitio. Para verificarlo
+en producción, abre una sesión de navegador limpia, llega desde un enlace
+externo, entra y comprueba las propiedades del evento de acceso en PostHog.
 
 ## Configuración y despliegue
 

@@ -1,5 +1,6 @@
 import { beginAccountHandoff, completeAccountHandoff } from './account-onboarding.ts';
 import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
+import { clearEntry, rememberEntry } from './entry-attribution.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
@@ -176,6 +177,7 @@ export function analyticsSession(session: CampusSession): void {
   // google_<sha256> ID. Raw provider subjects are not a browser contract.
   if (session.authenticated && /^campus:(?:google:[0-9]{8,32}|[a-zA-Z0-9_-]{8,100})$/.test(session.analyticsId ?? '')) {
     identity = session.analyticsId;
+    if (!local && key) clearEntry();
     if (!local && client && client.get_distinct_id() !== identity) client.identify(identity!);
   } else if (!session.authenticated && (identity || client?.get_distinct_id().startsWith('campus:'))) resetAnalytics();
   if (session.authenticated && identity && identity === session.analyticsId && completeAccountHandoff()) {
@@ -225,6 +227,7 @@ function trackPage(): void {
   if (viewPath === location.pathname) return;
   leavePage();
   viewPath = location.pathname; seen = new Set();
+  if (!local && key && !identity) rememberEntry(key);
   webView = { started: performance.now(), properties: {
     ...webPageProperties(location.pathname, location.origin, document.referrer, innerWidth, location.search), page, $pageview_id: crypto.randomUUID(),
   } };
@@ -272,7 +275,10 @@ export function setupAnalytics(): void {
     if (['trial', 'free', 'plus'].includes(intent)) {
       try { sessionStorage.setItem('campus-selected-plan', intent); } catch { /* Optional. */ }
     }
-    if (target === 'auth' && currentPlan === 'guest') beginAccountHandoff(url.searchParams.get('return') ?? location.pathname);
+    if (target === 'auth') {
+      if (!local && key && !identity) rememberEntry(key, true);
+      if (currentPlan === 'guest') beginAccountHandoff(url.searchParams.get('return') ?? location.pathname);
+    }
     track('campus_cta_clicked', { location: loc, target, intent, provider });
   });
   document.addEventListener('toggle', event => {

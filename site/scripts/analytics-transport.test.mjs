@@ -10,16 +10,18 @@ const buyer='campus:google:123456789012345678901';
 const {outputFiles}=await build({stdin:{contents:`
   import {analyticsSession,setupAnalytics,track} from './src/scripts/analytics.ts';
   setupAnalytics();
-  analyticsSession({authenticated:true,analyticsAudience:'customer',plan:'free',analyticsId:'${buyer}',universityConfirmed:true,usage:{remaining:25,limit:25}});
-  track('campus_cta_clicked',{intent:'plus',email:'private@example.test',receipt:'private-proof'});
-  track('campus_plus_checkout_viewed',{offer:'founder',amount_cents:500});
-  const survey={$survey_id:'01a18cc9-dfcf-0000-9228-5fe27651e15d',$survey_iteration:null};
-  track('survey shown',survey);
-  const answer={...survey,$survey_submission_id:'11111111-1111-4111-8111-111111111111',
-    $survey_questions:[{id:'e8c41d6d-d964-46c6-8174-7296eb8e01d2',question:'¿Qué te frena?'}],
-    '$survey_response_e8c41d6d-d964-46c6-8174-7296eb8e01d2':'El precio'};
-  track('survey sent',{...answer,$survey_completed:false});
-  track('survey sent',{...answer,$survey_completed:true});
+  window.finishLogin = () => {
+    analyticsSession({authenticated:true,analyticsAudience:'customer',plan:'free',analyticsId:'${buyer}',universityConfirmed:true,usage:{remaining:25,limit:25}});
+    track('campus_cta_clicked',{intent:'plus',email:'private@example.test',receipt:'private-proof'});
+    track('campus_plus_checkout_viewed',{offer:'founder',amount_cents:500});
+    const survey={$survey_id:'01a18cc9-dfcf-0000-9228-5fe27651e15d',$survey_iteration:null};
+    track('survey shown',survey);
+    const answer={...survey,$survey_submission_id:'11111111-1111-4111-8111-111111111111',
+      $survey_questions:[{id:'e8c41d6d-d964-46c6-8174-7296eb8e01d2',question:'¿Qué te frena?'}],
+      '$survey_response_e8c41d6d-d964-46c6-8174-7296eb8e01d2':'El precio'};
+    track('survey sent',{...answer,$survey_completed:false});
+    track('survey sent',{...answer,$survey_completed:true});
+  };
 `,resolveDir:process.cwd(),loader:'ts'},bundle:true,format:'esm',platform:'browser',write:false,
   define:{'import.meta.env':JSON.stringify({DEV:false,PUBLIC_POSTHOG_KEY:key,PUBLIC_POSTHOG_HOST:'https://posthog.analytics.test'})},
 });
@@ -64,6 +66,14 @@ try{
   await page.goto('https://campus.analytics.test/app/turnitin/?source=mcp&ai_client=chatgpt&code=private-oauth',{
     waitUntil:'domcontentloaded',referer:'https://www.google.com/search?q=private-academic-question',
   });
+  await page.waitForFunction(() => typeof window.finishLogin === 'function');
+  const authUrl = 'https://campus.analytics.test/api/app/auth/start';
+  const entry = (await context.cookies(authUrl)).find(cookie => cookie.name === 'campus_entry');
+  assert.ok(entry);
+  assert.deepEqual(JSON.parse(decodeURIComponent(entry.value)), {entry_channel:'mcp',entry_source:'chatgpt'});
+  assert.ok(!(await context.cookies(page.url())).some(cookie => cookie.name === 'campus_entry'));
+  await page.evaluate(() => window.finishLogin());
+  assert.ok(!(await context.cookies(authUrl)).some(cookie => cookie.name === 'campus_entry'));
   let timer;
   try{await Promise.race([received,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Real SDK did not deliver the checkout events: '+JSON.stringify({errors,unexpected,requested,messages,shapes:events.map(e=>({keys:Object.keys(e),event:e.event}))}))),15000);})]);}
   finally{clearTimeout(timer);}
@@ -117,6 +127,25 @@ try{
   }
   assert.equal(JSON.stringify(events).includes('private'),false,'No email, receipt, referrer or OAuth URL reaches transport');
   assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);
+
+  const internalTab = await context.newPage();
+  await internalTab.route('**/*', route => {
+    const path = new URL(route.request().url()).pathname;
+    if (path === '/analytics-test.js') return route.fulfill({contentType:'text/javascript',body:outputFiles[0].text});
+    if (path.startsWith('/c-events/')) return route.fulfill({status:200,contentType:'application/json',body:'{"status":"Ok"}'});
+    return route.fulfill({contentType:'text/html',body:'<!doctype html><a href="/api/app/auth/start">Entrar</a><script type="module" src="/analytics-test.js"></script>'});
+  });
+  // Simulate a cookie set by a different tab, with no landing recorded in this tab.
+  await context.addCookies([{...entry,expires:Math.floor(Date.now()/1000)+60}]);
+  await internalTab.goto('https://campus.analytics.test/app/',{referer:'https://campus.analytics.test/'});
+  await internalTab.waitForFunction(() => typeof window.finishLogin === 'function');
+  assert.ok((await context.cookies(authUrl)).some(cookie => cookie.name === 'campus_entry'));
+  await internalTab.evaluate(() => {
+    window.addEventListener('click',event => event.preventDefault(),{once:true});
+    document.querySelector('a').click();
+  });
+  assert.ok(!(await context.cookies(authUrl)).some(cookie => cookie.name === 'campus_entry'),
+    'Login must not inherit another tab’s attribution when this tab has no eligible landing');
   await context.close();
   console.log('Real PostHog SDK transport: project token, Google identity, Plus intent/price and private-field stripping passed; all requests intercepted locally.');
 }finally{await browser.close();}
