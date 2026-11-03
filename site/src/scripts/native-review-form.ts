@@ -78,6 +78,8 @@ function initCatalogScroll(){
  if(!list||!link||link.dataset.bound||!('IntersectionObserver' in window))return;
  link.dataset.bound='true';
  const label=document.querySelector<HTMLElement>('[data-reviews-label]');
+ // Las de Campus que el lector cargue con su propio botón suman al total, que arranca solo con las visibles al cargar.
+ const campusCards=()=>list.querySelectorAll(':scope > [data-review-key^="Campus:"]').length,campusAtStart=campusCards();
  let loading=false;
  const observer=new IntersectionObserver(async entries=>{
   if(loading||!entries.some(entry=>entry.isIntersecting))return;
@@ -89,7 +91,7 @@ function initCatalogScroll(){
    const next=doc.querySelector('[data-profile-reviews]');if(!next)throw new Error('page');
    const known=new Set(Array.from(list.querySelectorAll(':scope > [data-review-key]')).map(el=>(el as HTMLElement).dataset.reviewKey));
    list.append(...Array.from(next.querySelectorAll(':scope > [data-review-key]')).filter(el=>!known.has((el as HTMLElement).dataset.reviewKey)));
-   const total=Number(label?.dataset.total);const shown=list.querySelectorAll(':scope > [data-review-key]:not([data-review-key*="aggregate"])').length;
+   const total=Number(label?.dataset.total)+(campusCards()-campusAtStart);const shown=list.querySelectorAll(':scope > [data-review-key]:not([data-review-key*="aggregate"])').length;
    if(label&&Number.isFinite(total))label.textContent=shown<total?`Mostrando ${shown} de ${total} opiniones`:`${total} opiniones`;
    const following=doc.querySelector<HTMLAnchorElement>('a[data-catalog-more]');
    if(following){link.href=following.href;observer.observe(link);}else link.remove();
