@@ -16,7 +16,8 @@ import AppShell from '../../../layouts/AppShell.astro';
     </section>
     <section class="app-panel" data-plus-view="ready" hidden>
       <h2>Así activas tu mes.</h2>
-      <ol class="plus-overview"><li><span>1</span><div><strong>Consulta tu precio</strong><p>Verás el monto y a quién pagar.</p></div></li><li><span>2</span><div><strong>Paga con Yape o Plin</strong><p>Haz el pago desde tu aplicación.</p></div></li><li><span>3</span><div><strong>Envía aquí tu comprobante</strong><p>Revisaremos el abono para activar Plus.</p></div></li></ol>
+      <p data-plus-ready-copy hidden>Paga por QR con Yape o Plin. Tu mes se activa cuando Flow confirma el pago.</p>
+      <ol class="plus-overview" data-plus-manual-overview><li><span>1</span><div><strong>Consulta tu precio</strong><p>Verás el monto y a quién pagar.</p></div></li><li><span>2</span><div><strong>Paga con Yape o Plin</strong><p>Haz el pago desde tu aplicación.</p></div></li><li><span>3</span><div><strong>Envía aquí tu comprobante</strong><p>Revisaremos el abono para activar Plus.</p></div></li></ol>
       <button class="app-button" type="button" data-plus-checkout>Ver precio y cómo pagar</button>
       <p class="plus-muted">Este botón no realiza ningún cobro. Sin renovación automática.</p>
       <p class="plus-account" data-plus-account></p>
@@ -36,6 +37,15 @@ import AppShell from '../../../layouts/AppShell.astro';
           <p class="plus-muted">Enviar el comprobante no realiza otro cobro. Verás aquí el estado de la revisión.</p>
         </form></li>
       </ol>
+    </section>
+    <section class="app-panel" data-plus-view="flow" hidden>
+      <h2>Paga por QR con Yape o Plin.</h2>
+      <p class="plus-price"><strong data-plus-flow-amount></strong><span>por un mes</span></p>
+      <p data-plus-flow-renewal></p>
+      <p>Campus Plus se activa automáticamente cuando Flow confirma el pago.</p>
+      <a class="app-button" data-plus-flow-link hidden>Ir a pagar por QR</a>
+      <button class="app-button app-button--secondary" type="button" data-plus-flow-resume hidden>Retomar pago</button>
+      <button class="app-button app-button--secondary" type="button" data-plus-refresh>Actualizar estado</button>
     </section>
     <section class="app-panel" data-plus-view="pending" hidden>
       <p class="app-kicker">COMPROBANTE RECIBIDO</p><h2>Tu pago está en revisión.</h2><p>Recibimos tu comprobante. Cuando confirmemos el abono, tu mes de Plus quedará activo. Vuelve a esta pantalla para ver el resultado; no hace falta volver a pagar ni enviar el archivo otra vez.</p>

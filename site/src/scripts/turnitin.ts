@@ -8,10 +8,11 @@ type Order = {
   createdAt: string; paidAt: string | null;
   availableReports?: ReportKind[];
   report?: 'ai' | 'similarity' | 'both';
+  paymentMethod?: 'flow';
 };
 type Product = {id: 'ai' | 'similarity' | 'both'; label: string; amountCents: number; reports: ReportKind[]};
-type Config = { enabled: boolean; ordersAvailable: boolean; amountCents: number; products?: Product[]; availability?: Record<Product['id'],number>; phone: string; holder: string; maxDocumentBytes: number; maxReceiptBytes: number };
-const labels: Record<string,string> = { payment_review: 'Pago en revisión', processing: 'Preparando tus informes', completed: 'Informes listos', payment_rejected: 'Pago observado' };
+type Config = { enabled: boolean; ordersAvailable: boolean; amountCents: number; products?: Product[]; availability?: Record<Product['id'],number>; phone: string; holder: string; maxDocumentBytes: number; maxReceiptBytes: number; flowAvailable?: boolean };
+const labels: Record<string,string> = { payment_pending: 'QR pendiente de pago', payment_review: 'Pago en revisión', processing: 'Preparando tus informes', completed: 'Informes listos', payment_rejected: 'Pago observado' };
 const money = (cents: number) => `S/${(cents / 100).toLocaleString('es-PE')}`;
 
 function setupTurnitin() {
@@ -50,9 +51,15 @@ function setupTurnitin() {
     });
     form.querySelector<HTMLButtonElement>('[data-ti-next]')!.disabled = !canOrder() || checkingAvailability;
     const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const qr = Boolean(config.flowAvailable);
+    form.querySelectorAll<HTMLElement>('[data-ti-manual-copy], [data-ti-manual-heading], [data-ti-manual-details], [data-ti-manual-help], [data-ti-manual-receipt]')
+      .forEach(node => { node.hidden = qr; });
+    form.querySelector<HTMLElement>('[data-ti-flow-copy]')!.hidden = !qr;
+    (form.elements.namedItem('receipt') as HTMLInputElement).disabled = qr;
+    submit.querySelector<HTMLElement>('[data-ti-submit-text]')!.textContent = qr ? 'Abrir QR de pago' : 'Enviar revisión';
     submit.disabled = !canOrder() || checkingAvailability;
     document.querySelectorAll<HTMLButtonElement>('[data-ti-check-capacity]').forEach(button => { button.disabled = checkingAvailability; button.textContent = checkingAvailability ? 'Comprobando…' : 'Comprobar disponibilidad'; });
-    document.querySelector<HTMLElement>('[data-ti-payment-availability]')!.textContent = checkingAvailability ? 'Comprobando disponibilidad…' : canOrder() ? 'Esta revisión está disponible. Completa el pago y envía tu pedido; la disponibilidad puede cambiar.' : 'No realices el pago hasta confirmar la disponibilidad.';
+    document.querySelector<HTMLElement>('[data-ti-payment-availability]')!.textContent = checkingAvailability ? 'Comprobando disponibilidad…' : canOrder() ? qr ? 'El cupo se reserva al abrir el QR.' : 'Esta revisión está disponible. Completa el pago y envía tu pedido; la disponibilidad puede cambiar.' : 'No realices el pago hasta confirmar la disponibilidad.';
     const notice = document.querySelector<HTMLElement>('[data-ti-capacity-notice]')!;
     notice.hidden = canOrder();
     const exhausted = config.availability && !Object.values(config.availability).some(value => value > 0);
@@ -107,6 +114,13 @@ function setupTurnitin() {
     const result = await response.json().catch(() => ({ error: 'No se pudo conectar con Campus.' }));
     if (!response.ok) throw new Error(result.error ?? 'No se pudo completar la solicitud.');
     return result;
+  }
+  function openCheckout(value: string) {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || url.username || url.password || url.port ||
+        !(url.hostname === 'flow.cl' || url.hostname.endsWith('.flow.cl')))
+      throw new Error('No pudimos abrir el pago de Flow.');
+    location.assign(url.href);
   }
   async function encode(file: File | undefined, max: number) {
     if (!file?.size || file.size > max) throw new Error(`Selecciona un archivo válido de hasta ${Math.round(max / 1024 / 1024)} MB.`);
@@ -172,7 +186,20 @@ function setupTurnitin() {
       }
       card.append(el('p', `${productLabel(order.report)} · ${money(order.amountCents)} · ${new Date(order.createdAt).toLocaleString('es-PE', { timeZone: 'America/Lima', dateStyle: 'short', timeStyle: 'short' })} · Pedido ${order.id.slice(0,8)}`, 'ti-small'));
       if (order.isTest) card.append(el('p', 'Prueba sin abono · PDF ficticios, sin análisis real.', 'ti-small'));
-      if (order.status === 'payment_rejected') {
+      if (order.status === 'payment_pending') {
+        card.append(el('p', 'Recibimos tu documento. Puedes retomar el QR desde aquí. Tu revisión comenzará cuando Flow confirme el pago.', 'ti-muted'));
+        const resume = el('button', 'Retomar pago por QR', 'app-button');
+        resume.type = 'button';
+        resume.onclick = async () => {
+          resume.disabled = true;
+          try { openCheckout((await api(`orders/${order.id}/checkout`, {})).checkoutUrl); }
+          catch (error) { announce((error as Error).message); resume.disabled = false; }
+        };
+        card.append(resume);
+      }
+      if (order.status === 'payment_rejected' && order.paymentMethod === 'flow') {
+        card.append(el('p', order.note, 'ti-muted'));
+      } else if (order.status === 'payment_rejected') {
         const observation = el('div', '', 'ti-payment-observation');
         observation.append(el('h4', 'Motivo de la observación'), el('p', order.note || 'No se indicó un motivo. Contacta a soporte para revisar tu pedido.'));
         card.append(observation, el('p', 'El pago no está aprobado. Si ya pagaste, no vuelvas a pagar ni crees otro pedido: revisémoslo contigo.', 'ti-muted'));
@@ -203,7 +230,7 @@ function setupTurnitin() {
           const pending = requiredReports(order.report).filter(kind => !availableReports.includes(kind));
           if (pending.length) card.append(el('p', `El informe de ${pending.map(kind => kind === 'similarity' ? 'similitud' : 'IA').join(' e ')} aparecerá aquí cuando esté listo.`, 'ti-muted'));
         }
-      } else if (order.status !== 'payment_rejected') {
+      } else if (!['payment_pending', 'payment_rejected'].includes(order.status)) {
         card.append(el('p', order.status === 'payment_review' ? 'Recibimos tu documento y comprobante. Estamos verificando el abono; el pago aún no está aprobado.' : order.isTest ? 'Estamos preparando los PDF de prueba.' : 'Pago validado. Estamos preparando tus informes.', 'ti-muted'));
         if (order.status === 'payment_review' && !order.isTest) card.append(el('p', 'No necesitas volver a pagar ni enviar otro pedido.', 'ti-muted'));
         if (['payment_review', 'processing'].includes(order.status)) {
@@ -247,7 +274,7 @@ function setupTurnitin() {
       // Older pending orders may be outside the first page. Refresh only their
       // metadata so a completion is visible without collapsing loaded history.
       if (ordersLoaded && !append && !reset && historyFilter === 'all' && !historySearch) {
-        const olderPending = historyOrders.filter(order => ['payment_review','processing'].includes(order.status) && !orders.some(item => item.id === order.id)).slice(0,3);
+        const olderPending = historyOrders.filter(order => ['payment_pending','payment_review','processing'].includes(order.status) && !orders.some(item => item.id === order.id)).slice(0,3);
         const updates = await Promise.allSettled(olderPending.map(order => api(`orders/${order.id}`)));
         if (disposed || version !== historyVersion) return;
         for (const update of updates) if (update.status === 'fulfilled' && update.value.order) orders.push(update.value.order);
@@ -278,7 +305,8 @@ function setupTurnitin() {
       const counts: Record<string, number> = result.counts ?? {
         all: historyOrders.length, ...Object.fromEntries(Object.keys(labels).map(key => [key, historyOrders.filter(order => order.status === key).length])),
       };
-      pendingOrders = counts.payment_review > 0 || counts.processing > 0;
+      pendingOrders = counts.payment_pending > 0 || counts.payment_review > 0 || counts.processing > 0;
+      document.querySelector<HTMLElement>('[data-ti-filter="payment_pending"]')!.hidden = !(counts.payment_pending > 0 || historyFilter === 'payment_pending');
       document.querySelector<HTMLElement>('[data-ti-history-tools]')!.hidden = counts.all <= 1 && !historySearch && historyFilter === 'all';
       document.querySelectorAll<HTMLElement>('[data-ti-count]').forEach(node => { node.textContent = String(counts[node.dataset.tiCount!] ?? 0); });
       const total = counts[historyFilter] ?? 0;
@@ -370,19 +398,22 @@ function setupTurnitin() {
     if (!canOrder() || checkingAvailability || fields.disabled) return;
     if (!request.isPayment()) { request.next(); return; }
     if (!uploads.validate('document')) { request.document(); return; }
-    if (!uploads.validate() || !form.reportValidity()) { track('campus_flow_failed', { step: 'upload', error_kind: 'validation' }); return; }
     try { await refreshAvailability(); } catch { announce('No pudimos comprobar la disponibilidad. Conservamos tus archivos. Si ya pagaste, contacta a soporte desde el aviso.'); return; }
-    if (!canOrder()) return;
+    if (!canOrder() || fields.disabled) return;
+    const qr = Boolean(config.flowAvailable);
+    if ((!qr && !uploads.validate()) || !form.reportValidity()) { track('campus_flow_failed', { step: 'upload', error_kind: 'validation' }); return; }
     track('campus_turnitin_submit_started');
-    fields.disabled = true; submit.setAttribute('aria-busy', 'true'); submit.setAttribute('aria-label', 'Enviando tu revisión…'); submitText.hidden = true; submit.querySelector<HTMLElement>('[data-ti-submit-skeleton]')!.hidden = false; showSubmission('Enviando tu documento y comprobante. Mantén esta página abierta.'); announce('Enviando tu documento y comprobante…', true);
+    fields.disabled = true; submit.setAttribute('aria-busy', 'true'); submit.setAttribute('aria-label', 'Enviando tu revisión…'); submitText.hidden = true; submit.querySelector<HTMLElement>('[data-ti-submit-skeleton]')!.hidden = false; showSubmission(qr ? 'Reservando tu revisión y abriendo Flow…' : 'Enviando tu documento y comprobante. Mantén esta página abierta.'); announce(submissionMessage.textContent ?? '', true);
     try {
       const received = await api('orders', { requestId, report: selectedReport(), amountCents: selectedOffer()?.amountCents ?? config.amountCents, consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
-        document: await encode(selected(form,'document'),config.maxDocumentBytes), receipt: await encode(selected(form,'receipt'),config.maxReceiptBytes) });
+        document: await encode(selected(form,'document'),config.maxDocumentBytes),
+        ...(qr ? {paymentMethod: 'flow'} : {receipt: await encode(selected(form,'receipt'),config.maxReceiptBytes)}) });
       if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(received.order?.id ?? '')) throw new Error('No pudimos confirmar el envío. Vuelve a intentarlo; conservamos tus archivos.');
+      if (received.checkoutUrl) { openCheckout(received.checkoutUrl); return; }
       track('campus_turnitin_submitted');
       form.reset(); uploads.reset(); request.reset(); showSubmission(''); requestId = crypto.randomUUID(); updatePrice();
       try { await refreshAvailability(); } catch { /* The received order remains confirmed if availability refresh fails. */ }
-      announce('Pedido recibido. Tu comprobante está en revisión. Consulta el estado en Mis revisiones.');
+      announce(qr ? 'Consulta el estado de tu pedido en Mis revisiones.' : 'Pedido recibido. Tu comprobante está en revisión. Consulta el estado en Mis revisiones.');
       document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!.open = false;
       const reviewPanel = document.querySelector<HTMLElement>('[data-ti-my-orders-panel]')!;
       reviewPanel.parentElement!.prepend(reviewPanel);
@@ -433,7 +464,7 @@ function setupTurnitin() {
       updatePrice(); refresh.hidden = false;
       await loadOrders();
       if (config.enabled && requestPanel.open) request.start();
-      announce(linkUnavailable ? 'No pudimos abrir esa revisión. Comprueba que entraste con la cuenta del pedido.' : statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
+      announce(linkUnavailable ? 'No pudimos abrir esa revisión. Comprueba que entraste con la cuenta del pedido.' : statuses.size ? 'Aquí tienes tus revisiones. Abre o descarga los informes que ya estén listos.' : config.enabled ? config.flowAvailable ? 'Selecciona el documento y abre el QR para pagar tu revisión.' : 'Selecciona el documento, paga y adjunta tu comprobante para enviar el pedido.' : 'Los pedidos nuevos están pausados. Puedes consultar y descargar tus informes anteriores.', config.enabled);
     } catch (error) {
       ordersList.removeAttribute('aria-busy');
       if (!ordersLoaded) ordersList.replaceChildren(el('p', 'No pudimos cargar tus revisiones. Actualiza para intentarlo.', 'ti-muted'));

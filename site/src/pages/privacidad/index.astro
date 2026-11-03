@@ -67,7 +67,7 @@ const schemas = [
       <h2 id="resumen-title">En resumen</h2>
       <ul>
         <li><strong>Nunca vemos tu contraseña.</strong> Inicias sesión en la página de tu universidad, no en la nuestra.</li>
-        <li>La conexión de Blackboard consulta tus cursos en el momento. Si solicitas el servicio de <strong>Turnitin</strong>, guardamos el documento que subes, el comprobante y los informes para atender tu pedido.</li>
+        <li>La conexión de Blackboard consulta tus cursos en el momento. Si solicitas el servicio de <strong>Turnitin</strong>, guardamos el documento que subes, el comprobante si corresponde y los informes para atender tu pedido.</li>
         <li>Solo conservamos tu sesión <strong>si tú activas “Mantener conexión activa”</strong>, cifrada y por 90 días como máximo.</li>
         <li>Las métricas van <strong>seudonimizadas</strong>: identificadores técnicos, sin contenido académico.</li>
         <li>Puedes <strong>revocar la conexión o eliminar tu cuenta</strong> desde Campus Mobile; también puedes escribir a <a class="prose-link" href="mailto:info@campuscli.com">info@campuscli.com</a>.</li>
@@ -153,11 +153,11 @@ const schemas = [
     </ul>
 
     <h3 id="plus">Pagos de Campus Plus</h3>
-    <p>Guardamos tu cuenta Campus, la oferta aceptada, el monto, las fechas, el estado del pago y tu comprobante de Yape o Plin. El equipo autorizado revisa el abono y activa un mes en esa misma cuenta. El comprobante se guarda cifrado y solo el personal autorizado puede descargarlo. Para respetar los primeros 25 cupos promocionales conservamos un registro de los identificadores internos que ya obtuvieron esa tarifa. Usamos Resend para avisar al equipo de un pago nuevo con su identificador, monto y enlace al panel privado, sin adjuntar el comprobante ni incluir tu correo. Las métricas registran pasos y estados del pago, nunca el archivo ni su contenido. Puedes solicitar la eliminación de los datos a info@campuscli.com.</p>
+    <p>Guardamos tu cuenta Campus, la oferta aceptada, el monto, las fechas, el estado del pago y la referencia de Flow o el comprobante, según el medio elegido. La confirmación de Flow activa un mes en esa misma cuenta. Para pagos con comprobante, el equipo autorizado verifica el abono. El comprobante se guarda cifrado y solo el personal autorizado puede descargarlo. Para respetar los primeros 25 cupos promocionales conservamos un registro de los identificadores internos que ya obtuvieron esa tarifa. Usamos Resend para avisar al equipo de un pago nuevo con su identificador, monto y enlace al panel privado, sin adjuntar el comprobante ni incluir tu correo. Las métricas registran pasos y estados del pago, nunca el archivo ni su contenido. Puedes solicitar la eliminación de los datos a info@campuscli.com.</p>
 
     <h3 id="turnitin">Pedidos de informes de Turnitin</h3>
     <ul>
-      <li><strong>Qué:</strong> la cuenta Campus asociada al pedido, tu documento, el comprobante de Yape/Plin, el monto, las fechas, el estado y los informes entregados.</li>
+      <li><strong>Qué:</strong> la cuenta Campus asociada al pedido, tu documento, la referencia del pago de Flow o el comprobante de Yape/Plin, el monto, las fechas, el estado y los informes entregados.</li>
       <li><strong>Para qué:</strong> validar el pago, procesar el documento mediante el proveedor Turnitin API y permitirte descargar los informes desde tu cuenta. Al enviar el pedido autorizas expresamente ese procesamiento.</li>
       <li><strong>Acceso:</strong> el equipo de Campus autorizado para atender los pedidos accede al documento y al comprobante. El documento se procesa mediante Turnitin API; el comprobante no se envía al proveedor. Los archivos se guardan cifrados en la base de datos y se descargan mediante una sesión autenticada.</li>
       <li><strong>Avisos al equipo:</strong> usamos Resend para enviar a info@campuscli.com un aviso con el identificador del pedido, el monto y los nombres de los archivos. El correo enlaza al panel privado; no adjunta el trabajo ni el comprobante.</li>
@@ -205,6 +205,7 @@ const schemas = [
       participan en la autenticación, infraestructura, medición o seguridad del servicio:
     </p>
     <ul>
+      <li><strong>Flow</strong> — procesa el pago por QR para Campus Plus y Turnitin. Recibe el correo asociado a tu cuenta, el identificador del pedido, el concepto, la moneda y el importe. Campus recibe el estado y la referencia del pago.</li>
       <li>
         <strong>Turnitin API</strong> — procesa el documento que eliges enviar cuando solicitas el servicio de informes. Ese procesamiento depende de su configuración y de las condiciones del proveedor.
       </li>
