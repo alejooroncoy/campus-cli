@@ -27,6 +27,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
             <button type="button" data-ti-filter="all" aria-pressed="true">Todas <span data-ti-count="all">0</span></button>
             <button type="button" data-ti-filter="completed" aria-pressed="false">Listas <span data-ti-count="completed">0</span></button>
             <button type="button" data-ti-filter="processing" aria-pressed="false">En revisión <span data-ti-count="processing">0</span></button>
+            <button type="button" data-ti-filter="payment_pending" aria-pressed="false" hidden>QR pendiente <span data-ti-count="payment_pending">0</span></button>
             <button type="button" data-ti-filter="payment_review" aria-pressed="false">Validando pago <span data-ti-count="payment_review">0</span></button>
             <button type="button" data-ti-filter="payment_rejected" aria-pressed="false">Pago observado <span data-ti-count="payment_rejected">0</span></button>
           </div>
@@ -76,14 +77,16 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
               <section class="ti-step" data-ti-request-step="payment" aria-labelledby="ti-payment-title" hidden>
                 <div class="ti-selected-document"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><use href="/assets/lucide.svg#file-text"></use></svg><div><span>Tu documento</span><strong data-ti-document-summary></strong></div><button type="button" data-ti-go-step="document">Cambiar</button></div>
                 <h3 id="ti-payment-title" tabindex="-1">Paga y envía tu revisión</h3>
-                <p class="ti-muted">Realiza el pago, adjunta el comprobante y envía el pedido. Validaremos el abono antes de preparar tus informes.</p>
+                <p class="ti-muted" data-ti-manual-copy>Realiza el pago, adjunta el comprobante y envía el pedido. Validaremos el abono antes de preparar tus informes.</p>
+                <p class="ti-muted" data-ti-flow-copy hidden>Reserva tu revisión y abre el QR de Flow para pagar con Yape o Plin. El pedido entra en preparación cuando Flow confirma el pago.</p>
                 <p class="ti-field-help ti-payment-availability" data-ti-payment-availability role="status" aria-live="polite"></p>
                 <div class="ti-payment">
-                  <h4 class="ti-payment-step-title">1. Paga por Yape o Plin</h4>
+                  <h4 class="ti-payment-step-title" data-ti-manual-heading>1. Paga por Yape o Plin</h4>
                   <div class="ti-payment-top"><span>Total por tu revisión · <span data-ti-product-summary>Similitud + IA</span></span><strong data-ti-amount>S/14</strong></div>
-                  <dl><div><dt>Número de celular</dt><dd><span data-ti-phone>—</span><button type="button" class="ti-copy-phone" data-ti-copy-phone aria-label="Copiar número de Yape o Plin"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#copy"></use></svg><span data-ti-copy-label>Copiar</span></button></dd></div><div><dt>Titular</dt><dd data-ti-holder>—</dd></div></dl>
-                  <p class="ti-field-help">Verifica el titular antes de pagar. La disponibilidad se confirma al enviar tu documento y comprobante.</p>
+                  <dl data-ti-manual-details><div><dt>Número de celular</dt><dd><span data-ti-phone>—</span><button type="button" class="ti-copy-phone" data-ti-copy-phone aria-label="Copiar número de Yape o Plin"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#copy"></use></svg><span data-ti-copy-label>Copiar</span></button></dd></div><div><dt>Titular</dt><dd data-ti-holder>—</dd></div></dl>
+                  <p class="ti-field-help" data-ti-manual-help>Verifica el titular antes de pagar. La disponibilidad se confirma al enviar tu documento y comprobante.</p>
                 </div>
+                <div data-ti-manual-receipt>
                 <h4 class="ti-payment-step-title">2. Adjunta tu comprobante</h4>
                 <label class="ti-upload ti-upload--receipt" data-ti-upload tabindex="0" aria-label="Adjuntar comprobante de pago">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 16V4m-4 4 4-4 4 4M4 16v4h16v-4"/></svg>
@@ -93,6 +96,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <p class="ti-upload-methods" id="ti-receipt-help"><span class="ti-mobile-method">Elige la captura o el PDF de tu pago.</span><span class="ti-desktop-method">Haz clic, arrastra o pega tu comprobante.</span></p>
                 <button class="ti-remove-file" type="button" data-ti-remove="receipt" hidden>Quitar comprobante</button>
                 <p class="ti-upload-error" id="ti-receipt-error" data-ti-upload-error="receipt" role="alert" hidden></p>
+                </div>
             <div class="ti-submit-footer">
             <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo a Campus a procesar mi documento mediante Turnitin API y he leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
             <div class="ti-submit-action"><p class="ti-field-help">Sigue el estado y descarga tus informes en Mis revisiones.</p><button class="app-button" type="submit"><span data-ti-submit-text>Enviar revisión</span><span class="ti-inline-skeleton ti-inline-skeleton--button" data-ti-submit-skeleton aria-hidden="true" hidden></span> <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button></div>

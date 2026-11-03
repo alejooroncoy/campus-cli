@@ -4,8 +4,8 @@ import { uploadError } from './turnitin-upload';
 import type { CampusSession } from './campus-session';
 import { mountPlusSurvey } from './plus-survey.ts';
 
-type Order = {id:string;accountId:number;kind:string;cohort:string;status:string;amountCents:number;renewalCents:number;expiresAt:string;activeUntil:string|null;note:string;isTest?:boolean};
-type State = {orders:Order[];currentPlan:string;subscription:{activeUntil:string;renewalCents:number;isTest?:boolean}|null;admin:boolean;enabled:boolean;eligible:boolean;blocked:boolean;unavailable:boolean};
+type Order = {id:string;accountId:number;kind:string;cohort:string;status:string;amountCents:number;renewalCents:number;expiresAt:string;activeUntil:string|null;note:string;isTest?:boolean;paymentMethod?:'flow'};
+type State = {orders:Order[];currentPlan:string;subscription:{activeUntil:string;renewalCents:number;isTest?:boolean}|null;admin:boolean;enabled:boolean;eligible:boolean;blocked:boolean;unavailable:boolean;flowAvailable?:boolean};
 const money=(cents:number)=>`S/${cents/100}`;
 const date=(value:string)=>new Date(value).toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'});
 let cleanup=()=>{};
@@ -24,6 +24,11 @@ function mount(){
     if(loading){const accessible=document.createElement('span');accessible.className='app-sr-only';accessible.textContent=value;const skeleton=document.createElement('span');skeleton.className='app-skeleton plus-message__skeleton';skeleton.setAttribute('aria-hidden','true');status.replaceChildren(accessible,skeleton);}
     else status.textContent=value;
   };
+  const flowLink=find<HTMLAnchorElement>('flow-link'),flowResume=find<HTMLButtonElement>('flow-resume');
+  const flowPrice=(order:Order)=>{
+    text('flow-amount',money(order.amountCents));
+    text('flow-renewal',`Después, ${money(order.renewalCents)} al mes. Sin cobros automáticos.`);
+  };
   let lastView='';let expiryTracked=false;
   const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}void survey.update(view,surveySession);};
   async function api(path:string,data?:unknown){
@@ -41,7 +46,15 @@ function mount(){
       const value=await api('checkout',{});expiryTracked=false;if(disposed)return;
       quote=value.order;
       find('qa').hidden=!quote!.isTest;
-      if(quote!.status==='payment_review'){await load();return;}
+      if(quote!.status==='payment_review'||quote!.status==='active'){quote=null;await load();return;}
+      if(quote!.paymentMethod==='flow'){
+        const url=new URL(value.checkoutUrl);
+        if(url.protocol!=='https:'||!(url.hostname==='flow.cl'||url.hostname.endsWith('.flow.cl')))throw Error('No pudimos abrir el pago de Flow.');
+        find('qa').hidden=true;flowPrice(quote!);flowLink.href=url.href;flowLink.hidden=false;flowResume.hidden=true;
+        quote=null;pendingPayment=true;show('flow');message();
+        track('campus_plus_checkout_viewed',{offer:value.order.cohort,amount_cents:value.order.amountCents});
+        return;
+      }
       form.reset();
       text('filename','Seleccionar comprobante');
       find('file-feedback').hidden=true;input.removeAttribute('aria-invalid');
@@ -55,8 +68,8 @@ function mount(){
       root.querySelector<HTMLElement>('#plus-pay-title')?.focus({preventScroll:true});
     }catch(error){failure(error);}finally{busy=false;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry]').forEach(b=>b.disabled=false);expired();}
   }
-  async function load(){
-    message('Comprobando tu cuenta…',false,true);
+  async function load(quiet=false){
+    if(!quiet)message('Comprobando tu cuenta…',false,true);
     try{
       const [session,config]=await Promise.all([getCampusSession(true),api('config')]);if(disposed)return;
       surveySession=session;
@@ -68,9 +81,14 @@ function mount(){
       if(state.blocked||state.unavailable){show('unavailable');message(state.blocked?'Tu cuenta requiere revisión. Contacta a soporte.':'No pudimos verificar tu plan. Vuelve a comprobarlo.',true);return;}
       text('account',`Cuenta: ${session.email??'tu cuenta Campus'}`);
       const pending=state.orders.find(order=>order.status==='payment_review');
-      find('qa').hidden=!(pending?.isTest||state.subscription?.isTest);
-      pendingPayment=Boolean(pending);
+      const pendingFlow=state.orders.find(order=>order.status==='quoted'&&order.paymentMethod==='flow');
+      find('qa').hidden=!(pending?.isTest||state.subscription?.isTest&&!state.orders.some(order=>order.status==='active'&&order.paymentMethod==='flow'));
+      pendingPayment=Boolean(pending||pendingFlow);
+      if(!pendingFlow){flowLink.removeAttribute('href');flowLink.hidden=true;}
       if(pending){show('pending');message();track('campus_plus_status_viewed',{plus_status:'payment_review',is_test:pending.isTest===true});}
+      else if(pendingFlow){
+        flowPrice(pendingFlow);flowResume.hidden=!flowLink.hidden;show('flow');message();
+      }
       else if(state.currentPlan==='plus'){
         show('active');message();text('active-until',state.subscription?`Tu mes está activo hasta el ${date(state.subscription.activeUntil)}.`:'Tu cuenta ya tiene acceso a Campus Plus.');
         text('active-renewal',state.subscription?.isTest?'Acceso de prueba por 24 horas. No se registró ningún pago ni renovación.':state.subscription?`Tu próxima renovación: ${money(state.subscription.renewalCents)} por mes. Sin cobros automáticos.`:'Consulta el estado de tu cuenta en Mi perfil.');
@@ -80,10 +98,16 @@ function mount(){
       else if(!state.eligible){show('university');message();}
       else if(state.orders[0]?.status==='rejected'){
         show('rejected');text('rejection',state.orders[0].note);message();track('campus_plus_status_viewed',{plus_status:'rejected'});
-      }else{show('ready');message();find('checkout').textContent=state.orders.some(o=>o.status==='quoted')?'Retomar instrucciones de pago':'Ver precio y cómo pagar';}
+      }else{
+        const manualQuote=state.orders.some(order=>order.status==='quoted'&&!order.paymentMethod);
+        const qr = Boolean(state.flowAvailable && !manualQuote);
+        find('ready-copy').hidden = !qr;
+        find('manual-overview').hidden = qr;
+        show('ready');message();find('checkout').textContent=state.orders.some(o=>o.status==='quoted')?'Retomar instrucciones de pago':state.subscription?'Renovar mi mes':'Ver precio y cómo pagar';}
     }catch(error){if(!disposed){show('unavailable');failure(error);}}
   }
   find<HTMLButtonElement>('checkout').onclick=()=>void checkout();find<HTMLButtonElement>('renew').onclick=()=>void checkout();find<HTMLButtonElement>('retry').onclick=()=>void checkout();
+  flowResume.onclick=()=>void checkout();
   find<HTMLButtonElement>('requote').onclick=()=>void checkout();
   root.querySelectorAll<HTMLButtonElement>('[data-plus-refresh]').forEach(button=>button.onclick=()=>void load());
   find<HTMLButtonElement>('copy').onclick=async()=>{try{await navigator.clipboard.writeText(find('phone').textContent??'');text('copy','Copiado');message('Número copiado. Abre Yape o Plin para realizar el pago.');track('campus_plus_payment_copied');}catch{message('Selecciona el número y cópialo desde tu dispositivo.',true);}};
@@ -98,7 +122,7 @@ function mount(){
       await api('orders',{quoteId:quote.id,consent:true,receipt:{name:file.name,base64}});if(disposed)return;form.reset();quote=null;await load();
     }catch(error){failure(error);}finally{busy=false;find<HTMLButtonElement>('submit').removeAttribute('aria-busy');find<HTMLButtonElement>('submit').removeAttribute('aria-label');find<HTMLElement>('submit-label').hidden=false;find<HTMLElement>('submit-skeleton').hidden=true;expired();}
   };
-  timer=setInterval(()=>{if(quote)expired();if(pendingPayment&&!busy&&document.visibilityState==='visible'&&++poll%20===0)void load();},1000);
+  timer=setInterval(()=>{if(quote)expired();if(pendingPayment&&!busy&&document.visibilityState==='visible'&&++poll%10===0)void load(true);},1000);
   const changed=(event:Event)=>{
     const session=(event as CustomEvent<CampusSession>).detail;
     const owner=session.authenticated?session.analyticsId??session.email??'account':'guest';
