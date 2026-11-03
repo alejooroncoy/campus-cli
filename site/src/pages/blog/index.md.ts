@@ -35,7 +35,7 @@ export const GET: APIRoute = async () => {
     "> Guías sobre Blackboard UPC, inteligencia artificial y cómo estudiar con el Aula Virtual.",
     "",
     "Fuente: https://campuscli.com/blog/",
-    "Blackboard UPC: acceso, tareas y notas: https://campuscli.com/blackboard-upc/",
+    "[Cómo entrar a Blackboard UPC y ver tus tareas y notas](https://campuscli.com/blackboard-upc/)",
     "Opiniones de profesores UPC por curso: https://campuscli.com/profes/",
     "Texto completo de todas las guías: https://campuscli.com/llms-full.txt",
     "",

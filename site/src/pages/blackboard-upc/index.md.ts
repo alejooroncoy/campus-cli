@@ -11,8 +11,6 @@ export const GET: APIRoute = () => {
     .replace(/<summary\b[^>]*>([\s\S]*?)<\/summary>/g, "<h3>$1</h3>")
     .replace(/<p\b/g, " <p");
   const markdown = [
-    "# Blackboard UPC: acceso, tareas y notas",
-    "",
     "> Acceso oficial al Aula Virtual UPC, guía de cursos, tareas y notas, y conexión opcional con IA mediante Campus.",
     "",
     "Fuente: https://campuscli.com/blackboard-upc/",
