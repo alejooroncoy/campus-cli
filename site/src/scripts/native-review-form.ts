@@ -63,8 +63,41 @@ async function initProfileMore(){
  button.addEventListener('click',async()=>{
   if(button.disabled)return;button.disabled=true;const status=document.querySelector<HTMLElement>('[data-profile-status]')!;status.textContent='Cargando reseñas…';
   try{const url=new URL('/api/app/profes/community/',location.origin);url.search=new URLSearchParams({professorId:list.dataset.professorId!,beforeId:button.dataset.cursor!,limit:'12'}).toString();const response=await fetch(url,{signal:AbortSignal.timeout(10000)});if(!response.ok)throw new Error();const data=await response.json();
-   const {reviewCard}=await import('../lib/professor-pages.mjs');const parsed=new DOMParser().parseFromString(data.reviews.map((r:any)=>reviewCard(r,{profile:true})).join(''),'text/html');list.append(...Array.from(parsed.body.children).filter(el=>!el.id||!document.getElementById(el.id)));button.hidden=data.nextCursor===null;if(data.nextCursor)button.dataset.cursor=String(data.nextCursor);status.textContent='Reseñas cargadas.';
+   const {reviewCard}=await import('../lib/professor-pages.mjs');const parsed=new DOMParser().parseFromString(data.reviews.map((r:any)=>reviewCard(r,{profile:true}).replace('<article',`<article data-review-key="Campus:${Number(r.id)}"`)).join(''),'text/html');list.append(...Array.from(parsed.body.children).filter(el=>!el.id||!document.getElementById(el.id)));button.hidden=data.nextCursor===null;if(data.nextCursor)button.dataset.cursor=String(data.nextCursor);status.textContent='Reseñas cargadas.';
   }catch{status.textContent='No pudimos cargar más reseñas. Vuelve a intentarlo.';}finally{button.disabled=false;}
  });
 }
-initReviewForm();void initProfileMore();document.addEventListener('astro:page-load',()=>{initReviewForm();void initProfileMore();});
+/**
+ * Scroll infinito sobre el enlace "Leer más opiniones". Sin JS (o si algo falla) el enlace sigue
+ * funcionando como página normal: esto solo lo mejora. Pide la siguiente página ya renderizada y
+ * pasa a la lista solo las tarjetas que todavía no están.
+ */
+function initCatalogScroll(){
+ const list=document.querySelector<HTMLElement>('[data-profile-reviews]');
+ const link=document.querySelector<HTMLAnchorElement>('a[data-catalog-more]');
+ if(!list||!link||link.dataset.bound||!('IntersectionObserver' in window))return;
+ link.dataset.bound='true';
+ const label=document.querySelector<HTMLElement>('[data-reviews-label]');
+ // Las de Campus que el lector cargue con su propio botón suman al total, que arranca solo con las visibles al cargar.
+ const campusCards=()=>list.querySelectorAll(':scope > [data-review-key^="Campus:"]').length,campusAtStart=campusCards();
+ let loading=false;
+ const observer=new IntersectionObserver(async entries=>{
+  if(loading||!entries.some(entry=>entry.isIntersecting))return;
+  loading=true;observer.unobserve(link);
+  try{
+   const response=await fetch(link.href,{signal:AbortSignal.timeout(10000),headers:{Accept:'text/html'}});
+   if(!response.ok)throw new Error('page');
+   const doc=new DOMParser().parseFromString(await response.text(),'text/html');
+   const next=doc.querySelector('[data-profile-reviews]');if(!next)throw new Error('page');
+   const known=new Set(Array.from(list.querySelectorAll(':scope > [data-review-key]')).map(el=>(el as HTMLElement).dataset.reviewKey));
+   list.append(...Array.from(next.querySelectorAll(':scope > [data-review-key]')).filter(el=>!known.has((el as HTMLElement).dataset.reviewKey)));
+   const total=Number(label?.dataset.total)+(campusCards()-campusAtStart);const shown=list.querySelectorAll(':scope > [data-review-key]:not([data-review-key*="aggregate"])').length;
+   if(label&&Number.isFinite(total))label.textContent=shown<total?`Mostrando ${shown} de ${total} opiniones`:`${total} opiniones`;
+   const following=doc.querySelector<HTMLAnchorElement>('a[data-catalog-more]');
+   if(following){link.href=following.href;observer.observe(link);}else link.remove();
+  }catch{/* se queda el enlace manual: no se reintenta solo para no hacer bucles */}
+  finally{loading=false;}
+ },{rootMargin:'500px 0px'});
+ observer.observe(link);
+}
+initReviewForm();void initProfileMore();initCatalogScroll();document.addEventListener('astro:page-load',()=>{initReviewForm();void initProfileMore();initCatalogScroll();});
