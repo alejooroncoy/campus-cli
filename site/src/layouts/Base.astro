@@ -25,6 +25,7 @@ interface Props {
   markdownUrl?: string;
   schemas?: unknown[];
   robots?: string;
+  analytics?: boolean;
   keywords?: string[];
   headerAction?: { label: string; href: string };
 }
@@ -46,6 +47,7 @@ const {
   headerAction = { label: "Conectar IA", href: "/app/copilot/" },
   robots = "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1",
   keywords,
+  analytics = true,
 } = Astro.props;
 ---
 
@@ -157,14 +159,39 @@ const {
           <a href="https://github.com/alejooroncoy/campus-cli" target="_blank" rel="noreferrer">GitHub <svg class="cp-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
         </div>
         <div class="footer__bottom">
+          <a class="footer__complaints" href="/reclamos/">
+            <img src="/assets/libro-de-reclamaciones.png" width="256" height="148" alt="Libro de Reclamaciones" loading="lazy" decoding="async" />
+          </a>
           <small>© 2026 Campus. Proyecto independiente. <a href="/terminos/">Términos</a> · <a href="/privacidad/">Privacidad</a></small>
           <small><a href="/no-afiliacion/">Campus no está afiliado a UPC, Blackboard, OpenAI ni Anthropic.</a></small>
         </div>
       </div>
     </footer>
-    <Analytics />
+    {analytics && <Analytics />}
     <script>
       import "../../public/app.js";
     </script>
   </body>
 </html>
+
+<style>
+  .footer__bottom {
+    align-items: center;
+  }
+  .footer__complaints {
+    display: block;
+    width: 160px;
+    max-width: 100%;
+    border-radius: 4px;
+  }
+  .footer__complaints img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: inherit;
+  }
+  .footer__complaints:focus-visible {
+    outline: 2px solid var(--sky);
+    outline-offset: 4px;
+  }
+</style>

@@ -1,0 +1,80 @@
+---
+import Base from "../../layouts/Base.astro";
+import { campusComplaintProvider as provider } from "../../lib/complaint-book.mjs";
+
+---
+
+<Base
+  title="Libro de Reclamaciones | Campus"
+  description="Presenta un reclamo o una queja sobre Campus y guarda una copia de tu hoja de reclamación."
+  canonical="https://campuscli.com/reclamos/"
+  analytics={false}
+>
+  <main class="article complaints">
+    <nav class="crumbs" aria-label="Ruta de navegación"><ol><li><a href="/">Inicio</a></li><li aria-current="page">Libro de Reclamaciones</li></ol></nav>
+    <p class="eyebrow">Atención al consumidor</p>
+    <h1>Libro de Reclamaciones</h1>
+    <p class="lede">Registra un reclamo o una queja sobre Campus. No necesitas iniciar sesión.</p>
+    <section class="provider" aria-label="Datos del proveedor">
+      <strong>Campus</strong>
+      <span>{provider.name} · RUC {provider.ruc}</span>
+      <span>{provider.address} · <a class="prose-link" href={`mailto:${provider.email}`}>{provider.email}</a></span>
+    </section>
+    <form method="post" action="/api/complaint-book">
+      <div hidden><label>Sitio web<input name="website" tabindex="-1" autocomplete="off" /></label></div>
+      <p class="hint">Los campos son obligatorios, salvo donde se indica «opcional».</p>
+      <fieldset>
+        <legend>1. Tipo de solicitud</legend>
+        <label class="choice"><input type="radio" name="kind" value="reclamo" required /> <span><strong>Reclamo</strong><br />Disconformidad con un producto o servicio de Campus.</span></label>
+        <label class="choice"><input type="radio" name="kind" value="queja" required /> <span><strong>Queja</strong><br />Malestar por la atención que recibiste.</span></label>
+      </fieldset>
+      <fieldset>
+        <legend>2. Tus datos</legend>
+        <label>Nombres y apellidos<input name="name" autocomplete="name" minlength="2" maxlength="160" required /></label>
+        <div class="fields">
+          <label>Tipo de documento<select name="documentType" required><option value="DNI">DNI</option><option value="CE">Carné de extranjería</option><option value="Pasaporte">Pasaporte</option></select></label>
+          <label>Número de documento<input name="documentNumber" minlength="4" maxlength="32" required /></label>
+          <label>Correo electrónico<input type="email" name="email" autocomplete="email" maxlength="160" required /></label>
+          <label>Teléfono (opcional)<input type="tel" name="phone" autocomplete="tel" maxlength="32" /></label>
+        </div>
+        <label>Domicilio<input name="address" autocomplete="street-address" minlength="4" maxlength="240" required /></label>
+        <div class="representative">
+          <label class="choice"><input type="checkbox" name="minor" value="yes" /> El consumidor es menor de edad</label>
+          <label class="representative__name">Nombres y apellidos del padre, madre o representante<input name="representative" minlength="2" maxlength="160" /></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>3. Producto o servicio</legend>
+        <div class="fields">
+          <label>Tipo<select name="purchaseType" required><option value="Servicio">Servicio</option><option value="Producto">Producto</option></select></label>
+          <label>Monto reclamado en soles (opcional)<input type="number" name="amount" inputmode="decimal" min="0" max="999999.99" step="0.01" /></label>
+        </div>
+        <label>Descripción<input name="purchase" placeholder="Ej. Campus Plus" minlength="3" maxlength="500" required /></label>
+      </fieldset>
+      <fieldset>
+        <legend>4. Detalle y pedido</legend>
+        <label>¿Qué ocurrió?<textarea name="detail" rows="5" minlength="10" maxlength="3000" required></textarea></label>
+        <label>¿Qué solución solicitas?<textarea name="request" rows="3" minlength="5" maxlength="2000" required></textarea></label>
+      </fieldset>
+      <p class="hint">Campus usará estos datos para registrar tu solicitud y responderte por correo en un máximo de 15 días hábiles. Consulta la <a class="prose-link" href="/privacidad/#reclamaciones">política de privacidad</a>.</p>
+      <button type="submit" class="button">Registrar solicitud</button>
+    </form>
+  </main>
+</Base>
+
+<style>
+  .provider { display:grid; gap:4px; padding:16px 20px; border:1px solid #d5e3e7; border-radius:8px; background:#f4fafb; color:#315565; margin-block:24px; }
+  form, fieldset, label { display:grid; gap:14px; }
+  fieldset { min-width:0; margin:0; padding:16px; border:1px solid #d5e3e7; border-radius:8px; }
+  legend { padding:0 6px; color:#17323f; font-size:1.15rem; font-weight:700; }
+  label { gap:6px; color:#17323f; font-weight:600; }
+  .fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+  input:not([type="radio"],[type="checkbox"]), select, textarea { width:100%; min-width:0; padding:10px 12px; min-height:44px; border:1px solid #8ea7b2; border-radius:6px; background:white; color:#17323f; font:inherit; font-weight:400; }
+  textarea { resize:vertical; }
+  .choice { display:flex; align-items:flex-start; gap:8px; min-height:44px; padding-block:7px; font-weight:400; }
+  .choice input { flex:none; width:18px; height:18px; margin:3px 0 0; accent-color:#087f5b; }
+  .representative:not(:has(input[type="checkbox"]:checked)) .representative__name { display:none; }
+  .article .hint { margin:0; font-size:15px; }
+  button { justify-self:start; }
+  @media (max-width:550px) { .fields { grid-template-columns:1fr; } }
+</style>
