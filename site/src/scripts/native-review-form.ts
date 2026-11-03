@@ -67,4 +67,35 @@ async function initProfileMore(){
   }catch{status.textContent='No pudimos cargar más reseñas. Vuelve a intentarlo.';}finally{button.disabled=false;}
  });
 }
-initReviewForm();void initProfileMore();document.addEventListener('astro:page-load',()=>{initReviewForm();void initProfileMore();});
+/**
+ * Scroll infinito sobre el enlace "Leer más opiniones". Sin JS (o si algo falla) el enlace sigue
+ * funcionando como página normal: esto solo lo mejora. Pide la siguiente página ya renderizada y
+ * pasa a la lista solo las tarjetas que todavía no están.
+ */
+function initCatalogScroll(){
+ const list=document.querySelector<HTMLElement>('[data-profile-reviews]');
+ const link=document.querySelector<HTMLAnchorElement>('a[data-catalog-more]');
+ if(!list||!link||link.dataset.bound||!('IntersectionObserver' in window))return;
+ link.dataset.bound='true';
+ const label=document.querySelector<HTMLElement>('[data-reviews-label]');
+ let loading=false;
+ const observer=new IntersectionObserver(async entries=>{
+  if(loading||!entries.some(entry=>entry.isIntersecting))return;
+  loading=true;observer.unobserve(link);
+  try{
+   const response=await fetch(link.href,{signal:AbortSignal.timeout(10000),headers:{Accept:'text/html'}});
+   if(!response.ok)throw new Error('page');
+   const doc=new DOMParser().parseFromString(await response.text(),'text/html');
+   const next=doc.querySelector('[data-profile-reviews]');if(!next)throw new Error('page');
+   const known=new Set(Array.from(list.children).map(el=>el.outerHTML));
+   list.append(...Array.from(next.children).filter(el=>el.tagName==='ARTICLE'&&!known.has(el.outerHTML)));
+   const total=Number(label?.dataset.total);const shown=list.querySelectorAll('article').length;
+   if(label&&Number.isFinite(total))label.textContent=shown<total?`Mostrando ${shown} de ${total} opiniones`:`${total} opiniones`;
+   const following=doc.querySelector<HTMLAnchorElement>('a[data-catalog-more]');
+   if(following){link.href=following.href;observer.observe(link);}else link.remove();
+  }catch{/* se queda el enlace manual: no se reintenta solo para no hacer bucles */}
+  finally{loading=false;}
+ },{rootMargin:'500px 0px'});
+ observer.observe(link);
+}
+initReviewForm();void initProfileMore();initCatalogScroll();document.addEventListener('astro:page-load',()=>{initReviewForm();void initProfileMore();initCatalogScroll();});
