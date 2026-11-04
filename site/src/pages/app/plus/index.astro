@@ -3,7 +3,7 @@ import { turnitinServiceEnabled } from "../../../../feature-flags.mjs";
 import AppShell from '../../../layouts/AppShell.astro';
 ---
 <AppShell title="Campus Plus" active="perfil">
-  <link rel="stylesheet" href="/campus-plus.css?v=4" />
+  <link rel="stylesheet" href="/campus-plus.css?v=5" />
   <div class="plus-page" data-plus-root>
     <a class="app-text-link" href="/app/perfil/">Volver a Mi perfil</a>
     <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Activa tu mes de Plus.</h1><p>Usa Campus desde tu IA compatible y recibe 100 consultas diarias en el asistente web.</p><p class="plus-muted">El plan de ChatGPT o Claude, si lo necesitas, se paga aparte. <a class="app-text-link" href="/app/copilot/">Cómo funciona el conector</a></p></section>
@@ -61,6 +61,17 @@ import AppShell from '../../../layouts/AppShell.astro';
     </section>
     <section class="app-panel" data-plus-view="unavailable" hidden>
       <h2>No pudimos comprobar la activación.</h2><p>Vuelve a intentarlo antes de realizar un pago. Si ya pagaste, conserva tu comprobante y contacta a soporte.</p><button type="button" class="app-button app-button--secondary" data-plus-refresh>Volver a comprobar</button>
+    </section>
+    <section class="app-panel plus-subscription" data-plus-subscription hidden aria-labelledby="plus-sub-title">
+      <div class="plus-subscription__head"><div><p class="app-kicker">MI SUSCRIPCIÓN</p><h2 id="plus-sub-title">Campus Plus</h2></div><span class="plus-badge" data-plus-sub-badge></span></div>
+      <dl class="plus-subscription__facts">
+        <div><dt data-plus-sub-until-label>Vigente hasta</dt><dd data-plus-sub-until></dd></div>
+        <div><dt>Renovación</dt><dd data-plus-sub-renewal></dd></div>
+        <div><dt>Avisos</dt><dd data-plus-sub-notice></dd></div>
+      </dl>
+      <p class="plus-muted" data-plus-sub-rule></p>
+      <div class="plus-history-block"><h3>Tus pagos</h3><ul class="plus-history" data-plus-sub-history></ul><p class="plus-muted" data-plus-sub-empty hidden>Todavía no tienes pagos registrados.</p></div>
+      <p class="plus-muted">También puedes pedirle a tu IA conectada a Campus que te genere el enlace de pago.</p>
     </section>
     <section class="app-panel plus-survey" data-plus-survey hidden aria-labelledby="plus-survey-title">
       <div class="plus-survey__header"><p class="app-kicker">TE ESCUCHAMOS</p><button type="button" class="plus-survey__close" data-survey-close aria-label="Cerrar encuesta">×</button></div>

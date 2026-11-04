@@ -89,6 +89,8 @@ jobs:
       - name: Browser PDF reading continuation
         run: CAMPUS_BROWSER_TESTS=1 node --import tsx --test tests/research-browser.test.ts
       - run: npm --prefix site run test:analytics:transport
+      - name: Plus subscription panel
+        run: node site/scripts/verify-plus-subscription.mjs
 
       - name: Turnitin public pause and reactivation
         run: |

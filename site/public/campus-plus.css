@@ -48,3 +48,23 @@
 @media(min-width:900px){.plus-overview{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}.plus-order-summary{grid-template-columns:1fr 1fr;align-items:end;gap:32px}.plus-order-summary>p{max-width:34ch;justify-self:end}}
 @media(min-width:1100px){.plus-steps{grid-template-columns:1fr 1fr;gap:32px}}
 @media(max-width:600px){.plus-page .app-panel{padding:20px}.plus-price strong{font-size:40px}.plus-overview{gap:16px}.plus-steps{gap:28px}.plus-steps>li+li{border-top:1px solid #d2e1e7;padding-top:24px}.plus-payment dd{display:block}.plus-payment button{display:block}.plus-page .plus-support{line-height:1.7}}
+
+/* Mi suscripción: estado, fechas y pagos en un solo lugar. */
+.plus-subscription__head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.plus-badge{flex:none;padding:6px 12px;border-radius:999px;background:#e2f6fb;color:#08718e;font-size:13px;font-weight:700;line-height:1.2}
+.plus-badge[data-tone="soon"]{background:#fff4d6;color:#7a5a00}
+.plus-badge[data-tone="ended"]{background:#eef1f3;color:#506d7f}
+.plus-subscription__facts{display:grid;gap:14px;margin:0;padding:16px;background:#f4f9fa;border:1px solid #d2e1e7;border-radius:14px}
+.plus-subscription__facts dt{font-size:13px;color:#506d7f}
+.plus-subscription__facts dd{margin:4px 0 0;font-weight:600;color:#102a3a;line-height:1.45;overflow-wrap:anywhere}
+.plus-history-block{display:grid;gap:10px}
+.plus-history{list-style:none;margin:0;padding:0;display:grid}
+.plus-history li{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 0;border-top:1px solid #d2e1e7}
+.plus-history li:first-child{border-top:0}
+.plus-history__what{display:grid;gap:2px;min-width:0}
+.plus-history__what strong{color:#102a3a}
+.plus-history__what span{font-size:13px;color:#506d7f;line-height:1.45}
+.plus-history__status{flex:none;font-size:13px;font-weight:600;color:#08718e}
+.plus-history__status[data-status="payment_review"]{color:#7a5a00}
+.plus-history__status[data-status="rejected"]{color:#963f32}
+@media(min-width:700px){.plus-subscription__facts{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}}
