@@ -15,6 +15,7 @@
     "test:modal-review": "node scripts/verify-modal-review.mjs",
     "test:e2e": "node scripts/run-e2e.mjs",
     "test:miupc-reconnect": "node scripts/miupc-reconnect-e2e.mjs",
+    "test:library-readme": "node scripts/library-readme-e2e.mjs",
     "test:chat-markdown": "node scripts/chat-markdown-e2e.mjs",
     "test:conversation-drafts": "node scripts/verify-conversation-drafts.mjs",
     "test:mobile-keyboard": "node scripts/verify-mobile-keyboard.mjs",
