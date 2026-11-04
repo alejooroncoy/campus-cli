@@ -22,11 +22,11 @@ try {
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}});
   const page=await context.newPage();
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  let submission;
+  let submission;let pausedProduct=null;
   await page.route('**/api/app/**',async route=>{
    const pathname=new URL(route.request().url()).pathname;
    let body={};
-   if(pathname.endsWith('/turnitin/config'))body={enabled:backendEnabled,ordersAvailable:true,amountCents:1400,availability:{ai:12,similarity:8,both:5},products:[{id:'ai',label:'Solo IA',amountCents:900,reports:['ai']},{id:'similarity',label:'Solo similitud',amountCents:900,reports:['similarity']},{id:'both',label:'Similitud + IA',amountCents:1400,reports:['similarity','ai']}],phone:'fixture',holder:'fixture',maxDocumentBytes:20971520,maxReceiptBytes:5242880};
+   if(pathname.endsWith('/turnitin/config'))body={enabled:backendEnabled,ordersAvailable:true,amountCents:1400,products:[{id:'ai',label:'Solo IA',amountCents:900,reports:['ai'],available:pausedProduct!=='ai'},{id:'similarity',label:'Solo similitud',amountCents:900,reports:['similarity'],available:pausedProduct!=='similarity'},{id:'both',label:'Similitud + IA',amountCents:1400,reports:['similarity','ai'],available:pausedProduct!=='both'}],phone:'fixture',holder:'fixture',maxDocumentBytes:20971520,maxReceiptBytes:5242880};
    else if(pathname.endsWith('/turnitin/orders')&&route.request().method()==='POST'){submission=route.request().postDataJSON();body={order:{id:'22222222-2222-4222-8222-222222222222'}};}
    else if(pathname.endsWith('/session'))body={authenticated,universityConfirmed:true,account:{id:'fixture',email:'fixture@example.test'}};
    else if(pathname.endsWith('/turnitin/orders'))body={orders:[{id:'11111111-1111-4111-8111-111111111111',status:'completed',amountCents:800,documentName:'Fixture preserved.pdf',createdAt:'2026-10-01T12:00:00Z',availableReports:['similarity','ai']}],counts:{all:1,completed:1,payment_review:0,processing:0,payment_rejected:0},nextCursor:null};
@@ -39,6 +39,21 @@ try {
    await page.getByText('Fixture preserved.pdf',{exact:true}).waitFor({state:'visible'});
    assert.ok(await page.locator('a[href*="/files/ai"]').count());
    if(turnitinServiceEnabled&&backendEnabled){
+    // The admin pauses one product: only that option closes and it cannot be ordered.
+    pausedProduct='ai';
+    await page.reload();
+    await page.waitForFunction(()=>!document.querySelector('[data-ti-status]').textContent.includes('Comprobando disponibilidad'));
+    await page.locator('[data-ti-new-order] > summary').click();
+    assert.equal(await page.locator('[data-ti-option-status="ai"]').getAttribute('data-state'),'unavailable');
+    assert.equal(await page.locator('[data-ti-option-status="similarity"]').getAttribute('data-state'),'available');
+    assert.equal(await page.locator('[data-ti-option-status="both"]').getAttribute('data-state'),'available');
+    await page.locator('input[name="report"][value="ai"]').check();
+    assert.equal(await page.locator('[data-ti-next]').isDisabled(),true);
+    await page.locator('input[name="report"][value="similarity"]').check();
+    assert.equal(await page.locator('[data-ti-next]').isDisabled(),false);
+    pausedProduct=null;
+    await page.reload();
+    await page.waitForFunction(()=>!document.querySelector('[data-ti-status]').textContent.includes('Comprobando disponibilidad'));
     await page.locator('[data-ti-new-order] > summary').click();
     for(const [report,price] of [['ai','S/9'],['similarity','S/9'],['both','S/14']]){
      await page.locator(`input[name="report"][value="${report}"]`).check();

@@ -10,8 +10,8 @@ type Order = {
   report?: 'ai' | 'similarity' | 'both';
   paymentMethod?: 'flow';
 };
-type Product = {id: 'ai' | 'similarity' | 'both'; label: string; amountCents: number; reports: ReportKind[]};
-type Config = { enabled: boolean; ordersAvailable: boolean; amountCents: number; products?: Product[]; availability?: Record<Product['id'],number>; phone: string; holder: string; maxDocumentBytes: number; maxReceiptBytes: number; flowAvailable?: boolean };
+type Product = {id: 'ai' | 'similarity' | 'both'; label: string; amountCents: number; reports: ReportKind[]; available?: boolean};
+type Config = { enabled: boolean; ordersAvailable: boolean; amountCents: number; products?: Product[]; phone: string; holder: string; maxDocumentBytes: number; maxReceiptBytes: number; flowAvailable?: boolean };
 const labels: Record<string,string> = { payment_pending: 'QR pendiente de pago', payment_review: 'Pago en revisión', processing: 'Preparando tus informes', completed: 'Informes listos', payment_rejected: 'Pago observado' };
 const money = (cents: number) => `S/${(cents / 100).toLocaleString('es-PE')}`;
 
@@ -31,7 +31,10 @@ function setupTurnitin() {
   const productLabel = (report: Order['report']) => report === 'ai' ? 'Solo IA' : report === 'similarity' ? 'Solo similitud' : 'Similitud + IA';
   const selectedReport = () => (form.elements.namedItem('report') as RadioNodeList).value as Product['id'];
   const selectedOffer = () => config.products?.find(product => product.id === selectedReport());
-  const canOrder = () => Boolean(config?.enabled && config.ordersAvailable && !availabilityUnknown && config.availability?.[selectedReport()] !== 0);
+  // The admin can pause each product on its own; a missing flag means the server did not report it, so it stays open.
+  const productOpen = (id: Product['id']) => config.products?.find(product => product.id === id)?.available !== false;
+  const noProductOpen = () => Boolean(config.products?.length) && !config.products!.some(product => product.available !== false);
+  const canOrder = () => Boolean(config?.enabled && config.ordersAvailable && !availabilityUnknown && productOpen(selectedReport()));
   function updatePrice() {
     if (!config || !form) return;
     const offer = selectedOffer();
@@ -40,12 +43,12 @@ function setupTurnitin() {
     document.querySelector<HTMLElement>('[data-ti-amount]')!.textContent = money(amount);
     document.querySelector<HTMLElement>('[data-ti-product-summary]')!.textContent = productLabel(selectedReport());
     const availability = document.querySelector<HTMLElement>('[data-ti-availability]')!;
-    const count = config.availability?.[selectedReport()];
+    const open = productOpen(selectedReport());
     availability.textContent = checkingAvailability ? 'Comprobando disponibilidad…' : availabilityUnknown ? 'Comprueba la disponibilidad antes de pagar.' : canOrder() ? 'Servicio habilitado.' : 'Servicio no habilitado para esta revisión.';
     availability.hidden = false;
     form.querySelectorAll<HTMLElement>('[data-ti-option-status]').forEach(node => {
       const id = node.dataset.tiOptionStatus as Product['id'];
-      const available = config.enabled && config.ordersAvailable && config.availability?.[id] !== 0;
+      const available = config.enabled && config.ordersAvailable && productOpen(id);
       node.dataset.state = availabilityUnknown ? 'unknown' : available ? 'available' : 'unavailable';
       node.textContent = availabilityUnknown ? 'Sin confirmar' : available ? 'Disponible' : 'No disponible por ahora';
     });
@@ -62,9 +65,9 @@ function setupTurnitin() {
     document.querySelector<HTMLElement>('[data-ti-payment-availability]')!.textContent = checkingAvailability ? 'Comprobando disponibilidad…' : canOrder() ? qr ? 'Tu pedido se crea al abrir el QR.' : 'Esta revisión está disponible. Completa el pago y envía tu pedido; la disponibilidad puede cambiar.' : 'No realices el pago hasta confirmar la disponibilidad.';
     const notice = document.querySelector<HTMLElement>('[data-ti-capacity-notice]')!;
     notice.hidden = canOrder();
-    const exhausted = config.availability && !Object.values(config.availability).some(value => value > 0);
-    document.querySelector<HTMLElement>('[data-ti-capacity-title]')!.textContent = availabilityUnknown ? 'No pudimos comprobar la disponibilidad' : exhausted ? 'Revisiones no disponibles por ahora' : count === 0 ? `${productLabel(selectedReport())} no está disponible por ahora` : 'Servicio no habilitado';
-    document.querySelector<HTMLElement>('[data-ti-capacity-message]')!.textContent = availabilityUnknown ? 'No realices el pago. Vuelve a comprobar la disponibilidad; conservamos los archivos que elegiste mientras mantengas esta página abierta.' : exhausted ? 'En este momento no podemos recibir nuevas revisiones. Vuelve a comprobar más tarde. Tus pedidos e informes anteriores siguen disponibles. No realices el pago.' : count === 0 ? 'Puedes elegir otro informe disponible o volver a comprobar más tarde. No realices el pago de esta opción.' : 'No realices el pago por ahora. Tus pedidos e informes anteriores siguen disponibles.';
+    const exhausted = noProductOpen();
+    document.querySelector<HTMLElement>('[data-ti-capacity-title]')!.textContent = availabilityUnknown ? 'No pudimos comprobar la disponibilidad' : exhausted ? 'Revisiones no disponibles por ahora' : !open ? `${productLabel(selectedReport())} no está disponible por ahora` : 'Servicio no habilitado';
+    document.querySelector<HTMLElement>('[data-ti-capacity-message]')!.textContent = availabilityUnknown ? 'No realices el pago. Vuelve a comprobar la disponibilidad; conservamos los archivos que elegiste mientras mantengas esta página abierta.' : exhausted ? 'En este momento no podemos recibir nuevas revisiones. Vuelve a comprobar más tarde. Tus pedidos e informes anteriores siguen disponibles. No realices el pago.' : !open ? 'Puedes elegir otro informe disponible o volver a comprobar más tarde. No realices el pago de esta opción.' : 'No realices el pago por ahora. Tus pedidos e informes anteriores siguen disponibles.';
     requestPanel.hidden = !config.enabled || !config.ordersAvailable;
     form.hidden = !authenticated || requestPanel.hidden;
     if (!canOrder() && request.isPayment()) request.document();
@@ -457,7 +460,7 @@ function setupTurnitin() {
         document.querySelector<HTMLElement>('[data-ti-login]')!.hidden = false;
         ordersList.removeAttribute('aria-busy');
         ordersList.replaceChildren(el('p', 'Inicia sesión para consultar tus revisiones.', 'ti-muted'));
-        announce(config.enabled ? 'Inicia sesión para solicitar o consultar una revisión.' : config.availability && !Object.values(config.availability).some(count=>count>0) ? 'Las revisiones no están disponibles por ahora. No realices pagos. Inicia sesión para consultar pedidos anteriores.' : 'Los pedidos nuevos están pausados. Inicia sesión para consultar pedidos anteriores.');
+        announce(config.enabled ? 'Inicia sesión para solicitar o consultar una revisión.' : noProductOpen() ? 'Las revisiones no están disponibles por ahora. No realices pagos. Inicia sesión para consultar pedidos anteriores.' : 'Los pedidos nuevos están pausados. Inicia sesión para consultar pedidos anteriores.');
         setupTurnitinLogin()?.open(config.amountCents, !config.enabled);
         return;
       }
