@@ -14,6 +14,7 @@ const cache = {
 const context = {
   URL, Response, Request: class extends Request { constructor(path, options) { super(new URL(path, 'http://localhost:4321'), options); } },
   self: {
+    location: { origin: 'http://localhost:4321' },
     addEventListener: (name, listener) => { listeners[name] = listener; },
     skipWaiting: async () => {},
     clients: { claim: async () => {} },
@@ -47,11 +48,14 @@ async function lifecycle(name) {
 async function request(path, mode) {
   let pending;
   listeners.fetch({
-    request: { url: `http://localhost:4321${path}`, mode },
+    request: { url: new URL(path, 'http://localhost:4321').href, mode },
     respondWith: promise => { pending = promise; },
     waitUntil: () => {},
   });
   return pending;
+}
+for (const url of ['https://raw.githubusercontent.com/team/report/HEAD/assets/logo.png', 'https://example.org/diagram.svg', 'https://example.org/styles.css', 'https://example.org/api/public']) {
+  assert.equal(await request(url, 'no-cors'), undefined, 'External resources use native loading without worker fetch or cache');
 }
 await lifecycle('install');
 for (const path of precached.filter(path=>path!=='/library-offline.html')) await access(new URL(`../public${path.split('?')[0]}`, import.meta.url));
