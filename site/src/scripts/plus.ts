@@ -4,10 +4,14 @@ import { uploadError } from './turnitin-upload';
 import type { CampusSession } from './campus-session';
 import { mountPlusSurvey } from './plus-survey.ts';
 
-type Order = {id:string;accountId:number;kind:string;cohort:string;status:string;amountCents:number;renewalCents:number;expiresAt:string;activeUntil:string|null;note:string;isTest?:boolean;paymentMethod?:'flow'};
-type State = {orders:Order[];currentPlan:string;subscription:{activeUntil:string;renewalCents:number;isTest?:boolean}|null;admin:boolean;enabled:boolean;eligible:boolean;blocked:boolean;unavailable:boolean;flowAvailable?:boolean};
+type Order = {id:string;accountId:number;kind:string;cohort:string;status:string;amountCents:number;renewalCents:number;expiresAt:string;createdAt:string;activeUntil:string|null;note:string;isTest?:boolean;paymentMethod?:'flow'};
+type SubscriptionState='none'|'active'|'expiring'|'expired';
+type State = {orders:Order[];currentPlan:string;subscription:{activeUntil:string;renewalCents:number;isTest?:boolean}|null;subscriptionState?:SubscriptionState;renewableFrom?:string|null;admin:boolean;enabled:boolean;eligible:boolean;blocked:boolean;unavailable:boolean;flowAvailable?:boolean};
 const money=(cents:number)=>`S/${cents/100}`;
 const date=(value:string)=>new Date(value).toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'});
+/** Same rule as the server, used only while an older server does not send subscriptionState. */
+const phaseFromDate=(until:string):SubscriptionState=>{const left=new Date(until).getTime()-Date.now();return left<=0?'expired':left<=7*86400000?'expiring':'active';};
+const orderStatus:Record<string,string>={active:'Pagado',payment_review:'En revisión',rejected:'Observado'};
 let cleanup=()=>{};
 function mount(){
   cleanup();
@@ -30,7 +34,7 @@ function mount(){
     text('flow-renewal',`Después, ${money(order.renewalCents)} al mes. Sin cobros automáticos.`);
   };
   let lastView='';let expiryTracked=false;
-  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}void survey.update(view,surveySession);};
+  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);if(['guest','unavailable','university','loading'].includes(view))find('subscription').hidden=true;if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}void survey.update(view,surveySession);};
   async function api(path:string,data?:unknown){
     const response=await fetch(`/api/app/plus/${path}`,{method:data===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(30000),
       headers:{...analyticsHeaders(),...(data===undefined?{}:{'content-type':'application/json'})},...(data===undefined?{}:{body:JSON.stringify(data)})});
@@ -68,6 +72,35 @@ function mount(){
       root.querySelector<HTMLElement>('#plus-pay-title')?.focus({preventScroll:true});
     }catch(error){failure(error);}finally{busy=false;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry]').forEach(b=>b.disabled=false);expired();}
   }
+  /** One panel for the paid month: where it stands, when renewal opens and what was paid. */
+  function renderSubscription(state:State,email:string|undefined){
+    const panel=find('subscription');
+    const history=state.orders.filter(order=>orderStatus[order.status]&&!order.isTest);
+    const subscription=state.subscription&&!state.subscription.isTest?state.subscription:null;
+    if(!subscription&&!history.length||['guest','unavailable','university'].includes(lastView)){panel.hidden=true;return;}
+    const phase=subscription?(state.subscriptionState??phaseFromDate(subscription.activeUntil)):'none';
+    const badge=find('sub-badge');
+    badge.textContent=phase==='expired'?'Vencido':phase==='expiring'?'Vence pronto':phase==='active'?'Activo':'Sin plan';
+    badge.dataset.tone=phase==='expiring'?'soon':phase==='expired'||phase==='none'?'ended':'ok';
+    text('sub-until-label',phase==='expired'?'Venció el':'Vigente hasta');
+    text('sub-until',subscription?date(subscription.activeUntil):'Sin mes activo');
+    text('sub-renewal',subscription?`${money(subscription.renewalCents)} al mes, solo si tú pagas`:'Aún no tienes un mes pagado');
+    text('sub-notice',phase==='expired'?'Te avisamos el día que venció. No enviaremos más correos.':subscription?`Te escribiremos${email?` a ${email}`:''} 7, 3 y 1 día antes de que venza.`:'Sin avisos hasta que actives Plus');
+    text('sub-rule',phase==='active'&&state.renewableFrom?`Plus no se renueva solo: si no pagas otro mes, tu cuenta vuelve a Campus Free al terminar este. Podrás renovar desde el ${date(state.renewableFrom)} y el mes nuevo se suma a los días que te queden.`
+      :phase==='expiring'?'Ya puedes renovar. El mes nuevo se suma a los días que te quedan. Si no pagas, tu cuenta vuelve a Campus Free al terminar este mes.'
+      :phase==='expired'?'Tu cuenta volvió a Campus Free. Reactiva Plus cuando quieras. No hay cobros automáticos.':'Plus es un pago mensual sin cobros automáticos.');
+    const list=find('sub-history');list.replaceChildren();
+    for(const order of history){
+      const item=document.createElement('li'),what=document.createElement('div'),amount=document.createElement('strong'),detail=document.createElement('span'),result=document.createElement('span');
+      what.className='plus-history__what';
+      amount.textContent=money(order.amountCents);
+      detail.textContent=[date(order.createdAt),order.paymentMethod==='flow'?'QR de Flow':'Yape o Plin',order.status==='active'&&order.activeUntil?`cubre hasta el ${date(order.activeUntil)}`:''].filter(Boolean).join(' · ');
+      result.className='plus-history__status';result.dataset.status=order.status;result.textContent=orderStatus[order.status];
+      what.append(amount,detail);item.append(what,result);list.append(item);
+    }
+    find('sub-empty').hidden=history.length>0;
+    panel.hidden=false;
+  }
   async function load(quiet=false){
     if(!quiet)message('Comprobando tu cuenta…',false,true);
     try{
@@ -75,7 +108,7 @@ function mount(){
       surveySession=session;
       find('qa').hidden=true;
       currentOwner=session.authenticated?session.analyticsId??session.email??'account':'guest';
-      if(!session.authenticated){pendingPayment=false;show('guest');message();return;}
+      if(!session.authenticated){pendingPayment=false;show('guest');find('subscription').hidden=true;message();return;}
       if(!config.ordersAvailable){show('unavailable');message('No pudimos comprobar los pagos de Plus. No realices un pago nuevo.',true);return;}
       const state:State=await api('state');if(disposed)return;
       if(state.blocked||state.unavailable){show('unavailable');message(state.blocked?'Tu cuenta requiere revisión. Contacta a soporte.':'No pudimos verificar tu plan. Vuelve a comprobarlo.',true);return;}
@@ -92,7 +125,7 @@ function mount(){
       else if(state.currentPlan==='plus'){
         show('active');message();text('active-until',state.subscription?`Tu mes está activo hasta el ${date(state.subscription.activeUntil)}.`:'Tu cuenta ya tiene acceso a Campus Plus.');
         text('active-renewal',state.subscription?.isTest?'Acceso de prueba por 24 horas. No se registró ningún pago ni renovación.':state.subscription?`Tu próxima renovación: ${money(state.subscription.renewalCents)} por mes. Sin cobros automáticos.`:'Consulta el estado de tu cuenta en Mi perfil.');
-        find('renew').hidden=!state.enabled||!state.eligible||!state.subscription||new Date(state.subscription.activeUntil).getTime()>Date.now()+7*86400000;
+        find('renew').hidden=!state.enabled||!state.eligible||!state.subscription||(state.subscriptionState??phaseFromDate(state.subscription.activeUntil))==='active';
         track('campus_plus_status_viewed',{plus_status:'active'});
       }else if(!state.enabled){show('unavailable');message('La activación de Plus está pausada. No realices un pago nuevo.',true);}
       else if(!state.eligible){show('university');message();}
@@ -104,6 +137,7 @@ function mount(){
         find('ready-copy').hidden = !qr;
         find('manual-overview').hidden = qr;
         show('ready');message();find('checkout').textContent=state.orders.some(o=>o.status==='quoted')?'Retomar instrucciones de pago':state.subscription?'Renovar mi mes':'Ver precio y cómo pagar';}
+      renderSubscription(state,session.email);
     }catch(error){if(!disposed){show('unavailable');failure(error);}}
   }
   find<HTMLButtonElement>('checkout').onclick=()=>void checkout();find<HTMLButtonElement>('renew').onclick=()=>void checkout();find<HTMLButtonElement>('retry').onclick=()=>void checkout();

@@ -57,8 +57,8 @@ try{
     await page.screenshot({path:output+`${viewport.width<600?'mobile':'desktop'}-active.png`,fullPage:true});
     await page.getByRole('link',{name:'Volver a Mi perfil'}).click();await page.locator('[data-profile-label]').filter({hasText:isTest?'Campus Plus · prueba':'Campus Plus'}).waitFor();
     assert.match(await page.locator('[data-profile-usage]').textContent(),/100 de 100/);
-    assert.equal(await page.getByRole('link',{name:'Pagos de Campus Plus'}).getAttribute('href'),'/app/plus/');
-    await page.getByRole('link',{name:'Pagos de Campus Plus'}).click();
+    assert.equal(await page.getByRole('link',{name:'Mi suscripción y pagos'}).getAttribute('href'),'/app/plus/');
+    await page.getByRole('link',{name:'Mi suscripción y pagos'}).click();
     await page.locator('[data-plus-view=active]:visible').waitFor();
     const metrics=await (await context.request.get(base+'/__fixture/metrics')).json();
     for(const operation of ['plus_checkout','plus_receipt','plus_payment_review'])assert.ok(metrics.some(event=>event.properties.operation===operation&&event.properties.outcome==='success'&&event.properties.purchase_kind==='activation'));
