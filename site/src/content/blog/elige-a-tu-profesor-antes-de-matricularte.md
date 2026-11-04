@@ -13,7 +13,7 @@ faq:
   - q: "¿Campus Profes es lo mismo que Campus para Blackboard?"
     a: "Las opiniones de profesores son una función de Campus. El asistente web y el conector MCP comparten cuenta y plan."
   - q: "¿Cuánto cuesta Campus Profes?"
-    a: "Empieza con Campus Free y 25 consultas de bienvenida en la web. Plus incluye 100 consultas diarias en la web e ilimitadas por MCP. Consulta los precios y condiciones actuales en los planes de Campus."
+    a: "Empieza con Campus Free: 25 consultas de bienvenida en la web y 15 de prueba en el conector MCP. Plus incluye 100 consultas diarias en la web e ilimitadas por MCP. Consulta los precios y condiciones actuales en los planes de Campus."
   - q: "¿De dónde salen las calificaciones de los profesores?"
     a: "De alumnos que ya llevaron el curso y califican después de terminarlo. No es un formulario anónimo abierto a cualquiera ni información inventada."
 summary:
@@ -52,4 +52,4 @@ Campus Profes ya ayudó a más de 350 estudiantes a decidir antes de su matrícu
 
 ## Cómo empezar
 
-Entra a [la app web de Campus](/app/asistente/) y consulta desde tu cuenta. Campus Free incluye reseñas, panel y 25 consultas de bienvenida en la web. Campus Plus incluye 100 consultas diarias en la web y consultas ilimitadas por MCP. Revisa los precios y condiciones en [Campus Free y Plus](/#planes).
+Entra a [la app web de Campus](/app/asistente/) y consulta desde tu cuenta. Campus Free incluye reseñas, panel y 25 consultas de bienvenida en la web y 15 de prueba en el conector MCP. Campus Plus incluye 100 consultas diarias en la web y consultas ilimitadas por MCP. Revisa los precios y condiciones en [Campus Free y Plus](/#planes).
