@@ -35,8 +35,9 @@ export async function unlockImported(scope: ParentNode = document): Promise<void
         message.append(link);
         image.replaceWith(message);
       };
+      // Deferred image selection may report complete with no decoded pixels.
+      // Only an error event proves failure; checking naturalWidth here races loading.
       image.addEventListener('error', fallback, { once: true });
-      if (image.complete && !image.naturalWidth) fallback();
     });
     doc.setAttribute('data-unlocked', '');
     const lock = doc.querySelector<HTMLElement>('[data-lib-doc-lock]');
