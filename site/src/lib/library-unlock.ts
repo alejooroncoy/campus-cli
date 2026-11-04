@@ -2,6 +2,13 @@
 // El HTML público nunca trae la dirección del repo ni el texto del README; ambos llegan por la API con sesión.
 type ReadmeResponse = { html: string; truncated: boolean };
 
+// A previously installed worker may fail an image while its replacement is
+// activating. Refresh only a failed, read-only report when the new worker takes
+// control. This handler holds no detached report nodes across library navigation.
+const refreshFailedReport = () => {
+  if (document.querySelector('[data-lib-doc][data-unlocked] .lib-doc-image-error')) window.location.reload();
+};
+
 export async function unlockImported(scope: ParentNode = document): Promise<void> {
   const card = scope.querySelector<HTMLElement>('[data-lib-source-card]');
   if (!card || card.hasAttribute('data-unlocked')) return;
@@ -22,6 +29,13 @@ export async function unlockImported(scope: ParentNode = document): Promise<void
     if (!sheet || typeof body.html !== 'string') return;
     // El servidor convierte Markdown/HTML y sanea etiquetas, atributos y URLs.
     sheet.innerHTML = body.html + (body.truncated ? '<p class="lib-doc-more">El informe continúa en GitHub.</p>' : '');
+    const imageController = navigator.serviceWorker?.controller;
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener('controllerchange', refreshFailedReport, { once: true });
+      // Public pages can be controlled by an older app worker without registering
+      // one themselves. Update that existing registration; do not install a PWA.
+      void navigator.serviceWorker.getRegistration().then(registration => registration?.update()).catch(() => {});
+    }
     sheet.querySelectorAll<HTMLImageElement>('img').forEach(image => {
       const fallback = () => {
         const message = document.createElement('span');
@@ -34,6 +48,7 @@ export async function unlockImported(scope: ParentNode = document): Promise<void
         link.rel = 'nofollow noopener noreferrer';
         message.append(link);
         image.replaceWith(message);
+        if (imageController && navigator.serviceWorker?.controller !== imageController) refreshFailedReport();
       };
       // Deferred image selection may report complete with no decoded pixels.
       // Only an error event proves failure; checking naturalWidth here races loading.

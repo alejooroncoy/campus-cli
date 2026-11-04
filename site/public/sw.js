@@ -125,6 +125,11 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Leave third-party resources to the browser. Fetching an otherwise allowed
+  // <img> through this worker applies connect-src (rather than img-src), which
+  // blocks GitHub README images. External responses never belong in our shell.
+  if (url.origin !== self.location.origin) return;
+
   // 1. REGLA DE SEGURIDAD ESTRICTA:
   // Cualquier ruta de API (/api/*) es NETWORK-ONLY.
   // Jamás se guarda en caché respuestas académicas, perfiles, historial ni IA.
