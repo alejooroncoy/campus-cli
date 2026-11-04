@@ -136,7 +136,7 @@ export const GET: APIRoute = async () => {
     "# Campus — el sitio completo en texto plano",
     "",
     "Campus es un asistente universitario independiente para estudiantes en Perú.",
-    "El asistente web y el conector MCP usan la misma cuenta Campus. Free incluye 25 consultas de bienvenida en la web; Plus incluye 100 consultas diarias en la web e ilimitadas por MCP.",
+    "El asistente web y el conector MCP usan la misma cuenta Campus. Free incluye 25 consultas de bienvenida en la web y 15 de prueba en el conector MCP; Plus incluye 100 consultas diarias en la web e ilimitadas por MCP.",
     "Conecta cursos, tareas, materiales, notas de Mi UPC y opiniones de profesores.",
     "Calcula proyecciones para aprobar con notas y pesos oficiales publicados.",
     "Campus Plus por MCP permite guardar referencias elegidas en la cuenta personal de Mendeley autorizada por el estudiante. La lectura de fuentes es experimental: analiza texto completo accesible con evidencia de páginas o secciones; depende del proveedor y debe distinguir lectura parcial de revisión integral.",
