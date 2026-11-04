@@ -544,7 +544,7 @@
 .lib-doc-print { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 6px 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; background: transparent; color: #fff; font: inherit; font-size: 12px; cursor: pointer; }
 .lib-doc-print:hover { background: rgba(255,255,255,.12); }
 .lib-doc-viewport { position: relative; padding: 22px 16px; }
-.lib-doc-sheet { position: relative; max-width: 820px; min-height: 420px; max-height: 760px; margin: 0 auto; padding: 48px 56px; overflow: auto; background: #fff; border-radius: 3px; box-shadow: 0 1px 2px rgba(16,42,58,.12), 0 12px 32px rgba(16,42,58,.14); font-size: 14.5px; line-height: 1.7; color: #1d2b34; overflow-wrap: anywhere; }
+.lib-doc-sheet { position: relative; max-width: 820px; min-height: 420px; max-height: 760px; margin: 0 auto; padding: 48px 56px; overflow: auto; background: #fff; border-radius: 3px; box-shadow: 0 1px 2px rgba(16,42,58,.12), 0 12px 32px rgba(16,42,58,.14); font-size: 14.5px; line-height: 1.7; color: #1d2b34; overflow-wrap: break-word; }
 .lib-doc[data-unlocked] .lib-doc-sheet { max-height: 88vh; }
 .lib-doc-sheet h2, .lib-doc-sheet h3, .lib-doc-sheet h4, .lib-doc-sheet h5, .lib-doc-sheet h6 { margin: 1.6em 0 .5em; line-height: 1.25; color: var(--lib-ink); }
 .lib-doc-sheet h2 { font-size: 24px; padding-bottom: 8px; border-bottom: 1px solid var(--lib-line); }
@@ -561,9 +561,18 @@
 .lib-doc-sheet hr { border: 0; border-top: 1px solid var(--lib-line); margin: 1.6em 0; }
 .lib-doc-table { margin: 0 0 1em; overflow-x: auto; }
 .lib-doc-table table { border-collapse: collapse; width: 100%; font-size: 13px; }
-.lib-doc-table th, .lib-doc-table td { padding: 7px 10px; border: 1px solid var(--lib-line); text-align: left; vertical-align: top; }
+.lib-doc-table th, .lib-doc-table td { padding: 7px 10px; border: 1px solid var(--lib-line); text-align: left; vertical-align: top; min-width: 100px; max-width: 420px; overflow-wrap: break-word; word-break: normal; }
 .lib-doc-table th { background: var(--lib-canvas); }
-.lib-doc-img { display: inline-block; padding: 1px 8px; border: 1px dashed var(--lib-line); border-radius: 6px; color: var(--lib-muted); font-size: 12px; }
+.lib-doc-sheet img { display: inline-block; max-width: 100%; height: auto; vertical-align: middle; }
+.lib-doc-sheet .lib-doc-table img { max-width: min(100%, 360px); }
+.lib-doc-sheet .lib-doc-align-center { text-align: center; }
+.lib-doc-sheet .lib-doc-align-left { text-align: left; }
+.lib-doc-sheet .lib-doc-align-right { text-align: right; }
+.lib-doc-sheet details { margin-bottom: 1em; }
+.lib-doc-sheet summary { cursor: pointer; font-weight: 600; }
+.lib-doc-sheet [id] { scroll-margin-top: 20px; }
+.lib-doc-table:focus-visible { outline: 2px solid #0b6f91; outline-offset: 2px; }
+.lib-doc-sheet .lib-doc-image-error { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--lib-line); border-radius: 6px; color: var(--lib-muted); font-size: 12px; }
 .lib-doc-more { color: var(--lib-muted); font-style: italic; }
 /* Antes de iniciar sesión: una hoja difuminada, sin texto real del informe. */
 .lib-doc-skeleton { display: grid; gap: 14px; filter: blur(3px); opacity: .85; user-select: none; }

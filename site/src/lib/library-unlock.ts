@@ -20,8 +20,24 @@ export async function unlockImported(scope: ParentNode = document): Promise<void
     const body = await readme.json() as ReadmeResponse;
     const sheet = doc.querySelector<HTMLElement>('[data-lib-doc-sheet]');
     if (!sheet || typeof body.html !== 'string') return;
-    // El servidor escapa todo el texto del README y solo emite las etiquetas de su propio convertidor.
+    // El servidor convierte Markdown/HTML y sanea etiquetas, atributos y URLs.
     sheet.innerHTML = body.html + (body.truncated ? '<p class="lib-doc-more">El informe continúa en GitHub.</p>' : '');
+    sheet.querySelectorAll<HTMLImageElement>('img').forEach(image => {
+      const fallback = () => {
+        const message = document.createElement('span');
+        message.className = 'lib-doc-image-error';
+        message.append(document.createTextNode(image.alt ? `No se pudo cargar la imagen: ${image.alt}. ` : 'No se pudo cargar esta imagen. '));
+        const link = document.createElement('a');
+        link.href = image.src;
+        link.textContent = 'Abrir imagen original';
+        link.target = '_blank';
+        link.rel = 'nofollow noopener noreferrer';
+        message.append(link);
+        image.replaceWith(message);
+      };
+      image.addEventListener('error', fallback, { once: true });
+      if (image.complete && !image.naturalWidth) fallback();
+    });
     doc.setAttribute('data-unlocked', '');
     const lock = doc.querySelector<HTMLElement>('[data-lib-doc-lock]');
     if (lock) lock.hidden = true;
