@@ -24,6 +24,7 @@ const scenarios={
   expiring:{view:'active',plan:'plus',state:{orders:[order({createdAt:iso(-27*day),activeUntil:iso(3*day)})],subscription:{cohort:'founder',renewalCents:1000,activeUntil:iso(3*day)},subscriptionState:'expiring',renewableFrom:iso(-4*day),currentPlan:'plus',enabled:true,eligible:true,flowAvailable:true},badge:'Vence pronto',renewHidden:false,rule:/Ya puedes renovar/},
   pending:{view:'pending',plan:'plus',state:{orders:[order({kind:'renewal',status:'payment_review',paymentMethod:undefined,createdAt:iso(-1*day),activeUntil:null,amountCents:1000}),order({createdAt:iso(-27*day),activeUntil:iso(3*day)})],subscription:{cohort:'founder',renewalCents:1000,activeUntil:iso(3*day)},subscriptionState:'expiring',renewableFrom:iso(-4*day),currentPlan:'plus',enabled:true,eligible:true,flowAvailable:true},badge:'Vence pronto',rule:/Ya puedes renovar/},
   expired:{view:'ready',plan:'free',state:{orders:[order({createdAt:iso(-33*day),activeUntil:iso(-3*day)})],subscription:{cohort:'standard',renewalCents:1500,activeUntil:iso(-3*day)},subscriptionState:'expired',renewableFrom:iso(-10*day),currentPlan:'free',enabled:true,eligible:true,flowAvailable:true},badge:'Vencido',renewHidden:true,rule:/volvió a Campus Free/},
+  legacyexpired:{view:'ready',plan:'free',state:{orders:[order({createdAt:iso(-33*day),activeUntil:iso(-3*day)})],subscription:{cohort:'standard',renewalCents:1500,activeUntil:iso(-3*day)},currentPlan:'free',enabled:true,eligible:true,flowAvailable:true,legacy:true},badge:'Vencido',rule:/volvió a Campus Free/},
   never:{view:'ready',plan:'free',state:{orders:[],subscription:null,subscriptionState:'none',renewableFrom:null,currentPlan:'free',enabled:true,eligible:true,flowAvailable:true},panel:false},
   qa:{view:'active',plan:'plus',state:{orders:[order({isTest:true})],subscription:{cohort:'founder',renewalCents:1000,activeUntil:iso(0.5*day),isTest:true},subscriptionState:'none',renewableFrom:null,currentPlan:'plus',enabled:true,eligible:true,flowAvailable:true},panel:false},
 };
@@ -35,7 +36,7 @@ try{
       page.on('pageerror',e=>errors.push(e.message));
       await page.route('**/api/app/session**',r=>r.fulfill({json:{authenticated:true,email:'estudiante@example.test',plan:sc.plan,aiReady:true,universityConfirmed:true,profesAvailable:true,analyticsId:'campus:fixture'}}));
       await page.route('**/api/app/plus/config',r=>r.fulfill({json:{enabled:true,ordersAvailable:true}}));
-      await page.route('**/api/app/plus/state',r=>r.fulfill({json:{...sc.state,admin:false,blocked:false,unavailable:false}}));
+      await page.route('**/api/app/plus/state',r=>r.fulfill({json:(()=>{const {legacy,...rest}=sc.state;return {...rest,admin:false,blocked:false,unavailable:false};})()}));
       await page.route('**/api/**',r=>r.request().url().includes('/api/app/plus/')||r.request().url().includes('/api/app/session')?r.fallback():r.fulfill({json:{}}));
       await page.goto(base+'/app/plus/');
       await page.locator(`[data-plus-view=${sc.view}]:visible`).waitFor({timeout:15000});

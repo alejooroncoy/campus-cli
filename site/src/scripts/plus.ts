@@ -9,6 +9,8 @@ type SubscriptionState='none'|'active'|'expiring'|'expired';
 type State = {orders:Order[];currentPlan:string;subscription:{activeUntil:string;renewalCents:number;isTest?:boolean}|null;subscriptionState?:SubscriptionState;renewableFrom?:string|null;admin:boolean;enabled:boolean;eligible:boolean;blocked:boolean;unavailable:boolean;flowAvailable?:boolean};
 const money=(cents:number)=>`S/${cents/100}`;
 const date=(value:string)=>new Date(value).toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'});
+/** Same rule as the server, used only while an older server does not send subscriptionState. */
+const phaseFromDate=(until:string):SubscriptionState=>{const left=new Date(until).getTime()-Date.now();return left<=0?'expired':left<=7*86400000?'expiring':'active';};
 const orderStatus:Record<string,string>={active:'Pagado',payment_review:'En revisión',rejected:'Observado'};
 let cleanup=()=>{};
 function mount(){
@@ -76,7 +78,7 @@ function mount(){
     const history=state.orders.filter(order=>orderStatus[order.status]&&!order.isTest);
     const subscription=state.subscription&&!state.subscription.isTest?state.subscription:null;
     if(!subscription&&!history.length||['guest','unavailable','university'].includes(lastView)){panel.hidden=true;return;}
-    const phase=subscription?(state.subscriptionState??'active'):'none';
+    const phase=subscription?(state.subscriptionState??phaseFromDate(subscription.activeUntil)):'none';
     const badge=find('sub-badge');
     badge.textContent=phase==='expired'?'Vencido':phase==='expiring'?'Vence pronto':phase==='active'?'Activo':'Sin plan';
     badge.dataset.tone=phase==='expiring'?'soon':phase==='expired'||phase==='none'?'ended':'ok';
@@ -123,7 +125,7 @@ function mount(){
       else if(state.currentPlan==='plus'){
         show('active');message();text('active-until',state.subscription?`Tu mes está activo hasta el ${date(state.subscription.activeUntil)}.`:'Tu cuenta ya tiene acceso a Campus Plus.');
         text('active-renewal',state.subscription?.isTest?'Acceso de prueba por 24 horas. No se registró ningún pago ni renovación.':state.subscription?`Tu próxima renovación: ${money(state.subscription.renewalCents)} por mes. Sin cobros automáticos.`:'Consulta el estado de tu cuenta en Mi perfil.');
-        find('renew').hidden=!state.enabled||!state.eligible||!state.subscription||(state.subscriptionState??(new Date(state.subscription.activeUntil).getTime()>Date.now()+7*86400000?'active':'expiring'))==='active';
+        find('renew').hidden=!state.enabled||!state.eligible||!state.subscription||(state.subscriptionState??phaseFromDate(state.subscription.activeUntil))==='active';
         track('campus_plus_status_viewed',{plus_status:'active'});
       }else if(!state.enabled){show('unavailable');message('La activación de Plus está pausada. No realices un pago nuevo.',true);}
       else if(!state.eligible){show('university');message();}
