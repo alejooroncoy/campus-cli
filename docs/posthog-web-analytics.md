@@ -26,6 +26,16 @@ segura de la carga medida al navegar con Astro; BFCache inicia otro contexto.
 Las etiquetas de campaña quedan limitadas a `$pageview`, incluso al restaurar.
 Las métricas disponibles dependen del navegador y de que haya interacción.
 
+La salida real del documento inicia un envío `fetch` con `keepalive` dentro
+del callback de `pagehide`/visibilidad, usando el transporte del SDK sin esperar
+su cola asíncrona ni la compresión. El resto de los envíos conserva la compresión.
+Se mantienen las cookies excluidas y los UUID originales en la cola persistente
+hasta recibir confirmación; un fallo permite reintentar en una visita posterior.
+Las solicitudes coincidentes conservan el mismo UUID para la deduplicación.
+`analytics-unload.test.mjs` verifica scroll y las cuatro métricas contra un
+servidor HTTP local, navegando a una página sin analítica y sin interceptar los
+envíos. Una simulación de `pagehide` no comprueba este comportamiento.
+
 El proxy Vercel existente `/c-events` se conserva. Una comprobación GET de
 `https://campuscli.com/c-events/batch/` devolvió el error de ingestión esperado
 `400 request missing data payload`, sin enviar eventos. Se añade desde la
