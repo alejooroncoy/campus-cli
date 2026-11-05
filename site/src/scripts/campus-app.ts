@@ -123,7 +123,7 @@ function applyAccountUI(profile: UIProfileCache | null): void {
     }
   } else {
     // Sidebar User Trigger
-    if (sbUserName) sbUserName.textContent = "Prueba gratis";
+    if (sbUserName) sbUserName.textContent = "Inicia sesión";
     if (sbUserSub) sbUserSub.textContent = "Conoce Campus";
     if (sbUserAvatar) {
       sbUserAvatar.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" /><path d="M5.5 19a6.5 6.5 0 0 1 13 0" /></svg>';

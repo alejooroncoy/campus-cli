@@ -22,8 +22,8 @@ for(const usage of [undefined,{remaining:NaN,limit:100},{remaining:-1,limit:100}
 }
 const guest=profileAccountView({...free,authenticated:false,plan:'anon'});
 assert.equal(guest.state,'guest');
-assert.equal(guest.label,'Prueba gratis');
-assert.match(guest.note,/5 consultas.*25 consultas de bienvenida/);
+assert.equal(guest.label,'Sin iniciar sesión');
+assert.match(guest.note,/Crea tu cuenta.*25 consultas de bienvenida/);
 assert.equal(profileAccountView({...plus,accessBlocked:true}).state,'blocked');
 const fields=new Map(['label','usage','note','mcp','upgrade','refresh'].map(name=>[name,{textContent:'',hidden:false,setAttribute(){},replaceChildren(...children){this.children=children;}}]));
 const root={dataset:{},setAttribute(){},querySelector(selector){return fields.get(selector.match(/data-profile-(.*)\]/)[1]);}};

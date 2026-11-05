@@ -1,4 +1,6 @@
 ---
+import {CHARACTER_NAME} from '../../../lib/character.mjs';
+
 ---
 <!doctype html>
 <html lang="es">
@@ -7,13 +9,13 @@
     <meta http-equiv="refresh" content="0;url=/app/asistente/" />
     <meta name="robots" content="noindex" />
     <link rel="canonical" href="https://campuscli.com/app/asistente/" />
-    <title>Redirigiendo a Asistente…</title>
+    <title>Redirigiendo a {CHARACTER_NAME}…</title>
     <script is:inline>
       const target = "/app/asistente/" + window.location.search + window.location.hash;
       window.location.replace(target);
     </script>
   </head>
   <body>
-    <p>Redirigiendo a <a href="/app/asistente/">Asistente</a>…</p>
+    <p>Redirigiendo a <a href="/app/asistente/">{CHARACTER_NAME}</a>…</p>
   </body>
 </html>

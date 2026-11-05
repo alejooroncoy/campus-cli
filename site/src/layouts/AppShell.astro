@@ -1,4 +1,6 @@
 ---
+import {CHARACTER_NAME} from '../lib/character.mjs';
+
 import { turnitinServiceEnabled, libraryServiceEnabled } from "../../feature-flags.mjs";
 import { ClientRouter } from "astro:transitions";
 import Analytics from "../components/Analytics.astro";
@@ -12,7 +14,7 @@ interface Props {
 const { title, active } = Astro.props;
 const isChat = active === "profes" || active === "asistente";
 const nav = [
-  { id: "asistente", label: "Asistente web", href: "/app/asistente/", icon: "users" },
+  { id: "asistente", label: CHARACTER_NAME, href: "/app/asistente/", icon: "users" },
   { id: "copilot", label: "Conectar Campus a tu IA", href: "/app/copilot/", icon: "sparkles" },
   ...(libraryServiceEnabled ? [{ id: "biblioteca", label: "Biblioteca", href: "/biblioteca/", icon: "file-text" }] : []),
   ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
@@ -51,12 +53,12 @@ const nav = [
       <div class="app-workspace">
         <header class="app-topbar">
           <div class="app-breadcrumb">Campus <span>/</span><strong>{title}</strong></div>
-          <a class="app-mobile-brand" href="/app/" aria-label="Campus, abrir asistente">
+          <a class="app-mobile-brand" href="/app/" aria-label={`Campus, abrir ${CHARACTER_NAME}`}>
             <img src="/assets/campus-logo.webp" width="36" height="36" alt="" />
             <span>Campus</span>
           </a>
           {isChat && <a class="app-topbar-connect" href="/app/copilot/">Conectar Campus a tu IA <span aria-hidden="true">→</span></a>}
-          {active === "copilot" && <a class="app-topbar-connect app-topbar-assistant" href="/app/asistente/" aria-label="Abrir asistente web de Campus"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><use href="/assets/lucide.svg#message-circle"></use></svg><span class="app-topbar-assistant__full">Abrir asistente web</span><span class="app-topbar-assistant__short" aria-hidden="true">Asistente web</span><span aria-hidden="true">→</span></a>}
+          {active === "copilot" && <a class="app-topbar-connect app-topbar-assistant" href="/app/asistente/" aria-label={`Abrir ${CHARACTER_NAME}`}><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><use href="/assets/lucide.svg#message-circle"></use></svg><span class="app-topbar-assistant__full">Abrir {CHARACTER_NAME}</span><span class="app-topbar-assistant__short" aria-hidden="true">{CHARACTER_NAME}</span><span aria-hidden="true">→</span></a>}
         </header>
 
         <div id="app-pwa-banner" class="app-pwa-banner" hidden>
@@ -83,7 +85,11 @@ const nav = [
       <nav class="app-mobile-nav" aria-label="Campus móvil" transition:persist="app-mobile-nav">
         {nav.map((item) => (
           <a href={item.href} class:list={{ "is-active": active === item.id || (item.id === "asistente" && active === "profes") }} aria-current={active === item.id || (item.id === "asistente" && active === "profes") ? "page" : undefined}>
-            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href={`/assets/lucide.svg?v=3#${item.icon}`}></use></svg>
+            {item.id === "asistente" ? (
+              <img class="app-mobile-nav__character" src="/assets/campu/campu-wave-v2-96.webp" srcset="/assets/campu/campu-wave-v2-96.webp 96w, /assets/campu/campu-wave-v2-192.webp 192w" sizes="28px" width="28" height="28" alt="" aria-hidden="true" />
+            ) : (
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><use href={`/assets/lucide.svg?v=3#${item.icon}`}></use></svg>
+            )}
             <span>{item.label}</span>
           </a>
         ))}

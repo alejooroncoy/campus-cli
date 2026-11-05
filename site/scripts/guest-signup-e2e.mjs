@@ -20,15 +20,15 @@ async function fixture(width,scenario,run){
  const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
  await context.addInitScript(u=>localStorage.setItem('campus-university-choice-v1',JSON.stringify({version:1,university:u})),university);
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
- const state={authenticated:false,enabled:false,preferenceWrites:[],feedback:[],followups:[],auth:null,failPreference:false,failFeedback:false,failFollowup:false,turn:0};
+ const state={authenticated:true,enabled:false,preferenceWrites:[],feedback:[],followups:[],auth:null,failPreference:false,failFeedback:false,failFollowup:false,turn:0};
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url());if(url.origin!==base)return route.abort();
   if(!url.pathname.startsWith('/api/app/'))return route.continue();
   const path=url.pathname.replace(/\/$/,'');const json=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
-  if(path==='/api/app/session')return json({authenticated:state.authenticated,analyticsId:state.authenticated?'campus:fixture-guest-value':undefined,email:state.authenticated?'fixture@example.test':undefined,analyticsAudience:'test',plan:state.authenticated?'free':'anon',aiReady:true,profesAvailable:true,universityConfirmed:true,university,usage:{remaining:5,limit:5,period:'trial'},banner:{connected:false},features:{schedulePlanning:false}});
+  if(path==='/api/app/session')return json({authenticated:state.authenticated,analyticsId:state.authenticated?'campus:fixture-guest-value':undefined,email:state.authenticated?'fixture@example.test':undefined,analyticsAudience:'test',plan:state.authenticated?'free':'anon',aiReady:true,profesAvailable:true,universityConfirmed:true,university,usage:{remaining:25,limit:25,period:'trial'},banner:{connected:false},features:{schedulePlanning:false}});
   if(path==='/api/app/profes/conversations')return json({conversations:[]});
   if(path==='/api/app/profes/message'){
-   state.turn++;return route.fulfill({contentType:'application/x-ndjson',headers:{'X-Campus-Trace-Id':`22222222-2222-4222-8222-${String(state.turn).padStart(12,'0')}`},body:JSON.stringify({type:'answer',answer:'Respuesta útil con datos sintéticos de prueba '+state.turn,conversationId:id,title:'Fixture',usage:{remaining:4,limit:5,period:'trial'}})+'\n'});
+   state.turn++;return route.fulfill({contentType:'application/x-ndjson',headers:{'X-Campus-Trace-Id':`22222222-2222-4222-8222-${String(state.turn).padStart(12,'0')}`},body:JSON.stringify({type:'answer',answer:'Respuesta útil con datos sintéticos de prueba '+state.turn,conversationId:id,title:'Fixture',usage:{remaining:24,limit:25,period:'trial'}})+'\n'});
   }
   if(path==='/api/app/product-feedback'){if(state.failFeedback)return route.fulfill({status:503,contentType:'application/json',body:'{}'});state.feedback.push(route.request().postDataJSON());return json({ok:true});}
   if(path==='/api/app/agent-feedback-followup'){
@@ -70,30 +70,7 @@ try{
    state.failFollowup=false;await card.getByRole('button',{name:'Guardar número y avisarme',exact:true}).click();await card.getByText('Guardamos tu WhatsApp para que el equipo pueda avisarte cuando resuelva este problema.',{exact:true}).waitFor();
    assert.equal(state.followups.length,1);assert.equal(state.followups[0].whatsappPhone,'999 999 999');assert.equal(state.followups[0].whatsappConsent,true);assert.equal(state.auth,null);
   });
-  await fixture(width,'resolved-only and optional dismissal',async({page,state,ask})=>{
-   await page.goto(base+'/app/asistente/');const card=page.locator('[data-guest-signup-invite]');assert.equal(await card.count(),0);
-   await ask();assert.equal(await card.count(),0);
-   await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Todavía no'}).click();await page.getByText('Gracias por contarnos.',{exact:true}).waitFor();assert.equal(await card.count(),0);
-   await ask();await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Sí',exact:true}).click();await card.waitFor();
-   assert.equal(await card.getByRole('checkbox').isChecked(),false);assert.equal(await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).isEnabled(),true);
-   await card.scrollIntoViewIfNeeded();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-   await mkdir('.test-results/guest-signup',{recursive:true});await page.screenshot({path:`.test-results/guest-signup/${width}.png`});
-   await card.getByRole('button',{name:'Seguir como invitado'}).click();assert.equal(await card.count(),0);
-   // Feedback and signup are sibling components; their keys must stay distinct across turns.
-   assert.equal(await page.getByRole('group',{name:'Valorar la respuesta'}).count(),1);
-   await ask();await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Sí',exact:true}).click();await page.getByText('Gracias por contarnos.',{exact:true}).waitFor();assert.equal(await card.count(),0);assert.equal(state.auth,null);
-   assert.equal(await page.getByRole('group',{name:'Valorar la respuesta'}).count(),1);
-  });
-  await fixture(width,'explicit opt-in and conversation return',async({page,state,ask})=>{
-   await page.goto(base+'/app/asistente/');await ask();await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Sí',exact:true}).click();const card=page.locator('[data-guest-signup-invite]');await card.waitFor();assert.equal(await page.locator('[data-agent-recovery]').count(),0);await card.getByRole('checkbox').check();
-   await card.getByRole('link',{name:'Crear cuenta y guardar mi chat'}).click();await page.getByRole('heading',{name:'Fixture login'}).waitFor();
-   assert.deepEqual(state.preferenceWrites,[true]);assert.equal(state.auth.searchParams.get('return'),`/app/asistente/c/${id}/`);
-  });
-  await fixture(width,'default opt-out and retry after failed save',async({page,state,ask})=>{
-   await page.goto(base+'/app/asistente/');await ask();await page.getByRole('group',{name:'Valorar la respuesta'}).getByRole('button',{name:'Sí',exact:true}).click();const card=page.locator('[data-guest-signup-invite]');await card.waitFor();state.failPreference=true;
-   await card.getByRole('link',{name:'Crear cuenta y guardar mi chat'}).click();await card.getByRole('alert').waitFor();assert.equal(state.auth,null);state.failPreference=false;
-   await card.getByRole('link',{name:'Crear cuenta y guardar mi chat'}).click();await page.getByRole('heading',{name:'Fixture login'}).waitFor();assert.deepEqual(state.preferenceWrites,[false]);
-  });
+
  }
  await fixture(390,'support remains available when the initial negative feedback save fails',async({page,state,ask})=>{
   await page.goto(base+'/app/asistente/');await ask();state.failFeedback=true;await page.getByRole('button',{name:'Todavía no',exact:true}).click();const card=page.locator('[data-agent-recovery]');await card.waitFor();

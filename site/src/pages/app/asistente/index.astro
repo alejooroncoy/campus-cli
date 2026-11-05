@@ -1,11 +1,14 @@
 ---
+import {CHARACTER_NAME} from '../../../lib/character.mjs';
+
+import '../../../styles/character-greeting.css';
 import AppShell from "../../../layouts/AppShell.astro";
 import ProfesChat from "../../../components/ProfesChat.tsx";
 ---
-<AppShell title="Campu · Asistente" active="asistente">
+<AppShell title={CHARACTER_NAME} active="asistente">
   <ProfesChat client:only="react">
     <div slot="fallback" class="app-profes-layout">
-      <section class="app-profes-ai has-messages" aria-label="Campu, asistente de Campus">
+      <section class="app-profes-ai has-messages" aria-label={`${CHARACTER_NAME}, asistente de Campus`}>
         <div class="app-profes-ai__conversation-skeleton" role="status" aria-label="Cargando conversación">
           <span></span><span></span><span></span>
         </div>
