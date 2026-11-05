@@ -6,7 +6,8 @@ import { syncMarketingPreference, clearMarketingPreference } from './marketing-c
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
-import { webEvents, safeWebProperties, webPageProperties } from './web-analytics.ts';
+import { webEvents, safeWebProperties, webPageProperties, ScrollDepth } from './web-analytics.ts';
+import { startWebVitals } from './performance-analytics.ts';
 import { safeSurveyProperties, surveyEvents, surveyPersonProperties, PLUS_QA_SURVEY_ID, plusSurveyIdForAudience, plusSurveyQaRequested } from './plus-survey-contract.ts';
 
 const allowedEvent = (event: string) => events.has(event) || webEvents.has(event) || surveyEvents.has(event);
@@ -89,6 +90,8 @@ if (browser && !local && key && host) {
           // The browser SDK authenticates ingestion with this public project
           // token. Keep our configured token, never a caller-supplied value.
           token: key,
+          // Detect the actual same-origin proxy; never trust an event-supplied host.
+          $lib_custom_api_host: host,
           distinct_id: original.distinct_id,
           $session_id: original.$session_id,
           $window_id: original.$window_id,
@@ -217,11 +220,17 @@ function locationFor(element: Element): string {
   if (element.closest('.cp-final')) return 'closing';
   return location.pathname.startsWith('/app/') ? 'app' : 'other';
 }
-let webView: { properties: Record<string, unknown>; started: number } | undefined;
+let webView: { properties: Record<string, unknown>; started: number; scroll: ScrollDepth } | undefined;
+let vitals: ReturnType<typeof startWebVitals> | undefined;
+function measureScroll(): void {
+  webView?.scroll.measure(document.scrollingElement ?? document.documentElement);
+}
 function leavePage(): void {
   if (!webView) return;
   const { utm_source: _source, utm_medium: _medium, utm_campaign: _campaign, utm_content: _content, ...pageProperties } = webView.properties;
   track('$pageleave', { ...pageProperties,
+    ...webView.scroll.properties(),
+    $prev_pageview_id: webView.properties.$pageview_id,
     $prev_pageview_pathname: webView.properties.$pathname,
     $prev_pageview_duration: Math.max(0, (performance.now() - webView.started) / 1000) });
   webView = undefined;
@@ -235,9 +244,10 @@ function trackPage(): void {
   viewPath = location.pathname; seen = new Set();
   if (!local && key && !identity) rememberEntry(key);
   if (key) { rememberCampaign(key); void syncCampaign(key); }
-  webView = { started: performance.now(), properties: {
+  webView = { started: performance.now(), scroll: new ScrollDepth(), properties: {
     ...webPageProperties(location.pathname, location.origin, document.referrer, innerWidth, location.search), page, $pageview_id: crypto.randomUUID(),
   } };
+  measureScroll();
   track('$pageview', webView.properties);
   track('campus_page_viewed', { page }); observer?.disconnect(); clearSectionTimers(); visibleHeadings.clear();
   if (typeof IntersectionObserver === 'undefined') return;
@@ -259,13 +269,23 @@ function trackPage(): void {
 }
 export function setupAnalytics(): void {
   if (mounted) return; mounted = true;
-  trackPage(); document.addEventListener('astro:page-load', trackPage);
+  trackPage();
+  if (webView && (local || key)) {
+    vitals = startWebVitals(properties => track('$web_vitals', properties), webView.properties);
+  }
+  document.addEventListener('astro:before-swap', () => { measureScroll(); leavePage(); viewPath = ''; });
+  document.addEventListener('astro:page-load', trackPage);
+  window.addEventListener('scroll', measureScroll, { passive: true });
+  window.addEventListener('scrollend', measureScroll, { passive: true });
+  window.addEventListener('resize', measureScroll, { passive: true });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') clearSectionTimers();
     else visibleHeadings.forEach(scheduleSectionView);
   });
-  window.addEventListener('pagehide', () => { leavePage(); clearSectionTimers(); visibleHeadings.clear(); });
-  window.addEventListener('pageshow', event => { if (event.persisted) { viewPath = ''; trackPage(); } });
+  window.addEventListener('pagehide', () => { measureScroll(); leavePage(); clearSectionTimers(); visibleHeadings.clear(); });
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) { viewPath = ''; trackPage(); if (webView) vitals?.restore(webView.properties); }
+  });
   document.addEventListener('click', event => {
     const anchor = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
     if (!anchor) return;
