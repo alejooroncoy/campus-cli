@@ -45,6 +45,10 @@
   ],
   "rewrites": [
     {
+      "source": "/app/novedades/:id([0-9a-fA-F-]{36})/",
+      "destination": "/app/novedades/"
+    },
+    {
       "source": "/c-events/static/:path(.*)",
       "destination": "https://us-assets.i.posthog.com/static/:path"
     },
@@ -331,6 +335,19 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/app/novedades/:path*",
+      "headers": [
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
         }
       ]
     }
