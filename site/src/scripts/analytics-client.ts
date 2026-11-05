@@ -59,6 +59,23 @@ function migrateBrowserState(key: string, storageKey: string): void {
 
 class NavigationSafePostHog extends PostHog {
   private exitRequests = new Set<string>();
+  private pageExiting = false;
+
+  setPageExiting(value: boolean): void {
+    this.pageExiting = value;
+    if (value) this.flushOnExit();
+  }
+
+  protected flushAutomatic(): Promise<void> {
+    // Lifecycle listener order varies with when the SDK chunk loads. Events
+    // captured by later pagehide/visibility listeners must also start sending
+    // synchronously, even after our own exit listener has already run.
+    if (this.pageExiting || document.visibilityState === 'hidden') {
+      this.flushOnExit();
+      return Promise.resolve();
+    }
+    return super.flushAutomatic();
+  }
 
   flushOnExit(): void {
     if (!this._isInitialized || this.disabled || this.optedOut) return;
@@ -141,9 +158,10 @@ export function createAnalyticsClient(key: string, options: Options): AnalyticsC
       ...event.properties, distinct_id: sdk.getDistinctId(), $window_id: getWindowId(),
     } }),
   });
-  window.addEventListener('pagehide', () => sdk.flushOnExit());
+  window.addEventListener('pagehide', () => sdk.setPageExiting(true));
+  window.addEventListener('pageshow', () => sdk.setPageExiting(false));
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') sdk.flushOnExit();
+    sdk.setPageExiting(document.visibilityState === 'hidden');
   });
   const reset = () => {
     sdk.reset([PostHogPersistedProperty.OptedOut]); windowSession = ''; windowId = '';
