@@ -50,6 +50,14 @@ try{
   assert.equal(await page.evaluate(()=>window.marketing.metaClickId('?fbclid=private%40example.test')),undefined);
   await page.evaluate(()=>window.marketing.clearMarketingPreference());
   assert.equal((await context.cookies()).some(c=>c.name==='campus_marketing'),false);
+  await page.evaluate(()=>{
+    localStorage.setItem('campus_marketing_v1',JSON.stringify({consent:false,version:1,observedAt:Date.now()-60*86400000}));
+    document.cookie='campus_marketing=; Path=/api/app/; Max-Age=0; Secure; SameSite=Lax';
+    document.dispatchEvent(new Event('astro:page-load'));
+  });
+  const preserved=(await context.cookies('https://campus.test/api/app/auth/callback')).find(c=>c.name==='campus_marketing');
+  assert.ok(preserved);assert.equal(JSON.parse(decodeURIComponent(preserved.value)).consent,false);
+  assert.equal((await context.cookies()).some(c=>c.name==='campus_marketing_context'),false);
   await context.close();
 
   const gpc=await browser.newContext();

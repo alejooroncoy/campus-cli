@@ -103,7 +103,11 @@ export function setupMarketingConsent() {
       return;
     }
     const existing=read();
-    if(existing?.consent===false){clearContext();return;}
+    if(existing?.consent===false){
+      clearContext();
+      try { write(existing); } catch { /* Preserve a prior rejection for OAuth even after its old cookie expired. */ }
+      return;
+    }
     // Initial measurement uses a separate context cookie; it does not claim explicit consent.
     const context:Context=readContext()??{version:2,observedAt:Date.now()};
     context.fbp??=existing?.fbp??`fb.1.${Date.now()}.${crypto.getRandomValues(new Uint32Array(1))[0]}`;
