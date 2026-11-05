@@ -408,8 +408,10 @@ function setupTurnitin() {
     track('campus_turnitin_submit_started');
     fields.disabled = true; submit.setAttribute('aria-busy', 'true'); submit.setAttribute('aria-label', 'Enviando tu revisión…'); submitText.hidden = true; submit.querySelector<HTMLElement>('[data-ti-submit-skeleton]')!.hidden = false; showSubmission(qr ? 'Reservando tu revisión y abriendo Flow…' : 'Enviando tu documento y comprobante. Mantén esta página abierta.'); announce(submissionMessage.textContent ?? '', true);
     try {
+      const message = (form.elements.namedItem('message') as HTMLTextAreaElement).value.trim().slice(0, 500);
       const received = await api('orders', { requestId, report: selectedReport(), amountCents: selectedOffer()?.amountCents ?? config.amountCents, consent: (form.elements.namedItem('consent') as HTMLInputElement).checked,
         document: await encode(selected(form,'document'),config.maxDocumentBytes),
+        ...(message ? { message } : {}),
         ...(qr ? {paymentMethod: 'flow'} : {receipt: await encode(selected(form,'receipt'),config.maxReceiptBytes)}) });
       if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(received.order?.id ?? '')) throw new Error('No pudimos confirmar el envío. Vuelve a intentarlo; conservamos tus archivos.');
       if (received.checkoutUrl) { openCheckout(received.checkoutUrl); return; }

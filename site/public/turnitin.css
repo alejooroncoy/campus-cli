@@ -343,3 +343,4 @@
 .ti-payment-observation h4 { margin:0 0 6px; font-size:14px; font-weight:600; color:#775019; }
 .ti-payment-observation p { margin:0; font-size:13px; line-height:1.6; color:#634c2e; }
 @media(max-width:650px) { .ti-order .ti-payment-help { display:flex; justify-content:center; width:100%; min-height:44px; margin:16px 0 8px; box-sizing:border-box; text-align:center; } }
+.ti-message-field{margin:20px 0 0}.ti-message-field label{display:block;font-size:13px;font-weight:600;color:#102a3a;margin:0 0 8px}.ti-message-field .ti-optional{font-weight:400;color:#506d7f}.ti-message-field textarea{box-sizing:border-box;resize:vertical;font-size:16px;min-height:84px}.ti-message-field .ti-field-help{margin-top:8px}
