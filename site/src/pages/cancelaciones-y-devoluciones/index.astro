@@ -1,0 +1,26 @@
+---
+import Base from '../../layouts/Base.astro';
+import policy from '../../data/commerce-policy.json';
+import { commerceSupportHref } from '../../lib/commerce-policy.mjs';
+const canonical = `https://campuscli.com${policy.path}`;
+---
+<Base title="Cancelaciones y devoluciones | Campus"
+  description="Política de Campus Plus e informes: precios, periodos de 30 días, cancelaciones, devoluciones y atención de reclamos."
+  canonical={canonical} modified={policy.version}
+  schemas={[{"@context":"https://schema.org","@type":"WebPage",name:"Política de cancelaciones y devoluciones de Campus",url:canonical,dateModified:policy.version,inLanguage:"es-PE"}]}>
+  <main class="article" data-toc data-toc-title="Contenido de la política">
+    <nav class="crumbs" aria-label="Ruta de navegación"><ol><li><a href="/">Inicio</a></li><li aria-current="page">Cancelaciones y devoluciones</li></ol></nav>
+    <p class="eyebrow">Condiciones comerciales</p>
+    <h1>Política de cancelaciones y devoluciones</h1>
+    <p class="byline">Última actualización: <time datetime={policy.version}>{policy.updatedLabel}</time></p>
+    <p class="lede">Establezco las siguientes condiciones para la atención de Campus Plus y de los informes de similitud y de análisis de escritura con IA que comercializo mediante Campus.</p>
+    <p><a class="button" href={commerceSupportHref('Campus')}>Solicitar cancelación o devolución</a></p>
+    <p>La solicitud se gestiona por correo. Al abrir el enlace, el cliente debe completar y enviar el mensaje; ello no cancela un pedido ni ejecuta una devolución automáticamente.</p>
+    {policy.sections.map(section => <section aria-labelledby={section.id}>
+      <h2 id={section.id}>{section.title}</h2>
+      {section.paragraphs?.map(text => <p>{text}</p>)}
+      {section.bullets && <ul>{section.bullets.map(text => <li>{text}</li>)}</ul>}
+    </section>)}
+    <p><a class="prose-link" href="/reclamos/">Acceder al Libro de Reclamaciones</a> · <a class="prose-link" href="/terminos/">Consultar los términos y condiciones</a> · <a class="prose-link" href="/privacidad/">Consultar la política de privacidad</a></p>
+  </main>
+</Base>

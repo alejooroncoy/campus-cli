@@ -1,3 +1,4 @@
+import { commerceSupportHref } from '../lib/commerce-policy.mjs';
 import { setupTurnitinRequest } from './turnitin-request';
 import { analyticsHeaders, track } from './analytics';
 import { setupTurnitinUploads } from './turnitin-upload';
@@ -245,6 +246,12 @@ function setupTurnitin() {
           pending.append(el('h4', 'Aquí aparecerán tus informes'), el('p', 'Cuando estén listos, podrás verlos y descargar los PDF en esta misma revisión. Vuelve a Turnitin con tu cuenta para consultar el avance.', 'ti-muted'));
           card.append(pending);
         }
+      }
+      if (!order.isTest) {
+        const request = el('a', 'Solicitar cancelación o devolución', 'ti-small');
+        request.href = commerceSupportHref(productLabel(order.report), order.id);
+        request.dataset.tiCommerceSupport = order.id;
+        card.append(request);
       }
       target.append(card);
     }

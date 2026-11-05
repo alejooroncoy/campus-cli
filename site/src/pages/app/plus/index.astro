@@ -3,6 +3,7 @@ import {CHARACTER_NAME} from '../../../lib/character.mjs';
 
 import { turnitinServiceEnabled } from "../../../../feature-flags.mjs";
 import AppShell from '../../../layouts/AppShell.astro';
+import { commerceSupportHref } from '../../../lib/commerce-policy.mjs';
 ---
 <AppShell title="Campus Plus" active="perfil">
   <link rel="stylesheet" href="/campus-plus.css?v=5" />
@@ -22,18 +23,18 @@ import AppShell from '../../../layouts/AppShell.astro';
       <ol class="plus-overview" data-plus-manual-overview><li><span>1</span><div><strong>Consulta tu precio</strong><p>Verás el monto y a quién pagar.</p></div></li><li><span>2</span><div><strong>Paga con Yape o Plin</strong><p>Haz el pago desde tu aplicación.</p></div></li><li><span>3</span><div><strong>Envía aquí tu comprobante</strong><p>Revisaremos el abono para activar Plus.</p></div></li></ol>
       <button class="app-button" type="button" data-plus-checkout>Ver precio y cómo pagar</button>
       <p class="plus-muted">Este botón no realiza ningún cobro. Sin renovación automática.</p>
-      <p class="plus-account" data-plus-account></p>
+      <p class="plus-account" data-plus-account></p><p class="plus-muted">Cada periodo dura 30 días desde la activación. <a href="/cancelaciones-y-devoluciones/">Consultar cancelaciones y devoluciones</a>.</p>
     </section>
     <section class="app-panel" data-plus-view="university" hidden><h2>Confirma tu universidad.</h2><p>Campus Plus está disponible para estudiantes de UPC, UPN, Palermo y Pacífico. Elige tu universidad en tu perfil antes de pagar.</p><a class="app-button" href="/app/perfil/?universidad=pendiente&amp;return=%2Fapp%2Fplus%2F">Elegir mi universidad</a></section>
     <section class="app-panel" data-plus-view="payment" hidden aria-labelledby="plus-pay-title">
-      <div class="plus-order-summary"><div><p class="app-kicker" data-plus-offer></p><h2 id="plus-pay-title" tabindex="-1">Tu pago de este mes</h2><p class="plus-price"><strong data-plus-amount></strong><span>por un mes de Plus</span></p></div><p class="plus-muted" data-plus-renewal></p></div>
+      <div class="plus-order-summary"><div><p class="app-kicker" data-plus-offer></p><h2 id="plus-pay-title" tabindex="-1">Tu pago de este mes</h2><p class="plus-price"><strong data-plus-amount></strong><span>por 30 días de Plus</span></p></div><p class="plus-muted" data-plus-renewal></p></div>
       <ol class="plus-steps">
         <li><h3><span class="plus-step-number">1</span> Paga con Yape o Plin</h3><p>Abre tu aplicación y envía <strong data-plus-pay-amount></strong> a este destinatario.</p><dl class="plus-payment"><div><dt>Número de Yape o Plin</dt><dd><span data-plus-phone></span><button type="button" class="app-text-link" data-plus-copy aria-label="Copiar número de Yape o Plin">Copiar número</button></dd></div><div><dt>A nombre de</dt><dd data-plus-holder></dd></div></dl><p class="plus-muted">Antes de confirmar, comprueba que el titular y el monto coincidan. Guarda una captura de tu pago.</p><p class="plus-muted plus-expiry" data-plus-expiry></p></li>
         <li><h3><span class="plus-step-number">2</span> Envía tu comprobante</h3><p>¿Ya pagaste? Adjunta la captura o el PDF para que podamos verificarlo.</p><form data-plus-form>
           <label for="plus-receipt">Comprobante de tu pago</label><div class="plus-upload"><span data-plus-filename>Seleccionar comprobante</span><input id="plus-receipt" name="receipt" type="file" accept="image/png,image/jpeg,application/pdf" aria-describedby="plus-file-hint" required /></div>
           <p id="plus-file-hint" class="plus-muted">PNG, JPG o PDF · Hasta 5 MB. Debe verse el monto y el destinatario.</p>
           <p class="plus-file-feedback" data-plus-file-feedback hidden></p>
-          <label class="plus-consent"><input type="checkbox" name="consent" required /><span>Confirmo el monto y autorizo la revisión de mi comprobante para activar Plus. <a href="/privacidad/#plus" target="_blank" rel="noopener">Privacidad</a>.</span></label>
+          <label class="plus-consent"><input type="checkbox" name="consent" required /><span>Confirmo el monto, acepto las <a href="/cancelaciones-y-devoluciones/" target="_blank" rel="noopener">condiciones de cancelación y devolución</a> y autorizo la revisión de mi comprobante para activar Plus. <a href="/privacidad/#plus" target="_blank" rel="noopener">Privacidad</a>.</span></label>
           <button class="app-button" type="submit" data-plus-submit><span data-plus-submit-label>Enviar comprobante</span><span class="app-skeleton app-skeleton--short" data-plus-submit-skeleton aria-hidden="true" hidden></span></button>
           <button class="app-button app-button--secondary" type="button" data-plus-requote hidden>Volver a comprobar mi precio</button>
           <p class="plus-muted">Enviar el comprobante no realiza otro cobro. Verás aquí el estado de la revisión.</p>
@@ -42,10 +43,10 @@ import AppShell from '../../../layouts/AppShell.astro';
     </section>
     <section class="app-panel" data-plus-view="flow" hidden>
       <h2>Paga por QR con Yape o Plin.</h2>
-      <p class="plus-price"><strong data-plus-flow-amount></strong><span>por un mes</span></p>
+      <p class="plus-price"><strong data-plus-flow-amount></strong><span>por 30 días</span></p>
       <p data-plus-flow-renewal></p>
       <p>Campus Plus se activa automáticamente cuando Flow confirma el pago.</p>
-      <a class="app-button" data-plus-flow-link hidden>Ir a pagar por QR</a>
+      <p class="plus-muted">El pago corresponde a 30 días y no activa cobros recurrentes. Consulte la <a href="/cancelaciones-y-devoluciones/">política de cancelaciones y devoluciones</a> antes de pagar.</p><a class="app-button" data-plus-flow-link hidden>Ir a pagar por QR</a>
       <button class="app-button app-button--secondary" type="button" data-plus-flow-resume hidden>Retomar pago</button>
       <button class="app-button app-button--secondary" type="button" data-plus-refresh>Actualizar estado</button>
     </section>
@@ -56,7 +57,7 @@ import AppShell from '../../../layouts/AppShell.astro';
     <section class="app-panel" data-plus-view="active" hidden>
       <p class="app-kicker">TU PLAN ESTÁ ACTIVO</p><h2>Ya tienes Campus Plus.</h2><p data-plus-active-until></p><p data-plus-active-renewal></p>
       <a class="app-button" href="/app/copilot/">Conectar Campus a tu IA</a> <a class="app-text-link" href="/app/asistente/">Hablar con {CHARACTER_NAME}</a>
-      <button class="app-button app-button--secondary" type="button" data-plus-renew hidden>Renovar un mes</button>
+      <button class="app-button app-button--secondary" type="button" data-plus-renew hidden>Renovar 30 días</button><p class="plus-muted">La renovación requiere un nuevo pago autorizado. <a href={commerceSupportHref("Campus Plus")}>Solicitar cancelación o devolución</a>.</p>
     </section>
     <section class="app-panel" data-plus-view="rejected" hidden>
       <p class="app-kicker">PAGO OBSERVADO</p><h2>Revisemos tu comprobante.</h2><p data-plus-rejection></p><p>Si ya pagaste el monto correcto, contacta a soporte antes de realizar otro pago.</p><button class="app-button app-button--secondary" type="button" data-plus-retry>Volver a comprobar mi precio</button>
@@ -88,6 +89,7 @@ import AppShell from '../../../layouts/AppShell.astro';
       <p class="plus-muted" data-survey-status role="status" aria-live="polite"></p>
     </section>
     <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>Consultas sin límite de Campus desde tu IA compatible.</li><li>100 consultas diarias con {CHARACTER_NAME} en la web.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles desde tu IA.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
+    <p class="plus-support"><a class="app-text-link" href="/cancelaciones-y-devoluciones/">Cancelaciones y devoluciones</a> · <a class="app-text-link" href={commerceSupportHref("Campus Plus")}>Solicitar atención por correo</a></p>
     <p class="plus-support">¿Necesitas ayuda? <a class="app-text-link" href="https://wa.me/51946189585" target="_blank" rel="noopener">WhatsApp +51 946 189 585</a></p>
   </div>
   <script src="../../../scripts/plus.ts"></script>

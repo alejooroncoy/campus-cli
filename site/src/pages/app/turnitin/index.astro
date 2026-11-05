@@ -77,7 +77,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
               <section class="ti-step" data-ti-request-step="payment" aria-labelledby="ti-payment-title" hidden>
                 <div class="ti-selected-document"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><use href="/assets/lucide.svg#file-text"></use></svg><div><span>Tu documento</span><strong data-ti-document-summary></strong></div><button type="button" data-ti-go-step="document">Cambiar</button></div>
                 <h3 id="ti-payment-title" tabindex="-1">Paga y envía tu revisión</h3>
-                <p class="ti-muted" data-ti-manual-copy>Realiza el pago, adjunta el comprobante y envía el pedido. Validaremos el abono antes de preparar tus informes.</p>
+                <p class="ti-field-help">El importe exacto se muestra antes de pagar. <a href="/cancelaciones-y-devoluciones/">Consultar cancelaciones y devoluciones</a>. La cancelación se solicita por correo y no detiene automáticamente un procesamiento iniciado.</p><p class="ti-muted" data-ti-manual-copy>Realiza el pago, adjunta el comprobante y envía el pedido. Validaremos el abono antes de preparar tus informes.</p>
                 <p class="ti-muted" data-ti-flow-copy hidden>Reserva tu revisión y abre el QR de Flow para pagar con Yape o Plin. El pedido entra en preparación cuando Flow confirma el pago.</p>
                 <p class="ti-field-help ti-payment-availability" data-ti-payment-availability role="status" aria-live="polite"></p>
                 <div class="ti-payment">
@@ -98,7 +98,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <p class="ti-upload-error" id="ti-receipt-error" data-ti-upload-error="receipt" role="alert" hidden></p>
                 </div>
             <div class="ti-submit-footer">
-            <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo a Campus a procesar mi documento mediante Turnitin API y he leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
+            <label class="ti-consent"><input name="consent" type="checkbox" required /><span>Autorizo el procesamiento de mi documento mediante el proveedor indicado en la modalidad elegida y acepto la <a href="/cancelaciones-y-devoluciones/">política de cancelaciones y devoluciones</a>. He leído las <a href="/turnitin/#como-funciona">condiciones del servicio</a> y la <a href="/privacidad/">política de privacidad</a>.</span></label>
             <div class="ti-submit-action"><p class="ti-field-help">Sigue el estado y descarga tus informes en Mis revisiones.</p><button class="app-button" type="submit"><span data-ti-submit-text>Enviar revisión</span><span class="ti-inline-skeleton ti-inline-skeleton--button" data-ti-submit-skeleton aria-hidden="true" hidden></span> <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button></div>
             <p class="ti-submit-status" data-ti-submit-status role="status" aria-live="polite" hidden></p>
             </div>
