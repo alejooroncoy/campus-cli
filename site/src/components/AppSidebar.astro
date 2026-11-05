@@ -45,9 +45,13 @@ const nav = [
             class:list={["sidebar-menu-btn", { "is-active": active === item.id || (item.id === "asistente" && active === "profes") }]}
             aria-current={active === item.id || (item.id === "asistente" && active === "profes") ? "page" : undefined}
           >
-            <svg viewBox="0 0 24 24" class="sidebar-menu-icon" aria-hidden="true">
-              <use href={`/assets/lucide.svg?v=3#${item.icon}`} />
-            </svg>
+            {item.id === "asistente" ? (
+              <img class="sidebar-menu-character" src="/assets/campu/campu-wave-v2-96.webp" srcset="/assets/campu/campu-wave-v2-96.webp 96w, /assets/campu/campu-wave-v2-192.webp 192w" sizes="24px" width="24" height="24" alt="" aria-hidden="true" />
+            ) : (
+              <svg viewBox="0 0 24 24" class="sidebar-menu-icon" aria-hidden="true">
+                <use href={`/assets/lucide.svg?v=3#${item.icon}`} />
+              </svg>
+            )}
             <span>{item.label}</span>
           </a>
         ))}
@@ -297,6 +301,13 @@ const nav = [
     stroke: currentColor;
     fill: none;
     stroke-width: 1.8;
+    flex-shrink: 0;
+  }
+  .sidebar-menu-character {
+    width: 24px;
+    height: 24px;
+    margin: -3px;
+    object-fit: contain;
     flex-shrink: 0;
   }
   .sidebar-menu-icon--wa {
