@@ -1,3 +1,4 @@
+import {CHARACTER_NAME} from '../lib/character.mjs';
 import type { CampusSession } from './campus-session';
 import { copilotAccountView } from './copilot-account';
 
@@ -10,10 +11,10 @@ export function profileAccountView(session: CampusSession | 'loading' | 'error')
     && Number.isInteger(usage.limit) && usage.limit >= 0 && usage.remaining <= usage.limit;
   return {
     state: account.state,
-    label: account.state === 'guest' ? 'Prueba gratis' : account.label,
+    label: account.label,
     usage: validUsage ? `${usage.remaining} de ${usage.limit} consultas disponibles${usage.period === 'day' ? ' hoy' : ''}` : undefined,
     note: account.state === 'guest'
-      ? 'Prueba Campus con 5 consultas. Crea tu cuenta Campus Free para recibir 25 consultas de bienvenida.'
+      ? `Crea tu cuenta Campus o inicia sesión para hablar con ${CHARACTER_NAME}. Campus Free incluye 25 consultas de bienvenida.`
       : !verified ? account.description : !validUsage
       ? 'No pudimos comprobar tus consultas disponibles. Actualiza el saldo para volver a intentarlo.'
       : usage.period === 'day'

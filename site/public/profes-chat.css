@@ -1482,3 +1482,6 @@
  .app-profes-ai__campu-intro strong { font-size:16px; }
  .app-profes-ai__campu-intro span { font-size:11px; }
 }
+
+.app-profes-ai__campu-intro>.character-greeting { flex:none; }
+@media(max-width:620px) { .app-profes-ai__campu-intro>.character-greeting { max-width:54px; } }

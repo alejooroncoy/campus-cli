@@ -1,4 +1,6 @@
 ---
+import {CHARACTER_NAME} from '../lib/character.mjs';
+
 import Base from "../layouts/Base.astro";
 // Shared with the Markdown route so public plan details stay consistent.
 import rawBody from "../html/index.html?raw";
@@ -80,7 +82,7 @@ const schemas = [
       "name": "¿Necesito crear una cuenta?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Puedes probar el asistente antes de crearla. Después, regístrate en Campus Free para tener tu cuenta y las consultas de bienvenida."
+        "text": `Sí. Crea tu cuenta Campus o inicia sesión para hablar con ${CHARACTER_NAME}. Campus Free incluye 25 consultas de bienvenida.`
       }
     },
     {
@@ -120,7 +122,7 @@ const schemas = [
       "name": "¿Puedo cambiar mi universidad?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Sí. Durante la prueba puedes cambiarla en el asistente y, con tu cuenta, desde Mi perfil. La elección se conserva al crear tu cuenta. Por ahora, el asistente y Blackboard están disponibles para UPC."
+        "text": "Sí. Con tu cuenta, puedes cambiarla desde Mi perfil. Por ahora, el asistente y Blackboard están disponibles para UPC."
       }
     },
     {

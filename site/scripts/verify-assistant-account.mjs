@@ -11,7 +11,7 @@ assert.equal(assistantAccountView({...plus,usage:{...plus.usage,remaining:62}}).
 const empty=assistantAccountView({...plus,usage:{...plus.usage,remaining:0}});
 assert.equal(empty.label,'Campus Plus');assert.match(empty.balance,/0 de 100/);
 const guest=assistantAccountView({...free,authenticated:false,plan:'anon',usage:{remaining:3,limit:5,period:'trial'}});
-assert.equal(guest.label,'Prueba gratis');assert.equal(guest.available,'3 consultas disponibles');assert.equal(assistantAccountView({...free,usage:{...free.usage,remaining:1}}).available,'1 consulta disponible');assert.equal(assistantAccountView(plus).available,'63 consultas disponibles hoy');assert.equal(guest.balance,'3 de 5 consultas de prueba');
+assert.equal(guest.label,'Sin iniciar sesión');assert.equal(guest.available,'Saldo no disponible');assert.equal(assistantAccountView({...free,usage:{...free.usage,remaining:1}}).available,'1 consulta disponible');assert.equal(assistantAccountView(plus).available,'63 consultas disponibles hoy');assert.equal(guest.balance,'Saldo no disponible');
 for(const session of ['error',{...plus,accessUnavailable:true},{...free,plan:undefined},{...free,plan:'unknown'}]){
  const view=assistantAccountView(session);assert.equal(view.state,'unavailable');assert.equal(view.label,'Cuenta por comprobar');assert.equal(view.balance,'Saldo no disponible');assert.equal(view.retry,true);
 }

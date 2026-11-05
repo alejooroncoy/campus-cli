@@ -1,3 +1,4 @@
+import {renderCharacterName} from '../lib/character.mjs';
 import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
 import clients from "../data/mcp-clients.json";
@@ -91,7 +92,7 @@ export const GET: APIRoute = async () => {
       url: "https://campuscli.com/blackboard-cli/",
       body: cliBody,
     },
-  ].filter((page) => turnitinServiceEnabled || page.body !== turnitinBody).map((page) => section(page.title, page.description, page.url, htmlToMarkdown(page.body)));
+  ].filter((page) => turnitinServiceEnabled || page.body !== turnitinBody).map((page) => section(page.title, page.description, page.url, htmlToMarkdown(renderCharacterName(page.body))));
 
   const tools = [
     section(formatMeta.title, formatMeta.description, formatMeta.canonical, formatMarkdown()),
@@ -101,7 +102,7 @@ export const GET: APIRoute = async () => {
   const perClient = Object.entries(clients).flatMap(([slug, data]) => {
     const body = bodies[`../html/blackboard-mcp/clients/${slug}.html`];
     if (!body) return [];
-    return [section(data.title.split("|")[0].trim(), data.description, data.canonical, htmlToMarkdown(body))];
+    return [section(data.title.split("|")[0].trim(), data.description, data.canonical, htmlToMarkdown(renderCharacterName(body)))];
   });
 
   const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort((a, b) =>

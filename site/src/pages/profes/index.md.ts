@@ -1,3 +1,4 @@
+import {renderCharacterName} from '../../lib/character.mjs';
 import type { APIRoute } from "astro";
 import rawBody from "../../html/profes/index.html?raw";
 import { includeCampusFeedback } from "../../lib/campus-feedback";
@@ -18,7 +19,7 @@ export const GET: APIRoute = () => {
     "",
     "---",
     "",
-    htmlToMarkdown(body),
+    htmlToMarkdown(renderCharacterName(body)),
   ].join("\n");
 
   return new Response(`${markdown.trimEnd()}\n`, {

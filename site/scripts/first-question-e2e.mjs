@@ -27,7 +27,7 @@ async function fixture(width,scenario,run,options={}) {
  const context=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
  const page=await context.newPage(),errors=[],requests=[];
  page.on('pageerror',error=>errors.push(error.message));
- const state={remaining:5,unavailable:false,fail:false,catalogFail:false,universityWrites:[],...options};
+ const state={authenticated:true,remaining:25,unavailable:false,fail:false,catalogFail:false,universityWrites:[],...options};
  await page.route('**/*',async route=>{
   const url=new URL(route.request().url());if(url.origin!==base)return route.abort();
   if(!url.pathname.startsWith('/api/app/'))return route.continue();
@@ -35,7 +35,7 @@ async function fixture(width,scenario,run,options={}) {
   const json=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
   if(path==='/api/app/session'){
    if(state.unavailable)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
-   return json({authenticated:false,analyticsAudience:'test',plan:'anon',aiReady:true,profesAvailable:true,usage:{remaining:state.remaining,limit:5,period:'trial'},banner:{connected:false},features:{schedulePlanning:false},...(state.authenticated?{authenticated:true,email:'fixture@example.test',plan:'free',universityConfirmed:!!state.savedUniversity,university:state.savedUniversity,profesAvailable:!!state.savedUniversity&&state.savedUniversity.id!==null&&state.savedUniversity.id!==2}:{})});
+   return json({authenticated:false,analyticsAudience:'test',plan:'anon',aiReady:true,profesAvailable:true,usage:{remaining:state.remaining,limit:25,period:'trial'},banner:{connected:false},features:{schedulePlanning:false},...(state.authenticated?{authenticated:true,email:'fixture@example.test',plan:'free',universityConfirmed:!!state.savedUniversity,university:state.savedUniversity,profesAvailable:!!state.savedUniversity&&state.savedUniversity.id!==null&&state.savedUniversity.id!==2}:{})});
   }
   if(path==='/api/app/universities'){
    if(state.catalogFail)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
@@ -54,7 +54,7 @@ async function fixture(width,scenario,run,options={}) {
    // Hold the response long enough to exercise repeated taps during an active turn.
    await new Promise(resolve=>setTimeout(resolve,100));
    if(state.fail)return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Fallo sintético',code:'AI_FAILED'})});
-   return route.fulfill({contentType:'application/x-ndjson',headers:{'X-Campus-Trace-Id':'22222222-2222-4222-8222-222222222222'},body:JSON.stringify({type:'answer',answer:'Respuesta sintética para comprobar el inicio.',conversationId:'11111111-1111-4111-8111-111111111111',title:'Fixture',usage:{remaining:4,limit:5,period:'trial'}})+'\n'});
+   return route.fulfill({contentType:'application/x-ndjson',headers:{'X-Campus-Trace-Id':'22222222-2222-4222-8222-222222222222'},body:JSON.stringify({type:'answer',answer:'Respuesta sintética para comprobar el inicio.',conversationId:'11111111-1111-4111-8111-111111111111',title:'Fixture',usage:{remaining:24,limit:25,period:'trial'}})+'\n'});
   }
   return json({});
  });
@@ -87,7 +87,7 @@ try {
  }
  for(const width of [390,1100]) {
   for(const choice of addedUniversities)for(const method of ['quick','search']) {
-   await fixture(width,choice.name+' opens chat via '+method,async({page,requests,events})=>{
+   await fixture(width,choice.name+' opens chat via '+method,async({page,state,requests,events})=>{
     await page.goto(base+'/app/asistente/');
     const radio=page.getByRole('radio',{name:new RegExp(choice.name)});
     await radio.waitFor();
@@ -113,13 +113,13 @@ try {
     if(choice.country)await radio.locator('..').getByText('UP · '+choice.country,{exact:true}).waitFor();
     await continueButton.click();
     await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
-    if(choice.code==='UP')await page.getByRole('button',{name:new RegExp(choice.name+' · '+choice.country)}).waitFor();
+    if(choice.code==='UP')await page.getByRole('link',{name:new RegExp(choice.name+' · '+choice.country)}).waitFor();
     await page.reload();
     await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
     await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).fill('Opiniones de profesores');
     await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();
     await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
-    assert.equal(requests.length,1);assert.equal(requests[0].universityId,choice.id);
+    assert.equal(requests.length,1);assert.equal(requests[0].universityId,undefined);assert.equal(state.savedUniversity.id,choice.id);
     assert.ok((await events()).some(e=>e.event==='campus_university_selected'&&e.properties.supported===true));
    });
   }
@@ -137,7 +137,7 @@ try {
     // Two synchronous clicks must consume only one question.
     await starters.getByRole('button',{name:prompt,exact:true}).evaluate(button=>{button.click();button.click();});
     await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
-    assert.equal(requests.length,1);assert.equal(requests[0].message,prompt);assert.equal(requests[0].universityId,1);
+    assert.equal(requests.length,1);assert.equal(requests[0].message,prompt);assert.equal(requests[0].universityId,undefined);
     assert.equal(await starters.count(),0);
     const tracked=await events();
     assert.equal(tracked.filter(item=>item.event==='campus_agent_examples_viewed').length,1);
@@ -157,7 +157,7 @@ try {
    assert.equal((await events()).filter(item=>item.event==='campus_agent_example_started').length,0);
   });
  }
- for(const width of [390,1100])for(const authenticated of [false,true])for(const custom of [false,true]){
+ for(const width of [390,1100])for(const authenticated of [true])for(const custom of [false,true]){
   await fixture(width,`onboarding ${authenticated?'account':'guest'} ${custom?'unlisted':'uncovered catalog'} university keeps the chat available`,async({page,state,requests,events})=>{
    await page.goto(base+'/app/asistente/');
    const input=page.getByLabel('Busca o elige tu universidad');await input.waitFor();
@@ -176,8 +176,8 @@ try {
    await page.getByRole('button',{name:'Ayúdame a organizar mi semana de estudio.',exact:true}).click();
    await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
    assert.equal(requests.length,1);
-   if(custom){assert.equal(requests[0].universityName,name);assert.ok(!('universityId' in requests[0]));}
-   else assert.equal(requests[0].universityId,otherUniversity.id);
+   assert.equal(requests[0].universityName,undefined);assert.equal(requests[0].universityId,undefined);
+   assert.equal(state.savedUniversity.name,name);
    assert.ok((await events()).some(e=>e.event==='campus_agent_example_started'&&e.properties.example==='study_plan'));
    assert.equal((await events()).some(e=>JSON.stringify(e).includes(name)),false,'University declarations stay out of analytics');
   },{authenticated});
@@ -188,7 +188,7 @@ try {
   await input.fill('Universidad inexistente');await page.getByText('No encontramos esa universidad',{exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Empezar con Campus',exact:true}).isDisabled(),true);assert.equal(requests.length,0);
  });
- await fixture(390,'a declared university survives signup without returning to onboarding',async({page,state})=>{
+ await fixture(390,'a declared account university survives reload without returning to onboarding',async({page,state})=>{
   await page.goto(base+'/app/asistente/');
   await page.getByRole('button',{name:'Mi universidad no aparece',exact:true}).click();
   await page.getByLabel('Nombre de tu universidad',{exact:true}).fill('Universidad declarada de prueba');
@@ -211,19 +211,23 @@ try {
   state.universityFail=false;await button.click();
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();assert.equal(state.universityWrites.length,2);
  },{authenticated:true,universityFail:true});
- await fixture(390,'changing university clears the previous chat context',async({page,requests,enter})=>{
+ await fixture(390,'changing university clears the previous chat context',async({page,state,requests,enter})=>{
   await enter();
   await page.getByRole('button',{name:samples[0][1],exact:true}).click();
   await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
   await page.locator('.app-university-context').click();
-  await page.getByRole('radio',{name:/Universidad del Pacífico/}).check();
-  await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
+  await page.getByRole('button',{name:'Cambiar universidad',exact:true}).click();
+  await page.waitForFunction(()=>Array.from(document.querySelectorAll('[data-app-university-options] option')).some(o=>o.value.includes('Universidad del Pacífico')));
+  const profileUniversity=page.getByLabel('Tu universidad',{exact:true});await profileUniversity.waitFor();
+  await profileUniversity.fill('Universidad del Pacífico');await page.getByRole('button',{name:'Guardar y continuar'}).click();
+  await page.locator('[data-app-university-name]').filter({hasText:'Universidad del Pacífico'}).waitFor();
+  await page.goto(base+'/app/asistente/');
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
   assert.equal(await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).count(),0);
   await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).fill('Consulta de prueba para otra universidad');
   await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();
   await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
-  assert.equal(requests.length,2);assert.equal(requests[1].universityId,25);assert.ok(!requests[1].conversationId);
+  assert.equal(requests.length,2);assert.equal(requests[1].universityId,undefined);assert.equal(state.savedUniversity.id,25);assert.ok(!requests[1].conversationId);
  });
  await fixture(390,'failed catalog can retry without assuming a university',async({page,state,requests})=>{
   await page.goto(base+'/app/asistente/');await page.getByRole('button',{name:'Volver a intentar',exact:true}).waitFor();
@@ -233,10 +237,6 @@ try {
   await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
  },{catalogFail:true});
- await fixture(390,'quota prevents sample sends',async({page,requests,enter})=>{
-  await enter();await page.getByRole('dialog',{name:'Continúa con tu cuenta Campus.'}).waitFor();
-  assert.equal(await page.getByRole('group',{name:'Ideas para empezar'}).count(),0);assert.equal(requests.length,0);
- },{remaining:0});
  await fixture(390,'failed sample remains visible for retry',async({page,state,requests,events,enter})=>{
   await enter();await page.getByRole('button',{name:samples[2][1],exact:true}).click();
   await page.getByRole('button',{name:'Reintentar consulta',exact:true}).waitFor();

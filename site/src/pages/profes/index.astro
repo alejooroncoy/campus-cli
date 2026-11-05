@@ -1,9 +1,11 @@
 ---
+import {CHARACTER_NAME, renderCharacterName} from '../../lib/character.mjs';
+
 import Base from "../../layouts/Base.astro";
 // Shared with the Markdown route so both formats describe the same page.
 import rawBody from "../../html/profes/index.html?raw";
 import { includeCampusFeedback } from "../../lib/campus-feedback";
-const body = includeCampusFeedback(rawBody);
+const body = renderCharacterName(includeCampusFeedback(rawBody));
 const title = "Opiniones de profesores UPC por curso | Campus";
 const description = "Consulta opiniones y calificaciones de profesores UPC antes de matricularte. Busca por profesor o curso y revisa las experiencias disponibles.";
 
@@ -67,10 +69,10 @@ const schemas = [
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "¿Quién es Campu?",
+        "name": `¿Quién es ${CHARACTER_NAME}?`,
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Campu es el agente de Campus. Puedes conversar con él para buscar profesores y consultar las opiniones disponibles de otros estudiantes. Durante el ciclo también puedes usar las funciones de Campus que incluya tu plan."
+          "text": `${CHARACTER_NAME} es el agente de Campus. Puedes conversar con él para buscar profesores y consultar las opiniones disponibles de otros estudiantes. Durante el ciclo también puedes usar las funciones de Campus que incluya tu plan.`
         }
       },
       {
