@@ -8,7 +8,9 @@ import { chromium } from 'playwright';
 // request can cancel it independently of the browser's keepalive behavior.
 const key = 'phc_' + 'A'.repeat(43);
 const { outputFiles } = await build({
-  stdin: { contents: "import {setupAnalytics} from './src/scripts/analytics.ts'; setupAnalytics();", resolveDir: process.cwd(), loader: 'ts' },
+  // Importing analytics before mounting the page tracker must also work: the
+  // SDK's lifecycle listeners can be registered before Web Vitals listeners.
+  stdin: { contents: "import {setupAnalytics} from './src/scripts/analytics.ts'; await new Promise(resolve => setTimeout(resolve, 0)); setupAnalytics();", resolveDir: process.cwd(), loader: 'ts' },
   bundle: true, write: false, format: 'esm', platform: 'browser',
   define: { 'import.meta.env': JSON.stringify({ DEV: false, PUBLIC_POSTHOG_KEY: key }) },
 });
