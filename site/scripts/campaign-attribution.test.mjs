@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import { rememberCampaign, syncCampaign, clearCampaign } from '../src/scripts/campaign-attribution.ts';
+import { build } from 'esbuild';
+const {outputFiles}=await build({entryPoints:['src/scripts/campaign-attribution.ts'],bundle:true,format:'esm',write:false});
+const {rememberCampaign,syncCampaign,clearCampaign}=await import('data:text/javascript;base64,'+Buffer.from(outputFiles[0].text).toString('base64'));
 
 const values=new Map(),cookies=[],requests=[],key='campus_campaign_v1';
 globalThis.localStorage={getItem:name=>values.get('local:'+name)??null};

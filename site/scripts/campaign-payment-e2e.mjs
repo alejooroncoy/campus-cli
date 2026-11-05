@@ -66,7 +66,7 @@ try {
       await page.goto(base+'/app/plus/');
       await page.locator('[data-plus-view=ready]:visible').waitFor();
     }
-    await page.getByRole('button',{name:'Ver mi precio',exact:true}).click();
+    await page.locator('[data-plus-checkout]').click();
     await page.locator(`[data-plus-view=${flow?'flow':'payment'}]:visible`).waitFor();
     const state=await (await context.request.get(base+'/api/app/plus/state')).json();
     const quote=state.orders[0];assert.equal(quote.status,'quoted');
