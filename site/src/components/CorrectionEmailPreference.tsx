@@ -17,13 +17,14 @@ export default function CorrectionEmailPreference(){
   return()=>{generation.current++;window.removeEventListener('campus:session-updated',update);};
  },[]);
  if(value===null)return status?<p role="status">{status}</p>:null;
- return <section className="app-correction-preference" aria-labelledby="correction-emails-title">
-  <h2 id="correction-emails-title">Avisos de correcciones</h2>
-  <label htmlFor={id}><input id={id} type="checkbox" checked={value} disabled={saving} onChange={async event=>{
+ return <section className="app-panel app-account-preference app-correction-preference" aria-labelledby="correction-emails-title">
+  <h2 id="correction-emails-title">Notificaciones</h2>
+  <label className="app-account-preference__choice" htmlFor={id}><span>Correcciones de tus chats</span><input id={id} type="checkbox" role="switch" aria-describedby={`${id}-details`} checked={value} disabled={saving} onChange={async event=>{
    const enabled=event.target.checked,previous=value,version=generation.current;setValue(enabled);setSaving(true);setStatus('');
    try{const r=await fetch('/api/app/correction-preferences',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({enabled}),signal:AbortSignal.timeout(8000)});if(!r.ok)throw Error();if(version===generation.current)setStatus('Preferencia guardada.');}catch{if(version===generation.current){setValue(previous);setStatus('No pudimos guardar el cambio. Inténtalo nuevamente.');}}finally{if(version===generation.current)setSaving(false);}
-  }}/>Permitir que el equipo me avise por correo si corrige un problema relacionado con mis chats.</label>
-  <p>Esta preferencia es para seguimiento de correcciones, no para promociones.</p>
-  {status?<p role="status">{status}</p>:null}
+  }}/></label>
+  <p id={`${id}-details`}>Recibe un correo cuando corrijamos un problema relacionado con tus conversaciones.</p>
+  <p className="app-account-preference__note">Opcional. Puedes cambiarlo cuando quieras.</p>
+  <p role="status" aria-live="polite">{status||(saving?'Guardando…':value?'Activadas':'Desactivadas')}</p>
  </section>;
 }

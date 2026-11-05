@@ -79,6 +79,6 @@ try{
   await card.getByText('Guardamos tu WhatsApp para que el equipo pueda avisarte cuando resuelva este problema.',{exact:true}).waitFor();assert.equal(state.followups[0].whatsappConsent,true);
  });
  await fixture(390,'profile revocation',async({page,state})=>{
-  state.authenticated=true;state.enabled=true;await page.goto(base+'/app/perfil/');const toggle=page.getByRole('checkbox',{name:/Permitir que el equipo/});await toggle.waitFor();assert.equal(await toggle.isChecked(),true);await toggle.uncheck();await page.getByText('Preferencia guardada.',{exact:true}).waitFor();assert.equal(state.enabled,false);assert.deepEqual(state.preferenceWrites,[false]);
+  state.authenticated=true;state.enabled=true;await page.goto(base+'/app/perfil/');const toggle=page.getByRole('switch',{name:'Correcciones de tus chats'});await toggle.waitFor();assert.equal(await toggle.isChecked(),true);await toggle.uncheck();await page.getByText('Preferencia guardada.',{exact:true}).waitFor();assert.equal(state.enabled,false);assert.deepEqual(state.preferenceWrites,[false]);
  });
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
