@@ -1,0 +1,71 @@
+{
+  "version": "2026-11-05",
+  "updatedLabel": "5 de noviembre de 2026",
+  "responsible": "Alejandro Daniel Oroncoy Almeyda",
+  "ruc": "10731724429",
+  "email": "info@campuscli.com",
+  "path": "/cancelaciones-y-devoluciones/",
+  "sections": [
+    {
+      "id": "responsable",
+      "title": "Responsable y atención",
+      "paragraphs": [
+        "Soy Alejandro Daniel Oroncoy Almeyda, RUC 10731724429, responsable de Campus. Recibo solicitudes de cancelación, corrección de cobros y devolución en info@campuscli.com.",
+        "Para atender una solicitud, requiero el correo de la cuenta Campus, el servicio o número de pedido, la fecha y constancia del pago y el motivo. No solicito contraseñas, claves bancarias ni códigos de seguridad."
+      ]
+    },
+    {
+      "id": "precios-y-entrega",
+      "title": "Precios y entrega",
+      "paragraphs": [
+        "Cobro S/5 por el primer periodo de Campus Plus a los usuarios fundadores y S/10 por los siguientes. Para nuevos usuarios fuera de la promoción, cobro S/15 por periodo. Cada periodo dura 30 días desde la activación. Activo el acceso al confirmarse el pago; en pagos manuales verifico previamente el abono. Si se renueva un periodo todavía activo, sumo los 30 días al vencimiento vigente.",
+        "Ofrezco informes de similitud y de análisis de escritura con IA, con precios variables entre S/5 y S/20 por documento. Indico el proveedor de cada modalidad y el importe exacto antes del pago. Entrego los informes en Mis revisiones en un plazo de 10 minutos a 1 hora desde la validación del pago y del archivo compatible.",
+        "Conservo el precio aceptado para cada pedido pagado. Las variaciones posteriores no modifican una compra ya pagada."
+      ]
+    },
+    {
+      "id": "campus-plus",
+      "title": "Campus Plus: cancelación y renovación",
+      "paragraphs": [
+        "Actualmente cobro Campus Plus por periodos de 30 días, sin renovación automática. El cliente puede solicitar no continuar por el correo de atención. Mantengo su acceso hasta que finalice el periodo pagado, sin permanencia ni penalidad. No renovar o no utilizar un periodo correctamente prestado no genera, por sí solo, una devolución proporcional; ello no limita los derechos del consumidor ante incumplimientos.",
+        "Si habilito la renovación automática en el futuro, informaré previamente el precio, la frecuencia de cobro y la forma de cancelarla, y solicitaré la autorización expresa del cliente antes de activarla. No convertiré las compras existentes en cobros recurrentes sin esa autorización.",
+        "La decisión de no renovar es independiente de revocar la conexión universitaria o solicitar la eliminación de datos. Atiendo estas últimas solicitudes conforme a la política de privacidad."
+      ]
+    },
+    {
+      "id": "devoluciones-plus",
+      "title": "Campus Plus: devoluciones",
+      "bullets": [
+        "Devolveré el pago duplicado o el importe cobrado en exceso.",
+        "Si recibo un pago confirmado sin activar el acceso o no puedo prestar el servicio contratado, devolveré íntegramente el importe de ese periodo a solicitud del cliente.",
+        "Ante una interrupción imputable a mi servicio durante un periodo pagado, ofreceré ampliar el acceso por el tiempo afectado o devolver la parte proporcional al tiempo no prestado. Si el incumplimiento hace que la prestación deje de ser útil, atenderé la devolución que corresponda conforme a los derechos del consumidor."
+      ]
+    },
+    {
+      "id": "informes",
+      "title": "Informes de similitud y de IA: cancelación y devolución",
+      "bullets": [
+        "Si recibo la solicitud de cancelación antes de comenzar el procesamiento, devolveré íntegramente el pago. La solicitud por correo será revisada antes de confirmar su resultado; enviar el correo no detiene automáticamente un procesamiento que ya haya comenzado.",
+        "Si no puedo procesar el archivo, no entrego el informe contratado o el retraso hace que deje de ser útil para el cliente, ofreceré una nueva prestación solo con su aceptación o devolveré el importe correspondiente.",
+        "Si entrego una modalidad distinta o un informe incorrecto por un error de mi servicio, lo corregiré sin costo, sin limitar la devolución u otras soluciones que correspondan ante el incumplimiento.",
+        "Una vez prestado correctamente el servicio, el cambio de opinión por sí solo no genera devolución. Mantengo la atención de reclamos por errores, cobros indebidos o incumplimientos."
+      ]
+    },
+    {
+      "id": "plazos",
+      "title": "Respuesta y ejecución de devoluciones",
+      "paragraphs": [
+        "Responderé las solicitudes y los reclamos por escrito dentro de un máximo de 15 días hábiles. Emitiré las devoluciones aprobadas en un máximo de 5 días hábiles, sin descontar comisiones al cliente.",
+        "Priorizaré el medio de pago de origen y conservaré la constancia. Si ese medio no permite la devolución, acordaré por escrito una alternativa con el cliente. Informaré cualquier plazo adicional de abono que corresponda al banco o medio de pago. La presentación de una solicitud no ejecuta por sí sola una devolución."
+      ]
+    },
+    {
+      "id": "reclamos",
+      "title": "Libro de Reclamaciones y derechos del consumidor",
+      "paragraphs": [
+        "Mantengo disponible el Libro de Reclamaciones en campuscli.com/reclamos/. No exijo el uso previo del correo de atención para presentar un reclamo en dicho libro. Responderé los reclamos en un máximo de 15 días hábiles improrrogables.",
+        "Esta política no limita los derechos reconocidos por la normativa peruana ni el acceso a Indecopi. Comunicaré cualquier cambio aplicable a contrataciones futuras; no aplicaré condiciones menos favorables retroactivamente a compras ya realizadas."
+      ]
+    }
+  ]
+}

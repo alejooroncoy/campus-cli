@@ -65,7 +65,7 @@ for (const file of readdirSync("./src/html/blackboard-mcp/clients")) {
 // The legal pages keep their body inside the .astro itself, so that file is
 // the source whose date matters. It is also the date the page prints as its
 // own "última actualización", so the two cannot disagree.
-for (const slug of ["terminos", "privacidad", "no-afiliacion"]) {
+for (const slug of ["terminos", "privacidad", "no-afiliacion", "cancelaciones-y-devoluciones"]) {
   fromFile(`/${slug}/`, `./src/pages/${slug}/index.astro`);
 }
 
