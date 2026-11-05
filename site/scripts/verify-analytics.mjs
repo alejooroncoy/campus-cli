@@ -15,6 +15,7 @@ const { safeAnalyticsProperties, analyticsPage } = await import(`data:text/javas
 const webBundle = await build({ entryPoints: ['src/scripts/web-analytics.ts'], bundle: true, format: 'esm', write: false });
 const { metaCampaign, safeWebProperties, webPageProperties } = await import(`data:text/javascript;base64,${Buffer.from(webBundle.outputFiles[0].text).toString('base64')}`);
 assert.deepEqual(metaCampaign('?utm_source=meta&utm_campaign=123456789012345&email=private@example.org'), {utm_source:'meta',utm_campaign:'123456789012345'});
+for(const source of ['facebook','instagram','fb','ig'])assert.deepEqual(metaCampaign(`?utm_source=${source}&utm_campaign=123456789012345`),{utm_source:'meta',utm_campaign:'123456789012345'});
 for (const search of ['?utm_source=meta&utm_campaign=private-name', '?utm_source=meta&utm_campaign=123456&utm_campaign=999999', '?utm_source=other&utm_campaign=123456', '?utm_source=meta&utm_campaign=private%40example.org']) assert.deepEqual(metaCampaign(search), {});
 assert.deepEqual(safeWebProperties({utm_source:'meta',utm_campaign:'private@example.org'}), {});
 const landing = webPageProperties('/', 'https://campuscli.com', '', 1000, '?utm_source=meta&utm_campaign=123456789&code=private');

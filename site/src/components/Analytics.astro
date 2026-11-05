@@ -1,4 +1,16 @@
+<aside class="marketing-consent" data-marketing-consent hidden aria-label="Preferencia de medición de anuncios">
+  <strong>Medir anuncios de Campus</strong>
+  <p>Con tu permiso, compartimos con Meta el registro, el inicio de pago y la compra de Plus, junto con identificadores técnicos. Nunca enviamos datos académicos. Puedes cambiar tu elección en <a href="/privacidad/#anuncios">Privacidad</a>.</p>
+  <div><button type="button" data-marketing-reject>Rechazar</button><button type="button" data-marketing-accept>Permitir</button></div>
+</aside>
+<style>
+  .marketing-consent{position:fixed;inset:auto 16px 16px auto;z-index:10000;max-width:410px;max-height:60dvh;overflow:auto;padding:20px;border:1px solid #cbd5e1;border-radius:16px;background:#fff;color:#102a3a;box-shadow:0 8px 32px #102a3a22;font:14px/1.5 system-ui,sans-serif}
+  .marketing-consent[hidden]{display:none}.marketing-consent p{margin:8px 0 14px}.marketing-consent a{color:#075985;text-decoration:underline}.marketing-consent div{display:flex;gap:12px}.marketing-consent button{flex:1;padding:10px 14px;min-height:44px;border:1px solid #64748b;border-radius:8px;background:#fff;color:#102a3a;font:600 14px system-ui;cursor:pointer}.marketing-consent button:focus-visible{outline:3px solid #0284c7;outline-offset:3px}
+  @media(max-width:500px){.marketing-consent{left:12px;right:12px;bottom:12px;max-width:none}}
+</style>
 <script>
+  import { setupMarketingConsent } from '../scripts/marketing-consent';
   import { setupAnalytics } from '../scripts/analytics';
+  setupMarketingConsent();
   setupAnalytics();
 </script>

@@ -2,6 +2,7 @@ import { beginAccountHandoff, completeAccountHandoff } from './account-onboardin
 import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { clearEntry, rememberEntry } from './entry-attribution.ts';
 import { clearCampaign, rememberCampaign, syncCampaign } from './campaign-attribution.ts';
+import { syncMarketingPreference, clearMarketingPreference } from './marketing-consent.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
@@ -180,6 +181,7 @@ export function analyticsSession(session: CampusSession): void {
     identity = session.analyticsId;
     if (!local && key) clearEntry();
     if (key) void syncCampaign(key);
+    void syncMarketingPreference();
     if (!local && client && client.get_distinct_id() !== identity) client.identify(identity!);
   } else if (!session.authenticated && (identity || client?.get_distinct_id().startsWith('campus:'))) resetAnalytics();
   if (session.authenticated && identity && identity === session.analyticsId && completeAccountHandoff()) {
@@ -195,6 +197,7 @@ export function analyticsSession(session: CampusSession): void {
 }
 export function resetAnalytics(forgetCampaign = false): void {
   if (browser && forgetCampaign) clearCampaign();
+  if (browser && forgetCampaign) clearMarketingPreference();
   if (browser) { try { clearMcpHandoff(sessionStorage); } catch { /* Optional. */ } }
   identity = undefined; currentPlan = 'guest'; isTest = false;audience='customer';
   readyContext = ''; lastSessionState = '';
