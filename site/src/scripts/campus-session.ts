@@ -124,7 +124,7 @@ export function clearCampusSession(notify = true): void {
     sessionStorage.removeItem("campus-question");
   } catch { /* Storage is optional. */ }
   if (typeof window !== "undefined") {
-    try { resetAnalytics(); } catch { /* Logout also works when analytics is unavailable. */ }
+    try { resetAnalytics(true); } catch { /* Logout also works when analytics is unavailable. */ }
   }
   if (notify && typeof window !== "undefined") notifySessionLogout();
 }

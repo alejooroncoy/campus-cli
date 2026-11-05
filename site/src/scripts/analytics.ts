@@ -1,6 +1,7 @@
 import { beginAccountHandoff, completeAccountHandoff } from './account-onboarding.ts';
 import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { clearEntry, rememberEntry } from './entry-attribution.ts';
+import { clearCampaign, rememberCampaign, syncCampaign } from './campaign-attribution.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
@@ -178,6 +179,7 @@ export function analyticsSession(session: CampusSession): void {
   if (session.authenticated && /^campus:(?:google:[0-9]{8,32}|[a-zA-Z0-9_-]{8,100})$/.test(session.analyticsId ?? '')) {
     identity = session.analyticsId;
     if (!local && key) clearEntry();
+    if (key) void syncCampaign(key);
     if (!local && client && client.get_distinct_id() !== identity) client.identify(identity!);
   } else if (!session.authenticated && (identity || client?.get_distinct_id().startsWith('campus:'))) resetAnalytics();
   if (session.authenticated && identity && identity === session.analyticsId && completeAccountHandoff()) {
@@ -191,7 +193,8 @@ export function analyticsSession(session: CampusSession): void {
   readyContext = context; lastSessionState = state;
   track(firstReady ? 'campus_session_ready' : 'campus_usage_updated', { authenticated: session.authenticated, remaining: session.usage?.remaining, limit: session.usage?.limit });
 }
-export function resetAnalytics(): void {
+export function resetAnalytics(forgetCampaign = false): void {
+  if (browser && forgetCampaign) clearCampaign();
   if (browser) { try { clearMcpHandoff(sessionStorage); } catch { /* Optional. */ } }
   identity = undefined; currentPlan = 'guest'; isTest = false;audience='customer';
   readyContext = ''; lastSessionState = '';
@@ -228,6 +231,7 @@ function trackPage(): void {
   leavePage();
   viewPath = location.pathname; seen = new Set();
   if (!local && key && !identity) rememberEntry(key);
+  if (key) { rememberCampaign(key); void syncCampaign(key); }
   webView = { started: performance.now(), properties: {
     ...webPageProperties(location.pathname, location.origin, document.referrer, innerWidth, location.search), page, $pageview_id: crypto.randomUUID(),
   } };
