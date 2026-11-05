@@ -13,7 +13,24 @@ assert.doesNotMatch(csp.split(';').find(rule => rule.trim().startsWith('script-s
 const { outputFiles } = await build({ entryPoints: ['src/scripts/analytics-contract.ts'], bundle: true, format: 'esm', write: false });
 const { safeAnalyticsProperties, analyticsPage } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
 const webBundle = await build({ entryPoints: ['src/scripts/web-analytics.ts'], bundle: true, format: 'esm', write: false });
-const { metaCampaign, safeWebProperties, webPageProperties } = await import(`data:text/javascript;base64,${Buffer.from(webBundle.outputFiles[0].text).toString('base64')}`);
+const { metaCampaign, engageCampaign, safeWebProperties, webPageProperties } = await import(`data:text/javascript;base64,${Buffer.from(webBundle.outputFiles[0].text).toString('base64')}`);
+for (const content of ['remontada_upecinos','mejoralo_upecinos','remontada_virtualidad','mejoralo_virtualidad','remontada_working_student','mejoralo_working_student']) {
+  const search = `?utm_source=viva_engage&utm_medium=social&utm_campaign=grupo_de_la_u&utm_content=${content}&email=private@example.org`;
+  const expected = {utm_source:'viva_engage',utm_medium:'social',utm_campaign:'grupo_de_la_u',utm_content:content};
+  assert.deepEqual(engageCampaign(search), expected);
+  assert.deepEqual(safeWebProperties(expected), expected);
+  const page = webPageProperties('/', 'https://campuscli.com', '', 1000, search);
+  for (const [key, value] of Object.entries(expected)) assert.equal(page[key], value);
+  assert.equal(JSON.stringify(page).includes('private'), false);
+}
+for (const query of [
+  '?utm_source=viva_engage&utm_medium=social&utm_campaign=grupo_de_la_u&utm_content=private@example.org',
+  '?utm_source=viva_engage&utm_medium=social&utm_campaign=grupo_de_la_u&utm_content=remontada_upecinos&utm_content=mejoralo_upecinos',
+  '?utm_source=viva_engage&utm_source=email&utm_medium=social&utm_campaign=grupo_de_la_u&utm_content=remontada_upecinos',
+  '?utm_source=viva_engage&utm_medium=other&utm_campaign=grupo_de_la_u&utm_content=remontada_upecinos',
+  '?utm_source=viva_engage&utm_medium=social&utm_campaign=other&utm_content=remontada_upecinos',
+]) assert.deepEqual(engageCampaign(query), {});
+assert.deepEqual(safeWebProperties({utm_source:'viva_engage',utm_medium:'social',utm_campaign:'grupo_de_la_u',utm_content:'private@example.org'}), {});
 assert.deepEqual(metaCampaign('?utm_source=meta&utm_campaign=123456789012345&email=private@example.org'), {utm_source:'meta',utm_campaign:'123456789012345'});
 for (const search of ['?utm_source=meta&utm_campaign=private-name', '?utm_source=meta&utm_campaign=123456&utm_campaign=999999', '?utm_source=other&utm_campaign=123456', '?utm_source=meta&utm_campaign=private%40example.org']) assert.deepEqual(metaCampaign(search), {});
 assert.deepEqual(safeWebProperties({utm_source:'meta',utm_campaign:'private@example.org'}), {});

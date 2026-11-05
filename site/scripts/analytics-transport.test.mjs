@@ -63,7 +63,7 @@ try{
     }
     unexpected.push(url.origin+url.pathname);await route.abort();
   });
-  await page.goto('https://campus.analytics.test/app/turnitin/?source=mcp&ai_client=chatgpt&code=private-oauth',{
+  await page.goto('https://campus.analytics.test/app/turnitin/?source=mcp&ai_client=chatgpt&code=private-oauth&utm_source=viva_engage&utm_medium=social&utm_campaign=grupo_de_la_u&utm_content=mejoralo_upecinos',{
     waitUntil:'domcontentloaded',referer:'https://www.google.com/search?q=private-academic-question',
   });
   await page.waitForFunction(() => typeof window.finishLogin === 'function');
@@ -93,6 +93,8 @@ try{
   assert.ok(events.find(e=>e.event==='survey shown').properties.$set.$survey_last_seen_date);
   assert.deepEqual(events.find(e=>e.event==='campus_cta_clicked').properties.$set,{analytics_audience:'customer',is_test:false,is_internal:false});
   const view=events.find(e=>e.event==='$pageview');assert.ok(view,'Web Analytics needs the standard pageview event');
+  assert.deepEqual([view.properties.utm_source,view.properties.utm_medium,view.properties.utm_campaign,view.properties.utm_content],
+    ['viva_engage','social','grupo_de_la_u','mejoralo_upecinos']);
   assert.equal(view.properties.$current_url,'https://campus.analytics.test/app/turnitin/');
   assert.equal(view.properties.$pathname,'/app/turnitin/');
   assert.equal(view.properties.$host,'campus.analytics.test');
@@ -114,6 +116,7 @@ try{
   }
   assert.equal(events.filter(e=>e.event==='$pageview').length,2);
   const leaves=events.filter(e=>e.event==='$pageleave');assert.equal(leaves.length,2);
+  assert.ok(leaves.every(e=>!('utm_content' in e.properties) && !('utm_source' in e.properties)), 'Campaign labels belong to the landing view, not page exits');
   assert.ok(leaves.every(e=>e.properties.$raw_user_agent===view.properties.$raw_user_agent));
   assert.equal(leaves[0].properties.$pathname,'/app/turnitin/','Route changes leave the old route');
   assert.equal(leaves[0].properties.page,'turnitin_app');
