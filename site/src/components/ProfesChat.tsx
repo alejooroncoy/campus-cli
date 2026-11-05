@@ -1,5 +1,6 @@
+import CharacterGreeting from './CharacterGreeting';
+import {CHARACTER_NAME} from '../lib/character.mjs';
 import AgentFeedback from './AgentFeedback';
-import GuestSignupInvite from './GuestSignupInvite';
 import { consumeConversationHandoff } from '../scripts/account-onboarding';
 import { analyticsHeaders, track } from '../scripts/analytics';
 import { canRetryQuestion, questionFailure } from '../scripts/question-retry';
@@ -21,7 +22,7 @@ import { getCampusSession, getCampusProfilePreview, type CampusSession } from ".
 
 import { createConversationCache } from "../scripts/conversation-cache";
 
-type Access = "checking" | "ready" | "guest_limit" | "setup" | "unavailable";
+type Access = "checking" | "ready" | "login" | "setup" | "unavailable";
 
 interface ConversationItem {
   id: string;
@@ -94,7 +95,6 @@ function formatRelativeTime(iso: string): string {
 }
 
 const getLoginUrl = () => assistantLoginHref(typeof window === 'undefined' ? '/app/asistente/' : window.location.pathname, typeof window === 'undefined' ? '' : window.location.search);
-const guestQuotaDismissedKey = "campus-profes-quota-dismissed";
 const upcHintDismissedKey = "campus-profes-upc-hint-dismissed";
 const suggestions = [
   { id: "professor_reviews", icon: "users", prompt: "¿Qué dicen los estudiantes de Luis Vives?" },
@@ -590,7 +590,6 @@ function AssistantMessageContent({
 function profesTransport(
   onUsage: (usage: CampusSession["usage"]) => void,
   onActivity: (activity: string) => void,
-  onGuestLimit: (question:string, conversationId:string|null) => void,
   getConversationId: () => string | null,
   onConversationCreated: (id: string, title?: string) => void,
   onMiupcReconnect: (conversationId: string | null,upcRequired:boolean) => void,
@@ -611,17 +610,12 @@ function profesTransport(
         headers: { "content-type": "application/json", accept: "application/x-ndjson", ...analyticsHeaders() },
         credentials: "same-origin",
         signal: abortSignal,
-        body: JSON.stringify({ message: question, conversationId: activeConvId || undefined,
-          ...(readGuestUniversity() ? universitySelectionPayload(readGuestUniversity()!) : {}) }),
+        body: JSON.stringify({ message: question, conversationId: activeConvId || undefined }),
       });
       const traceId=response.headers.get('X-Campus-Trace-Id');
       if(traceId)track('campus_agent_response_received',{trace_id:traceId,duration_ms:Math.round(performance.now()-started)});
       const data = response.ok ? null : await response.json().catch(() => ({}));
       if (response.status === 401) {
-        if (data?.code === "LOGIN_REQUIRED_GUEST_LIMIT") {
-          onGuestLimit(question,activeConvId);
-          throw new Error("LOGIN_REQUIRED_GUEST_LIMIT");
-        }
         markGuestDraftHandoff(); window.location.assign(getLoginUrl());
         throw new Error("Inicia sesión para continuar.");
       }
@@ -727,7 +721,6 @@ export default function ProfesChat() {
   const [upcReconnectRequired,setUpcReconnectRequired] = useState(false);
   const [accessNote, setAccessNote] = useState("");
   const [historyError, setHistoryError] = useState("");
-  const [quotaDialogOpen, setQuotaDialogOpen] = useState(false);
   const [upcHintDismissed, setUpcHintDismissed] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("modal") === "review");
   const [reviewStep, setReviewStep] = useState<"select" | "edit" | "confirm" | "done">("select");
@@ -750,9 +743,6 @@ export default function ProfesChat() {
   const [reviewError, setReviewError] = useState("");
   const [reviewResult, setReviewResult] = useState("");
   const textarea = useRef<HTMLTextAreaElement>(null);
-  const quotaDialog = useRef<HTMLDivElement>(null);
-  const quotaClose = useRef<HTMLButtonElement>(null);
-  const quotaReopen = useRef<HTMLButtonElement>(null);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [previewName, setPreviewName] = useState("");
@@ -778,8 +768,6 @@ export default function ProfesChat() {
   const usageHandler = useRef(setUsage);
   usageHandler.current = setUsage;
   const activityHandler = useRef((value: string) => setActivitySteps(steps => appendActivity(steps, value)));
-  const guestLimitHandler = useRef(() => setAccess("guest_limit"));
-  guestLimitHandler.current = () => setAccess("guest_limit");
 
   useEffect(() => {
     const actions = document.getElementById("profes-sidebar-actions");
@@ -848,20 +836,11 @@ export default function ProfesChat() {
   },[]);
 
   const [feedbackTrace,setFeedbackTrace]=useState<string|null>(null);
-  const [signupTrace,setSignupTrace]=useState<string|null>(null);
   const transport = useMemo(() => profesTransport(
     value => {
       usageHandler.current(value);
-      if (value && value.remaining <= 0) guestLimitHandler.current();
     },
     value => activityHandler.current(value),
-    (question,id) => {
-      if(currentConversationIdRef.current===id){
-        conversationDrafts.current.set(id,question);
-        setInput(question);
-      }
-      guestLimitHandler.current();
-    },
     () => currentConversationIdRef.current,
     handleConversationCreated,
     handleMiupcReconnect,
@@ -894,9 +873,8 @@ export default function ProfesChat() {
         setAuthenticated(session.authenticated);
 
         if (!session.authenticated) {
-          const guestRemaining = session.usage?.remaining ?? 5;
-          setAccess(!session.aiReady ? "unavailable" : guestRemaining > 0 ? "ready" : "guest_limit");
-          setAccessNote(!session.aiReady ? "Campus no está disponible por ahora." : "");
+          setAccess("login");
+          setAccessNote("");
         } else {
           setAccess(!session.universityConfirmed ? "setup" : !session.accessUnavailable && session.aiReady ? "ready" : "unavailable");
           setAccessNote(session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
@@ -1064,47 +1042,6 @@ export default function ProfesChat() {
     return () => { window.clearTimeout(timeout); controller.abort(); };
   }, [reviewOpen, reviewStep, reviewQuery, reviewSearchMode, reviewCourse, authenticated, session?.universityConfirmed, reviewLookupAttempt]);
 
-  const isGuestLimit = Boolean(access === "guest_limit"
-    || error?.message === "LOGIN_REQUIRED_GUEST_LIMIT"
-    || error?.message?.includes("consultas de prueba gratis")
-    || (usage && !authenticated && usage.remaining <= 0));
-
-  useEffect(() => {
-    if (!isGuestLimit || guestNeedsUniversity) return;
-    try { setQuotaDialogOpen(sessionStorage.getItem(guestQuotaDismissedKey) !== "1"); }
-    catch { setQuotaDialogOpen(true); }
-  }, [isGuestLimit, guestNeedsUniversity]);
-
-  useEffect(() => {
-    if (!isGuestLimit || !quotaDialogOpen || guestNeedsUniversity) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    quotaClose.current?.focus();
-    return () => { document.body.style.overflow = previousOverflow; };
-  }, [isGuestLimit, quotaDialogOpen, guestNeedsUniversity]);
-
-  function closeQuotaDialog() {
-    try { sessionStorage.setItem(guestQuotaDismissedKey, "1"); } catch { /* El aviso compacto sigue disponible. */ }
-    setQuotaDialogOpen(false);
-    window.requestAnimationFrame(() => quotaReopen.current?.focus());
-  }
-
-  function reopenQuotaDialog() {
-    try { sessionStorage.removeItem(guestQuotaDismissedKey); } catch { /* El modal también abre sin almacenamiento. */ }
-    setQuotaDialogOpen(true);
-  }
-
-  function onQuotaDialogKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (event.key === "Escape") { event.preventDefault(); closeQuotaDialog(); return; }
-    if (event.key !== "Tab") return;
-    const controls = quotaDialog.current?.querySelectorAll<HTMLElement>("button, a[href]");
-    if (!controls?.length) return;
-    const first = controls[0];
-    const last = controls[controls.length - 1];
-    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-  }
-
   async function submit(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     await sendQuestion(input);
@@ -1112,13 +1049,13 @@ export default function ProfesChat() {
 
   async function sendQuestion(raw: string, example?: (typeof suggestions[number] | typeof studySuggestions[number])["id"]) {
     const question = raw.trim();
+    if (session?.authenticated === false) { markGuestDraftHandoff(); window.location.assign(getLoginUrl()); return; }
     if (!question || sendingQuestion.current || busy || loadingConversation || guestNeedsUniversity || access === "checking" || access === "unavailable") return;
     if (wantsToReview(question)) {
       openReview();
       setInput("");
       return;
     }
-    if (isGuestLimit) { markGuestDraftHandoff(); window.location.assign(getLoginUrl()); return; }
     if (access === "setup") { window.location.assign(universitySetupHref(window.location.pathname, window.location.search)); return; }
     sendingQuestion.current = true;
     draftEditedBeforeSession.current = true;
@@ -1128,9 +1065,7 @@ export default function ProfesChat() {
     setInput("");
     try { await sendMessage({ text: question }); }
     catch (err: any) {
-      if (err?.message !== "LOGIN_REQUIRED_GUEST_LIMIT") {
-        setInput(question);
-      }
+      setInput(question);
     } finally { sendingQuestion.current = false; }
   }
 
@@ -1408,8 +1343,7 @@ export default function ProfesChat() {
   const currentConversation = conversations.find(c => c.id === currentConversationId);
 
   const account = assistantAccountView(session ? { ...session, usage } : access === "checking" ? "loading" : "error");
-  const hint = isGuestLimit ? "Prueba completada · Continúa con Campus Free"
-    : access === "checking" ? "Comprobando acceso…"
+  const hint = access === "checking" ? "Comprobando acceso…"
     : access === "setup" ? "Elige tu universidad al enviar"
     : access === "unavailable" ? accessNote
     : account.balance;
@@ -1419,7 +1353,7 @@ export default function ProfesChat() {
     : previewName;
   const studentFirstName = studentName ? studentName.split(" ")[0] : "";
   const lastUserMessage = [...messages].reverse().find(message => message.role === "user");
-  const showUpcHint = !authenticated && !isGuestLimit && !upcHintDismissed && !busy
+  const showUpcHint = !authenticated && !upcHintDismissed && !busy
     && messages.at(-1)?.role === "assistant"
     && Boolean(lastUserMessage && /\bupc\b|peruana de ciencias aplicadas/i.test(messageText(lastUserMessage)));
 
@@ -1471,7 +1405,7 @@ export default function ProfesChat() {
   );
 
   const showStarters = messages.length === 0 && !currentConversationId && !input.trim()
-    && !isGuestLimit && !busy && !loadingConversation && !guestNeedsUniversity
+    && !busy && !loadingConversation && !guestNeedsUniversity
     && access === 'ready' && !reviewOpen;
   useEffect(() => {
     if (showStarters && !examplesViewed.current) {
@@ -1479,6 +1413,19 @@ export default function ProfesChat() {
       track('campus_agent_examples_viewed');
     }
   }, [showStarters]);
+
+  if (session?.authenticated === false) return <div className="app-profes-layout">
+    <section className="app-profile-entry" aria-labelledby="assistant-login-title">
+      <div className="app-profile-entry__content">
+        <p className="app-profile-entry__eyebrow">TU CUENTA GRATIS · CAMPUS FREE</p>
+        <h1 id="assistant-login-title">Entra para hablar con {CHARACTER_NAME}.</h1>
+        <p className="app-profile-entry__lead">Crea tu cuenta gratis o inicia sesión. Campus Free incluye 25 consultas de bienvenida.</p>
+        <a className="app-button app-profile-entry__button" onClick={() => markGuestDraftHandoff()} href={getLoginUrl()}>Crear cuenta o iniciar sesión</a>
+        <p className="app-profile-entry__note">Las consultas de bienvenida no se renuevan cada mes.</p>
+        <CharacterGreeting className="app-profile-entry__campu" />
+      </div>
+    </section>
+  </div>;
 
   if (guestNeedsUniversity) return <div className="app-profes-layout"><GuestUniversity selected={session?.authenticated ? session.university ?? guestUniversity : guestUniversity} authenticated={session?.authenticated} onSelect={selectGuestUniversity} /></div>;
 
@@ -1496,12 +1443,12 @@ export default function ProfesChat() {
             {historyContent}
           </div>
         </dialog>
-    <section className={`app-profes-ai${messages.length || currentConversationId ? " has-messages" : ""}${isGuestLimit ? " is-guest-limited" : ""}`} aria-label="Campu, asistente de Campus">
+    <section className={`app-profes-ai${messages.length || currentConversationId ? " has-messages" : ""}`} aria-label={`${CHARACTER_NAME}, asistente de Campus`}>
 
       {/* Top Toolbar for Profes */}
       <div className="app-profes-toolbar">
         {session?.authenticated && session.universityConfirmed && session.university ? <a className="app-university-context" href="/app/perfil/"><span className="app-university-context__target"><small>Tu universidad</small>{universityLabel(session.university)}</span><span className="app-university-context__change">Cambiar universidad</span></a>
-          : session?.authenticated === false && guestUniversity ? <button type="button" className="app-university-context" onClick={() => setChangingUniversity(true)} disabled={busy}><span className="app-university-context__target"><small>Tu universidad</small>{universityLabel(guestUniversity)}</span><span className="app-university-context__change">Cambiar universidad</span></button> : null}
+          : null}
         <div className="app-assistant-account" data-state={account.state} aria-label="Tu plan y consultas">
           <div className="app-assistant-account__summary">
             <strong className="app-assistant-account__label"><span className="app-assistant-account__dot" aria-hidden="true" />{account.state === "loading" ? <><span className="app-sr-only">{account.label}</span><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></> : account.label}</strong>
@@ -1563,7 +1510,7 @@ export default function ProfesChat() {
         </div>
       ) : messages.length === 0 ? (
         <div className="app-profes-ai__welcome">
-          <div className="app-profes-ai__campu-intro"><img src="/assets/campu/campu-wave-v2-96.webp" srcSet="/assets/campu/campu-wave-v2-96.webp 96w, /assets/campu/campu-wave-v2-192.webp 192w" sizes="(max-width: 620px) 54px, 64px" width="64" height="64" alt="" /><p><strong>Soy Campu</strong><span>Tu agente de Campus</span></p></div>
+          <div className="app-profes-ai__campu-intro"><CharacterGreeting size={64} /><p><strong>Soy {CHARACTER_NAME}</strong><span>Tu agente de Campus</span></p></div>
           <h1>{studentFirstName ? `Hola, ${studentFirstName}. ¿En qué te ayudo?` : "¿En qué te ayudo hoy?"}</h1>
         </div>
       ) : messages.length > 0 ? (
@@ -1582,7 +1529,7 @@ export default function ProfesChat() {
           {messages.map(message => (
             <article className={`app-profes-ai__message app-profes-ai__message--${message.role}`} key={message.id}>
               {!busy && message.role === "assistant" && message.id === messages.at(-1)?.id && activitySteps.length > 0 ? <ChatActivity steps={activitySteps} busy={false} expanded={activityExpanded} onExpandedChange={setActivityExpanded} /> : null}
-              {message.role === "assistant" ? <span className="app-profes-ai__speaker">Campu</span> : null}
+              {message.role === "assistant" ? <span className="app-profes-ai__speaker">{CHARACTER_NAME}</span> : null}
               {message.role === "assistant" ? (
                 <AssistantMessageContent
                   content={messageText(message)}
@@ -1600,7 +1547,7 @@ export default function ProfesChat() {
           {showUpcHint ? (
             <aside className="app-profes-upc-hint" aria-label="Sugerencia para estudiantes de la UPC">
               <button type="button" className="app-profes-upc-hint__close" aria-label="Cerrar sugerencia" onClick={dismissUpcHint}>×</button>
-              <span className="app-profes-ai__speaker">Campu</span>
+              <span className="app-profes-ai__speaker">{CHARACTER_NAME}</span>
               <strong>Ah, estudias en la UPC. Conecta tu cuenta.</strong>
               <p>Así podré consultar tus cursos y horario oficiales cuando los necesites.</p>
               <a className="app-profes-upc-hint__link" onClick={() => markGuestDraftHandoff()} href={getLoginUrl()}>Iniciar sesión para conectar UPC →</a>
@@ -1704,20 +1651,10 @@ export default function ProfesChat() {
         </div>
       </dialog>
 
-      {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={`feedback:${feedbackTrace}`} traceId={feedbackTrace} onResolved={()=>{if(session?.authenticated===false&&!isGuestLimit)setSignupTrace(feedbackTrace);}}/> : null}
-      {!busy&&!isGuestLimit&&session?.authenticated===false&&signupTrace&&signupTrace===feedbackTrace?<GuestSignupInvite key={`signup:${signupTrace}`} traceId={signupTrace}/>:null}
-      {isGuestLimit ? (
-        <div className="app-guest-quota-reminder" role="status">
-          <div className="app-guest-quota-reminder__text">
-            <strong>Completaste tu prueba gratis</strong>
-            <span>Crea tu cuenta Campus Free y recibe 25 consultas de bienvenida.</span>
-          </div>
-          <button ref={quotaReopen} type="button" className="app-guest-quota-reminder__button" onClick={reopenQuotaDialog}>Conocer Campus Free</button>
-        </div>
-      ) : (
+      {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={`feedback:${feedbackTrace}`} traceId={feedbackTrace}/> : null}
         <div className="app-profes-ai__composer-dock">
           <form className="app-profes-ai__composer" onSubmit={submit}>
-            <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta a Campu</label>
+            <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta a {CHARACTER_NAME}</label>
             <textarea
               id="profes-message"
               autoComplete="off"
@@ -1725,7 +1662,7 @@ export default function ProfesChat() {
               value={input}
               onChange={event => { draftEditedBeforeSession.current = true; setInput(event.target.value); }}
               onKeyDown={onKeyDown}
-              placeholder="Pregunta a Campu…"
+              placeholder={`Pregunta a ${CHARACTER_NAME}…`}
               rows={1}
               maxLength={2000}
               disabled={busy || loadingConversation}
@@ -1746,12 +1683,11 @@ export default function ProfesChat() {
               )}
             </div>
           </form>
-          {access !== "ready" || isGuestLimit ? <p className="app-profes-ai__composer-hint">{hint}</p> : null}
+          {access !== "ready" ? <p className="app-profes-ai__composer-hint">{hint}</p> : null}
           {session?.accessUnavailable ? <button type="button" className="app-profes-ai__older-messages" onClick={() => { void retryAccess(); }} disabled={busy || balanceRetrying}>{balanceRetrying ? "Comprobando saldo…" : "Reintentar saldo"}</button> : null}
         </div>
-      )}
 
-      {(error || (historyError && !historyOpen)) && !isGuestLimit ? <div className="app-profes-ai__recovery">
+      {(error || (historyError && !historyOpen)) ? <div className="app-profes-ai__recovery">
         <p className="app-profes-ai__error" role="alert">{error?.message ?? historyError}</p>
         <a href="https://wa.me/51946189585" className="app-text-link" target="_blank" rel="noopener noreferrer">Escribir a soporte por WhatsApp</a>
         {canRetryQuestion(error) && messages.at(-1)?.role === 'user' && access === 'ready' && (usage?.remaining ?? 0) > 0 && !busy ? <button type="button" className="app-profes-ai__retry" onClick={() => {
@@ -1774,29 +1710,7 @@ export default function ProfesChat() {
           {hasCatalogCoverage ? <button type="button" className="app-profes-ai__review-start" onClick={openReview}>Dejar una reseña</button> : null}
         </div>
       ) : null}
-      {isGuestLimit && quotaDialogOpen ? (
-        <div className="app-guest-quota-overlay" onMouseDown={event => { if (event.target === event.currentTarget) closeQuotaDialog(); }}>
-          <div ref={quotaDialog} className="app-guest-quota-card" role="dialog" aria-modal="true" aria-labelledby="guest-quota-title" aria-describedby="guest-quota-desc" onKeyDown={onQuotaDialogKeyDown}>
-            <button ref={quotaClose} type="button" className="app-guest-quota-card__close" onClick={closeQuotaDialog} aria-label="Cerrar aviso">×</button>
-            <div className="app-guest-quota-card__main">
-              <div className="app-guest-quota-card__badge">
-                <span className="app-guest-quota-card__dot" aria-hidden="true" />
-                <span>5 de 5 consultas usadas</span>
-              </div>
-              <h2 id="guest-quota-title" className="app-guest-quota-card__title">Continúa con tu cuenta Campus.</h2>
-              <p id="guest-quota-desc" className="app-guest-quota-card__desc">Al crear tu cuenta Campus Free recibes 25 consultas de bienvenida. Si ya tienes cuenta, entra para continuar.</p>
-              <div className="app-guest-quota-card__perks">
-                <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#check" /></svg>25 consultas de bienvenida</span>
-                <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#check" /></svg>Tu historial se conserva</span>
-                <span><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#check" /></svg>Sin tarjeta de crédito</span>
-              </div>
-            </div>
-            <div className="app-guest-quota-card__action">
-              <a onClick={() => markGuestDraftHandoff()} href={getLoginUrl()} className="app-guest-quota-card__btn"><span>Crear cuenta o entrar</span><span aria-hidden="true">→</span></a>
-            </div>
-          </div>
-        </div>
-      ) : null}
+
 
 
     </section>

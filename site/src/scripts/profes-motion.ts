@@ -1,3 +1,4 @@
+import {CHARACTER_NAME} from '../lib/character.mjs';
 import { animate, inView, stagger, type AnimationSequence } from 'motion';
 import './campus-feedback';
 
@@ -173,7 +174,7 @@ function setupCampuMotion() {
       cycles.forEach(cycle => { if (playing) cycle.play(); else cycle.pause(); });
       root.dataset.campuState = preference.matches ? 'static' : userPaused ? 'paused' : playing ? 'playing' : 'suspended';
       toggle.hidden = preference.matches;
-      const label = userPaused ? 'Reanudar animación de Campu' : 'Pausar animación de Campu';
+      const label = userPaused ? `Reanudar animación de ${CHARACTER_NAME}` : `Pausar animación de ${CHARACTER_NAME}`;
       toggle.setAttribute('aria-label', label);
       toggle.setAttribute('aria-pressed', String(userPaused));
       toggle.title = label;
@@ -237,7 +238,7 @@ function setupCampuMotion() {
             image.removeEventListener('error', onError);
           };
           const onLoad = () => { cleanup(); resolve(); };
-          const onError = () => { cleanup(); reject(new Error('Campu layer unavailable')); };
+          const onError = () => { cleanup(); reject(new Error(`${CHARACTER_NAME} layer unavailable`)); };
           image.addEventListener('load', onLoad, { once: true });
           image.addEventListener('error', onError, { once: true });
           pendingLoads.push(cleanup);

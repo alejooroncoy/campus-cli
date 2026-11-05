@@ -65,9 +65,9 @@ try {
   await page.waitForURL(`**/app/asistente/**`);
   assert.equal(new URL(page.url()).pathname, "/app/asistente/");
   const breadcrumb = await page.locator(".app-breadcrumb").textContent();
-  assert.ok(breadcrumb.includes("Asistente"), `Breadcrumb should contain Asistente, got "${breadcrumb}"`);
+  assert.ok(breadcrumb.includes("Campu"), `Breadcrumb should contain Campu, got "${breadcrumb}"`);
   const activeNav = await page.locator(".sidebar-menu-btn.is-active").textContent();
-  assert.ok(activeNav.includes("Asistente"), `Active nav button should be Asistente, got "${activeNav}"`);
+  assert.ok(activeNav.includes("Campu"), `Active nav button should be Campu, got "${activeNav}"`);
   console.log("✓ Redirect /app/profes/ to /app/asistente/ passed");
 
   console.log("\n[Test 2] Redirect /app/profes/?modal=review -> /app/asistente/?modal=review with modal open");

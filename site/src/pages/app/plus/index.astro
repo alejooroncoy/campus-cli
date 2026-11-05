@@ -1,4 +1,6 @@
 ---
+import {CHARACTER_NAME} from '../../../lib/character.mjs';
+
 import { turnitinServiceEnabled } from "../../../../feature-flags.mjs";
 import AppShell from '../../../layouts/AppShell.astro';
 ---
@@ -6,7 +8,7 @@ import AppShell from '../../../layouts/AppShell.astro';
   <link rel="stylesheet" href="/campus-plus.css?v=5" />
   <div class="plus-page" data-plus-root>
     <a class="app-text-link" href="/app/perfil/">Volver a Mi perfil</a>
-    <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Activa tu mes de Plus.</h1><p>Usa Campus desde tu IA compatible y recibe 100 consultas diarias en el asistente web.</p><p class="plus-muted">El plan de ChatGPT o Claude, si lo necesitas, se paga aparte. <a class="app-text-link" href="/app/copilot/">Cómo funciona el conector</a></p></section>
+    <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Activa tu mes de Plus.</h1><p>Usa Campus desde tu IA compatible y recibe 100 consultas diarias con {CHARACTER_NAME} en la web.</p><p class="plus-muted">El plan de ChatGPT o Claude, si lo necesitas, se paga aparte. <a class="app-text-link" href="/app/copilot/">Cómo funciona el conector</a></p></section>
     <p class="plus-message" role="status" aria-live="polite" aria-atomic="true" aria-busy="true" data-plus-message data-loading="true"><span class="app-sr-only">Comprobando tu cuenta…</span><span class="app-skeleton plus-message__skeleton" aria-hidden="true"></span></p>
     <p class="app-panel" role="note" data-plus-qa hidden><strong>PRUEBA EN PRODUCCIÓN · SIN PAGO</strong><br />Este comprobante es sintético. La activación de prueba dura 24 horas y no ocupa un cupo de los primeros 25 de pago.</p>
     <section class="app-panel" data-plus-view="guest" hidden>
@@ -53,7 +55,7 @@ import AppShell from '../../../layouts/AppShell.astro';
     </section>
     <section class="app-panel" data-plus-view="active" hidden>
       <p class="app-kicker">TU PLAN ESTÁ ACTIVO</p><h2>Ya tienes Campus Plus.</h2><p data-plus-active-until></p><p data-plus-active-renewal></p>
-      <a class="app-button" href="/app/copilot/">Conectar Campus a tu IA</a> <a class="app-text-link" href="/app/asistente/">Ir al asistente web</a>
+      <a class="app-button" href="/app/copilot/">Conectar Campus a tu IA</a> <a class="app-text-link" href="/app/asistente/">Hablar con {CHARACTER_NAME}</a>
       <button class="app-button app-button--secondary" type="button" data-plus-renew hidden>Renovar un mes</button>
     </section>
     <section class="app-panel" data-plus-view="rejected" hidden>
@@ -85,7 +87,7 @@ import AppShell from '../../../layouts/AppShell.astro';
       </form>
       <p class="plus-muted" data-survey-status role="status" aria-live="polite"></p>
     </section>
-    <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>Consultas sin límite de Campus desde tu IA compatible.</li><li>100 consultas diarias en el asistente web.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles desde tu IA.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
+    <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>Consultas sin límite de Campus desde tu IA compatible.</li><li>100 consultas diarias con {CHARACTER_NAME} en la web.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles desde tu IA.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
     <p class="plus-support">¿Necesitas ayuda? <a class="app-text-link" href="https://wa.me/51946189585" target="_blank" rel="noopener">WhatsApp +51 946 189 585</a></p>
   </div>
   <script src="../../../scripts/plus.ts"></script>

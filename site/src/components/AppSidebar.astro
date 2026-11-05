@@ -1,4 +1,6 @@
 ---
+import {CHARACTER_NAME} from '../lib/character.mjs';
+
 import { turnitinServiceEnabled, libraryServiceEnabled } from "../../feature-flags.mjs";
 interface Props {
   active: "profes" | "asistente" | "copilot" | "perfil" | "turnitin" | "biblioteca";
@@ -8,7 +10,7 @@ const { active } = Astro.props;
 const isChat = active === "profes" || active === "asistente";
 
 const nav = [
-  { id: "asistente", label: "Asistente web", href: "/app/asistente/", icon: "users" },
+  { id: "asistente", label: CHARACTER_NAME, href: "/app/asistente/", icon: "users" },
   { id: "copilot", label: "Conectar Campus a tu IA", href: "/app/copilot/", icon: "sparkles" },
   ...(libraryServiceEnabled ? [{ id: "biblioteca", label: "Biblioteca", href: "/biblioteca/", icon: "file-text" }] : []),
   ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
@@ -19,7 +21,7 @@ const nav = [
 <aside class:list={["shadcn-sidebar", { "sidebar--profes": isChat }]} aria-label="Navegación principal">
   <!-- Sidebar Header -->
   <div class="sidebar-header">
-    <a class="sidebar-brand" href="/app/" aria-label="Campus, abrir asistente">
+    <a class="sidebar-brand" href="/app/" aria-label={`Campus, abrir ${CHARACTER_NAME}`}>
       <div class="sidebar-brand__logo">
         <img src="/assets/campus-logo.webp" width="22" height="22" alt="" />
       </div>
@@ -93,7 +95,7 @@ const nav = [
       </a>
     </div>
 
-    <p class="sidebar-guest-note" data-app-sidebar-guest-note>Prueba Campus con 5 consultas.</p>
+    <p class="sidebar-guest-note" data-app-sidebar-guest-note>Crea tu cuenta para hablar con {CHARACTER_NAME}.</p>
 
     <!-- NavUser Dropdown Container -->
     <div class="sidebar-user-container">
