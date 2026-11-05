@@ -78,7 +78,7 @@ class NavigationSafePostHog extends PostHog {
       const current = (this.getPersistedProperty(PostHogPersistedProperty.Queue) ?? []) as PostHogQueueItem[];
       this.setPersistedProperty(PostHogPersistedProperty.Queue,
         current.filter(item => !ids.has(item.message?.uuid as string)));
-    }, () => { /* Retain the original UUIDs in storage for a future retry. */ }).finally(() => {
+    }).catch(() => { /* Network/storage failures retain persisted UUIDs for retry. */ }).finally(() => {
       ids.forEach(id => this.exitRequests.delete(id));
     });
   }
