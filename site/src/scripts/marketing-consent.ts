@@ -14,7 +14,7 @@ function read(): Preference | undefined {
   try {
     const p=JSON.parse(localStorage.getItem(storageKey)??'null');
     if(p?.version!==1 || typeof p.consent!=='boolean' || !Number.isSafeInteger(p.observedAt)
-      || p.observedAt>Date.now() || (p.consent && p.observedAt<=Date.now()-ttl))return;
+      || p.observedAt<=0 || p.observedAt>Date.now() || (p.consent && p.observedAt<=Date.now()-ttl))return;
     return p;
   } catch { return; }
 }
