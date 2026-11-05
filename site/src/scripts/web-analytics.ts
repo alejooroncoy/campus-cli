@@ -6,9 +6,10 @@ export function marketingCampaign(search: string): Record<string, string> {
   const query = new URLSearchParams(search);
   const sources = query.getAll('utm_source');
   const campaigns = query.getAll('utm_campaign');
-  if (sources.length !== 1 || campaigns.length !== 1 || !['meta', 'email'].includes(sources[0].toLowerCase())
+  const source = sources.length===1 ? ({facebook:'meta',instagram:'meta',fb:'meta',ig:'meta',meta:'meta',email:'email'} as Record<string,string>)[sources[0].toLowerCase()] : undefined;
+  if (!source || campaigns.length !== 1
     || !/^[0-9]{6,32}$/.test(campaigns[0])) return {};
-  return { utm_source: sources[0].toLowerCase(), utm_campaign: campaigns[0] };
+  return { utm_source: source, utm_campaign: campaigns[0] };
 }
 export const metaCampaign = marketingCampaign;
 // Fixed public labels only: never accept arbitrary campaign content or user data.
