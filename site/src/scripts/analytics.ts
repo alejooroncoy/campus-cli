@@ -220,7 +220,7 @@ function locationFor(element: Element): string {
 let webView: { properties: Record<string, unknown>; started: number } | undefined;
 function leavePage(): void {
   if (!webView) return;
-  const { utm_source: _source, utm_campaign: _campaign, ...pageProperties } = webView.properties;
+  const { utm_source: _source, utm_medium: _medium, utm_campaign: _campaign, utm_content: _content, ...pageProperties } = webView.properties;
   track('$pageleave', { ...pageProperties,
     $prev_pageview_pathname: webView.properties.$pathname,
     $prev_pageview_duration: Math.max(0, (performance.now() - webView.started) / 1000) });
