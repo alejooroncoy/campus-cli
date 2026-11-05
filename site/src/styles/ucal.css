@@ -1,0 +1,158 @@
+/* UCAL uses the existing marketing components and Campus design tokens. */
+.ucal-page .shell { width:min(1180px,calc(100% - 64px)); }
+.ucal-page .ucal-top { display:flex;align-items:center;gap:12px;border-block:1px solid var(--line);padding-block:17px;font-size:11px;color:var(--muted); }
+.ucal-top>a:first-child { color:var(--ink);font-weight:600; }
+.ucal-top .ucal-top__jump { margin-left:auto;display:flex;align-items:center;gap:10px; }
+.ucal-page .ucal-hero { grid-template-columns:1.08fr 1fr;gap:65px;padding-block:64px 48px; }
+.ucal-page .ucal-hero h1 { font-size:clamp(45px,4.8vw,65px);letter-spacing:-2.6px;line-height:1.09; }
+.ucal-page .ucal-hero .cp-kicker { font-size:10px;letter-spacing:1.3px; }
+.ucal-page .ucal-hero .cp-lead { font-size:17px;max-width:460px;margin-block:25px 27px; }
+.ucal-page .ucal-hero .cp-actions { gap:21px; }
+.ucal-page .ucal-hero .button { font-size:13px;padding-inline:18px; }
+.ucal-page .ucal-hero .cp-link { font-size:12px;gap:8px; }
+.ucal-hero__note { font-size:11px;color:var(--muted);margin:20px 0 0; }
+.ucal-hero__student { font-size:14px;color:var(--muted);line-height:1.7;max-width:440px;margin:-10px 0 24px; }
+.ucal-kit { background:var(--paper);border:1px solid var(--line);border-radius:15px;box-shadow:0 12px 45px #102a3a09;overflow:hidden; }
+.ucal-kit__bar { display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 21px;border-bottom:1px solid var(--line);font-size:9px;letter-spacing:.8px;color:var(--muted); }
+.ucal-kit__bar>span:first-child { display:flex;align-items:center;gap:8px;color:var(--ink);font-size:13px;letter-spacing:0;font-weight:600; }
+.ucal-kit__bar img { object-fit:contain; }
+.ucal-kit__welcome { display:flex;align-items:center;gap:15px;padding:28px 25px 23px;background:linear-gradient(115deg,var(--paper) 10%,var(--sky-pale)); }
+.ucal-kit__welcome>img { width:67px;height:67px;object-fit:contain;flex-shrink:0; }
+.ucal-kit__welcome span { font-size:8px;letter-spacing:1.1px;color:var(--muted); }
+.ucal-page .ucal-kit__welcome h2 { font-size:24px;letter-spacing:-.7px;line-height:1.2;margin:7px 0; }
+.ucal-kit__welcome p { font-size:11px;color:var(--muted);margin:0;line-height:1.6; }
+.ucal-kit__links { padding:0 22px; }
+.ucal-kit__links>a { display:flex;align-items:center;gap:13px;padding:21px 2px;border-bottom:1px solid var(--line);transition:color 160ms; }
+.ucal-kit__links>a:last-child { border:0; }
+.ucal-kit__links>a:hover { color:#087fa4; }
+.ucal-kit__links>a>span:nth-child(2) { flex:1; }
+.ucal-kit__links strong { display:block;font-weight:600;font-size:13px; }
+.ucal-kit__links small { display:block;font-size:11px;color:var(--muted);margin-top:6px; }
+.ucal-kit__icon { display:grid;place-items:center;width:37px;height:37px;border:1px solid var(--line);border-radius:10px;flex-shrink:0;background:var(--canvas); }
+.ucal-kit__icon svg { color:#087fa4; }
+.ucal-kit__links>a>.cp-icon { width:16px;height:16px;color:var(--muted); }
+.ucal-kit__foot { display:flex;align-items:center;gap:7px;padding:15px 22px;border-top:1px solid var(--line);background:#f8fbfb;font-size:9px;color:var(--muted); }
+.ucal-kit__foot>a { margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--ink);font-weight:600; }
+.ucal-kit__foot svg { width:13px;height:13px; }
+.ucal-status { width:5px;height:5px;background:var(--green);border-radius:50%;flex-shrink:0; }
+.ucal-page .ucal-context { display:flex;align-items:center;gap:22px;border:1px solid var(--line);border-radius:9px;padding:20px 24px;background:var(--paper); }
+.ucal-context__tag { font-size:9px;letter-spacing:.9px;color:#087fa4;font-weight:600;white-space:nowrap;padding:8px 10px;background:var(--sky-pale);border-radius:4px; }
+.ucal-context p { flex:1;font-size:12px;line-height:1.7;color:var(--muted);margin:0; }
+.ucal-context strong { color:var(--ink);font-weight:600; }
+.ucal-context>a { display:flex;align-items:center;gap:10px;font-size:11px;white-space:nowrap;font-weight:600; }
+.ucal-page .ucal-heading { display:flex;justify-content:space-between;align-items:flex-end;gap:50px;margin-bottom:32px; }
+.ucal-page .ucal-heading .cp-kicker { margin-bottom:16px; }
+.ucal-heading>p { color:var(--muted);font-size:13px;line-height:1.7;max-width:315px;margin:0; }
+.ucal-tools__grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:21px; }
+.ucal-tools__grid article { display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:26px; }
+.ucal-tools__top { display:flex;align-items:center;gap:12px;margin-bottom:28px;color:#087fa4; }
+.ucal-tools__top>.cp-icon { width:24px;height:24px; }
+.ucal-tools__top>span { font-size:8px;letter-spacing:.6px;color:var(--muted); }
+.ucal-tools__grid h3 { font-size:22px;letter-spacing:-.6px;line-height:1.25;margin:0 0 14px; }
+.ucal-tools__grid p { font-size:13px;line-height:1.75;color:var(--muted);margin:0 0 25px; }
+.ucal-tools__grid a { display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;font-weight:600;margin-top:auto;padding-top:18px;border-top:1px solid var(--line); }
+.ucal-tools__grid small { display:block;font-size:10px;line-height:1.65;color:var(--muted);margin-top:14px; }
+.ucal-tools__grid a:hover { color:#087fa4; }
+.ucal-page .ucal-access { display:grid;grid-template-columns:.8fr 1.2fr;gap:90px;padding:0 0 72px; }
+.ucal-access__intro>p:last-child { font-size:13px;line-height:1.75;color:var(--muted);max-width:285px;margin:22px 0 0; }
+.ucal-access__intro .cp-kicker { margin-bottom:18px; }
+.ucal-access__options { border-top:1px solid var(--line); }
+.ucal-access__options article { padding:24px 0;border-bottom:1px solid var(--line); }
+.ucal-access__label { display:block;font-size:9px;letter-spacing:.8px;color:#087fa4;margin-bottom:12px; }
+.ucal-access__options h3 { font-size:21px;letter-spacing:-.5px;margin:0 0 10px; }
+.ucal-access__options p { font-size:13px;color:var(--muted);line-height:1.7;max-width:440px;margin:0 0 16px; }
+.ucal-page .ucal-integration { padding:0;scroll-margin-top:85px; }
+.ucal-page .cp-faq { padding-block:66px;scroll-margin-top:80px; }
+.ucal-faq__intro { color:var(--muted);font-size:13px;max-width:255px;line-height:1.7;margin:18px 0 0; }
+.ucal-page .ucal-closing { display:flex;align-items:center;justify-content:space-between;gap:30px;background:var(--sky-pale);border:1px solid var(--line);border-radius:13px;padding:40px 45px;text-align:left;margin-bottom:60px; }
+.ucal-page .ucal-closing .cp-kicker { margin-bottom:17px; }
+.ucal-page .ucal-closing h2 { font-size:38px;margin:0; }
+.ucal-closing p:not(.cp-kicker) { font-size:13px;line-height:1.7;color:var(--muted);margin:18px 0 0; }
+.ucal-closing>div:last-child { display:flex;flex-direction:column;align-items:center;gap:18px; }
+.ucal-closing .button { margin:0;font-size:13px; }
+@media(max-width:1100px) {
+  .ucal-page .ucal-hero { gap:35px; }
+  .ucal-page .ucal-hero h1 { font-size:54px; }
+  .ucal-page .ucal-hero .cp-lead { font-size:16px; }
+  .ucal-tools__grid article { padding:22px; }
+  .ucal-tools__top { align-items:flex-start; }
+  .ucal-tools__top>span { line-height:1.6; }
+  .ucal-page .ucal-access { gap:55px; }
+}
+@media(max-width:850px) {
+  .ucal-page .shell { width:calc(100% - 40px); }
+  .ucal-page .ucal-hero { grid-template-columns:1fr;gap:32px;padding-block:36px; }
+  .ucal-page .ucal-hero h1 { font-size:clamp(42px,7vw,59px);letter-spacing:-1.8px; }
+  .ucal-page .ucal-hero .cp-lead { max-width:560px; }
+  .ucal-hero__note { margin-top:18px; }
+  .ucal-kit { max-width:600px;width:100%; }
+  .ucal-page .ucal-context { gap:14px;flex-wrap:wrap;padding:18px; }
+  .ucal-context p { flex-basis:calc(100% - 110px); }
+  .ucal-context>a { margin-left:103px;min-height:24px; }
+  .ucal-page .ucal-heading { align-items:flex-start;gap:18px;flex-direction:column; }
+  .ucal-heading>p { max-width:500px; }
+  .ucal-page .ucal-tools { padding-block:50px; }
+  .ucal-tools__grid { grid-template-columns:1fr;gap:15px; }
+  .ucal-tools__grid article { padding:25px; }
+  .ucal-tools__top { margin-bottom:19px;align-items:center; }
+  .ucal-tools__grid p { margin-bottom:20px;max-width:540px; }
+  .ucal-tools__grid a { font-size:12px; }
+  .ucal-page .ucal-access { grid-template-columns:1fr;gap:28px;padding-bottom:48px; }
+  .ucal-access__intro>p:last-child { max-width:500px;margin-top:18px; }
+  .ucal-page .cp-faq { grid-template-columns:1fr;gap:28px;padding-block:48px; }
+  .ucal-faq__intro { max-width:400px; }
+  .ucal-page .ucal-closing { flex-direction:column;align-items:flex-start;padding:30px 25px;margin-bottom:40px; }
+  .ucal-closing>div:last-child { align-items:flex-start; }
+  .ucal-page .ucal-closing h2 { font-size:34px; }
+}
+@media(max-width:450px) {
+  .ucal-top .ucal-top__jump { display:none; }
+  .ucal-page .ucal-hero h1 { font-size:43px; }
+  .ucal-page .ucal-hero .cp-kicker { font-size:9px; }
+  .ucal-kit__bar { padding:14px 18px;font-size:8px; }
+  .ucal-kit__welcome { padding:23px 16px;gap:9px; }
+  .ucal-kit__welcome>img { width:56px;height:56px; }
+  .ucal-page .ucal-kit__welcome h2 { font-size:22px; }
+  .ucal-kit__links { padding-inline:18px; }
+  .ucal-kit__links>a { gap:10px;padding-block:19px; }
+  .ucal-kit__links strong { font-size:12px; }
+  .ucal-kit__icon { width:32px;height:34px;border-radius:8px; }
+  .ucal-kit__links small { font-size:10px; }
+  .ucal-kit__foot { padding-inline:18px;font-size:8px;gap:6px; }
+  .ucal-context p { flex-basis:100%; }
+  .ucal-context>a { margin-left:0; }
+  .ucal-kit__bar>span:last-child { font-size:7px; }
+  .ucal-page .cp-faq summary { font-size:14px; }
+  .ucal-page .cp-faq h2,.ucal-page .ucal-heading h2,.ucal-page .ucal-access h2 { font-size:32px; }
+}
+
+.ucal-integration__card { background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:28px 32px; }
+.ucal-integration__overview { display:grid;grid-template-columns:88px minmax(0,1fr);align-items:center;gap:28px; }
+.ucal-integration__date { display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:var(--sky-pale);border:1px solid #c8e8f0;border-radius:10px;padding:13px 10px;color:#087fa4; }
+.ucal-integration__date span { font-size:10px;letter-spacing:1px;line-height:1.4; }
+.ucal-integration__date strong { font-size:36px;letter-spacing:-1px;line-height:1.15;font-weight:600; }
+.ucal-integration__overview .cp-kicker { margin:0 0 8px;font-size:9px;letter-spacing:1.2px; }
+.ucal-page .ucal-integration__overview h2 { font-size:26px;letter-spacing:-.7px;line-height:1.2;margin:0 0 10px; }
+.ucal-integration__overview p:last-child { font-size:13px;line-height:1.75;max-width:730px;color:var(--muted);margin:0; }
+.ucal-integration__more { margin:22px 0 0 116px;border:0;border-top:1px solid var(--line);border-radius:0;padding:0;background:transparent; }
+.ucal-integration__more summary { display:flex;align-items:center;justify-content:space-between;gap:20px;list-style:none;padding:17px 0 0;border:0;border-radius:0;font-size:12px;font-weight:600;cursor:pointer; }
+.ucal-integration__more summary::-webkit-details-marker { display:none; }
+.ucal-integration__more summary>.cp-icon { width:16px;height:16px;color:var(--muted); }
+.ucal-integration__more[open] summary>.cp-icon { transform:rotate(45deg); }
+.ucal-integration__body { padding-top:16px; }
+.ucal-integration__body>p { font-size:12px;color:var(--muted);line-height:1.8;margin:0 0 12px;max-width:780px; }
+.ucal-integration__body>p>a,.ucal-integration__sources a { text-decoration:underline;text-underline-offset:3px; }
+.ucal-integration__sources { display:flex;flex-wrap:wrap;gap:10px 18px;font-size:11px;padding-block:7px 15px; }
+.ucal-integration__sources>span { color:var(--muted); }
+.ucal-integration__body>.ucal-integration__note { font-size:10px;margin:0; }
+@media(max-width:650px) {
+  .ucal-integration__card { padding:22px 20px; }
+  .ucal-integration__overview { grid-template-columns:64px minmax(0,1fr);align-items:start;gap:17px; }
+  .ucal-integration__date { padding:10px 5px; }
+  .ucal-integration__date strong { font-size:30px; }
+  .ucal-integration__date span { font-size:9px; }
+  .ucal-page .ucal-integration__overview h2 { font-size:22px; }
+  .ucal-integration__overview p:last-child { font-size:12px; }
+  .ucal-integration__more { margin:20px 0 0; }
+  .ucal-integration__more summary { font-size:11px; }
+}

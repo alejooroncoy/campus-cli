@@ -1,5 +1,6 @@
 import {renderCharacterName} from '../lib/character.mjs';
 import type { APIRoute } from "astro";
+import { ucalMarkdown } from "../data/ucal";
 import { getCollection } from "astro:content";
 import clients from "../data/mcp-clients.json";
 import { htmlToMarkdown } from "../lib/html-to-markdown";
@@ -159,6 +160,7 @@ export const GET: APIRoute = async () => {
     "4. Guías del blog.",
     "",
     ...products,
+    ucalMarkdown,
     ...perClient,
     ...tools,
     ...guides,

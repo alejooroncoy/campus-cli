@@ -1,4 +1,9 @@
 /* Campus marketing: isolated from the application and product pages. */
+.campus-landing .cp-ucal { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:20px 24px; margin-bottom:28px; background:var(--sky-pale); border:1px solid var(--line); border-radius:9px; font-size:13px; }
+.campus-landing .cp-ucal>div { display:flex; flex-wrap:wrap; gap:8px 14px; }
+.campus-landing .cp-ucal span { color:var(--muted); }
+.campus-landing .cp-ucal a { display:inline-flex; align-items:center; gap:12px; white-space:nowrap; font-weight:600; min-height:44px; }
+@media(max-width:640px) { .campus-landing .cp-ucal { align-items:flex-start; flex-direction:column; gap:10px; padding:18px 20px; } }
 .campus-landing { --cp-ink:var(--ink); --cp-muted:var(--muted); --cp-mint:var(--mint); color:var(--cp-ink); }
 .campus-landing .shell { width:min(1180px,calc(100% - 64px)); }
 .campus-landing h1,.campus-landing h2,.campus-landing h3 { font-weight:600; }
