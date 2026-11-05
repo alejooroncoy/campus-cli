@@ -18,22 +18,26 @@ const server=createServer(async(req,res)=>{try{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const base='http://127.0.0.1:'+server.address().port;
 try{
-  // Browser matching IDs are created only by an explicit account setting, never a page visit.
+  // Initial browser context is separate from the explicit account choice and carries no academic fields.
   const context=await browser.newContext(),page=await context.newPage(),requests=[];
-  let saved={enabled:false,observedAt:null,expiresAt:null};
+  let saved={enabled:true,source:'default',observedAt:null,expiresAt:null};
   await context.route('**/*',async route=>{
     const req=route.request(),url=new URL(req.url());assert.equal(url.origin,'https://campus.test');
     if(url.pathname==='/api/app/marketing'){
       if(req.method()==='GET')return route.fulfill({json:saved});
-      const p=req.postDataJSON();requests.push(p);saved={enabled:p.consent,observedAt:p.observedAt,expiresAt:p.observedAt+30*86400000};return route.fulfill({status:200});
+      const p=req.postDataJSON();requests.push(p);saved={enabled:p.consent,source:'explicit',observedAt:p.observedAt,expiresAt:p.observedAt+30*86400000};return route.fulfill({status:200});
     }
     return route.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><h1>Campus</h1>'});
   });
   await page.goto('https://campus.test/?fbclid=synthetic_click&course=private');
   await page.addScriptTag({content:bundle.outputFiles[0].text});
   await page.evaluate(()=>window.marketing.setupMarketingConsent());
-  assert.equal(requests.length,0);assert.equal((await context.cookies()).length,0);
-  assert.equal(await page.evaluate(()=>window.marketing.accountMarketingPreference()),false);
+  assert.equal(requests.length,0);
+  const initial=(await context.cookies()).find(c=>c.name==='campus_marketing_context');
+  assert.ok(initial);assert.equal(JSON.parse(decodeURIComponent(initial.value)).version,2);
+  assert.equal(JSON.parse(decodeURIComponent(initial.value)).consent,undefined);
+  assert.equal((await context.cookies()).some(c=>c.name==='campus_marketing'),false);
+  assert.equal(await page.evaluate(()=>window.marketing.accountMarketingPreference()),true);
   await page.evaluate(()=>window.marketing.setAccountMarketingPreference(true));
   assert.equal(requests[0].consent,true);assert.match(requests[0].fbc,/\.synthetic_click$/);
   assert.match(requests[0].fbp,/^fb\.1\.[0-9]{13}\.[0-9]+$/);assert.equal(JSON.stringify(requests).includes('private'),false);
@@ -48,11 +52,28 @@ try{
   assert.equal((await context.cookies()).some(c=>c.name==='campus_marketing'),false);
   await context.close();
 
+  const gpc=await browser.newContext();
+  await gpc.addInitScript(()=>Object.defineProperty(navigator,'globalPrivacyControl',{value:true}));
+  const gpcPosts=[];
+  await gpc.route('**/*',route=>{
+    assert.equal(new URL(route.request().url()).origin,'https://campus.test');
+    if(route.request().method()==='POST'){gpcPosts.push(route.request().postDataJSON());return route.fulfill({status:200});}
+    return route.fulfill({contentType:'text/html',body:'<!doctype html><h1>Campus</h1>'});
+  });
+  const privatePage=await gpc.newPage();await privatePage.goto('https://campus.test/?fbclid=synthetic_click');
+  await privatePage.addScriptTag({content:bundle.outputFiles[0].text});
+  await privatePage.evaluate(()=>window.marketing.setupMarketingConsent());
+  await privatePage.evaluate(()=>window.marketing.syncMarketingPreference());
+  assert.ok(gpcPosts.length);assert.ok(gpcPosts.every(p=>p.consent===false&&!p.fbc&&!p.fbp));
+  assert.equal((await gpc.cookies()).some(c=>c.name==='campus_marketing_context'),false);
+  await assert.rejects(()=>privatePage.evaluate(()=>window.marketing.setAccountMarketingPreference(true)),/MARKETING_DISABLED_BY_BROWSER/);
+  await gpc.close();
+
   for(const width of [390,1280]){
     const ctx=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block'});
     const screen=await ctx.newPage(),errors=[],writes=[];screen.on('pageerror',e=>errors.push(e.message));
     let authenticated=false,failRead=false,failSave=false;
-    let preference={enabled:false,observedAt:null,expiresAt:null};
+    let preference={enabled:true,source:'default',observedAt:null,expiresAt:null};
     await ctx.route('**/*',route=>{
       const req=route.request(),url=new URL(req.url());if(url.origin!==base)return route.abort();
       const path=url.pathname.replace(/\/$/,'');
@@ -64,7 +85,7 @@ try{
         if(failSave)return route.fulfill({status:503});
         const p=req.postDataJSON();writes.push(p);
         assert.ok(Object.keys(p).every(k=>['consent','version','observedAt','fbc','fbp'].includes(k)));
-        if(p.observedAt>=(preference.observedAt??0))preference={enabled:p.consent,observedAt:p.observedAt,expiresAt:p.observedAt+30*86400000};
+        if(p.observedAt>=(preference.observedAt??0))preference={enabled:p.consent,source:'explicit',observedAt:p.observedAt,expiresAt:p.observedAt+30*86400000};
         return route.fulfill({status:200});
       }
       if(path==='/api/app/correction-preferences')return route.fulfill({json:{authenticated,enabled:false}});
@@ -79,11 +100,13 @@ try{
     await screen.reload({waitUntil:'networkidle'});
     const control=screen.getByRole('switch',{name:'Medición de anuncios'}),card=screen.locator('#privacidad');
     await control.waitFor({state:'visible'});await screen.waitForFunction(()=>!document.querySelector('#privacidad input').disabled);
-    assert.equal(await control.isChecked(),false);
+    assert.equal(await control.isChecked(),true);
+    await control.uncheck();await card.getByRole('status').filter({hasText:'Medición desactivada.'}).waitFor();
+    assert.equal(preference.enabled,false);
     await control.check();await card.getByRole('status').filter({hasText:'Medición activada.'}).waitFor();
     assert.equal(preference.enabled,true);assert.equal(writes.at(-1).consent,true);
     // A newer account withdrawal from another browser wins over the old browser cookie.
-    preference={enabled:false,observedAt:Date.now(),expiresAt:Date.now()+30*86400000};
+    preference={enabled:false,source:'explicit',observedAt:Date.now(),expiresAt:Date.now()+30*86400000};
     await screen.reload({waitUntil:'networkidle'});
     await screen.waitForFunction(()=>!document.querySelector('#privacidad input').disabled);
     assert.equal(await control.isChecked(),false);assert.equal(preference.enabled,false);

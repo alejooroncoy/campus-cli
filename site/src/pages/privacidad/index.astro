@@ -7,7 +7,7 @@ import Base from "../../layouts/Base.astro";
  * Every claim here is traceable to code: the vault's AES-256-GCM records, the
  * ninety-day grant ceiling, the ten-minute download tickets, the sha256
  * pseudonym in metrics.ts, and the in-memory IP counters in founders.ts. The
- * Optional commercial conversion measurement also uses Meta, only after opt-in.
+ * Commercial conversion measurement also uses Meta; account choices can disable it.
  *
  * Written against Peru's Ley 29733 because that is the law that applies to the
  * students using this.
@@ -135,10 +135,10 @@ const schemas = [
     <h3>Encuestas opcionales</h3>
     <p>Si respondes una encuesta dentro de Campus, enviamos a PostHog la opción que eliges y el comentario que decidas escribir, asociados al identificador técnico de tu cuenta. Usamos esas respuestas para entender qué mejorar. Puedes cerrar la encuesta o continuar usando Campus sin responder.</p>
 
-    <h3 id="anuncios">Medición opcional de anuncios con Meta</h3>
-    <p>Puedes gestionar esta opción en <a class="prose-link" href="/app/perfil/#privacidad">Mi perfil → Privacidad</a>. Solo si la activas, enviamos a Meta tres acciones comerciales: el registro de una cuenta nueva en Campus Web, el inicio de un pago de Plus y la compra confirmada. El inicio de sesión de una cuenta existente no cuenta como registro, ni el envío de un comprobante como compra.</p>
+    <h3 id="anuncios">Medición de anuncios con Meta</h3>
+    <p>Puedes gestionar esta opción en <a class="prose-link" href="/app/perfil/#privacidad">Mi perfil → Privacidad</a>. Con la medición activada, enviamos a Meta tres acciones comerciales: el registro de una cuenta nueva en Campus Web, el inicio de un pago de Plus y la compra confirmada. El inicio de sesión de una cuenta existente no cuenta como registro, ni el envío de un comprobante como compra.</p>
     <p>Compartimos la fecha, un identificador de evento para evitar duplicados, un identificador de cuenta transformado con SHA-256, los identificadores técnicos del navegador o del clic publicitario y el agente de usuario del navegador. Para pagos incluimos el importe y la moneda PEN. Las direcciones se limitan a páginas generales de Campus. No enviamos nombres, correos, teléfonos, universidad, cursos, notas, conversaciones, documentos ni comprobantes.</p>
-    <p>La finalidad es medir conversiones y mejorar los anuncios de Campus. Esta medición está desactivada hasta que la aceptes, es independiente del servicio y puedes desactivarla desde tu perfil. La preferencia y los identificadores de atribución se conservan hasta 30 días; al retirar el permiso se detienen los envíos pendientes a Meta. La retirada no elimina los eventos que Meta ya recibió. Meta trata los datos recibidos según su <a class="prose-link" href="https://www.facebook.com/privacy/policy/" rel="noopener noreferrer">política de privacidad</a>.</p>
+    <p>La finalidad es medir conversiones y mejorar los anuncios de Campus. Esta medición está activada inicialmente y puedes desactivarla desde tu perfil sin afectar el uso de Campus. Respetamos las desactivaciones guardadas y la señal de privacidad global (GPC) del navegador. Tu elección se conserva en la cuenta hasta que la cambies o elimines tu cuenta; los identificadores de atribución se conservan hasta 30 días. Al desactivarla se detienen los envíos pendientes a Meta. Desactivarla no elimina los eventos que Meta ya recibió. Meta trata los datos recibidos según su <a class="prose-link" href="https://www.facebook.com/privacy/policy/" rel="noopener noreferrer">política de privacidad</a>.</p>
 
     <h3>Formulario de acceso anticipado</h3>
     <ul>
@@ -205,7 +205,7 @@ const schemas = [
     <h2 id="terceros">4. Con quién compartimos</h2>
     <p>
       <strong>No vendemos tus datos.</strong> La medición publicitaria con Meta
-      requiere el permiso opcional descrito arriba. Trabajamos con proveedores que
+      se gestiona desde Mi perfil → Privacidad, como se describe arriba. Trabajamos con proveedores que
       participan en la autenticación, infraestructura, medición o seguridad del servicio:
     </p>
     <ul>
@@ -217,7 +217,7 @@ const schemas = [
         <strong>PostHog</strong> (Estados Unidos) — recibe las métricas de uso
         seudonimizadas y las respuestas a encuestas opcionales descritas arriba.
       </li>
-      <li><strong>Meta</strong> — recibe exclusivamente los hitos comerciales y los identificadores técnicos descritos en «Medición opcional de anuncios con Meta» si lo autorizas. No recibe contenido académico.</li>
+      <li><strong>Meta</strong> — recibe exclusivamente los hitos comerciales y los identificadores técnicos descritos en «Medición de anuncios con Meta» mientras la medición esté activada. No recibe contenido académico.</li>
       <li>
         <strong>Cloudflare Turnstile</strong> (Estados Unidos) — verifica que
         quien envía el formulario de acceso anticipado es una persona y no un
