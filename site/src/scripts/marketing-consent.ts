@@ -60,7 +60,10 @@ export function setupMarketingConsent() {
       if(existing.consent && landingClick){existing.fbc=`fb.1.${Date.now()}.${landingClick}`;landingClick=undefined;}
       try { write(existing); } catch { /* Optional storage. */ }
     }
-    panel.hidden=Boolean(existing);
+    // Offer on public pages before acquisition. Do not cover the assistant,
+    // payment controls or support feedback while someone is using the app.
+    // The explicit Privacy control can always open the preference panel.
+    panel.hidden=Boolean(existing)||location.pathname.startsWith('/app/');
     if(!panel.dataset.bound){
       panel.dataset.bound='true';
       panel.querySelector('[data-marketing-accept]')?.addEventListener('click',()=>choose(true));

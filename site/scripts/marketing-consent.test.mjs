@@ -38,6 +38,11 @@ try{
   await page.evaluate(()=>window.marketing.clearMarketingPreference());
   assert.equal(await page.locator('[data-marketing-consent]').isVisible(),true);
   assert.equal((await context.cookies()).some(c=>c.name==='campus_marketing'),false,'Logout does not carry click/consent cookies to another account');
+  await page.goto('https://campus.test/app/asistente/');
+  await page.addScriptTag({content:bundle.outputFiles[0].text});await page.evaluate(()=>window.marketing.setupMarketingConsent());
+  assert.equal(await page.locator('[data-marketing-consent]').isVisible(),false,'An unanswered marketing prompt must not cover app or payment controls');
+  await page.getByRole('button',{name:'Preferencias',exact:true}).click();
+  assert.equal(await page.locator('[data-marketing-consent]').isVisible(),true,'An explicit preference control remains available');
   await context.close();
   console.log('Marketing consent: default off, explicit acceptance/rejection, OAuth cookie, click validation and no external/private data pass.');
 }finally{await browser.close();}
