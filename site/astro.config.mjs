@@ -41,6 +41,7 @@ const fromFile = (route, path) => {
 };
 
 fromFile("/", "./src/html/index.html");
+fromFile("/ucal/", "./src/data/ucal.ts");
 fromFile("/campus-cli/", "./src/html/campus-cli/index.html");
 fromFile("/profes/", "./src/html/profes/index.html");
 // The service page's content revision, preserved across unrelated deploys.
