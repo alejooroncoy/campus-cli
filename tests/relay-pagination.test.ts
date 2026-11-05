@@ -25,6 +25,8 @@ test('CLI forwards page controls and count/search intent instead of ignoring --l
     assert.deepEqual(calls.pop(), { name: 'blackboard_get_assignment_feedback', args: { courseId: '_1_1', cursor: '/page' } });
     await run(['courses', 'grades', '_1_1', '--columns-cursor', '/columns', '--grades-cursor', '/grades']);
     assert.deepEqual(calls.pop(), { name: 'blackboard_get_grades', args: { courseId: '_1_1', columnsCursor: '/columns', gradesCursor: '/grades' } });
+    await run(['courses', 'grades', '_1_1', '--columns-done', '--grades-cursor', '/grades']);
+    assert.deepEqual(calls.pop(), { name: 'blackboard_get_grades', args: { courseId: '_1_1', columnsDone: true, gradesCursor: '/grades' } });
     await assert.rejects(run(['courses', 'list', '--offset', '-1']), /Paginación/);
   } finally { console.log = log; }
 });

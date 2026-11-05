@@ -48,6 +48,7 @@ function pageArgs(opts: Record<string, any>): Record<string, unknown> {
     args[key] = Number(opts[key]);
   }
   for (const key of ['cursor', 'columnsCursor', 'gradesCursor']) if (opts[key] !== undefined) args[key] = opts[key];
+  for (const key of ['columnsDone', 'gradesDone']) if (opts[key] !== undefined) args[key] = opts[key];
   return args;
 }
 
@@ -114,7 +115,8 @@ export function relayCommands(program: Command, run: RelayRunner = callRelayTool
   ]) {
     const base = courses.command(command).option('--json');
     const cmd = tool === 'blackboard_get_course' ? base : paged(base);
-    if (tool === 'blackboard_get_grades') cmd.option('--columns-cursor <cursor>').option('--grades-cursor <cursor>');
+    if (tool === 'blackboard_get_grades') cmd.option('--columns-cursor <cursor>').option('--grades-cursor <cursor>')
+      .option('--columns-done', 'No volver a leer las columnas ya terminadas').option('--grades-done', 'No volver a leer las notas ya terminadas');
     cmd.action(async (courseId, opts) => print(await run(tool, { courseId, ...pageArgs(opts) })));
   }
   paged(courses.command('contents <courseId>').option('--json').option('--parent <parentId>').option('--type <type>'))
