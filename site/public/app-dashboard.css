@@ -2400,3 +2400,14 @@ button:disabled {
 /* Character in the account entry and mobile navigation. */
 .app-profile-entry__campu { display:block; width:176px; height:auto; margin:24px auto 0; }
 .app-mobile-nav__character { display:block; width:28px; height:28px; object-fit:contain; }
+
+.app-marketing-preference { margin-block:24px; scroll-margin-top:88px; }
+.app-marketing-preference__choice { display:flex; align-items:center; justify-content:space-between; gap:20px; min-height:52px; font-weight:600; cursor:pointer; }
+.app-marketing-preference__choice input { appearance:none; flex:none; position:relative; width:42px; height:24px; margin:0; border:0; border-radius:24px; background:#64748b; cursor:pointer; }
+.app-marketing-preference__choice input::after { content:""; position:absolute; width:18px; height:18px; top:3px; left:3px; border-radius:50%; background:white; }
+.app-marketing-preference__choice input:checked { background:#186b68; }
+.app-marketing-preference__choice input:checked::after { transform:translateX(18px); }
+.app-marketing-preference__choice input:focus-visible { outline:3px solid #0284c7; outline-offset:4px; }
+.app-marketing-preference__choice input:disabled { opacity:.5; cursor:default; }
+.app-marketing-preference__note { font-size:13px; }
+.app-marketing-preference [role="status"] { min-height:1.5em; margin-top:12px; font-size:13px; }
