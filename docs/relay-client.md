@@ -70,6 +70,6 @@ campus courses members _123_1 --count --cursor '<coverage.nextCursor>'
 campus courses members _123_1 --search 'Nombre Apellido'
 ```
 
-`classmateCount=null` significa que el total todavía no fue confirmado. `classmateCountInBatch` es solo el lote actual. `coverage.exhausted=true` indica que ese lote llegó al final; `coverage.complete=true` indica que se enumeró desde el inicio. Conserva curso, filtros y modo al continuar. En notas se pueden usar `--columns-cursor` y `--grades-cursor` por separado. `download-folder` sigue todas las páginas de cada carpeta.
+`classmateCount=null` significa que el total todavía no fue confirmado. `classmateCountInBatch` es solo el lote actual. `coverage.exhausted=true` indica que ese lote llegó al final; `coverage.complete=true` indica que se enumeró desde el inicio. Conserva curso, filtros y modo al continuar. En notas se pueden usar `--columns-cursor` y `--grades-cursor` por separado. Conserva también `--columns-done` o `--grades-done` cuando `nextArguments` indique que esa colección ya terminó, para evitar releerla mientras continúa la otra. `download-folder` sigue todas las páginas de cada carpeta.
 
 Las respuestas MCP de tareas, intentos y retroalimentación incluyen `results`, `paging` y `coverage`. Para materiales y sílabos, usa `campus tools call` con los `nextArguments` devueltos por el relay: el árbol queda en el servidor bajo `scanId`, y se paginan las coincidencias sin importar todo el catálogo al contexto. Un identificador de búsqueda vencido exige reiniciar la búsqueda; no significa que el curso esté vacío.
