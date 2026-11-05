@@ -15,6 +15,14 @@ en Desktop/Mobile/Tablet. La geolocalización, autocaptura y grabación de
 sesiones siguen desactivadas. Los filtros de cuentas internas y de prueba
 existentes se conservan.
 
+Para la serie de Viva Engage, la vista de entrada admite únicamente
+`utm_source=viva_engage`, `utm_medium=social`, `utm_campaign=grupo_de_la_u`
+y uno de estos `utm_content`: `remontada_upecinos`, `mejoralo_upecinos`,
+`remontada_virtualidad`, `mejoralo_virtualidad`, `remontada_working_student`
+o `mejoralo_working_student`. Se rechazan parámetros repetidos o valores
+distintos, y no se exporta la URL con su cadena de consulta. Esta atribución
+de visitas no modifica la atribución de pagos y no recupera visitas anteriores.
+
 Las vistas y salidas incluyen el agente de usuario del navegador en
 `$raw_user_agent`, para que PostHog pueda clasificar tráfico automatizado. Sin él,
 PostHog clasifica el agente vacío como Automation.
