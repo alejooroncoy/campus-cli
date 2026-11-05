@@ -56,3 +56,20 @@ El cliente no contiene un control local de pago que pueda reemplazar la decisió
 `tests/relay-client.test.ts` prueba autenticación PKCE contra un relay de prueba, retorno con estado incorrecto, cancelación, timeout, rotación de tokens, aislamiento por endpoint, permisos de archivos, comandos CLI, transmisión bidireccional de MCP y mensajes de pago. Las pruebas de proceso real comprueban que las sesiones antiguas no habilitan la CLI y que el catálogo y la identidad provienen del relay.
 
 Antes de publicar, compilar y comprobar el contenido de `npm pack`; instalar ese archivo en un entorno sin las dependencias de desarrollo para verificar que no requiere proveedores o sesiones locales. La política de cobro se conserva. La sesión capturada es temporal (acotada por sus cookies y un máximo de tres horas); al vencer se puede repetir `campus login`. No se exporta un grant de SSO de Microsoft/Google. La versión inicial del relay anuncia UPC y UPN; una universidad fuera de su catálogo se rechaza antes de capturar cookies.
+
+
+## Paginación y conteos
+
+`courses list`, `courses contents`, `courses announcements`, `courses members` y los comandos de tareas admiten `--limit`, `--offset`, `--max-pages` y `--cursor`. El relay decide el plan y el cupo también en las continuaciones. El tamaño de página nunca representa el total.
+
+Para contar matriculados sin devolver todos sus nombres:
+
+```sh
+campus courses members _123_1 --count
+campus courses members _123_1 --count --cursor '<coverage.nextCursor>'
+campus courses members _123_1 --search 'Nombre Apellido'
+```
+
+`classmateCount=null` significa que el total todavía no fue confirmado. `classmateCountInBatch` es solo el lote actual. `coverage.exhausted=true` indica que ese lote llegó al final; `coverage.complete=true` indica que se enumeró desde el inicio. Conserva curso, filtros y modo al continuar. En notas se pueden usar `--columns-cursor` y `--grades-cursor` por separado. `download-folder` sigue todas las páginas de cada carpeta.
+
+Las respuestas MCP de tareas, intentos y retroalimentación incluyen `results`, `paging` y `coverage`. Para materiales y sílabos, usa `campus tools call` con los `nextArguments` devueltos por el relay: el árbol queda en el servidor bajo `scanId`, y se paginan las coincidencias sin importar todo el catálogo al contexto. Un identificador de búsqueda vencido exige reiniciar la búsqueda; no significa que el curso esté vacío.
