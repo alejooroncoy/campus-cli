@@ -50,6 +50,11 @@ try {
       c => (Number(c) ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> Number(c) / 4).toString(16));
   });
   await page.goto(origin + '/?code=private-unload', { waitUntil: 'networkidle' });
+  // Ensure Event Timing records an interaction even on a fast CI machine.
+  await page.evaluate(() => document.querySelector('button').addEventListener('click', () => {
+    const until = performance.now() + 80;
+    while (performance.now() < until) { /* Deliberately slow test interaction. */ }
+  }));
   await page.locator('button').click();
   await page.evaluate(() => window.scrollTo(0, document.scrollingElement.scrollHeight));
   await page.waitForTimeout(250);
@@ -57,7 +62,10 @@ try {
   const deadline = Date.now() + 10000;
   const values = () => Object.assign({}, ...events.filter(event => event.event === '$web_vitals').map(event => event.properties));
   while (!events.some(event => event.event === '$pageleave') || !['CLS', 'FCP', 'INP', 'LCP'].every(name => Number.isFinite(values()[`$web_vitals_${name}_value`]))) {
-    if (Date.now() > deadline) throw Error('Native navigation lost final pageleave or Web Vitals events');
+    if (Date.now() > deadline) throw Error('Native navigation lost final pageleave or Web Vitals events: ' + JSON.stringify({
+      events: events.map(event => event.event),
+      metrics: Object.fromEntries(['CLS', 'FCP', 'INP', 'LCP'].map(name => [name, values()[`$web_vitals_${name}_value`]])), errors,
+    }));
     await new Promise(resolve => setTimeout(resolve, 20));
   }
   const view = events.find(event => event.event === '$pageview');
