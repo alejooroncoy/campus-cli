@@ -35,6 +35,22 @@ function jsonObject(value: string): Record<string, unknown> {
   return parsed;
 }
 
+function paged(command: Command): Command {
+  return command.option('--limit <n>', 'Tamaño de página, no el total')
+    .option('--offset <n>', 'Desplazamiento de registros')
+    .option('--cursor <cursor>', 'coverage.nextCursor devuelto por el relay')
+    .option('--max-pages <n>', 'Páginas a procesar por llamada, máximo 5');
+}
+function pageArgs(opts: Record<string, any>): Record<string, unknown> {
+  const args: Record<string, unknown> = {};
+  for (const key of ['limit', 'offset', 'maxPages']) if (opts[key] !== undefined) {
+    if (!/^\d+$/.test(opts[key]) || !Number.isSafeInteger(Number(opts[key]))) throw new Error('Paginación inválida');
+    args[key] = Number(opts[key]);
+  }
+  for (const key of ['cursor', 'columnsCursor', 'gradesCursor']) if (opts[key] !== undefined) args[key] = opts[key];
+  return args;
+}
+
 export function relayCommands(program: Command, run: RelayRunner = callRelayTool): void {
   const login = async (opts: { university?: string; consentSessionUpload?: boolean; hosted?: boolean }) => {
     if (opts.hosted) {
@@ -90,15 +106,20 @@ export function relayCommands(program: Command, run: RelayRunner = callRelayTool
   });
 
   const courses = program.command('courses').description('Consultas de Blackboard mediante el relay (JSON)');
-  courses.command('list').option('--json').option('--limit <n>', 'Compatibilidad: el relay controla el límite de cursos')
-    .action(async () => print(await run('blackboard_list_courses')));
+  paged(courses.command('list').option('--json'))
+    .action(async opts => print(await run('blackboard_list_courses', pageArgs(opts))));
   for (const [command, tool] of [
     ['get <courseId>', 'blackboard_get_course'], ['announcements <courseId>', 'blackboard_list_announcements'],
     ['grades <courseId>', 'blackboard_get_grades'],
-  ]) courses.command(command).option('--json').action(async courseId => print(await run(tool, { courseId })));
-  courses.command('contents <courseId>').option('--json').option('--parent <parentId>').option('--type <type>')
+  ]) {
+    const base = courses.command(command).option('--json');
+    const cmd = tool === 'blackboard_get_course' ? base : paged(base);
+    if (tool === 'blackboard_get_grades') cmd.option('--columns-cursor <cursor>').option('--grades-cursor <cursor>');
+    cmd.action(async (courseId, opts) => print(await run(tool, { courseId, ...pageArgs(opts) })));
+  }
+  paged(courses.command('contents <courseId>').option('--json').option('--parent <parentId>').option('--type <type>'))
     .action(async (courseId, opts) => {
-      const result = await run('blackboard_list_contents', { courseId, ...(opts.parent ? { parentId: opts.parent } : {}) });
+      const result = await run('blackboard_list_contents', { courseId, ...pageArgs(opts), ...(opts.parent ? { parentId: opts.parent } : {}) });
       if (!opts.type) { print(result); return; }
       const handler = { folder: 'folder', file: 'file', assignment: 'assignment', document: 'document', externallink: 'externallink' }[opts.type as string];
       if (!handler) throw new Error('Tipo de contenido desconocido.');
@@ -106,10 +127,10 @@ export function relayCommands(program: Command, run: RelayRunner = callRelayTool
       if (!Array.isArray(payload.results)) throw new Error(JSON.stringify(result));
       console.log(JSON.stringify({ ...payload, results: payload.results.filter((item: any) => item.contentHandler?.id === `resource/x-bb-${handler}`) }, null, 2));
     });
-  courses.command('members <courseId>').option('--json').option('--role <role>')
+  paged(courses.command('members <courseId>').option('--json').option('--role <role>').option('--search <name>').option('--count', 'Contar sin devolver nombres'))
     .action(async (courseId, opts) => {
       if (opts.role) throw new Error('El relay devuelve los miembros visibles sin filtro por rol. Usa campus tools call blackboard_list_people.');
-      print(await run('blackboard_list_people', { courseId }));
+      print(await run('blackboard_list_people', { courseId, ...pageArgs(opts), ...(opts.search ? { search: opts.search } : {}), ...(opts.count ? { mode: 'count' } : {}) }));
     });
   for (const [command, tool, hasMessage] of [
     ['discussions <courseId>', 'blackboard_list_discussions', false],
@@ -134,25 +155,28 @@ export function relayCommands(program: Command, run: RelayRunner = callRelayTool
       });
   }
   program.command('messages').description('List messages from your Blackboard inbox through the Campus relay').option('--json').option('--course <courseId>').option('--limit <n>').option('--offset <n>')
+    .option('--summary-cursor <cursor>').option('--conversation-offset <n>')
     .action(async opts => print(await run('blackboard_list_messages', {
       ...(opts.course ? { courseId: opts.course } : {}), ...(opts.limit ? { limit: Number(opts.limit) } : {}),
       ...(opts.offset ? { offset: Number(opts.offset) } : {}),
+      ...(opts.summaryCursor ? { summaryCursor: opts.summaryCursor } : {}),
+      ...(opts.conversationOffset ? { conversationOffset: Number(opts.conversationOffset) } : {}),
     })));
 
   const assignments = program.command('assignments').description('Evaluaciones de Blackboard mediante el relay');
-  assignments.command('list [courseId]').description('List assignments and tasks in a course, or the relay weekly view').option('--json').option('--pending', 'No disponible: el relay no publica el estado completo de entrega')
+  paged(assignments.command('list [courseId]').description('List assignments and tasks in a course, or the relay weekly view').option('--json').option('--pending', 'No disponible: el relay no publica el estado completo de entrega'))
     .action(async (courseId, opts) => {
       if (opts.pending) throw new Error('El relay publica las tareas con su estado. Usa campus assignments list <courseId> y revisa ese estado.');
-      if (courseId) { print(await run('blackboard_list_assignments', { courseId })); return; }
+      if (courseId) { print(await run('blackboard_list_assignments', { courseId, ...pageArgs(opts) })); return; }
       // The cross-course aggregation is itself a billed relay operation.
       print(await run('campus_get_week_data'));
     });
-  assignments.command('attempts <courseId> <columnId>').option('--json')
-    .action(async (courseId, columnId) => print(await run('blackboard_list_attempts', { courseId, columnId })));
-  assignments.command('feedback <courseId> [columnId]').option('--json').option('--attempt <attemptId>')
+  paged(assignments.command('attempts <courseId> <columnId>').option('--json'))
+    .action(async (courseId, columnId, opts) => print(await run('blackboard_list_attempts', { courseId, columnId, ...pageArgs(opts) })));
+  paged(assignments.command('feedback <courseId> [columnId]').option('--json').option('--attempt <attemptId>'))
     .action(async (courseId, columnId, opts) => {
       if (columnId || opts.attempt) throw new Error('El relay devuelve la retroalimentación del curso completo: campus assignments feedback <courseId>.');
-      print(await run('blackboard_get_assignment_feedback', { courseId }));
+      print(await run('blackboard_get_assignment_feedback', { courseId, ...pageArgs(opts) }));
     });
   assignments.command('submit <courseId> <columnId>').option('-f, --file <path>').option('-t, --text <content>')
     .option('-c, --comments <text>').option('--draft').option('--json').action(() => {
@@ -183,14 +207,23 @@ export function relayCommands(program: Command, run: RelayRunner = callRelayTool
     .action(async (courseId, folderId, opts) => {
       const visited = new Set<string>();
       const visit = async (parentId: string, depth: number) => {
-        if (depth > 6 || visited.has(parentId)) return;
+        if (visited.has(parentId)) return;
+        if (depth > 50) throw new Error('La carpeta supera la profundidad máxima; continúa desde esta subcarpeta.');
         visited.add(parentId);
-        const contents = data(await run('blackboard_list_contents', { courseId, parentId }));
-        if (!Array.isArray(contents.results)) throw new Error('El relay no devolvió contenidos de la carpeta.');
-        for (const item of contents.results) {
-          if (item.canListChildren === true) await visit(item.id, depth + 1);
-          else if (item.contentHandler?.id === 'resource/x-bb-file' && (!opts.filter || item.title?.toLowerCase().includes(opts.filter.toLowerCase()))) await download(courseId, item.id, opts.out);
-        }
+        let cursor: string | undefined;
+        const seenPages = new Set<string>();
+        do {
+          const contents = data(await run('blackboard_list_contents', { courseId, parentId, ...(cursor ? { cursor } : {}) }));
+          if (!Array.isArray(contents.results)) throw new Error('El relay no devolvió contenidos de la carpeta.');
+          for (const item of contents.results) {
+            if (item.canListChildren === true) await visit(item.id, depth + 1);
+            else if (item.contentHandler?.id === 'resource/x-bb-file' && (!opts.filter || item.title?.toLowerCase().includes(opts.filter.toLowerCase()))) await download(courseId, item.id, opts.out);
+          }
+          const next = contents.coverage?.nextCursor ?? contents.paging?.nextPage;
+          if (next && seenPages.has(next)) throw new Error('El relay repitió una página de contenidos.');
+          if (next) seenPages.add(next);
+          cursor = next || undefined;
+        } while (cursor);
       };
       await visit(folderId, 0);
     });

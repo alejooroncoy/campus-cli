@@ -4,6 +4,16 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
+## [3.1.1] — 2026-11-05
+
+### Fixed
+- Las consultas de cursos, participantes, contenidos, anuncios, notas, tareas, intentos y retroalimentación permiten continuar mediante `--cursor`, `--offset`, `--limit` y `--max-pages`; el tamaño de una página deja de confundirse con el total.
+- `courses members --count` cuenta por lotes sin devolver todos los nombres, y `--search` permite buscar fuera de la primera página. Los totales incompletos se identifican como desconocidos.
+- Las notas conservan cursores independientes para columnas y calificaciones; los mensajes permiten continuar el catálogo y las conversaciones de cada curso.
+- `download-folder` recorre todas las páginas de cada carpeta y detecta cursores repetidos.
+
+---
+
 ## [3.1.0] — 2026-10-29
 
 ### Added
