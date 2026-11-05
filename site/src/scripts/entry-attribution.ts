@@ -26,7 +26,7 @@ export function rememberEntry(projectKey: string, startingAuth = false): void {
     const internal = domain === location.hostname || domain === 'campuscli.com' || domain?.endsWith('.campuscli.com');
     const external = referrer && domain && !internal && domain !== 'accounts.google.com' && /^https?:$/.test(referrer.protocol);
     const entry = handoff.aiClient ? { entry_channel: 'mcp', entry_source: handoff.aiClient }
-      : campaign.utm_campaign ? { entry_channel: 'campaign', entry_campaign: campaign.utm_campaign }
+      : campaign.utm_campaign ? { entry_channel: 'campaign', entry_source: campaign.utm_source, entry_campaign: campaign.utm_campaign }
       : external ? { entry_channel: 'referral', entry_source: domain }
       : !referrer ? { entry_channel: 'direct' } : null;
     if (!entry) {
