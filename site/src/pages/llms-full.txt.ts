@@ -43,7 +43,7 @@ export const GET: APIRoute = async () => {
   const products = [
     {
       title: "Turnitin: informes de similitud y escritura con IA",
-      description: "IA o similitud S/9; ambos S/14 por documento. Procesamiento mediante Turnitin API. Entrega de 10 minutos a 1 hora tras validar el pago. Consulta disponibilidad en la app.",
+      description: "Solo IA S/6 (academi.cx); similitud S/9 (Turnitin); similitud + IA S/14 (Turnitin) por documento. Procesamiento mediante Turnitin API, salvo Solo IA. Entrega de 10 minutos a 1 hora tras validar el pago. Consulta disponibilidad en la app.",
       url: "https://campuscli.com/turnitin/",
       body: turnitinBody,
     },
