@@ -13,7 +13,7 @@ import AppShell from '../../../layouts/AppShell.astro';
     <p class="app-panel" role="note" data-plus-qa hidden><strong>PRUEBA EN PRODUCCIÓN · SIN PAGO</strong><br />Este comprobante es sintético. La activación de prueba dura 24 horas y no ocupa un cupo de los primeros 25 de pago.</p>
     <section class="app-panel" data-plus-view="guest" hidden>
       <h2>Primero, entra a tu cuenta Campus.</h2><p>Después podrás consultar tu precio, pagar con Yape o Plin y enviar aquí tu comprobante.</p>
-      <a class="app-button" href="/api/app/auth/start?return=%2Fapp%2Fplus%2F">Crear cuenta o entrar</a>
+      <a class="app-button" data-astro-reload href="/api/app/auth/start?return=%2Fapp%2Fplus%2F">Crear cuenta o entrar</a>
       <p class="plus-muted">Crear tu cuenta no realiza ningún cobro.</p>
     </section>
     <section class="app-panel" data-plus-view="ready" hidden>
