@@ -1,6 +1,7 @@
 // Explicit event/property contracts: never export text, URLs with parameters,
 // academic content, file names, email, OAuth codes or receipts.
 export const events = new Set([
+  'campus_proactive_notice_opened','campus_proactive_context_copied','campus_proactive_preferences_saved','campus_proactive_deleted',
   'campus_agent_examples_viewed','campus_agent_example_started',
   'campus_agent_followup_saved','campus_agent_support_opened',
   'campus_guest_signup_invite_viewed','campus_guest_signup_started','campus_guest_signup_dismissed',
@@ -45,7 +46,7 @@ const categories: Record<string, readonly string[]> = {
   viewport: ['mobile', 'tablet', 'desktop'], environment: ['development', 'production'],
 };
 const numbers = new Set(['remaining', 'limit', 'duration_ms', 'position', 'amount_cents']);
-const booleans = new Set(['callback_requested','authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test','is_internal']);
+const booleans = new Set(['proactive_enabled','email_enabled','push_enabled','callback_requested','authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test','is_internal']);
 export function safeAnalyticsProperties(input: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(input).filter(([key, value]) =>
     (['trace_id','conversation_id'].includes(key) && typeof value==='string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value))

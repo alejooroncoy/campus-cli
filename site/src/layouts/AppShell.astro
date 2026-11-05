@@ -29,6 +29,7 @@ const nav = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title} | Campus</title>
     <meta name="description" content="Campus te ayuda a elegir profesores y consultar tu Aula Virtual desde tu asistente. Disponible inicialmente para UPC." />
+    {Astro.url.pathname.startsWith("/app/novedades/") && <meta name="referrer" content="no-referrer" />}
     <meta name="robots" content="noindex,nofollow" />
     <meta name="theme-color" content="#f4f8f8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

@@ -1,0 +1,39 @@
+# All switches start disabled. Install migration 018 before enabling.
+CAMPUS_PROACTIVE_ENABLED=0
+CAMPUS_PROACTIVE_WORKER_ENABLED=0
+CAMPUS_PROACTIVE_SHADOW=1
+CAMPUS_PROACTIVE_SEND_ENABLED=0
+CAMPUS_PROACTIVE_EMAIL_ENABLED=0
+CAMPUS_PROACTIVE_PUSH_ENABLED=0
+CAMPUS_PROACTIVE_PREPARE_ENABLED=0
+CAMPUS_PROACTIVE_MEMORY_ENABLED=0
+# Same Postgres database as campus_core.accounts; separate limited service role.
+CAMPUS_PROACTIVE_DATABASE_URL=
+# Independent random 32-byte encryption key, hex or base64. Keep in secret manager.
+CAMPUS_PROACTIVE_KEY=
+# Exact canonical Campus account IDs, comma separated. Do not use * for the pilot.
+CAMPUS_PROACTIVE_PILOT_IDS=
+CAMPUS_PROACTIVE_DAILY_READ_LIMIT=400
+CAMPUS_PROACTIVE_JEV_MODEL=jev-1.14.0
+CAMPUS_PROACTIVE_JEV_MONTHLY_INPUT_LIMIT=1000000
+TYPESAFE_API_KEY=
+AI_GATEWAY_API_KEY=
+# Confirm actual gateway prices before enabling; per million tokens in USD.
+CAMPUS_PROACTIVE_LUNA_INPUT_USD_MTOK=
+CAMPUS_PROACTIVE_LUNA_OUTPUT_USD_MTOK=
+CAMPUS_PROACTIVE_LUNA_BUDGET_CENTS=4000
+ATOMICMEMORY_API_KEY=
+CAMPUS_APP_ORIGIN=https://campuscli.com
+RESEND_API_KEY=
+CAMPUS_PROACTIVE_EMAIL_FROM=
+CAMPUS_PROACTIVE_RESEND_WEBHOOK_SECRET=
+# Independent high-entropy HMAC key for email opt-out links.
+CAMPUS_PROACTIVE_TOKEN_KEY=
+CAMPUS_PUSH_PUBLIC_KEY=
+CAMPUS_PUSH_PRIVATE_KEY=
+CAMPUS_PUSH_SUBJECT=mailto:info@campuscli.com
+# Reuse the existing server-to-server bridge secret; never expose to the browser.
+CAMPUS_PROFES_BANNER_BRIDGE_TOKEN=
+# Optional Qatom catalogue trial: synthetic data only, independent secret.
+CAMPUS_PROACTIVE_QATOM_TEST_ENABLED=0
+CAMPUS_PROACTIVE_QATOM_TEST_TOKEN=

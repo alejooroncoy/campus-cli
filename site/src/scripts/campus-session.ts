@@ -1,3 +1,4 @@
+import {reconcilePushOwner} from './proactive-device';
 import { ACCOUNT_HANDOFF_KEY } from './account-onboarding';
 import { analyticsSession, resetAnalytics } from "./analytics";
 import { notifySessionLogout, publishSessionIdentity } from "./session-sync";
@@ -88,6 +89,7 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
     value = await carryGuestUniversity(value, () => pendingSession === pending);
     if (pendingSession !== pending) return getCampusSession();
     if (pendingSession === pending) {
+      if(!value.accessUnavailable)await reconcilePushOwner(value.authenticated?(value.analyticsId??value.email??null):null).catch(()=>{});
       await publishSessionIdentity(value, () => pendingSession === pending);
       if (pendingSession !== pending) return getCampusSession();
       if (value.accessUnavailable) {

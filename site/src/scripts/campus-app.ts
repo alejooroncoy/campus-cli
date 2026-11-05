@@ -1,3 +1,4 @@
+import {removePushDevice} from './proactive-device';
 import { analyticsHeaders, track } from './analytics';
 import { universitySetupHref, universityDoneHref } from "./university-onboarding";
 import { readGuestUniversity, declaredUniversity, universityLabel, universitySearchMatches, universitySelectionPayload, type UniversityChoice } from './guest-university';
@@ -436,6 +437,7 @@ function initPage() {
   document.querySelectorAll<HTMLElement>("[data-app-logout], [data-app-sidebar-logout]").forEach(btn => {
     btn.addEventListener("click", async () => {
       try {
+        await removePushDevice();
         const response = await fetch("/api/app/logout", { method: "POST", headers: analyticsHeaders() });
         if (!response.ok) throw new Error();
         track('campus_logout_completed');

@@ -213,3 +213,22 @@ self.addEventListener("fetch", (event) => {
   }
   event.respondWith(fetch(request));
 });
+
+// Push contains a generic message and an opaque notice ID; details require login.
+self.addEventListener('push', event => {
+  let value;try{value=event.data?.json();}catch{return;}
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value?.id??''))return;
+  event.waitUntil(self.registration.showNotification('Campu tiene novedades para ti',{
+    body:'Abre Campus para revisar el contexto preparado.',icon:'/apple-touch-icon.png',
+    tag:'campu-'+value.id,data:{path:'/app/novedades/'+value.id+'/'},
+  }));
+});
+self.addEventListener('notificationclick', event => {
+  event.notification.close();const path=event.notification.data?.path;
+  if(!/^\/app\/novedades\/[0-9a-f-]{36}\/$/i.test(path??''))return;
+  event.waitUntil((async()=>{
+    const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    const target=windows.find(client=>new URL(client.url).origin===self.location.origin);
+    if(target){await target.navigate(path);await target.focus();}else await self.clients.openWindow(path);
+  })());
+});
