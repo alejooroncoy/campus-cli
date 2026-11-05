@@ -13,7 +13,7 @@ type Order = {
 type Product = {id: 'ai' | 'similarity' | 'both'; label: string; amountCents: number; reports: ReportKind[]; available?: boolean};
 type Config = { enabled: boolean; ordersAvailable: boolean; amountCents: number; products?: Product[]; phone: string; holder: string; maxDocumentBytes: number; maxReceiptBytes: number; flowAvailable?: boolean };
 const labels: Record<string,string> = { payment_pending: 'QR pendiente de pago', payment_review: 'Pago en revisión', processing: 'Preparando tus informes', completed: 'Informes listos', payment_rejected: 'Pago observado' };
-const money = (cents: number) => `S/${(cents / 100).toLocaleString('es-PE')}`;
+const money = (cents: number) => `S/${(cents / 100).toLocaleString('es-PE', { minimumFractionDigits: cents % 100 ? 2 : 0 })}`;
 
 function setupTurnitin() {
   const form = document.querySelector<HTMLFormElement>('[data-ti-form]');
@@ -40,6 +40,10 @@ function setupTurnitin() {
     const offer = selectedOffer();
     const amount = offer?.amountCents ?? config.amountCents;
     document.querySelector<HTMLElement>('[data-ti-price]')!.textContent = `${money(amount)} · ${productLabel(selectedReport())}`;
+    for (const product of config.products ?? []) {
+      const label = document.querySelector<HTMLElement>(`[data-ti-option-price="${product.id}"]`);
+      if (label) label.textContent = money(product.amountCents);
+    }
     document.querySelector<HTMLElement>('[data-ti-amount]')!.textContent = money(amount);
     document.querySelector<HTMLElement>('[data-ti-product-summary]')!.textContent = productLabel(selectedReport());
     const availability = document.querySelector<HTMLElement>('[data-ti-availability]')!;
