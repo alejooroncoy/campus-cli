@@ -12,7 +12,7 @@ try{
     if(url.pathname==='/api/app/marketing'){
       requests.push(JSON.parse(request.postData()));return route.fulfill({status:204});
     }
-    return route.fulfill({contentType:'text/html',body:'<!doctype html><aside data-marketing-consent hidden><button data-marketing-reject>Rechazar</button><button data-marketing-accept>Permitir</button></aside><button data-marketing-settings>Preferencias</button>'});
+    return route.fulfill({contentType:'text/html',body:'<!doctype html><aside data-marketing-consent hidden><button data-marketing-reject>No, gracias</button><button data-marketing-accept>Aceptar</button></aside><button data-marketing-settings>Preferencias</button>'});
   });
   await page.goto('https://campus.test/?fbclid=synthetic_click&utm_source=instagram&utm_campaign=123456789&course=private');
   await page.addScriptTag({content:bundle.outputFiles[0].text});
@@ -20,7 +20,7 @@ try{
   assert.equal(await page.locator('[data-marketing-consent]').isVisible(),true);
   assert.equal(requests.length,0,'No consent: no outbound marketing calls or identifiers');
   assert.equal((await context.cookies()).length,0);
-  await page.getByRole('button',{name:'Permitir',exact:true}).click();
+  await page.getByRole('button',{name:'Aceptar',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('[data-marketing-consent]').hidden);
   await page.evaluate(()=>window.marketing.syncMarketingPreference());
   assert.equal(requests[0].consent,true);assert.match(requests[0].fbc,/\.synthetic_click$/);
@@ -30,7 +30,7 @@ try{
   assert.ok(cookie.secure);assert.equal(cookie.sameSite,'Lax');assert.equal(cookie.path,'/api/app/');
   assert.equal((await context.cookies('https://campus.test/')).some(c=>c.name==='campus_marketing'),false);
   await page.getByRole('button',{name:'Preferencias',exact:true}).click();
-  await page.getByRole('button',{name:'Rechazar',exact:true}).click();
+  await page.getByRole('button',{name:'No, gracias',exact:true}).click();
   await page.evaluate(()=>window.marketing.syncMarketingPreference());
   assert.equal(requests.at(-1).consent,false);assert.equal(requests.at(-1).fbc,undefined);assert.equal(requests.at(-1).fbp,undefined);
   assert.equal(await page.evaluate(()=>window.marketing.metaClickId('?fbclid=one&fbclid=two')),undefined);
