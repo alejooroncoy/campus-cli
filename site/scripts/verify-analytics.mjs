@@ -13,7 +13,22 @@ assert.doesNotMatch(csp.split(';').find(rule => rule.trim().startsWith('script-s
 const { outputFiles } = await build({ entryPoints: ['src/scripts/analytics-contract.ts'], bundle: true, format: 'esm', write: false });
 const { safeAnalyticsProperties, analyticsPage } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
 const webBundle = await build({ entryPoints: ['src/scripts/web-analytics.ts'], bundle: true, format: 'esm', write: false });
-const { metaCampaign, engageCampaign, safeWebProperties, webPageProperties } = await import(`data:text/javascript;base64,${Buffer.from(webBundle.outputFiles[0].text).toString('base64')}`);
+const { metaCampaign, engageCampaign, safeWebProperties, webPageProperties, ScrollDepth } = await import(`data:text/javascript;base64,${Buffer.from(webBundle.outputFiles[0].text).toString('base64')}`);
+assert.deepEqual(safeWebProperties({
+  $web_vitals_LCP_value: 1234, $web_vitals_CLS_value: 0.05, $web_vitals_INP_value: Infinity,
+  $web_vitals_FCP_value: -1, $web_vitals_LCP_event: { entries: [{ name: 'private' }], attribution: { url: 'private' } },
+  $prev_pageview_max_scroll_percentage: 4, $prev_pageview_last_scroll: NaN,
+}), { $prev_pageview_max_scroll_percentage: 1, $web_vitals_CLS_value: 0.05, $web_vitals_LCP_value: 1234 });
+const depth = new ScrollDepth();
+depth.measure({ scrollHeight: 2000, clientHeight: 500, scrollTop: 750 });
+depth.measure({ scrollHeight: 2000, clientHeight: 500, scrollTop: 0 });
+assert.equal(depth.properties().$prev_pageview_max_scroll_percentage, 0.5);
+assert.equal(depth.properties().$prev_pageview_last_scroll_percentage, 0);
+assert.equal(depth.properties().$prev_pageview_max_content_percentage, 0.625);
+const shortPage = new ScrollDepth();
+shortPage.measure({ scrollHeight: 500, clientHeight: 500, scrollTop: -5 });
+assert.equal(shortPage.properties().$prev_pageview_max_scroll_percentage, 1);
+assert.equal(shortPage.properties().$prev_pageview_last_scroll, 0);
 for (const content of ['remontada_upecinos','mejoralo_upecinos','remontada_virtualidad','mejoralo_virtualidad','remontada_working_student','mejoralo_working_student']) {
   const search = `?utm_source=viva_engage&utm_medium=social&utm_campaign=grupo_de_la_u&utm_content=${content}&email=private@example.org`;
   const expected = {utm_source:'viva_engage',utm_medium:'social',utm_campaign:'grupo_de_la_u',utm_content:content};
@@ -130,6 +145,8 @@ live.analyticsSession({ authenticated: false, plan: 'anon', aiReady: true });
 await new Promise(resolve => setImmediate(resolve));
 assert.equal(resets, 1, 'A verified guest must not keep a previously identified account');
 assert.equal(config.host, 'https://campuscli.com/c-events');
+const proxyMarker = config.before_send({ event: '$pageview', properties: { $lib_custom_api_host: 'https://private.invalid' } });
+assert.equal(proxyMarker.properties.$lib_custom_api_host, config.host, 'Proxy detection must reflect the configured transport, never event input');
 assert.equal(config.before_send({ event: '$autocapture', properties: { text: 'private' } }), null);
 const campaignLanding = config.before_send({event:'$pageview',properties:{$current_url:'https://campuscli.com/', $pathname:'/',utm_source:'meta',utm_campaign:'123456789',email:'private@example.org'}});
 assert.equal(campaignLanding.properties.$process_person_profile, true);

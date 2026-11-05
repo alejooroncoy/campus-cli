@@ -1,6 +1,8 @@
 import { analyticsPage } from './analytics-contract.ts';
 
-export const webEvents = new Set(['$pageview', '$pageleave']);
+export const webEvents = new Set(['$pageview', '$pageleave', '$web_vitals']);
+const scrollFields = ['last_scroll', 'max_scroll', 'last_content', 'max_content'];
+export const vitalNames = ['CLS', 'FCP', 'INP', 'LCP'] as const;
 // Only numeric, shared campaign IDs, never names, recipient IDs or raw URLs.
 export function marketingCampaign(search: string): Record<string, string> {
   const query = new URLSearchParams(search);
@@ -70,11 +72,57 @@ export function safeWebProperties(input: Record<string, unknown>): Record<string
   if (referrer) { safe.$referrer = referrer + '/'; safe.$referring_domain = new URL(referrer).hostname; }
   else if (input.$referrer === '$direct') { safe.$referrer = '$direct'; safe.$referring_domain = '$direct'; }
   if (['Desktop', 'Mobile', 'Tablet'].includes(input.$device_type as string)) safe.$device_type = input.$device_type;
-  if (typeof input.$pageview_id === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(input.$pageview_id)) safe.$pageview_id = input.$pageview_id;
+  for (const key of ['$pageview_id', '$prev_pageview_id']) {
+    if (typeof input[key] === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(input[key])) safe[key] = input[key];
+  }
+  for (const field of scrollFields) {
+    for (const suffix of ['', '_percentage']) {
+      const key = `$prev_pageview_${field}${suffix}`, value = input[key];
+      if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+        safe[key] = Math.min(value, suffix ? 1 : 100_000_000);
+      }
+    }
+  }
+  for (const name of vitalNames) {
+    const key = `$web_vitals_${name}_value`, value = input[key];
+    if (typeof value === 'number' && Number.isFinite(value) && value >= 0 && value < 900_000) safe[key] = value;
+  }
   if (validPath(input.$prev_pageview_pathname)) safe.$prev_pageview_pathname = input.$prev_pageview_pathname;
   if (typeof input.$prev_pageview_duration === 'number' && Number.isFinite(input.$prev_pageview_duration)
     && input.$prev_pageview_duration >= 0) safe.$prev_pageview_duration = Math.min(input.$prev_pageview_duration, 86400);
   return safe;
+}
+
+/** Numeric geometry only, following PostHog's previous-pageview contract. */
+export class ScrollDepth {
+  private lastScroll = 0;
+  private maxScroll = 0;
+  private maxScrollHeight = 0;
+  private lastContent = 0;
+  private maxContent = 0;
+  private maxContentHeight = 0;
+  measure(element: Element | null | undefined): void {
+    if (!element) return;
+    const height = Math.max(0, element.scrollHeight), viewport = Math.max(0, element.clientHeight);
+    this.lastScroll = Math.max(0, Math.min(element.scrollTop, height - viewport));
+    this.maxScroll = Math.max(this.maxScroll, this.lastScroll);
+    this.maxScrollHeight = Math.max(this.maxScrollHeight, height - viewport);
+    this.lastContent = Math.min(height, this.lastScroll + viewport);
+    this.maxContent = Math.max(this.maxContent, this.lastContent);
+    this.maxContentHeight = Math.max(this.maxContentHeight, height);
+  }
+  properties(): Record<string, number> {
+    const result: Record<string, number> = {};
+    for (const [field, raw, rawHeight] of [
+      ['last_scroll', this.lastScroll, this.maxScrollHeight], ['max_scroll', this.maxScroll, this.maxScrollHeight],
+      ['last_content', this.lastContent, this.maxContentHeight], ['max_content', this.maxContent, this.maxContentHeight],
+    ] as const) {
+      const value = Math.ceil(raw), height = Math.ceil(rawHeight);
+      result[`$prev_pageview_${field}`] = value;
+      result[`$prev_pageview_${field}_percentage`] = height <= 1 ? 1 : Math.min(1, value / height);
+    }
+    return result;
+  }
 }
 
 export function webPageProperties(pathname: string, siteOrigin: string, referrer: string, width: number, search = '') {

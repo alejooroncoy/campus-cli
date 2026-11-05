@@ -7,6 +7,56 @@ El sitio conserva los eventos `campus_*` existentes y envía `$pageview` y
 No se inicializa un segundo SDK. La navegación de Astro no duplica la vista
 inicial; los cambios de ruta cierran la vista anterior y BFCache abre otra.
 
+### Installation Health (5 de noviembre de 2026)
+
+El cliente recoge la geometría del documento mediante listeners pasivos de
+scroll/resize. Envía los ocho campos estándar `$prev_pageview_*` de scroll y
+contenido en `$pageleave`, junto a `$prev_pageview_id`. Las fracciones van de 0
+a 1; cada ruta empieza con una medición nueva y `astro:before-swap` cierra la
+vista antes de reemplazar el documento. No se inspecciona el contenido de
+mensajes, formularios ni paneles desplazables internos.
+
+La dependencia oficial `web-vitals` mide CLS, FCP, INP y LCP con un solo juego
+de observadores por documento. Los resultados se agrupan durante un máximo de
+cinco segundos y se envían como `$web_vitals` al mismo cliente, con únicamente
+los valores numéricos `$web_vitals_{CLS,FCP,INP,LCP}_value`. Se vacía el buffer
+al ocultar o salir de la página. No se exportan entradas de PerformanceObserver,
+atribución del DOM, selectores, texto ni URLs de recursos. Se conserva la ruta
+segura de la carga medida al navegar con Astro; BFCache inicia otro contexto.
+Las etiquetas de campaña quedan limitadas a `$pageview`, incluso al restaurar.
+Las métricas disponibles dependen del navegador y de que haya interacción.
+
+El proxy Vercel existente `/c-events` se conserva. Una comprobación GET de
+`https://campuscli.com/c-events/batch/` devolvió el error de ingestión esperado
+`400 request missing data payload`, sin enviar eventos. Se añade desde la
+configuración real `$lib_custom_api_host`, propiedad estándar que PostHog usa
+para detectar el proxy; ningún evento puede sobrescribirla. No hace falta
+crear otro proxy ni cambiar DNS.
+
+La configuración aplicada y verificada el 5 de noviembre de 2026 para el
+proyecto 539784 es `app_urls` con
+`https://campuscli.com` (conservando cualquier entrada existente),
+`autocapture_web_vitals_opt_in: true` y
+`autocapture_web_vitals_allowed_metrics: ["CLS", "FCP", "INP", "LCP"]`.
+El usuario confirmó ambos ajustes antes de aplicarlos mediante
+`project-settings-update`; una lectura posterior confirmó su persistencia.
+El cliente lite recoge las métricas localmente;
+activar el ajuste remoto por sí solo no las añade a una versión anterior.
+
+Verificación: `npm run test:analytics`, `npm run test:analytics:transport`,
+`npm run check` y `npm run build`. Las pruebas de transporte interceptan todas
+las solicitudes y verifican FCP/LCP reales, scroll de ida/vuelta, reinicio por
+ruta, correlación con la vista/sesión y eliminación de información privada.
+Publicación mediante PR a `main` y el workflow protegido
+`Publish site from checked main`, con verificación de `/build-info.json`. Los checks de salud se recalculan por
+horario: tras desplegar y recibir eventos nuevos, los avisos pueden permanecer
+hasta su siguiente ejecución.
+
+Fuentes: [Web Vitals](https://posthog.com/docs/web-analytics/web-vitals),
+[detección del proxy](https://github.com/PostHog/posthog/blob/master/products/web_analytics/backend/temporal/health_checks/reverse_proxy.py),
+[detección de scroll](https://github.com/PostHog/posthog/blob/master/products/web_analytics/backend/temporal/health_checks/scroll_depth.py).
+
+
 `$current_url`, `$pathname` y `$prev_pageview_pathname` usan familias de rutas
 cerradas. Los nombres de profesores, documentos, conversaciones, parámetros
 OAuth, búsquedas y fragmentos nunca se exportan. El referrer conserva solo su
