@@ -1,7 +1,7 @@
 import PostHog from 'posthog-js-lite';
 import { isLikelyBot } from '@posthog/browser-common/utils/blocked-uas';
 import { PostHogPersistedProperty } from '@posthog/core';
-import type { CaptureEvent } from '@posthog/core';
+import type { CaptureEvent, PostHogQueueItem } from '@posthog/core';
 import { PLUS_SURVEY_ID, supportedPlusSurvey } from './plus-survey-contract.ts';
 import type { PlusSurvey } from './plus-survey-contract.ts';
 
@@ -58,6 +58,31 @@ function migrateBrowserState(key: string, storageKey: string): void {
 }
 
 class NavigationSafePostHog extends PostHog {
+  private exitRequests = new Set<string>();
+
+  flushOnExit(): void {
+    if (!this._isInitialized || this.disabled || this.optedOut) return;
+    const queue = (this.getPersistedProperty(PostHogPersistedProperty.Queue) ?? []) as PostHogQueueItem[];
+    const batch = queue.flatMap(item => item.message && typeof item.message.uuid === 'string'
+      && !this.exitRequests.has(item.message.uuid) ? [item.message] : []).slice(0, 20);
+    if (!batch.length) return;
+    const ids = new Set(batch.map(message => message.uuid as string));
+    ids.forEach(id => this.exitRequests.add(id));
+    // Start the SDK's keepalive request in this lifecycle callback, before
+    // asynchronous queue coordination or CompressionStream can defer it.
+    const compression = this.disableCompression;
+    this.disableCompression = true;
+    const sent = this.sendBatch(batch, { retryCount: 0 });
+    this.disableCompression = compression;
+    void sent.then(() => {
+      const current = (this.getPersistedProperty(PostHogPersistedProperty.Queue) ?? []) as PostHogQueueItem[];
+      this.setPersistedProperty(PostHogPersistedProperty.Queue,
+        current.filter(item => !ids.has(item.message?.uuid as string)));
+    }, () => { /* Retain the original UUIDs in storage for a future retry. */ }).finally(() => {
+      ids.forEach(id => this.exitRequests.delete(id));
+    });
+  }
+
   async getPlusSurvey(properties: Record<string, string>, surveyId = PLUS_SURVEY_ID): Promise<PlusSurvey | undefined> {
     if (this.optedOut) return;
     const owner = this.getDistinctId();
@@ -85,7 +110,7 @@ export function createAnalyticsClient(key: string, options: Options): AnalyticsC
   const windowKey = `${persistenceName}_window`;
   const bot = isLikelyBot(typeof navigator === 'undefined' ? undefined : navigator, []);
   let windowSession = '', windowId = '';
-  let sdk: PostHog;
+  let sdk: NavigationSafePostHog;
   const getWindowId = () => {
     const session = sdk.getSessionId();
     if (session !== windowSession) {
@@ -115,6 +140,10 @@ export function createAnalyticsClient(key: string, options: Options): AnalyticsC
     before_send: event => bot ? null : options.before_send({ ...event, properties: {
       ...event.properties, distinct_id: sdk.getDistinctId(), $window_id: getWindowId(),
     } }),
+  });
+  window.addEventListener('pagehide', () => sdk.flushOnExit());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') sdk.flushOnExit();
   });
   const reset = () => {
     sdk.reset([PostHogPersistedProperty.OptedOut]); windowSession = ''; windowId = '';
