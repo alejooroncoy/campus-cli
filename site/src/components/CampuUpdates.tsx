@@ -281,8 +281,10 @@ export default function CampuUpdates() {
         if (!mounted || version !== generation.current) return;
         setStatus(s);
         setPrefs(s.preferences);
-        loaded.current = true;
-        if (!s.available) return;
+        if (!s.available) {
+          loaded.current = true;
+          return;
+        }
         const n = await api("/notices");
         if (!mounted || version !== generation.current) return;
         setNotices(n.notices);
@@ -308,6 +310,9 @@ export default function CampuUpdates() {
             /* First run may not have prepared a context yet. */
           }
         }
+        // Solo al terminar toda la cadena: si algo falló, el siguiente evento de
+        // sesión vuelve a intentarlo.
+        if (mounted && version === generation.current) loaded.current = true;
       } catch (e) {
         if (mounted && version === generation.current)
           setError(

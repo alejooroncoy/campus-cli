@@ -182,7 +182,9 @@ try {
       deleted = 0,
       nickname = null,
       nicknameCalls = 0,
-      statusCalls = 0;
+      statusCalls = 0,
+      failNotices = false,
+      noticesFailed = 0;
     await page.route("**/*", async (route) => {
       const url = new URL(route.request().url());
       if (url.origin !== base) return route.abort();
@@ -206,6 +208,14 @@ try {
           lastSuccessAt: "2026-11-09T13:00:00Z",
           coverage: { complete: false },
           pushPublicKey: "fake-public-key",
+        });
+      }
+      if (path === "/api/app/proactive/notices" && failNotices) {
+        noticesFailed++;
+        return route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "TEMPORAL" }),
         });
       }
       if (path === "/api/app/proactive/notices")
@@ -368,10 +378,31 @@ try {
           .count(),
         0,
       );
+      // Si /status carga pero los avisos fallan, el siguiente evento de sesión
+      // vuelve a intentarlo en vez de dejar la pantalla sin contenido.
+      failNotices = true;
+      await page.reload();
+      for (let i = 0; i < 50 && !noticesFailed; i++)
+        await page.waitForTimeout(100);
+      assert.ok(noticesFailed >= 1);
+      failNotices = false;
+      const antesReintento = statusCalls;
+      await page.evaluate(
+        (detail) =>
+          window.dispatchEvent(
+            new CustomEvent("campus:session-updated", { detail }),
+          ),
+        session,
+      );
+      await page
+        .getByRole("heading", { name: "Esto es lo que pude revisar." })
+        .waitFor();
+      assert.equal(statusCalls, antesReintento + 1);
       assert.deepEqual(errors, []);
       console.log(
         JSON.stringify({
           width,
+          retryAfterFailure: true,
           copy: true,
           preferences: true,
           noAutomaticPermission: true,
