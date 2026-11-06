@@ -148,6 +148,21 @@ const prepared = {
       {
         courseId: "c1",
         course: "Curso de prueba",
+        title: "Entrega del domingo",
+        what: "entrega",
+        studentAction: true,
+        when: { kind: "date", text: "domingo 4 de octubre" },
+        from: "2026-10-04",
+        to: "2026-10-04",
+        bucket: "next_week",
+        inBlackboard: true,
+        done: false,
+        next: false,
+        after: null,
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
         title: "TB1",
         what: "entrega",
         studentAction: true,
@@ -361,24 +376,33 @@ try {
       );
       assert.ok(await page.getByText("Antes no tenía nota registrada.").count());
       assert.ok(await page.getByText("Peso: 15%").count());
-      // Lo que viene: pestañas con contador, una lista a la vez, sin lo ya entregado.
+      // Lo que viene: Campu lo cuenta en una frase y la tira muestra cinco celdas.
       const viene = page.locator(".campu-upcoming");
-      await viene.getByRole("heading", { name: "Lo que viene" }).waitFor();
-      assert.ok(await viene.getByText("Semana 5", { exact: true }).count());
+      await viene.locator(".campu-says").waitFor();
+      const frase = (await viene.locator(".campu-says p").innerText()).replace(/\s+/g, " ");
+      assert.ok(frase.startsWith("Esta semana te toca TB2 <img"), frase);
+      // Un domingo sigue siendo de su semana: la próxima tiene dos cosas.
+      assert.ok(frase.endsWith("La próxima, 2 cosas."), frase);
+      const celdas = viene.getByRole("tab");
+      assert.equal(await celdas.count(), 5);
       assert.deepEqual(
-        (await viene.getByRole("tab").allInnerTexts()).map((t) => t.replace(/\s+/g, " ")),
-        ["Esta semana 1", "Próxima 1", "Sin fecha 1"],
+        await celdas.evaluateAll((l) => l.map((b) => b.disabled)),
+        [false, false, true, true, false],
       );
-      // Abre en la primera pestaña con algo; el título con HTML queda como texto.
-      assert.ok(await viene.getByText("TB2 <img", { exact: false }).count());
+      // Abre en la primera celda con algo; el título con HTML queda como texto.
+      assert.equal(await celdas.nth(0).getAttribute("aria-selected"), "true");
+      assert.ok(await viene.locator("li").getByText("TB2 <img", { exact: false }).count());
       assert.equal(await viene.getByText("TB1", { exact: true }).count(), 0);
       await viene.getByRole("tab", { name: /Próxima/ }).click();
-      assert.ok(await viene.getByText("TP1", { exact: true }).count());
+      assert.ok(await viene.locator("li").getByText("TP1", { exact: true }).count());
       assert.ok(await viene.getByText("28 set–4 oct", { exact: true }).count());
+      assert.ok(await viene.locator("li").getByText("Entrega del domingo", { exact: true }).count());
+      assert.ok(await viene.getByText("4 oct", { exact: true }).count());
       assert.ok(await viene.getByText("Aún no está en Blackboard").count());
-      await viene.getByRole("tab", { name: /Sin fecha/ }).click();
+      await viene.getByRole("tab", { name: /Después/ }).click();
       assert.ok(await viene.getByText("Examen final", { exact: true }).count());
-      assert.equal(await viene.getByText("TP1", { exact: true }).count(), 0);
+      assert.ok(await viene.getByText("Sin fecha", { exact: true }).count());
+      assert.equal(await viene.locator("li").getByText("TP1", { exact: true }).count(), 0);
       assert.equal(await page.evaluate(() => !!window.injected), false);
       assert.ok(await page.getByText("Ya no aparece en la fuente", { exact: false }).count());
       assert.ok(

@@ -191,44 +191,104 @@ const rangeLabel = (from: string | null, to: string | null) => {
     [, monthB] = b.split(" ");
   return monthA === monthB ? `${dayA}–${b}` : `${a}–${b}`;
 };
-const upcomingTabs = [
-  ["this_week", "Esta semana"],
-  ["next_week", "Próxima"],
-  ["later", "Después"],
-  ["unscheduled", "Sin fecha"],
-] as const;
+const WEEK = 7 * 86400_000;
+const CELLS = 5; // esta semana, la próxima, dos más y "Después"
+const cellOf = (u: Upcoming, i: UpcomingItem) => {
+  if (!i.from) return CELLS - 1;
+  // Piso, no redondeo: un domingo sigue siendo de su semana.
+  const offset = Math.floor(
+    (Date.parse(i.from + "T00:00:00Z") - Date.parse(u.from + "T00:00:00Z")) /
+      WEEK,
+  );
+  return Math.min(Math.max(offset, 0), CELLS - 1);
+};
+const cellLabel = (u: Upcoming, n: number) =>
+  n === 0
+    ? "Esta"
+    : n === 1
+      ? "Próxima"
+      : n === CELLS - 1
+        ? "Después"
+        : `Sem ${u.week + n}`;
+
+/** Campu cuenta en una frase lo que viene; los títulos salen del cronograma y
+ * se muestran como texto. */
+function sentence(items: UpcomingItem[], u: Upcoming) {
+  const now = items.filter((i) => cellOf(u, i) === 0);
+  const next = items.filter((i) => cellOf(u, i) === 1);
+  const first = [...items]
+    .filter((i) => i.from)
+    .sort((x, y) => x.from!.localeCompare(y.from!))[0];
+  const one = (list: UpcomingItem[]) =>
+    list.length === 1 ? (
+      <b>{list[0].title}</b>
+    ) : (
+      <b>{list.length} cosas</b>
+    );
+  return (
+    <>
+      {now.length ? (
+        <>Esta semana te toca {one(now)}.</>
+      ) : (
+        <>Esta semana va tranquila.</>
+      )}{" "}
+      {next.length ? (
+        <>La próxima, {one(next)}.</>
+      ) : now.length || !first ? null : (
+        <>
+          Lo siguiente es <b>{first.title}</b>.
+        </>
+      )}
+    </>
+  );
+}
 
 /** Lo que el cronograma de tus cursos programa, aunque Blackboard todavía no lo
  * tenga como tarea. Las fechas las calcula el servidor con el calendario de Mi UPC. */
 function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
   const items = u.items.filter((i) => i.studentAction && !i.done);
-  const tabs = upcomingTabs.filter(([b]) => items.some((i) => i.bucket === b));
-  const [picked, setPicked] = useState<string | null>(null);
-  if (!tabs.length) return null;
-  const active = tabs.find(([b]) => b === picked)?.[0] ?? tabs[0][0];
+  const counts = Array.from(
+    { length: CELLS },
+    (_, n) => items.filter((i) => cellOf(u, i) === n).length,
+  );
+  const [picked, setPicked] = useState<number | null>(null);
+  if (!items.length) return null;
+  const active = picked ?? Math.max(counts.findIndex((c) => c > 0), 0);
   return (
     <section className="campu-card campu-upcoming">
-      <header>
-        <h2>Lo que viene</h2>
-        <span className="campu-muted">Semana {u.week}</span>
-      </header>
-      <div className="campu-tabs" role="tablist" aria-label="Lo que viene">
-        {tabs.map(([bucket, title]) => (
+      <div className="campu-says">
+        <img
+          src="/assets/campu/campu-wave-v2-192.webp"
+          width="72"
+          height="72"
+          alt=""
+          aria-hidden="true"
+        />
+        <p>{sentence(items, u)}</p>
+      </div>
+      <div className="campu-weeks" role="tablist" aria-label="Lo que viene">
+        {counts.map((count, n) => (
           <button
-            key={bucket}
+            key={n}
             type="button"
             role="tab"
-            aria-selected={bucket === active}
-            onClick={() => setPicked(bucket)}
+            aria-selected={n === active}
+            aria-label={`${cellLabel(u, n)}, ${count} ${count === 1 ? "cosa" : "cosas"}`}
+            disabled={!count}
+            onClick={() => setPicked(n)}
           >
-            {title}
-            <span>{items.filter((i) => i.bucket === bucket).length}</span>
+            <span>{cellLabel(u, n)}</span>
+            <span className="campu-pips" aria-hidden="true">
+              {Array.from({ length: Math.min(count, 3) }, (_, k) => (
+                <i key={k} />
+              ))}
+            </span>
           </button>
         ))}
       </div>
       <ul className="campu-upcoming-list" role="tabpanel">
         {items
-          .filter((i) => i.bucket === active)
+          .filter((i) => cellOf(u, i) === active)
           .map((i, n) => (
             <li key={`${i.courseId}|${i.title}|${n}`}>
               <div>

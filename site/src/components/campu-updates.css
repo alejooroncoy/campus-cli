@@ -285,44 +285,67 @@
   }
 }
 
-.campu-upcoming header {
+.campu-says {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  align-items: flex-end;
+  gap: 14px;
 }
-.campu-upcoming h2 {
-  margin: 0;
-  font-size: 20px;
-}
-.campu-tabs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 14px 0 4px;
-}
-.campu-tabs button {
+.campu-says img {
   flex: none;
-  display: inline-flex;
+  width: 72px;
+  height: 72px;
+}
+.campu-says p {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 18px 18px 18px 4px;
+  background: #f0f7f7;
+  font-size: 17px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.campu-weeks {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 22px 0 8px;
+}
+.campu-weeks button {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid #d1e3e5;
-  border-radius: 999px;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 2px;
+  border: 1px solid #e1eaec;
+  border-radius: 14px;
   background: #fff;
-  color: #4b6b7b;
+  color: #284b5b;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
 }
-.campu-tabs button span {
-  color: #7b95a1;
+.campu-weeks button:disabled {
+  color: #9bb0ba;
+  background: #f6f9fa;
+  cursor: default;
 }
-.campu-tabs button[aria-selected="true"] {
-  background: #e8f4f5;
+.campu-weeks button[aria-selected="true"] {
   border-color: #0794a1;
+  background: #e8f4f5;
   color: #0b5f69;
   font-weight: 600;
+}
+.campu-pips {
+  display: flex;
+  gap: 4px;
+  height: 6px;
+}
+.campu-pips i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0794a1;
 }
 .campu-upcoming-list {
   list-style: none;
