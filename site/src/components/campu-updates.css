@@ -285,9 +285,67 @@
   }
 }
 
-.campu-upcoming h3 {
-  margin: 20px 0 6px;
+.campu-says {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+.campu-says img {
+  flex: none;
+  width: 72px;
+  height: 72px;
+}
+.campu-says p {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 18px 18px 18px 4px;
+  background: #f0f7f7;
   font-size: 17px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.campu-weeks {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 22px 0 8px;
+}
+.campu-weeks button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 2px;
+  border: 1px solid #e1eaec;
+  border-radius: 14px;
+  background: #fff;
+  color: #284b5b;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.campu-weeks button:disabled {
+  color: #9bb0ba;
+  background: #f6f9fa;
+  cursor: default;
+}
+.campu-weeks button[aria-selected="true"] {
+  border-color: #0794a1;
+  background: #e8f4f5;
+  color: #0b5f69;
+  font-weight: 600;
+}
+.campu-pips {
+  display: flex;
+  gap: 4px;
+  height: 6px;
+}
+.campu-pips i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0794a1;
 }
 .campu-upcoming-list {
   list-style: none;
@@ -295,19 +353,46 @@
   padding: 0;
 }
 .campu-upcoming-list li {
-  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
   border-bottom: 1px solid #e1eaec;
-  overflow-wrap: anywhere;
 }
-.campu-upcoming-list p {
-  margin: 4px 0;
+.campu-upcoming-list li:last-child {
+  border-bottom: 0;
 }
+.campu-upcoming-list li > div {
+  min-width: 0;
+}
+.campu-upcoming-list strong,
 .campu-upcoming-list small {
   display: block;
-  color: #4b6b7b;
-  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
-.campu-upcoming-list .campu-badge {
+.campu-upcoming-list small {
+  margin-top: 2px;
+  color: #6a8593;
+  font-size: 13px;
+}
+.campu-upcoming-list small em {
+  display: block;
   color: #0b5f69;
+  font-style: normal;
+}
+.campu-date {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #f0f7f7;
+  color: #284b5b;
+  font-size: 13px;
   font-weight: 600;
+}
+.campu-undated {
+  margin: 14px 0 0;
+  color: #6a8593;
+  font-size: 13px;
+  overflow-wrap: anywhere;
 }

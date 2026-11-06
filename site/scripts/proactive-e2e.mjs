@@ -148,6 +148,21 @@ const prepared = {
       {
         courseId: "c1",
         course: "Curso de prueba",
+        title: "Entrega del domingo",
+        what: "entrega",
+        studentAction: true,
+        when: { kind: "date", text: "domingo 4 de octubre" },
+        from: "2026-10-04",
+        to: "2026-10-04",
+        bucket: "next_week",
+        inBlackboard: true,
+        done: false,
+        next: false,
+        after: null,
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
         title: "TB1",
         what: "entrega",
         studentAction: true,
@@ -157,6 +172,21 @@ const prepared = {
         bucket: "this_week",
         inBlackboard: true,
         done: true,
+        next: false,
+        after: null,
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: "Examen parcial",
+        what: "evaluación",
+        studentAction: true,
+        when: { kind: "week", text: "Semana 9" },
+        from: "2026-10-19",
+        to: "2026-10-25",
+        bucket: "later",
+        inBlackboard: true,
+        done: false,
         next: false,
         after: null,
       },
@@ -256,6 +286,7 @@ try {
       failNotices = false,
       noticesFailed = 0,
       failWeek = false,
+      weekAlt = false,
       weekFailed = 0,
       weekDelay = 0,
       weekStarted = 0;
@@ -323,6 +354,11 @@ try {
             ? { ok: true }
             : { notice: { id: noticeId, contextId }, events },
         );
+      if (path === "/api/app/proactive/week" && weekAlt)
+        return json({
+          ...prepared,
+          upcoming: { ...prepared.upcoming, items: [prepared.upcoming.items[0]] },
+        });
       if (
         path === "/api/app/proactive/week" ||
         path === "/api/app/proactive/contexts/" + contextId
@@ -361,21 +397,38 @@ try {
       );
       assert.ok(await page.getByText("Antes no tenía nota registrada.").count());
       assert.ok(await page.getByText("Peso: 15%").count());
-      // Lo que viene: lo siguiente por hacer, marcado si no es tarea en Blackboard.
+      // Lo que viene: Campu lo cuenta en una frase y la tira muestra cinco celdas.
       const viene = page.locator(".campu-upcoming");
-      await viene.getByRole("heading", { name: "Lo que viene." }).waitFor();
-      assert.ok(await viene.getByText("Semana 5 del ciclo", { exact: false }).count());
-      assert.ok(await viene.getByRole("heading", { name: "La próxima semana" }).count());
-      assert.ok(await viene.getByText("TP1", { exact: true }).count());
-      assert.ok(await viene.getByText("Curso de prueba · Lo siguiente").count());
-      assert.ok(await viene.getByText("Viene después de lo que ya hiciste: TB1.").count());
-      assert.equal(
-        await viene.getByText("Todavía no está como tarea en Blackboard").count(),
-        2,
+      await viene.locator(".campu-says").waitFor();
+      const frase = (await viene.locator(".campu-says p").innerText()).replace(/\s+/g, " ");
+      assert.ok(frase.startsWith("Esta semana te toca TB2 <img"), frase);
+      // Un domingo sigue siendo de su semana: la próxima tiene dos cosas.
+      assert.ok(frase.endsWith("La próxima, 2 cosas."), frase);
+      const celdas = viene.getByRole("tab");
+      assert.equal(await celdas.count(), 5);
+      assert.deepEqual(
+        await celdas.evaluateAll((l) => l.map((b) => b.disabled)),
+        [false, false, true, true, false],
       );
-      assert.ok(await viene.getByText("El cronograma dice: dos semanas después de la PC2").count());
-      // Lo ya entregado no se repite como pendiente.
+      // Abre en la primera celda con algo; el título con HTML queda como texto.
+      assert.equal(await celdas.nth(0).getAttribute("aria-selected"), "true");
+      assert.ok(await viene.locator("li").getByText("TB2 <img", { exact: false }).count());
       assert.equal(await viene.getByText("TB1", { exact: true }).count(), 0);
+      await viene.getByRole("tab", { name: /Próxima/ }).click();
+      assert.ok(await viene.locator("li").getByText("TP1", { exact: true }).count());
+      assert.ok(await viene.getByText("28 set–4 oct", { exact: true }).count());
+      assert.ok(await viene.locator("li").getByText("Entrega del domingo", { exact: true }).count());
+      assert.ok(await viene.getByText("4 oct", { exact: true }).count());
+      assert.ok(await viene.getByText("Aún no está en Blackboard").count());
+      await viene.getByRole("tab", { name: /Sig\. semanas/ }).click();
+      assert.ok(await viene.locator("li").getByText("Examen parcial", { exact: true }).count());
+      assert.equal(await viene.locator("li").getByText("TP1", { exact: true }).count(), 0);
+      // Lo que no tiene fecha no entra en la tira: va en una línea aparte.
+      assert.equal(await viene.locator("li").getByText("Examen final", { exact: true }).count(), 0);
+      assert.equal(
+        (await viene.locator(".campu-undated").innerText()).trim(),
+        "Sin fecha confirmada: Examen final",
+      );
       assert.equal(await page.evaluate(() => !!window.injected), false);
       assert.ok(await page.getByText("Ya no aparece en la fuente", { exact: false }).count());
       assert.ok(
@@ -542,6 +595,16 @@ try {
       await page
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
         .waitFor({ timeout: 8000 });
+      // El resumen cambia con la celda elegida ya vacía: vuelve a la primera con algo.
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      const cambio = page.locator(".campu-upcoming");
+      await cambio.getByRole("tab", { name: /Próxima/ }).click();
+      weekAlt = true;
+      await page.getByRole("button", { name: "Ver mi resumen de esta semana" }).click();
+      await cambio.locator("li").getByText("TB2 <img", { exact: false }).waitFor();
+      weekAlt = false;
+      assert.equal(await cambio.locator("li").count(), 1);
+      assert.equal(await cambio.getByRole("tab").first().getAttribute("aria-selected"), "true");
       assert.deepEqual(errors, []);
       console.log(
         JSON.stringify({

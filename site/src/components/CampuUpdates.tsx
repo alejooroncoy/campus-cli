@@ -174,88 +174,146 @@ async function requestApi(path: string, method = "GET", body?: unknown) {
   if (!r.ok) throw Error(message(data.error));
   return data;
 }
-const dayLabel = (v: string) =>
+const shortDay = (v: string) =>
   new Intl.DateTimeFormat("es-PE", {
     day: "numeric",
-    month: "long",
+    month: "short",
     timeZone: "UTC",
-  }).format(new Date(v + "T00:00:00Z"));
-const rangeLabel = (from: string | null, to: string | null) =>
-  !from || !to
-    ? "Sin fecha confirmada"
-    : from === to
-      ? dayLabel(from)
-      : `${dayLabel(from)} al ${dayLabel(to)}`;
-const upcomingGroups = [
-  ["this_week", "Esta semana"],
-  ["next_week", "La próxima semana"],
-  ["later", "Más adelante"],
-] as const;
+  })
+    .format(new Date(v + "T00:00:00Z"))
+    .replace(".", "");
+/** "22 nov", "9–15 nov" o "30 nov–6 dic": lo mínimo para ubicar la fecha. */
+const rangeLabel = (from: string | null, to: string | null) => {
+  if (!from || !to) return "Sin fecha";
+  if (from === to) return shortDay(from);
+  const [a, b] = [shortDay(from), shortDay(to)];
+  const [dayA, monthA] = a.split(" "),
+    [, monthB] = b.split(" ");
+  return monthA === monthB ? `${dayA}–${b}` : `${a}–${b}`;
+};
+const WEEK = 7 * 86400_000;
+const CELLS = 5; // esta semana, la próxima, dos más y "Sig. semanas"
+const cellOf = (u: Upcoming, i: UpcomingItem) => {
+  if (!i.from) return -1; // sin fecha: no entra en la tira
+  // Piso, no redondeo: un domingo sigue siendo de su semana.
+  const offset = Math.floor(
+    (Date.parse(i.from + "T00:00:00Z") - Date.parse(u.from + "T00:00:00Z")) /
+      WEEK,
+  );
+  return Math.min(Math.max(offset, 0), CELLS - 1);
+};
+const cellLabel = (u: Upcoming, n: number) =>
+  n === 0
+    ? "Esta"
+    : n === 1
+      ? "Próxima"
+      : n === CELLS - 1
+        ? "Sig. semanas"
+        : `Sem ${u.week + n}`;
+
+/** Campu cuenta en una frase lo que viene; los títulos salen del cronograma y
+ * se muestran como texto. */
+function sentence(items: UpcomingItem[], u: Upcoming) {
+  const now = items.filter((i) => cellOf(u, i) === 0);
+  const next = items.filter((i) => cellOf(u, i) === 1);
+  const first = [...items]
+    .filter((i) => i.from)
+    .sort((x, y) => x.from!.localeCompare(y.from!))[0];
+  const one = (list: UpcomingItem[]) =>
+    list.length === 1 ? <b>{list[0].title}</b> : <b>{list.length} cosas</b>;
+  return (
+    <>
+      {now.length ? (
+        <>Esta semana te toca {one(now)}.</>
+      ) : (
+        <>Esta semana va tranquila.</>
+      )}{" "}
+      {next.length ? (
+        <>La próxima, {one(next)}.</>
+      ) : now.length || !first ? null : (
+        <>
+          Lo siguiente es <b>{first.title}</b>.
+        </>
+      )}
+    </>
+  );
+}
 
 /** Lo que el cronograma de tus cursos programa, aunque Blackboard todavía no lo
  * tenga como tarea. Las fechas las calcula el servidor con el calendario de Mi UPC. */
 function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
   const items = u.items.filter((i) => i.studentAction && !i.done);
+  const counts = Array.from(
+    { length: CELLS },
+    (_, n) => items.filter((i) => cellOf(u, i) === n).length,
+  );
+  const undated = items.filter((i) => cellOf(u, i) < 0);
+  const [picked, setPicked] = useState<number | null>(null);
   if (!items.length) return null;
+  // Si el resumen cambió y la celda elegida quedó vacía, vuelve a la primera con algo.
+  const active =
+    picked !== null && counts[picked] > 0
+      ? picked
+      : Math.max(
+          counts.findIndex((c) => c > 0),
+          0,
+        );
   return (
     <section className="campu-card campu-upcoming">
-      <p className="campu-eyebrow">
-        Semana {u.week} del ciclo · {rangeLabel(u.from, u.to)}
-      </p>
-      <h2>Lo que viene.</h2>
-      <p className="campu-muted">
-        Sale del cronograma de tus cursos. Si algo todavía no aparece como tarea
-        en Blackboard, te lo marco para que no te tome por sorpresa.
-      </p>
-      {upcomingGroups.map(([bucket, title]) => {
-        const group = items.filter((i) => i.bucket === bucket);
-        if (!group.length) return null;
-        return (
-          <div key={bucket}>
-            <h3>{title}</h3>
-            <ul className="campu-upcoming-list">
-              {group.map((i, n) => (
-                <li key={`${i.courseId}|${i.title}|${n}`}>
-                  <p className="campu-eyebrow">
-                    {i.course}
-                    {i.next ? " · Lo siguiente" : ""}
-                  </p>
-                  <strong>{i.title}</strong>
-                  <p>{rangeLabel(i.from, i.to)}</p>
-                  {i.after && (
-                    <small>Viene después de lo que ya hiciste: {i.after}.</small>
-                  )}
-                  {!i.inBlackboard && (
-                    <small className="campu-badge">
-                      Todavía no está como tarea en Blackboard
-                    </small>
-                  )}
-                </li>
-              ))}
-            </ul>
+      <div className="campu-says">
+        <img
+          src="/assets/campu/campu-wave-v2-192.webp"
+          width="72"
+          height="72"
+          alt=""
+          aria-hidden="true"
+        />
+        <p>{sentence(items, u)}</p>
+      </div>
+      {counts.some(Boolean) && (
+        <>
+          <div className="campu-weeks" role="tablist" aria-label="Lo que viene">
+            {counts.map((count, n) => (
+              <button
+                key={n}
+                type="button"
+                role="tab"
+                aria-selected={n === active}
+                aria-label={`${cellLabel(u, n)}, ${count} ${count === 1 ? "cosa" : "cosas"}`}
+                disabled={!count}
+                onClick={() => setPicked(n)}
+              >
+                <span>{cellLabel(u, n)}</span>
+                <span className="campu-pips" aria-hidden="true">
+                  {Array.from({ length: Math.min(count, 3) }, (_, k) => (
+                    <i key={k} />
+                  ))}
+                </span>
+              </button>
+            ))}
           </div>
-        );
-      })}
-      {!!items.filter((i) => i.bucket === "unscheduled").length && (
-        <div>
-          <h3>Sin fecha confirmada</h3>
-          <ul className="campu-upcoming-list">
+          <ul className="campu-upcoming-list" role="tabpanel">
             {items
-              .filter((i) => i.bucket === "unscheduled")
+              .filter((i) => cellOf(u, i) === active)
               .map((i, n) => (
                 <li key={`${i.courseId}|${i.title}|${n}`}>
-                  <p className="campu-eyebrow">{i.course}</p>
-                  <strong>{i.title}</strong>
-                  {i.when.text && <p>El cronograma dice: {i.when.text}</p>}
-                  {!i.inBlackboard && (
-                    <small className="campu-badge">
-                      Todavía no está como tarea en Blackboard
+                  <div>
+                    <strong>{i.title}</strong>
+                    <small>
+                      {i.course}
+                      {!i.inBlackboard && <em>Aún no está en Blackboard</em>}
                     </small>
-                  )}
+                  </div>
+                  <span className="campu-date">{rangeLabel(i.from, i.to)}</span>
                 </li>
               ))}
           </ul>
-        </div>
+        </>
+      )}
+      {!!undated.length && (
+        <p className="campu-undated">
+          Sin fecha confirmada: {undated.map((i) => i.title).join(", ")}
+        </p>
       )}
     </section>
   );
@@ -903,7 +961,9 @@ export default function CampuUpdates() {
                   ))}
                 </section>
               )}
-              {context?.upcoming && <UpcomingView upcoming={context.upcoming} />}
+              {context?.upcoming && (
+                <UpcomingView upcoming={context.upcoming} />
+              )}
               {context && (
                 <section className="campu-card campu-context">
                   <p className="campu-eyebrow">
