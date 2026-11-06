@@ -347,3 +347,10 @@ test('la ficha indexable lleva ProfilePage y la que no, solo migas de pan',async
  assert.doesNotMatch(con,/AggregateRating|"@type":"Review"/);
  assert.match(con,/<title>Ana Prueba \(UPC\): 7\/10 · 3 opiniones \| Campus<\/title>/);
 });
+
+test('profile invites visitors to connect their AI, and only on the profile page',()=>{
+ const body=profileBody(data);
+ assert.equal(body.match(/href="\/app\/copilot\/"/g)?.length,1);assert.match(body,/Conectar mi IA/);
+ assert.ok(body.indexOf('prof-public__connect')<body.indexOf('prof-public__columns'),'CTA must appear above the reviews');
+ assert.doesNotMatch(formBody(data),/\/app\/copilot\//);assert.doesNotMatch(directoryBody({professors:[],query:'',total:0,page:1,pages:1}),/\/app\/copilot\//);
+});

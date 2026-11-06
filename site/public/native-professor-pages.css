@@ -158,3 +158,11 @@ body:has([data-professor-profile])>.site-header.is-scrolled{position:relative;to
 #program-tab-4:focus-visible ~ .prof-public__tab-list label:nth-child(5){outline:3px solid #0b6a8a;outline-offset:2px}
 
 .prof-public__native>a.prof-public__more{display:flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;margin-top:22px;text-decoration:none;line-height:1.5}
+
+.prof-public__connect{display:flex;align-items:center;gap:16px;margin:0 0 20px;padding:16px 20px;border:1px solid #cfe3e4;border-radius:12px;background:#f1f8f8}
+.prof-public__connect-icon{display:inline-flex;flex:none;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:#fff;color:#23656b}
+.prof-public__connect>div{flex:1;min-width:0}
+.prof-public__connect h2{margin:0 0 4px;font-size:.98rem}
+.prof-public__connect p{margin:0;font-size:.82rem;line-height:1.6;color:var(--muted)}
+.prof-public__connect .button{flex:none;white-space:nowrap}
+@media(max-width:640px){.prof-public__connect{flex-direction:column;align-items:stretch;text-align:left}.prof-public__connect-icon{display:none}.prof-public__connect .button{text-align:center;justify-content:center}}
