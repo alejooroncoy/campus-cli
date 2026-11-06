@@ -361,21 +361,24 @@ try {
       );
       assert.ok(await page.getByText("Antes no tenía nota registrada.").count());
       assert.ok(await page.getByText("Peso: 15%").count());
-      // Lo que viene: lo siguiente por hacer, marcado si no es tarea en Blackboard.
+      // Lo que viene: pestañas con contador, una lista a la vez, sin lo ya entregado.
       const viene = page.locator(".campu-upcoming");
-      await viene.getByRole("heading", { name: "Lo que viene." }).waitFor();
-      assert.ok(await viene.getByText("Semana 5 del ciclo", { exact: false }).count());
-      assert.ok(await viene.getByRole("heading", { name: "La próxima semana" }).count());
-      assert.ok(await viene.getByText("TP1", { exact: true }).count());
-      assert.ok(await viene.getByText("Curso de prueba · Lo siguiente").count());
-      assert.ok(await viene.getByText("Viene después de lo que ya hiciste: TB1.").count());
-      assert.equal(
-        await viene.getByText("Todavía no está como tarea en Blackboard").count(),
-        2,
+      await viene.getByRole("heading", { name: "Lo que viene" }).waitFor();
+      assert.ok(await viene.getByText("Semana 5", { exact: true }).count());
+      assert.deepEqual(
+        (await viene.getByRole("tab").allInnerTexts()).map((t) => t.replace(/\s+/g, " ")),
+        ["Esta semana 1", "Próxima 1", "Sin fecha 1"],
       );
-      assert.ok(await viene.getByText("El cronograma dice: dos semanas después de la PC2").count());
-      // Lo ya entregado no se repite como pendiente.
+      // Abre en la primera pestaña con algo; el título con HTML queda como texto.
+      assert.ok(await viene.getByText("TB2 <img", { exact: false }).count());
       assert.equal(await viene.getByText("TB1", { exact: true }).count(), 0);
+      await viene.getByRole("tab", { name: /Próxima/ }).click();
+      assert.ok(await viene.getByText("TP1", { exact: true }).count());
+      assert.ok(await viene.getByText("28 set–4 oct", { exact: true }).count());
+      assert.ok(await viene.getByText("Aún no está en Blackboard").count());
+      await viene.getByRole("tab", { name: /Sin fecha/ }).click();
+      assert.ok(await viene.getByText("Examen final", { exact: true }).count());
+      assert.equal(await viene.getByText("TP1", { exact: true }).count(), 0);
       assert.equal(await page.evaluate(() => !!window.injected), false);
       assert.ok(await page.getByText("Ya no aparece en la fuente", { exact: false }).count());
       assert.ok(

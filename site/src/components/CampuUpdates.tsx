@@ -174,89 +174,74 @@ async function requestApi(path: string, method = "GET", body?: unknown) {
   if (!r.ok) throw Error(message(data.error));
   return data;
 }
-const dayLabel = (v: string) =>
+const shortDay = (v: string) =>
   new Intl.DateTimeFormat("es-PE", {
     day: "numeric",
-    month: "long",
+    month: "short",
     timeZone: "UTC",
-  }).format(new Date(v + "T00:00:00Z"));
-const rangeLabel = (from: string | null, to: string | null) =>
-  !from || !to
-    ? "Sin fecha confirmada"
-    : from === to
-      ? dayLabel(from)
-      : `${dayLabel(from)} al ${dayLabel(to)}`;
-const upcomingGroups = [
+  })
+    .format(new Date(v + "T00:00:00Z"))
+    .replace(".", "");
+/** "22 nov", "9–15 nov" o "30 nov–6 dic": lo mínimo para ubicar la fecha. */
+const rangeLabel = (from: string | null, to: string | null) => {
+  if (!from || !to) return "Sin fecha";
+  if (from === to) return shortDay(from);
+  const [a, b] = [shortDay(from), shortDay(to)];
+  const [dayA, monthA] = a.split(" "),
+    [, monthB] = b.split(" ");
+  return monthA === monthB ? `${dayA}–${b}` : `${a}–${b}`;
+};
+const upcomingTabs = [
   ["this_week", "Esta semana"],
-  ["next_week", "La próxima semana"],
-  ["later", "Más adelante"],
+  ["next_week", "Próxima"],
+  ["later", "Después"],
+  ["unscheduled", "Sin fecha"],
 ] as const;
 
 /** Lo que el cronograma de tus cursos programa, aunque Blackboard todavía no lo
  * tenga como tarea. Las fechas las calcula el servidor con el calendario de Mi UPC. */
 function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
   const items = u.items.filter((i) => i.studentAction && !i.done);
-  if (!items.length) return null;
+  const tabs = upcomingTabs.filter(([b]) => items.some((i) => i.bucket === b));
+  const [picked, setPicked] = useState<string | null>(null);
+  if (!tabs.length) return null;
+  const active = tabs.find(([b]) => b === picked)?.[0] ?? tabs[0][0];
   return (
     <section className="campu-card campu-upcoming">
-      <p className="campu-eyebrow">
-        Semana {u.week} del ciclo · {rangeLabel(u.from, u.to)}
-      </p>
-      <h2>Lo que viene.</h2>
-      <p className="campu-muted">
-        Sale del cronograma de tus cursos. Si algo todavía no aparece como tarea
-        en Blackboard, te lo marco para que no te tome por sorpresa.
-      </p>
-      {upcomingGroups.map(([bucket, title]) => {
-        const group = items.filter((i) => i.bucket === bucket);
-        if (!group.length) return null;
-        return (
-          <div key={bucket}>
-            <h3>{title}</h3>
-            <ul className="campu-upcoming-list">
-              {group.map((i, n) => (
-                <li key={`${i.courseId}|${i.title}|${n}`}>
-                  <p className="campu-eyebrow">
-                    {i.course}
-                    {i.next ? " · Lo siguiente" : ""}
-                  </p>
-                  <strong>{i.title}</strong>
-                  <p>{rangeLabel(i.from, i.to)}</p>
-                  {i.after && (
-                    <small>Viene después de lo que ya hiciste: {i.after}.</small>
-                  )}
-                  {!i.inBlackboard && (
-                    <small className="campu-badge">
-                      Todavía no está como tarea en Blackboard
-                    </small>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
-      {!!items.filter((i) => i.bucket === "unscheduled").length && (
-        <div>
-          <h3>Sin fecha confirmada</h3>
-          <ul className="campu-upcoming-list">
-            {items
-              .filter((i) => i.bucket === "unscheduled")
-              .map((i, n) => (
-                <li key={`${i.courseId}|${i.title}|${n}`}>
-                  <p className="campu-eyebrow">{i.course}</p>
-                  <strong>{i.title}</strong>
-                  {i.when.text && <p>El cronograma dice: {i.when.text}</p>}
-                  {!i.inBlackboard && (
-                    <small className="campu-badge">
-                      Todavía no está como tarea en Blackboard
-                    </small>
-                  )}
-                </li>
-              ))}
-          </ul>
-        </div>
-      )}
+      <header>
+        <h2>Lo que viene</h2>
+        <span className="campu-muted">Semana {u.week}</span>
+      </header>
+      <div className="campu-tabs" role="tablist" aria-label="Lo que viene">
+        {tabs.map(([bucket, title]) => (
+          <button
+            key={bucket}
+            type="button"
+            role="tab"
+            aria-selected={bucket === active}
+            onClick={() => setPicked(bucket)}
+          >
+            {title}
+            <span>{items.filter((i) => i.bucket === bucket).length}</span>
+          </button>
+        ))}
+      </div>
+      <ul className="campu-upcoming-list" role="tabpanel">
+        {items
+          .filter((i) => i.bucket === active)
+          .map((i, n) => (
+            <li key={`${i.courseId}|${i.title}|${n}`}>
+              <div>
+                <strong>{i.title}</strong>
+                <small>
+                  {i.course}
+                  {!i.inBlackboard && <em>Aún no está en Blackboard</em>}
+                </small>
+              </div>
+              <span className="campu-date">{rangeLabel(i.from, i.to)}</span>
+            </li>
+          ))}
+      </ul>
     </section>
   );
 }
@@ -903,7 +888,9 @@ export default function CampuUpdates() {
                   ))}
                 </section>
               )}
-              {context?.upcoming && <UpcomingView upcoming={context.upcoming} />}
+              {context?.upcoming && (
+                <UpcomingView upcoming={context.upcoming} />
+              )}
               {context && (
                 <section className="campu-card campu-context">
                   <p className="campu-eyebrow">
