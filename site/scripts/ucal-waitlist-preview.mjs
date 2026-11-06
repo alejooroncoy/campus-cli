@@ -18,4 +18,4 @@ const server=createServer(async(req,res)=>{
  try{const filename=resolve(root,'.'+decodeURIComponent(url.pathname)+(url.pathname.endsWith('/')?'index.html':''));if(!filename.startsWith(root+sep))throw Error();const data=await readFile(filename);const type={'.html':'text/html','.js':'application/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.webp':'image/webp','.woff2':'font/woff2'}[extname(filename)]??'application/octet-stream';res.writeHead(200,{'content-type':type});res.end(data);}
  catch{res.writeHead(404);res.end('Not found');}
 });
-server.listen(4876,'127.0.0.1',()=>console.log('Synthetic waitlist fixture: http://127.0.0.1:4876/ucal/'));
+server.listen(4876,'127.0.0.1',()=>console.log('Synthetic waitlist fixture: http://127.0.0.1:4876/upc-compra-ucal/'));

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {handleUcalWaitlist} from '../api/ucal-waitlist.js';
 import {UCAL_CONSENT,waitlistKey,encryptWaitlistEmail,decryptWaitlistEmail,unsubscribeToken,unsubscribeId} from '../src/lib/ucal-waitlist.mjs';
+import {registrySnapshot,renderRegistry,registryHandler} from './ucal-waitlist-registry.mjs';
 const secret='11'.repeat(32),key=waitlistKey(secret),id='11111111-1111-4111-8111-111111111111';
 const env={CAMPUS_UCAL_SECRET:secret,RESEND_API_KEY:'test-only'};
 const input={action:'subscribe',email:' Student@example.invalid ',consent:UCAL_CONSENT,website:''};
@@ -47,4 +48,17 @@ test('unsubscribe is a signed deletion, including provider one-click POSTs',asyn
 test('encrypted emails reject tampering; public handlers fail closed without configuration',async()=>{
  const cipher=encryptWaitlistEmail('student@example.invalid',key);const bytes=Buffer.from(cipher,'base64url');bytes[bytes.length-1]^=1;assert.throws(()=>decryptWaitlistEmail(bytes.toString('base64url'),key));
  assert.equal((await handleUcalWaitlist(req(),{env:{},store:fixture().store})).status,503);
+});
+test('private registry reads in a read-only transaction and safely displays decrypted records',async()=>{
+ const email='student@example.invalid',cipher=encryptWaitlistEmail(email,key),calls=[];
+ const sql={begin:async(mode,fn)=>{assert.equal(mode,'read only');return fn(async(strings,...values)=>{calls.push([strings.join('?'),values]);return calls.length===1?[{total:1,pending:1,confirmed:0,notified:0,expired:0}]:[{encrypted_email:cipher,state:'pending',requested_at:new Date(),expired:false}];});}};
+ const data=await registrySnapshot(sql,key,2);assert.equal(data.rows[0].email,email);assert.equal(data.rows[0].encrypted_email,undefined);assert.equal(calls[1][1][0],100);
+ const html=renderRegistry({...data,rows:[{...data.rows[0],email:'<script>alert(1)</script>'}]});assert(html.includes('&lt;script&gt;'));assert(!html.includes('<script>'));assert(!html.includes(cipher));
+});
+test('local registry rejects anonymous, invalid-host and cross-origin requests before reading data',async()=>{
+ let reads=0;const token='a'.repeat(64),handler=registryHandler({origin:'http://127.0.0.1:4877',token,snapshot:async()=>{reads++;return {counts:{total:0,pending:0,confirmed:0,notified:0,expired:0},rows:[],page:0};}});
+ async function call(url,headers={},method='GET'){const res={writeHead(status,headers){this.status=status;this.headers=headers;},end(body){this.body=body;}};await handler({url,headers:{host:'127.0.0.1:4877',...headers},method},res);return res;}
+ assert.equal((await call('/')).status,403);assert.equal((await call('/',{host:'other.invalid'})).status,404);assert.equal((await call('/',{},'POST')).status,404);assert.equal((await call('/?access='+'é'.repeat(64))).status,403);assert.equal(reads,0);
+ const access=await call('/?access='+token);assert.equal(access.status,303);assert.equal(access.headers.location,'/');assert.match(access.headers['set-cookie'],/HttpOnly; SameSite=Strict/);assert.equal(reads,0);
+ const allowed=await call('/',{cookie:'campus_ucal_registry='+token});assert.equal(allowed.status,200);assert.equal(reads,1);assert.match(allowed.headers['cache-control'],/no-store/);assert.match(allowed.body,/Todavía no hay inscripciones/);
 });

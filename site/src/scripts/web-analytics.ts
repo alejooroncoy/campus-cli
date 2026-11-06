@@ -34,7 +34,7 @@ export function engageCampaign(search: string): Record<string, string> {
 }
 // These are route families, never user-provided paths, slugs or conversation IDs.
 const paths: Record<string, string> = {
-  home: '/', ucal: '/ucal/', app: '/app/', assistant: '/app/asistente/', connect: '/app/copilot/',
+  home: '/', ucal: '/upc-compra-ucal/', app: '/app/', assistant: '/app/asistente/', connect: '/app/copilot/',
   profile: '/app/perfil/', plus: '/app/plus/', turnitin_app: '/app/turnitin/',
   turnitin: '/turnitin/', professors: '/profes/', professor_directory: '/profes/upc/',
   professor_profile: '/profes/upc/:professor/', professor_review_form: '/profes/upc/:professor/escribir/',

@@ -1,6 +1,20 @@
 # UCAL availability notice list
 
-`/ucal/` accepts an email and a separate, unchecked consent to the availability notice. It does not create an account or university connection. The visitor must click the confirmation button from their email before becoming eligible for the notice.
+`/upc-compra-ucal/` accepts an email and a separate, unchecked consent to the availability notice. `/ucal/` permanently redirects to it. Existing confirmation and unsubscribe links under `/ucal/avisos/` remain valid. It does not create an account or university connection. The visitor must click the confirmation button from their email before becoming eligible for the notice.
+
+## View registrations privately
+
+The registry is `campus_growth.ucal_waitlist` in the private Neon database. Emails are encrypted, so the Neon table editor alone cannot display them. There is no public admin endpoint.
+
+Start the local read-only viewer with the operator database connection and encryption key. Use private environment files outside the repository; never the public frontend environment:
+
+```sh
+node --env-file=/absolute/private/database.env --env-file=/absolute/private/ucal-key.env site/scripts/ucal-waitlist-registry.mjs
+```
+
+The database file supplies `CAMPUS_UCAL_ADMIN_DATABASE_URL` (or `DATABASE_URL_UNPOOLED` / `DATABASE_URL`); the key file supplies `CAMPUS_UCAL_SECRET`. Open the private URL printed by the command. It listens only on `127.0.0.1:4877`, requires a random per-process access link, then removes it from the URL and uses an HttpOnly, SameSite cookie. No data or key is logged. Each page/refresh reads the current list in a read-only transaction, with 50 rows per page, decrypted emails, registration dates and pending/confirmed/notified/expired counts. Expired emails are hidden; notified email ciphertext has already been removed by dispatch.
+
+Click **Actualizar lista** for new registrations. Stop the process to revoke the local viewer session. The viewer cannot send emails or edit records; use the operational sender below when availability has been verified.
 
 ## Provisioning
 
