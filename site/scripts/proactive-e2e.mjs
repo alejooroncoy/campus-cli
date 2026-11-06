@@ -286,6 +286,7 @@ try {
       failNotices = false,
       noticesFailed = 0,
       failWeek = false,
+      weekAlt = false,
       weekFailed = 0,
       weekDelay = 0,
       weekStarted = 0;
@@ -353,6 +354,11 @@ try {
             ? { ok: true }
             : { notice: { id: noticeId, contextId }, events },
         );
+      if (path === "/api/app/proactive/week" && weekAlt)
+        return json({
+          ...prepared,
+          upcoming: { ...prepared.upcoming, items: [prepared.upcoming.items[0]] },
+        });
       if (
         path === "/api/app/proactive/week" ||
         path === "/api/app/proactive/contexts/" + contextId
@@ -589,6 +595,16 @@ try {
       await page
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
         .waitFor({ timeout: 8000 });
+      // El resumen cambia con la celda elegida ya vacía: vuelve a la primera con algo.
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      const cambio = page.locator(".campu-upcoming");
+      await cambio.getByRole("tab", { name: /Próxima/ }).click();
+      weekAlt = true;
+      await page.getByRole("button", { name: "Ver mi resumen de esta semana" }).click();
+      await cambio.locator("li").getByText("TB2 <img", { exact: false }).waitFor();
+      weekAlt = false;
+      assert.equal(await cambio.locator("li").count(), 1);
+      assert.equal(await cambio.getByRole("tab").first().getAttribute("aria-selected"), "true");
       assert.deepEqual(errors, []);
       console.log(
         JSON.stringify({

@@ -250,12 +250,14 @@ function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
   const undated = items.filter((i) => cellOf(u, i) < 0);
   const [picked, setPicked] = useState<number | null>(null);
   if (!items.length) return null;
+  // Si el resumen cambió y la celda elegida quedó vacía, vuelve a la primera con algo.
   const active =
-    picked ??
-    Math.max(
-      counts.findIndex((c) => c > 0),
-      0,
-    );
+    picked !== null && counts[picked] > 0
+      ? picked
+      : Math.max(
+          counts.findIndex((c) => c > 0),
+          0,
+        );
   return (
     <section className="campu-card campu-upcoming">
       <div className="campu-says">
