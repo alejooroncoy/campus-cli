@@ -166,3 +166,4 @@ body:has([data-professor-profile])>.site-header.is-scrolled{position:relative;to
 .prof-public__connect p{margin:0;font-size:.82rem;line-height:1.6;color:var(--muted)}
 .prof-public__connect .button{flex:none;white-space:nowrap}
 @media(max-width:640px){.prof-public__connect{flex-direction:column;align-items:stretch;text-align:left}.prof-public__connect-icon{display:none}.prof-public__connect .button{text-align:center;justify-content:center}}
+.prof-public__header-actions .button.prof-public__button-secondary{background:#fff;color:#1b3a46;border:1px solid #b9cfd1;box-shadow:none}.prof-public__header-actions .button.prof-public__button-secondary:hover{background:#f1f8f8}
