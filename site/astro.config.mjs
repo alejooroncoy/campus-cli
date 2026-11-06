@@ -93,7 +93,7 @@ export default defineConfig({
     { name: "campus-library-robots", hooks: { "astro:build:done": ({ dir }) => { if (libraryServiceEnabled) appendFileSync(new URL("robots.txt", dir), "\nSitemap: https://campuscli.com/biblioteca/sitemap.xml\n"); } } },
     react(),
     sitemap({
-      filter: (page) => !new URL(page).pathname.startsWith("/biblioteca/plantilla/") && !new URL(page).pathname.startsWith("/app/") && !new URL(page).pathname.startsWith("/profes/plantilla/") && (turnitinServiceEnabled || !new URL(page).pathname.startsWith("/turnitin/")),
+      filter: (page) => !new URL(page).pathname.startsWith("/ucal/avisos/") && !new URL(page).pathname.startsWith("/biblioteca/plantilla/") && !new URL(page).pathname.startsWith("/app/") && !new URL(page).pathname.startsWith("/profes/plantilla/") && (turnitinServiceEnabled || !new URL(page).pathname.startsWith("/turnitin/")),
       // A sitemap has no line breaks, so a browser shows one unreadable run of
       // text and the file looks broken even when it validates. Crawlers ignore
       // the stylesheet; it is there so a person can check the list.

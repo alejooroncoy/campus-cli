@@ -1,13 +1,12 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { CHARACTER_NAME } from '../../lib/character.mjs';
 import { ucal, ucalFaq } from '../../data/ucal';
 import '../../styles/ucal.css';
 const icon = (name: string) => `/assets/lucide.svg#${name}`;
 const tools = [
-  { n: '01', icon: 'users', tag: 'CONOCE UPC', title: 'Elige con más contexto.', description: 'Descubre opiniones de estudiantes sobre profesores UPC. Conoce cómo enseñan y qué experiencias comparten sus alumnos.', label: 'Explorar profesores UPC', href: '/profes/', note: 'La cobertura depende del profesor y del curso.' },
+  { n: '01', icon: 'users', tag: 'CONOCE UPC', title: 'Elige con más contexto.', description: 'Descubre opiniones de estudiantes sobre profesores UPC. Conoce cómo enseñan y qué experiencias comparten sus alumnos.', label: 'Quiero recibir el aviso', href: '#avisame', note: 'La cobertura depende del profesor y del curso.' },
   { n: '02', icon: 'file-text', tag: 'PARA TUS TRABAJOS', title: 'Llega mejor a tu entrega.', description: 'Revisa citas, referencias y formato APA 7 con las guías de Campus. También puedes calcular tu promedio con notas y créditos.', label: 'Ver herramientas gratuitas', href: '/herramientas/', note: 'Herramientas abiertas, sin conectar tu universidad.' },
-  { n: '03', icon: 'book-open', tag: 'CUANDO TENGAS ACCESO UPC', title: 'Tu aula, más a la mano.', description: 'Consulta cursos, tareas, notas y materiales de Blackboard desde una IA compatible, con tu propia cuenta UPC habilitada.', label: 'Conocer Blackboard con Campus', href: '/blackboard-upc/', note: 'Requiere una cuenta UPC habilitada y compatible.' },
+  { n: '03', icon: 'book-open', tag: 'CUANDO TENGAS ACCESO UPC', title: 'Tu aula, más a la mano.', description: 'Consulta cursos, tareas, notas y materiales de Blackboard desde una IA compatible, con tu propia cuenta UPC habilitada.', label: 'Avísenme cuando pueda empezar', href: '#avisame', note: 'Requiere una cuenta UPC habilitada y compatible.' },
 ];
 const schemas = [
   { '@context': 'https://schema.org', '@type': 'WebPage', '@id': ucal.url+'#webpage', url: ucal.url, name: ucal.title, description: ucal.description, dateModified: ucal.updated, inLanguage: 'es-PE', isPartOf: {'@id': 'https://campuscli.com/#website'}, citation: [ucal.gestion, ucal.investing, ucal.release] },
@@ -18,7 +17,7 @@ const schemas = [
 <Base title={ucal.title} description={ucal.description} canonical={ucal.url} markdownUrl={`${ucal.url}index.md`} schemas={schemas}
   ogTitle="UPC adquiere UCAL por US$35 millones" ogDescription={ucal.description}
   ogImage="https://campuscli.com/assets/og-ucal.png" ogImageType="image/png" ogImageAlt="UPC adquiere UCAL por US$35 millones. Una guía para estudiantes, por Campus."
-  headerAction={{ label: 'Conocer Campus', href: '/app/?ref=ucal-header' }}>
+  headerAction={{ label: 'Recibir aviso', href: '#avisame' }}>
   <link slot="head" rel="stylesheet" href="/campus-landing.css" />
   <main class="campus-landing ucal-page">
     <div class="ucal-top shell"><a href="/">Campus</a><span aria-hidden="true">/</span><span>Para estudiantes de UCAL</span><a class="ucal-top__jump" href="#integracion">Sobre la integración <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-down')}></use></svg></a></div>
@@ -27,19 +26,25 @@ const schemas = [
         <p class="cp-kicker"><span></span> UCAL → UPC · VAMOS CONTIGO</p>
         <h1 id="ucal-title">UPC adquiere UCAL<br>por <em>US$35 millones.</em></h1>
         <p class="cp-lead">Laureate anunció la compra el 5 de noviembre de 2026. La integración está prevista para el 16 de febrero de 2027.</p>
-        <p class="ucal-hero__student">¿Estudias en UCAL? Conoce profesores UPC y las herramientas de Campus para tu siguiente etapa.</p>
-        <div class="cp-actions"><a class="button" href="#incluye">Ver cómo me ayuda Campus <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-right')}></use></svg></a><a class="cp-link" href="/profes/">Explorar profesores <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-up-right')}></use></svg></a></div>
-        <p class="ucal-hero__note">Hecho por estudiantes. Para acompañarte en tu día a día.</p>
+        <p class="ucal-hero__student">¿Estudias en UCAL? Déjanos un correo que seguirás usando. Te avisaremos cuando puedas empezar en Campus con tu acceso UPC.</p>
+        <div class="cp-actions"><a class="button" href="#avisame">Quiero que me avisen <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-right')}></use></svg></a><a class="cp-link" href="#integracion">Sobre la integración <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-up-right')}></use></svg></a></div>
+        <p class="ucal-hero__note">Sin cuenta UPC por ahora. Confirma tu correo para recibir el aviso.</p>
       </div>
-      <aside class="ucal-kit" aria-labelledby="kit-title">
-        <div class="ucal-kit__bar"><span><img src="/assets/campus-logo.webp" width="24" height="24" alt="" /> Campus</span><span>PARA TU NUEVA ETAPA</span></div>
-        <div class="ucal-kit__welcome"><img src="/assets/campu-avatar-90.png" width="72" height="72" alt="" /><div><span>TU COMPAÑERO DE CICLO</span><h2 id="kit-title">Vamos paso a paso.</h2><p>Empieza por lo que necesitas hoy.</p></div></div>
-        <div class="ucal-kit__links">
-          <a href="/profes/"><span class="ucal-kit__icon"><svg class="cp-icon" aria-hidden="true"><use href={icon('users')}></use></svg></span><span><strong>Quiero conocer a los profes</strong><small>Opiniones de estudiantes UPC</small></span><svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-up-right')}></use></svg></a>
-          <a href="/herramientas/formato-apa-7/"><span class="ucal-kit__icon"><svg class="cp-icon" aria-hidden="true"><use href={icon('file-text')}></use></svg></span><span><strong>Tengo un trabajo por entregar</strong><small>Guías y formato APA 7</small></span><svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-up-right')}></use></svg></a>
-          <a href="/herramientas/promedio-ponderado/"><span class="ucal-kit__icon"><svg class="cp-icon" aria-hidden="true"><use href={icon('graduation-cap')}></use></svg></span><span><strong>Quiero calcular mi promedio</strong><small>Tus notas y créditos, más claros</small></span><svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-up-right')}></use></svg></a>
-        </div>
-        <div class="ucal-kit__foot"><span class="ucal-status" aria-hidden="true"></span> Herramientas para empezar desde hoy <a href="/herramientas/">Ver todas <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-right')}></use></svg></a></div>
+      <aside class="ucal-kit ucal-signup" id="avisame" aria-labelledby="signup-title">
+        <div class="ucal-kit__bar"><span><img src="/assets/campus-logo.webp" width="24" height="24" alt="" /> Campus</span><span>PARA ESTUDIANTES UCAL</span></div>
+        <div class="ucal-kit__welcome"><img src="/assets/campu-avatar-90.png" width="72" height="72" alt="" /><div><span>TE ACOMPAÑAMOS EN LO QUE VIENE</span><h2 id="signup-title">Te avisamos cuando esté listo.</h2><p>Déjanos tu correo para avisarte.</p></div></div>
+        <form class="ucal-form" method="post" action="/api/ucal-waitlist" data-ucal-signup>
+          <label class="ucal-form__label" for="ucal-email">Tu correo</label>
+          <input id="ucal-email" name="email" type="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="tu@correo.com" required aria-describedby="email-hint" />
+          <p class="ucal-form__hint" id="email-hint">Puede ser personal. Elige uno al que seguirás teniendo acceso.</p>
+          <div class="ucal-form__trap" aria-hidden="true"><label>Sitio web<input name="website" type="text" tabindex="-1" autocomplete="off" /></label></div>
+          <label class="ucal-form__consent"><input name="consent" type="checkbox" required /><span>Quiero que Campus me avise por correo cuando pueda empezar a usarlo con mi acceso UPC. <a href="/privacidad/#avisos-ucal" target="_blank" rel="noopener noreferrer">Cómo se usa mi correo</a>.</span></label>
+          <button class="button" type="submit" disabled data-ucal-submit>Avísenme cuando esté listo <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-right')}></use></svg></button>
+          <p class="ucal-form__feedback" role="status" aria-live="polite" data-ucal-status></p>
+          <noscript><p class="ucal-form__hint">Activa JavaScript para inscribirte o escribe a info@campuscli.com.</p></noscript>
+        </form>
+        <div class="ucal-form ucal-form__success" data-ucal-pending hidden><svg class="cp-icon" aria-hidden="true"><use href={icon('check')}></use></svg><h3>Revisa tu correo.</h3><p>Si tu correo aún no está confirmado, recibirás un enlace para completar la inscripción. Si ya lo confirmaste antes, no necesitas repetirlo.</p><button class="cp-link" type="button" data-ucal-retry>Usar otro correo</button></div>
+        <div class="ucal-kit__foot">Una confirmación y el aviso que autorizaste. Puedes darte de baja.</div>
       </aside>
     </section>
 
@@ -50,7 +55,7 @@ const schemas = [
       <div class="ucal-tools__grid">{tools.map(tool => <article><div class="ucal-tools__top"><svg class="cp-icon" aria-hidden="true"><use href={icon(tool.icon)}></use></svg><span>{tool.n} / {tool.tag}</span></div><h3>{tool.title}</h3><p>{tool.description}</p><a href={tool.href}>{tool.label}<svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-right')}></use></svg></a><small>{tool.note}</small></article>)}</div>
     </section>
 
-    <section class="ucal-access shell" aria-labelledby="access-title"><div class="ucal-access__intro"><p class="cp-kicker">A TU RITMO</p><h2 id="access-title">Empieza donde<br>estás ahora.</h2><p>No necesitas esperar a la integración para explorar las herramientas abiertas.</p></div><div class="ucal-access__options"><article><span class="ucal-access__label">SI TODAVÍA USAS TU CUENTA UCAL</span><h3>Conoce Campus desde hoy.</h3><p>Usa APA 7, calcula tu promedio y explora las opiniones sobre profesores UPC.</p><a class="cp-link" href="/herramientas/">Abrir herramientas <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-right')}></use></svg></a></article><article><span class="ucal-access__label">SI YA TIENES ACCESO UPC HABILITADO</span><h3>Descubre lo que puedes conectar.</h3><p>Con una cuenta compatible, consulta tu aula con Campus. Tú autorizas la conexión.</p><a class="cp-link" href="/app/?ref=ucal-access">Conocer a {CHARACTER_NAME} <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-right')}></use></svg></a></article></div></section>
+
 
     <section class="ucal-integration shell" id="integracion" aria-labelledby="integration-title">
       <div class="ucal-integration__card">
@@ -72,6 +77,7 @@ const schemas = [
 
     <section class="cp-faq shell" id="faq" aria-labelledby="ucal-faq-title"><div><p class="cp-kicker">TODO CLARO, DESDE EL INICIO</p><h2 id="ucal-faq-title">Antes de empezar.</h2><p class="ucal-faq__intro">Sobre la integración, tu cuenta y lo que Campus puede hacer por ti.</p></div><div class="cp-faq__items">{ucalFaq.map(({q,a}) => <details><summary>{q}<svg class="cp-icon" aria-hidden="true"><use href={icon('plus')}></use></svg></summary><p>{a}</p></details>)}</div></section>
 
-    <section class="ucal-closing cp-final shell"><div><p class="cp-kicker">TU CICLO, CON CAMPUS</p><h2>Hazle espacio<br>a lo que viene.</h2><p>Empieza con una herramienta. Sigue con lo que necesites.</p></div><div><a class="button" href="/herramientas/">Explorar herramientas gratis <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-right')}></use></svg></a><a class="cp-link" href="/app/?ref=ucal-final">Conocer Campus por dentro <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-up-right')}></use></svg></a></div></section>
+    <section class="ucal-closing cp-final shell"><div><p class="cp-kicker">TU CICLO, CON CAMPUS</p><h2>Hazle espacio<br>a lo que viene.</h2><p>Déjanos tu correo y te avisaremos cuando puedas dar el siguiente paso.</p></div><div><a class="button" href="#avisame">Quiero que me avisen <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-right')}></use></svg></a><a class="cp-link" href="#avisame">Recibir el aviso de disponibilidad <svg class="cp-icon" aria-hidden="true"><use href={icon('arrow-up-right')}></use></svg></a></div></section>
   </main>
+<script src="../../scripts/ucal-waitlist.ts"></script>
 </Base>
