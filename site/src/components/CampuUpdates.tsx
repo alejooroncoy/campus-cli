@@ -221,7 +221,8 @@ export default function CampuUpdates() {
     [error, setError] = useState(""),
     [info, setInfo] = useState(""),
     [unsubscribe, setUnsubscribe] = useState<string | null>(null),
-    [deleteOpen, setDeleteOpen] = useState(false);
+    [deleteOpen, setDeleteOpen] = useState(false),
+    [nick, setNick] = useState("");
   const generation = useRef(0),
     owner = useRef<string | null>(null);
   const api = async (path: string, method = "GET", body?: unknown) => {
@@ -325,6 +326,21 @@ export default function CampuUpdates() {
       window.removeEventListener("campus:session-updated", updated);
     };
   }, []);
+  useEffect(() => {
+    setNick(status?.nickname ?? "");
+  }, [status?.nickname]);
+  async function saveNickname(value: string) {
+    const clean = value.trim();
+    if (clean && !/^[\p{L}][\p{L}'’ -]{0,29}$/u.test(clean))
+      throw Error("Usa solo letras, hasta 30.");
+    const result = await api("/nickname", "POST", { nickname: clean });
+    setStatus((s: any) => ({ ...s, ...result }));
+    setInfo(
+      result.nickname
+        ? `Listo, te voy a decir ${result.nickname}.`
+        : "Listo, vuelvo a usar tu nombre.",
+    );
+  }
   async function save(value: Preferences) {
     const result = await api("/preferences", "POST", value);
     track("campus_proactive_preferences_saved", {
@@ -583,6 +599,37 @@ export default function CampuUpdates() {
                       {busy ? "Guardando…" : "Guardar preferencias"}
                     </button>
                   </form>
+                  {status.suggestedNickname !== undefined && (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void guarded(() => saveNickname(nick));
+                      }}
+                    >
+                      <fieldset disabled={busy}>
+                        <legend>Cómo te digo</legend>
+                        <label>
+                          Mi apodo
+                          <input
+                            type="text"
+                            maxLength={30}
+                            autoComplete="nickname"
+                            value={nick}
+                            placeholder={status.suggestedNickname ?? "Tu nombre"}
+                            onChange={(e) => setNick(e.target.value)}
+                          />
+                        </label>
+                        <p className="campu-muted">
+                          Así te saludo en los correos. Si lo dejas vacío uso{" "}
+                          {status.suggestedNickname
+                            ? status.suggestedNickname
+                            : "tu nombre"}
+                          . Cambiarlo no afecta tus avisos ni tus preferencias.
+                        </p>
+                        <button type="submit">Guardar apodo</button>
+                      </fieldset>
+                    </form>
+                  )}
                   <div className="campu-device">
                     <h3>Este dispositivo</h3>
                     <p>

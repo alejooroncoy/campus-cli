@@ -179,7 +179,9 @@ try {
         categories: ["assignments", "grades", "materials", "announcements"],
       },
       saved = 0,
-      deleted = 0;
+      deleted = 0,
+      nickname = null,
+      nicknameCalls = 0;
     await page.route("**/*", async (route) => {
       const url = new URL(route.request().url());
       if (url.origin !== base) return route.abort();
@@ -197,6 +199,8 @@ try {
           available: true,
           status: "active",
           preferences,
+          nickname,
+          suggestedNickname: "Alejo",
           lastSuccessAt: "2026-11-09T13:00:00Z",
           coverage: { complete: false },
           pushPublicKey: "fake-public-key",
@@ -232,6 +236,11 @@ try {
           preferences,
           status: preferences.enabled ? "preparing" : "paused",
         });
+      }
+      if (path === "/api/app/proactive/nickname" && method === "POST") {
+        nicknameCalls++;
+        nickname = JSON.parse(route.request().postData()).nickname || null;
+        return json({ nickname, suggestedNickname: "Alejo" });
       }
       if (path === "/api/app/proactive/data" && method === "DELETE") {
         deleted++;
@@ -273,6 +282,23 @@ try {
         .waitFor();
       assert.equal(saved, 1);
       assert.equal(preferences.email, false);
+      // Apodo: sugerido de entrada, símbolos rechazados sin llamar al servidor,
+      // y guardarlo no toca las preferencias.
+      const apodo = page.getByLabel("Mi apodo");
+      assert.equal(await apodo.getAttribute("placeholder"), "Alejo");
+      await apodo.fill("<b>x</b>");
+      await page.getByRole("button", { name: "Guardar apodo" }).click();
+      await page.getByText("Usa solo letras", { exact: false }).waitFor();
+      assert.equal(nicknameCalls, 0);
+      await apodo.fill("Ale");
+      await page.getByRole("button", { name: "Guardar apodo" }).click();
+      await page.getByText("Listo, te voy a decir Ale.").waitFor();
+      assert.equal(nickname, "Ale");
+      assert.equal(saved, 1);
+      await apodo.fill("");
+      await page.getByRole("button", { name: "Guardar apodo" }).click();
+      await page.getByText("Listo, vuelvo a usar tu nombre.").waitFor();
+      assert.equal(nickname, null);
       assert.equal(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,
