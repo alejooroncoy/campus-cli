@@ -178,6 +178,21 @@ const prepared = {
       {
         courseId: "c1",
         course: "Curso de prueba",
+        title: "Examen parcial",
+        what: "evaluación",
+        studentAction: true,
+        when: { kind: "week", text: "Semana 9" },
+        from: "2026-10-19",
+        to: "2026-10-25",
+        bucket: "later",
+        inBlackboard: true,
+        done: false,
+        next: false,
+        after: null,
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
         title: "Examen final",
         what: "evaluación",
         studentAction: true,
@@ -399,10 +414,15 @@ try {
       assert.ok(await viene.locator("li").getByText("Entrega del domingo", { exact: true }).count());
       assert.ok(await viene.getByText("4 oct", { exact: true }).count());
       assert.ok(await viene.getByText("Aún no está en Blackboard").count());
-      await viene.getByRole("tab", { name: /Después/ }).click();
-      assert.ok(await viene.getByText("Examen final", { exact: true }).count());
-      assert.ok(await viene.getByText("Sin fecha", { exact: true }).count());
+      await viene.getByRole("tab", { name: /Sig\. semanas/ }).click();
+      assert.ok(await viene.locator("li").getByText("Examen parcial", { exact: true }).count());
       assert.equal(await viene.locator("li").getByText("TP1", { exact: true }).count(), 0);
+      // Lo que no tiene fecha no entra en la tira: va en una línea aparte.
+      assert.equal(await viene.locator("li").getByText("Examen final", { exact: true }).count(), 0);
+      assert.equal(
+        (await viene.locator(".campu-undated").innerText()).trim(),
+        "Sin fecha confirmada: Examen final",
+      );
       assert.equal(await page.evaluate(() => !!window.injected), false);
       assert.ok(await page.getByText("Ya no aparece en la fuente", { exact: false }).count());
       assert.ok(

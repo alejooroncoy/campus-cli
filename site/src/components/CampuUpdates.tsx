@@ -192,9 +192,9 @@ const rangeLabel = (from: string | null, to: string | null) => {
   return monthA === monthB ? `${dayA}–${b}` : `${a}–${b}`;
 };
 const WEEK = 7 * 86400_000;
-const CELLS = 5; // esta semana, la próxima, dos más y "Después"
+const CELLS = 5; // esta semana, la próxima, dos más y "Sig. semanas"
 const cellOf = (u: Upcoming, i: UpcomingItem) => {
-  if (!i.from) return CELLS - 1;
+  if (!i.from) return -1; // sin fecha: no entra en la tira
   // Piso, no redondeo: un domingo sigue siendo de su semana.
   const offset = Math.floor(
     (Date.parse(i.from + "T00:00:00Z") - Date.parse(u.from + "T00:00:00Z")) /
@@ -208,7 +208,7 @@ const cellLabel = (u: Upcoming, n: number) =>
     : n === 1
       ? "Próxima"
       : n === CELLS - 1
-        ? "Después"
+        ? "Sig. semanas"
         : `Sem ${u.week + n}`;
 
 /** Campu cuenta en una frase lo que viene; los títulos salen del cronograma y
@@ -220,11 +220,7 @@ function sentence(items: UpcomingItem[], u: Upcoming) {
     .filter((i) => i.from)
     .sort((x, y) => x.from!.localeCompare(y.from!))[0];
   const one = (list: UpcomingItem[]) =>
-    list.length === 1 ? (
-      <b>{list[0].title}</b>
-    ) : (
-      <b>{list.length} cosas</b>
-    );
+    list.length === 1 ? <b>{list[0].title}</b> : <b>{list.length} cosas</b>;
   return (
     <>
       {now.length ? (
@@ -251,9 +247,15 @@ function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
     { length: CELLS },
     (_, n) => items.filter((i) => cellOf(u, i) === n).length,
   );
+  const undated = items.filter((i) => cellOf(u, i) < 0);
   const [picked, setPicked] = useState<number | null>(null);
   if (!items.length) return null;
-  const active = picked ?? Math.max(counts.findIndex((c) => c > 0), 0);
+  const active =
+    picked ??
+    Math.max(
+      counts.findIndex((c) => c > 0),
+      0,
+    );
   return (
     <section className="campu-card campu-upcoming">
       <div className="campu-says">
@@ -266,42 +268,51 @@ function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
         />
         <p>{sentence(items, u)}</p>
       </div>
-      <div className="campu-weeks" role="tablist" aria-label="Lo que viene">
-        {counts.map((count, n) => (
-          <button
-            key={n}
-            type="button"
-            role="tab"
-            aria-selected={n === active}
-            aria-label={`${cellLabel(u, n)}, ${count} ${count === 1 ? "cosa" : "cosas"}`}
-            disabled={!count}
-            onClick={() => setPicked(n)}
-          >
-            <span>{cellLabel(u, n)}</span>
-            <span className="campu-pips" aria-hidden="true">
-              {Array.from({ length: Math.min(count, 3) }, (_, k) => (
-                <i key={k} />
+      {counts.some(Boolean) && (
+        <>
+          <div className="campu-weeks" role="tablist" aria-label="Lo que viene">
+            {counts.map((count, n) => (
+              <button
+                key={n}
+                type="button"
+                role="tab"
+                aria-selected={n === active}
+                aria-label={`${cellLabel(u, n)}, ${count} ${count === 1 ? "cosa" : "cosas"}`}
+                disabled={!count}
+                onClick={() => setPicked(n)}
+              >
+                <span>{cellLabel(u, n)}</span>
+                <span className="campu-pips" aria-hidden="true">
+                  {Array.from({ length: Math.min(count, 3) }, (_, k) => (
+                    <i key={k} />
+                  ))}
+                </span>
+              </button>
+            ))}
+          </div>
+          <ul className="campu-upcoming-list" role="tabpanel">
+            {items
+              .filter((i) => cellOf(u, i) === active)
+              .map((i, n) => (
+                <li key={`${i.courseId}|${i.title}|${n}`}>
+                  <div>
+                    <strong>{i.title}</strong>
+                    <small>
+                      {i.course}
+                      {!i.inBlackboard && <em>Aún no está en Blackboard</em>}
+                    </small>
+                  </div>
+                  <span className="campu-date">{rangeLabel(i.from, i.to)}</span>
+                </li>
               ))}
-            </span>
-          </button>
-        ))}
-      </div>
-      <ul className="campu-upcoming-list" role="tabpanel">
-        {items
-          .filter((i) => cellOf(u, i) === active)
-          .map((i, n) => (
-            <li key={`${i.courseId}|${i.title}|${n}`}>
-              <div>
-                <strong>{i.title}</strong>
-                <small>
-                  {i.course}
-                  {!i.inBlackboard && <em>Aún no está en Blackboard</em>}
-                </small>
-              </div>
-              <span className="campu-date">{rangeLabel(i.from, i.to)}</span>
-            </li>
-          ))}
-      </ul>
+          </ul>
+        </>
+      )}
+      {!!undated.length && (
+        <p className="campu-undated">
+          Sin fecha confirmada: {undated.map((i) => i.title).join(", ")}
+        </p>
+      )}
     </section>
   );
 }

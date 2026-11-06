@@ -390,3 +390,9 @@
   font-size: 13px;
   font-weight: 600;
 }
+.campu-undated {
+  margin: 14px 0 0;
+  color: #6a8593;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
