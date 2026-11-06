@@ -48,6 +48,7 @@ jobs:
       - run: npm --prefix site run check
       - run: npm --prefix site run test:app
       - run: npm --prefix site run test:product-reviews
+      - run: npm --prefix site run test:ucal-waitlist
       - run: npm --prefix site run test:analytics
       - name: Production provenance and anti-rollback release checks
         run: node --test site/scripts/production-release.test.mjs

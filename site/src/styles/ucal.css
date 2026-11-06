@@ -156,3 +156,28 @@
   .ucal-integration__more { margin:20px 0 0; }
   .ucal-integration__more summary { font-size:11px; }
 }
+.ucal-signup { scroll-margin-top:90px; }
+.ucal-signup .ucal-kit__welcome { padding-block:24px; }
+.ucal-page .ucal-signup .ucal-kit__welcome h2 { font-size:23px; }
+.ucal-form { padding:24px; }
+.ucal-form[hidden] { display:none; }
+.ucal-form__label { display:block;font-size:13px;font-weight:600;margin-bottom:10px; }
+.ucal-form>input { width:100%;min-height:48px;padding:12px 14px;border:1px solid #9cb5c2;border-radius:8px;background:var(--paper);color:var(--ink);font:inherit;font-size:16px; }
+.ucal-form__hint { font-size:11px;line-height:1.6;color:var(--muted);margin:9px 0 20px; }
+.ucal-form__consent { display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.7;color:var(--muted);margin:0 0 22px;cursor:pointer; }
+.ucal-form__consent input { width:17px;height:17px;accent-color:#087fa4;flex-shrink:0;margin-top:3px; }
+.ucal-form__consent a { text-decoration:underline;text-underline-offset:3px; }
+.ucal-form .button { width:100%;font-size:13px; }
+.ucal-form .button:disabled { cursor:wait;opacity:.65; }
+.ucal-form__feedback { font-size:12px;line-height:1.7;color:var(--muted);margin:14px 0 0; }
+.ucal-form__feedback:empty { display:none; }
+.ucal-form__trap { position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden; }
+.ucal-form__success>.cp-icon { width:30px;height:30px;color:#087f5b;margin-bottom:15px; }
+.ucal-form__success h3 { font-size:24px;letter-spacing:-.5px;margin:0 0 12px; }
+.ucal-form__success p { font-size:13px;line-height:1.8;color:var(--muted);margin:0 0 22px; }
+.ucal-form__success button { border:0;background:none;padding:0;color:var(--ink);font:inherit;cursor:pointer; }
+.ucal-notice { max-width:640px;margin-block:70px 100px; }
+.ucal-notice h1 { font-size:40px;line-height:1.15;letter-spacing:-1px; }
+.ucal-notice>p:not(.cp-kicker) { font-size:15px;line-height:1.8;color:var(--muted);margin-block:20px; }
+.ucal-notice>a { display:block;margin-top:30px;font-size:13px;text-decoration:underline;text-underline-offset:4px; }
+.ucal-notice [hidden] { display:none; }
