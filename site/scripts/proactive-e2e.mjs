@@ -181,7 +181,14 @@ try {
       saved = 0,
       deleted = 0,
       nickname = null,
-      nicknameCalls = 0;
+      nicknameCalls = 0,
+      statusCalls = 0,
+      failNotices = false,
+      noticesFailed = 0,
+      failWeek = false,
+      weekFailed = 0,
+      weekDelay = 0,
+      weekStarted = 0;
     await page.route("**/*", async (route) => {
       const url = new URL(route.request().url());
       if (url.origin !== base) return route.abort();
@@ -194,7 +201,8 @@ try {
             body: JSON.stringify(data),
           });
       if (path === "/api/app/session") return json(session);
-      if (path === "/api/app/proactive/status")
+      if (path === "/api/app/proactive/status") {
+        statusCalls++;
         return json({
           available: true,
           status: "active",
@@ -205,6 +213,27 @@ try {
           coverage: { complete: false },
           pushPublicKey: "fake-public-key",
         });
+      }
+      if (path === "/api/app/proactive/week") {
+        weekStarted++;
+        if (weekDelay) await new Promise((r) => setTimeout(r, weekDelay));
+      }
+      if (path === "/api/app/proactive/week" && failWeek) {
+        weekFailed++;
+        return route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "PREPARING" }),
+        });
+      }
+      if (path === "/api/app/proactive/notices" && failNotices) {
+        noticesFailed++;
+        return route.fulfill({
+          status: 500,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "TEMPORAL" }),
+        });
+      }
       if (path === "/api/app/proactive/notices")
         return json({
           notices: [
@@ -291,6 +320,17 @@ try {
       await page.getByText("Usa solo letras", { exact: false }).waitFor();
       assert.equal(nicknameCalls, 0);
       await apodo.fill("Ale");
+      // La sesión se revalida cada 15 s y avisa a la página: eso no debe
+      // vaciar la pantalla, volver a pedir el estado ni borrar lo escrito.
+      const antes = statusCalls;
+      await page.evaluate(async () => {
+        const detail = await (await fetch("/api/app/session")).json();
+        for (let i = 0; i < 3; i++)
+          window.dispatchEvent(new CustomEvent("campus:session-updated", { detail }));
+      });
+      await page.waitForTimeout(400);
+      assert.equal(statusCalls, antes);
+      assert.equal(await apodo.inputValue(), "Ale");
       await page.getByRole("button", { name: "Guardar apodo" }).click();
       await page.getByText("Listo, te voy a decir Ale.").waitFor();
       assert.equal(nickname, "Ale");
@@ -354,10 +394,75 @@ try {
           .count(),
         0,
       );
+      // Si /status carga pero los avisos fallan, el siguiente evento de sesión
+      // vuelve a intentarlo en vez de dejar la pantalla sin contenido.
+      failNotices = true;
+      await page.reload();
+      for (let i = 0; i < 50 && !noticesFailed; i++)
+        await page.waitForTimeout(100);
+      assert.ok(noticesFailed >= 1);
+      failNotices = false;
+      const antesReintento = statusCalls;
+      await page.evaluate(
+        (detail) =>
+          window.dispatchEvent(
+            new CustomEvent("campus:session-updated", { detail }),
+          ),
+        session,
+      );
+      await page
+        .getByRole("heading", { name: "Esto es lo que pude revisar." })
+        .waitFor();
+      assert.equal(statusCalls, antesReintento + 1);
+      // El resumen semanal aún no está listo: el siguiente evento reintenta solo
+      // /week, sin vaciar la pantalla ni borrar lo escrito.
+      failWeek = true;
+      await page.goto(base + "/app/novedades/");
+      for (let i = 0; i < 50 && !weekFailed; i++)
+        await page.waitForTimeout(100);
+      assert.ok(weekFailed >= 1);
+      const apodoSemana = page.getByLabel("Mi apodo");
+      await apodoSemana.fill("Ale");
+      failWeek = false;
+      const antesSemana = statusCalls;
+      await page.evaluate(
+        (detail) =>
+          window.dispatchEvent(
+            new CustomEvent("campus:session-updated", { detail }),
+          ),
+        session,
+      );
+      await page
+        .getByRole("heading", { name: "Esto es lo que pude revisar." })
+        .waitFor();
+      assert.equal(statusCalls, antesSemana);
+      assert.equal(await apodoSemana.inputValue(), "Ale");
+      // Un evento de sesión llega mientras el primer /week sigue en vuelo: la
+      // lectura nueva no se salta por la anterior y el resumen termina cargando.
+      weekDelay = 1500;
+      const empezadas = weekStarted;
+      await page.goto(base + "/app/novedades/");
+      for (let i = 0; i < 50 && weekStarted === empezadas; i++)
+        await page.waitForTimeout(100);
+      assert.ok(weekStarted > empezadas);
+      weekDelay = 0;
+      await page.evaluate(
+        (detail) =>
+          window.dispatchEvent(
+            new CustomEvent("campus:session-updated", { detail }),
+          ),
+        session,
+      );
+      await page
+        .getByRole("heading", { name: "Esto es lo que pude revisar." })
+        .waitFor({ timeout: 8000 });
       assert.deepEqual(errors, []);
       console.log(
         JSON.stringify({
           width,
+          weekInFlightRace: true,
+          retryWeekWithoutReset: true,
+          retryAfterFailure: true,
           copy: true,
           preferences: true,
           noAutomaticPermission: true,

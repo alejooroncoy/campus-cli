@@ -224,7 +224,16 @@ export default function CampuUpdates() {
     [deleteOpen, setDeleteOpen] = useState(false),
     [nick, setNick] = useState("");
   const generation = useRef(0),
-    owner = useRef<string | null>(null);
+    owner = useRef<string | null>(null),
+    // `status` dentro del efecto es el de la primera vista (siempre null): la
+    // guarda necesita un ref para saber que ya se cargó.
+    loaded = useRef(false),
+    // El resumen semanal puede tardar en prepararse: si falla, se reintenta solo
+    // /week en el siguiente evento, sin reiniciar la pantalla.
+    weekPending = useRef(false),
+    // Generación que tiene un /week en vuelo: una lectura de una generación
+    // anterior se descarta, así que no debe impedir la de la actual.
+    weekLoading = useRef<number | null>(null);
   const api = async (path: string, method = "GET", body?: unknown) => {
     const version = generation.current;
     const value = await requestApi(path, method, body);
@@ -255,14 +264,37 @@ export default function CampuUpdates() {
       return;
     }
     let mounted = true;
+    async function loadWeek(version: number) {
+      if (weekLoading.current === version) return;
+      weekLoading.current = version;
+      try {
+        const c = await api("/week");
+        if (mounted && version === generation.current) {
+          setContext(c);
+          weekPending.current = false;
+        }
+      } catch {
+        // Aún sin contexto preparado o fallo pasajero: se reintenta después.
+        if (version === generation.current) weekPending.current = true;
+      } finally {
+        if (weekLoading.current === version) weekLoading.current = null;
+      }
+    }
     async function refresh(value: CampusSession) {
       if (!mounted) return;
       const identity = value.authenticated
         ? (value.analyticsId ?? value.email ?? "authenticated")
         : null;
       setSession(value);
-      if (owner.current === identity && status) return;
+      // La sesión se revalida cada 15 s: si es la misma cuenta y ya cargó, no se
+      // vacía la pantalla ni se pierde lo que la persona esté escribiendo.
+      if (owner.current === identity && loaded.current) {
+        if (weekPending.current) void loadWeek(generation.current);
+        return;
+      }
       owner.current = identity;
+      loaded.current = false;
+      weekPending.current = false;
       const version = ++generation.current;
       setStatus(null);
       setContext(null);
@@ -275,7 +307,10 @@ export default function CampuUpdates() {
         if (!mounted || version !== generation.current) return;
         setStatus(s);
         setPrefs(s.preferences);
-        if (!s.available) return;
+        if (!s.available) {
+          loaded.current = true;
+          return;
+        }
         const n = await api("/notices");
         if (!mounted || version !== generation.current) return;
         setNotices(n.notices);
@@ -294,13 +329,11 @@ export default function CampuUpdates() {
           }
           await api("/notices/" + id, "POST", {});
         } else if (s.preferences.enabled) {
-          try {
-            const c = await api("/week");
-            if (mounted && version === generation.current) setContext(c);
-          } catch {
-            /* First run may not have prepared a context yet. */
-          }
+          await loadWeek(version);
         }
+        // Solo al terminar toda la cadena: si algo falló, el siguiente evento de
+        // sesión vuelve a intentarlo.
+        if (mounted && version === generation.current) loaded.current = true;
       } catch (e) {
         if (mounted && version === generation.current)
           setError(
