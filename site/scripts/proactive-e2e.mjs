@@ -107,6 +107,76 @@ const prepared = {
       text: "Semana 10: evaluación.",
     },
   ],
+  // Semana 5 del ciclo: TB1 ya entregado; TP1 es lo siguiente y no es tarea en Blackboard.
+  upcoming: {
+    term: "202602",
+    week: 5,
+    from: "2026-09-21",
+    to: "2026-09-27",
+    counts: { thisWeek: 1, nextWeek: 1, notInBlackboard: 1 },
+    items: [
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: 'TB2 <img src=x onerror="window.injected=true">',
+        what: "entrega",
+        studentAction: true,
+        when: { kind: "week", text: "Semana 5" },
+        from: "2026-09-21",
+        to: "2026-09-27",
+        bucket: "this_week",
+        inBlackboard: true,
+        done: false,
+        next: false,
+        after: null,
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: "TP1",
+        what: "evaluación",
+        studentAction: true,
+        when: { kind: "week", text: "Semana 6" },
+        from: "2026-09-28",
+        to: "2026-10-04",
+        bucket: "next_week",
+        inBlackboard: false,
+        done: false,
+        next: true,
+        after: "TB1",
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: "TB1",
+        what: "entrega",
+        studentAction: true,
+        when: { kind: "week", text: "Semana 4" },
+        from: "2026-09-14",
+        to: "2026-09-20",
+        bucket: "this_week",
+        inBlackboard: true,
+        done: true,
+        next: false,
+        after: null,
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: "Examen final",
+        what: "evaluación",
+        studentAction: true,
+        when: { kind: "relative", text: "dos semanas después de la PC2" },
+        from: null,
+        to: null,
+        bucket: "unscheduled",
+        inBlackboard: false,
+        done: false,
+        next: false,
+        after: null,
+      },
+    ],
+  },
   pending: ["La plantilla no especifica el alcance del avance."],
   prompt: `Usa campus_get_prepared_context con contextId "${contextId}".`,
   nextCursor: null,
@@ -291,6 +361,22 @@ try {
       );
       assert.ok(await page.getByText("Antes no tenía nota registrada.").count());
       assert.ok(await page.getByText("Peso: 15%").count());
+      // Lo que viene: lo siguiente por hacer, marcado si no es tarea en Blackboard.
+      const viene = page.locator(".campu-upcoming");
+      await viene.getByRole("heading", { name: "Lo que viene." }).waitFor();
+      assert.ok(await viene.getByText("Semana 5 del ciclo", { exact: false }).count());
+      assert.ok(await viene.getByRole("heading", { name: "La próxima semana" }).count());
+      assert.ok(await viene.getByText("TP1", { exact: true }).count());
+      assert.ok(await viene.getByText("Curso de prueba · Lo siguiente").count());
+      assert.ok(await viene.getByText("Viene después de lo que ya hiciste: TB1.").count());
+      assert.equal(
+        await viene.getByText("Todavía no está como tarea en Blackboard").count(),
+        2,
+      );
+      assert.ok(await viene.getByText("El cronograma dice: dos semanas después de la PC2").count());
+      // Lo ya entregado no se repite como pendiente.
+      assert.equal(await viene.getByText("TB1", { exact: true }).count(), 0);
+      assert.equal(await page.evaluate(() => !!window.injected), false);
       assert.ok(await page.getByText("Ya no aparece en la fuente", { exact: false }).count());
       assert.ok(
         await page

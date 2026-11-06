@@ -284,3 +284,30 @@
     min-height: 185px;
   }
 }
+
+.campu-upcoming h3 {
+  margin: 20px 0 6px;
+  font-size: 17px;
+}
+.campu-upcoming-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.campu-upcoming-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid #e1eaec;
+  overflow-wrap: anywhere;
+}
+.campu-upcoming-list p {
+  margin: 4px 0;
+}
+.campu-upcoming-list small {
+  display: block;
+  color: #4b6b7b;
+  line-height: 1.6;
+}
+.campu-upcoming-list .campu-badge {
+  color: #0b5f69;
+  font-weight: 600;
+}
