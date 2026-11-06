@@ -231,7 +231,9 @@ export default function CampuUpdates() {
     // El resumen semanal puede tardar en prepararse: si falla, se reintenta solo
     // /week en el siguiente evento, sin reiniciar la pantalla.
     weekPending = useRef(false),
-    weekLoading = useRef(false);
+    // Generación que tiene un /week en vuelo: una lectura de una generación
+    // anterior se descarta, así que no debe impedir la de la actual.
+    weekLoading = useRef<number | null>(null);
   const api = async (path: string, method = "GET", body?: unknown) => {
     const version = generation.current;
     const value = await requestApi(path, method, body);
@@ -263,8 +265,8 @@ export default function CampuUpdates() {
     }
     let mounted = true;
     async function loadWeek(version: number) {
-      if (weekLoading.current) return;
-      weekLoading.current = true;
+      if (weekLoading.current === version) return;
+      weekLoading.current = version;
       try {
         const c = await api("/week");
         if (mounted && version === generation.current) {
@@ -275,7 +277,7 @@ export default function CampuUpdates() {
         // Aún sin contexto preparado o fallo pasajero: se reintenta después.
         if (version === generation.current) weekPending.current = true;
       } finally {
-        weekLoading.current = false;
+        if (weekLoading.current === version) weekLoading.current = null;
       }
     }
     async function refresh(value: CampusSession) {

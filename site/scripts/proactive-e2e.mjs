@@ -186,7 +186,9 @@ try {
       failNotices = false,
       noticesFailed = 0,
       failWeek = false,
-      weekFailed = 0;
+      weekFailed = 0,
+      weekDelay = 0,
+      weekStarted = 0;
     await page.route("**/*", async (route) => {
       const url = new URL(route.request().url());
       if (url.origin !== base) return route.abort();
@@ -211,6 +213,10 @@ try {
           coverage: { complete: false },
           pushPublicKey: "fake-public-key",
         });
+      }
+      if (path === "/api/app/proactive/week") {
+        weekStarted++;
+        if (weekDelay) await new Promise((r) => setTimeout(r, weekDelay));
       }
       if (path === "/api/app/proactive/week" && failWeek) {
         weekFailed++;
@@ -431,10 +437,30 @@ try {
         .waitFor();
       assert.equal(statusCalls, antesSemana);
       assert.equal(await apodoSemana.inputValue(), "Ale");
+      // Un evento de sesión llega mientras el primer /week sigue en vuelo: la
+      // lectura nueva no se salta por la anterior y el resumen termina cargando.
+      weekDelay = 1500;
+      const empezadas = weekStarted;
+      await page.goto(base + "/app/novedades/");
+      for (let i = 0; i < 50 && weekStarted === empezadas; i++)
+        await page.waitForTimeout(100);
+      assert.ok(weekStarted > empezadas);
+      weekDelay = 0;
+      await page.evaluate(
+        (detail) =>
+          window.dispatchEvent(
+            new CustomEvent("campus:session-updated", { detail }),
+          ),
+        session,
+      );
+      await page
+        .getByRole("heading", { name: "Esto es lo que pude revisar." })
+        .waitFor({ timeout: 8000 });
       assert.deepEqual(errors, []);
       console.log(
         JSON.stringify({
           width,
+          weekInFlightRace: true,
           retryWeekWithoutReset: true,
           retryAfterFailure: true,
           copy: true,
