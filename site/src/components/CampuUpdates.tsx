@@ -224,7 +224,10 @@ export default function CampuUpdates() {
     [deleteOpen, setDeleteOpen] = useState(false),
     [nick, setNick] = useState("");
   const generation = useRef(0),
-    owner = useRef<string | null>(null);
+    owner = useRef<string | null>(null),
+    // `status` dentro del efecto es el de la primera vista (siempre null): la
+    // guarda necesita un ref para saber que ya se cargó.
+    loaded = useRef(false);
   const api = async (path: string, method = "GET", body?: unknown) => {
     const version = generation.current;
     const value = await requestApi(path, method, body);
@@ -261,8 +264,11 @@ export default function CampuUpdates() {
         ? (value.analyticsId ?? value.email ?? "authenticated")
         : null;
       setSession(value);
-      if (owner.current === identity && status) return;
+      // La sesión se revalida cada 15 s: si es la misma cuenta y ya cargó, no se
+      // vacía la pantalla ni se pierde lo que la persona esté escribiendo.
+      if (owner.current === identity && loaded.current) return;
       owner.current = identity;
+      loaded.current = false;
       const version = ++generation.current;
       setStatus(null);
       setContext(null);
@@ -275,6 +281,7 @@ export default function CampuUpdates() {
         if (!mounted || version !== generation.current) return;
         setStatus(s);
         setPrefs(s.preferences);
+        loaded.current = true;
         if (!s.available) return;
         const n = await api("/notices");
         if (!mounted || version !== generation.current) return;

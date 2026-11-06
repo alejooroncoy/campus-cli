@@ -181,7 +181,8 @@ try {
       saved = 0,
       deleted = 0,
       nickname = null,
-      nicknameCalls = 0;
+      nicknameCalls = 0,
+      statusCalls = 0;
     await page.route("**/*", async (route) => {
       const url = new URL(route.request().url());
       if (url.origin !== base) return route.abort();
@@ -194,7 +195,8 @@ try {
             body: JSON.stringify(data),
           });
       if (path === "/api/app/session") return json(session);
-      if (path === "/api/app/proactive/status")
+      if (path === "/api/app/proactive/status") {
+        statusCalls++;
         return json({
           available: true,
           status: "active",
@@ -205,6 +207,7 @@ try {
           coverage: { complete: false },
           pushPublicKey: "fake-public-key",
         });
+      }
       if (path === "/api/app/proactive/notices")
         return json({
           notices: [
@@ -291,6 +294,17 @@ try {
       await page.getByText("Usa solo letras", { exact: false }).waitFor();
       assert.equal(nicknameCalls, 0);
       await apodo.fill("Ale");
+      // La sesión se revalida cada 15 s y avisa a la página: eso no debe
+      // vaciar la pantalla, volver a pedir el estado ni borrar lo escrito.
+      const antes = statusCalls;
+      await page.evaluate(async () => {
+        const detail = await (await fetch("/api/app/session")).json();
+        for (let i = 0; i < 3; i++)
+          window.dispatchEvent(new CustomEvent("campus:session-updated", { detail }));
+      });
+      await page.waitForTimeout(400);
+      assert.equal(statusCalls, antes);
+      assert.equal(await apodo.inputValue(), "Ale");
       await page.getByRole("button", { name: "Guardar apodo" }).click();
       await page.getByText("Listo, te voy a decir Ale.").waitFor();
       assert.equal(nickname, "Ale");
