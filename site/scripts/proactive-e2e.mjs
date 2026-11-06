@@ -56,7 +56,23 @@ const prepared = {
   lastSuccessfulCheckAt: "2026-11-09T13:00:00Z",
   freshness: "stale",
   preparation: "partial",
-  coverage: { complete: false, documentsComplete: false },
+  coverage: {
+    complete: false,
+    documentsComplete: false,
+    sources: [
+      {
+        source: "blackboard:assignments",
+        complete: true,
+        checkedAt: "2026-11-09T13:00:00Z",
+      },
+      {
+        source: "miupc:grades",
+        complete: false,
+        checkedAt: "2026-11-09T13:00:00Z",
+        errors: ["reconnect_required"],
+      },
+    ],
+  },
   facts: [
     {
       id: "fact1",
@@ -96,6 +112,39 @@ const prepared = {
   nextCursor: null,
   nextEvidenceCursor: null,
 };
+const events = [
+  {
+    id: "ev1",
+    kind: "grade_changed",
+    meaning: "grade_published",
+    detectedAt: "2026-11-09T13:00:00Z",
+    fact: {
+      id: "miupc-grade:202620:1ASI0728:PC1",
+      kind: "grade",
+      course: "Curso oficial",
+      title: "Práctica Calificada 1",
+      score: 17,
+      weight: 15,
+      term: "202620",
+      status: "published",
+      source: "miupc:grades",
+    },
+    changes: [{ path: "/score", after: 17 }],
+  },
+  {
+    id: "ev2",
+    kind: "material_removed",
+    meaning: "removed",
+    detectedAt: "2026-11-09T13:00:00Z",
+    fact: {
+      id: "material:x",
+      kind: "material",
+      course: "Curso de prueba",
+      title: "Guía retirada",
+      source: "blackboard_list_contents",
+    },
+  },
+];
 try {
   for (const width of [390, 1100]) {
     const ctx = await browser.newContext({
@@ -130,7 +179,9 @@ try {
         categories: ["assignments", "grades", "materials", "announcements"],
       },
       saved = 0,
-      deleted = 0;
+      deleted = 0,
+      nickname = null,
+      nicknameCalls = 0;
     await page.route("**/*", async (route) => {
       const url = new URL(route.request().url());
       if (url.origin !== base) return route.abort();
@@ -148,6 +199,8 @@ try {
           available: true,
           status: "active",
           preferences,
+          nickname,
+          suggestedNickname: "Alejo",
           lastSuccessAt: "2026-11-09T13:00:00Z",
           coverage: { complete: false },
           pushPublicKey: "fake-public-key",
@@ -169,7 +222,7 @@ try {
         return json(
           method === "POST"
             ? { ok: true }
-            : { notice: { id: noticeId, contextId }, events: [] },
+            : { notice: { id: noticeId, contextId }, events },
         );
       if (
         path === "/api/app/proactive/week" ||
@@ -183,6 +236,11 @@ try {
           preferences,
           status: preferences.enabled ? "preparing" : "paused",
         });
+      }
+      if (path === "/api/app/proactive/nickname" && method === "POST") {
+        nicknameCalls++;
+        nickname = JSON.parse(route.request().postData()).nickname || null;
+        return json({ nickname, suggestedNickname: "Alejo" });
       }
       if (path === "/api/app/proactive/data" && method === "DELETE") {
         deleted++;
@@ -198,6 +256,18 @@ try {
       assert.equal(await page.evaluate(() => window.permissionRequests), 0);
       assert.equal(await page.evaluate(() => !!window.injected), false);
       assert.ok(await page.getByText("0 / 20").count());
+      // Procedencia: una nota de Mi UPC no se presenta como de Blackboard.
+      assert.ok(
+        await page.getByText("Nota oficial en Mi UPC · 202620", { exact: false }).count(),
+      );
+      assert.ok(await page.getByText("Antes no tenía nota registrada.").count());
+      assert.ok(await page.getByText("Peso: 15%").count());
+      assert.ok(await page.getByText("Ya no aparece en la fuente", { exact: false }).count());
+      assert.ok(
+        await page
+          .getByText("Notas oficiales de Mi UPC: necesita que renueves la conexión")
+          .count(),
+      );
       await page
         .getByRole("button", { name: "Copiar pedido preparado" })
         .click();
@@ -212,6 +282,23 @@ try {
         .waitFor();
       assert.equal(saved, 1);
       assert.equal(preferences.email, false);
+      // Apodo: sugerido de entrada, símbolos rechazados sin llamar al servidor,
+      // y guardarlo no toca las preferencias.
+      const apodo = page.getByLabel("Mi apodo");
+      assert.equal(await apodo.getAttribute("placeholder"), "Alejo");
+      await apodo.fill("<b>x</b>");
+      await page.getByRole("button", { name: "Guardar apodo" }).click();
+      await page.getByText("Usa solo letras", { exact: false }).waitFor();
+      assert.equal(nicknameCalls, 0);
+      await apodo.fill("Ale");
+      await page.getByRole("button", { name: "Guardar apodo" }).click();
+      await page.getByText("Listo, te voy a decir Ale.").waitFor();
+      assert.equal(nickname, "Ale");
+      assert.equal(saved, 1);
+      await apodo.fill("");
+      await page.getByRole("button", { name: "Guardar apodo" }).click();
+      await page.getByText("Listo, vuelvo a usar tu nombre.").waitFor();
+      assert.equal(nickname, null);
       assert.equal(
         await page.evaluate(
           () => document.documentElement.scrollWidth <= innerWidth,

@@ -27,10 +27,32 @@ type Fact = {
   dueAt?: string;
   score?: number;
   maxScore?: number;
+  weight?: number | null;
+  term?: string;
   submitted?: boolean;
   status?: string;
   text?: string;
   source: string;
+};
+type Source = {
+  source: string;
+  complete: boolean;
+  checkedAt: string;
+  errors?: string[];
+};
+const sourceNames: Record<string, string> = {
+  "blackboard:assignments": "Tareas de Blackboard",
+  "blackboard:feedback": "Notas y retroalimentación de Blackboard",
+  "blackboard:announcements": "Anuncios de Blackboard",
+  "blackboard:materials": "Materiales de Blackboard",
+  "miupc:grades": "Notas oficiales de Mi UPC",
+  "miupc:procedureRequests": "Trámites de Mi UPC",
+  "miupc:legacyRequests": "Mis Trámites (Mi UPC)",
+};
+const gradeStatus: Record<string, string> = {
+  not_published: "Sin nota publicada",
+  final_not_published: "Promedio final aún no publicado",
+  published: "Publicada",
 };
 type Context = {
   id: string;
@@ -40,7 +62,11 @@ type Context = {
   lastSuccessfulCheckAt?: string;
   freshness: string;
   preparation: string;
-  coverage: { complete: boolean; documentsComplete: boolean };
+  coverage: {
+    complete: boolean;
+    documentsComplete: boolean;
+    sources?: Source[];
+  };
   facts: Fact[];
   claims: { text: string; status: string; evidenceIds: string[] }[];
   evidence: {
@@ -124,22 +150,27 @@ async function requestApi(path: string, method = "GET", body?: unknown) {
   if (!r.ok) throw Error(message(data.error));
   return data;
 }
-function FactView({ fact: f }: { fact: Fact }) {
+function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
+  const miupc = f.source === "miupc:grades";
   return (
     <article className="campu-fact">
       <p className="campu-eyebrow">
         {f.course} ·{" "}
-        {f.kind === "assignment"
-          ? "Publicado en Blackboard"
-          : f.kind === "procedure"
-            ? "Estado publicado en Mi UPC"
-            : f.kind === "grade"
-              ? "Nota publicada"
-              : f.kind === "feedback"
-                ? "Retroalimentación"
-                : f.kind === "announcement"
-                  ? "Anuncio"
-                  : "Material"}
+        {removed
+          ? "Ya no aparece en la fuente"
+          : f.kind === "assignment"
+            ? "Publicado en Blackboard"
+            : f.kind === "procedure"
+              ? "Estado publicado en Mi UPC"
+              : f.kind === "grade"
+                ? miupc
+                  ? `Nota oficial en Mi UPC${f.term ? ` · ${f.term}` : ""}`
+                  : "Nota en Blackboard"
+                : f.kind === "feedback"
+                  ? "Retroalimentación"
+                  : f.kind === "announcement"
+                    ? "Anuncio"
+                    : "Material"}
       </p>
       <h3>{f.title || "Sin título publicado"}</h3>
       {f.dueAt && (
@@ -156,8 +187,19 @@ function FactView({ fact: f }: { fact: Fact }) {
           </strong>
         </p>
       )}
-      {f.status && <p>Estado: {f.status}</p>}
+      {typeof f.weight === "number" && <p>Peso: {f.weight}%</p>}
+      {f.status && (
+        <p>
+          Estado: {miupc ? (gradeStatus[f.status] ?? f.status) : f.status}
+        </p>
+      )}
       {f.text && <p className="campu-preserve">{f.text}</p>}
+      {removed && (
+        <small>
+          Lo vi en dos revisiones completas seguidas sin este registro. Se
+          muestra su último valor conocido; confírmalo en la fuente.
+        </small>
+      )}
       {f.kind === "procedure" && (
         <small>
           «PROCEDE» no confirma entrega. Se revisan las dos bandejas de
@@ -179,7 +221,8 @@ export default function CampuUpdates() {
     [error, setError] = useState(""),
     [info, setInfo] = useState(""),
     [unsubscribe, setUnsubscribe] = useState<string | null>(null),
-    [deleteOpen, setDeleteOpen] = useState(false);
+    [deleteOpen, setDeleteOpen] = useState(false),
+    [nick, setNick] = useState("");
   const generation = useRef(0),
     owner = useRef<string | null>(null);
   const api = async (path: string, method = "GET", body?: unknown) => {
@@ -283,6 +326,21 @@ export default function CampuUpdates() {
       window.removeEventListener("campus:session-updated", updated);
     };
   }, []);
+  useEffect(() => {
+    setNick(status?.nickname ?? "");
+  }, [status?.nickname]);
+  async function saveNickname(value: string) {
+    const clean = value.trim();
+    if (clean && !/^[\p{L}][\p{L}'’ -]{0,29}$/u.test(clean))
+      throw Error("Usa solo letras, hasta 30.");
+    const result = await api("/nickname", "POST", { nickname: clean });
+    setStatus((s: any) => ({ ...s, ...result }));
+    setInfo(
+      result.nickname
+        ? `Listo, te voy a decir ${result.nickname}.`
+        : "Listo, vuelvo a usar tu nombre.",
+    );
+  }
   async function save(value: Preferences) {
     const result = await api("/preferences", "POST", value);
     track("campus_proactive_preferences_saved", {
@@ -541,6 +599,37 @@ export default function CampuUpdates() {
                       {busy ? "Guardando…" : "Guardar preferencias"}
                     </button>
                   </form>
+                  {status.suggestedNickname !== undefined && (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void guarded(() => saveNickname(nick));
+                      }}
+                    >
+                      <fieldset disabled={busy}>
+                        <legend>Cómo te digo</legend>
+                        <label>
+                          Mi apodo
+                          <input
+                            type="text"
+                            maxLength={30}
+                            autoComplete="nickname"
+                            value={nick}
+                            placeholder={status.suggestedNickname ?? "Tu nombre"}
+                            onChange={(e) => setNick(e.target.value)}
+                          />
+                        </label>
+                        <p className="campu-muted">
+                          Así te saludo en los correos. Si lo dejas vacío uso{" "}
+                          {status.suggestedNickname
+                            ? status.suggestedNickname
+                            : "tu nombre"}
+                          . Cambiarlo no afecta tus avisos ni tus preferencias.
+                        </p>
+                        <button type="submit">Guardar apodo</button>
+                      </fieldset>
+                    </form>
+                  )}
                   <div className="campu-device">
                     <h3>Este dispositivo</h3>
                     <p>
@@ -643,7 +732,17 @@ export default function CampuUpdates() {
                   <h2>Cambios de este aviso</h2>
                   {events.map((e) => (
                     <div key={e.id}>
-                      <FactView fact={e.fact} />
+                      <FactView
+                        fact={e.fact}
+                        removed={e.meaning === "removed"}
+                      />
+                      {e.meaning === "grade_published" && (
+                        <p>Antes no tenía nota registrada.</p>
+                      )}
+                      {typeof e.before?.weight === "number" &&
+                        e.before.weight !== e.fact.weight && (
+                          <p>Peso anterior registrado: {e.before.weight}%</p>
+                        )}
                       {typeof e.before?.score === "number" && (
                         <p>
                           Nota anterior registrada: {e.before.score} /{" "}
@@ -689,6 +788,20 @@ export default function CampuUpdates() {
                       La cobertura es parcial. Los materiales pendientes pueden
                       contener otros requisitos.
                     </p>
+                  )}
+                  {!!context.coverage.sources?.length && (
+                    <ul className="campu-muted">
+                      {context.coverage.sources.map((s) => (
+                        <li key={s.source}>
+                          {sourceNames[s.source] ?? s.source}:{" "}
+                          {s.complete
+                            ? `revisado ${timestamp(s.checkedAt)}`
+                            : s.errors?.includes("reconnect_required")
+                              ? "necesita que renueves la conexión"
+                              : "no se pudo comprobar en la última revisión; se conserva el último dato válido, si existía"}
+                        </li>
+                      ))}
+                    </ul>
                   )}
                   <div className="campu-handoff">
                     <h3>Continúa con tu IA</h3>
