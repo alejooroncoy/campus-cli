@@ -81,14 +81,14 @@
     "tsx": "^4.23.12",
     "typescript": "^7.0.2",
     "axios": "^1.7.0",
-    "entities": "^8.1.0",
+    "entities": "^9.0.0",
     "fflate": "^0.8.3",
     "form-data": "^4.0.5",
     "inquirer": "^14.2.0",
     "ipaddr.js": "^2.5.0",
-    "ora": "^9.4.1",
+    "ora": "^10.0.0",
     "pdfjs-dist": "^6.3.289",
-    "parse5": "8.0.0"
+    "parse5": "8.1.0"
   },
   "engines": {
     "node": ">=22.13.0 || >=24"
