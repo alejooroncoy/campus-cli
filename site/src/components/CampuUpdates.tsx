@@ -227,7 +227,11 @@ export default function CampuUpdates() {
     owner = useRef<string | null>(null),
     // `status` dentro del efecto es el de la primera vista (siempre null): la
     // guarda necesita un ref para saber que ya se cargó.
-    loaded = useRef(false);
+    loaded = useRef(false),
+    // El resumen semanal puede tardar en prepararse: si falla, se reintenta solo
+    // /week en el siguiente evento, sin reiniciar la pantalla.
+    weekPending = useRef(false),
+    weekLoading = useRef(false);
   const api = async (path: string, method = "GET", body?: unknown) => {
     const version = generation.current;
     const value = await requestApi(path, method, body);
@@ -258,6 +262,22 @@ export default function CampuUpdates() {
       return;
     }
     let mounted = true;
+    async function loadWeek(version: number) {
+      if (weekLoading.current) return;
+      weekLoading.current = true;
+      try {
+        const c = await api("/week");
+        if (mounted && version === generation.current) {
+          setContext(c);
+          weekPending.current = false;
+        }
+      } catch {
+        // Aún sin contexto preparado o fallo pasajero: se reintenta después.
+        if (version === generation.current) weekPending.current = true;
+      } finally {
+        weekLoading.current = false;
+      }
+    }
     async function refresh(value: CampusSession) {
       if (!mounted) return;
       const identity = value.authenticated
@@ -266,9 +286,13 @@ export default function CampuUpdates() {
       setSession(value);
       // La sesión se revalida cada 15 s: si es la misma cuenta y ya cargó, no se
       // vacía la pantalla ni se pierde lo que la persona esté escribiendo.
-      if (owner.current === identity && loaded.current) return;
+      if (owner.current === identity && loaded.current) {
+        if (weekPending.current) void loadWeek(generation.current);
+        return;
+      }
       owner.current = identity;
       loaded.current = false;
+      weekPending.current = false;
       const version = ++generation.current;
       setStatus(null);
       setContext(null);
@@ -303,12 +327,7 @@ export default function CampuUpdates() {
           }
           await api("/notices/" + id, "POST", {});
         } else if (s.preferences.enabled) {
-          try {
-            const c = await api("/week");
-            if (mounted && version === generation.current) setContext(c);
-          } catch {
-            /* First run may not have prepared a context yet. */
-          }
+          await loadWeek(version);
         }
         // Solo al terminar toda la cadena: si algo falló, el siguiente evento de
         // sesión vuelve a intentarlo.

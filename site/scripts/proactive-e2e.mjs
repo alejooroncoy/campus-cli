@@ -184,7 +184,9 @@ try {
       nicknameCalls = 0,
       statusCalls = 0,
       failNotices = false,
-      noticesFailed = 0;
+      noticesFailed = 0,
+      failWeek = false,
+      weekFailed = 0;
     await page.route("**/*", async (route) => {
       const url = new URL(route.request().url());
       if (url.origin !== base) return route.abort();
@@ -208,6 +210,14 @@ try {
           lastSuccessAt: "2026-11-09T13:00:00Z",
           coverage: { complete: false },
           pushPublicKey: "fake-public-key",
+        });
+      }
+      if (path === "/api/app/proactive/week" && failWeek) {
+        weekFailed++;
+        return route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ error: "PREPARING" }),
         });
       }
       if (path === "/api/app/proactive/notices" && failNotices) {
@@ -398,10 +408,34 @@ try {
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
         .waitFor();
       assert.equal(statusCalls, antesReintento + 1);
+      // El resumen semanal aún no está listo: el siguiente evento reintenta solo
+      // /week, sin vaciar la pantalla ni borrar lo escrito.
+      failWeek = true;
+      await page.goto(base + "/app/novedades/");
+      for (let i = 0; i < 50 && !weekFailed; i++)
+        await page.waitForTimeout(100);
+      assert.ok(weekFailed >= 1);
+      const apodoSemana = page.getByLabel("Mi apodo");
+      await apodoSemana.fill("Ale");
+      failWeek = false;
+      const antesSemana = statusCalls;
+      await page.evaluate(
+        (detail) =>
+          window.dispatchEvent(
+            new CustomEvent("campus:session-updated", { detail }),
+          ),
+        session,
+      );
+      await page
+        .getByRole("heading", { name: "Esto es lo que pude revisar." })
+        .waitFor();
+      assert.equal(statusCalls, antesSemana);
+      assert.equal(await apodoSemana.inputValue(), "Ale");
       assert.deepEqual(errors, []);
       console.log(
         JSON.stringify({
           width,
+          retryWeekWithoutReset: true,
           retryAfterFailure: true,
           copy: true,
           preferences: true,
