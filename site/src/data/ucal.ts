@@ -1,6 +1,6 @@
 /** Shared public copy for the landing, structured data and Markdown route. */
 export const ucal = {
-  url: 'https://campuscli.com/ucal/',
+  url: 'https://campuscli.com/upc-compra-ucal/',
   title: 'UPC compró UCAL por US$35 millones | Campus',
   description: 'UPC adquirió UCAL por aproximadamente US$35 millones. Déjanos tu correo y te avisaremos cuando puedas empezar en Campus con tu acceso UPC.',
   updated: '2026-11-05',
@@ -22,7 +22,7 @@ export const ucalMarkdown = [
   `Fuente: ${ucal.url}\nActualizado: ${ucal.updated}\n`,
   'Campus reúne opiniones de profesores UPC, herramientas de APA 7 y consultas académicas con acceso compatible. Es un proyecto independiente, no afiliado a UCAL ni a UPC.\n',
   '## Recibe el aviso de disponibilidad\n',
-  'Deja tu correo en https://campuscli.com/ucal/#avisame y confirma el enlace que recibirás. No necesitas una cuenta UPC para inscribirte. El aviso se enviará cuando puedas empezar en Campus con tu acceso UPC, no en una fecha de ciclo asumida. Puedes darte de baja desde el enlace de nuestros correos.\n',
+  'Deja tu correo en https://campuscli.com/upc-compra-ucal/#avisame y confirma el enlace que recibirás. No necesitas una cuenta UPC para inscribirte. El aviso se enviará cuando puedas empezar en Campus con tu acceso UPC, no en una fecha de ciclo asumida. Puedes darte de baja desde el enlace de nuestros correos.\n',
   '## Herramientas de Campus\n',
   '- Profesores UPC: https://campuscli.com/profes/',
   '- Formato APA 7: https://campuscli.com/herramientas/formato-apa-7/',

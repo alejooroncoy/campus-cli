@@ -3,6 +3,16 @@
   "outputDirectory": "dist",
   "redirects": [
     {
+      "source": "/ucal/",
+      "destination": "/upc-compra-ucal/",
+      "permanent": true
+    },
+    {
+      "source": "/ucal/index.md",
+      "destination": "/upc-compra-ucal/index.md",
+      "permanent": true
+    },
+    {
       "source": "/app/review",
       "destination": "/app/asistente/?modal=review",
       "permanent": false
