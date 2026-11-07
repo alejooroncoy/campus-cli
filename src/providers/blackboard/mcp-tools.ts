@@ -23,6 +23,7 @@ import {
 } from './api/courses.js';
 import { listAssignments, listPublishedAssignments, listAttempts, submitAttempt, uploadFile, getAttemptFiles } from './api/assignments.js';
 import { getAttemptFeedback } from './api/feedback.js';
+import { collectRecentChanges } from './api/recent-changes.js';
 import { track } from '../../analytics.js';
 import { downloadRoot, resolveDownloadDir, safeNewFilePath, writeNamedDownload } from '../../security/files.js';
 import { extractEmbeddedFiles, type EmbeddedFile } from './embedded-files.js';
@@ -227,7 +228,10 @@ export function registerBlackboardTools(server: McpServer) {
   registerTrackedTool(
     'blackboard_list_contents',
     {
-      description: 'List content items inside a course or folder. Use parentId to navigate into subfolders.',
+      description:
+        'List content items inside a course or folder. Use parentId to navigate into subfolders. ' +
+        'A folder\'s `modified` date does NOT change when a page inside it is edited, so do not use it to decide ' +
+        'whether something is new: for "what did the professor add/change lately" use blackboard_recent_changes.',
       inputSchema: {
         courseId: blackboardId('courseId').describe('Blackboard course ID'),
         parentId: blackboardId('parentId').optional().describe('Parent folder content ID (omit for root level)'),
@@ -236,6 +240,30 @@ export function registerBlackboardTools(server: McpServer) {
     async ({ courseId, parentId }) => {
       const { client } = await getClient();
       const data = await getCourseContents(client, courseId, parentId);
+      return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+    }
+  );
+
+  // ── blackboard_recent_changes ──────────────────────────────────────────────────────────
+  registerTrackedTool(
+    'blackboard_recent_changes',
+    {
+      description:
+        'What the professor added or edited most recently in a course, in one call. Walks the whole content tree and ' +
+        'returns pages, assessments, links and announcements sorted by edit date (newest first), each with its folder path, ' +
+        'the files it contains and the edit time in Peru time (UTC-5). Use it for "lo último que agregó el profe", ' +
+        '"¿hay algo nuevo?" or "¿desde cuándo está este archivo?". Edit dates are per page, not per file. ' +
+        'Only trust "nothing newer" when the result says complete: true. To read past `limit`, narrow with `since` ' +
+        '(a date without a time zone is read as Peru time).',
+      inputSchema: {
+        courseId: blackboardId('courseId').describe('Blackboard course ID'),
+        since: z.string().optional().describe('ISO 8601 date or date-time (no time zone = Peru time): only changes edited at or after it'),
+        limit: z.number().int().min(1).max(100).optional().describe('Maximum changes to return (default 20)'),
+      },
+    },
+    async ({ courseId, since, limit }) => {
+      const { client } = await getClient();
+      const data = await collectRecentChanges(client, courseId, { since, limit });
       return { content: [{ type: 'text', text: JSON.stringify(data) }] };
     }
   );
