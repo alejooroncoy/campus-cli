@@ -52,6 +52,7 @@ function fakeClient(): AxiosInstance {
 test('collectRecentChanges surfaces a page edited inside folders that look old', async () => {
   const result = await collectRecentChanges(fakeClient(), '_1_1', { limit: 5 });
   assert.equal(result.truncated, false);
+  assert.equal(result.complete, true);
   assert.equal(result.results[0].id, 'doc');
   assert.equal(result.results[0].modifiedPeru, '2026-11-06 20:27');
   assert.equal(result.results[0].path, 'Unidad 3 > Semana 11 > S11|Recursos');
@@ -64,5 +65,45 @@ test('collectRecentChanges surfaces a page edited inside folders that look old',
 test('collectRecentChanges reports truncation instead of claiming completeness', async () => {
   const result = await collectRecentChanges(fakeClient(), '_1_1', { maxNodes: 2 });
   assert.equal(result.truncated, true);
+  assert.equal(result.complete, false);
   assert.match(result.note, /cortó por tamaño/);
+});
+
+test('an unreadable folder does not abort the walk but marks the result incomplete', async () => {
+  const client = {
+    get: async (url: string) => {
+      if (url.endsWith('/announcements')) return { data: { results: [] } };
+      const parent = url.match(/contents\/([^/]+)\/children/)?.[1] ?? 'root';
+      if (parent === 's11') throw Object.assign(new Error('forbidden'), { response: { status: 403 } });
+      return { data: { results: tree[parent] ?? [], paging: {} } };
+    },
+  } as unknown as AxiosInstance;
+  const result = await collectRecentChanges(client, '_1_1');
+  assert.equal(result.complete, false);
+  assert.deepEqual(result.unreadableFolders, [{ path: 'Unidad 3 > Semana 11', status: 403 }]);
+  assert.match(result.note, /no afirmes que no hay nada nuevo/);
+});
+
+test('a session expiry is not swallowed by the per-folder tolerance', async () => {
+  const client = {
+    get: async () => { throw Object.assign(new Error('expired'), { code: 'SESSION_EXPIRED' }); },
+  } as unknown as AxiosInstance;
+  await assert.rejects(collectRecentChanges(client, '_1_1'), /expired/);
+});
+
+test('a document page at the root keeps a non-empty title', async () => {
+  const client = {
+    get: async (url: string) => url.endsWith('/announcements')
+      ? { data: { results: [] } }
+      : { data: { results: [{ id: 'd', title: 'ultraDocumentBody', modified: '2026-11-01T00:00:00Z', contentHandler: { id: 'resource/x-bb-document' } }], paging: {} } },
+  } as unknown as AxiosInstance;
+  const result = await collectRecentChanges(client, '_1_1');
+  assert.equal(result.results[0].title, 'ultraDocumentBody');
+});
+
+test('an invalid since fails before walking the tree', async () => {
+  let calls = 0;
+  const client = { get: async () => { calls += 1; return { data: { results: [] } }; } } as unknown as AxiosInstance;
+  await assert.rejects(collectRecentChanges(client, '_1_1', { since: 'nope' }), /ISO 8601/);
+  assert.equal(calls, 0);
 });

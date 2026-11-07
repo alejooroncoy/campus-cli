@@ -33,6 +33,12 @@ export interface RecentChangesResult {
   nodesVisited: number;
   /** true si el recorrido se cortó por tamaño: no se puede afirmar que no hay más cambios. */
   truncated: boolean;
+  /** Carpetas que Blackboard no dejó leer (p. ej. 403). Su contenido no se revisó. */
+  unreadableFolders: Array<{ path: string; status?: number }>;
+  /** false si no se pudieron leer los anuncios. */
+  announcementsChecked: boolean;
+  /** true solo si se recorrió todo el árbol y se leyeron los anuncios: únicamente entonces "no hay nada más nuevo" es una afirmación válida. */
+  complete: boolean;
   note: string;
   results: RecentChange[];
 }
@@ -122,9 +128,13 @@ export async function collectRecentChanges(
   courseId: string,
   opts: { since?: string; limit?: number; maxNodes?: number } = {},
 ): Promise<RecentChangesResult> {
+  // Falla antes de recorrer el árbol si la fecha no es válida.
+  if (opts.since && Number.isNaN(Date.parse(opts.since))) throw new Error('since must be an ISO 8601 date');
+
   const maxNodes = opts.maxNodes ?? DEFAULT_MAX_NODES;
   const visited = new Set<string>();
   const changes: RecentChange[] = [];
+  const unreadableFolders: Array<{ path: string; status?: number }> = [];
   let level: Array<{ id: string | undefined; path: string }> = [{ id: undefined, path: '' }];
   let truncated = false;
 
@@ -133,7 +143,18 @@ export async function collectRecentChanges(
     for (let i = 0; i < level.length && !truncated; i += TREE_PARALLELISM) {
       const chunk = level.slice(i, i + TREE_PARALLELISM);
       const children = await Promise.all(
-        chunk.map(async (parent) => ({ parent, nodes: await pagedContents(client, courseId, parent.id) })),
+        chunk.map(async (parent) => {
+          try {
+            return { parent, nodes: await pagedContents(client, courseId, parent.id) };
+          } catch (error) {
+            // Una sesión vencida debe llegar al usuario; una carpeta sin permiso (403/404) no debe tumbar todo el recorrido.
+            if ((error as { code?: unknown })?.code === 'SESSION_EXPIRED') throw error;
+            const status = (error as { response?: { status?: number } })?.response?.status;
+            if (status !== 403 && status !== 404) throw error;
+            unreadableFolders.push({ path: parent.path || '(raíz)', status });
+            return { parent, nodes: [] as ContentNode[] };
+          }
+        }),
       );
       for (const { parent, nodes } of children) {
         for (const node of nodes) {
@@ -154,7 +175,7 @@ export async function collectRecentChanges(
             id: node.id,
             kind: kindFromHandler(handlerId),
             // Las páginas Ultra se llaman "ultraDocumentBody": la ruta del padre es lo que las identifica.
-            title: isDocBody ? parent.path.split(' > ').pop() ?? title : title,
+            title: isDocBody ? parent.path.split(' > ').pop() || title : title,
             path: isDocBody ? parent.path : path,
             modified: node.modified,
             modifiedPeru: toPeruTime(node.modified),
@@ -171,7 +192,12 @@ export async function collectRecentChanges(
     level = next;
   }
 
-  const announcements = await getCourseAnnouncements(client, courseId).catch(() => undefined);
+  let announcementsChecked = true;
+  const announcements = await getCourseAnnouncements(client, courseId).catch((error) => {
+    if ((error as { code?: unknown })?.code === 'SESSION_EXPIRED') throw error;
+    announcementsChecked = false;
+    return undefined;
+  });
   for (const announcement of (announcements?.results ?? []) as Array<{ id: string; title?: string; created?: string; modified?: string; draft?: boolean }>) {
     if (announcement.draft) continue;
     const date = announcement.modified ?? announcement.created;
@@ -189,6 +215,12 @@ export async function collectRecentChanges(
   }
 
   const ranked = rankRecentChanges(changes, { since: opts.since, limit: opts.limit });
+  const complete = !truncated && unreadableFolders.length === 0 && announcementsChecked;
+  const gaps = [
+    truncated ? 'el recorrido se cortó por tamaño' : undefined,
+    unreadableFolders.length > 0 ? `${unreadableFolders.length} carpeta(s) sin permiso de lectura` : undefined,
+    announcementsChecked ? undefined : 'no se pudieron leer los anuncios',
+  ].filter(Boolean);
   return {
     courseId,
     since: opts.since,
@@ -196,10 +228,15 @@ export async function collectRecentChanges(
     returned: ranked.results.length,
     nodesVisited: visited.size,
     truncated,
+    unreadableFolders,
+    announcementsChecked,
+    complete,
     note:
       '`modified` es la fecha de edición de la página completa, no de cada archivo: Blackboard no guarda cuándo se subió un archivo. ' +
       '`created` suele ser de años atrás porque el curso se clona cada ciclo. ' +
-      (truncated ? 'El recorrido se cortó por tamaño: puede haber cambios más recientes sin revisar.' : 'El recorrido del árbol fue completo.'),
+      (complete
+        ? 'El recorrido del árbol fue completo.'
+        : `Revisión incompleta (${gaps.join('; ')}): puede haber cambios más recientes sin revisar, no afirmes que no hay nada nuevo.`),
     results: ranked.results,
   };
 }
