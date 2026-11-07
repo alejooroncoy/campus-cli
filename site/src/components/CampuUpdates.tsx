@@ -378,6 +378,133 @@ function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
     </article>
   );
 }
+const limaDay = (v: string | number | Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(
+    new Date(v),
+  );
+const daysBetween = (a: string, b: string) =>
+  Math.round(
+    (Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400_000,
+  );
+const clock = (v: string) =>
+  new Intl.DateTimeFormat("es-PE", {
+    timeStyle: "short",
+    timeZone: "America/Lima",
+  }).format(new Date(v));
+const GROUPS = ["Hoy", "Esta semana", "Antes"];
+
+/** Lo primero que se ve: una frase, lo próximo y lo nuevo. Todo lo demás está en
+ * "Ajustes y detalle". Pocas palabras, una cosa por línea. */
+function Home({
+  context,
+  notices,
+  emailOn,
+  checkedAt,
+  more,
+  onMore,
+}: {
+  context: Context | null;
+  notices: Notice[];
+  emailOn: boolean;
+  checkedAt?: string;
+  more: boolean;
+  onMore: () => void;
+}) {
+  const today = limaDay(Date.now());
+  const u = context?.upcoming ?? null;
+  const pending = u ? u.items.filter((i) => i.studentAction && !i.done) : [];
+  const dated = pending
+    .filter((i) => i.from)
+    .sort((a, b) => a.from!.localeCompare(b.from!));
+  const first = dated[0];
+  const when = !first
+    ? ""
+    : first.from! <= today && today <= first.to!
+      ? first.from === first.to
+        ? "Hoy"
+        : "Esta semana"
+      : (() => {
+          const d = daysBetween(today, first.from!);
+          return d === 1 ? "Mañana" : `En ${d} días`;
+        })();
+  const shown = notices.slice(0, 5);
+  const bucket = (n: Notice) => {
+    const d = daysBetween(limaDay(n.createdAt), today);
+    return d <= 0 ? 0 : d < 7 ? 1 : 2;
+  };
+  return (
+    <section className="campu-home">
+      <div className="campu-home-top">
+        <img
+          src="/assets/campu/campu-wave-v2-192.webp"
+          width="64"
+          height="64"
+          alt=""
+          aria-hidden="true"
+        />
+        <div>
+          <h1>{u ? sentence(pending, u) : "Reviso tus cursos por ti."}</h1>
+          <p>Última revisión: {timestamp(checkedAt)}</p>
+        </div>
+      </div>
+      {first && (
+        <div className="campu-next">
+          <span>Lo próximo</span>
+          <strong>{first.title}</strong>
+          <small>{first.course}</small>
+          <em>
+            {when} · {rangeLabel(first.from, first.to)}
+          </em>
+          {dated.length > 1 && (
+            <small>
+              Después: {dated.slice(1, 4).map((i) => i.title).join(", ")}
+            </small>
+          )}
+        </div>
+      )}
+      {shown.length ? (
+        GROUPS.map((name, g) => {
+          const list = shown.filter((n) => bucket(n) === g);
+          return (
+            !!list.length && (
+              <div key={name} className="campu-day">
+                <h2>{name}</h2>
+                <ul>
+                  {list.map((n) => (
+                    <li key={n.id}>
+                      <a href={"/app/novedades/" + n.id + "/"}>
+                        <i className={n.read ? "campu-dot off" : "campu-dot"} />
+                        <span>{n.title}</span>
+                        <small>
+                          {g === 0
+                            ? clock(n.createdAt)
+                            : shortDay(limaDay(n.createdAt))}
+                        </small>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          );
+        })
+      ) : (
+        <p className="campu-muted">Todavía no hay novedades.</p>
+      )}
+      <div className="campu-home-foot">
+        <span>{emailOn ? "Te aviso por correo" : "Sin avisos por correo"}</span>
+        <button
+          type="button"
+          className="campu-link"
+          aria-expanded={more}
+          onClick={onMore}
+        >
+          {more ? "Ocultar ajustes y detalle" : "Ajustes y detalle ›"}
+        </button>
+      </div>
+    </section>
+  );
+}
 export default function CampuUpdates() {
   const [session, setSession] = useState<CampusSession | null>(null),
     [status, setStatus] = useState<any>(null),
@@ -391,6 +518,7 @@ export default function CampuUpdates() {
     [info, setInfo] = useState(""),
     [unsubscribe, setUnsubscribe] = useState<string | null>(null),
     [deleteOpen, setDeleteOpen] = useState(false),
+    [more, setMore] = useState(false),
     [nick, setNick] = useState("");
   const generation = useRef(0),
     owner = useRef<string | null>(null),
@@ -560,8 +688,22 @@ export default function CampuUpdates() {
   }
   const update = <K extends keyof Preferences>(key: K, value: Preferences[K]) =>
     setPrefs((p) => ({ ...p, [key]: value }));
+  // Vista simple solo con el seguimiento activo; si hay algo que arreglar, o se
+  // abrió un aviso concreto, se ve el detalle completo.
+  const simple = Boolean(
+    status?.available &&
+      prefs.enabled &&
+      ["active", "partial"].includes(status.status) &&
+      !events.length &&
+      !(
+        typeof location !== "undefined" &&
+        /^\/app\/novedades\/[0-9a-f-]{36}\/?$/i.test(location.pathname)
+      ),
+  );
+  const showDetail = !simple || more;
   return (
     <div className="campu-updates">
+      {!simple && (
       <header className="campu-heading">
         <img
           src="/assets/campu/campu-wave-v2-192.webp"
@@ -578,6 +720,7 @@ export default function CampuUpdates() {
           </p>
         </div>
       </header>
+      )}
       {error && (
         <p role="alert" className="campu-alert">
           {error}
@@ -630,6 +773,18 @@ export default function CampuUpdates() {
           )}
           {status && (
             <>
+              {simple && (
+                <Home
+                  context={context}
+                  notices={notices}
+                  emailOn={prefs.email}
+                  checkedAt={status.lastSuccessAt}
+                  more={more}
+                  onMore={() => setMore((v) => !v)}
+                />
+              )}
+              {showDetail && (
+              <>
               <section className="campu-card campu-status">
                 <div>
                   <h2>{labels[status.status] ?? "Revisando tu conexión"}</h2>
@@ -1208,6 +1363,8 @@ export default function CampuUpdates() {
                   </div>
                 )}
               </section>
+              </>
+              )}
             </>
           )}
         </>
