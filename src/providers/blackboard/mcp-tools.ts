@@ -252,10 +252,12 @@ export function registerBlackboardTools(server: McpServer) {
         'What the professor added or edited most recently in a course, in one call. Walks the whole content tree and ' +
         'returns pages, assessments, links and announcements sorted by edit date (newest first), each with its folder path, ' +
         'the files it contains and the edit time in Peru time (UTC-5). Use it for "lo último que agregó el profe", ' +
-        '"¿hay algo nuevo?" or "¿desde cuándo está este archivo?". Edit dates are per page, not per file.',
+        '"¿hay algo nuevo?" or "¿desde cuándo está este archivo?". Edit dates are per page, not per file. ' +
+        'Only trust "nothing newer" when the result says complete: true. To read past `limit`, narrow with `since` ' +
+        '(a date without a time zone is read as Peru time).',
       inputSchema: {
         courseId: blackboardId('courseId').describe('Blackboard course ID'),
-        since: z.string().optional().describe('ISO 8601 date/time: only changes edited at or after it'),
+        since: z.string().optional().describe('ISO 8601 date or date-time (no time zone = Peru time): only changes edited at or after it'),
         limit: z.number().int().min(1).max(100).optional().describe('Maximum changes to return (default 20)'),
       },
     },
