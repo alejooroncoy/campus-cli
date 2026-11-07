@@ -283,3 +283,83 @@ test('inputs are validated before any request is made', async () => {
   await assert.rejects(collectRecentChanges(client, '../etc'), /Blackboard ID/);
   assert.equal(calls, 0);
 });
+
+test('the request budget stops the walk, keeps what was read and says so', async () => {
+  const result = await collectRecentChanges(fakeClient(), '_1_1', { maxRequests: 2 });
+  assert.equal(result.truncated, true);
+  assert.equal(result.truncatedBy, 'requests');
+  assert.equal(result.requestsUsed, 2);
+  assert.equal(result.complete, false);
+  assert.ok(result.unreadableFolders.some((folder) => folder.reason === 'request budget'));
+  assert.match(result.note, /número de peticiones/);
+});
+
+test('the deadline stops the walk before any request when it has already passed', async () => {
+  let treeCalls = 0;
+  const client = {
+    get: async (url: string) => {
+      if (url.endsWith('/announcements')) return ok([]);
+      treeCalls += 1;
+      return ok([]);
+    },
+  } as unknown as AxiosInstance;
+  const result = await collectRecentChanges(client, '_1_1', { deadlineMs: 0 });
+  assert.equal(treeCalls, 0);
+  assert.equal(result.truncatedBy, 'deadline');
+  assert.equal(result.complete, false);
+  assert.match(result.note, /tiempo/);
+});
+
+test('a full course needs far fewer requests than the budget (one request per folder)', async () => {
+  const result = await collectRecentChanges(fakeClient(), '_1_1');
+  // raíz + Unidad 3 + Semana 11 + S11|Recursos = 4 carpetas
+  assert.equal(result.requestsUsed, 4);
+  assert.equal(result.truncated, false);
+});
+
+test('never more than 5 requests are in flight, including announcements', async () => {
+  let inFlight = 0;
+  let peak = 0;
+  const folders = Array.from({ length: 12 }, (_, i) => ({ id: `_${100 + i}_1`, title: `Semana ${i + 1}`, hasChildren: true }));
+  const client = {
+    get: async (url: string) => {
+      inFlight += 1;
+      peak = Math.max(peak, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      inFlight -= 1;
+      if (url.endsWith('/announcements')) return ok([]);
+      const parent = childrenOf(url);
+      return parent === 'root'
+        ? ok(folders)
+        : ok([{ id: `_9${parent.slice(1)}`, title: 'ultraDocumentBody', modified: '2026-11-01T00:00:00Z', contentHandler: { id: 'resource/x-bb-document' } }]);
+    },
+  } as unknown as AxiosInstance;
+  const result = await collectRecentChanges(client, '_1_1');
+  assert.equal(result.complete, true);
+  assert.equal(result.results.length, 12);
+  assert.ok(peak <= 5, `peak in flight was ${peak}`);
+  assert.ok(peak >= 2, 'the walk does run requests in parallel');
+});
+
+test('a new empty folder is reported as kind folder', async () => {
+  const client = fakeClient({
+    folder: (id) => id === 'root'
+      ? ok([{ id: '_80_1', title: 'Semana 12', modified: '2026-11-06T12:00:00Z', contentHandler: { id: 'resource/x-bb-folder' } }])
+      : undefined,
+  });
+  const result = await collectRecentChanges(client, '_1_1');
+  const folder = result.results.find((c) => c.id === '_80_1');
+  assert.equal(folder?.kind, 'folder');
+  assert.equal(folder?.title, 'Semana 12');
+});
+
+test('unnamed embedded images are not listed as files, named files are', async () => {
+  const image = '<a data-bbtype="image" data-bbfile="{&quot;alt&quot;:&quot;&quot;}" href="https://aulavirtual.upc.edu.pe/bbcswebdav/pid-1-dt-content-rid-2_1/xid-2_1">x</a>';
+  const client = fakeClient({
+    folder: (id) => id === 'root'
+      ? ok([{ id: '_90_1', title: 'ultraDocumentBody', modified: '2026-11-01T00:00:00Z', body: image + pptxBody, contentHandler: { id: 'resource/x-bb-document' } }])
+      : undefined,
+  });
+  const result = await collectRecentChanges(client, '_1_1');
+  assert.deepEqual(result.results.find((c) => c.id === '_90_1')?.files.map((f) => f.name), ['ejercicio.pptx']);
+});
