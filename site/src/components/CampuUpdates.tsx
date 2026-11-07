@@ -400,6 +400,7 @@ function Home({
   notices,
   emailOn,
   checkedAt,
+  incomplete,
   more,
   onMore,
 }: {
@@ -407,6 +408,7 @@ function Home({
   notices: Notice[];
   emailOn: boolean;
   checkedAt?: string;
+  incomplete: boolean;
   more: boolean;
   onMore: () => void;
 }) {
@@ -490,6 +492,12 @@ function Home({
         })
       ) : (
         <p className="campu-muted">Todavía no hay novedades.</p>
+      )}
+      {incomplete && (
+        <p className="campu-muted">
+          Me faltan fuentes por revisar: esto no confirma que no tengas nada
+          pendiente.
+        </p>
       )}
       <div className="campu-home-foot">
         <span>{emailOn ? "Te aviso por correo" : "Sin avisos por correo"}</span>
@@ -779,6 +787,9 @@ export default function CampuUpdates() {
                   notices={notices}
                   emailOn={prefs.email}
                   checkedAt={status.lastSuccessAt}
+                  incomplete={Boolean(
+                    status.coverage && !status.coverage.complete,
+                  )}
                   more={more}
                   onMore={() => setMore((v) => !v)}
                 />

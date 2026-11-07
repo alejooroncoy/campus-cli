@@ -630,6 +630,8 @@ try {
         await home.locator(".campu-home-foot span").innerText(),
         preferences.email ? "Te aviso por correo" : "Sin avisos por correo",
       );
+      // La cobertura incompleta no se esconde con el detalle.
+      assert.ok(await home.getByText("Me faltan fuentes por revisar", { exact: false }).count());
       // Nada de ajustes ni de detalle hasta que se pidan.
       const ajustes = page.getByRole("heading", { name: "Cómo quieres que te avise" });
       assert.equal(await ajustes.count(), 0);
