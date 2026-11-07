@@ -384,6 +384,13 @@ try {
       return json({});
     });
     try {
+      // El detalle (ajustes, cursos, lo que se revisó) está detrás de un botón.
+      const openDetail = async () => {
+        const boton = page.getByRole("button", { name: /Ajustes y detalle/ });
+        const detalle = page.getByRole("heading", { name: "Cómo quieres que te avise" });
+        await boton.or(detalle).first().waitFor();
+        if (await boton.count()) await boton.click();
+      };
       await page.goto(base + "/app/novedades/" + noticeId + "/");
       await page
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
@@ -549,6 +556,7 @@ try {
           ),
         session,
       );
+      await openDetail();
       await page
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
         .waitFor();
@@ -560,6 +568,7 @@ try {
       for (let i = 0; i < 50 && !weekFailed; i++)
         await page.waitForTimeout(100);
       assert.ok(weekFailed >= 1);
+      await openDetail();
       const apodoSemana = page.getByLabel("Mi apodo");
       await apodoSemana.fill("Ale");
       failWeek = false;
@@ -592,9 +601,45 @@ try {
           ),
         session,
       );
+      await openDetail();
       await page
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
         .waitFor({ timeout: 8000 });
+      // Vista simple: una frase, lo próximo y lo nuevo por día; el detalle, tras un botón.
+      await page.clock.setFixedTime(new Date("2026-09-22T15:00:00-05:00"));
+      await page.goto(base + "/app/novedades/");
+      const home = page.locator(".campu-home");
+      await home
+        .locator("h1")
+        .getByText("Esta semana te toca", { exact: false })
+        .waitFor();
+      const titular = (await home.locator("h1").innerText()).replace(/\s+/g, " ");
+      assert.ok(titular.startsWith("Esta semana te toca TB2 <img"), titular);
+      assert.equal(await page.evaluate(() => !!window.injected), false);
+      const proximo = (await home.locator(".campu-next").innerText()).replace(/\s+/g, " ");
+      assert.ok(proximo.startsWith("Lo próximo TB2 <img"), proximo);
+      assert.ok(proximo.includes("Esta semana · 21–27 set"), proximo);
+      assert.ok(proximo.includes("Después:"), proximo);
+      assert.equal(await home.locator(".campu-day h2").first().innerText(), "Hoy");
+      assert.equal(
+        await home.getByRole("link", { name: /Ya preparé tu semana/ }).getAttribute("href"),
+        "/app/novedades/" + noticeId + "/",
+      );
+      // Antes se guardaron las preferencias sin correo.
+      assert.equal(
+        await home.locator(".campu-home-foot span").innerText(),
+        preferences.email ? "Te aviso por correo" : "Sin avisos por correo",
+      );
+      // La cobertura incompleta no se esconde con el detalle.
+      assert.ok(await home.getByText("Me faltan fuentes por revisar", { exact: false }).count());
+      // Nada de ajustes ni de detalle hasta que se pidan.
+      const ajustes = page.getByRole("heading", { name: "Cómo quieres que te avise" });
+      assert.equal(await ajustes.count(), 0);
+      assert.equal(await page.locator(".campu-context").count(), 0);
+      await home.getByRole("button", { name: /Ajustes y detalle/ }).click();
+      await ajustes.waitFor();
+      await home.getByRole("button", { name: /Ocultar ajustes/ }).click();
+      assert.equal(await ajustes.count(), 0);
       // El resumen cambia con la celda elegida ya vacía: vuelve a la primera con algo.
       await page.goto(base + "/app/novedades/" + noticeId + "/");
       const cambio = page.locator(".campu-upcoming");
@@ -612,6 +657,7 @@ try {
           weekInFlightRace: true,
           retryWeekWithoutReset: true,
           retryAfterFailure: true,
+          simpleHome: true,
           copy: true,
           preferences: true,
           noAutomaticPermission: true,
