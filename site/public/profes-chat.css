@@ -1471,6 +1471,35 @@
 @media(max-width:700px){.app-profes-ai:not(.has-messages):has(.app-university-context){padding-top:220px}.app-guest-university{margin-top:8px;margin-bottom:24px}.app-university-context{gap:12px}.app-university-context__change{max-width:76px}}
 /* En móvil el botón de confirmar queda fijo sobre la barra inferior: sin esto asoma tapado y solo se ve haciendo scroll. */
 @media(max-width:700px){.app-guest-university__continue{position:sticky;bottom:calc(var(--app-mobile-nav-height,92px) + 12px);z-index:2;box-shadow:0 0 0 6px var(--app-paper),0 8px 20px rgba(0,0,0,.12)}}
+/* Pantalla de universidad: modo oscuro con «Las más elegidas» en tarjetas de color. Los colores se redefinen aquí para que lista, buscador y botones existentes se adapten solos. */
+.app-gu2{--app-paper:#0E1A2B;--app-ink:#FFFFFF;--app-muted:#A9B6C8;--app-line:#2C3D58;--app-link:#8EDCF0;--app-canvas:#1A2940;--app-sky-pale:#1D3350}
+.app-gu2 h1{font-weight:800;letter-spacing:-.035em;margin:12px 0 18px}
+.app-gu2__hello{display:flex;align-items:center;gap:12px}
+.app-gu2__hello img{flex:none;border-radius:50%}
+.app-guest-university .app-gu2__hello .app-guest-university__eyebrow{font-size:15px!important;font-weight:500;letter-spacing:0;color:var(--app-muted)!important;margin:0}
+.app-gu2 form{gap:12px;margin:0 0 16px}
+.app-gu2__label{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 12px;margin:0;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--app-muted)}
+.app-gu2__label span{font-size:12px;font-weight:600;letter-spacing:0;text-transform:none}
+.app-gu2__tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0;margin:0;padding:0;border:0}
+.app-gu2__tile{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:14px;box-sizing:border-box;min-height:150px;padding:16px 14px 14px;border-radius:24px;background:var(--tile);color:#0E1A2B;cursor:pointer}
+.app-gu2__tile.is-featured{grid-column:1/-1;flex-direction:row;align-items:center;gap:16px;min-height:0;padding:18px 18px 18px 20px}
+.app-gu2__tile input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.app-gu2__tile[data-selected=true]{box-shadow:0 0 0 3px var(--app-paper),0 0 0 6px #FFFFFF}
+.app-gu2__tile:has(input:focus-visible){outline:3px solid #FFFFFF;outline-offset:3px}
+.app-gu2__code{flex:none;font-size:34px;line-height:1;font-weight:800;letter-spacing:-.03em}
+.is-featured .app-gu2__code{font-size:40px}
+.app-gu2__name{display:grid;gap:4px;min-width:0;font-size:13.5px;line-height:1.3;font-weight:600;overflow-wrap:anywhere}
+.app-gu2__name span{font-size:12px;font-weight:500;color:#26364A}
+.app-gu2__more{display:grid;gap:8px;margin-top:4px;padding:20px;border:1px solid var(--app-line);border-radius:24px;background:var(--app-canvas)}
+.app-gu2__more h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.app-guest-university .app-gu2__more p{margin:0 0 6px;font-size:14.5px;line-height:1.5;color:#C3CEDD}
+.app-gu2__more-actions{display:flex;gap:10px}
+.app-gu2__search-button,.app-gu2__write-button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 14px;border-radius:16px;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.app-gu2__search-button{flex:1;border:0;background:#FFFFFF;color:#0E1A2B}
+.app-gu2__write-button{flex:1.3;border:2px solid #3A4A63;background:transparent;color:#FFFFFF}
+.app-gu2__search-button:disabled,.app-gu2__write-button:disabled{opacity:.5;cursor:default}
+/* Sin universidad elegida el botón no se fija: flotaría sobre «Buscar» y «Escribir su nombre» y taparía los toques. */
+@media(max-width:700px){.app-gu2 .app-guest-university__continue:disabled{position:static;box-shadow:none}}
 
 /* Campu introduces the agent while Campus remains the product and account. */
 .app-profes-ai__campu-intro { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:20px; }
