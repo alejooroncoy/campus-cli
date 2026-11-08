@@ -5,8 +5,8 @@ import { chatUniversityCode, chatUniversityCountry, declaredUniversity, filterCh
 // Colores de las tarjetas «Las más elegidas», en el orden en que llegan del catálogo.
 const tileColors = ['#8EDCF0', '#F6C35B', '#F59E8B', '#9BE3B8'];
 
-export default function GuestUniversity({ selected, authenticated = false, returnHref, onSelect }: {
-  selected: UniversityChoice | null; authenticated?: boolean; returnHref?: string; onSelect: (value: UniversityChoice) => void | Promise<void>;
+export default function GuestUniversity({ selected, authenticated = false, changing = false, returnHref, onSelect }: {
+  selected: UniversityChoice | null; authenticated?: boolean; changing?: boolean; returnHref?: string; onSelect: (value: UniversityChoice) => void | Promise<void>;
 }) {
   const [choices, setChoices] = useState<UniversityChoice[]>([]);
   const [input, setInput] = useState('');
@@ -30,7 +30,8 @@ export default function GuestUniversity({ selected, authenticated = false, retur
     return () => { active = false; };
   }, [attempt]);
   useEffect(() => { setEntryPlan(selectedPlan()); track('campus_university_step_viewed'); }, []);
-  const results = filterChatUniversities(choices, input);
+  // Sin texto no se lista nada: las más elegidas ya están en la pantalla anterior y repetirlas confunde.
+  const results = input.trim() ? filterChatUniversities(choices, input) : [];
   // Las más elegidas: solo las que el backend marca con cobertura (la primera, UPC, va destacada).
   const featured = filterChatUniversities(choices, '');
   const moreCount = Math.max(choices.length - featured.length, 0);
@@ -60,12 +61,21 @@ export default function GuestUniversity({ selected, authenticated = false, retur
     if (event.detail > 0 && !input.trim() && chatUniversityCode(item) === 'UPC' && !saving) void choose(item, 'quick');
   }
   function pick(item: UniversityChoice) { setSelectedId(item.id); setPicked(true); }
+  const unchanged = changing && !!selected && !!choice && choice.id === selected.id && choice.name === selected.name;
+  const backControl = selected && returnHref ? <a className="app-gu2__back" href={returnHref}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-left" /></svg>Volver a mi perfil</a>
+    : selected ? <button type="button" className="app-gu2__back" onClick={() => { void choose(selected, 'saved'); }} disabled={saving}><svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-left" /></svg>Volver al chat</button> : null;
   return <section className="app-guest-university app-gu2" aria-labelledby="guest-university-title">
-    <div className="app-gu2__hello">
-      <img src="/assets/campu-avatar-60.png" srcSet="/assets/campu-avatar-90.png 1.5x" width="48" height="48" alt="Campu" />
-      <p className="app-guest-university__eyebrow">{entryPlan === 'plus' ? 'Hola, soy Campu. Vamos con Campus Plus.' : 'Hola, soy Campu.'}</p>
-    </div>
-    <h1 id="guest-university-title">¿Dónde estudias?</h1>
+    {changing && selected ? <>
+      {backControl}
+      <h1 id="guest-university-title">Cambiar universidad</h1>
+      <p className="app-gu2__current">Ahora: <strong>{selected.id === null ? selected.name : (chatUniversityCode(selected) ? `${chatUniversityCode(selected)} — ${selected.name}` : selected.name)}</strong></p>
+    </> : <>
+      <div className="app-gu2__hello">
+        <img src="/assets/campu-avatar-60.png" srcSet="/assets/campu-avatar-90.png 1.5x" width="48" height="48" alt="Campu" />
+        <p className="app-guest-university__eyebrow">{entryPlan === 'plus' ? 'Hola, soy Campu. Vamos con Campus Plus.' : 'Hola, soy Campu.'}</p>
+      </div>
+      <h1 id="guest-university-title">¿Dónde estudias?</h1>
+    </>}
     <form onSubmit={submit} aria-busy={saving}>
       {custom ? <>
         <label htmlFor="guest-university-name">Nombre de tu universidad</label>
@@ -87,9 +97,9 @@ export default function GuestUniversity({ selected, authenticated = false, retur
               <span className="app-guest-university__option-text"><strong>{item.name}</strong>{details ? <span>{details}</span> : null}</span>
             </label>;
           })}
-        </fieldset> : <div className="app-guest-university__empty"><strong>No encontramos esa universidad</strong><p>Puedes escribir su nombre y continuar con Campus.</p></div>}
-        <button type="button" className="app-guest-university__other" onClick={() => { setSearching(false); setInput(''); setError(''); }} disabled={saving}>Volver a las más elegidas</button>
-        <button type="button" className="app-guest-university__other" onClick={() => { setCustom(true); setCustomName(input); setPicked(true); setError(''); }} disabled={saving}>Escribir su nombre</button>
+        </fieldset> : input.trim() ? <div className="app-guest-university__empty"><strong>No encontramos esa universidad</strong><p>Añádela con el nombre que escribiste y continúa con Campus.</p>
+          <button type="button" className="app-gu2__search-button app-gu2__add-button" onClick={() => { setCustom(true); setCustomName(input.trim()); setPicked(true); setError(''); }} disabled={saving}>Añadir «{input.trim()}»</button></div> : null}
+        <button type="button" className="app-gu2__write-button" onClick={() => { setSearching(false); setInput(''); setError(''); }} disabled={saving}>Volver a las más elegidas</button>
       </> : <>
         {loading ? <div className="app-guest-university__loading" role="status"><span className="app-sr-only">Cargando universidades…</span><span className="app-skeleton app-skeleton--line" aria-hidden="true" /><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></div> : null}
         {!loading && featured.length ? <>
@@ -110,22 +120,24 @@ export default function GuestUniversity({ selected, authenticated = false, retur
         </> : null}
         <section className="app-gu2__more" aria-labelledby="gu2-more-title">
           <h2 id="gu2-more-title">¿No aparece la tuya?</h2>
-          <p>{moreCount ? `Hay ${moreCount} universidades más. ` : ''}Búscala o escribe su nombre. Igual podrás usar Campus.</p>
+          <p>{moreCount ? `Hay ${moreCount} universidades más. ` : ''}Búscala por su nombre. Si no está, podrás escribirla y usar Campus igual.</p>
           <div className="app-gu2__more-actions">
             <button type="button" className="app-gu2__search-button" onClick={() => setSearching(true)} disabled={loading || !choices.length || saving}>
               <svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#search" /></svg>Buscar
             </button>
-            <button type="button" className="app-gu2__write-button" onClick={() => { setCustom(true); setCustomName(input); setPicked(true); setError(''); }} disabled={saving}>Escribir su nombre</button>
           </div>
-          {!loading && !choices.length ? <button type="button" className="app-guest-university__other" onClick={() => setAttempt(value => value + 1)}>Volver a intentar</button> : null}
+          {!loading && !choices.length ? <>
+            <button type="button" className="app-guest-university__other" onClick={() => setAttempt(value => value + 1)}>Volver a intentar</button>
+            <button type="button" className="app-gu2__write-button" onClick={() => { setCustom(true); setCustomName(''); setPicked(true); setError(''); }} disabled={saving}>Escribir su nombre</button>
+          </> : null}
         </section>
       </>}
       {choice && !guestUniversitySupported(choice) ? <p className="app-guest-university__coverage" role="status">Podrás usar el agente para estudiar y preparar tus trabajos. Todavía no tenemos datos de profesores o cursos de esta universidad.</p> : null}
       {error ? <p role="alert" className="app-guest-university__error">{error}</p> : null}
-      <button type="submit" className="app-guest-university__continue" disabled={!choice || saving}>{saving ? 'Guardando…' : 'Empezar con Campus'}<svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg></button>
+      <button type="submit" className="app-guest-university__continue" disabled={!choice || saving || unchanged}>{saving ? 'Guardando…' : changing ? 'Guardar cambio' : 'Empezar con Campus'}<svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg></button>
     </form>
     <p className="app-guest-university__note">{authenticated ? 'Se guardará en tu perfil.' : 'Conservaremos tu elección si creas una cuenta.'} Conectar tu Aula Virtual es un paso aparte.</p>
-    {selected && returnHref ? <a className="app-guest-university__back" href={returnHref}>Volver a mi perfil</a>
-      : selected ? <button type="button" className="app-guest-university__back" onClick={() => { void choose(selected, 'saved'); }} disabled={saving}>Volver al chat</button> : null}
+    {!changing ? (selected && returnHref ? <a className="app-guest-university__back" href={returnHref}>Volver a mi perfil</a>
+      : selected ? <button type="button" className="app-guest-university__back" onClick={() => { void choose(selected, 'saved'); }} disabled={saving}>Volver al chat</button> : null) : null}
   </section>;
 }

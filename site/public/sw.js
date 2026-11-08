@@ -6,7 +6,7 @@
 const CACHE_NAME = "campus-shell-v17";
 const STATIC_ASSETS = [
   "/app-dashboard.css?v=26",
-  "/profes-chat.css?v=28",
+  "/profes-chat.css?v=37",
   "/assets/fonts/GoogleSansFlex-Regular.woff2",
   "/assets/fonts/GoogleSansFlex-SemiBold.woff2",
   "/assets/campus-logo.webp",

@@ -699,7 +699,7 @@ export default function ProfesChat() {
   // y al guardar se vuelve a Mi perfil.
   const [editingFromProfile] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("universidad") === "cambiar");
   const guestNeedsUniversity = session?.authenticated === false && (changingUniversity || !guestUniversity)
-    || session?.authenticated === true && (!session.universityConfirmed || editingFromProfile);
+    || session?.authenticated === true && (!session.universityConfirmed || editingFromProfile || changingUniversity);
   const hasCatalogCoverage = session?.authenticated ? session.profesAvailable === true : guestUniversitySupported(guestUniversity);
   // La cobertura la decide el backend: se actualiza la elección guardada del invitado al abrir el chat.
   useEffect(() => {
@@ -717,6 +717,7 @@ export default function ProfesChat() {
       if (!response.ok) throw Error(result.error ?? 'No pudimos guardar tu universidad.');
       const verified = await getCampusSession(true);
       if (!verified.authenticated || !verified.universityConfirmed || verified.university?.id !== value.id || verified.university?.name !== value.name) throw Error('No pudimos comprobar tu universidad. Inténtalo otra vez.');
+      if (session.university && (session.university.id !== value.id || session.university.name !== value.name)) startNewConversation();
       applyAccessSession(verified);
     } else if (guestUniversity && (guestUniversity.id !== value.id || guestUniversity.name !== value.name)) startNewConversation();
     rememberGuestUniversity(value); setGuestUniversity(value); setChangingUniversity(false);
@@ -1440,7 +1441,7 @@ export default function ProfesChat() {
     </section>
   </div>;
 
-  if (guestNeedsUniversity) return <div className="app-profes-layout"><GuestUniversity selected={session?.authenticated ? session.university ?? guestUniversity : guestUniversity} authenticated={session?.authenticated} returnHref={editingFromProfile ? "/app/perfil/" : undefined} onSelect={selectGuestUniversity} /></div>;
+  if (guestNeedsUniversity) return <div className="app-profes-layout"><GuestUniversity selected={session?.authenticated ? session.university ?? guestUniversity : guestUniversity} authenticated={session?.authenticated} changing={session?.authenticated ? session.universityConfirmed === true : Boolean(guestUniversity)} returnHref={editingFromProfile ? "/app/perfil/" : undefined} onSelect={selectGuestUniversity} /></div>;
 
   return (
     <div className="app-profes-layout">
@@ -1460,9 +1461,9 @@ export default function ProfesChat() {
 
       {/* Top Toolbar for Profes */}
       <div className="app-profes-toolbar">
-        {session?.authenticated && session.universityConfirmed && session.university ? <a className="app-university-context" href="/app/perfil/"><span className="app-university-context__target"><small>Tu universidad</small>{universityLabel(session.university)}</span><span className="app-university-context__change">Cambiar universidad</span></a>
+        {session?.authenticated && session.universityConfirmed && session.university ? <button type="button" className="app-university-context" onClick={() => setChangingUniversity(true)}><span className="app-university-context__target"><small>Tu universidad</small>{universityLabel(session.university)}</span><span className="app-university-context__change">Cambiar universidad</span></button>
           : null}
-        <div className="app-assistant-account" data-state={account.state} aria-label="Tu plan y consultas">
+        <div className={`app-assistant-account${["free", "plus"].includes(account.state) && !account.retry ? " app-assistant-account--in-sidebar" : ""}`} data-state={account.state} aria-label="Tu plan y consultas">
           <div className="app-assistant-account__summary">
             <strong className="app-assistant-account__label"><span className="app-assistant-account__dot" aria-hidden="true" />{account.state === "loading" ? <><span className="app-sr-only">{account.label}</span><span className="app-skeleton app-skeleton--short" aria-hidden="true" /></> : account.label}</strong>
             <span className="app-assistant-account__balance" aria-live="polite">{account.state === "loading" ? <><span className="app-sr-only">{account.available}</span><span className="app-skeleton app-skeleton--line" aria-hidden="true" /></> : account.available}</span>

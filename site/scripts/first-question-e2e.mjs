@@ -117,7 +117,7 @@ try {
     if(choice.country)await radio.locator('..').getByText('UP · '+choice.country,{exact:true}).waitFor();
     await continueButton.click();
     await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
-    if(choice.code==='UP')await page.getByRole('link',{name:new RegExp(choice.name+' · '+choice.country)}).waitFor();
+    if(choice.code==='UP')await page.getByRole('button',{name:new RegExp(choice.name+' · '+choice.country)}).waitFor();
     await page.reload();
     await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
     await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).fill('Opiniones de profesores');
@@ -169,7 +169,7 @@ try {
    const name=custom?'Universidad fuera del catálogo':otherUniversity.name;
    await input.fill(name);
    if(custom){
-    await page.getByRole('button',{name:'Escribir su nombre',exact:true}).click();
+    await page.getByRole('button',{name:/^Añadir/}).click();
     await page.getByLabel('Nombre de tu universidad',{exact:true}).fill(name);
    }else await page.getByRole('radio',{name:new RegExp(name)}).check();
    await page.getByText('Podrás usar el agente para estudiar y preparar tus trabajos.',{exact:false}).waitFor();
@@ -196,7 +196,9 @@ try {
  });
  await fixture(390,'a declared account university survives reload without returning to onboarding',async({page,state})=>{
   await page.goto(base+'/app/asistente/');
-  await page.getByRole('button',{name:'Escribir su nombre',exact:true}).click();
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
+  await page.getByLabel('Busca o elige tu universidad').fill('Universidad declarada de prueba');
+  await page.getByRole('button',{name:/^Añadir/}).click();
   await page.getByLabel('Nombre de tu universidad',{exact:true}).fill('Universidad declarada de prueba');
   await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
@@ -208,7 +210,9 @@ try {
  });
  await fixture(390,'authenticated onboarding can retry a failed declaration without duplicate saves',async({page,state})=>{
   await page.goto(base+'/app/asistente/');
-  await page.getByRole('button',{name:'Escribir su nombre',exact:true}).click();
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
+  await page.getByLabel('Busca o elige tu universidad').fill('Universidad declarada de prueba');
+  await page.getByRole('button',{name:/^Añadir/}).click();
   await page.getByLabel('Nombre de tu universidad',{exact:true}).fill('Universidad declarada de prueba');
   const button=page.getByRole('button',{name:'Empezar con Campus',exact:true});
   await button.evaluate(button=>{button.click();button.click();});
@@ -221,17 +225,17 @@ try {
   await enter();
   await page.getByRole('button',{name:samples[0][1],exact:true}).click();
   await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
-  await page.locator('.app-university-context').click();
+  await page.goto(base+'/app/perfil/');
   await page.getByRole('button',{name:'Cambiar universidad',exact:true}).click();
   // Cambiar universidad abre la pantalla de elección en su propia ruta, sin el formulario inline.
   await page.waitForURL(/\/app\/asistente\/\?universidad=cambiar$/);
-  await page.getByRole('heading',{name:'¿Dónde estudias?'}).waitFor();
+  await page.getByRole('heading',{name:'Cambiar universidad'}).waitFor();
   assert.equal(await page.getByRole('link',{name:'Volver a mi perfil'}).getAttribute('href'),'/app/perfil/');
   // Pacífico ya no se sugiere (sin cobertura): se llega buscándola.
   await page.getByRole('button',{name:'Buscar',exact:true}).click();
   await page.getByLabel('Busca o elige tu universidad').fill('Pacífico');
   await page.getByRole('radio',{name:/Universidad del Pacífico/}).check();
-  await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
+  await page.getByRole('button',{name:'Guardar cambio',exact:true}).click();
   await page.waitForURL(/\/app\/perfil\/$/);
   await page.locator('[data-app-university-name]').filter({hasText:'Universidad del Pacífico'}).waitFor();
   await page.goto(base+'/app/asistente/');
@@ -241,6 +245,32 @@ try {
   await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();
   await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
   assert.equal(requests.length,2);assert.equal(requests[1].universityId,undefined);assert.equal(state.savedUniversity.id,25);assert.ok(!requests[1].conversationId);
+ });
+ await fixture(390,'changing university from the chat opens the same screen without leaving it',async({page,state,requests,enter})=>{
+  await enter();
+  await page.getByRole('button',{name:samples[0][1],exact:true}).click();
+  await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
+  await page.locator('.app-university-context').click();
+  await page.getByRole('heading',{name:'Cambiar universidad'}).waitFor();
+  assert.match(page.url(),/\/app\/asistente\//);assert.doesNotMatch(page.url(),/universidad=cambiar/);
+  assert.equal(await page.getByRole('link',{name:'Volver a mi perfil'}).count(),0);
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
+  await page.getByLabel('Busca o elige tu universidad').fill('Pacífico');
+  await page.getByRole('radio',{name:/Universidad del Pacífico/}).check();
+  await page.getByRole('button',{name:'Guardar cambio',exact:true}).click();
+  await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
+  assert.match(page.url(),/\/app\/asistente\//);
+  assert.equal(state.savedUniversity.id,25);
+  assert.equal(await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).count(),0);
+  assert.ok((await page.locator('.app-university-context').innerText()).includes('Pacífico'));
+ });
+ await fixture(390,'closing the university screen from the chat keeps the conversation',async({page,state,enter})=>{
+  await enter();
+  await page.locator('.app-university-context').click();
+  await page.getByRole('heading',{name:'Cambiar universidad'}).waitFor();
+  await page.getByRole('button',{name:'Volver al chat',exact:true}).click();
+  await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
+  assert.equal(state.savedUniversity.id,1);
  });
  await fixture(390,'failed catalog can retry without assuming a university',async({page,state,requests})=>{
   await page.goto(base+'/app/asistente/');await page.getByRole('button',{name:'Volver a intentar',exact:true}).waitFor();
