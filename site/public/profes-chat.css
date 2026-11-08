@@ -1469,6 +1469,8 @@
 .app-profes-ai__feedback-option:disabled{opacity:.55;cursor:progress}
 @media(max-width:700px){.app-profes-ai__feedback-option{min-height:44px;padding:8px 18px}}
 @media(max-width:700px){.app-profes-ai:not(.has-messages):has(.app-university-context){padding-top:220px}.app-guest-university{margin-top:8px;margin-bottom:24px}.app-university-context{gap:12px}.app-university-context__change{max-width:76px}}
+/* En móvil el botón de confirmar queda fijo sobre la barra inferior: sin esto asoma tapado y solo se ve haciendo scroll. */
+@media(max-width:700px){.app-guest-university__continue{position:sticky;bottom:calc(var(--app-mobile-nav-height,92px) + 12px);z-index:2;box-shadow:0 0 0 6px var(--app-paper),0 8px 20px rgba(0,0,0,.12)}}
 
 /* Campu introduces the agent while Campus remains the product and account. */
 .app-profes-ai__campu-intro { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:20px; }

@@ -216,9 +216,13 @@ try {
   await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
   await page.locator('.app-university-context').click();
   await page.getByRole('button',{name:'Cambiar universidad',exact:true}).click();
-  await page.waitForFunction(()=>Array.from(document.querySelectorAll('[data-app-university-options] option')).some(o=>o.value.includes('Universidad del Pacífico')));
-  const profileUniversity=page.getByLabel('Tu universidad',{exact:true});await profileUniversity.waitFor();
-  await profileUniversity.fill('Universidad del Pacífico');await page.getByRole('button',{name:'Guardar y continuar'}).click();
+  // Cambiar universidad abre la pantalla de elección en su propia ruta, sin el formulario inline.
+  await page.waitForURL(/\/app\/asistente\/\?universidad=cambiar$/);
+  await page.getByRole('heading',{name:'¿Dónde estudias?'}).waitFor();
+  assert.equal(await page.getByRole('link',{name:'Volver a mi perfil'}).getAttribute('href'),'/app/perfil/');
+  await page.getByRole('radio',{name:/Universidad del Pacífico/}).check();
+  await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
+  await page.waitForURL(/\/app\/perfil\/$/);
   await page.locator('[data-app-university-name]').filter({hasText:'Universidad del Pacífico'}).waitFor();
   await page.goto(base+'/app/asistente/');
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();

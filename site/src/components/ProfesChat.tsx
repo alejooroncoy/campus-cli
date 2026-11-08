@@ -695,8 +695,11 @@ export default function ProfesChat() {
   const [authenticated, setAuthenticated] = useState(false);
   const [guestUniversity, setGuestUniversity] = useState(readGuestUniversity);
   const [changingUniversity, setChangingUniversity] = useState(false);
+  // "Cambiar universidad" en Mi perfil llega aquí con ?universidad=cambiar: misma pantalla que el alta,
+  // y al guardar se vuelve a Mi perfil.
+  const [editingFromProfile] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("universidad") === "cambiar");
   const guestNeedsUniversity = session?.authenticated === false && (changingUniversity || !guestUniversity)
-    || session?.authenticated === true && !session.universityConfirmed;
+    || session?.authenticated === true && (!session.universityConfirmed || editingFromProfile);
   const hasCatalogCoverage = session?.authenticated ? session.profesAvailable === true : guestUniversitySupported(guestUniversity);
   async function selectGuestUniversity(value: UniversityChoice) {
     if (session?.authenticated) {
@@ -708,6 +711,7 @@ export default function ProfesChat() {
       applyAccessSession(verified);
     } else if (guestUniversity && (guestUniversity.id !== value.id || guestUniversity.name !== value.name)) startNewConversation();
     rememberGuestUniversity(value); setGuestUniversity(value); setChangingUniversity(false);
+    if (session?.authenticated && editingFromProfile) window.location.assign("/app/perfil/");
   }
   const [input, setInput] = useState("");
   const sendingQuestion = useRef(false);
@@ -1427,7 +1431,7 @@ export default function ProfesChat() {
     </section>
   </div>;
 
-  if (guestNeedsUniversity) return <div className="app-profes-layout"><GuestUniversity selected={session?.authenticated ? session.university ?? guestUniversity : guestUniversity} authenticated={session?.authenticated} onSelect={selectGuestUniversity} /></div>;
+  if (guestNeedsUniversity) return <div className="app-profes-layout"><GuestUniversity selected={session?.authenticated ? session.university ?? guestUniversity : guestUniversity} authenticated={session?.authenticated} returnHref={editingFromProfile ? "/app/perfil/" : undefined} onSelect={selectGuestUniversity} /></div>;
 
   return (
     <div className="app-profes-layout">

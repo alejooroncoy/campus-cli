@@ -342,10 +342,9 @@ function initPage() {
     });
   });
 
+  // Cambiar universidad abre la pantalla de elección del asistente en su propia ruta y vuelve a Mi perfil al guardar.
   document.querySelector("[data-app-change-university]")?.addEventListener("click", () => {
-    showUniversityForm();
-    if (universityCancel) universityCancel.hidden = false;
-    universityInput?.focus();
+    location.assign("/app/asistente/?universidad=cambiar");
   });
 
   universityCancel?.addEventListener("click", () => {

@@ -2,8 +2,8 @@ import { selectedPlan, track } from '../scripts/analytics';
 import { useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { chatUniversityCode, chatUniversityCountry, declaredUniversity, filterChatUniversities, guestUniversitySupported, loadUniversityChoices, type UniversityChoice } from '../scripts/guest-university';
 
-export default function GuestUniversity({ selected, authenticated = false, onSelect }: {
-  selected: UniversityChoice | null; authenticated?: boolean; onSelect: (value: UniversityChoice) => void | Promise<void>;
+export default function GuestUniversity({ selected, authenticated = false, returnHref, onSelect }: {
+  selected: UniversityChoice | null; authenticated?: boolean; returnHref?: string; onSelect: (value: UniversityChoice) => void | Promise<void>;
 }) {
   const [choices, setChoices] = useState<UniversityChoice[]>([]);
   const [input, setInput] = useState('');
@@ -90,6 +90,7 @@ export default function GuestUniversity({ selected, authenticated = false, onSel
       <button type="submit" className="app-guest-university__continue" disabled={!choice || saving}>{saving ? 'Guardando…' : 'Empezar con Campus'}<svg viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right" /></svg></button>
     </form>
     <p className="app-guest-university__note">{authenticated ? 'Se guardará en tu perfil.' : 'Conservaremos tu elección si creas una cuenta.'} Conectar tu Aula Virtual es un paso aparte.</p>
-    {selected ? <button type="button" className="app-guest-university__back" onClick={() => { void choose(selected, 'saved'); }} disabled={saving}>Volver al chat</button> : null}
+    {selected && returnHref ? <a className="app-guest-university__back" href={returnHref}>Volver a mi perfil</a>
+      : selected ? <button type="button" className="app-guest-university__back" onClick={() => { void choose(selected, 'saved'); }} disabled={saving}>Volver al chat</button> : null}
   </section>;
 }
