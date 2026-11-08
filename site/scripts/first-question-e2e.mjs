@@ -235,6 +235,26 @@ try {
   await page.getByRole('radio',{name:/Universidad Peruana de Ciencias Aplicadas/}).check();
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
  },{catalogFail:true});
+ await fixture(390,'only a pointer tap on UPC continues without confirming',async({page,state})=>{
+  const confirm=page.getByRole('button',{name:'Empezar con Campus',exact:true});
+  await page.goto(base+'/app/asistente/');await page.getByRole('heading',{name:'¿Dónde estudias?'}).waitFor();
+  // Otra universidad: solo selecciona y espera confirmación.
+  await page.getByRole('radio',{name:/Universidad Privada del Norte/}).check();
+  assert.equal(state.universityWrites.length,0);assert.equal(await confirm.isEnabled(),true);
+  // Teclado: las flechas llegan a UPC sin guardar ni cambiar de pantalla.
+  await page.getByRole('radio',{name:/Universidad Privada del Norte/}).focus();
+  await page.keyboard.press('ArrowUp');
+  assert.equal(await page.getByRole('radio',{name:/Universidad Peruana de Ciencias Aplicadas/}).isChecked(),true);
+  assert.equal(state.universityWrites.length,0);assert.equal(await confirm.isEnabled(),true);
+  // Con búsqueda activa, tocar UPC tampoco confirma solo.
+  await page.getByRole('searchbox').fill('UPC');
+  await page.getByRole('radio',{name:/Universidad Peruana de Ciencias Aplicadas/}).click();
+  assert.equal(state.universityWrites.length,0);
+  // Toque real sobre el texto de la tarjeta (sin búsqueda): continúa.
+  await page.getByRole('searchbox').fill('');
+  await page.getByText('Universidad Peruana de Ciencias Aplicadas',{exact:true}).click();
+  await page.locator('section.app-profes-ai').waitFor();assert.equal(state.universityWrites.length,1);
+ });
  await fixture(390,'failed sample remains visible for retry',async({page,state,requests,events,enter})=>{
   await enter();await page.getByRole('button',{name:samples[2][1],exact:true}).click();
   await page.getByRole('button',{name:'Reintentar consulta',exact:true}).waitFor();

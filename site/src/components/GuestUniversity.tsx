@@ -69,12 +69,14 @@ export default function GuestUniversity({ selected, authenticated = false, onSel
             {results.map(item => {
               const details = [chatUniversityCode(item) || item.shortName, chatUniversityCountry(item)].filter(Boolean).join(' · ');
               return <label key={item.id} className="app-guest-university__option" data-selected={selectedId === item.id}>
-                <input type="radio" name="university" value={item.id!} checked={selectedId === item.id} onChange={() => {
-                  setSelectedId(item.id); setPicked(true);
-                  // UPC es la sugerencia principal: un toque basta. Con búsqueda activa o en
-                  // otras universidades se mantiene "Empezar con Campus" para confirmar.
-                  if (!input.trim() && chatUniversityCode(item) === 'UPC' && !saving) void choose(item, 'quick');
-                }} />
+                <input type="radio" name="university" value={item.id!} checked={selectedId === item.id} onChange={() => { setSelectedId(item.id); setPicked(true); }}
+                  onClick={event => {
+                    // UPC es la sugerencia principal: un toque basta. Solo con puntero (detail > 0):
+                    // las flechas del teclado también disparan clic (detail 0) y no deben cambiar de
+                    // pantalla al pasar por encima (WCAG 3.2.2). Con búsqueda activa o en otras
+                    // universidades se mantiene "Empezar con Campus" para confirmar.
+                    if (event.detail > 0 && !input.trim() && chatUniversityCode(item) === 'UPC' && !saving) void choose(item, 'quick');
+                  }} />
                 <span className="app-guest-university__option-text"><strong>{item.name}</strong>{details ? <span>{details}</span> : null}</span>
               </label>;
             })}
