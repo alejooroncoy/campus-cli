@@ -6,7 +6,7 @@ import { analyticsHeaders, track } from '../scripts/analytics';
 import { canRetryQuestion, questionFailure } from '../scripts/question-retry';
 import {universitySetupHref} from "../scripts/university-onboarding";
 import GuestUniversity from './GuestUniversity';
-import { readGuestUniversity, rememberGuestUniversity, guestUniversitySupported, universityLabel, universitySelectionPayload, type UniversityChoice } from '../scripts/guest-university';
+import { readGuestUniversity, rememberGuestUniversity, refreshGuestUniversity, guestUniversitySupported, universityLabel, universitySelectionPayload, type UniversityChoice } from '../scripts/guest-university';
 import {assistantAccountView} from "../scripts/assistant-account";
 import {assistantLoginHref} from "../scripts/assistant-handoff";
 import { createConversationDrafts, restoreConversationDrafts, markGuestDraftHandoff } from "../scripts/conversation-drafts";
@@ -701,6 +701,15 @@ export default function ProfesChat() {
   const guestNeedsUniversity = session?.authenticated === false && (changingUniversity || !guestUniversity)
     || session?.authenticated === true && (!session.universityConfirmed || editingFromProfile);
   const hasCatalogCoverage = session?.authenticated ? session.profesAvailable === true : guestUniversitySupported(guestUniversity);
+  // La cobertura la decide el backend: se actualiza la elección guardada del invitado al abrir el chat.
+  useEffect(() => {
+    if (session?.authenticated !== false || !guestUniversity || guestUniversity.id === null) return;
+    let active = true;
+    void refreshGuestUniversity(guestUniversity).then(fresh => {
+      if (active && fresh && fresh.coverage !== guestUniversity.coverage) { rememberGuestUniversity(fresh); setGuestUniversity(fresh); }
+    }).catch(() => { /* Sin red se conserva lo guardado. */ });
+    return () => { active = false; };
+  }, [session?.authenticated, guestUniversity?.id]);
   async function selectGuestUniversity(value: UniversityChoice) {
     if (session?.authenticated) {
       const response = await fetch('/api/app/university', {method:'POST',credentials:'same-origin',headers:{'content-type':'application/json',...analyticsHeaders()},body:JSON.stringify(universitySelectionPayload(value)),signal:AbortSignal.timeout(8000)});

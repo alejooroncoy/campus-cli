@@ -15,9 +15,10 @@ const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
 
 const id='11111111-1111-4111-8111-111111111111';
-const university={id:1,name:'Universidad Peruana de Ciencias Aplicadas',shortName:'UPC'};
-const otherUniversity={id:2,name:'Universidad de prueba',shortName:'PRUEBA'};
-const addedUniversities=[{id:40,name:'Universidad Privada del Norte',shortName:null,code:'UPN'},{id:90,name:'Universidad de Palermo',shortName:'UP',code:'UP',country:'Argentina'},{id:25,name:'Universidad del Pacífico',shortName:null,code:'UP',country:'Perú'}];
+// `coverage` lo devuelve el backend en GET /api/app/universities (hoy: UPC, UPN y Palermo; Pacífico no).
+const university={id:1,name:'Universidad Peruana de Ciencias Aplicadas',shortName:'UPC',coverage:true};
+const otherUniversity={id:2,name:'Universidad de prueba',shortName:'PRUEBA',coverage:false};
+const addedUniversities=[{id:40,name:'Universidad Privada del Norte',shortName:null,code:'UPN',coverage:true},{id:90,name:'Universidad de Palermo',shortName:'UP',code:'UP',country:'Argentina',coverage:true},{id:25,name:'Universidad del Pacífico',shortName:null,code:'UP',country:'Perú',coverage:false}];
 const samples=[
  ['professor_reviews','¿Qué dicen los estudiantes de Luis Vives?'],
  ['course_professors','¿Qué profesores hay para Cálculo I?'],
@@ -35,7 +36,7 @@ async function fixture(width,scenario,run,options={}) {
   const json=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
   if(path==='/api/app/session'){
    if(state.unavailable)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
-   return json({authenticated:false,analyticsAudience:'test',plan:'anon',aiReady:true,profesAvailable:true,usage:{remaining:state.remaining,limit:25,period:'trial'},banner:{connected:false},features:{schedulePlanning:false},...(state.authenticated?{authenticated:true,email:'fixture@example.test',plan:'free',universityConfirmed:!!state.savedUniversity,university:state.savedUniversity,profesAvailable:!!state.savedUniversity&&state.savedUniversity.id!==null&&state.savedUniversity.id!==2}:{})});
+   return json({authenticated:false,analyticsAudience:'test',plan:'anon',aiReady:true,profesAvailable:true,usage:{remaining:state.remaining,limit:25,period:'trial'},banner:{connected:false},features:{schedulePlanning:false},...(state.authenticated?{authenticated:true,email:'fixture@example.test',plan:'free',universityConfirmed:!!state.savedUniversity,university:state.savedUniversity,profesAvailable:state.savedUniversity?.coverage===true}:{})});
   }
   if(path==='/api/app/universities'){
    if(state.catalogFail)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
@@ -86,10 +87,13 @@ try {
  }
  for(const width of [390,1100]) {
   for(const choice of addedUniversities)for(const method of ['quick','search']) {
+   // Sin cobertura no se sugiere: solo se llega a ella buscándola.
+   if(!choice.coverage&&method==='quick')continue;
    await fixture(width,choice.name+' opens chat via '+method,async({page,state,requests,events})=>{
     await page.goto(base+'/app/asistente/');
+    if(!choice.coverage)assert.equal(await page.getByRole('radio',{name:new RegExp(choice.name)}).count(),0,'An uncovered university is not suggested');
     const radio=page.getByRole('radio',{name:new RegExp(choice.name)});
-    await radio.waitFor();
+    if(choice.coverage)await radio.waitFor();
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
     const continueButton=page.getByRole('button',{name:'Empezar con Campus',exact:true});
     assert.equal(await continueButton.isDisabled(),true);
@@ -119,7 +123,7 @@ try {
     await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();
     await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
     assert.equal(requests.length,1);assert.equal(requests[0].universityId,undefined);assert.equal(state.savedUniversity.id,choice.id);
-    assert.ok((await events()).some(e=>e.event==='campus_university_selected'&&e.properties.supported===true));
+    assert.ok((await events()).some(e=>e.event==='campus_university_selected'&&e.properties.supported===choice.coverage));
    });
   }
   for(const [example,prompt] of samples) {
@@ -220,6 +224,8 @@ try {
   await page.waitForURL(/\/app\/asistente\/\?universidad=cambiar$/);
   await page.getByRole('heading',{name:'¿Dónde estudias?'}).waitFor();
   assert.equal(await page.getByRole('link',{name:'Volver a mi perfil'}).getAttribute('href'),'/app/perfil/');
+  // Pacífico ya no se sugiere (sin cobertura): se llega buscándola.
+  await page.getByLabel('Busca o elige tu universidad').fill('Pacífico');
   await page.getByRole('radio',{name:/Universidad del Pacífico/}).check();
   await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
   await page.waitForURL(/\/app\/perfil\/$/);
