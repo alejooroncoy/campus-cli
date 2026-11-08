@@ -77,7 +77,7 @@ export function guestUniversitySupported(item: UniversityChoice | null): boolean
   return chatUniversityCode(item) !== undefined;
 }
 export function loadUniversityChoices(): Promise<UniversityChoice[]> {
-  return choicesRequest ??= fetch('/api/app/universities', {
+  return choicesRequest ??= fetch('/api/app/universities/', {
     credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(8000),
   }).then(async response => {
     if (!response.ok) throw new Error('No pudimos cargar las universidades. Inténtalo otra vez.');

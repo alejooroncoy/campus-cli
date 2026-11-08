@@ -63,7 +63,6 @@ async function fixture(width,scenario,run,options={}) {
   await page.goto(base+'/app/asistente/');
   await page.getByRole('heading',{name:'¿Dónde estudias?'}).waitFor();
   await page.getByRole('radio',{name:/Universidad Peruana de Ciencias Aplicadas/}).check();
-  await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
   await page.locator('section.app-profes-ai').waitFor();
  };
  try {await run({page,state,requests,events,enter});assert.deepEqual(errors,[]);console.log(JSON.stringify({width,scenario,result:'passed'}));}
@@ -234,7 +233,6 @@ try {
   assert.equal(await page.getByRole('group',{name:'Ideas para empezar'}).count(),0);assert.equal(requests.length,0);
   state.catalogFail=false;await page.getByRole('button',{name:'Volver a intentar',exact:true}).click();
   await page.getByRole('radio',{name:/Universidad Peruana de Ciencias Aplicadas/}).check();
-  await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
  },{catalogFail:true});
  await fixture(390,'failed sample remains visible for retry',async({page,state,requests,events,enter})=>{

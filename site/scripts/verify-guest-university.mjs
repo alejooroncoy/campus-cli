@@ -47,7 +47,7 @@ try {
   let verifiedUniversity = upc;
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
-    if (url.endsWith('universities')) return response({ universities: [upc, upn, palermo, pacifico, other] });
+    if (url.endsWith('universities/')) return response({ universities: [upc, upn, palermo, pacifico, other] });
     if (url.endsWith('university')) return response({ universityConfirmed: true });
     return response({ authenticated: true, email: 'new@example.invalid', universityConfirmed: true, university: verifiedUniversity, profesAvailable: true, aiReady: true });
   };
@@ -56,7 +56,7 @@ try {
   assert.equal(verified.universityConfirmed, true);
   assert.equal(verified.profesAvailable, true);
   assert.equal(JSON.parse(calls.find(call => call.init?.method === 'POST').init.body).universityId, 1);
-  assert.deepEqual(calls.map(call => call.url), ['/api/app/universities', '/api/app/university', '/api/app/session']);
+  assert.deepEqual(calls.map(call => call.url), ['/api/app/universities/', '/api/app/university', '/api/app/session']);
   for (const choice of [upn, palermo, pacifico]) {
     calls = []; verifiedUniversity = choice; api.rememberGuestUniversity(choice);
     const carried = await api.carryGuestUniversity(fresh, () => true);
@@ -87,7 +87,7 @@ try {
   window.location = { pathname: '/app/asistente/c/118adac7-9134-4f9e-b751-a145605de41c/', search: '' };
 
   api = await load();
-  globalThis.fetch = async url => response(url.endsWith('universities') ? { universities: [upc] } : {}, false);
+  globalThis.fetch = async url => response(url.endsWith('universities/') ? { universities: [upc] } : {}, false);
   assert.equal(await api.carryGuestUniversity(fresh, () => true), fresh, 'Network/API failure keeps explicit profile setup and never invents confirmed coverage');
   assert.deepEqual(api.readGuestUniversity(), upc, 'A failed save retains the choice for recovery');
 
