@@ -153,7 +153,7 @@ let universityRequest: Promise<void> | undefined;
 async function loadUniversities(optionsEl: HTMLDataListElement | null) {
   if (!optionsEl) return;
   if (!universityChoices.length) {
-    universityRequest ??= fetch("/api/app/universities", { cache: "no-store" }).then(async response => {
+    universityRequest ??= fetch("/api/app/universities/", { cache: "no-store" }).then(async response => {
       if (!response.ok) throw new Error("No pudimos cargar las universidades. Recarga para intentarlo.");
       const data = await response.json() as { universities: UniversityChoice[] };
       universityChoices = data.universities;
@@ -342,10 +342,9 @@ function initPage() {
     });
   });
 
+  // Cambiar universidad abre la pantalla de elección del asistente en su propia ruta y vuelve a Mi perfil al guardar.
   document.querySelector("[data-app-change-university]")?.addEventListener("click", () => {
-    showUniversityForm();
-    if (universityCancel) universityCancel.hidden = false;
-    universityInput?.focus();
+    location.assign("/app/asistente/?universidad=cambiar");
   });
 
   universityCancel?.addEventListener("click", () => {

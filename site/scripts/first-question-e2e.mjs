@@ -15,9 +15,10 @@ const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
 
 const id='11111111-1111-4111-8111-111111111111';
-const university={id:1,name:'Universidad Peruana de Ciencias Aplicadas',shortName:'UPC'};
-const otherUniversity={id:2,name:'Universidad de prueba',shortName:'PRUEBA'};
-const addedUniversities=[{id:40,name:'Universidad Privada del Norte',shortName:null,code:'UPN'},{id:90,name:'Universidad de Palermo',shortName:'UP',code:'UP',country:'Argentina'},{id:25,name:'Universidad del Pacífico',shortName:null,code:'UP',country:'Perú'}];
+// `coverage` lo devuelve el backend en GET /api/app/universities (hoy: UPC, UPN y Palermo; Pacífico no).
+const university={id:1,name:'Universidad Peruana de Ciencias Aplicadas',shortName:'UPC',coverage:true};
+const otherUniversity={id:2,name:'Universidad de prueba',shortName:'PRUEBA',coverage:false};
+const addedUniversities=[{id:40,name:'Universidad Privada del Norte',shortName:null,code:'UPN',coverage:true},{id:90,name:'Universidad de Palermo',shortName:'UP',code:'UP',country:'Argentina',coverage:true},{id:25,name:'Universidad del Pacífico',shortName:null,code:'UP',country:'Perú',coverage:false}];
 const samples=[
  ['professor_reviews','¿Qué dicen los estudiantes de Luis Vives?'],
  ['course_professors','¿Qué profesores hay para Cálculo I?'],
@@ -35,7 +36,7 @@ async function fixture(width,scenario,run,options={}) {
   const json=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
   if(path==='/api/app/session'){
    if(state.unavailable)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
-   return json({authenticated:false,analyticsAudience:'test',plan:'anon',aiReady:true,profesAvailable:true,usage:{remaining:state.remaining,limit:25,period:'trial'},banner:{connected:false},features:{schedulePlanning:false},...(state.authenticated?{authenticated:true,email:'fixture@example.test',plan:'free',universityConfirmed:!!state.savedUniversity,university:state.savedUniversity,profesAvailable:!!state.savedUniversity&&state.savedUniversity.id!==null&&state.savedUniversity.id!==2}:{})});
+   return json({authenticated:false,analyticsAudience:'test',plan:'anon',aiReady:true,profesAvailable:true,usage:{remaining:state.remaining,limit:25,period:'trial'},banner:{connected:false},features:{schedulePlanning:false},...(state.authenticated?{authenticated:true,email:'fixture@example.test',plan:'free',universityConfirmed:!!state.savedUniversity,university:state.savedUniversity,profesAvailable:state.savedUniversity?.coverage===true}:{})});
   }
   if(path==='/api/app/universities'){
    if(state.catalogFail)return route.fulfill({status:503,contentType:'application/json',body:'{}'});
@@ -63,7 +64,6 @@ async function fixture(width,scenario,run,options={}) {
   await page.goto(base+'/app/asistente/');
   await page.getByRole('heading',{name:'¿Dónde estudias?'}).waitFor();
   await page.getByRole('radio',{name:/Universidad Peruana de Ciencias Aplicadas/}).check();
-  await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
   await page.locator('section.app-profes-ai').waitFor();
  };
  try {await run({page,state,requests,events,enter});assert.deepEqual(errors,[]);console.log(JSON.stringify({width,scenario,result:'passed'}));}
@@ -87,10 +87,13 @@ try {
  }
  for(const width of [390,1100]) {
   for(const choice of addedUniversities)for(const method of ['quick','search']) {
+   // Sin cobertura no se sugiere: solo se llega a ella buscándola.
+   if(!choice.coverage&&method==='quick')continue;
    await fixture(width,choice.name+' opens chat via '+method,async({page,state,requests,events})=>{
     await page.goto(base+'/app/asistente/');
+    if(!choice.coverage)assert.equal(await page.getByRole('radio',{name:new RegExp(choice.name)}).count(),0,'An uncovered university is not suggested');
     const radio=page.getByRole('radio',{name:new RegExp(choice.name)});
-    await radio.waitFor();
+    if(choice.coverage)await radio.waitFor();
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
     const continueButton=page.getByRole('button',{name:'Empezar con Campus',exact:true});
     assert.equal(await continueButton.isDisabled(),true);
@@ -99,6 +102,7 @@ try {
       await page.screenshot({path:`.test-results/first-question/selector-${width}.png`,fullPage:true});
     }
     if(method==='search') {
+      await page.getByRole('button',{name:'Buscar',exact:true}).click();
       await page.getByLabel('Busca o elige tu universidad').fill(choice.code);
       if(choice.code==='UP') {
         assert.equal(await page.getByRole('radio').count(),2);
@@ -113,14 +117,14 @@ try {
     if(choice.country)await radio.locator('..').getByText('UP · '+choice.country,{exact:true}).waitFor();
     await continueButton.click();
     await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
-    if(choice.code==='UP')await page.getByRole('link',{name:new RegExp(choice.name+' · '+choice.country)}).waitFor();
+    if(choice.code==='UP')await page.getByRole('button',{name:new RegExp(choice.name+' · '+choice.country)}).waitFor();
     await page.reload();
     await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
     await page.getByRole('textbox',{name:'Escribe tu pregunta a Campu'}).fill('Opiniones de profesores');
     await page.getByRole('button',{name:'Enviar pregunta',exact:true}).click();
     await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
     assert.equal(requests.length,1);assert.equal(requests[0].universityId,undefined);assert.equal(state.savedUniversity.id,choice.id);
-    assert.ok((await events()).some(e=>e.event==='campus_university_selected'&&e.properties.supported===true));
+    assert.ok((await events()).some(e=>e.event==='campus_university_selected'&&e.properties.supported===choice.coverage));
    });
   }
   for(const [example,prompt] of samples) {
@@ -160,11 +164,12 @@ try {
  for(const width of [390,1100])for(const authenticated of [true])for(const custom of [false,true]){
   await fixture(width,`onboarding ${authenticated?'account':'guest'} ${custom?'unlisted':'uncovered catalog'} university keeps the chat available`,async({page,state,requests,events})=>{
    await page.goto(base+'/app/asistente/');
+   await page.getByRole('button',{name:'Buscar',exact:true}).click();
    const input=page.getByLabel('Busca o elige tu universidad');await input.waitFor();
    const name=custom?'Universidad fuera del catálogo':otherUniversity.name;
    await input.fill(name);
    if(custom){
-    await page.getByRole('button',{name:'Mi universidad no aparece',exact:true}).click();
+    await page.getByRole('button',{name:/^Añadir/}).click();
     await page.getByLabel('Nombre de tu universidad',{exact:true}).fill(name);
    }else await page.getByRole('radio',{name:new RegExp(name)}).check();
    await page.getByText('Podrás usar el agente para estudiar y preparar tus trabajos.',{exact:false}).waitFor();
@@ -184,13 +189,16 @@ try {
  }
  await fixture(390,'an unknown search does not guess a university',async({page,requests})=>{
   await page.goto(base+'/app/asistente/');
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
   const input=page.getByLabel('Busca o elige tu universidad');await input.waitFor();
   await input.fill('Universidad inexistente');await page.getByText('No encontramos esa universidad',{exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Empezar con Campus',exact:true}).isDisabled(),true);assert.equal(requests.length,0);
  });
  await fixture(390,'a declared account university survives reload without returning to onboarding',async({page,state})=>{
   await page.goto(base+'/app/asistente/');
-  await page.getByRole('button',{name:'Mi universidad no aparece',exact:true}).click();
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
+  await page.getByLabel('Busca o elige tu universidad').fill('Universidad declarada de prueba');
+  await page.getByRole('button',{name:/^Añadir/}).click();
   await page.getByLabel('Nombre de tu universidad',{exact:true}).fill('Universidad declarada de prueba');
   await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
@@ -202,7 +210,9 @@ try {
  });
  await fixture(390,'authenticated onboarding can retry a failed declaration without duplicate saves',async({page,state})=>{
   await page.goto(base+'/app/asistente/');
-  await page.getByRole('button',{name:'Mi universidad no aparece',exact:true}).click();
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
+  await page.getByLabel('Busca o elige tu universidad').fill('Universidad declarada de prueba');
+  await page.getByRole('button',{name:/^Añadir/}).click();
   await page.getByLabel('Nombre de tu universidad',{exact:true}).fill('Universidad declarada de prueba');
   const button=page.getByRole('button',{name:'Empezar con Campus',exact:true});
   await button.evaluate(button=>{button.click();button.click();});
@@ -215,11 +225,18 @@ try {
   await enter();
   await page.getByRole('button',{name:samples[0][1],exact:true}).click();
   await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
-  await page.locator('.app-university-context').click();
+  await page.goto(base+'/app/perfil/');
   await page.getByRole('button',{name:'Cambiar universidad',exact:true}).click();
-  await page.waitForFunction(()=>Array.from(document.querySelectorAll('[data-app-university-options] option')).some(o=>o.value.includes('Universidad del Pacífico')));
-  const profileUniversity=page.getByLabel('Tu universidad',{exact:true});await profileUniversity.waitFor();
-  await profileUniversity.fill('Universidad del Pacífico');await page.getByRole('button',{name:'Guardar y continuar'}).click();
+  // Cambiar universidad abre la pantalla de elección en su propia ruta, sin el formulario inline.
+  await page.waitForURL(/\/app\/asistente\/\?universidad=cambiar$/);
+  await page.getByRole('heading',{name:'Cambiar universidad'}).waitFor();
+  assert.equal(await page.getByRole('link',{name:'Volver a mi perfil'}).getAttribute('href'),'/app/perfil/');
+  // Pacífico ya no se sugiere (sin cobertura): se llega buscándola.
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
+  await page.getByLabel('Busca o elige tu universidad').fill('Pacífico');
+  await page.getByRole('radio',{name:/Universidad del Pacífico/}).check();
+  await page.getByRole('button',{name:'Guardar cambio',exact:true}).click();
+  await page.waitForURL(/\/app\/perfil\/$/);
   await page.locator('[data-app-university-name]').filter({hasText:'Universidad del Pacífico'}).waitFor();
   await page.goto(base+'/app/asistente/');
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
@@ -229,14 +246,60 @@ try {
   await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
   assert.equal(requests.length,2);assert.equal(requests[1].universityId,undefined);assert.equal(state.savedUniversity.id,25);assert.ok(!requests[1].conversationId);
  });
+ await fixture(390,'changing university from the chat opens the same screen without leaving it',async({page,state,requests,enter})=>{
+  await enter();
+  await page.getByRole('button',{name:samples[0][1],exact:true}).click();
+  await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).waitFor();
+  await page.locator('.app-university-context').click();
+  await page.getByRole('heading',{name:'Cambiar universidad'}).waitFor();
+  assert.match(page.url(),/\/app\/asistente\//);assert.doesNotMatch(page.url(),/universidad=cambiar/);
+  assert.equal(await page.getByRole('link',{name:'Volver a mi perfil'}).count(),0);
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
+  await page.getByLabel('Busca o elige tu universidad').fill('Pacífico');
+  await page.getByRole('radio',{name:/Universidad del Pacífico/}).check();
+  await page.getByRole('button',{name:'Guardar cambio',exact:true}).click();
+  await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
+  assert.match(page.url(),/\/app\/asistente\//);
+  assert.equal(state.savedUniversity.id,25);
+  assert.equal(await page.getByText('Respuesta sintética para comprobar el inicio.',{exact:true}).count(),0);
+  assert.ok((await page.locator('.app-university-context').innerText()).includes('Pacífico'));
+ });
+ await fixture(390,'closing the university screen from the chat keeps the conversation',async({page,state,enter})=>{
+  await enter();
+  await page.locator('.app-university-context').click();
+  await page.getByRole('heading',{name:'Cambiar universidad'}).waitFor();
+  await page.getByRole('button',{name:'Volver al chat',exact:true}).click();
+  await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
+  assert.equal(state.savedUniversity.id,1);
+ });
  await fixture(390,'failed catalog can retry without assuming a university',async({page,state,requests})=>{
   await page.goto(base+'/app/asistente/');await page.getByRole('button',{name:'Volver a intentar',exact:true}).waitFor();
   assert.equal(await page.getByRole('group',{name:'Ideas para empezar'}).count(),0);assert.equal(requests.length,0);
   state.catalogFail=false;await page.getByRole('button',{name:'Volver a intentar',exact:true}).click();
   await page.getByRole('radio',{name:/Universidad Peruana de Ciencias Aplicadas/}).check();
-  await page.getByRole('button',{name:'Empezar con Campus',exact:true}).click();
   await page.getByRole('group',{name:'Ideas para empezar'}).waitFor();
  },{catalogFail:true});
+ await fixture(390,'only a pointer tap on UPC continues without confirming',async({page,state})=>{
+  const confirm=page.getByRole('button',{name:'Empezar con Campus',exact:true});
+  await page.goto(base+'/app/asistente/');await page.getByRole('heading',{name:'¿Dónde estudias?'}).waitFor();
+  // Otra universidad: solo selecciona y espera confirmación.
+  await page.getByRole('radio',{name:/Universidad Privada del Norte/}).check();
+  assert.equal(state.universityWrites.length,0);assert.equal(await confirm.isEnabled(),true);
+  // Teclado: las flechas llegan a UPC sin guardar ni cambiar de pantalla.
+  await page.getByRole('radio',{name:/Universidad Privada del Norte/}).focus();
+  await page.keyboard.press('ArrowUp');
+  assert.equal(await page.getByRole('radio',{name:/Universidad Peruana de Ciencias Aplicadas/}).isChecked(),true);
+  assert.equal(state.universityWrites.length,0);assert.equal(await confirm.isEnabled(),true);
+  // Con búsqueda activa, tocar UPC tampoco confirma solo.
+  await page.getByRole('button',{name:'Buscar',exact:true}).click();
+  await page.getByRole('searchbox').fill('UPC');
+  await page.getByRole('radio',{name:/Universidad Peruana de Ciencias Aplicadas/}).click();
+  assert.equal(state.universityWrites.length,0);
+  // Toque real sobre la tarjeta destacada (sin búsqueda): continúa.
+  await page.getByRole('button',{name:'Volver a las más elegidas',exact:true}).click();
+  await page.locator('.app-gu2__tile.is-featured').click();
+  await page.locator('section.app-profes-ai').waitFor();assert.equal(state.universityWrites.length,1);
+ });
  await fixture(390,'failed sample remains visible for retry',async({page,state,requests,events,enter})=>{
   await enter();await page.getByRole('button',{name:samples[2][1],exact:true}).click();
   await page.getByRole('button',{name:'Reintentar consulta',exact:true}).waitFor();
