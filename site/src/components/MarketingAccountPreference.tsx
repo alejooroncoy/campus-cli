@@ -28,10 +28,9 @@ export default function MarketingAccountPreference(){
     return()=>{generation.current++;window.removeEventListener('campus:session-updated',update);};
   },[retry]);
   if(guest)return null;
-  return <section className="app-panel app-account-preference app-marketing-preference" id="privacidad" aria-labelledby="marketing-preference-title">
-    <h2 id="marketing-preference-title">Privacidad</h2>
+  return <section className="profile-card app-account-preference app-marketing-preference" id="privacidad" aria-labelledby="marketing-preference-title">
     <label className="app-account-preference__choice" htmlFor={id}>
-      <span>Medición de anuncios</span>
+      <span id="marketing-preference-title">Medición de anuncios</span>
       <input id={id} type="checkbox" role="switch" aria-describedby={`${id}-details`} checked={value===true} disabled={value===null||saving||blocked} onChange={async event=>{
         const enabled=event.target.checked,previous=value,version=generation.current;
         setValue(enabled);setSaving(true);setStatus('');
@@ -42,9 +41,9 @@ export default function MarketingAccountPreference(){
         finally{if(version===generation.current)setSaving(false);}
       }}/>
     </label>
-    <p id={`${id}-details`}>Permite compartir con Meta tu registro y los pasos de compra de Plus para medir nuestros anuncios. Tus datos académicos quedan fuera.</p>
-    <p className="app-account-preference__note">Opcional. Puedes cambiarlo cuando quieras. <a className="app-text-link" href="/privacidad/#anuncios">Más información</a></p>
-    <p role="status" aria-live="polite">{blocked?'Tu navegador ha pedido desactivar esta medición.':status||(value===null?'Consultando tu preferencia…':saving?'Guardando…':value?'Activada':'Desactivada')}</p>
+    <p id={`${id}-details`}>Si la activas, Campus comparte con Meta tu registro y los pasos de compra de Plus para medir anuncios. Tus datos académicos quedan fuera.</p>
+    <a className="app-text-link" href="/privacidad/#anuncios">Más sobre la medición de anuncios</a>
+    <p role="status" aria-live="polite">{blocked?'Tu navegador ha pedido desactivar esta medición.':status||(value===null?'Consultando tu preferencia…':saving?'Guardando…':'')}</p>
     {value===null&&status?<button className="app-button app-button--secondary" type="button" onClick={()=>setRetry(n=>n+1)}>Volver a intentar</button>:null}
   </section>;
 }
