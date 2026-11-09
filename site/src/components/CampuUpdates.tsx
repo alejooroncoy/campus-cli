@@ -70,6 +70,9 @@ type UpcomingItem = {
   after: string | null;
   /** Vencimiento exacto publicado por Blackboard, si lo hay. */
   dueAt?: string | null;
+  /** De dónde sale: una tarea publicada o una fila del cronograma o sílabo. */
+  source?: "blackboard" | "schedule";
+  evidenceIds?: string[];
 };
 type Upcoming = {
   term: string;
@@ -403,6 +406,103 @@ const timeInText = (value?: string) => {
 };
 const GROUPS = ["Hoy", "Esta semana", "Antes"];
 
+/** Una entrega. Se abre para ver de dónde sale: cuándo es con todas sus letras, qué dice
+ * la fuente y si Blackboard ya la tiene. Un solo botón por tarjeta, accesible con teclado. */
+function DeliveryCard({
+  i,
+  when,
+  evidence,
+}: {
+  i: UpcomingItem;
+  when: string;
+  evidence: Context["evidence"];
+}) {
+  const [open, setOpen] = useState(false);
+  const panel = "campu-more-" + (i.courseId + i.title + i.from).replace(/\W+/g, "");
+  const hour = i.dueAt
+    ? clock(i.dueAt)
+    : i.from === i.to
+      ? timeInText(i.when.text)
+      : "";
+  const day = i.from ? new Date(i.from + "T00:00:00Z") : null;
+  const proof = (i.evidenceIds ?? [])
+    .map((id) => evidence.find((e) => e.id === id))
+    .find(Boolean);
+  const origin =
+    i.source === "blackboard"
+      ? "Publicado en Blackboard"
+      : proof
+        ? `${proof.title} · ${proof.locator}`
+        : "El cronograma o el sílabo de tu curso";
+  const soon = when === "Hoy" || when === "Mañana";
+  return (
+    <li className={"campu-item" + (soon ? " soon" : "") + (open ? " open" : "")}>
+      <button
+        type="button"
+        className="campu-item-head"
+        aria-expanded={open}
+        aria-controls={panel}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="campu-chip" aria-hidden="true">
+          <b>{day ? day.getUTCDate() : "?"}</b>
+          <small>
+            {day
+              ? new Intl.DateTimeFormat("es-PE", { month: "short", timeZone: "UTC" })
+                  .format(day)
+                  .replace(".", "")
+              : ""}
+          </small>
+        </span>
+        <span className="campu-item-main">
+          <strong>{i.title}</strong>
+          <small>{i.course}</small>
+          <em>
+            {when} · {rangeLabel(i.from, i.to)}
+            {hour ? ` · ${hour}` : ""}
+          </em>
+          {!i.inBlackboard && <span className="campu-tag">Aún sin publicar</span>}
+        </span>
+        <i className="campu-chev" aria-hidden="true" />
+      </button>
+      {open && (
+        <div id={panel} className="campu-item-more">
+          <dl>
+            <dt>Cuándo</dt>
+            <dd>
+              {day && i.from === i.to
+                ? new Intl.DateTimeFormat("es-PE", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    timeZone: "UTC",
+                  }).format(day)
+                : rangeLabel(i.from, i.to)}
+              {hour ? `, ${hour}` : ""}
+            </dd>
+            <dt>Qué es</dt>
+            <dd>
+              {i.what ? i.what.charAt(0).toUpperCase() + i.what.slice(1) : "Entrega"}
+              {i.when.text ? <> · la fuente dice «{i.when.text}»</> : null}
+            </dd>
+            <dt>De dónde lo sé</dt>
+            <dd>{origin}</dd>
+          </dl>
+          {proof && (
+            <blockquote>{proof.text.replace(/\s+/g, " ").slice(0, 240)}</blockquote>
+          )}
+          {!i.inBlackboard && (
+            <p className="campu-muted">
+              Todavía no está como tarea en Blackboard. Lo sé por el cronograma,
+              confírmalo con tu profe antes de depender de esta fecha.
+            </p>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
 /** Lo primero que se ve: una frase, lo próximo y lo nuevo. Todo lo demás está en
  * "Ajustes y detalle". Pocas palabras, una cosa por línea. */
 function Home({
@@ -441,19 +541,12 @@ function Home({
   const inWeek = u ? dated.filter((i) => i.from! <= u.to) : [];
   const later = u ? dated.filter((i) => i.from! > u.to).slice(0, 3) : [];
   const item = (i: UpcomingItem) => (
-    <li key={i.courseId + i.title + i.from} className="campu-item">
-      <strong>{i.title}</strong>
-      <small>{i.course}</small>
-      <em>
-        {whenOf(i)} · {rangeLabel(i.from, i.to)}
-        {i.dueAt
-          ? ` · ${clock(i.dueAt)}`
-          : i.from === i.to && timeInText(i.when.text)
-            ? ` · ${timeInText(i.when.text)}`
-            : ""}
-      </em>
-      {!i.inBlackboard && <span className="campu-tag">Aún sin publicar</span>}
-    </li>
+    <DeliveryCard
+      key={i.courseId + i.title + i.from}
+      i={i}
+      when={whenOf(i)}
+      evidence={context?.evidence ?? []}
+    />
   );
   const shown = notices.slice(0, 5);
   const bucket = (n: Notice) => {
