@@ -46,6 +46,22 @@ for (const query of [
   '?utm_source=viva_engage&utm_medium=social&utm_campaign=other&utm_content=remontada_upecinos',
 ]) assert.deepEqual(engageCampaign(query), {});
 assert.deepEqual(safeWebProperties({utm_source:'viva_engage',utm_medium:'social',utm_campaign:'grupo_de_la_u',utm_content:'private@example.org'}), {});
+const whatsappSearch = '?utm_source=whatsapp&utm_medium=social&utm_campaign=mismo_prompt';
+const whatsappLabels = { utm_source: 'whatsapp', utm_medium: 'social', utm_campaign: 'mismo_prompt' };
+for (const [key, value] of Object.entries(whatsappLabels)) {
+  assert.equal(webPageProperties('/', 'https://campuscli.com', '', 400, whatsappSearch)[key], value);
+}
+assert.deepEqual(safeWebProperties({ ...whatsappLabels, utm_content: 'private@example.org' }), whatsappLabels);
+assert.deepEqual(safeWebProperties({ ...whatsappLabels, utm_campaign: 'private@example.org' }), {});
+for (const search of [
+  whatsappSearch + '&utm_campaign=mismo_prompt',
+  whatsappSearch + '&utm_content=private@example.org',
+  whatsappSearch.replace('mismo_prompt', 'other_campaign'),
+  whatsappSearch.replace('social', 'other'),
+]) {
+  const page = webPageProperties('/', 'https://campuscli.com', '', 400, search);
+  assert.ok(!('utm_source' in page) && !('utm_campaign' in page));
+}
 assert.deepEqual(metaCampaign('?utm_source=meta&utm_campaign=123456789012345&email=private@example.org'), {utm_source:'meta',utm_campaign:'123456789012345'});
 for(const source of ['facebook','instagram','fb','ig'])assert.deepEqual(metaCampaign(`?utm_source=${source}&utm_campaign=123456789012345`),{utm_source:'meta',utm_campaign:'123456789012345'});
 for (const search of ['?utm_source=meta&utm_campaign=private-name', '?utm_source=meta&utm_campaign=123456&utm_campaign=999999', '?utm_source=other&utm_campaign=123456', '?utm_source=meta&utm_campaign=private%40example.org']) assert.deepEqual(metaCampaign(search), {});
