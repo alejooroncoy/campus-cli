@@ -167,7 +167,7 @@ const prepared = {
         title: "Entrega del domingo",
         what: "entrega",
         studentAction: true,
-        when: { kind: "date", text: "domingo 4 de octubre" },
+        when: { kind: "date", text: "domingo 4 de octubre 11:30 p.m." },
         from: "2026-10-04",
         to: "2026-10-04",
         bucket: "next_week",
@@ -642,6 +642,8 @@ try {
       assert.match(semana, /En 3 días · 25 set · (11:59|23:59)/);
       // Lo que no está publicado se dice, y lo de la próxima semana va aparte.
       assert.ok(/Más adelante.*TP1.*Aún sin publicar/.test(semana), semana);
+      // La hora que escribe el cronograma se muestra en 24 horas aunque Blackboard no la tenga.
+      assert.match(semana, /Entrega del domingo.*4 oct · 23:30/, semana);
       // Las dos de esta semana y, aparte, lo que viene después (no más de tres).
       const tarjetas = await home.locator(".campu-week .campu-item").count();
       assert.ok(tarjetas >= 4 && tarjetas <= 5, String(tarjetas));

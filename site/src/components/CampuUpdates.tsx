@@ -395,6 +395,12 @@ const clock = (v: string) =>
     timeStyle: "short",
     timeZone: "America/Lima",
   }).format(new Date(v));
+/** La hora que escribe el cronograma ("11:30 p.m.") en 24 horas; sin hora legible, vacío. */
+const timeInText = (value?: string) => {
+  const m = /\b(\d{1,2}):(\d{2})\s*([ap])\.?\s*m\b/i.exec(value ?? "");
+  if (!m || Number(m[1]) > 12 || Number(m[2]) > 59) return "";
+  return `${String((Number(m[1]) % 12) + (m[3].toLowerCase() === "p" ? 12 : 0)).padStart(2, "0")}:${m[2]}`;
+};
 const GROUPS = ["Hoy", "Esta semana", "Antes"];
 
 /** Lo primero que se ve: una frase, lo próximo y lo nuevo. Todo lo demás está en
@@ -440,7 +446,11 @@ function Home({
       <small>{i.course}</small>
       <em>
         {whenOf(i)} · {rangeLabel(i.from, i.to)}
-        {i.dueAt ? ` · ${clock(i.dueAt)}` : ""}
+        {i.dueAt
+          ? ` · ${clock(i.dueAt)}`
+          : i.from === i.to && timeInText(i.when.text)
+            ? ` · ${timeInText(i.when.text)}`
+            : ""}
       </em>
       {!i.inBlackboard && <span className="campu-tag">Aún sin publicar</span>}
     </li>
