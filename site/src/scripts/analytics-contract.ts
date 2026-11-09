@@ -45,7 +45,7 @@ const categories: Record<string, readonly string[]> = {
   upload_kind: ['document', 'receipt'], copy_kind: ['name', 'url'],
   viewport: ['mobile', 'tablet', 'desktop'], environment: ['development', 'production'],
 };
-const numbers = new Set(['remaining', 'limit', 'duration_ms', 'position', 'amount_cents']);
+const numbers = new Set(['remaining', 'limit', 'duration_ms', 'position', 'amount_cents', 'http_status']);
 const booleans = new Set(['proactive_enabled','email_enabled','push_enabled','callback_requested','authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test','is_internal']);
 export function safeAnalyticsProperties(input: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(input).filter(([key, value]) =>

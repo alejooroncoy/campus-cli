@@ -159,7 +159,7 @@ function setupTurnitin() {
       headers: { ...analyticsHeaders(), ...(input === undefined ? {} : { 'content-type': 'application/json' }) },
       body: input === undefined ? undefined : JSON.stringify(input), signal: AbortSignal.timeout(path === 'config' ? 12000 : 60000) });
     const result = await response.json().catch(() => ({ error: 'No se pudo conectar con Campus.' }));
-    if (!response.ok) throw new Error(result.error ?? 'No se pudo completar la solicitud.');
+    if (!response.ok) throw Object.assign(new Error(result.error ?? 'No se pudo completar la solicitud.'), { httpStatus: response.status });
     return result;
   }
   function openCheckout(value: string) {
@@ -514,7 +514,11 @@ function setupTurnitin() {
       historyFilter = 'all'; historySearch = ''; search.value = '';
       document.querySelectorAll<HTMLButtonElement>('[data-ti-filter]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.tiFilter === 'all')));
       try { await loadOrders(false, true); } catch { announce('Tu pedido ya fue recibido. Usa Actualizar estado para consultar su avance.'); }
-    } catch (error) { track('campus_flow_failed', { step: 'turnitin', error_kind: 'rejected' }); showSubmission((error as Error).message); announce((error as Error).message, true); try { await refreshAvailability(); } catch { /* The availability notice offers payment support. */ } }
+    } catch (error) {
+      // Solo el código HTTP, nunca el texto del error: 409 (pedido pendiente o precio cambiado), 429 (límite), 503 (pausado).
+      // Sin código es que la petición no llegó a responder (red o tiempo agotado).
+      const httpStatus = (error as { httpStatus?: number }).httpStatus;
+      track('campus_flow_failed', { step: 'turnitin', error_kind: httpStatus ? 'rejected' : 'network', ...(httpStatus ? { http_status: httpStatus } : {}) }); showSubmission((error as Error).message); announce((error as Error).message, true); try { await refreshAvailability(); } catch { /* The availability notice offers payment support. */ } }
     finally { fields.disabled = false; submit.removeAttribute('aria-busy'); submit.removeAttribute('aria-label'); submitText.hidden = false; submit.querySelector<HTMLElement>('[data-ti-submit-skeleton]')!.hidden = true; }
   };
   const cleanup = () => { disposed = true; clearInterval(poll); clearTimeout(searchTimer); };
