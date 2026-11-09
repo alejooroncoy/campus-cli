@@ -287,6 +287,7 @@ try {
       noticesFailed = 0,
       failWeek = false,
       weekAlt = false,
+      weeklyNotice = false,
       weekFailed = 0,
       weekDelay = 0,
       weekStarted = 0;
@@ -352,7 +353,7 @@ try {
         return json(
           method === "POST"
             ? { ok: true }
-            : { notice: { id: noticeId, contextId }, events },
+            : { notice: { id: noticeId, contextId }, events: weeklyNotice ? [] : events },
         );
       if (path === "/api/app/proactive/week" && weekAlt)
         return json({
@@ -641,7 +642,12 @@ try {
       await home.getByRole("button", { name: /Ocultar ajustes/ }).click();
       assert.equal(await ajustes.count(), 0);
       // El resumen cambia con la celda elegida ya vacía: vuelve a la primera con algo.
+      weeklyNotice = true;
       await page.goto(base + "/app/novedades/" + noticeId + "/");
+      // El aviso sin cambios (como el del correo) abre la vista simple, con el detalle plegado.
+      await page.locator(".campu-home").waitFor();
+      assert.equal(await page.locator(".campu-heading").count(), 0);
+      await openDetail();
       const cambio = page.locator(".campu-upcoming");
       await cambio.getByRole("tab", { name: /Próxima/ }).click();
       weekAlt = true;
@@ -650,6 +656,7 @@ try {
       weekAlt = false;
       assert.equal(await cambio.locator("li").count(), 1);
       assert.equal(await cambio.getByRole("tab").first().getAttribute("aria-selected"), "true");
+      weeklyNotice = false;
       assert.deepEqual(errors, []);
       console.log(
         JSON.stringify({
