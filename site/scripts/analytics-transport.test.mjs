@@ -157,6 +157,19 @@ try{
   assert.equal(JSON.stringify(events).includes('private'),false,'No email, receipt, referrer or OAuth URL reaches transport');
   assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);
 
+  await page.goto('https://campus.analytics.test/?utm_source=whatsapp&utm_medium=social&utm_campaign=mismo_prompt&email=private@example.org');
+  const whatsappDeadline = Date.now() + 10000;
+  let whatsappView;
+  while (!(whatsappView = events.find(event => event.event === '$pageview' && event.properties.$pathname === '/'))) {
+    if (Date.now() > whatsappDeadline) throw Error('Missing WhatsApp landing pageview');
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+  assert.equal(whatsappView.properties.utm_source, 'whatsapp');
+  assert.equal(whatsappView.properties.utm_medium, 'social');
+  assert.equal(whatsappView.properties.utm_campaign, 'mismo_prompt');
+  assert.equal(whatsappView.properties.$current_url, 'https://campus.analytics.test/');
+  assert.equal(JSON.stringify(whatsappView).includes('private'), false);
+
   const internalTab = await context.newPage();
   await internalTab.route('**/*', route => {
     const path = new URL(route.request().url()).pathname;

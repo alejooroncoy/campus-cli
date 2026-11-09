@@ -83,6 +83,14 @@ o `mejoralo_working_student`. Se rechazan parámetros repetidos o valores
 distintos, y no se exporta la URL con su cadena de consulta. Esta atribución
 de visitas no modifica la atribución de pagos y no recupera visitas anteriores.
 
+La campaña de WhatsApp «Mismo prompt» admite la combinación exacta
+`utm_source=whatsapp`, `utm_medium=social` y `utm_campaign=mismo_prompt` en la
+vista de entrada. Rechaza etiquetas repetidas y `utm_content`. Para medirla en
+PostHog, filtra el evento `$pageview` por `utm_source = whatsapp` y
+`utm_campaign = mismo_prompt`. El conteo total mide vistas y el conteo de
+usuarios únicos mide el alcance observado en el sitio. Esta campaña registra
+visitas y sigue las mismas reglas de privacidad y atribución que Viva Engage.
+
 Las vistas y salidas incluyen el agente de usuario del navegador en
 `$raw_user_agent`, para que PostHog pueda clasificar tráfico automatizado. Sin él,
 PostHog clasifica el agente vacío como Automation.
