@@ -53,9 +53,21 @@ function setupTurnitin() {
     if (!config || !form) return;
     const amount = chargeAmount();
     document.querySelector<HTMLElement>('[data-ti-price]')!.textContent = `${money(amount)} · ${productLabel(selectedReport())}`;
+    // La tarjeta elegida muestra el precio con descuento junto al de lista tachado, igual que el total del pago.
+    const applied = activeDiscount();
     for (const product of config.products ?? []) {
       const label = document.querySelector<HTMLElement>(`[data-ti-option-price="${product.id}"]`);
-      if (label) label.textContent = money(product.amountCents);
+      if (!label) continue;
+      if (applied && applied.report === product.id) {
+        const original = document.createElement('s');
+        original.className = 'ti-price-original';
+        original.textContent = money(applied.listPriceCents);
+        label.replaceChildren(original, ` ${money(applied.amountCents)}`);
+        label.setAttribute('aria-label', `${money(applied.amountCents)} con el código ${applied.code}, antes ${money(applied.listPriceCents)}`);
+      } else {
+        label.textContent = money(product.amountCents);
+        label.removeAttribute('aria-label');
+      }
     }
     document.querySelector<HTMLElement>('[data-ti-amount]')!.textContent = money(amount);
     document.querySelector<HTMLElement>('[data-ti-product-summary]')!.textContent = productLabel(selectedReport());

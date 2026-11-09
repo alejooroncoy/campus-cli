@@ -312,6 +312,7 @@
 .ti-product-options input{margin-top:.2rem;accent-color:#087f5b}
 .ti-product-copy{display:grid;gap:5px;min-width:0;flex:1;font-size:.85rem;line-height:1.4}
 .ti-product-copy strong{font-size:1.05rem}
+.ti-price-original{margin-right:4px;color:#58717d;font-weight:400;font-size:.85em}
 .ti-option-status{display:flex;align-items:center;gap:5px;font-size:12px;line-height:1.5;color:var(--app-muted,#506d7f)}
 .ti-option-status:before{content:"";width:6px;height:6px;flex:0 0 auto;border-radius:50%;background:#9cabb3}
 .ti-option-status[data-state=available]{color:#087052}
