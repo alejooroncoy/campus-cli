@@ -2356,23 +2356,6 @@ button:disabled {
 }
 
 /* Profile: verified plan and web balance stay above personal account details. */
-.app-profile-plan{padding:28px;margin:0 0 24px;border:1px solid #b7dfe9;border-radius:16px;background:var(--app-sky-pale);color:var(--app-ink)}
-.app-profile-plan .app-kicker{margin:0 0 10px;color:var(--app-muted)}
-.app-profile-plan h2{font-size:28px;line-height:1.2;letter-spacing:-.6px;margin:0 0 24px}
-.app-profile-plan p{line-height:1.65;overflow-wrap:anywhere}
-.app-profile-plan .app-profile-plan__channel{font-size:14px;color:var(--app-muted);margin:0 0 6px}
-.app-profile-plan .app-profile-plan__usage{font-size:clamp(23px,3vw,30px);font-weight:600;line-height:1.3;letter-spacing:-.4px;margin:0 0 12px;max-width:650px}
-.app-profile-plan [data-profile-note]{font-size:14px;margin:0}
-.app-profile-plan .app-profile-plan__mcp{font-size:14px;border-top:1px solid #b7dfe9;padding-top:16px;margin:18px 0 0}
-.app-profile-plan .app-actions{align-items:center;gap:12px 20px}
-.app-profile-plan .app-profile-upgrade{background:var(--app-ink);border-color:var(--app-ink);color:#fff}
-.app-profile-plan .app-profile-upgrade:hover{background:#1f485b;border-color:#1f485b;color:#fff}
-.app-profile-plan .app-button,.app-profile-plan .app-text-link{min-height:44px}
-.app-profile-plan .app-text-link{display:inline-flex;align-items:center;gap:8px;font-size:14px}
-.app-profile-plan [data-profile-usage] .app-skeleton{width:min(100%,320px);height:28px}.app-profile-plan [data-profile-label] .app-skeleton{width:min(100%,260px);height:28px}.app-profile-plan [data-profile-note] .app-skeleton{width:min(100%,360px);height:13px}.app-profile-plan [data-profile-refresh][aria-busy=true] .app-skeleton{width:92px;height:11px}
-.app-profile-plan[data-state="unavailable"],.app-profile-plan[data-state="blocked"]{background:var(--app-paper);border-color:var(--app-line)}
-.app-profile-plan button:disabled{cursor:wait;opacity:.7}
-@media(max-width:650px){.app-profile-plan{padding:22px 20px}.app-profile-plan h2{font-size:26px}.app-profile-plan .app-actions{align-items:stretch;flex-direction:column}.app-profile-plan .app-button{justify-content:center}.app-profile-plan .app-text-link{align-self:flex-start}.app-profile-plan .app-profile-plan__usage{font-size:24px}}
 
 .app-profile-university .app-university-quick{justify-self:start;min-height:44px;margin:0;padding:10px 16px;border:1px solid #b7dfe9;border-radius:10px;background:var(--app-sky-pale);color:var(--app-ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}.app-profile-university .app-university-quick[aria-pressed="true"]{border-color:var(--app-link);box-shadow:0 0 0 1px var(--app-link)}.app-profile-university .app-university-quick:focus-visible{outline:2px solid var(--app-link);outline-offset:3px}
 .app-university-loading{display:grid;gap:9px;padding:2px 0}.app-university-loading .app-skeleton{height:12px}.app-university-loading .app-skeleton--line{width:72%}.app-university-loading .app-skeleton--short{width:48%}
