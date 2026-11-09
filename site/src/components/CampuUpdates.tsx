@@ -68,6 +68,8 @@ type UpcomingItem = {
   done: boolean;
   next: boolean;
   after: string | null;
+  /** Vencimiento exacto publicado por Blackboard, si lo hay. */
+  dueAt?: string | null;
 };
 type Upcoming = {
   term: string;
@@ -220,11 +222,13 @@ function sentence(items: UpcomingItem[], u: Upcoming) {
     .filter((i) => i.from)
     .sort((x, y) => x.from!.localeCompare(y.from!))[0];
   const one = (list: UpcomingItem[]) =>
-    list.length === 1 ? <b>{list[0].title}</b> : <b>{list.length} cosas</b>;
+    list.length === 1 ? <b>{list[0].title}</b> : <b>{list.length} entregas</b>;
   return (
     <>
-      {now.length ? (
+      {now.length === 1 ? (
         <>Esta semana te toca {one(now)}.</>
+      ) : now.length ? (
+        <>Esta semana tienes {one(now)}.</>
       ) : (
         <>Esta semana va tranquila.</>
       )}{" "}
@@ -418,17 +422,29 @@ function Home({
   const dated = pending
     .filter((i) => i.from)
     .sort((a, b) => a.from!.localeCompare(b.from!));
-  const first = dated[0];
-  const when = !first
-    ? ""
-    : first.from! <= today && today <= first.to!
-      ? first.from === first.to
+  // Cuándo es, en palabras: hoy, mañana, en N días o esta semana.
+  const whenOf = (i: UpcomingItem) =>
+    i.from! <= today && today <= i.to!
+      ? i.from === i.to
         ? "Hoy"
         : "Esta semana"
       : (() => {
-          const d = daysBetween(today, first.from!);
+          const d = daysBetween(today, i.from!);
           return d === 1 ? "Mañana" : `En ${d} días`;
         })();
+  const inWeek = u ? dated.filter((i) => i.from! <= u.to) : [];
+  const later = u ? dated.filter((i) => i.from! > u.to).slice(0, 3) : [];
+  const item = (i: UpcomingItem) => (
+    <li key={i.courseId + i.title + i.from} className="campu-item">
+      <strong>{i.title}</strong>
+      <small>{i.course}</small>
+      <em>
+        {whenOf(i)} · {rangeLabel(i.from, i.to)}
+        {i.dueAt ? ` · ${clock(i.dueAt)}` : ""}
+      </em>
+      {!i.inBlackboard && <span className="campu-tag">Aún sin publicar</span>}
+    </li>
+  );
   const shown = notices.slice(0, 5);
   const bucket = (n: Notice) => {
     const d = daysBetween(limaDay(n.createdAt), today);
@@ -449,18 +465,22 @@ function Home({
           <p>Última revisión: {timestamp(checkedAt)}</p>
         </div>
       </div>
-      {first && (
-        <div className="campu-next">
-          <span>Lo próximo</span>
-          <strong>{first.title}</strong>
-          <small>{first.course}</small>
-          <em>
-            {when} · {rangeLabel(first.from, first.to)}
-          </em>
-          {dated.length > 1 && (
-            <small>
-              Después: {dated.slice(1, 4).map((i) => i.title).join(", ")}
-            </small>
+      {u && (
+        <div className="campu-week">
+          <h2>Esta semana</h2>
+          {inWeek.length ? (
+            <ul>{inWeek.slice(0, 5).map(item)}</ul>
+          ) : (
+            <p className="campu-muted">Nada para esta semana en lo que revisé.</p>
+          )}
+          {inWeek.length > 5 && (
+            <small>Y {inWeek.length - 5} más en Ajustes y detalle.</small>
+          )}
+          {!!later.length && (
+            <>
+              <h2>Más adelante</h2>
+              <ul>{later.map(item)}</ul>
+            </>
           )}
         </div>
       )}

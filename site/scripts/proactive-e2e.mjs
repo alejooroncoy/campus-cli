@@ -131,6 +131,22 @@ const prepared = {
         after: null,
       },
       {
+        courseId: "c2",
+        course: "Otro curso",
+        title: "Avance 4",
+        what: "entrega",
+        studentAction: true,
+        when: { kind: "date", text: "Viernes 25 septiembre" },
+        from: "2026-09-25",
+        to: "2026-09-25",
+        bucket: "this_week",
+        inBlackboard: true,
+        done: false,
+        next: true,
+        after: null,
+        dueAt: "2026-09-26T04:59:00.000Z",
+      },
+      {
         courseId: "c1",
         course: "Curso de prueba",
         title: "TP1",
@@ -408,9 +424,9 @@ try {
       const viene = page.locator(".campu-upcoming");
       await viene.locator(".campu-says").waitFor();
       const frase = (await viene.locator(".campu-says p").innerText()).replace(/\s+/g, " ");
-      assert.ok(frase.startsWith("Esta semana te toca TB2 <img"), frase);
+      assert.ok(frase.startsWith("Esta semana tienes 2 entregas"), frase);
       // Un domingo sigue siendo de su semana: la próxima tiene dos cosas.
-      assert.ok(frase.endsWith("La próxima, 2 cosas."), frase);
+      assert.ok(frase.endsWith("La próxima, 2 entregas."), frase);
       const celdas = viene.getByRole("tab");
       assert.equal(await celdas.count(), 5);
       assert.deepEqual(
@@ -611,15 +627,24 @@ try {
       const home = page.locator(".campu-home");
       await home
         .locator("h1")
-        .getByText("Esta semana te toca", { exact: false })
+        .getByText("Esta semana tienes", { exact: false })
         .waitFor();
       const titular = (await home.locator("h1").innerText()).replace(/\s+/g, " ");
-      assert.ok(titular.startsWith("Esta semana te toca TB2 <img"), titular);
+      assert.ok(titular.startsWith("Esta semana tienes 2 entregas"), titular);
       assert.equal(await page.evaluate(() => !!window.injected), false);
-      const proximo = (await home.locator(".campu-next").innerText()).replace(/\s+/g, " ");
-      assert.ok(proximo.startsWith("Lo próximo TB2 <img"), proximo);
-      assert.ok(proximo.includes("Esta semana · 21–27 set"), proximo);
-      assert.ok(proximo.includes("Después:"), proximo);
+      // Dos entregas la misma semana, de dos cursos, cada una con su curso y su hora.
+      const semana = (await home.locator(".campu-week").innerText()).replace(/\s+/g, " ");
+      assert.ok(semana.includes("TB2 <img"), semana);
+      assert.ok(semana.includes("Curso de prueba"), semana);
+      assert.ok(semana.includes("Esta semana · 21–27 set"), semana);
+      assert.ok(semana.includes("Avance 4") && semana.includes("Otro curso"), semana);
+      assert.match(semana, /En 3 días · 25 set · (11:59|23:59)/);
+      // Lo que no está publicado se dice, y lo de la próxima semana va aparte.
+      assert.ok(/Más adelante.*TP1.*Aún sin publicar/.test(semana), semana);
+      // Las dos de esta semana y, aparte, lo que viene después (no más de tres).
+      const tarjetas = await home.locator(".campu-week .campu-item").count();
+      assert.ok(tarjetas >= 4 && tarjetas <= 5, String(tarjetas));
+      assert.equal(await home.locator(".campu-week ul").first().locator(".campu-item").count(), 2);
       assert.equal(await home.locator(".campu-day h2").first().innerText(), "Hoy");
       assert.equal(
         await home.getByRole("link", { name: /Ya preparé tu semana/ }).getAttribute("href"),

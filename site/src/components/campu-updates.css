@@ -502,3 +502,47 @@
 .campu-home + * {
   margin-top: 28px;
 }
+
+.campu-week h2 {
+  font-size: 15px;
+  margin: 18px 0 6px;
+}
+.campu-week ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.campu-item {
+  display: grid;
+  gap: 2px;
+  background: #fff;
+  border: 1px solid #dbe7e9;
+  border-radius: 18px;
+  padding: 14px 18px;
+}
+.campu-item strong {
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+.campu-item small {
+  color: #5b7787;
+  font-size: 14px;
+}
+.campu-item em {
+  font-style: normal;
+  font-weight: 700;
+  color: #2d7a86;
+  margin-top: 4px;
+}
+.campu-tag {
+  justify-self: start;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 99px;
+  background: #fde8b0;
+  color: #6b4a00;
+}
