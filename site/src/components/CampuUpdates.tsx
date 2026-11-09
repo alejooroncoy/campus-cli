@@ -547,6 +547,7 @@ export default function CampuUpdates() {
     [unsubscribe, setUnsubscribe] = useState<string | null>(null),
     [deleteOpen, setDeleteOpen] = useState(false),
     [more, setMore] = useState(false),
+    [opened, setOpened] = useState(false),
     [nick, setNick] = useState("");
   const generation = useRef(0),
     owner = useRef<string | null>(null),
@@ -624,6 +625,7 @@ export default function CampuUpdates() {
       setStatus(null);
       setContext(null);
       setEvents([]);
+      setOpened(false);
       setNotices([]);
       setError("");
       if (!identity) return;
@@ -647,6 +649,7 @@ export default function CampuUpdates() {
           const result = await api("/notices/" + id);
           if (!mounted || version !== generation.current) return;
           setEvents(result.events ?? []);
+          setOpened(true);
           track("campus_proactive_notice_opened");
           if (result.notice.contextId) {
             const c = await api("/contexts/" + result.notice.contextId);
@@ -716,17 +719,18 @@ export default function CampuUpdates() {
   }
   const update = <K extends keyof Preferences>(key: K, value: Preferences[K]) =>
     setPrefs((p) => ({ ...p, [key]: value }));
-  // Vista simple solo con el seguimiento activo; si hay algo que arreglar, o se
-  // abrió un aviso concreto, se ve el detalle completo.
+  // Vista simple solo con el seguimiento activo. Un aviso sin cambios concretos
+  // (el resumen semanal del correo) abre la misma vista; uno con cambios, o que
+  // aún no cargó, muestra el detalle completo.
+  const onNotice =
+    typeof location !== "undefined" &&
+    /^\/app\/novedades\/[0-9a-f-]{36}\/?$/i.test(location.pathname);
   const simple = Boolean(
     status?.available &&
       prefs.enabled &&
       ["active", "partial"].includes(status.status) &&
       !events.length &&
-      !(
-        typeof location !== "undefined" &&
-        /^\/app\/novedades\/[0-9a-f-]{36}\/?$/i.test(location.pathname)
-      ),
+      (!onNotice || opened),
   );
   const showDetail = !simple || more;
   return (
