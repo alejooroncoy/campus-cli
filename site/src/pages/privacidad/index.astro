@@ -5,7 +5,7 @@ import Base from "../../layouts/Base.astro";
  * Privacy notice.
  *
  * Every claim here is traceable to code, except the Turnitin order providers
- * (Turnitin API at first, then TurnBot via WhatsApp, and academi.cx), which were
+ * (TurnitPro at first, then TurnBot via WhatsApp, and academi.cx), which were
  * a manual team process: the vault's AES-256-GCM records, the
  * ninety-day grant ceiling, the ten-minute download tickets, the sha256
  * pseudonym in metrics.ts, and the in-memory IP counters in founders.ts. The
@@ -166,13 +166,13 @@ const schemas = [
     <p>Guardamos tu cuenta Campus, la oferta aceptada, el monto, las fechas, el estado del pago y la referencia de Flow o el comprobante, según el medio elegido. La confirmación de Flow activa un mes en esa misma cuenta. Para pagos con comprobante, el equipo autorizado verifica el abono. El comprobante se guarda cifrado y solo el personal autorizado puede descargarlo. Para respetar los primeros 25 cupos promocionales conservamos un registro de los identificadores internos que ya obtuvieron esa tarifa. Usamos Resend para avisar al equipo de un pago nuevo con su identificador, monto y enlace al panel privado, sin adjuntar el comprobante ni incluir tu correo. Las métricas registran pasos y estados del pago, nunca el archivo ni su contenido. Puedes solicitar la eliminación de los datos a info@campuscli.com.</p>
 
     <h3 id="turnitin">Pedidos de informes de Turnitin</h3>
-    <p>Los pedidos nuevos están pausados. Esta sección describe cómo se trataron los pedidos ya realizados. Los pedidos de similitud y de similitud + IA anteriores al 1 de noviembre de 2026 se procesaron mediante Turnitin API. Ese día nos desvinculamos de ese proveedor y, desde entonces, esos pedidos pasaron a solicitarse a TurnBot. Esta política no se actualizó en ese momento; la corregimos el 10 de noviembre de 2026.</p>
+    <p>Los pedidos nuevos están pausados. Esta sección describe cómo se trataron los pedidos ya realizados. Los pedidos de similitud y de similitud + IA anteriores al 1 de noviembre de 2026 se solicitaron a TurnitPro, un intermediario que indicaba procesarlos con Turnitin. Ese día nos desvinculamos de ese proveedor y, desde entonces, esos pedidos pasaron a solicitarse a TurnBot. Esta política no se actualizó en ese momento; la corregimos el 10 de noviembre de 2026.</p>
     <ul>
       <li><strong>Qué:</strong> la cuenta Campus asociada al pedido, tu documento, la referencia del pago de Flow o el comprobante de Yape/Plin, el monto, las fechas, el estado y los informes entregados.</li>
       <li><strong>Para qué:</strong> validar el pago, enviar el documento a un proveedor externo para generar los informes y permitirte descargarlos desde tu cuenta.</li>
-      <li><strong>Proveedores:</strong> los informes de similitud y los de similitud + IA se procesaron mediante Turnitin API hasta el 31 de octubre de 2026 y, desde el 1 de noviembre de 2026, tras nuestra desvinculación de ese proveedor, se solicitaron a TurnBot (turnbot.app), un servicio externo que recibe el documento por WhatsApp desde la cuenta del equipo de Campus y entrega los informes. Los pedidos de «Solo IA» se procesaron con academi.cx. Campus no es un canal oficial de Turnitin ni está afiliado a Turnitin.</li>
+      <li><strong>Proveedores:</strong> los informes de similitud y los de similitud + IA se solicitaron a TurnitPro, un intermediario que indicaba usar Turnitin, hasta el 31 de octubre de 2026 y, desde el 1 de noviembre de 2026, tras nuestra desvinculación de ese proveedor, se solicitaron a TurnBot (turnbot.app), un servicio externo que recibe el documento por WhatsApp desde la cuenta del equipo de Campus y entrega los informes. Los pedidos de «Solo IA» se procesaron con academi.cx. Campus no es un canal oficial de Turnitin ni está afiliado a Turnitin.</li>
       <li><strong>Acceso:</strong> el equipo de Campus autorizado para atender los pedidos accedió al documento y al comprobante. El documento se envió al proveedor correspondiente; el comprobante no se le envió. En nuestra base de datos los archivos se guardan cifrados y se descargan mediante una sesión autenticada.</li>
-      <li><strong>Copias fuera de Campus:</strong> el documento también queda en los sistemas del proveedor que lo procesó (Turnitin API, TurnBot o academi.cx) y, en los pedidos enviados a TurnBot, en el chat de WhatsApp usado para el envío, según sus propias condiciones, que Campus no controla. Si pides la eliminación, borramos los archivos de nuestra base y el chat de WhatsApp, y solicitamos al proveedor que elimine su copia, aunque no podemos garantizar que lo haga.</li>
+      <li><strong>Copias fuera de Campus:</strong> el documento también queda en los sistemas del proveedor que lo procesó (TurnitPro, TurnBot o academi.cx) y, en los pedidos enviados a TurnBot, en el chat de WhatsApp usado para el envío, según sus propias condiciones, que Campus no controla. Si pides la eliminación, borramos los archivos de nuestra base y el chat de WhatsApp, y solicitamos al proveedor que elimine su copia, aunque no podemos garantizar que lo haga.</li>
       <li><strong>Avisos al equipo:</strong> usamos Resend para enviar a info@campuscli.com un aviso con el identificador del pedido, el monto y los nombres de los archivos. El correo enlaza al panel privado; no adjunta el trabajo ni el comprobante.</li>
       <li><strong>Conservación:</strong> los datos y archivos del pedido permanecen asociados a tu cuenta hasta su eliminación. Puedes solicitar su eliminación a <a class="prose-link" href="mailto:info@campuscli.com">info@campuscli.com</a>. La eliminación del registro de cuenta elimina también sus pedidos y archivos de esta base.</li>
     </ul>
@@ -220,7 +220,7 @@ const schemas = [
     <ul>
       <li><strong>Flow</strong> — procesa el pago por QR para Campus Plus y Turnitin. Recibe el correo asociado a tu cuenta, el identificador del pedido, el concepto, la moneda y el importe. Campus recibe el estado y la referencia del pago.</li>
       <li>
-        <strong>Turnitin API</strong> — procesó el documento de los pedidos de similitud y de similitud + IA realizados hasta el 31 de octubre de 2026, cuando nos desvinculamos de ese proveedor. Su tratamiento depende de sus propias condiciones.
+        <strong>TurnitPro</strong> (país no informado por el proveedor) — intermediario que indicaba usar Turnitin; procesó el documento de los pedidos de similitud y de similitud + IA realizados hasta el 31 de octubre de 2026, cuando nos desvinculamos de ese proveedor. Su tratamiento depende de sus propias condiciones.
       </li>
       <li>
         <strong>TurnBot</strong> (turnbot.app, país no informado por el proveedor) — recibió por WhatsApp el documento de los pedidos de similitud y de similitud + IA realizados desde el 1 de noviembre de 2026, para generar los informes. Su sitio no identifica a la empresa que lo opera. Su tratamiento depende de sus propias condiciones.
@@ -256,7 +256,7 @@ const schemas = [
     <p>
       Algunos de estos proveedores están fuera del Perú, así que existe un
       flujo transfronterizo de datos. Al aceptar esta política consientes esa
-      transferencia. En los pedidos de revisión, el documento elegido se compartió con Turnitin API, TurnBot o academi.cx, según la fecha del pedido y el informe solicitado. No compartimos tu contraseña universitaria.
+      transferencia. En los pedidos de revisión, el documento elegido se compartió con TurnitPro, TurnBot o academi.cx, según la fecha del pedido y el informe solicitado. No compartimos tu contraseña universitaria.
     </p>
     <p>
       También podríamos entregar información si nos lo exige una autoridad
