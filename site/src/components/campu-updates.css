@@ -515,26 +515,122 @@
   gap: 8px;
 }
 .campu-item {
-  display: grid;
-  gap: 2px;
   background: #fff;
   border: 1px solid #dbe7e9;
   border-radius: 18px;
-  padding: 14px 18px;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.campu-item strong {
-  font-size: 19px;
+.campu-item.soon {
+  border-color: #2d7a86;
+}
+.campu-item.open {
+  box-shadow: 0 6px 20px rgba(16, 42, 58, 0.08);
+}
+.campu-updates .campu-item-head {
+  all: unset;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.campu-updates .campu-item-head:focus-visible {
+  outline: 3px solid #2d7a86;
+  outline-offset: -3px;
+}
+.campu-chip {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 56px;
+  border-radius: 14px;
+  background: #e8f4f6;
+  color: #102a3a;
+  line-height: 1;
+}
+.campu-chip b {
+  font-size: 22px;
+}
+.campu-chip small {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #2d7a86;
+}
+.soon .campu-chip {
+  background: #2d7a86;
+  color: #fff;
+}
+.soon .campu-chip small {
+  color: #d7eef1;
+}
+.campu-item-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.campu-item-main strong {
+  font-size: 18px;
   letter-spacing: -0.02em;
 }
-.campu-item small {
+.campu-item-main small {
   color: #5b7787;
   font-size: 14px;
 }
-.campu-item em {
+.campu-item-main em {
   font-style: normal;
   font-weight: 700;
   color: #2d7a86;
-  margin-top: 4px;
+  margin-top: 2px;
+}
+.campu-chev {
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #5b7787;
+  border-bottom: 2px solid #5b7787;
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+.open .campu-chev {
+  transform: rotate(-135deg);
+}
+.campu-item-more {
+  border-top: 1px solid #e3eef0;
+  padding: 12px 16px 16px;
+  display: grid;
+  gap: 10px;
+}
+.campu-item-more dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 0;
+}
+.campu-item-more dt {
+  color: #5b7787;
+  font-size: 14px;
+}
+.campu-item-more dd {
+  margin: 0;
+}
+.campu-item-more blockquote {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 3px solid #2d7a86;
+  background: #f4f8f8;
+  border-radius: 0 10px 10px 0;
+  color: #3d5a69;
+  font-size: 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .campu-item,
+  .campu-chev {
+    transition: none;
+  }
 }
 .campu-tag {
   justify-self: start;

@@ -150,6 +150,8 @@ const prepared = {
         courseId: "c1",
         course: "Curso de prueba",
         title: "TP1",
+        evidenceIds: ["e1"],
+        source: "schedule",
         what: "evaluación",
         studentAction: true,
         when: { kind: "week", text: "Semana 6" },
@@ -644,6 +646,29 @@ try {
       assert.ok(/Más adelante.*TP1.*Aún sin publicar/.test(semana), semana);
       // La hora que escribe el cronograma se muestra en 24 horas aunque Blackboard no la tenga.
       assert.match(semana, /Entrega del domingo.*4 oct · 23:30/, semana);
+      // Una entrega se abre para ver de dónde sale, con ratón y con teclado.
+      const tp1 = home.locator(".campu-item", { hasText: "TP1" });
+      const cabeza = tp1.locator(".campu-item-head");
+      assert.equal(await cabeza.getAttribute("aria-expanded"), "false");
+      assert.equal(await tp1.locator(".campu-item-more").count(), 0);
+      await cabeza.click();
+      assert.equal(await cabeza.getAttribute("aria-expanded"), "true");
+      const mas = (await tp1.locator(".campu-item-more").innerText()).replace(/\s+/g, " ");
+      assert.ok(mas.includes("De dónde lo sé") && mas.includes("Sílabo oficial · Página 2"), mas);
+      assert.ok(mas.includes("Semana 10: evaluación."), mas);
+      assert.ok(mas.includes("Todavía no está como tarea en Blackboard"), mas);
+      await cabeza.click();
+      assert.equal(await cabeza.getAttribute("aria-expanded"), "false");
+      await cabeza.focus();
+      await page.keyboard.press("Enter");
+      assert.equal(await cabeza.getAttribute("aria-expanded"), "true");
+      await page.keyboard.press("Enter");
+      assert.equal(await cabeza.getAttribute("aria-expanded"), "false");
+      // Una entrega publicada en Blackboard no dice que falte publicarla.
+      const avance = home.locator(".campu-item", { hasText: "Avance 4" });
+      await avance.locator(".campu-item-head").click();
+      assert.equal(await avance.locator(".campu-item-more").getByText("Todavía no está como tarea").count(), 0);
+      await avance.locator(".campu-item-head").click();
       // Las dos de esta semana y, aparte, lo que viene después (no más de tres).
       const tarjetas = await home.locator(".campu-week .campu-item").count();
       assert.ok(tarjetas >= 4 && tarjetas <= 5, String(tarjetas));
