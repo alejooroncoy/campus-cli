@@ -14,8 +14,8 @@ import Base from "../../layouts/Base.astro";
  */
 
 const url = "https://campuscli.com/privacidad/";
-const updated = "2026-11-05";
-const updatedLabel = "5 de noviembre de 2026";
+const updated = "2026-11-10";
+const updatedLabel = "10 de noviembre de 2026";
 
 const schemas = [
   {
@@ -164,10 +164,12 @@ const schemas = [
     <p>Guardamos tu cuenta Campus, la oferta aceptada, el monto, las fechas, el estado del pago y la referencia de Flow o el comprobante, según el medio elegido. La confirmación de Flow activa un mes en esa misma cuenta. Para pagos con comprobante, el equipo autorizado verifica el abono. El comprobante se guarda cifrado y solo el personal autorizado puede descargarlo. Para respetar los primeros 25 cupos promocionales conservamos un registro de los identificadores internos que ya obtuvieron esa tarifa. Usamos Resend para avisar al equipo de un pago nuevo con su identificador, monto y enlace al panel privado, sin adjuntar el comprobante ni incluir tu correo. Las métricas registran pasos y estados del pago, nunca el archivo ni su contenido. Puedes solicitar la eliminación de los datos a info@campuscli.com.</p>
 
     <h3 id="turnitin">Pedidos de informes de Turnitin</h3>
+    <p>Los pedidos nuevos están pausados. Esta sección describe cómo se trataron los pedidos ya realizados.</p>
     <ul>
       <li><strong>Qué:</strong> la cuenta Campus asociada al pedido, tu documento, la referencia del pago de Flow o el comprobante de Yape/Plin, el monto, las fechas, el estado y los informes entregados.</li>
-      <li><strong>Para qué:</strong> validar el pago, procesar el documento mediante el proveedor Turnitin API y permitirte descargar los informes desde tu cuenta. Al enviar el pedido autorizas expresamente ese procesamiento.</li>
-      <li><strong>Acceso:</strong> el equipo de Campus autorizado para atender los pedidos accede al documento y al comprobante. El documento se procesa mediante Turnitin API; el comprobante no se envía al proveedor. Los archivos se guardan cifrados en la base de datos y se descargan mediante una sesión autenticada.</li>
+      <li><strong>Para qué:</strong> validar el pago, enviar el documento a un proveedor externo para generar los informes y permitirte descargarlos desde tu cuenta. Al enviar el pedido autorizaste expresamente ese procesamiento.</li>
+      <li><strong>Proveedores:</strong> los informes de similitud y los de similitud + IA se solicitaron a TurnBot (turnbot.app), un servicio externo que recibe el documento por WhatsApp y entrega los informes. Los pedidos de «Solo IA» se procesaron con academi.cx. Campus no es un canal oficial de Turnitin ni está afiliado a Turnitin.</li>
+      <li><strong>Acceso:</strong> el equipo de Campus autorizado para atender los pedidos accede al documento y al comprobante. El documento se envía al proveedor correspondiente; el comprobante no se le envía. Los archivos se guardan cifrados en nuestra base de datos y se descargan mediante una sesión autenticada. Lo que el proveedor haga con el documento depende de sus propias condiciones, que Campus no controla.</li>
       <li><strong>Avisos al equipo:</strong> usamos Resend para enviar a info@campuscli.com un aviso con el identificador del pedido, el monto y los nombres de los archivos. El correo enlaza al panel privado; no adjunta el trabajo ni el comprobante.</li>
       <li><strong>Conservación:</strong> los datos y archivos del pedido permanecen asociados a tu cuenta hasta su eliminación. Puedes solicitar su eliminación a <a class="prose-link" href="mailto:info@campuscli.com">info@campuscli.com</a>. La eliminación del registro de cuenta elimina también sus pedidos y archivos de esta base.</li>
     </ul>
@@ -215,7 +217,10 @@ const schemas = [
     <ul>
       <li><strong>Flow</strong> — procesa el pago por QR para Campus Plus y Turnitin. Recibe el correo asociado a tu cuenta, el identificador del pedido, el concepto, la moneda y el importe. Campus recibe el estado y la referencia del pago.</li>
       <li>
-        <strong>Turnitin API</strong> — procesa el documento que eliges enviar cuando solicitas el servicio de informes. Ese procesamiento depende de su configuración y de las condiciones del proveedor.
+        <strong>TurnBot</strong> (turnbot.app) — recibió por WhatsApp el documento de los pedidos de similitud y de similitud + IA para generar los informes. Es un servicio externo; su tratamiento depende de sus propias condiciones.
+      </li>
+      <li>
+        <strong>academi.cx</strong> — procesó el documento de los pedidos de «Solo IA».
       </li>
       <li>
         <strong>PostHog</strong> (Estados Unidos) — recibe las métricas de uso
@@ -242,7 +247,7 @@ const schemas = [
     <p>
       Algunos de estos proveedores están fuera del Perú, así que existe un
       flujo transfronterizo de datos. Al aceptar esta política consientes esa
-      transferencia. Si solicitas una revisión, el documento elegido se comparte con Turnitin API para ese análisis. No compartimos tu contraseña universitaria.
+      transferencia. En los pedidos de revisión, el documento elegido se compartió con TurnBot o academi.cx, según el informe solicitado. No compartimos tu contraseña universitaria.
     </p>
     <p>
       También podríamos entregar información si nos lo exige una autoridad
