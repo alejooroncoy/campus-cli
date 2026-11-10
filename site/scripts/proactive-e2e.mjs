@@ -411,6 +411,21 @@ try {
         if (await boton.count()) await boton.click();
       };
       await page.goto(base + "/app/novedades/" + noticeId + "/");
+      // Un aviso de cambios abre con el cambio primero, no con los ajustes.
+      const cambios = page.locator(".campu-home .campu-changes");
+      await cambios.waitFor();
+      const titularCambio = (await page.locator(".campu-home h1").innerText()).replace(/\s+/g, " ");
+      assert.match(titularCambio, /^(Encontré \d+ cambios en tus cursos\.|Cambió |Publicaron |Ya no aparece|Hay un anuncio)/, titularCambio);
+      assert.equal(await page.getByRole("heading", { name: "Cómo quieres que te avise" }).count(), 0);
+      assert.match(await cambios.innerText(), /nota oficial en mi upc/i, "el cambio se ve sin abrir nada");
+      // Y el orden: el cambio va antes que lo que viene.
+      const orden = await page.evaluate(() => {
+        const q = (s) => document.querySelector(s);
+        const c = q(".campu-home .campu-changes"), w = q(".campu-home .campu-week");
+        return !w || Boolean(c.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING);
+      });
+      assert.equal(orden, true, "el cambio va primero");
+      await openDetail();
       await page
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
         .waitFor();
@@ -575,6 +590,8 @@ try {
           ),
         session,
       );
+      // Con el aviso ya abierto, la vista pasa a la simple: el detalle se abre después.
+      await page.locator(".campu-home").waitFor();
       await openDetail();
       await page
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
