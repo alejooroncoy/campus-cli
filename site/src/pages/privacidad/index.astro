@@ -4,7 +4,8 @@ import Base from "../../layouts/Base.astro";
 /**
  * Privacy notice.
  *
- * Every claim here is traceable to code: the vault's AES-256-GCM records, the
+ * Every claim here is traceable to code, except the Turnitin order providers
+ * (TurnBot via WhatsApp, academi.cx), which were a manual team process: the vault's AES-256-GCM records, the
  * ninety-day grant ceiling, the ten-minute download tickets, the sha256
  * pseudonym in metrics.ts, and the in-memory IP counters in founders.ts. The
  * Commercial conversion measurement also uses Meta; account choices can disable it.
@@ -66,7 +67,7 @@ const schemas = [
       <h2 id="resumen-title">En resumen</h2>
       <ul>
         <li><strong>Nunca vemos tu contraseña.</strong> Inicias sesión en la página de tu universidad, no en la nuestra.</li>
-        <li>La conexión de Blackboard consulta tus cursos en el momento. Si solicitas el servicio de <strong>Turnitin</strong>, guardamos el documento que subes, el comprobante si corresponde y los informes para atender tu pedido.</li>
+        <li>La conexión de Blackboard consulta tus cursos en el momento. El servicio de informes de <strong>Turnitin</strong> está pausado; de los pedidos anteriores conservamos el documento, el comprobante si corresponde y los informes, y los documentos se enviaron a proveedores externos (ver más abajo).</li>
         <li>Solo conservamos tu sesión <strong>si tú activas “Mantener conexión activa”</strong>, cifrada y por 90 días como máximo.</li>
         <li>Las métricas van <strong>seudonimizadas</strong>: identificadores técnicos, sin contenido académico.</li>
         <li>Puedes <strong>revocar la conexión o eliminar tu cuenta</strong> desde Campus Mobile; también puedes escribir a <a class="prose-link" href="mailto:info@campuscli.com">info@campuscli.com</a>.</li>
@@ -164,12 +165,13 @@ const schemas = [
     <p>Guardamos tu cuenta Campus, la oferta aceptada, el monto, las fechas, el estado del pago y la referencia de Flow o el comprobante, según el medio elegido. La confirmación de Flow activa un mes en esa misma cuenta. Para pagos con comprobante, el equipo autorizado verifica el abono. El comprobante se guarda cifrado y solo el personal autorizado puede descargarlo. Para respetar los primeros 25 cupos promocionales conservamos un registro de los identificadores internos que ya obtuvieron esa tarifa. Usamos Resend para avisar al equipo de un pago nuevo con su identificador, monto y enlace al panel privado, sin adjuntar el comprobante ni incluir tu correo. Las métricas registran pasos y estados del pago, nunca el archivo ni su contenido. Puedes solicitar la eliminación de los datos a info@campuscli.com.</p>
 
     <h3 id="turnitin">Pedidos de informes de Turnitin</h3>
-    <p>Los pedidos nuevos están pausados. Esta sección describe cómo se trataron los pedidos ya realizados.</p>
+    <p>Los pedidos nuevos están pausados. Esta sección describe cómo se trataron los pedidos ya realizados. Hasta el 10 de noviembre de 2026, esta política indicaba por error que los documentos se procesaban mediante «Turnitin API»; los proveedores reales se detallan abajo.</p>
     <ul>
       <li><strong>Qué:</strong> la cuenta Campus asociada al pedido, tu documento, la referencia del pago de Flow o el comprobante de Yape/Plin, el monto, las fechas, el estado y los informes entregados.</li>
-      <li><strong>Para qué:</strong> validar el pago, enviar el documento a un proveedor externo para generar los informes y permitirte descargarlos desde tu cuenta. Al enviar el pedido autorizaste expresamente ese procesamiento.</li>
-      <li><strong>Proveedores:</strong> los informes de similitud y los de similitud + IA se solicitaron a TurnBot (turnbot.app), un servicio externo que recibe el documento por WhatsApp y entrega los informes. Los pedidos de «Solo IA» se procesaron con academi.cx. Campus no es un canal oficial de Turnitin ni está afiliado a Turnitin.</li>
-      <li><strong>Acceso:</strong> el equipo de Campus autorizado para atender los pedidos accede al documento y al comprobante. El documento se envía al proveedor correspondiente; el comprobante no se le envía. Los archivos se guardan cifrados en nuestra base de datos y se descargan mediante una sesión autenticada. Lo que el proveedor haga con el documento depende de sus propias condiciones, que Campus no controla.</li>
+      <li><strong>Para qué:</strong> validar el pago, enviar el documento a un proveedor externo para generar los informes y permitirte descargarlos desde tu cuenta.</li>
+      <li><strong>Proveedores:</strong> los informes de similitud y los de similitud + IA se solicitaron a TurnBot (turnbot.app), un servicio externo que recibe el documento por WhatsApp desde la cuenta del equipo de Campus y entrega los informes. Los pedidos de «Solo IA» se procesaron con academi.cx. Campus no es un canal oficial de Turnitin ni está afiliado a Turnitin.</li>
+      <li><strong>Acceso:</strong> el equipo de Campus autorizado para atender los pedidos accedió al documento y al comprobante. El documento se envió al proveedor correspondiente; el comprobante no se le envió. En nuestra base de datos los archivos se guardan cifrados y se descargan mediante una sesión autenticada.</li>
+      <li><strong>Copias fuera de Campus:</strong> el documento también queda en el chat de WhatsApp usado para el envío y en los sistemas de TurnBot o academi.cx, según sus propias condiciones, que Campus no controla. Si pides la eliminación, borramos los archivos de nuestra base y el chat de WhatsApp, y solicitamos al proveedor que elimine su copia, aunque no podemos garantizar que lo haga.</li>
       <li><strong>Avisos al equipo:</strong> usamos Resend para enviar a info@campuscli.com un aviso con el identificador del pedido, el monto y los nombres de los archivos. El correo enlaza al panel privado; no adjunta el trabajo ni el comprobante.</li>
       <li><strong>Conservación:</strong> los datos y archivos del pedido permanecen asociados a tu cuenta hasta su eliminación. Puedes solicitar su eliminación a <a class="prose-link" href="mailto:info@campuscli.com">info@campuscli.com</a>. La eliminación del registro de cuenta elimina también sus pedidos y archivos de esta base.</li>
     </ul>
@@ -212,21 +214,24 @@ const schemas = [
     <p>
       <strong>No vendemos tus datos.</strong> La medición publicitaria con Meta
       se gestiona desde Mi perfil → Privacidad, como se describe arriba. Trabajamos con proveedores que
-      participan en la autenticación, infraestructura, medición o seguridad del servicio:
+      participan en la autenticación, infraestructura, medición, seguridad o pagos del servicio, y en la generación de los informes de los pedidos de revisión:
     </p>
     <ul>
       <li><strong>Flow</strong> — procesa el pago por QR para Campus Plus y Turnitin. Recibe el correo asociado a tu cuenta, el identificador del pedido, el concepto, la moneda y el importe. Campus recibe el estado y la referencia del pago.</li>
       <li>
-        <strong>TurnBot</strong> (turnbot.app) — recibió por WhatsApp el documento de los pedidos de similitud y de similitud + IA para generar los informes. Es un servicio externo; su tratamiento depende de sus propias condiciones.
+        <strong>TurnBot</strong> (turnbot.app, país no informado por el proveedor) — recibió por WhatsApp el documento de los pedidos de similitud y de similitud + IA para generar los informes. Su sitio no identifica a la empresa que lo opera. Su tratamiento depende de sus propias condiciones.
       </li>
       <li>
-        <strong>academi.cx</strong> — procesó el documento de los pedidos de «Solo IA».
+        <strong>academi.cx</strong> (país no informado por el proveedor) — procesó el documento de los pedidos de «Solo IA». Su tratamiento depende de sus propias condiciones.
+      </li>
+      <li>
+        <strong>WhatsApp</strong> (Meta) — canal por el que se enviaron a TurnBot los documentos de los pedidos de similitud y de similitud + IA.
       </li>
       <li>
         <strong>PostHog</strong> (Estados Unidos) — recibe las métricas de uso
         seudonimizadas y las respuestas a encuestas opcionales descritas arriba.
       </li>
-      <li><strong>Meta</strong> — recibe exclusivamente los hitos comerciales y los identificadores técnicos descritos en «Medición de anuncios con Meta» mientras la medición esté activada. No recibe contenido académico.</li>
+      <li><strong>Meta</strong> — recibe exclusivamente los hitos comerciales y los identificadores técnicos descritos en «Medición de anuncios con Meta» mientras la medición esté activada. La medición no envía contenido académico; el envío de documentos por WhatsApp se describe aparte.</li>
       <li>
         <strong>Cloudflare Turnstile</strong> (Estados Unidos) — verifica que
         quien envía el formulario de acceso anticipado es una persona y no un
