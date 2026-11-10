@@ -45,17 +45,42 @@ function setupTurnitin() {
   // A discount quote from the server only counts for the report and list price it was made for, and only with the Flow QR:
   // anything else falls back to the list price, and the server checks the code again when the order is created.
   type Discount = { code: string; report: Product['id']; listPriceCents: number; discountCents: number; amountCents: number };
-  let discount: Discount | undefined;
+  // Un código se cotiza para los tres informes a la vez, así cada tarjeta muestra desde el paso 1 lo que se pagaría con él.
+  const discounts = new Map<Product['id'], Discount>();
+  const discountErrors = new Map<Product['id'], string>();
+  const clearDiscounts = () => { discounts.clear(); discountErrors.clear(); };
   const listAmount = () => selectedOffer()?.amountCents ?? config.amountCents;
-  const activeDiscount = () => discount && config.flowAvailable && discount.report === selectedReport() && discount.listPriceCents === listAmount() ? discount : undefined;
+  const quoteFor = (id: Product['id'], listPriceCents: number) => {
+    const quote = config.flowAvailable ? discounts.get(id) : undefined;
+    return quote && quote.listPriceCents === listPriceCents ? quote : undefined;
+  };
+  const activeDiscount = () => quoteFor(selectedReport(), listAmount());
   const chargeAmount = () => activeDiscount()?.amountCents ?? listAmount();
   function updatePrice() {
     if (!config || !form) return;
     const amount = chargeAmount();
     document.querySelector<HTMLElement>('[data-ti-price]')!.textContent = `${money(amount)} · ${productLabel(selectedReport())}`;
+    // Cada tarjeta con descuento muestra el precio de lista tachado y el precio final, igual que el total del pago.
     for (const product of config.products ?? []) {
       const label = document.querySelector<HTMLElement>(`[data-ti-option-price="${product.id}"]`);
-      if (label) label.textContent = money(product.amountCents);
+      if (!label) continue;
+      const applied = quoteFor(product.id, product.amountCents);
+      if (applied) {
+        const original = document.createElement('s');
+        original.className = 'ti-price-original';
+        original.textContent = money(applied.listPriceCents);
+        label.replaceChildren(original, ` ${money(applied.amountCents)}`);
+        label.setAttribute('aria-label', `${money(applied.amountCents)} con el código ${applied.code}, antes ${money(applied.listPriceCents)}`);
+      } else {
+        label.textContent = money(product.amountCents);
+        label.removeAttribute('aria-label');
+      }
+    }
+    const note = document.querySelector<HTMLElement>('[data-ti-discount-note]');
+    const anyQuote = (config.products ?? []).map(product => quoteFor(product.id, product.amountCents)).find(Boolean);
+    if (note) {
+      note.textContent = anyQuote ? `Código ${anyQuote.code} aplicado. Los precios ya incluyen tu descuento.` : '';
+      note.hidden = !anyQuote;
     }
     document.querySelector<HTMLElement>('[data-ti-amount]')!.textContent = money(amount);
     document.querySelector<HTMLElement>('[data-ti-product-summary]')!.textContent = productLabel(selectedReport());
@@ -134,7 +159,7 @@ function setupTurnitin() {
       headers: { ...analyticsHeaders(), ...(input === undefined ? {} : { 'content-type': 'application/json' }) },
       body: input === undefined ? undefined : JSON.stringify(input), signal: AbortSignal.timeout(path === 'config' ? 12000 : 60000) });
     const result = await response.json().catch(() => ({ error: 'No se pudo conectar con Campus.' }));
-    if (!response.ok) throw new Error(result.error ?? 'No se pudo completar la solicitud.');
+    if (!response.ok) throw Object.assign(new Error(result.error ?? 'No se pudo completar la solicitud.'), { httpStatus: response.status });
     return result;
   }
   function openCheckout(value: string) {
@@ -424,26 +449,40 @@ function setupTurnitin() {
   const discountApply = form.querySelector<HTMLButtonElement>('[data-ti-discount-apply]')!;
   const discountStatus = form.querySelector<HTMLElement>('[data-ti-discount-status]')!;
   const showDiscount = (message: string, error = false) => { discountStatus.textContent = message; discountStatus.hidden = !message; discountStatus.dataset.state = error ? 'error' : 'applied'; };
+  // El mensaje del paso 2 habla del informe elegido; las tarjetas del paso 1 ya muestran el resto.
+  function describeDiscount() {
+    const quote = activeDiscount(), error = discountErrors.get(selectedReport());
+    if (quote) showDiscount(`Código ${quote.code} aplicado: ${money(quote.discountCents)} de descuento. Pagas ${money(quote.amountCents)}.`);
+    else if (error) showDiscount(error, true);
+    else if (discounts.size) showDiscount('Este código no aplica a este informe. Elige otro para usarlo.', true);
+    else showDiscount('');
+  }
   async function applyDiscount() {
     const code = discountInput.value.trim();
-    if (!code) { discount = undefined; showDiscount(''); updatePrice(); return; }
+    clearDiscounts();
+    if (!code) { describeDiscount(); updatePrice(); return; }
     const report = selectedReport();
     discountApply.disabled = true; discountApply.setAttribute('aria-busy', 'true');
     try {
+      // Una sola llamada: el servidor devuelve en quotes el precio de cada informe que el código cubre.
       const quote = await api('discount', { code, report });
-      discount = { code: quote.code, report, listPriceCents: quote.listPriceCents, discountCents: quote.discountCents, amountCents: quote.amountCents };
-      showDiscount(`Código ${quote.code} aplicado: ${money(quote.discountCents)} de descuento. Pagas ${money(quote.amountCents)}.`);
-    } catch (error) { discount = undefined; showDiscount((error as Error).message, true); }
-    finally { discountApply.disabled = false; discountApply.removeAttribute('aria-busy'); updatePrice(); }
+      const quotes: Record<string, Omit<Discount, 'report'>> = quote.quotes ?? { [report]: quote };
+      for (const product of config.products ?? []) {
+        const priced = quotes[product.id];
+        if (priced) discounts.set(product.id, { code: priced.code, report: product.id, listPriceCents: priced.listPriceCents, discountCents: priced.discountCents, amountCents: priced.amountCents });
+      }
+      if (!config.products?.length) discounts.set(report, { code: quote.code, report, listPriceCents: quote.listPriceCents, discountCents: quote.discountCents, amountCents: quote.amountCents });
+    } catch (error) { discountErrors.set(report, (error as Error).message); }
+    finally { discountApply.disabled = false; discountApply.removeAttribute('aria-busy'); describeDiscount(); updatePrice(); }
   }
   discountApply.onclick = () => { void applyDiscount(); };
   // Enter applies the code instead of submitting the whole order.
   discountInput.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); void applyDiscount(); } });
   form.addEventListener('change', event => {
     requestId = crypto.randomUUID(); showSubmission('');
-    if (event.target === discountInput && !discountInput.value.trim()) { discount = undefined; showDiscount(''); }
-    // Switching to another report re-quotes the same code, because the discount depends on that report's price.
-    else if (discount && discount.report !== selectedReport()) void applyDiscount();
+    if (event.target === discountInput && !discountInput.value.trim()) clearDiscounts();
+    // Cambiar de informe no vuelve a cotizar: el código ya se cotizó para los tres.
+    describeDiscount();
     updatePrice();
   });
   form.onsubmit = async event => {
@@ -465,7 +504,7 @@ function setupTurnitin() {
       if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(received.order?.id ?? '')) throw new Error('No pudimos confirmar el envío. Vuelve a intentarlo; conservamos tus archivos.');
       if (received.checkoutUrl) { openCheckout(received.checkoutUrl); return; }
       track('campus_turnitin_submitted');
-      form.reset(); uploads.reset(); request.reset(); showSubmission(''); discount = undefined; showDiscount(''); requestId = crypto.randomUUID(); updatePrice();
+      form.reset(); uploads.reset(); request.reset(); showSubmission(''); clearDiscounts(); showDiscount(''); requestId = crypto.randomUUID(); updatePrice();
       try { await refreshAvailability(); } catch { /* The received order remains confirmed if availability refresh fails. */ }
       announce(qr ? 'Consulta el estado de tu pedido en Mis revisiones.' : 'Pedido recibido. Tu comprobante está en revisión. Consulta el estado en Mis revisiones.');
       document.querySelector<HTMLDetailsElement>('[data-ti-new-order]')!.open = false;
@@ -475,7 +514,11 @@ function setupTurnitin() {
       historyFilter = 'all'; historySearch = ''; search.value = '';
       document.querySelectorAll<HTMLButtonElement>('[data-ti-filter]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.tiFilter === 'all')));
       try { await loadOrders(false, true); } catch { announce('Tu pedido ya fue recibido. Usa Actualizar estado para consultar su avance.'); }
-    } catch (error) { track('campus_flow_failed', { step: 'turnitin', error_kind: 'rejected' }); showSubmission((error as Error).message); announce((error as Error).message, true); try { await refreshAvailability(); } catch { /* The availability notice offers payment support. */ } }
+    } catch (error) {
+      // Solo el código HTTP, nunca el texto del error: 409 (pedido pendiente o precio cambiado), 429 (límite), 503 (pausado).
+      // Sin código es que la petición no llegó a responder (red o tiempo agotado).
+      const httpStatus = (error as { httpStatus?: number }).httpStatus;
+      track('campus_flow_failed', { step: 'turnitin', error_kind: httpStatus ? 'rejected' : 'network', ...(httpStatus ? { http_status: httpStatus } : {}) }); showSubmission((error as Error).message); announce((error as Error).message, true); try { await refreshAvailability(); } catch { /* The availability notice offers payment support. */ } }
     finally { fields.disabled = false; submit.removeAttribute('aria-busy'); submit.removeAttribute('aria-label'); submitText.hidden = false; submit.querySelector<HTMLElement>('[data-ti-submit-skeleton]')!.hidden = true; }
   };
   const cleanup = () => { disposed = true; clearInterval(poll); clearTimeout(searchTimer); };
