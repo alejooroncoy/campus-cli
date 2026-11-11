@@ -25,6 +25,9 @@ assert.ok(log.includes('Guest sample live fixture'), `Fixture did not start:\n${
 
 const post = (path, body) => fetch(base + path, {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify(body ?? {})});
 const state = async () => (await fetch(base + '/__e2e/state')).json();
+const database = async () => (await fetch(base + '/__e2e/db')).json();
+const usingDatabase = (await state()).database === true;
+console.log(usingDatabase ? 'Mode: real PostgreSQL store.' : 'Mode: in-memory store (set CAMPUS_E2E_DATABASE_URL for PostgreSQL).');
 const browser = await chromium.launch({headless: true});
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15';
 // Cada contexto es un invitado nuevo (cookies vacías) con la IP que le demos.
@@ -54,8 +57,23 @@ try {
   let s = await state();
   assert.equal(s.agentCalls, 1);
   assert.equal(s.agentMessages[0], '¿Qué dicen los estudiantes de Luis Vives?');
-  assert.equal(s.served, 1);
+  if (!usingDatabase) assert.equal(s.served, 1);
   assert.ok(s.events.some(e => e.event.event === 'campus_guest_sample_served'), 'backend telemetry: served');
+  if (usingDatabase) {
+    const rows = await database();
+    assert.equal(rows.requests.length, 1, 'one request row');
+    const [row] = rows.requests;
+    assert.equal(row.plan, 'anon');
+    assert.equal(row.status, 'complete', 'the real finishGuest closed the request');
+    assert.match(row.ip_hash, /^[a-f0-9]{64}$/, 'only a sha256 of the IP is stored');
+    assert.notEqual(row.ip_hash, '203.0.113.10');
+    assert.match(row.guest_id, /^gst_/);
+    assert.equal(row.input_tokens, 10); assert.equal(row.output_tokens, 5);
+    assert.equal(rows.conversations, 1);
+    assert.deepEqual(rows.messages.map(m => m.role), ['user', 'assistant']);
+    assert.ok(rows.indexes.includes('campus_app_ai_ip_hash_time') && rows.indexes.includes('campus_app_ai_sample_time'), 'migration 209 indexes exist');
+    assert.equal(JSON.stringify(rows).includes('203.0.113.10'), false, 'the raw IP is nowhere in the database');
+  }
   console.log('Live E2E: sample arm gets one real answer and the account CTA.');
 
   // 2. Recargar: la muestra ya está gastada, vuelve el muro y no hay una segunda llamada.
@@ -106,6 +124,27 @@ try {
   await wall(f.page).waitFor();
   assert.equal((await state()).agentCalls, 1);
   console.log('Live E2E: a forged X-Forwarded-For does not unlock a second sample.');
+
+  if (usingDatabase) assert.equal((await database()).requests.length, 1, 'blocked and disabled attempts leave no rows');
+
+  // 8. Carrera real: peticiones simultáneas desde una IP nueva, con la misma cookie y con cookies
+  // distintas, solo reservan una muestra (bloqueo de PostgreSQL, no solo lógica en memoria).
+  await post('/__e2e/config', {enabled: true, dailyCap: 150});
+  const send = (ip, cookie) => fetch(base + '/api/app/profes/message', {
+    method: 'POST',
+    headers: {origin: base, 'content-type': 'application/json', accept: 'application/x-ndjson', 'user-agent': UA, 'x-real-ip': ip, ...(cookie ? {cookie: `campus_guest=${cookie}`} : {})},
+    body: JSON.stringify({message: 'Carrera'}),
+  });
+  const sameCookie = await Promise.all(Array.from({length: 6}, () => send('203.0.113.60', 'gst_e2e0123456789abcdef')));
+  assert.equal(sameCookie.filter(r => r.status === 200).length, 1, `same cookie: one winner (got ${sameCookie.map(r => r.status)})`);
+  const sameIp = await Promise.all(Array.from({length: 6}, (_, i) => send('203.0.113.61', `gst_e2e${String(i).repeat(14)}`)));
+  assert.equal(sameIp.filter(r => r.status === 200).length, 1, `same IP, different cookies: one winner (got ${sameIp.map(r => r.status)})`);
+  if (usingDatabase) {
+    const rows = await database();
+    assert.equal(rows.requests.length, 3, 'exactly one row per winner plus the first sample');
+    assert.equal(new Set(rows.requests.map(r => r.ip_hash)).size, 3, 'one row per IP');
+  }
+  console.log('Live E2E: concurrent requests reserve a single sample.');
 
   for (const {errors} of [a, b, c, d, e, f]) assert.deepEqual(errors, []);
   console.log('Guest sample live E2E passed.');

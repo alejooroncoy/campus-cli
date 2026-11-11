@@ -1,8 +1,10 @@
 // Servidor e2e de la muestra de invitado: el handler REAL de campus-profes (PR de backend)
-// con el sitio compilado, datos en memoria y un agente falso. Sin base de datos, login ni IA.
-// Las reglas (1 por cookie, 1 por IP, tope diario) replican las de store.ts, que ya tiene
-// su propia prueba contra PostgreSQL en el repo del backend.
+// con el sitio compilado y un agente falso. Sin login ni IA.
+// - Sin CAMPUS_E2E_DATABASE_URL: reglas (1 por cookie, 1 por IP, tope diario) en memoria.
+// - Con CAMPUS_E2E_DATABASE_URL (solo localhost): el store REAL sobre PostgreSQL, en un
+//   esquema temporal con las migraciones del backend; se borra al salir.
 import { createServer } from "node:http";
+import { createRequire } from "node:module";
 import { randomUUID } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
 import { extname, resolve, sep } from "node:path";
@@ -27,6 +29,28 @@ const block = (guestId: string | null, ipHash: string, cap: number): Reason | nu
   if (state.served >= cap) return "daily_cap";
   return null;
 };
+
+// ---- PostgreSQL real (opcional) ----
+let db: any = null, admin: any = null, schema = "";
+const databaseUrl = process.env.CAMPUS_E2E_DATABASE_URL;
+let realStore: any = null;
+if (databaseUrl) {
+  const url = new URL(databaseUrl);
+  if (!["localhost", "127.0.0.1"].includes(url.hostname)) throw new Error("The e2e fixture only runs against an explicitly local database");
+  const requireFromBackend = createRequire(resolve(profesDir, "package.json"));
+  const postgres = (await import(pathToFileURL(requireFromBackend.resolve("postgres")).href)).default;
+  const { appStore } = await import(pathToFileURL(resolve(profesDir, "src/app/store.ts")).href);
+  schema = `campus_e2e_${randomUUID().replaceAll("-", "")}`;
+  admin = postgres(url.toString(), { onnotice: () => {} });
+  await admin`create schema ${admin(schema)}`;
+  db = postgres(url.toString(), { connection: { search_path: schema }, onnotice: () => {}, max: 4 });
+  await db.unsafe("create table account(id integer primary key);");
+  for (const file of ["151_campus_app_ai.sql", "152_campus_app_profes_chat.sql", "153_campus_app_conversations.sql", "209_guest_sample.sql"]) {
+    await db.unsafe(await readFile(resolve(profesDir, "sql", file), "utf8"));
+  }
+  realStore = appStore(db);
+}
+
 const handler = createAppHandler({} as any, {
   session: async () => null,
   ready: () => true,
@@ -35,14 +59,20 @@ const handler = createAppHandler({} as any, {
     universities: async () => [{ id: 1, name: "Universidad Peruana de Ciencias Aplicadas", shortName: "UPC" }],
     conversations: async () => [], guestConversations: async () => [], claimGuestHistory: async () => {},
     guestUsage: async () => ({ used: 0, limit: 5, remaining: 5, period: "trial" }),
-    guestSampleStatus: async (guestId: string | null, ipHash: string, cap: number) => block(guestId, ipHash, cap),
-    reserveGuestSample: async (guestId: string, ipHash: string, cap: number) => {
-      const reason = block(guestId, ipHash, cap);
-      if (reason) return { status: "blocked", reason };
-      state.guests.add(guestId); state.ips.add(ipHash); state.served++;
-      return { status: "reserved", id: randomUUID() };
-    },
-    finishGuest: async () => ({ conversationId: randomUUID(), title: "Consulta de muestra" }),
+    ...(realStore ? {
+      guestSampleStatus: realStore.guestSampleStatus,
+      reserveGuestSample: realStore.reserveGuestSample,
+      finishGuest: realStore.finishGuest,
+    } : {
+      guestSampleStatus: async (guestId: string | null, ipHash: string, cap: number) => block(guestId, ipHash, cap),
+      reserveGuestSample: async (guestId: string, ipHash: string, cap: number) => {
+        const reason = block(guestId, ipHash, cap);
+        if (reason) return { status: "blocked", reason };
+        state.guests.add(guestId); state.ips.add(ipHash); state.served++;
+        return { status: "reserved", id: randomUUID() };
+      },
+      finishGuest: async () => ({ conversationId: randomUUID(), title: "Consulta de muestra" }),
+    }),
   } as any,
   agent: (async (message: string) => {
     state.agentCalls++; state.agentMessages.push(message);
@@ -51,19 +81,27 @@ const handler = createAppHandler({} as any, {
 });
 
 const types: Record<string, string> = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".webp": "image/webp", ".png": "image/png", ".json": "application/json", ".woff2": "font/woff2" };
+const json = (res: any, data: unknown) => { res.writeHead(200, { "content-type": "application/json" }); res.end(JSON.stringify(data)); };
 const server = createServer(async (req, res) => {
   const path = new URL(req.url ?? "/", origin).pathname;
-  if (path === "/__e2e/state") {
-    res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ ...state, guests: [...state.guests], ips: [...state.ips] })); return;
+  if (path === "/__e2e/state") { json(res, { ...state, guests: [...state.guests], ips: [...state.ips], database: Boolean(db) }); return; }
+  if (path === "/__e2e/db") {
+    if (!db) { json(res, null); return; }
+    json(res, {
+      requests: await db`select guest_id, plan, status, ip_hash, input_tokens, output_tokens, model, error_code from campus_app_ai_request order by created_at`,
+      conversations: (await db`select count(*)::int as n from campus_app_conversation`)[0].n,
+      messages: await db`select role, content from campus_app_profes_message order by id`,
+      indexes: (await db`select indexname from pg_indexes where schemaname = ${schema} and tablename = 'campus_app_ai_request' order by 1`).map((r: any) => r.indexname),
+    }); return;
   }
   if (path === "/__e2e/config" && req.method === "POST") {
     let body = ""; for await (const chunk of req) body += chunk;
     Object.assign(state.config, JSON.parse(body || "{}"));
-    res.writeHead(200, { "content-type": "application/json" }); res.end(JSON.stringify(state.config)); return;
+    json(res, state.config); return;
   }
   if (path === "/__e2e/reset" && req.method === "POST") {
     state.guests.clear(); state.ips.clear(); state.served = 0; state.agentCalls = 0; state.agentMessages = []; state.events = [];
+    if (db) await db.unsafe("truncate campus_app_profes_message, campus_app_conversation, campus_app_ai_request cascade;");
     res.writeHead(200); res.end("ok"); return;
   }
   if (await handler(req, res, path)) return;
@@ -78,5 +116,10 @@ const server = createServer(async (req, res) => {
     res.end(await readFile(file));
   } catch { res.writeHead(404); res.end("Not found"); }
 });
-server.listen(port, "127.0.0.1", () => console.log(`Guest sample live fixture: ${origin}/app/asistente/`));
-for (const signal of ["SIGTERM", "SIGINT"] as const) process.on(signal, () => server.close(() => process.exit(0)));
+server.listen(port, "127.0.0.1", () => console.log(`Guest sample live fixture${db ? " (PostgreSQL)" : ""}: ${origin}/app/asistente/`));
+async function shutdown() {
+  server.close();
+  try { if (db) { await db.end({ timeout: 2 }); await admin`drop schema ${admin(schema)} cascade`; await admin.end({ timeout: 2 }); } } catch { /* Best effort. */ }
+  process.exit(0);
+}
+for (const signal of ["SIGTERM", "SIGINT"] as const) process.on(signal, () => { void shutdown(); });
