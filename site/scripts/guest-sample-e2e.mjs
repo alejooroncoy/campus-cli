@@ -67,6 +67,13 @@ try {
       assert.equal(await box.isVisible(), false, 'The composer closes once the sample is used');
       const href = new URL(await cta.getByRole('link', {name:'Crear cuenta y seguir'}).getAttribute('href'), page.url());
       assert.equal(href.pathname, '/api/app/auth/start');
+      // A session refresh after the sample is spent (the backend no longer offers it)
+      // must not swap the conversation for the account wall.
+      await page.evaluate(() => window.dispatchEvent(new CustomEvent('campus:session-updated', {detail:{authenticated:false, plan:'anon', aiReady:true, guestSample:{available:false, remaining:0, limit:1}}})));
+      await page.waitForTimeout(300);
+      assert.equal(await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).count(), 0, 'The wall does not replace the answer');
+      assert.equal(await page.getByText('Respuesta pública de muestra.', {exact:true}).count(), 1);
+      assert.equal(await cta.count(), 1);
     },
   });
   await scenario('gate arm keeps the account wall even when the backend offers the sample', {

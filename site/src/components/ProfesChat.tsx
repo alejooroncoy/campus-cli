@@ -696,6 +696,7 @@ export default function ProfesChat() {
   const [authenticated, setAuthenticated] = useState(false);
   // Pregunta de muestra para invitados: solo si el backend la ofrece y el brazo de la prueba es "sample".
   const [sampleMode, setSampleMode] = useState(false);
+  const sampleModeRef = useRef(false);
   const [sampleUsed, setSampleUsed] = useState(false);
   const [guestUniversity, setGuestUniversity] = useState(readGuestUniversity);
   const [changingUniversity, setChangingUniversity] = useState(false);
@@ -898,11 +899,15 @@ export default function ProfesChat() {
         setAuthenticated(session.authenticated);
 
         if (!session.authenticated) {
-          const offered = guestSampleOffered(session, assignGuestSampleArm(session));
+          // Una vez ofrecida, la muestra se mantiene en esta página: al gastarla (o mientras se responde)
+          // el backend ya no la ofrece y un refresco de sesión no debe cambiar el chat por el muro.
+          const offered = sampleModeRef.current || guestSampleOffered(session, assignGuestSampleArm(session));
+          sampleModeRef.current = offered;
           setSampleMode(offered);
           setAccess(offered ? (session.aiReady ? "ready" : "unavailable") : "login");
           setAccessNote(offered && !session.aiReady ? "Campus no está disponible por ahora." : "");
         } else {
+          sampleModeRef.current = false;
           setSampleMode(false);
           setAccess(!session.universityConfirmed ? "setup" : !session.accessUnavailable && session.aiReady ? "ready" : "unavailable");
           setAccessNote(session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
