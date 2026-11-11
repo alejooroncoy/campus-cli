@@ -22,7 +22,7 @@ const base = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({headless:true});
 const id = '22222222-2222-4222-8222-222222222222';
 
-async function scenario(name, {arm, guestSample, run}) {
+async function scenario(name, {arm, guestSample, rejectMessage, run}) {
   const context = await browser.newContext({viewport:{width:390, height:900}, serviceWorkers:'block'});
   if (arm) await context.addInitScript(value => localStorage.setItem('campus-guest-sample-arm-v1', value), arm);
   const page = await context.newPage(), errors = [], messages = [];
@@ -36,8 +36,10 @@ async function scenario(name, {arm, guestSample, run}) {
     if (path === '/api/app/session') return json({authenticated:false, plan:'anon', aiReady:true, universityConfirmed:false, ...(guestSample ? {guestSample} : {}), usage:{remaining:5, limit:5, period:'trial'}});
     if (path === '/api/app/profes/conversations') return json({conversations:[]});
     if (path === '/api/app/profes/conversation') return json({messages:[], hasMore:false});
+    if (path === '/api/app/auth/start') return route.fulfill({contentType:'text/html', body:'<!doctype html><title>login</title>'});
     if (path === '/api/app/profes/message') {
       messages.push(JSON.parse(route.request().postData() ?? '{}'));
+      if (rejectMessage) return route.fulfill({status:401, contentType:'application/json', body:JSON.stringify({code:'LOGIN_REQUIRED_GUEST_LIMIT', error:'Crea tu cuenta Campus.'})});
       return route.fulfill({contentType:'application/x-ndjson', body:JSON.stringify({type:'answer', answer:'Respuesta pública de muestra.', conversationId:id, usage:{remaining:0, limit:1, period:'sample'}})+'\n'});
     }
     return json({});
@@ -79,6 +81,23 @@ try {
       await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).waitFor();
       assert.equal(await page.getByRole('group', {name:'Ideas para empezar'}).count(), 0);
       assert.equal(await page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'}).count(), 0);
+    },
+  });
+  await scenario('a sample rejected with 401 (spent in another tab) keeps the question for the login handoff', {
+    arm:'sample', guestSample:{available:true, remaining:1, limit:1}, rejectMessage:true,
+    run: async ({page, messages}) => {
+      const question = '¿Qué dicen los estudiantes de Luis Vives?';
+      await page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'}).fill(question);
+      await page.getByRole('button', {name:'Enviar pregunta', exact:true}).click();
+      await page.waitForURL(url => new URL(url).pathname === '/api/app/auth/start');
+      assert.equal(messages.length, 1);
+      const stored = await page.evaluate(() => ({
+        drafts: JSON.parse(sessionStorage.getItem('campus-conversation-drafts-v1') ?? 'null'),
+        handoff: JSON.parse(sessionStorage.getItem('campus-guest-draft-handoff-v1') ?? 'null'),
+      }));
+      assert.equal(stored.drafts?.owner, 'guest');
+      assert.deepEqual(stored.drafts?.entries, [['new', question]], 'the rejected question is persisted');
+      assert.ok(stored.handoff?.record, 'the handoff marker points at that draft');
     },
   });
   await scenario('gate arm keeps the account wall even when the backend offers the sample', {

@@ -9,7 +9,7 @@ import GuestUniversity from './GuestUniversity';
 import { readGuestUniversity, rememberGuestUniversity, refreshGuestUniversity, guestUniversitySupported, universityLabel, universitySelectionPayload, type UniversityChoice } from '../scripts/guest-university';
 import {assistantAccountView} from "../scripts/assistant-account";
 import {assistantLoginHref} from "../scripts/assistant-handoff";
-import { createConversationDrafts, restoreConversationDrafts, markGuestDraftHandoff } from "../scripts/conversation-drafts";
+import { createConversationDrafts, restoreConversationDrafts, markGuestDraftHandoff, persistRejectedGuestDraft } from "../scripts/conversation-drafts";
 import { createPortal } from "react-dom";
 import MiupcReconnect from "./MiupcReconnect";
 import ChatMarkdown from "./ChatMarkdown";
@@ -617,6 +617,8 @@ function profesTransport(
       if(traceId)track('campus_agent_response_received',{trace_id:traceId,duration_ms:Math.round(performance.now()-started)});
       const data = response.ok ? null : await response.json().catch(() => ({}));
       if (response.status === 401) {
+        // sendQuestion ya vació el campo y su borrador: se guarda la pregunta rechazada antes de pasar por el login.
+        persistRejectedGuestDraft(activeConvId || null, question);
         markGuestDraftHandoff(); window.location.assign(getLoginUrl());
         throw new Error("Inicia sesión para continuar.");
       }
