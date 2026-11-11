@@ -33,6 +33,22 @@ material proporcionado; cargar las reglas no significa haber leído el trabajo.
 En revisiones UPC, la guía institucional usa `s.f.` sin espacios y
 `s.f.-a`/`s.f.-b` para distinguir obras sin fecha del mismo autor.
 
+Una consulta con solo `topic` ofrece una vista general y el catálogo, no todas
+las reglas detalladas. Sigue `detailLookup.examples` y usa el selector exacto
+del tema, uno por llamada. Por ejemplo:
+
+```json
+{"topic":"table-figure","tableFigureRuleId":"figure-notes"}
+```
+
+El detalle está en `tableFigureRule.rules`; también puedes seleccionar
+`figure-components` o `reprinted-adapted-table-figure`. Estos IDs no son
+`reviewSectionId` ni `caseId`. Para todas las consideraciones de figuras de la
+guía UPC, usa `{"topic":"review","reviewSectionId":"figures"}` y lee
+`reviewSkill.considerations.items` y las secciones relacionadas. Son dos vías
+distintas: reglas del manual redactadas por Campus y criterios de la guía UPC;
+ninguna devuelve una transcripción literal completa del manual.
+
 No hagas el trabajo intelectual del estudiante ni fabriques citas textuales, páginas, DOI, autores o fechas. Puedes explicar, corregir forma y proponer una plantilla con marcadores claros.
 
 ## Uso con Blackboard
