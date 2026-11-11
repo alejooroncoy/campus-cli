@@ -5,6 +5,7 @@ export const events = new Set([
   'campus_agent_examples_viewed','campus_agent_example_started',
   'campus_agent_followup_saved','campus_agent_support_opened',
   'campus_guest_signup_invite_viewed','campus_guest_signup_started','campus_guest_signup_dismissed',
+  'campus_guest_sample_assigned','campus_guest_sample_served','campus_guest_sample_cta_clicked',
   'campus_materials_handoff_ready','campus_materials_handoff_copied',
   'campus_plus_offer_viewed','campus_plus_step_viewed','campus_plus_checkout_started','campus_plus_quote_expired','campus_feedback_submitted',
   'campus_agent_response_received','campus_agent_activity','campus_agent_interrupted',
@@ -21,6 +22,7 @@ export const events = new Set([
 ]);
 const categories: Record<string, readonly string[]> = {
   example:['professor_reviews','course_professors','grade_workbook','study_plan','academic_work'],
+  guest_sample_arm:['sample','gate'],
   selection_method:['quick','search','saved'],
   failure_reason:['wrong_answer','incorrect_information','not_found','technical_problem','other'],
   analytics_audience:['customer','internal','test','unknown'],

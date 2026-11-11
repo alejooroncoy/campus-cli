@@ -20,6 +20,8 @@ export type CampusSession = {
   profesAvailable?: boolean;
   features?: { schedulePlanning: boolean };
   usage?: { remaining: number; limit: number; period: string };
+  // Pregunta de muestra para invitados. Solo la ofrece el backend cuando está encendida y con cupo.
+  guestSample?: { available: boolean; remaining: number; limit: number };
   banner?: {
     connected: boolean;
     fullName?: string | null;
