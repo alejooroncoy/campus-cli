@@ -503,10 +503,65 @@ function DeliveryCard({
   );
 }
 
+/** Lo que cambió en este aviso, con su valor anterior cuando lo hay. Va primero: es lo que
+ * la persona vino a ver al tocar el correo. */
+function ChangesCard({ events }: { events: any[] }) {
+  if (!events.length) return null;
+  return (
+    <section className="campu-card campu-changes">
+      <h2>Cambios de este aviso</h2>
+      {events.map((e) => (
+        <div key={e.id}>
+          <FactView fact={e.fact} removed={e.meaning === "removed"} />
+          {e.meaning === "grade_published" && (
+            <p>Antes no tenía nota registrada.</p>
+          )}
+          {typeof e.before?.weight === "number" &&
+            e.before.weight !== e.fact.weight && (
+              <p>Peso anterior registrado: {e.before.weight}%</p>
+            )}
+          {typeof e.before?.score === "number" && (
+            <p>
+              Nota anterior registrada: {e.before.score} /{" "}
+              {e.before.maxScore ?? "máximo no especificado"}
+            </p>
+          )}
+          {e.before?.dueAt && e.before.dueAt !== e.fact.dueAt && (
+            <p>Vencimiento anterior registrado: {timestamp(e.before.dueAt)}</p>
+          )}
+        </div>
+      ))}
+    </section>
+  );
+}
+/** El cambio en una frase, sin jerga: qué cambió y dónde. */
+function changeSentence(events: any[]) {
+  if (events.length !== 1) return `Encontré ${events.length} cambios en tus cursos.`;
+  const f = events[0].fact;
+  const what =
+    events[0].meaning === "removed"
+      ? "Ya no aparece"
+      : events[0].meaning === "grade_published"
+        ? "Publicaron una nota de"
+        : f.kind === "feedback"
+          ? "Cambió la retroalimentación de"
+          : f.kind === "grade"
+            ? "Cambió la nota de"
+            : f.kind === "assignment"
+              ? "Cambió la tarea"
+              : f.kind === "announcement"
+                ? "Hay un anuncio nuevo:"
+                : f.kind === "procedure"
+                  ? "Cambió el trámite"
+                  : "Cambió";
+  return `${what} ${f.title || "algo"} en ${f.course}.`;
+}
+
 /** Lo primero que se ve: una frase, lo próximo y lo nuevo. Todo lo demás está en
  * "Ajustes y detalle". Pocas palabras, una cosa por línea. */
 function Home({
   context,
+  events,
   notices,
   emailOn,
   checkedAt,
@@ -515,6 +570,7 @@ function Home({
   onMore,
 }: {
   context: Context | null;
+  events: any[];
   notices: Notice[];
   emailOn: boolean;
   checkedAt?: string;
@@ -564,10 +620,11 @@ function Home({
           aria-hidden="true"
         />
         <div>
-          <h1>{u ? sentence(pending, u) : "Reviso tus cursos por ti."}</h1>
+          <h1>{events.length ? changeSentence(events) : u ? sentence(pending, u) : "Reviso tus cursos por ti."}</h1>
           <p>Última revisión: {timestamp(checkedAt)}</p>
         </div>
       </div>
+      <ChangesCard events={events} />
       {u && (
         <div className="campu-week">
           <h2>Esta semana</h2>
@@ -832,7 +889,6 @@ export default function CampuUpdates() {
     status?.available &&
       prefs.enabled &&
       ["active", "partial"].includes(status.status) &&
-      !events.length &&
       (!onNotice || opened),
   );
   const showDetail = !simple || more;
@@ -911,6 +967,7 @@ export default function CampuUpdates() {
               {simple && (
                 <Home
                   context={context}
+                  events={events}
                   notices={notices}
                   emailOn={prefs.email}
                   checkedAt={status.lastSuccessAt}
@@ -1222,38 +1279,7 @@ export default function CampuUpdates() {
                   </button>
                 </section>
               </div>
-              {!!events.length && (
-                <section className="campu-card">
-                  <h2>Cambios de este aviso</h2>
-                  {events.map((e) => (
-                    <div key={e.id}>
-                      <FactView
-                        fact={e.fact}
-                        removed={e.meaning === "removed"}
-                      />
-                      {e.meaning === "grade_published" && (
-                        <p>Antes no tenía nota registrada.</p>
-                      )}
-                      {typeof e.before?.weight === "number" &&
-                        e.before.weight !== e.fact.weight && (
-                          <p>Peso anterior registrado: {e.before.weight}%</p>
-                        )}
-                      {typeof e.before?.score === "number" && (
-                        <p>
-                          Nota anterior registrada: {e.before.score} /{" "}
-                          {e.before.maxScore ?? "máximo no especificado"}
-                        </p>
-                      )}
-                      {e.before?.dueAt && e.before.dueAt !== e.fact.dueAt && (
-                        <p>
-                          Vencimiento anterior registrado:{" "}
-                          {timestamp(e.before.dueAt)}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </section>
-              )}
+              {!simple && <ChangesCard events={events} />}
               {context?.upcoming && (
                 <UpcomingView upcoming={context.upcoming} />
               )}
