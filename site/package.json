@@ -29,6 +29,7 @@
     "test:first-question": "node scripts/first-question-e2e.mjs",
     "test:account-required": "node scripts/account-required-e2e.mjs",
     "test:guest-sample": "node scripts/guest-sample-e2e.mjs",
+    "test:guest-sample:live": "node scripts/guest-sample-live-e2e.mjs",
     "test:guest-signup": "node scripts/guest-signup-e2e.mjs",
     "test:product-reviews": "node --test scripts/product-reviews.test.mjs",
     "test:ucal-waitlist": "node --test scripts/ucal-waitlist.test.mjs"
