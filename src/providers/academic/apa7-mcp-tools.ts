@@ -21,6 +21,7 @@ import { mechanicsRuleId, mechanicsRules, getMechanicsRule, type MechanicsRuleId
 import { publicationRuleId, publicationRules, getPublicationRule, type PublicationRuleId } from './apa7-publication-rules.js';
 import { principlesEthicsRuleId, principlesEthicsRules, getPrinciplesEthicsRule, type PrinciplesEthicsRuleId } from './apa7-principles-ethics-rules.js';
 import { loadApa7ReviewSkill } from './apa7-review-skill.js';
+import { addApa7DetailDiscovery, APA7_GUIDANCE_DESCRIPTION, APA7_TABLE_FIGURE_SELECTOR_DESCRIPTION } from './apa7-guidance-discovery.js';
 
 const topic = z.enum(['principles-ethics', 'citation', 'reference', 'format', 'reporting', 'writing-style', 'bias-free-language', 'mechanics', 'table-figure', 'legal', 'publication', 'review', 'course-requirements']);
 const sourceType = z.enum([
@@ -426,8 +427,8 @@ export function registerAcademicTools(
   options: { authorize: () => boolean | Promise<boolean> },
 ) {
   server.registerTool('campus_apa7_guidance', {
-    description: 'Get Spanish APA 7 guidance and templates. For reviewing or correcting a UPC paper, use topic=review: it loads the apa7-review-campus skill with official Biblioteca UPC criteria, source URLs and verification dates for the client agent to apply to the supplied paper. Does not require Blackboard login and never invents metadata.',
-    inputSchema: {
+    description: APA7_GUIDANCE_DESCRIPTION,
+    inputSchema: z.strictObject({
       topic: topic.describe('The APA 7 help needed; review loads a source-grounded review skill for the client agent, not an automatic verdict on a document'),
       reviewSectionId: z.string().min(1).max(80).optional().describe('With topic=review only: select a UPC section id from reviewSkill.catalog to retrieve all its schemas, considerations, exceptions and conditional safeguards, including notes without examples, plus detailed source evidence'),
       sourceType: sourceType.optional().describe('Source type for a reference template; citation requests specialize personal communications and otherwise use caseId or citationRuleId'),
@@ -439,12 +440,12 @@ export function registerAcademicTools(
       writingStyleRuleId: writingStyleRuleId.optional().describe('Verified Spanish-language APA 7 writing-style and grammar rule from chapter 4'),
       biasFreeLanguageRuleId: biasFreeLanguageRuleId.optional().describe('Verified APA 7 bias-free language rule from chapter 5, with citation and reference treatment'),
       mechanicsRuleId: mechanicsRuleId.optional().describe('Verified Spanish-language APA 7 mechanics rule from chapter 6'),
-      tableFigureRuleId: tableFigureRuleId.optional().describe('Verified APA 7 table/figure rule from chapter 7, including citation, reference and permission treatment'),
+      tableFigureRuleId: tableFigureRuleId.optional().describe(APA7_TABLE_FIGURE_SELECTOR_DESCRIPTION),
       legalRuleId: legalRuleId.optional().describe('Verified APA 7 legal-reference rule from chapter 11; jurisdiction-specific and never transferable by analogy'),
       peruLegalCaseId: peruLegalCaseId.optional().describe('Peruvian legal-source profile with citation, reference, required metadata and official verification sources'),
       publicationRuleId: publicationRuleId.optional().describe('Verified APA 7 publication, copyright, permission and post-publication rule from chapter 12'),
       principlesEthicsRuleId: principlesEthicsRuleId.optional().describe('Verified APA 7 writing, publication-ethics and professional rule from chapter 1'),
-    },
+    }),
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   }, async ({ topic, reviewSectionId, sourceType, caseId, citationRuleId, referenceRuleId, formatRuleId, reportingRuleId, writingStyleRuleId, biasFreeLanguageRuleId, mechanicsRuleId, tableFigureRuleId, legalRuleId, peruLegalCaseId, publicationRuleId, principlesEthicsRuleId }) => {
     if (!options?.authorize) {
@@ -458,11 +459,11 @@ export function registerAcademicTools(
     const hasSelectedRule = Object.values(selectors).some(value => value !== undefined);
     const reviewSkill = topic === 'review' ? await loadApa7ReviewSkill(reviewSectionId) : undefined;
     return {
-      content: [{ type: 'text', text: JSON.stringify({
+      content: [{ type: 'text', text: JSON.stringify(addApa7DetailDiscovery(topic, {
       ...guidanceFor(topic, sourceType, caseId, citationRuleId, referenceRuleId, formatRuleId, reportingRuleId, writingStyleRuleId, biasFreeLanguageRuleId, mechanicsRuleId, tableFigureRuleId, legalRuleId, peruLegalCaseId, publicationRuleId, principlesEthicsRuleId),
       ...(reviewSkill ? { sourceGuide: reviewSkill.rulebook.entryUrl, reviewSkill } : {}),
       ...(hasSelectedRule ? {} : availableSelectorsForTopic(topic)),
-      }) }],
+      })) }],
     };
   });
 }
