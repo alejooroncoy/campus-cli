@@ -74,6 +74,11 @@ try {
       assert.equal(await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).count(), 0, 'The wall does not replace the answer');
       assert.equal(await page.getByText('Respuesta pública de muestra.', {exact:true}).count(), 1);
       assert.equal(await cta.count(), 1);
+      // Starting a new consultation after the sample must not leave a chat without input or prompt.
+      await page.evaluate(() => document.querySelector('[aria-label="Nueva consulta"]')?.click());
+      await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).waitFor();
+      assert.equal(await page.getByRole('group', {name:'Ideas para empezar'}).count(), 0);
+      assert.equal(await page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'}).count(), 0);
     },
   });
   await scenario('gate arm keeps the account wall even when the backend offers the sample', {

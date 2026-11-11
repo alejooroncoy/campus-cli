@@ -1447,7 +1447,9 @@ export default function ProfesChat() {
     }
   }, [showStarters]);
 
-  if (session?.authenticated === false && !sampleMode) return <div className="app-profes-layout">
+  // Con la muestra gastada y sin conversación visible (p. ej. tras "Nueva consulta") vuelve el muro:
+  // ya no hay composer y el CTA solo acompaña a una respuesta.
+  if (session?.authenticated === false && (!sampleMode || (sampleUsed && messages.length === 0 && !busy))) return <div className="app-profes-layout">
     <section className="app-profile-entry" aria-labelledby="assistant-login-title">
       <div className="app-profile-entry__content">
         <p className="app-profile-entry__eyebrow">TU CUENTA GRATIS · CAMPUS FREE</p>
@@ -1685,7 +1687,7 @@ export default function ProfesChat() {
       </dialog>
 
       {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={`feedback:${feedbackTrace}`} traceId={feedbackTrace}/> : null}
-        {sampleUsed && !busy && messages.at(-1)?.role === 'assistant' ? (
+        {sampleUsed && !busy && messages.length > 0 ? (
           <section className="app-guest-signup" aria-labelledby="guest-sample-cta-title" data-guest-sample-cta>
             <h2 id="guest-sample-cta-title">Esa fue tu pregunta de muestra</h2>
             <p>Crea tu cuenta Campus Free para seguir preguntando, guardar este chat y conectar tu Blackboard. Incluye 25 consultas de bienvenida.</p>
