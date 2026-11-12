@@ -71,8 +71,8 @@ export default function GuestUniversity({ selected, authenticated = false, chang
       <p className="app-gu2__current">Ahora: <strong>{selected.id === null ? selected.name : (chatUniversityCode(selected) ? `${chatUniversityCode(selected)} — ${selected.name}` : selected.name)}</strong></p>
     </> : <>
       <div className="app-gu2__hello">
-        <img src="/assets/campu-avatar-60.png" srcSet="/assets/campu-avatar-90.png 1.5x" width="48" height="48" alt="Campu" />
-        <p className="app-guest-university__eyebrow">{entryPlan === 'plus' ? 'Hola, soy Campu. Vamos con Campus Plus.' : 'Hola, soy Campu.'}</p>
+        <img src="/assets/campu-avatar-60.png" srcSet="/assets/campu-avatar-90.png 1.5x" width="48" height="48" alt="Campito" />
+        <p className="app-guest-university__eyebrow">{entryPlan === 'plus' ? 'Hola, soy Campito. Vamos con Campus Plus.' : 'Hola, soy Campito.'}</p>
       </div>
       <h1 id="guest-university-title">¿Dónde estudias?</h1>
     </>}

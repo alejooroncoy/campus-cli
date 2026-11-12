@@ -16,8 +16,8 @@ import Base from "../../layouts/Base.astro";
  */
 
 const url = "https://campuscli.com/privacidad/";
-const updated = "2026-11-10";
-const updatedLabel = "10 de noviembre de 2026";
+const updated = "2026-11-12";
+const updatedLabel = "12 de noviembre de 2026";
 
 const schemas = [
   {
@@ -184,6 +184,18 @@ const schemas = [
     <p>Al aprobarse, cualquier visitante puede leer la ficha y descargar los archivos. Puedes retirar un aporte desde Mis aportes; deja de servirse públicamente. Las copias ya descargadas por terceros no se pueden recuperar. Los archivos permanecen privados en tu cuenta hasta su eliminación; puedes solicitarla en <a href="mailto:info@campuscli.com">info@campuscli.com</a>.</p>
     <p>Registramos decisiones de moderación y consultas concedidas para evitar recompensas duplicadas. Conservamos huellas criptográficas de los archivos premiados después de retirarlos o eliminar la cuenta para impedir premios repetidos; estas huellas no contienen el archivo ni permiten reconstruirlo. No se publican tu correo, identificadores de cuenta ni notas internas de revisión.</p>
 
+    <h3 id="campu-en-clase">Campito en clase (extensión de Chrome)</h3>
+    <p>Campito en clase es una extensión de Chrome que transcribe tus clases virtuales de UClass mientras las escuchas, para que luego puedas consultar apuntes y hacerle preguntas sobre la clase. Solo funciona cuando tú la activas en la pestaña de UClass y con tu cuenta Campus conectada.</p>
+    <ul>
+      <li><strong>Qué captura:</strong> el audio de la pestaña de UClass donde la activas y, solo si lo autorizas, el de tu micrófono; los mensajes del chat de la clase con el nombre de quien los escribió; los nombres de quienes hablan según UClass; el nombre de la sala de grupo; y el curso y el horario de la clase. No captura otras pestañas ni nada fuera de UClass.</li>
+      <li><strong>Para qué:</strong> convertir el audio en texto, identificar quién habla, armar notas por bloques de diez minutos y un resumen de la clase, y responder tus preguntas sobre lo que se dijo.</li>
+      <li><strong>Audio:</strong> se transcribe en fragmentos de pocos segundos y se descarta después de transcribirlo. No conservamos grabaciones de audio.</li>
+      <li><strong>Texto:</strong> la transcripción, el chat, las notas y el resumen se guardan cifrados con AES-256-GCM y asociados a tu cuenta, para que puedas volver a consultarlos. Solo tú puedes verlos.</li>
+      <li><strong>Compañeros de la misma sala:</strong> es opcional y está desactivado salvo que lo actives. Si lo activas, cuando te pierdes parte de una clase Campus puede completarla con lo que captó un compañero que también lo activó y estaba en la misma sala. Se comparte solo el texto de lo que se oyó en la sala durante ese tramo: el audio de UClass y lo que dijiste por tu micrófono mientras lo tenías abierto en la clase, que los demás ya escuchaban. No se comparte con quien no estaba en la misma sala y no se revela quién lo compartió.</li>
+      <li><strong>Conexión:</strong> la extensión se conecta a tu cuenta Campus desde una ventana de campuscli.com. No ve tu contraseña ni tu sesión: recibe un permiso propio para ese dispositivo, que puedes revocar desconectándolo.</li>
+      <li><strong>Conservación:</strong> el texto de cada clase permanece en tu cuenta hasta que lo borras. «Eliminar esta clase» borra su texto, su chat, sus notas y su resumen. La eliminación de la cuenta borra todas sus clases.</li>
+    </ul>
+
     <h2 id="que-no">3. Datos que no guardamos mediante la conexión de Blackboard</h2>
     <ul>
       <li>
@@ -230,6 +242,12 @@ const schemas = [
       </li>
       <li>
         <strong>WhatsApp</strong> (Meta) — canal por el que se enviaron a TurnBot los documentos de los pedidos de similitud y de similitud + IA.
+      </li>
+      <li>
+        <strong>Groq</strong> (Estados Unidos) — transcribe a texto los fragmentos de audio de Campito en clase. Recibe solo el audio de cada fragmento.
+      </li>
+      <li>
+        <strong>OpenAI</strong> (Estados Unidos) — en Campito en clase, revisa los fragmentos de audio poco claros y procesa el texto de la clase para generar las notas, el resumen y las respuestas a tus preguntas.
       </li>
       <li>
         <strong>PostHog</strong> (Estados Unidos) — recibe las métricas de uso

@@ -1511,7 +1511,7 @@
 /* Sin universidad elegida el botón no se fija: flotaría sobre «Buscar» y «Escribir su nombre» y taparía los toques. */
 @media(max-width:700px){.app-gu2 .app-guest-university__continue:disabled{position:static;box-shadow:none}}
 
-/* Campu introduces the agent while Campus remains the product and account. */
+/* Campito introduces the agent while Campus remains the product and account. */
 .app-profes-ai__campu-intro { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:20px; }
 .app-profes-ai__campu-intro>img { display:block; width:64px; height:64px; flex:none; object-fit:contain; }
 .app-profes-ai__campu-intro>p { margin:0; text-align:left; line-height:1.5; }
