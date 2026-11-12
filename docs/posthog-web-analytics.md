@@ -119,13 +119,21 @@ externo, entra y comprueba las propiedades del evento de acceso en PostHog.
 
 Además de la cookie de OAuth, el navegador guarda en `localStorage`
 (`campus_entry_first_v1`, 30 días) el primer canal observado: la primera
-visita gana y nunca se sobrescribe. Respeta la baja de analítica: al
-desactivarla se borra, y también al cerrar sesión con olvido de campaña.
+visita gana. Solo una visita `direct` (sin referrer) cede ante un canal real
+posterior, para que un marcador no oculte una campaña. Respeta la baja de
+analítica: se borra al leerla o en la siguiente visita, y también en cada
+`resetAnalytics` (cierre de sesión o cambio de cuenta en un navegador compartido).
 Guarda solo valores del contrato cerrado: `entry_channel` (`mcp`, `campaign`,
 `referral`, `direct`), `entry_source` (dominio del referrer, cliente de IA o
 fuente de campaña admitida), `entry_campaign` (etiqueta o ID admitido) y
 `entry_landing` (familia de ruta, nunca slug ni consulta). No se admiten UTMs
-arbitrarias; solo las campañas ya listadas arriba.
+arbitrarias; solo las campañas ya listadas arriba. El contrato valida la
+fuente según el canal: cliente de IA conocido (`mcp`), `meta` o `email`
+(`campaign`, con ID numérico) o un hostname (solo `referral`).
+
+Atención al comparar: la cookie de OAuth que lee el backend es la entrada de la
+sesión (24 h), mientras que los eventos del navegador llevan la primera entrada
+de 30 días. Los dos modelos pueden diferir para una misma persona.
 
 La cookie `campus_entry` de OAuth incluye ahora `entry_landing`. Estas cuatro
 propiedades se adjuntan en el navegador a `campus_account_access_completed`,

@@ -5,7 +5,7 @@ import { analyticsPage } from './analytics-contract.ts';
 const key = 'campus_entry';
 const ttl = 24 * 60 * 60_000;
 const firstKey = 'campus_entry_first_v1';
-const firstTtl = 30 * 86400_000;
+const firstTtl = 30 * 86_400_000;
 const cookieOptions = 'Path=/api/app/auth/; SameSite=Lax; Secure';
 
 export function rememberEntry(projectKey: string, startingAuth = false): void {
@@ -21,6 +21,8 @@ export function rememberEntry(projectKey: string, startingAuth = false): void {
     const previous = JSON.parse(sessionStorage.getItem(key) ?? 'null');
     if (previous?.expires > now && previous.expires <= now + ttl) {
       document.cookie = `${key}=${previous.value}; Max-Age=${Math.ceil((previous.expires - now) / 1000)}; ${cookieOptions}`;
+      // A tab opened before this feature, or cleared storage, must still record the first entry.
+      try { saveFirstEntry(JSON.parse(decodeURIComponent(previous.value)), now); } catch { /* Optional. */ }
       return;
     }
     const handoff = mcpHandoff(location.href, sessionStorage, now);
@@ -58,7 +60,10 @@ export function clearEntry(): void {
 type Entry = Record<string, string | undefined>;
 function saveFirstEntry(entry: Entry, now: number): void {
   try {
-    if (readFirst(now)) return; // The first observed entry wins and is never overwritten.
+    // The first observed entry wins. Only a bare "direct" visit (bookmark, app
+    // without referrer) yields to a later channel, so it cannot hide a campaign.
+    const saved = readFirst(now);
+    if (saved && !(saved.entry_channel === 'direct' && entry.entry_channel !== 'direct')) return;
     localStorage.setItem(firstKey, JSON.stringify({ entry, expires: now + firstTtl }));
   } catch { /* Optional. */ }
 }
@@ -70,8 +75,15 @@ function readFirst(now: number): Entry | undefined {
 }
 // First observed channel for conversion events. Values pass the analytics
 // contract before leaving the browser; none is a URL, query or personal data.
-export function firstEntry(): Entry {
+export function firstEntry(projectKey: string): Entry {
+  if (optedOut(projectKey)) { clearFirstEntry(); return {}; }
   return readFirst(Date.now()) ?? {};
+}
+function optedOut(projectKey: string): boolean {
+  try {
+    return JSON.parse(localStorage.getItem(`ph_campus_analytics_v2_${projectKey}`) ?? 'null')?.opted_out === true
+      || localStorage.getItem(`__ph_opt_in_out_${projectKey}`) === '0';
+  } catch { return false; }
 }
 export function clearFirstEntry(): void {
   try { localStorage.removeItem(firstKey); } catch { /* Optional. */ }

@@ -12,9 +12,17 @@ assert.deepEqual(deployConfig.rewrites.slice(0, 3), [
 assert.doesNotMatch(csp.split(';').find(rule => rule.trim().startsWith('script-src')), /posthog|unsafe-eval|unsafe-inline/);
 const { outputFiles } = await build({ entryPoints: ['src/scripts/analytics-contract.ts'], bundle: true, format: 'esm', write: false });
 const { safeAnalyticsProperties, analyticsPage } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
-assert.deepEqual(safeAnalyticsProperties({ entry_channel:'referral', entry_source:'www.google.com', entry_landing:'home', entry_campaign:'grupo_de_la_u' }),
-  { entry_channel:'referral', entry_source:'www.google.com', entry_landing:'home', entry_campaign:'grupo_de_la_u' });
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'referral', entry_source:'www.google.com', entry_landing:'home' }),
+  { entry_channel:'referral', entry_source:'www.google.com', entry_landing:'home' });
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'campaign', entry_source:'meta', entry_campaign:'123456789' }),
+  { entry_channel:'campaign', entry_source:'meta', entry_campaign:'123456789' });
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'mcp', entry_source:'chatgpt' }), { entry_channel:'mcp', entry_source:'chatgpt' });
+// Closed contract: free text never passes, whatever the channel.
 assert.deepEqual(safeAnalyticsProperties({ entry_channel:'organic', entry_source:'https://x.test/?q=private', entry_landing:'/profes/upc/ana/', entry_campaign:'Private Name' }), {});
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'campaign', entry_source:'juan_perez_gmail_com', entry_campaign:'juan_perez_gmail_com' }), { entry_channel:'campaign' });
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'mcp', entry_source:'alice.smith', entry_campaign:'123456789' }), { entry_channel:'mcp' });
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'direct', entry_source:'www.google.com' }), { entry_channel:'direct' });
+assert.deepEqual(safeAnalyticsProperties({ entry_source:'meta' }), {});
 const webBundle = await build({ entryPoints: ['src/scripts/web-analytics.ts'], bundle: true, format: 'esm', write: false });
 const { metaCampaign, engageCampaign, safeWebProperties, webPageProperties, ScrollDepth } = await import(`data:text/javascript;base64,${Buffer.from(webBundle.outputFiles[0].text).toString('base64')}`);
 assert.deepEqual(safeWebProperties({

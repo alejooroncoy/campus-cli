@@ -146,7 +146,7 @@ export function track(event: string, properties: Record<string, unknown> = {}): 
     selected_plan: selectedPlan(),
     viewport: innerWidth < 761 ? 'mobile' : innerWidth < 1200 ? 'tablet' : 'desktop',
     environment: local ? 'development' : 'production',
-    ...(entryEvents.has(event) && !local ? firstEntry() : {}), ...properties,
+    ...(entryEvents.has(event) && !local && key ? firstEntry(key) : {}), ...properties,
     analytics_audience:audience,is_internal:audience==='internal',
     ...(isTest!==undefined||properties.is_test===true?{is_test:isTest===true||properties.is_test===true}:{}),
   }) };
@@ -203,8 +203,10 @@ export function analyticsSession(session: CampusSession): void {
   track(firstReady ? 'campus_session_ready' : 'campus_usage_updated', { authenticated: session.authenticated, remaining: session.usage?.remaining, limit: session.usage?.limit });
 }
 export function resetAnalytics(forgetCampaign = false): void {
+  // The next person on a shared browser must not inherit this account's entry channel.
+  if (browser) clearFirstEntry();
   if (browser && forgetCampaign) clearCampaign();
-  if (browser && forgetCampaign) { clearMarketingPreference(); clearFirstEntry(); }
+  if (browser && forgetCampaign) clearMarketingPreference();
   if (browser) { try { clearMcpHandoff(sessionStorage); } catch { /* Optional. */ } }
   identity = undefined; currentPlan = 'guest'; isTest = false;audience='customer';
   readyContext = ''; lastSessionState = '';
