@@ -9,7 +9,7 @@ import GuestUniversity from './GuestUniversity';
 import { readGuestUniversity, rememberGuestUniversity, refreshGuestUniversity, guestUniversitySupported, universityLabel, universitySelectionPayload, type UniversityChoice } from '../scripts/guest-university';
 import {assistantAccountView} from "../scripts/assistant-account";
 import {assistantLoginHref} from "../scripts/assistant-handoff";
-import { createConversationDrafts, restoreConversationDrafts, markGuestDraftHandoff } from "../scripts/conversation-drafts";
+import { createConversationDrafts, restoreConversationDrafts, markGuestDraftHandoff, persistRejectedGuestDraft } from "../scripts/conversation-drafts";
 import { createPortal } from "react-dom";
 import MiupcReconnect from "./MiupcReconnect";
 import ChatMarkdown from "./ChatMarkdown";
@@ -19,6 +19,7 @@ import { useChat } from "@ai-sdk/react";
 import type { ChatTransport, UIMessage, UIMessageChunk } from "ai";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent, type ReactElement } from "react";
 import { getCampusSession, getCampusProfilePreview, type CampusSession } from "../scripts/campus-session";
+import { assignGuestSampleArm, guestSampleOffered } from "../scripts/guest-sample";
 
 import { createConversationCache } from "../scripts/conversation-cache";
 
@@ -616,6 +617,8 @@ function profesTransport(
       if(traceId)track('campus_agent_response_received',{trace_id:traceId,duration_ms:Math.round(performance.now()-started)});
       const data = response.ok ? null : await response.json().catch(() => ({}));
       if (response.status === 401) {
+        // sendQuestion ya vació el campo y su borrador: se guarda la pregunta rechazada antes de pasar por el login.
+        persistRejectedGuestDraft(activeConvId || null, question);
         markGuestDraftHandoff(); window.location.assign(getLoginUrl());
         throw new Error("Inicia sesión para continuar.");
       }
@@ -693,12 +696,16 @@ export default function ProfesChat() {
   const [access, setAccess] = useState<Access>("checking");
   const [session, setSession] = useState<CampusSession | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
+  // Pregunta de muestra para invitados: solo si el backend la ofrece y el brazo de la prueba es "sample".
+  const [sampleMode, setSampleMode] = useState(false);
+  const sampleModeRef = useRef(false);
+  const [sampleUsed, setSampleUsed] = useState(false);
   const [guestUniversity, setGuestUniversity] = useState(readGuestUniversity);
   const [changingUniversity, setChangingUniversity] = useState(false);
   // "Cambiar universidad" en Mi perfil llega aquí con ?universidad=cambiar: misma pantalla que el alta,
   // y al guardar se vuelve a Mi perfil.
   const [editingFromProfile] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("universidad") === "cambiar");
-  const guestNeedsUniversity = session?.authenticated === false && (changingUniversity || !guestUniversity)
+  const guestNeedsUniversity = session?.authenticated === false && !sampleMode && (changingUniversity || !guestUniversity)
     || session?.authenticated === true && (!session.universityConfirmed || editingFromProfile || changingUniversity);
   const hasCatalogCoverage = session?.authenticated ? session.profesAvailable === true : guestUniversitySupported(guestUniversity);
   // La cobertura la decide el backend: se actualiza la elección guardada del invitado al abrir el chat.
@@ -779,8 +786,15 @@ export default function ProfesChat() {
   const preserveScrollAfterPrepend = useRef<{ height: number; top: number } | null>(null);
   const currentConversationIdRef = useRef<string | null>(null);
   currentConversationIdRef.current = currentConversationId;
-  const usageHandler = useRef(setUsage);
-  usageHandler.current = setUsage;
+  const usageHandler = useRef<(value: CampusSession["usage"]) => void>(setUsage);
+  usageHandler.current = (value: CampusSession["usage"]) => {
+    setUsage(value);
+    // El backend marca la muestra como gastada con period "sample" y sin cupo.
+    if (value?.period === "sample" && value.remaining <= 0) {
+      setSampleUsed(true);
+      track('campus_guest_sample_served');
+    }
+  };
   const activityHandler = useRef((value: string) => setActivitySteps(steps => appendActivity(steps, value)));
 
   useEffect(() => {
@@ -887,9 +901,16 @@ export default function ProfesChat() {
         setAuthenticated(session.authenticated);
 
         if (!session.authenticated) {
-          setAccess("login");
-          setAccessNote("");
+          // Una vez ofrecida, la muestra se mantiene en esta página: al gastarla (o mientras se responde)
+          // el backend ya no la ofrece y un refresco de sesión no debe cambiar el chat por el muro.
+          const offered = sampleModeRef.current || guestSampleOffered(session, assignGuestSampleArm(session));
+          sampleModeRef.current = offered;
+          setSampleMode(offered);
+          setAccess(offered ? (session.aiReady ? "ready" : "unavailable") : "login");
+          setAccessNote(offered && !session.aiReady ? "Campus no está disponible por ahora." : "");
         } else {
+          sampleModeRef.current = false;
+          setSampleMode(false);
           setAccess(!session.universityConfirmed ? "setup" : !session.accessUnavailable && session.aiReady ? "ready" : "unavailable");
           setAccessNote(session.accessUnavailable ? "No pudimos comprobar tu saldo. Inténtalo de nuevo." : !session.aiReady ? "Campus no está disponible por ahora." : "");
         }
@@ -1063,7 +1084,7 @@ export default function ProfesChat() {
 
   async function sendQuestion(raw: string, example?: (typeof suggestions[number] | typeof studySuggestions[number])["id"]) {
     const question = raw.trim();
-    if (session?.authenticated === false) { markGuestDraftHandoff(); window.location.assign(getLoginUrl()); return; }
+    if (session?.authenticated === false && (!sampleMode || sampleUsed)) { markGuestDraftHandoff(); window.location.assign(getLoginUrl()); return; }
     if (!question || sendingQuestion.current || busy || loadingConversation || guestNeedsUniversity || access === "checking" || access === "unavailable") return;
     if (wantsToReview(question)) {
       openReview();
@@ -1428,7 +1449,9 @@ export default function ProfesChat() {
     }
   }, [showStarters]);
 
-  if (session?.authenticated === false) return <div className="app-profes-layout">
+  // Con la muestra gastada y sin conversación visible (p. ej. tras "Nueva consulta") vuelve el muro:
+  // ya no hay composer y el CTA solo acompaña a una respuesta.
+  if (session?.authenticated === false && (!sampleMode || (sampleUsed && messages.length === 0 && !busy))) return <div className="app-profes-layout">
     <section className="app-profile-entry" aria-labelledby="assistant-login-title">
       <div className="app-profile-entry__content">
         <p className="app-profile-entry__eyebrow">TU CUENTA GRATIS · CAMPUS FREE</p>
@@ -1666,7 +1689,16 @@ export default function ProfesChat() {
       </dialog>
 
       {!busy&&feedbackTrace&&messages.at(-1)?.role==='assistant' ? <AgentFeedback key={`feedback:${feedbackTrace}`} traceId={feedbackTrace}/> : null}
-        <div className="app-profes-ai__composer-dock">
+        {sampleUsed && !busy && messages.length > 0 ? (
+          <section className="app-guest-signup" aria-labelledby="guest-sample-cta-title" data-guest-sample-cta>
+            <h2 id="guest-sample-cta-title">Esa fue tu pregunta de muestra</h2>
+            <p>Crea tu cuenta Campus Free para seguir preguntando, guardar este chat y conectar tu Blackboard. Incluye 25 consultas de bienvenida.</p>
+            <div className="app-guest-signup__actions">
+              <a className="app-button" href={getLoginUrl()} onClick={() => { markGuestDraftHandoff(); track('campus_guest_sample_cta_clicked'); }}>Crear cuenta y seguir</a>
+            </div>
+          </section>
+        ) : null}
+        <div className="app-profes-ai__composer-dock" style={sampleUsed ? { display: 'none' } : undefined}>
           <form className="app-profes-ai__composer" onSubmit={submit}>
             <label className="app-sr-only" htmlFor="profes-message">Escribe tu pregunta a {CHARACTER_NAME}</label>
             <textarea
@@ -1712,16 +1744,16 @@ export default function ProfesChat() {
       </div> : null}
       {showStarters ? (
         <div className="app-profes-ai__starters">
-          <p>Toca una pregunta para enviarla.</p>
+          <p>{sampleMode ? "Tienes una pregunta de muestra sin cuenta. Elige una sobre profesores o cursos." : "Toca una pregunta para enviarla."}</p>
           <div className="app-profes-ai__suggestions" role="group" aria-label="Ideas para empezar">
-            {(hasCatalogCoverage ? suggestions : studySuggestions).map(item => (
+            {(sampleMode ? suggestions.slice(0, 2) : hasCatalogCoverage ? suggestions : studySuggestions).map(item => (
               <button type="button" onClick={() => { void sendQuestion(item.prompt, item.id); }} key={item.id}>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><use href={`/assets/lucide.svg#${item.icon}`} /></svg>
                 <span>{item.prompt}</span>
               </button>
             ))}
           </div>
-          {hasCatalogCoverage ? <button type="button" className="app-profes-ai__review-start" onClick={openReview}>Dejar una reseña</button> : null}
+          {hasCatalogCoverage && !sampleMode ? <button type="button" className="app-profes-ai__review-start" onClick={openReview}>Dejar una reseña</button> : null}
         </div>
       ) : null}
 

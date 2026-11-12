@@ -36,6 +36,18 @@ export function createConversationDrafts(owner:string|null=null, storage?:DraftS
 }
 
 
+// Keeps a question the server just rejected (401) so the sign-in handoff can carry it.
+// It only writes when this tab holds no drafts or holds guest drafts: an authenticated
+// owner's stored drafts are never replaced.
+export function persistRejectedGuestDraft(id:string|null, text:string, storage?:DraftStorage) {
+  try {
+    storage ??= sessionStorage;
+    const saved=JSON.parse(storage.getItem(CONVERSATION_DRAFTS_KEY) ?? 'null');
+    if(saved && saved.owner!=='guest') return;
+    createConversationDrafts('guest',storage).set(id,text);
+  } catch { /* Optional storage cannot prevent sign-in. */ }
+}
+
 // Transfer only drafts from this tab's explicit guest sign-in, never another
 // authenticated owner's drafts or another tab's account-change notification.
 export function markGuestDraftHandoff(storage?:DraftStorage) {
