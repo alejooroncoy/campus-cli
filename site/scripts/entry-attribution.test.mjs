@@ -30,6 +30,15 @@ assert.deepEqual(mod.firstEntry(KEY), { entry_channel: 'campaign', entry_source:
 visit({ referrer: '' });
 assert.equal(mod.firstEntry(KEY).entry_channel, 'campaign', 'Direct never replaces a real channel');
 
+// Same tab, same sessionStorage: a cached "direct" entry must not mask a campaign reached later.
+localStorage.clear();
+visit({ referrer: '' });
+visit({ url: 'https://campuscli.com/?utm_source=facebook&utm_campaign=123456789', fresh: false });
+assert.equal(mod.firstEntry(KEY).entry_channel, 'campaign', 'Cached direct yields to a campaign in the same tab');
+assert.equal(JSON.parse(decodeURIComponent(JSON.parse(sessionStorage.getItem('campus_entry')).value)).entry_channel, 'campaign', 'The session entry is replaced too');
+visit({ referrer: '', fresh: false });
+assert.equal(mod.firstEntry(KEY).entry_channel, 'campaign', 'A later direct visit in the same tab keeps the campaign');
+
 // A tab opened before the feature (session entry present, local entry missing) still records it.
 localStorage.clear();
 visit({ referrer: 'https://www.reddit.com/r/upc' });

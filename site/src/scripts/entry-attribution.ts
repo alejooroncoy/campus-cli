@@ -19,12 +19,16 @@ export function rememberEntry(projectKey: string, startingAuth = false): void {
     }
     const now = Date.now();
     const previous = JSON.parse(sessionStorage.getItem(key) ?? 'null');
-    if (previous?.expires > now && previous.expires <= now + ttl) {
+    const cached = previous?.expires > now && previous.expires <= now + ttl;
+    let cachedEntry: Entry | undefined;
+    if (cached) try { cachedEntry = JSON.parse(decodeURIComponent(previous.value)); } catch { /* Optional. */ }
+    const keepCached = () => {
       document.cookie = `${key}=${previous.value}; Max-Age=${Math.ceil((previous.expires - now) / 1000)}; ${cookieOptions}`;
       // A tab opened before this feature, or cleared storage, must still record the first entry.
-      try { saveFirstEntry(JSON.parse(decodeURIComponent(previous.value)), now); } catch { /* Optional. */ }
-      return;
-    }
+      if (cachedEntry) saveFirstEntry(cachedEntry, now);
+    };
+    // A cached bare "direct" visit must not hide a real channel reached later in the same tab.
+    if (cached && cachedEntry?.entry_channel !== 'direct') { keepCached(); return; }
     const handoff = mcpHandoff(location.href, sessionStorage, now);
     const campaign = metaCampaign(location.search);
     const referrer = document.referrer ? new URL(document.referrer) : null;
@@ -35,6 +39,7 @@ export function rememberEntry(projectKey: string, startingAuth = false): void {
       : campaign.utm_campaign ? { entry_channel: 'campaign', entry_source: campaign.utm_source, entry_campaign: campaign.utm_campaign }
       : external ? { entry_channel: 'referral', entry_source: domain }
       : !referrer ? { entry_channel: 'direct' } : null;
+    if (cached && (!entry || entry.entry_channel === 'direct')) { keepCached(); return; }
     if (!entry) {
       if (startingAuth) clearEntry();
       return;
