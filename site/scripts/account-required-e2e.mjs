@@ -58,11 +58,11 @@ try {
       assert.ok(Math.abs(free.y - plus.y) < 2, 'Plan cards share a row after removing the trial');
     }
     await page.goto(base + '/app/asistente/');
-    await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).waitFor();
-    assert.equal(await page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'}).count(), 0);
+    await page.getByRole('heading', {name:'Entra para hablar con Campito.'}).waitFor();
+    assert.equal(await page.getByRole('textbox', {name:'Escribe tu pregunta a Campito'}).count(), 0);
     assert.equal(await page.getByRole('group', {name:'Ideas para empezar'}).count(), 0);
     assert.equal(questions, 0);
-    const mascot = page.getByRole('img', {name:'Campu saludando'});
+    const mascot = page.getByRole('img', {name:'Campito saludando'});
     await mascot.waitFor();
     await page.locator('[data-character-greeting][data-ready="true"]').waitFor();
     assert.equal(await mascot.evaluate(root => [...root.querySelectorAll('img')].every(image => image.complete && image.naturalWidth > 0)), true);
@@ -83,15 +83,15 @@ try {
     const buttonBox = await page.getByRole('link', {name:'Crear cuenta o iniciar sesión',exact:true}).boundingBox();
     assert.ok(imageBox.y >= buttonBox.y + buttonBox.height);
     const navigation = width < 700 ? page.locator('.app-mobile-nav') : page.locator('nav[aria-label="Plataforma"]');
-    assert.equal(await navigation.getByRole('link', {name:'Campu',exact:true}).count(), 1);
+    assert.equal(await navigation.getByRole('link', {name:'Campito',exact:true}).count(), 1);
 
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await mkdir('.test-results/account-required', {recursive:true});
     await page.screenshot({path:`.test-results/account-required/${width}.png`, fullPage:true});
     await page.getByRole('link', {name:'Crear cuenta o iniciar sesión',exact:true}).click();
-    await page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'}).waitFor();
+    await page.getByRole('textbox', {name:'Escribe tu pregunta a Campito'}).waitFor();
     assert.equal(authReturn, '/app/asistente/');
-    await page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'}).fill('Hola');
+    await page.getByRole('textbox', {name:'Escribe tu pregunta a Campito'}).fill('Hola');
     await page.getByRole('button', {name:'Enviar pregunta',exact:true}).click();
     await page.getByText('Respuesta de prueba con cuenta.', {exact:true}).waitFor();
     assert.equal(questions, 1);
@@ -99,7 +99,7 @@ try {
     authenticated = false;
     const returnPath = `/app/asistente/c/${id}/?modal=review`;
     await page.goto(base + returnPath);
-    await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).waitFor();
+    await page.getByRole('heading', {name:'Entra para hablar con Campito.'}).waitFor();
     const login = page.getByRole('link', {name:'Crear cuenta o iniciar sesión',exact:true});
     assert.equal(new URL(await login.getAttribute('href'), base).searchParams.get('return'), returnPath);
     assert.equal(await page.getByRole('dialog').count(), 0, 'Review entry also waits for login');
