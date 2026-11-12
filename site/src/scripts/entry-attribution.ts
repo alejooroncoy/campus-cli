@@ -1,8 +1,11 @@
 import { mcpHandoff } from './mcp-handoff.ts';
 import { metaCampaign } from './web-analytics.ts';
+import { analyticsPage } from './analytics-contract.ts';
 
 const key = 'campus_entry';
 const ttl = 24 * 60 * 60_000;
+const firstKey = 'campus_entry_first_v1';
+const firstTtl = 30 * 86400_000;
 const cookieOptions = 'Path=/api/app/auth/; SameSite=Lax; Secure';
 
 export function rememberEntry(projectKey: string, startingAuth = false): void {
@@ -11,6 +14,7 @@ export function rememberEntry(projectKey: string, startingAuth = false): void {
     const consent = JSON.parse(localStorage.getItem(`ph_campus_analytics_v2_${projectKey}`) ?? 'null');
     if (consent?.opted_out === true || localStorage.getItem(`__ph_opt_in_out_${projectKey}`) === '0') {
       clearEntry();
+      clearFirstEntry();
       return;
     }
     const now = Date.now();
@@ -33,7 +37,10 @@ export function rememberEntry(projectKey: string, startingAuth = false): void {
       if (startingAuth) clearEntry();
       return;
     }
-    const value = encodeURIComponent(JSON.stringify(entry));
+    // Landing is a closed route family, never a path, slug or query string.
+    const withLanding = { ...entry, entry_landing: analyticsPage(location.pathname) };
+    saveFirstEntry(withLanding, now);
+    const value = encodeURIComponent(JSON.stringify(withLanding));
     sessionStorage.setItem(key, JSON.stringify({ value, expires: now + ttl }));
     document.cookie = `${key}=${value}; Max-Age=${ttl / 1000}; ${cookieOptions}`;
   } catch {
@@ -46,4 +53,26 @@ export function clearEntry(): void {
     document.cookie = `${key}=; Max-Age=0; ${cookieOptions}`;
     sessionStorage.removeItem(key);
   } catch { /* Optional. */ }
+}
+
+type Entry = Record<string, string | undefined>;
+function saveFirstEntry(entry: Entry, now: number): void {
+  try {
+    if (readFirst(now)) return; // The first observed entry wins and is never overwritten.
+    localStorage.setItem(firstKey, JSON.stringify({ entry, expires: now + firstTtl }));
+  } catch { /* Optional. */ }
+}
+function readFirst(now: number): Entry | undefined {
+  try {
+    const saved = JSON.parse(localStorage.getItem(firstKey) ?? 'null');
+    if (saved?.expires > now && saved.expires <= now + firstTtl && saved.entry && typeof saved.entry === 'object') return saved.entry;
+  } catch { /* Optional. */ }
+}
+// First observed channel for conversion events. Values pass the analytics
+// contract before leaving the browser; none is a URL, query or personal data.
+export function firstEntry(): Entry {
+  return readFirst(Date.now()) ?? {};
+}
+export function clearFirstEntry(): void {
+  try { localStorage.removeItem(firstKey); } catch { /* Optional. */ }
 }

@@ -70,7 +70,8 @@ try{
   const authUrl = 'https://campus.analytics.test/api/app/auth/start';
   const entry = (await context.cookies(authUrl)).find(cookie => cookie.name === 'campus_entry');
   assert.ok(entry);
-  assert.deepEqual(JSON.parse(decodeURIComponent(entry.value)), {entry_channel:'mcp',entry_source:'chatgpt'});
+  assert.deepEqual(JSON.parse(decodeURIComponent(entry.value)), {entry_channel:'mcp',entry_source:'chatgpt',entry_landing:'turnitin_app'});
+  assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('campus_entry_first_v1'))).entry,{entry_channel:'mcp',entry_source:'chatgpt',entry_landing:'turnitin_app'});
   assert.ok(!(await context.cookies(page.url())).some(cookie => cookie.name === 'campus_entry'));
   await page.evaluate(() => window.finishLogin());
   assert.ok(!(await context.cookies(authUrl)).some(cookie => cookie.name === 'campus_entry'));
@@ -86,6 +87,9 @@ try{
     assert.equal(event.properties.current_plan,'free');assert.equal(event.properties.environment,'production');
   }
   assert.equal(events.find(e=>e.event==='campus_plus_checkout_viewed').properties.amount_cents,500);
+  const checkout=events.find(e=>e.event==='campus_plus_checkout_viewed').properties;
+  assert.equal(checkout.entry_channel,'mcp');assert.equal(checkout.entry_source,'chatgpt');assert.equal(checkout.entry_landing,'turnitin_app');
+  assert.ok(!('entry_channel' in events.find(e=>e.event==='campus_cta_clicked').properties),'Only conversion events carry the entry channel');
   const surveyEvents=events.filter(e=>e.event==='survey sent');
   assert.equal(surveyEvents.length,2);
   assert.equal(surveyEvents[0].properties.$survey_submission_id,surveyEvents[1].properties.$survey_submission_id);
