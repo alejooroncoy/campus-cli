@@ -148,7 +148,7 @@ function setupProfesFilm() {
 setupProfesFilm();
 document.addEventListener('astro:page-load', setupProfesFilm);
 
-/** Independent idle and gesture cycles keep Campu's expression unhurried. */
+/** Independent idle and gesture cycles keep Campito's expression unhurried. */
 function setupCampuMotion() {
   document.querySelectorAll<HTMLElement>('[data-campu-motion]').forEach(root => {
     if (root.dataset.campuInitialized) return;

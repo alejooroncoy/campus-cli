@@ -154,14 +154,14 @@ const message = (code: string) =>
   ({
     LOGIN_REQUIRED: "Entra a Campus para ver tus novedades.",
     PROACTIVE_DISABLED:
-      "Campu proactivo está en preparación. Lo habilitaremos primero para un grupo piloto.",
+      "Campito proactivo está en preparación. Lo habilitaremos primero para un grupo piloto.",
     PLAN_REQUIRED:
       "Esta función requiere el acceso MCP incluido en Campus Plus.",
     PILOT_NOT_ENABLED: "Tu cuenta todavía no está incluida en el piloto.",
     CONNECTION_REQUIRED:
       "Conecta o renueva tu Aula Virtual para activar el seguimiento.",
     CONTEXT_NOT_READY:
-      "Campu todavía está preparando este resumen. Vuelve después de la próxima revisión.",
+      "Campito todavía está preparando este resumen. Vuelve después de la próxima revisión.",
     DELETION_PENDING:
       "La eliminación de la memoria está en curso. Podrás activar de nuevo cuando termine.",
   })[code] ??
@@ -216,7 +216,7 @@ const cellLabel = (u: Upcoming, n: number) =>
         ? "Sig. semanas"
         : `Sem ${u.week + n}`;
 
-/** Campu cuenta en una frase lo que viene; los títulos salen del cronograma y
+/** Campito cuenta en una frase lo que viene; los títulos salen del cronograma y
  * se muestran como texto. */
 function sentence(items: UpcomingItem[], u: Upcoming) {
   const now = items.filter((i) => cellOf(u, i) === 0);
@@ -887,8 +887,8 @@ export default function CampuUpdates() {
     setStatus((s: any) => ({ ...s, ...result }));
     setInfo(
       value.enabled
-        ? "Preferencias guardadas. Campu revisará tus fuentes y preparará tu resumen."
-        : "Seguimiento pausado. Puedes conservar o eliminar lo que ya preparó Campu.",
+        ? "Preferencias guardadas. Campito revisará tus fuentes y preparará tu resumen."
+        : "Seguimiento pausado. Puedes conservar o eliminar lo que ya preparó Campito.",
     );
   }
   const update = <K extends keyof Preferences>(key: K, value: Preferences[K]) =>
@@ -931,7 +931,7 @@ export default function CampuUpdates() {
           height="84"
         />
         <div>
-          <p className="campu-eyebrow">Campu proactivo · Piloto UPC</p>
+          <p className="campu-eyebrow">Campito proactivo · Piloto UPC</p>
           <h1>Tu semana, un paso adelante.</h1>
           <p>
             Me encargo de revisar las novedades para que sepas qué cambió y
@@ -952,7 +952,7 @@ export default function CampuUpdates() {
       )}
       {unsubscribe ? (
         <section className="campu-card">
-          <h2>Desactivar correos de Campu</h2>
+          <h2>Desactivar correos de Campito</h2>
           <p>Confirma para dejar de recibir estos avisos por correo.</p>
           <button
             disabled={busy}
@@ -1071,7 +1071,7 @@ export default function CampuUpdates() {
                           checked={prefs.enabled}
                           onChange={(e) => update("enabled", e.target.checked)}
                         />
-                        Activar Campu proactivo
+                        Activar Campito proactivo
                       </label>
                       <label>
                         <input
@@ -1275,7 +1275,7 @@ export default function CampuUpdates() {
                   {!notices.length && (
                     <p>
                       {prefs.enabled
-                        ? "El primer resumen aparecerá después de que Campu revise tus fuentes."
+                        ? "El primer resumen aparecerá después de que Campito revise tus fuentes."
                         : "Activa el seguimiento para que prepare tu primera semana."}
                     </p>
                   )}
@@ -1514,7 +1514,7 @@ export default function CampuUpdates() {
               <section className="campu-card campu-privacy">
                 <h2>Tú controlas lo que preparo.</h2>
                 <p>
-                  Campu revisa tus fuentes autorizadas y prepara avisos y
+                  Campito revisa tus fuentes autorizadas y prepara avisos y
                   contexto. El contenido preparado se procesa con Luna y
                   TypeSafe para preparar y verificar indicaciones, y con
                   AtomicMemory para recuperar preparaciones. Se conserva hasta
@@ -1535,7 +1535,7 @@ export default function CampuUpdates() {
                   <div>
                     <p>
                       Se borrarán el historial, el contexto y los dispositivos
-                      de Campu proactivo. La eliminación de memoria externa
+                      de Campito proactivo. La eliminación de memoria externa
                       puede quedar pendiente hasta que el proveedor responda.
                     </p>
                     <button

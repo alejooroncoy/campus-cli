@@ -448,7 +448,7 @@ try {
       );
       assert.ok(await page.getByText("Antes no tenía nota registrada.").count());
       assert.ok(await page.getByText("Peso: 15%").count());
-      // Lo que viene: Campu lo cuenta en una frase y la tira muestra cinco celdas.
+      // Lo que viene: Campito lo cuenta en una frase y la tira muestra cinco celdas.
       const viene = page.locator(".campu-upcoming");
       await viene.locator(".campu-says").waitFor();
       const frase = (await viene.locator(".campu-says p").innerText()).replace(/\s+/g, " ");

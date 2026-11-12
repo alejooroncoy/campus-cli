@@ -192,7 +192,7 @@
  #como-funciona .profes-feature__body>a { font-size:14px; }
 }
 
-/* Introduce Campu as a character and the voice behind the assistant. */
+/* Introduce Campito as a character and the voice behind the assistant. */
 .profes-campu-link { display:flex; align-items:center; gap:10px; max-width:480px; min-height:48px; margin-top:14px; color:var(--muted); font-size:12px; line-height:1.6; }
 .profes-campu-link>img { flex:none; display:block; width:36px; height:36px; object-fit:contain; }
 .profes-campu-link strong { color:var(--ink); font-weight:600; }

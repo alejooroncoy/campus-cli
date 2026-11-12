@@ -38,8 +38,8 @@ async function guest(ip, arm) {
   page.on('pageerror', e => errors.push(e.message));
   return {context, page, errors};
 }
-const wall = page => page.getByRole('heading', {name: 'Entra para hablar con Campu.'});
-const box = page => page.getByRole('textbox', {name: 'Escribe tu pregunta a Campu'});
+const wall = page => page.getByRole('heading', {name: 'Entra para hablar con Campito.'});
+const box = page => page.getByRole('textbox', {name: 'Escribe tu pregunta a Campito'});
 
 try {
   await post('/__e2e/reset');

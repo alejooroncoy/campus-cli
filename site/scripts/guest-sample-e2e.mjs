@@ -56,9 +56,9 @@ try {
   await scenario('sample arm asks one question and then shows the account CTA', {
     arm:'sample', guestSample:{available:true, remaining:1, limit:1},
     run: async ({page, messages}) => {
-      const box = page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'});
+      const box = page.getByRole('textbox', {name:'Escribe tu pregunta a Campito'});
       await box.waitFor();
-      assert.equal(await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).count(), 0);
+      assert.equal(await page.getByRole('heading', {name:'Entra para hablar con Campito.'}).count(), 0);
       assert.equal(await page.getByRole('group', {name:'Ideas para empezar'}).getByRole('button').count(), 2, 'Only public professor and course starters');
       await box.fill('¿Qué dicen los estudiantes de Luis Vives?');
       await page.getByRole('button', {name:'Enviar pregunta', exact:true}).click();
@@ -73,21 +73,21 @@ try {
       // must not swap the conversation for the account wall.
       await page.evaluate(() => window.dispatchEvent(new CustomEvent('campus:session-updated', {detail:{authenticated:false, plan:'anon', aiReady:true, guestSample:{available:false, remaining:0, limit:1}}})));
       await page.waitForTimeout(300);
-      assert.equal(await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).count(), 0, 'The wall does not replace the answer');
+      assert.equal(await page.getByRole('heading', {name:'Entra para hablar con Campito.'}).count(), 0, 'The wall does not replace the answer');
       assert.equal(await page.getByText('Respuesta pública de muestra.', {exact:true}).count(), 1);
       assert.equal(await cta.count(), 1);
       // Starting a new consultation after the sample must not leave a chat without input or prompt.
       await page.evaluate(() => document.querySelector('[aria-label="Nueva consulta"]')?.click());
-      await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).waitFor();
+      await page.getByRole('heading', {name:'Entra para hablar con Campito.'}).waitFor();
       assert.equal(await page.getByRole('group', {name:'Ideas para empezar'}).count(), 0);
-      assert.equal(await page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'}).count(), 0);
+      assert.equal(await page.getByRole('textbox', {name:'Escribe tu pregunta a Campito'}).count(), 0);
     },
   });
   await scenario('a sample rejected with 401 (spent in another tab) keeps the question for the login handoff', {
     arm:'sample', guestSample:{available:true, remaining:1, limit:1}, rejectMessage:true,
     run: async ({page, messages}) => {
       const question = '¿Qué dicen los estudiantes de Luis Vives?';
-      await page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'}).fill(question);
+      await page.getByRole('textbox', {name:'Escribe tu pregunta a Campito'}).fill(question);
       await page.getByRole('button', {name:'Enviar pregunta', exact:true}).click();
       await page.waitForURL(url => new URL(url).pathname === '/api/app/auth/start');
       assert.equal(messages.length, 1);
@@ -103,23 +103,23 @@ try {
   await scenario('gate arm keeps the account wall even when the backend offers the sample', {
     arm:'gate', guestSample:{available:true, remaining:1, limit:1},
     run: async ({page, messages}) => {
-      await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).waitFor();
-      assert.equal(await page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'}).count(), 0);
+      await page.getByRole('heading', {name:'Entra para hablar con Campito.'}).waitFor();
+      assert.equal(await page.getByRole('textbox', {name:'Escribe tu pregunta a Campito'}).count(), 0);
       assert.equal(messages.length, 0);
     },
   });
   await scenario('backend without the sample behaves exactly like today', {
     arm:'sample', guestSample:undefined,
     run: async ({page, messages}) => {
-      await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).waitFor();
-      assert.equal(await page.getByRole('textbox', {name:'Escribe tu pregunta a Campu'}).count(), 0);
+      await page.getByRole('heading', {name:'Entra para hablar con Campito.'}).waitFor();
+      assert.equal(await page.getByRole('textbox', {name:'Escribe tu pregunta a Campito'}).count(), 0);
       assert.equal(messages.length, 0);
     },
   });
   await scenario('used sample goes back to the wall on reload', {
     arm:'sample', guestSample:{available:false, remaining:0, limit:1},
     run: async ({page}) => {
-      await page.getByRole('heading', {name:'Entra para hablar con Campu.'}).waitFor();
+      await page.getByRole('heading', {name:'Entra para hablar con Campito.'}).waitFor();
     },
   });
   // Arm assignment: stored once, only when the backend offers the sample.
