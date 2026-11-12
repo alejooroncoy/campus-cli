@@ -348,9 +348,15 @@ test('la ficha indexable lleva ProfilePage y la que no, solo migas de pan',async
  assert.match(con,/<title>Ana Prueba \(UPC\): 7\/10 · 3 opiniones \| Campus<\/title>/);
 });
 
-test('profile invites visitors to connect their AI, and only on the profile page',()=>{
+test('profile invites visitors to ask Campus (primary) and to connect their AI (secondary), only on the profile page',()=>{
  const body=profileBody(data);
- assert.equal(body.match(/href="\/app\/copilot\/"/g)?.length,1);assert.match(body,/Conectar mi IA/);assert.match(body,/class="button prof-public__button-secondary"[^>]*>[^<]*<svg[\s\S]*?Escribir una reseña/,'review button must be secondary so connect is the only primary action');
- assert.ok(body.indexOf('prof-public__connect')<body.indexOf('prof-public__columns'),'CTA must appear above the reviews');
- assert.doesNotMatch(formBody(data),/\/app\/copilot\//);assert.doesNotMatch(directoryBody({professors:[],query:'',total:0,page:1,pages:1}),/\/app\/copilot\//);
+ assert.equal(body.match(/href="\/app\/asistente\/"/g)?.length,1);assert.match(body,/Pregúntale a Campus por Juan Carlos Morales Arevalo/);assert.match(body,/class="button"[^>]*href="\/app\/asistente\/"|href="\/app\/asistente\/"[^>]*class="button"/);
+ assert.equal(body.match(/href="\/app\/copilot\/"/g)?.length,1);assert.match(body,/Conectar mi IA/);
+ assert.match(body,/class="button prof-public__button-secondary" href="\/app\/copilot\/"|href="\/app\/copilot\/"[^>]*prof-public__button-secondary/,'connect becomes secondary so ask is the only primary action');
+ assert.match(body,/class="button prof-public__button-secondary"[^>]*>[^<]*<svg[\s\S]*?Escribir una reseña/,'review button stays secondary');
+ assert.ok(body.indexOf('prof-public__ask')<body.indexOf('prof-public__columns'),'CTA must appear above the reviews');
+ assert.ok(body.indexOf('prof-public__ask')<body.indexOf('Conectar mi IA'),'ask comes before connect');
+ assert.doesNotMatch(body.match(/prof-public__ask[\s\S]*?<\/aside>/)[0],/ - |—/,'no dash separators in copy');
+ for(const other of [formBody(data),directoryBody({professors:[],query:'',total:0,page:1,pages:1})]){assert.doesNotMatch(other,/\/app\/copilot\/|\/app\/asistente\/|prof-public__ask/);}
 });
+

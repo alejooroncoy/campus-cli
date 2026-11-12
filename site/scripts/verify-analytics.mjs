@@ -78,6 +78,7 @@ assert.deepEqual(safeAnalyticsProperties({ current_plan: 'plus', selected_plan: 
 });
 assert.deepEqual(safeAnalyticsProperties({failure_reason:'not_found',callback_requested:true,whatsappPhone:'+51999999999',phone:'+51999999999',details:'private complaint',whatsappConsent:true}),{failure_reason:'not_found',callback_requested:true});
 assert.deepEqual(safeAnalyticsProperties({failure_reason:'private complaint'}),{});
+assert.deepEqual(safeAnalyticsProperties({location:'professor_profile',target:'assistant',intent:'ask',slug:'ana-prueba'}),{location:'professor_profile',target:'assistant',intent:'ask'});
 assert.equal(analyticsPage('/app/asistente/'), 'assistant');
 assert.equal(analyticsPage('/app/asistente/c/private-id/'), 'assistant');
 assert.equal(analyticsPage('/app/profes/c/private-id/'), 'assistant');
@@ -262,6 +263,16 @@ try {
   listeners.get('click')({ target: new AppBrand('/app/plus/') });
   assert.equal(JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties.intent, 'plus', 'A Free upgrade remains an acquisition');
   assert.equal(dwell.selectedPlan(), 'plus');
+  class ProfileAsk extends AppBrand {
+    closest(selector) { return selector === 'a[href]' ? this : selector === '.prof-public__ask' ? {} : null; }
+  }
+  location.pathname = '/profes/upc/ana-prueba/';
+  listeners.get('click')({ target: new ProfileAsk('/app/asistente/') });
+  assert.deepEqual(
+    (({ location, target, intent }) => ({ location, target, intent }))(JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties),
+    { location: 'professor_profile', target: 'assistant', intent: 'ask' }, 'The professor profile CTA reaches PostHog with allowlisted location, target and intent');
+  assert.equal(dwell.selectedPlan(), 'plus', 'Asking Campus from a profile is not a plan selection');
+  location.pathname = '/app/asistente/';
   dwell.track('campus_question_retried', { step: 'question', message: 'private' });
   assert.equal(JSON.parse(storage.get('campus-analytics-debug')).at(-1).event, 'campus_question_retried');
   assert.equal('message' in JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties, false);

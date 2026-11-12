@@ -222,6 +222,7 @@ function locationFor(element: Element): string {
   if (element.closest('.cp-hero')) return 'hero';
   if (element.closest('#investigacion')) return 'research';
   if (element.closest('.cp-final')) return 'closing';
+  if (element.closest('.prof-public__ask')) return 'professor_profile';
   return location.pathname.startsWith('/app/') ? 'app' : 'other';
 }
 let webView: { properties: Record<string, unknown>; started: number; scroll: ScrollDepth } | undefined;
@@ -302,7 +303,7 @@ export function setupAnalytics(): void {
     const target = support ? 'whatsapp' : provider ? 'connect' : url.pathname === '/api/app/auth/start' ? 'auth'
       : url.hash === '#planes' ? 'plans' : url.hash === '#incluye' ? 'features' : analyticsPage(url.pathname);
     const managingPlus = anchor.hasAttribute('data-profile-manage') || currentPlan === 'plus';
-    const intent = support ? 'support' : target === 'plus' ? managingPlus ? 'navigate' : 'plus' : plan ?? (target === 'auth' ? 'signup' : target === 'connect' ? 'connect' : ['turnitin_app', 'turnitin'].includes(target) ? 'turnitin' : target === 'app' && loc !== 'app' ? 'trial' : 'navigate');
+    const intent = support ? 'support' : loc === 'professor_profile' && target === 'assistant' ? 'ask' : target === 'plus' ? managingPlus ? 'navigate' : 'plus' : plan ?? (target === 'auth' ? 'signup' : target === 'connect' ? 'connect' : ['turnitin_app', 'turnitin'].includes(target) ? 'turnitin' : target === 'app' && loc !== 'app' ? 'trial' : 'navigate');
     if (['trial', 'free', 'plus'].includes(intent)) {
       try { sessionStorage.setItem('campus-selected-plan', intent); } catch { /* Optional. */ }
     }
