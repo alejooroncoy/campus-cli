@@ -115,6 +115,66 @@ Despliega primero el backend de campus-profes y después el sitio. Para verifica
 en producción, abre una sesión de navegador limpia, llega desde un enlace
 externo, entra y comprueba las propiedades del evento de acceso en PostHog.
 
+### Canal de la primera visita
+
+Además de la cookie de OAuth, el navegador guarda en `localStorage`
+(`campus_entry_first_v1`, 30 días) el primer canal observado: la primera
+visita gana. Solo una visita `direct` (sin referrer) cede ante un canal real
+posterior, para que un marcador no oculte una campaña. Respeta la baja de
+analítica: se borra al leerla o en la siguiente visita, y también en cada
+`resetAnalytics` (cierre de sesión o cambio de cuenta en un navegador compartido).
+Guarda solo valores del contrato cerrado: `entry_channel` (`mcp`, `campaign`,
+`referral`, `direct`), `entry_source` (dominio del referrer, cliente de IA o
+fuente de campaña admitida), `entry_campaign` (etiqueta o ID admitido) y
+`entry_landing` (familia de ruta, nunca slug ni consulta). No se admiten UTMs
+arbitrarias; solo las campañas ya listadas arriba. El contrato valida la
+fuente según el canal: cliente de IA conocido (`mcp`), `meta` o `email`
+(`campaign`, con ID numérico) o un hostname (solo `referral`).
+
+Atención al comparar: la cookie de OAuth que lee el backend es la entrada de la
+sesión (24 h), mientras que los eventos del navegador llevan la primera entrada
+de 30 días. Los dos modelos pueden diferir para una misma persona.
+
+La cookie `campus_entry` de OAuth incluye ahora `entry_landing`. Estas cuatro
+propiedades se adjuntan en el navegador a `campus_account_access_completed`,
+`campus_plus_checkout_viewed`, `campus_plus_checkout_started`,
+`campus_plus_submit_started`, `campus_turnitin_submit_started` y
+`campus_turnitin_submitted`. `campus_auth_completed` lo emite el backend de
+campus-profes a partir de esa cookie: para que lleve `entry_landing` el backend
+debe copiarla (pendiente en ese repositorio).
+
+#### Logins sin `$pageview` previo
+
+Hipótesis, sin comprobar contra los datos de producción: `campus_auth_completed`
+se emite al terminar OAuth, y no todos los accesos pasan por el sitio.
+1. **CLI y MCP**: `campus login` y la conexión desde ChatGPT/Claude/Gemini
+   empiezan en el relay o en el proveedor, sin cargar ninguna página, así que
+   no hay vista ni cookie `campus_entry`.
+2. **Baja de analítica o bloqueadores**: el sitio no envía vistas ni cookie.
+3. **Bots**: el cliente descarta sus eventos.
+4. **Primera visita en otra sesión o dispositivo** (el `distinct_id` anónimo no
+   se une al perfil).
+Para separar causas, cruza cada login con el `$pageview` del mismo
+`$session_id` y con la presencia de `entry_channel` en el evento.
+
+#### Consulta de ejemplo: logins por canal
+
+```sql
+SELECT
+  coalesce(properties.entry_channel, 'sin_canal') AS canal,
+  coalesce(properties.entry_source, '') AS fuente,
+  count() AS logins,
+  uniq(person_id) AS personas
+FROM events
+WHERE event = 'campus_auth_completed'
+  AND timestamp >= now() - INTERVAL 30 DAY
+GROUP BY canal, fuente
+ORDER BY logins DESC
+```
+
+Para la conversión a Plus por canal usa `campus_plus_checkout_started` con el
+mismo desglose.
+
 ## Configuración y despliegue
 
 Publicar los cambios mediante PR y el despliegue automático de `main`. Una

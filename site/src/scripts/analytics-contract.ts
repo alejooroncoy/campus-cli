@@ -45,14 +45,28 @@ const categories: Record<string, readonly string[]> = {
   aiClient: ['chatgpt', 'gemini', 'claude', 'cursor', 'vscode'],
   aiClientSource: ['handoff_url'],
   upload_kind: ['document', 'receipt'], copy_kind: ['name', 'url'],
+  entry_channel: ['mcp', 'campaign', 'referral', 'direct'],
   viewport: ['mobile', 'tablet', 'desktop'], environment: ['development', 'production'],
 };
 const numbers = new Set(['remaining', 'limit', 'duration_ms', 'position', 'amount_cents', 'http_status']);
 const booleans = new Set(['proactive_enabled','email_enabled','push_enabled','callback_requested','authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test','is_internal']);
+// The source is closed per channel: a known AI client, a known campaign source
+// or, only for referrals, a bare hostname. Campaign IDs are numeric.
+const entrySources: Record<string, readonly string[]> = { mcp: categories.aiClient, campaign: ['meta', 'email'] };
+function entryValue(key: string, value: unknown, input: Record<string, unknown>): boolean {
+  if (typeof value !== 'string') return false;
+  const channel = input.entry_channel as string;
+  if (key === 'entry_campaign') return channel === 'campaign' && /^[0-9]{6,32}$/.test(value);
+  if (key === 'entry_source') return channel === 'referral'
+    ? /^[a-z0-9](?:[a-z0-9.-]{0,98}[a-z0-9])?$/.test(value) : Boolean(entrySources[channel]?.includes(value));
+  return false;
+}
 export function safeAnalyticsProperties(input: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(input).filter(([key, value]) =>
     (['trace_id','conversation_id'].includes(key) && typeof value==='string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value))
-    || (Object.hasOwn(categories, key) && categories[key].includes(value as string))
+    || ((Object.hasOwn(categories, key) && categories[key].includes(value as string))
+      || (key === 'entry_landing' && categories.page.includes(value as string)))
+    || (['entry_source', 'entry_campaign'].includes(key) && entryValue(key, value, input))
     || (numbers.has(key) && typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 86_400_000)
     || (booleans.has(key) && typeof value === 'boolean')));
 }
