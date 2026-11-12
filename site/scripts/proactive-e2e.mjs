@@ -410,10 +410,20 @@ try {
         await boton.or(detalle).first().waitFor();
         if (await boton.count()) await boton.click();
       };
+      // Desde el enlace del correo no debe verse, ni un momento, la bienvenida ni los ajustes.
+      await page.addInitScript(() => {
+        window.__campuFlash = [];
+        new MutationObserver(() => {
+          for (const sel of [".campu-heading", ".campu-status"])
+            if (document.querySelector(sel) && !window.__campuFlash.includes(sel)) window.__campuFlash.push(sel);
+        }).observe(document, { childList: true, subtree: true });
+      });
       await page.goto(base + "/app/novedades/" + noticeId + "/");
       // Un aviso de cambios abre con el cambio primero, no con los ajustes.
       const cambios = page.locator(".campu-home .campu-changes");
       await cambios.waitFor();
+      assert.deepEqual(await page.evaluate(() => window.__campuFlash), [], "nada parpadea antes del reporte");
+      assert.equal(await page.locator(".campu-loading").count(), 0);
       const titularCambio = (await page.locator(".campu-home h1").innerText()).replace(/\s+/g, " ");
       assert.match(titularCambio, /^(Encontré \d+ cambios en tus cursos\.|Cambió |Publicaron |Ya no aparece|Hay un anuncio)/, titularCambio);
       assert.equal(await page.getByRole("heading", { name: "Cómo quieres que te avise" }).count(), 0);

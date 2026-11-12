@@ -790,7 +790,18 @@ export default function CampuUpdates() {
       setError("");
       if (!identity) return;
       try {
-        const s = await api("/status");
+        const id = location.pathname.match(
+          /^\/app\/novedades\/([0-9a-f-]{36})\/?$/i,
+        )?.[1];
+        // Estado, lista y aviso salen a la vez: quien llega desde el correo ve su
+        // reporte sin esperar tres idas y vueltas seguidas. Un fallo de la lista o
+        // del aviso se guarda y solo cuenta si el estado dice que hay servicio.
+        const failed = (error: unknown) => ({ failed: error });
+        const [s, n, result] = await Promise.all([
+          api("/status"),
+          api("/notices").catch(failed),
+          id ? api("/notices/" + id).catch(failed) : null,
+        ]);
         if (!mounted || version !== generation.current) return;
         setStatus(s);
         setPrefs(s.preferences);
@@ -798,23 +809,26 @@ export default function CampuUpdates() {
           loaded.current = true;
           return;
         }
-        const n = await api("/notices");
-        if (!mounted || version !== generation.current) return;
+        if (n.failed) throw n.failed;
         setNotices(n.notices);
         setNext(n.nextCursor);
-        const id = location.pathname.match(
-          /^\/app\/novedades\/([0-9a-f-]{36})\/?$/i,
-        )?.[1];
         if (id) {
-          const result = await api("/notices/" + id);
-          if (!mounted || version !== generation.current) return;
+          if (result.failed) throw result.failed;
           setEvents(result.events ?? []);
+          // El reporte se muestra ya con su semana: abrirlo antes lo enseñaba a medias.
+          let contextError: unknown;
+          if (result.notice.contextId)
+            try {
+              const c = await api("/contexts/" + result.notice.contextId);
+              if (!mounted || version !== generation.current) return;
+              setContext(c);
+            } catch (e) {
+              contextError = e;
+            }
+          if (!mounted || version !== generation.current) return;
           setOpened(true);
           track("campus_proactive_notice_opened");
-          if (result.notice.contextId) {
-            const c = await api("/contexts/" + result.notice.contextId);
-            if (mounted && version === generation.current) setContext(c);
-          }
+          if (contextError) throw contextError;
           await api("/notices/" + id, "POST", {});
         } else if (s.preferences.enabled) {
           await loadWeek(version);
@@ -892,9 +906,23 @@ export default function CampuUpdates() {
       (!onNotice || opened),
   );
   const showDetail = !simple || more;
+  // Mientras no se sabe qué toca mostrar, se ve el hueco del reporte: ni el
+  // encabezado de bienvenida ni los ajustes, que aparecían un momento antes del
+  // reporte. Con el aviso abierto por su enlace, se espera hasta tenerlo entero.
+  const loadingReport =
+    !error &&
+    !unsubscribe &&
+    (!session ||
+      (session.authenticated &&
+        (!status ||
+          (onNotice &&
+            !opened &&
+            status.available &&
+            prefs.enabled &&
+            ["active", "partial"].includes(status.status)))));
   return (
     <div className="campu-updates">
-      {!simple && (
+      {!simple && !loadingReport && (
       <header className="campu-heading">
         <img
           src="/assets/campu/campu-wave-v2-192.webp"
@@ -942,7 +970,25 @@ export default function CampuUpdates() {
         </section>
       ) : (
         <>
-          {!session && !error && <p role="status">Comprobando tu cuenta…</p>}
+          {loadingReport && (
+            <section className="campu-loading" role="status" aria-busy="true">
+              <span className="app-sr-only">Abriendo tu reporte…</span>
+              <div className="campu-home-top" aria-hidden="true">
+                <img
+                  src="/assets/campu/campu-wave-v2-192.webp"
+                  width="64"
+                  height="64"
+                  alt=""
+                />
+                <div>
+                  <i className="campu-bone campu-bone-title" />
+                  <i className="campu-bone campu-bone-line" />
+                </div>
+              </div>
+              <i className="campu-bone campu-bone-card" aria-hidden="true" />
+              <i className="campu-bone campu-bone-card" aria-hidden="true" />
+            </section>
+          )}
           {session && !session.authenticated && (
             <section className="campu-card">
               <h2>Tus novedades son privadas.</h2>
@@ -962,7 +1008,7 @@ export default function CampuUpdates() {
               </a>
             </section>
           )}
-          {status && (
+          {status && !loadingReport && (
             <>
               {simple && (
                 <Home

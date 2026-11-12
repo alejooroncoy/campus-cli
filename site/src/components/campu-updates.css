@@ -626,10 +626,46 @@
   color: #3d5a69;
   font-size: 14px;
 }
+/* Hueco del reporte mientras carga: misma forma que la vista simple. */
+.campu-loading {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.campu-loading .campu-home-top > div {
+  flex: 1;
+}
+.campu-bone {
+  display: block;
+  border-radius: 10px;
+  background: #e3ecf0;
+  animation: campu-bone 1.2s ease-in-out infinite alternate;
+}
+.campu-bone-title {
+  height: 28px;
+  width: min(100%, 380px);
+}
+.campu-bone-line {
+  height: 14px;
+  width: 180px;
+  margin-top: 10px;
+}
+.campu-bone-card {
+  height: 76px;
+  margin-top: 12px;
+  border-radius: 14px;
+}
+@keyframes campu-bone {
+  to {
+    opacity: 0.55;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .campu-item,
   .campu-chev {
     transition: none;
+  }
+  .campu-bone {
+    animation: none;
   }
 }
 .campu-tag {
