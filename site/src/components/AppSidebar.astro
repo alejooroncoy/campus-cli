@@ -62,7 +62,8 @@ const account = [
       </nav>
     </div>
 
-    <div class="sidebar-group">
+    {/* En el chat los títulos de grupo se ocultan y el historial necesita el espacio; ahí la cuenta queda en el menú del pie. */}
+    {!isChat && (<div class="sidebar-group">
       <span class="sidebar-group__label">Mi cuenta</span>
       <nav class="sidebar-menu" aria-label="Mi cuenta">
         {account.map((item) => (
@@ -76,7 +77,7 @@ const account = [
           </a>
         ))}
       </nav>
-    </div>
+    </div>)}
 
     {isChat && <div id="profes-sidebar-history"></div>}
 
