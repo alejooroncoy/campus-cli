@@ -107,7 +107,8 @@ const account = [
   </div>
 
   <!-- Sidebar Footer -->
-  <div class="sidebar-footer sidebar-footer--guest" data-app-sidebar-footer>
+  <!-- Neutral until the session is known: neither guest nor account is assumed. -->
+  <div class="sidebar-footer" data-app-sidebar-footer>
     <div class="sidebar-plan-card" data-app-plan-card hidden>
       <strong class="sidebar-plan-title" data-app-plan-card-title>Campus</strong>
       <span class="sidebar-plan-description" data-app-plan-card-desc>Consultas disponibles</span>
@@ -119,7 +120,7 @@ const account = [
       </a>
     </div>
 
-    <p class="sidebar-guest-note" data-app-sidebar-guest-note>Crea tu cuenta para hablar con {CHARACTER_NAME}.</p>
+    <p class="sidebar-guest-note" data-app-sidebar-guest-note hidden>Crea tu cuenta para hablar con {CHARACTER_NAME}.</p>
 
     <!-- NavUser Dropdown Container -->
     <div class="sidebar-user-container">

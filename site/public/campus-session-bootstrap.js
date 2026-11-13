@@ -22,6 +22,8 @@
 
   function paint() {
     if (!preview) return;
+    document.querySelectorAll('[data-app-sidebar-guest-note]').forEach(element => { element.hidden = !!preview.authenticated; });
+    document.querySelectorAll('[data-app-sidebar-footer]').forEach(element => { element.classList.toggle('sidebar-footer--guest', !preview.authenticated); });
     if (!preview.authenticated) {
       const greeting = document.querySelector('[data-home-greeting]');
       if (greeting && greeting.textContent !== 'Bienvenido a Campus') greeting.textContent = 'Bienvenido a Campus';
