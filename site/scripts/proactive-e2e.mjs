@@ -441,6 +441,27 @@ try {
       await cambios.waitFor();
       await page.unroute("**/api/app/proactive/notices/" + noticeId + "/", cortar);
       assert.ok(cortes >= 2, "se volvió a pedir el aviso");
+      // Servidor lento y la sesión revalidándose a mitad de la carga: la carga en curso
+      // no se reinicia, así que cada consulta sale una sola vez y el reporte termina.
+      await page.evaluate(() => localStorage.removeItem("campu_report_v1"));
+      const pedidasLentas = [];
+      const anotarLentas = (req) => {
+        const u = new URL(req.url());
+        if (u.pathname.startsWith("/api/app/proactive/")) pedidasLentas.push(req.method() + " " + u.pathname);
+      };
+      const muyLento = async (route) => { await new Promise((r) => setTimeout(r, 1500)); return route.fallback(); };
+      await page.route("**/api/app/proactive/**", muyLento);
+      page.on("request", anotarLentas);
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      for (let i = 0; i < 3; i++) {
+        await page.waitForTimeout(400);
+        await page.evaluate((detail) => window.dispatchEvent(new CustomEvent("campus:session-updated", { detail })), session);
+      }
+      await cambios.waitFor();
+      page.off("request", anotarLentas);
+      await page.unroute("**/api/app/proactive/**", muyLento);
+      for (const ruta of ["/api/app/proactive/status/", "/api/app/proactive/notices/" + noticeId + "/"])
+        assert.equal(pedidasLentas.filter((r) => r === "GET " + ruta).length, 1, "sin reinicios: " + ruta);
       // Segunda visita: el reporte guardado aparece al instante, aunque el servidor tarde.
       assert.ok(await page.evaluate(() => localStorage.getItem("campu_report_v1")), "quedó guardado");
       const lento = async (route) => { await new Promise((r) => setTimeout(r, 4000)); return route.fallback(); };

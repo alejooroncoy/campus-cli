@@ -742,6 +742,10 @@ export default function CampuUpdates() {
     // `status` dentro del efecto es el de la primera vista (siempre null): la
     // guarda necesita un ref para saber que ya se cargó.
     loaded = useRef(false),
+    // Cuenta cuya carga está en curso. La sesión se revalida cada 15 s: si una carga
+    // lenta se reiniciaba en cada revalidación, nunca terminaba y cada vuelta sumaba
+    // consultas al servidor.
+    loading = useRef<string | null>(null),
     // El resumen semanal puede tardar en prepararse: si falla, se reintenta solo
     // /week en el siguiente evento, sin reiniciar la pantalla.
     weekPending = useRef(false),
@@ -823,6 +827,7 @@ export default function CampuUpdates() {
         if (weekPending.current) void loadWeek(generation.current);
         return;
       }
+      if (identity !== null && owner.current === identity && loading.current === identity) return;
       // La primera respuesta de la sesión confirma o descarta el reporte guardado.
       // Con la misma cuenta (un reintento tras un error) tampoco se vacía: lo nuevo
       // reemplaza a lo mostrado sin volver al esqueleto.
@@ -844,6 +849,7 @@ export default function CampuUpdates() {
       }
       setError("");
       if (!identity) return;
+      loading.current = identity;
       try {
         const id = location.pathname.match(
           /^\/app\/novedades\/([0-9a-f-]{36})\/?$/i,
@@ -913,6 +919,9 @@ export default function CampuUpdates() {
               ? e.message
               : "No pudimos consultar tus novedades.",
           );
+      } finally {
+        // Termine bien o mal, la siguiente revalidación puede volver a intentarlo.
+        if (version === generation.current) loading.current = null;
       }
     }
     void getCampusSession()
