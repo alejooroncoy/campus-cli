@@ -545,7 +545,7 @@ function setupTurnitin() {
         announce('El servicio todavía no está recibiendo pedidos. No realices pagos por ahora.');
         return;
       }
-      const response = await fetch('/api/app/session', { credentials: 'same-origin', cache: 'no-store' });
+      const response = await fetch('/api/app/session/', { credentials: 'same-origin', cache: 'no-store' });
       if (!response.ok) throw new Error('No se pudo comprobar tu sesión.');
       const session = await response.json();
       if (disposed) return;

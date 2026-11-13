@@ -418,10 +418,52 @@ try {
             if (document.querySelector(sel) && !window.__campuFlash.includes(sel)) window.__campuFlash.push(sel);
         }).observe(document, { childList: true, subtree: true });
       });
+      const pedidas = [];
+      const anotar = (req) => {
+        const u = new URL(req.url());
+        if (u.pathname.startsWith("/api/app/")) pedidas.push(req.method() + " " + u.pathname);
+      };
+      page.on("request", anotar);
       await page.goto(base + "/app/novedades/" + noticeId + "/");
       // Un aviso de cambios abre con el cambio primero, no con los ajustes.
       const cambios = page.locator(".campu-home .campu-changes");
       await cambios.waitFor();
+      page.off("request", anotar);
+      // Ninguna consulta rebota por la barra final, y el aviso y su semana se piden una sola vez.
+      assert.deepEqual(pedidas.filter((r) => !r.endsWith("/")), [], "todas con barra final");
+      for (const ruta of ["/api/app/proactive/status/", "/api/app/proactive/notices/" + noticeId + "/", "/api/app/proactive/contexts/" + contextId + "/"])
+        assert.equal(pedidas.filter((r) => r === "GET " + ruta).length, 1, ruta);
+      // Si el adelanto falla por la red, la página lo vuelve a pedir y abre el reporte igual.
+      let cortes = 0;
+      const cortar = (route) => (cortes++ === 0 ? route.abort() : route.fallback());
+      await page.route("**/api/app/proactive/notices/" + noticeId + "/", cortar);
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      await page.unroute("**/api/app/proactive/notices/" + noticeId + "/", cortar);
+      assert.ok(cortes >= 2, "se volvió a pedir el aviso");
+      // Segunda visita: el reporte guardado aparece al instante, aunque el servidor tarde.
+      assert.ok(await page.evaluate(() => localStorage.getItem("campu_report_v1")), "quedó guardado");
+      const lento = async (route) => { await new Promise((r) => setTimeout(r, 4000)); return route.fallback(); };
+      await page.route("**/api/app/proactive/**", lento);
+      const inicio = Date.now();
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor({ timeout: 3000 });
+      assert.ok(Date.now() - inicio < 3000, "abre con lo guardado sin esperar al servidor");
+      await page.unroute("**/api/app/proactive/**", lento);
+      // Lo guardado de otra cuenta se borra en cuanto la sesión dice quién eres.
+      await page.evaluate(() => {
+        const g = JSON.parse(localStorage.getItem("campu_report_v1"));
+        localStorage.setItem("campu_report_v1", JSON.stringify({ ...g, owner: "campus:otra-cuenta" }));
+      });
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      assert.equal(
+        JSON.parse(await page.evaluate(() => localStorage.getItem("campu_report_v1")) ?? "{}").owner,
+        session.analyticsId,
+        "lo de otra cuenta se reemplaza por el reporte propio",
+      );
+      // Lo guardado nunca lleva el pedido preparado para la IA.
+      assert.ok(!(await page.evaluate(() => localStorage.getItem("campu_report_v1") ?? "")).includes('"prompt"'), "sin pedido para la IA");
       assert.deepEqual(await page.evaluate(() => window.__campuFlash), [], "nada parpadea antes del reporte");
       assert.equal(await page.locator(".campu-loading").count(), 0);
       const titularCambio = (await page.locator(".campu-home h1").innerText()).replace(/\s+/g, " ");
@@ -559,6 +601,9 @@ try {
         )
         .waitFor();
       assert.equal(deleted, 1);
+      // Borrar deja el navegador sin reporte guardado, también si una carga termina después.
+      await page.waitForTimeout(300);
+      assert.equal(await page.evaluate(() => localStorage.getItem("campu_report_v1")), null, "sin reporte guardado tras borrar");
       assert.equal(
         await page.getByText("Trabajo privado", { exact: false }).count(),
         0,
@@ -591,6 +636,9 @@ try {
       for (let i = 0; i < 50 && !noticesFailed; i++)
         await page.waitForTimeout(100);
       assert.ok(noticesFailed >= 1);
+      // El fallo puede llegar por el adelanto antes de que la página escuche eventos:
+      // se espera a que la página lo muestre para que el reintento no se pierda.
+      await page.locator(".campu-alert").first().waitFor();
       failNotices = false;
       const antesReintento = statusCalls;
       await page.evaluate(

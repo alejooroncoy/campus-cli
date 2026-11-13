@@ -28,7 +28,7 @@ try {
    let body={};
    if(pathname.endsWith('/turnitin/config'))body={enabled:backendEnabled,ordersAvailable:true,amountCents:1400,products:[{id:'ai',label:'Solo IA',amountCents:600,reports:['ai'],available:pausedProduct!=='ai'},{id:'similarity',label:'Solo similitud',amountCents:900,reports:['similarity'],available:pausedProduct!=='similarity'},{id:'both',label:'Similitud + IA',amountCents:1400,reports:['similarity','ai'],available:pausedProduct!=='both'}],phone:'fixture',holder:'fixture',maxDocumentBytes:20971520,maxReceiptBytes:5242880};
    else if(pathname.endsWith('/turnitin/orders')&&route.request().method()==='POST'){submission=route.request().postDataJSON();body={order:{id:'22222222-2222-4222-8222-222222222222'}};}
-   else if(pathname.endsWith('/session'))body={authenticated,universityConfirmed:true,account:{id:'fixture',email:'fixture@example.test'}};
+   else if(pathname.replace(/\/$/,'').endsWith('/session'))body={authenticated,universityConfirmed:true,account:{id:'fixture',email:'fixture@example.test'}};
    else if(pathname.endsWith('/turnitin/orders'))body={orders:[{id:'11111111-1111-4111-8111-111111111111',status:'completed',amountCents:800,documentName:'Fixture preserved.pdf',createdAt:'2026-10-01T12:00:00Z',availableReports:['similarity','ai']}],counts:{all:1,completed:1,payment_review:0,processing:0,payment_rejected:0},nextCursor:null};
    await route.fulfill({contentType:'application/json',body:JSON.stringify(body)});
   });

@@ -61,7 +61,7 @@ try {
   assert.equal(verified.universityConfirmed, true);
   assert.equal(verified.profesAvailable, true);
   assert.equal(JSON.parse(calls.find(call => call.init?.method === 'POST').init.body).universityId, 1);
-  assert.deepEqual(calls.map(call => call.url), ['/api/app/universities/', '/api/app/university', '/api/app/session']);
+  assert.deepEqual(calls.map(call => call.url), ['/api/app/universities/', '/api/app/university', '/api/app/session/']);
   for (const choice of [upn, palermo, pacifico]) {
     calls = []; verifiedUniversity = choice; api.rememberGuestUniversity(choice);
     const carried = await api.carryGuestUniversity(fresh, () => true);
