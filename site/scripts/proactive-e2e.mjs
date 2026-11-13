@@ -433,6 +433,14 @@ try {
       assert.deepEqual(pedidas.filter((r) => !r.endsWith("/")), [], "todas con barra final");
       for (const ruta of ["/api/app/proactive/status/", "/api/app/proactive/notices/" + noticeId + "/", "/api/app/proactive/contexts/" + contextId + "/"])
         assert.equal(pedidas.filter((r) => r === "GET " + ruta).length, 1, ruta);
+      // Si el adelanto falla por la red, la página lo vuelve a pedir y abre el reporte igual.
+      let cortes = 0;
+      const cortar = (route) => (cortes++ === 0 ? route.abort() : route.fallback());
+      await page.route("**/api/app/proactive/notices/" + noticeId + "/", cortar);
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      await page.unroute("**/api/app/proactive/notices/" + noticeId + "/", cortar);
+      assert.ok(cortes >= 2, "se volvió a pedir el aviso");
       assert.deepEqual(await page.evaluate(() => window.__campuFlash), [], "nada parpadea antes del reporte");
       assert.equal(await page.locator(".campu-loading").count(), 0);
       const titularCambio = (await page.locator(".campu-home h1").innerText()).replace(/\s+/g, " ");

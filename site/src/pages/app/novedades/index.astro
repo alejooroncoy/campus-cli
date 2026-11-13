@@ -14,13 +14,13 @@ import CampuUpdates from '../../../components/CampuUpdates';
       const id = location.pathname.match(/^\/app\/novedades\/([0-9a-f-]{36})\/?$/i)?.[1];
       const paths = ["/status", "/notices", id ? "/notices/" + id : "/week"];
       const early = { at: Date.now() };
-      // Si la red falla aquí, el componente vuelve a pedirlo como siempre.
-      for (const k of paths) early[k] = get("/api/app/proactive" + k + "/").catch(() => get("/api/app/proactive" + k + "/"));
+      // Si la red falla aquí, queda null y el componente lo vuelve a pedir como siempre.
+      for (const k of paths) early[k] = get("/api/app/proactive" + k + "/").catch(() => null);
       // La semana del aviso sale en cuanto se conoce, sin esperar a la parte interactiva.
       if (id)
         early.context = early["/notices/" + id]
           .then((r) => {
-            const cid = r.ok && r.data && r.data.notice && r.data.notice.contextId;
+            const cid = r && r.ok && r.data && r.data.notice && r.data.notice.contextId;
             return cid ? get("/api/app/proactive/contexts/" + cid + "/").then((x) => ({ ...x, path: "/contexts/" + cid })) : null;
           })
           .catch(() => null);
