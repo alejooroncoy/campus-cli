@@ -854,15 +854,26 @@ export default function CampuUpdates() {
         const id = location.pathname.match(
           /^\/app\/novedades\/([0-9a-f-]{36})\/?$/i,
         )?.[1];
+        // Todo en una consulta: el relay arma la página con el último escaneo, sin
+        // volver a preguntar a Blackboard. Si no puede (escaneo viejo, seguimiento
+        // pausado, relay anterior), se usan las consultas de siempre.
+        const answer = await api(id ? "/page/" + id : "/page").catch(() => null);
+        const whole =
+          answer?.status && Array.isArray(answer.notices) && (!id || answer.notice?.notice)
+            ? answer
+            : null;
+        if (!mounted || version !== generation.current) return;
         // Estado, lista y aviso salen a la vez: quien llega desde el correo ve su
         // reporte sin esperar tres idas y vueltas seguidas. Un fallo de la lista o
         // del aviso se guarda y solo cuenta si el estado dice que hay servicio.
         const failed = (error: unknown) => ({ failed: error });
-        const [s, n, result] = await Promise.all([
-          api("/status"),
-          api("/notices").catch(failed),
-          id ? api("/notices/" + id).catch(failed) : null,
-        ]);
+        const [s, n, result] = whole
+          ? [whole.status, { notices: whole.notices, nextCursor: whole.nextCursor }, whole.notice]
+          : await Promise.all([
+              api("/status"),
+              api("/notices").catch(failed),
+              id ? api("/notices/" + id).catch(failed) : null,
+            ]);
         if (!mounted || version !== generation.current) return;
         setStatus(s);
         setPrefs(s.preferences);
@@ -884,7 +895,10 @@ export default function CampuUpdates() {
           // El reporte se muestra ya con su semana: abrirlo antes lo enseñaba a medias.
           let contextError: unknown,
             c: any = null;
-          if (result.notice.contextId)
+          if (whole) {
+            c = whole.context;
+            setContext(c);
+          } else if (result.notice.contextId)
             try {
               c = await api("/contexts/" + result.notice.contextId);
               if (!mounted || version !== generation.current) return;
@@ -900,7 +914,11 @@ export default function CampuUpdates() {
           keep(result.events ?? [], c, true);
           await api("/notices/" + id, "POST", {});
         } else if (s.preferences.enabled) {
-          const c = await loadWeek(version);
+          if (whole?.context) {
+            setContext(whole.context);
+            weekPending.current = false;
+          }
+          const c = whole?.context ?? (await loadWeek(version));
           if (mounted && version === generation.current) {
             setFromCache(false);
             if (c) keep([], c, false);

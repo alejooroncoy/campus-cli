@@ -308,7 +308,9 @@ try {
       weeklyNotice = false,
       weekFailed = 0,
       weekDelay = 0,
-      weekStarted = 0;
+      weekStarted = 0,
+      pageCalls = 0,
+      pageOn = false;
     await page.route("**/*", async (route) => {
       const url = new URL(route.request().url());
       if (url.origin !== base) return route.abort();
@@ -321,17 +323,33 @@ try {
             body: JSON.stringify(data),
           });
       if (path === "/api/app/session") return json(session);
+      const statusBody = () => ({
+        available: true,
+        status: "active",
+        preferences,
+        nickname,
+        suggestedNickname: "Alejo",
+        lastSuccessAt: "2026-11-09T13:00:00Z",
+        coverage: { complete: false },
+        pushPublicKey: "fake-public-key",
+      });
       if (path === "/api/app/proactive/status") {
         statusCalls++;
+        return json(statusBody());
+      }
+      // La página entera en una consulta. Por defecto el relay "no puede armarla" y se
+      // usan las consultas de siempre; con pageOn responde todo junto.
+      if (/^\/api\/app\/proactive\/page(\/[0-9a-f-]{36})?$/.test(path)) {
+        pageCalls++;
+        if (!pageOn)
+          return route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ error: "PAGE_NOT_READY" }) });
+        const conAviso = path.endsWith("/" + noticeId);
         return json({
-          available: true,
-          status: "active",
-          preferences,
-          nickname,
-          suggestedNickname: "Alejo",
-          lastSuccessAt: "2026-11-09T13:00:00Z",
-          coverage: { complete: false },
-          pushPublicKey: "fake-public-key",
+          status: statusBody(),
+          notices: [{ id: noticeId, title: "Ya preparé tu semana", createdAt: "2026-11-09T13:00:00Z", read: false, contextId }],
+          nextCursor: null,
+          notice: conAviso ? { notice: { id: noticeId, contextId }, events: weeklyNotice ? [] : events } : null,
+          context: prepared,
         });
       }
       if (path === "/api/app/proactive/week") {
@@ -441,6 +459,27 @@ try {
       await cambios.waitFor();
       await page.unroute("**/api/app/proactive/notices/" + noticeId + "/", cortar);
       assert.ok(cortes >= 2, "se volvió a pedir el aviso");
+      // Con el relay armando la página: una sola consulta trae el reporte entero, sin
+      // pedir estado, lista, aviso ni semana por separado.
+      await page.evaluate(() => localStorage.removeItem("campu_report_v1"));
+      pageOn = true;
+      const enUna = [];
+      const anotarUna = (req) => {
+        const u = new URL(req.url());
+        if (u.pathname.startsWith("/api/app/proactive/")) enUna.push(req.method() + " " + u.pathname);
+      };
+      page.on("request", anotarUna);
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      await page.waitForTimeout(300);
+      page.off("request", anotarUna);
+      pageOn = false;
+      assert.deepEqual(
+        enUna.filter((r) => r.startsWith("GET ")),
+        ["GET /api/app/proactive/page/" + noticeId + "/"],
+        "una sola consulta de lectura",
+      );
+      assert.ok(await page.locator(".campu-week").count(), "con su semana");
       // Servidor lento y la sesión revalidándose a mitad de la carga: la carga en curso
       // no se reinicia, así que cada consulta sale una sola vez y el reporte termina.
       await page.evaluate(() => localStorage.removeItem("campu_report_v1"));
