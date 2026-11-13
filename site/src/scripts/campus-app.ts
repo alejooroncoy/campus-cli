@@ -190,7 +190,8 @@ function initPage() {
   const copilotAccount = document.querySelector<HTMLElement>("[data-copilot-account]");
   renderCopilotAccount(copilotAccount, "loading");
   const cachedProfile = readUICache();
-  applyAccountUI(cachedProfile);
+  // Sin caché no sabemos aún quién es: no se pinta como invitado hasta que responda la sesión.
+  if (cachedProfile) applyAccountUI(cachedProfile);
 
   const status = document.querySelector<HTMLElement>("[data-app-status]");
   const say = (text: string) => { if (status) status.textContent = text; };
