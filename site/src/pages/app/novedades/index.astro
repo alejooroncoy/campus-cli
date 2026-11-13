@@ -3,5 +3,29 @@ import AppShell from '../../../layouts/AppShell.astro';
 import CampuUpdates from '../../../components/CampuUpdates';
 ---
 <AppShell title="Novedades de Campito" active="perfil">
+  <script is:inline>
+    // El reporte ya está preparado en el servidor: se pide apenas llega el HTML, en
+    // paralelo con la sesión (campus-session-bootstrap.js), sin esperar a que cargue la parte interactiva.
+    (() => {
+      if (new URLSearchParams(location.search).has("baja")) return;
+      const get = (url) =>
+        fetch(url, { credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(25000) })
+          .then(async (r) => ({ ok: r.ok, data: await r.json() }));
+      const id = location.pathname.match(/^\/app\/novedades\/([0-9a-f-]{36})\/?$/i)?.[1];
+      const paths = ["/status", "/notices", id ? "/notices/" + id : "/week"];
+      const early = { at: Date.now() };
+      // Si la red falla aquí, el componente vuelve a pedirlo como siempre.
+      for (const k of paths) early[k] = get("/api/app/proactive" + k + "/").catch(() => get("/api/app/proactive" + k + "/"));
+      // La semana del aviso sale en cuanto se conoce, sin esperar a la parte interactiva.
+      if (id)
+        early.context = early["/notices/" + id]
+          .then((r) => {
+            const cid = r.ok && r.data && r.data.notice && r.data.notice.contextId;
+            return cid ? get("/api/app/proactive/contexts/" + cid + "/").then((x) => ({ ...x, path: "/contexts/" + cid })) : null;
+          })
+          .catch(() => null);
+      window.__campuPrefetch = early;
+    })();
+  </script>
   <CampuUpdates client:load />
 </AppShell>

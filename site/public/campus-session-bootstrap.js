@@ -2,7 +2,7 @@
 // Cached names are a display preview only; APIs always validate the real session.
 (() => {
   if (!window.__campusSessionBootstrap) {
-    const promise = fetch('/api/app/session', {
+    const promise = fetch('/api/app/session/', {
       credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(8000),
     }).then(async response => {
       if (!response.ok) throw new Error('No se pudo comprobar la sesión.');

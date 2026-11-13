@@ -166,17 +166,40 @@ const message = (code: string) =>
       "La eliminación de la memoria está en curso. Podrás activar de nuevo cuando termine.",
   })[code] ??
   "No pudimos completar esta acción. Tu información anterior conserva su fecha. Inténtalo de nuevo.";
+/** El sitio exige la barra final: sin ella cada consulta rebotaba con una
+ * redirección 308 y costaba una ida y vuelta más. */
+export const proactiveUrl = (path: string) => {
+  const [route, query] = path.split("?");
+  return "/api/app/proactive" + route.replace(/\/?$/, "/") + (query ? "?" + query : "");
+};
+/** Respuesta adelantada por la página (ver novedades/index.astro): se usa una sola vez. */
+function prefetched(path: string): Promise<{ ok: boolean; data: any } | null> | undefined {
+  const store = typeof window === "undefined" ? undefined : (window as any).__campuPrefetch;
+  // Solo sirve para la primera carga: más tarde se pide de nuevo.
+  if (!store || Date.now() - store.at > 15000) return undefined;
+  if (path.startsWith("/contexts/") && store.context) {
+    const hit = store.context;
+    delete store.context;
+    // Si no es la semana que se pide, null: se consulta como siempre.
+    return hit.then((x: any) => (x && x.path === path ? x : null));
+  }
+  const hit = store[path];
+  if (hit) delete store[path];
+  return hit;
+}
 async function requestApi(path: string, method = "GET", body?: unknown) {
-  const r = await fetch("/api/app/proactive" + path, {
-    method,
-    credentials: "same-origin",
-    cache: "no-store",
-    headers: { "content-type": "application/json" },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    signal: AbortSignal.timeout(25000),
-  });
-  const data = await r.json();
-  if (!r.ok) throw Error(message(data.error));
+  const early = method === "GET" ? await prefetched(path) : undefined;
+  const { ok, data } = early
+    ? early
+    : await fetch(proactiveUrl(path), {
+        method,
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "content-type": "application/json" },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        signal: AbortSignal.timeout(25000),
+      }).then(async (r) => ({ ok: r.ok, data: await r.json() }));
+  if (!ok) throw Error(message(data.error));
   return data;
 }
 const shortDay = (v: string) =>

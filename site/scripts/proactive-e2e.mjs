@@ -418,10 +418,21 @@ try {
             if (document.querySelector(sel) && !window.__campuFlash.includes(sel)) window.__campuFlash.push(sel);
         }).observe(document, { childList: true, subtree: true });
       });
+      const pedidas = [];
+      const anotar = (req) => {
+        const u = new URL(req.url());
+        if (u.pathname.startsWith("/api/app/")) pedidas.push(req.method() + " " + u.pathname);
+      };
+      page.on("request", anotar);
       await page.goto(base + "/app/novedades/" + noticeId + "/");
       // Un aviso de cambios abre con el cambio primero, no con los ajustes.
       const cambios = page.locator(".campu-home .campu-changes");
       await cambios.waitFor();
+      page.off("request", anotar);
+      // Ninguna consulta rebota por la barra final, y el aviso y su semana se piden una sola vez.
+      assert.deepEqual(pedidas.filter((r) => !r.endsWith("/")), [], "todas con barra final");
+      for (const ruta of ["/api/app/proactive/status/", "/api/app/proactive/notices/" + noticeId + "/", "/api/app/proactive/contexts/" + contextId + "/"])
+        assert.equal(pedidas.filter((r) => r === "GET " + ruta).length, 1, ruta);
       assert.deepEqual(await page.evaluate(() => window.__campuFlash), [], "nada parpadea antes del reporte");
       assert.equal(await page.locator(".campu-loading").count(), 0);
       const titularCambio = (await page.locator(".campu-home h1").innerText()).replace(/\s+/g, " ");

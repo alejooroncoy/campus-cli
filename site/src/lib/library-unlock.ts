@@ -14,7 +14,7 @@ export async function unlockImported(scope: ParentNode = document): Promise<void
   if (!card || card.hasAttribute('data-unlocked')) return;
   const doc = scope.querySelector<HTMLElement>('[data-lib-doc]');
   try {
-    const response = await fetch('/api/app/session', { credentials: 'same-origin', cache: 'no-store' });
+    const response = await fetch('/api/app/session/', { credentials: 'same-origin', cache: 'no-store' });
     const session = response.ok ? await response.json() : null;
     if (!session?.authenticated || !card.isConnected) return;
     card.querySelectorAll<HTMLElement>('[data-lib-locked]').forEach(node => { node.hidden = true; });

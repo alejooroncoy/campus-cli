@@ -53,7 +53,7 @@ export function setupTurnitinLogin(): TurnitinLogin | null {
       // Open immediately. A returning customer proceeds straight to the order.
       controller.open();
       try {
-        const response = await fetch('/api/app/session', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(8000) });
+        const response = await fetch('/api/app/session/', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(8000) });
         if (response.ok && (await response.json()).authenticated === true) window.location.assign('/app/turnitin/');
       } catch { /* Google sign-in remains available if session checking failed. */ }
       finally { checking = false; anchor.removeAttribute('aria-busy'); anchor.removeAttribute('aria-label'); if (label && skeleton) { label.hidden = false; skeleton.hidden = true; } }
