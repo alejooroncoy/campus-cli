@@ -362,5 +362,24 @@
       ]
     }
   ],
+  "proxy": {
+    "entrypoint": "proxy.ts",
+    "matcher": [
+      "/",
+      "/blackboard-cli/",
+      "/blackboard-mcp/",
+      "/blackboard-mcp/:client/",
+      "/blackboard-chatgpt/",
+      "/blackboard-upc/",
+      "/blog/",
+      "/blog/:slug/",
+      "/campus-cli/",
+      "/herramientas/formato-apa-7/",
+      "/herramientas/normas-apa-7ma-edicion/",
+      "/profes/",
+      "/turnitin/",
+      "/upc-compra-ucal/"
+    ]
+  },
   "trailingSlash": true
 }
