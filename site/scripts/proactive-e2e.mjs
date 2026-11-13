@@ -480,6 +480,20 @@ try {
         "una sola consulta de lectura",
       );
       assert.ok(await page.locator(".campu-week").count(), "con su semana");
+      // Si /page falla por la red, no se vuelve a pedir: se usan las consultas de siempre.
+      const pedidasCorte = [];
+      const anotarCorte = (req) => {
+        const u = new URL(req.url());
+        if (u.pathname.startsWith("/api/app/proactive/")) pedidasCorte.push(req.method() + " " + u.pathname);
+      };
+      const cortarPagina = (route) => route.abort();
+      await page.route("**/api/app/proactive/page/**", cortarPagina);
+      page.on("request", anotarCorte);
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      page.off("request", anotarCorte);
+      await page.unroute("**/api/app/proactive/page/**", cortarPagina);
+      assert.equal(pedidasCorte.filter((r) => r === "GET /api/app/proactive/page/" + noticeId + "/").length, 1, "/page se pide una vez");
       // Servidor lento y la sesión revalidándose a mitad de la carga: la carga en curso
       // no se reinicia, así que cada consulta sale una sola vez y el reporte termina.
       await page.evaluate(() => localStorage.removeItem("campu_report_v1"));
