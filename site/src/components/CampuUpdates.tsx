@@ -1,5 +1,6 @@
 import { track } from "../scripts/analytics";
 import { useEffect, useRef, useState } from "react";
+import { cachedReportOwner, forgetReport, readReport, writeReport } from "../lib/campu-report-cache";
 import {
   getCampusSession,
   type CampusSession,
@@ -731,6 +732,8 @@ export default function CampuUpdates() {
     [deleteOpen, setDeleteOpen] = useState(false),
     [more, setMore] = useState(false),
     [opened, setOpened] = useState(false),
+    // Se está mostrando el último reporte guardado mientras llega el actual.
+    [fromCache, setFromCache] = useState(false),
     [nick, setNick] = useState("");
   const generation = useRef(0),
     owner = useRef<string | null>(null),
@@ -773,6 +776,22 @@ export default function CampuUpdates() {
       return;
     }
     let mounted = true;
+    // La página del reporte: un aviso concreto o la portada de novedades.
+    const page =
+      location.pathname.match(/^\/app\/novedades\/([0-9a-f-]{36})\/?$/i)?.[1] ?? "home";
+    // Lo último que se vio aquí se muestra al instante y se actualiza en silencio.
+    const saved = readReport(page);
+    const savedOwner = saved ? cachedReportOwner() : null;
+    if (saved && savedOwner) {
+      setStatus(saved.status);
+      setPrefs(saved.status.preferences);
+      setNotices(saved.notices);
+      setNext(saved.next);
+      setEvents(saved.events);
+      setContext(saved.context);
+      setOpened(saved.opened);
+      setFromCache(true);
+    }
     async function loadWeek(version: number) {
       if (weekLoading.current === version) return;
       weekLoading.current = version;
@@ -782,6 +801,7 @@ export default function CampuUpdates() {
           setContext(c);
           weekPending.current = false;
         }
+        return c;
       } catch {
         // Aún sin contexto preparado o fallo pasajero: se reintenta después.
         if (version === generation.current) weekPending.current = true;
@@ -801,15 +821,21 @@ export default function CampuUpdates() {
         if (weekPending.current) void loadWeek(generation.current);
         return;
       }
+      // La primera respuesta de la sesión confirma o descarta el reporte guardado.
+      const keepSaved = Boolean(saved && savedOwner && savedOwner === identity && owner.current === null);
       owner.current = identity;
       loaded.current = false;
       weekPending.current = false;
       const version = ++generation.current;
-      setStatus(null);
-      setContext(null);
-      setEvents([]);
-      setOpened(false);
-      setNotices([]);
+      if (!keepSaved) {
+        if (saved) forgetReport(identity);
+        setFromCache(false);
+        setStatus(null);
+        setContext(null);
+        setEvents([]);
+        setOpened(false);
+        setNotices([]);
+      }
       setError("");
       if (!identity) return;
       try {
@@ -830,19 +856,24 @@ export default function CampuUpdates() {
         setPrefs(s.preferences);
         if (!s.available) {
           loaded.current = true;
+          setFromCache(false);
+          forgetReport();
           return;
         }
         if (n.failed) throw n.failed;
         setNotices(n.notices);
         setNext(n.nextCursor);
+        const keep = (events: any[], context: any, opened: boolean) =>
+          writeReport(identity, page, { status: s, notices: n.notices, next: n.nextCursor, events, context, opened });
         if (id) {
           if (result.failed) throw result.failed;
           setEvents(result.events ?? []);
           // El reporte se muestra ya con su semana: abrirlo antes lo enseñaba a medias.
-          let contextError: unknown;
+          let contextError: unknown,
+            c: any = null;
           if (result.notice.contextId)
             try {
-              const c = await api("/contexts/" + result.notice.contextId);
+              c = await api("/contexts/" + result.notice.contextId);
               if (!mounted || version !== generation.current) return;
               setContext(c);
             } catch (e) {
@@ -850,11 +881,20 @@ export default function CampuUpdates() {
             }
           if (!mounted || version !== generation.current) return;
           setOpened(true);
+          setFromCache(false);
           track("campus_proactive_notice_opened");
           if (contextError) throw contextError;
+          keep(result.events ?? [], c, true);
           await api("/notices/" + id, "POST", {});
         } else if (s.preferences.enabled) {
-          await loadWeek(version);
+          const c = await loadWeek(version);
+          if (mounted && version === generation.current) {
+            setFromCache(false);
+            if (c) keep([], c, false);
+          }
+        } else {
+          setFromCache(false);
+          forgetReport();
         }
         // Solo al terminar toda la cadena: si algo falló, el siguiente evento de
         // sesión vuelve a intentarlo.
@@ -901,6 +941,7 @@ export default function CampuUpdates() {
   }
   async function save(value: Preferences) {
     const result = await api("/preferences", "POST", value);
+    if (!value.enabled) forgetReport();
     track("campus_proactive_preferences_saved", {
       proactive_enabled: value.enabled,
       email_enabled: value.email,
@@ -935,6 +976,7 @@ export default function CampuUpdates() {
   const loadingReport =
     !error &&
     !unsubscribe &&
+    !fromCache &&
     (!session ||
       (session.authenticated &&
         (!status ||
@@ -1567,6 +1609,7 @@ export default function CampuUpdates() {
                         void guarded(async () => {
                           await removePushDevice();
                           const result = await api("/data", "DELETE", {});
+                          forgetReport();
                           track("campus_proactive_deleted");
                           setPrefs(initial);
                           setContext(null);

@@ -441,6 +441,27 @@ try {
       await cambios.waitFor();
       await page.unroute("**/api/app/proactive/notices/" + noticeId + "/", cortar);
       assert.ok(cortes >= 2, "se volvió a pedir el aviso");
+      // Segunda visita: el reporte guardado aparece al instante, aunque el servidor tarde.
+      assert.ok(await page.evaluate(() => localStorage.getItem("campu_report_v1")), "quedó guardado");
+      const lento = async (route) => { await new Promise((r) => setTimeout(r, 4000)); return route.fallback(); };
+      await page.route("**/api/app/proactive/**", lento);
+      const inicio = Date.now();
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor({ timeout: 3000 });
+      assert.ok(Date.now() - inicio < 3000, "abre con lo guardado sin esperar al servidor");
+      await page.unroute("**/api/app/proactive/**", lento);
+      // Lo guardado de otra cuenta se borra en cuanto la sesión dice quién eres.
+      await page.evaluate(() => {
+        const g = JSON.parse(localStorage.getItem("campu_report_v1"));
+        localStorage.setItem("campu_report_v1", JSON.stringify({ ...g, owner: "campus:otra-cuenta" }));
+      });
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      assert.equal(
+        JSON.parse(await page.evaluate(() => localStorage.getItem("campu_report_v1")) ?? "{}").owner,
+        session.analyticsId,
+        "lo de otra cuenta se reemplaza por el reporte propio",
+      );
       assert.deepEqual(await page.evaluate(() => window.__campuFlash), [], "nada parpadea antes del reporte");
       assert.equal(await page.locator(".campu-loading").count(), 0);
       const titularCambio = (await page.locator(".campu-home h1").innerText()).replace(/\s+/g, " ");
