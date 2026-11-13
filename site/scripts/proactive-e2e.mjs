@@ -418,10 +418,29 @@ try {
             if (document.querySelector(sel) && !window.__campuFlash.includes(sel)) window.__campuFlash.push(sel);
         }).observe(document, { childList: true, subtree: true });
       });
+      const pedidas = [];
+      const anotar = (req) => {
+        const u = new URL(req.url());
+        if (u.pathname.startsWith("/api/app/")) pedidas.push(req.method() + " " + u.pathname);
+      };
+      page.on("request", anotar);
       await page.goto(base + "/app/novedades/" + noticeId + "/");
       // Un aviso de cambios abre con el cambio primero, no con los ajustes.
       const cambios = page.locator(".campu-home .campu-changes");
       await cambios.waitFor();
+      page.off("request", anotar);
+      // Ninguna consulta rebota por la barra final, y el aviso y su semana se piden una sola vez.
+      assert.deepEqual(pedidas.filter((r) => !r.endsWith("/")), [], "todas con barra final");
+      for (const ruta of ["/api/app/proactive/status/", "/api/app/proactive/notices/" + noticeId + "/", "/api/app/proactive/contexts/" + contextId + "/"])
+        assert.equal(pedidas.filter((r) => r === "GET " + ruta).length, 1, ruta);
+      // Si el adelanto falla por la red, la página lo vuelve a pedir y abre el reporte igual.
+      let cortes = 0;
+      const cortar = (route) => (cortes++ === 0 ? route.abort() : route.fallback());
+      await page.route("**/api/app/proactive/notices/" + noticeId + "/", cortar);
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      await page.unroute("**/api/app/proactive/notices/" + noticeId + "/", cortar);
+      assert.ok(cortes >= 2, "se volvió a pedir el aviso");
       assert.deepEqual(await page.evaluate(() => window.__campuFlash), [], "nada parpadea antes del reporte");
       assert.equal(await page.locator(".campu-loading").count(), 0);
       const titularCambio = (await page.locator(".campu-home h1").innerText()).replace(/\s+/g, " ");

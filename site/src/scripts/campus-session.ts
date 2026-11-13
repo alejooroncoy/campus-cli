@@ -77,7 +77,7 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
   if (pendingSession) return pendingSession;
 
   const early = typeof window !== "undefined" ? window.__campusSessionBootstrap : undefined;
-  const request = early?.promise ?? fetch("/api/app/session", {
+  const request = early?.promise ?? fetch("/api/app/session/", {
     credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(8000),
   }).then(async response => {
     if (!response.ok) throw new Error("No se pudo comprobar la sesión.");

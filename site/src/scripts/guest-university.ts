@@ -113,7 +113,7 @@ export async function carryGuestUniversity(session: CampusSession, current: () =
       body: JSON.stringify(universitySelectionPayload(choice)), signal: AbortSignal.timeout(8000),
     });
     if (!saved.ok || !current()) return session;
-    const verified = await fetch('/api/app/session', {
+    const verified = await fetch('/api/app/session/', {
       credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(8000),
     });
     if (!verified.ok) return session;
