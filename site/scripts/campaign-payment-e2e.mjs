@@ -109,7 +109,7 @@ try {
       await staff.close();
       await page.getByRole('button',{name:'Actualizar estado'}).click();
     }
-    await page.locator('[data-plus-view=active]:visible').waitFor();
+    await page.locator('[data-plus-view=active]:visible, [data-plus-subscription]:visible').first().waitFor();
     const active=await (await context.request.get(base+'/api/app/plus/state')).json();
     assert.deepEqual(active.orders[0].campaign,quote.campaign);
     assert.equal(active.orders[0].status,'active');assert.equal(active.currentPlan,'plus');

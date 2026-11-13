@@ -52,14 +52,14 @@ try{
     const staff=await browser.newContext({viewport,serviceWorkers:'block'});await staff.addCookies([{name:'plus_fixture_session',value:'9',url:base}]);
     const file=await staff.request.get(`${base}/api/app/plus/admin/orders/${order.id}/receipt`);assert.equal(file.status(),200);assert.deepEqual(await file.body(),receipt);
     const review=await staff.request.post(`${base}/api/app/plus/admin/orders/${order.id}/review`,{headers:{origin:base},data:{accepted:true,paymentVerified:!isTest,testConfirmed:isTest,note:isTest?'QA synthetic receipt without bank transfer':''}});assert.equal(review.status(),200);
-    await page.getByRole('button',{name:'Actualizar estado'}).click();await page.locator('[data-plus-view=active]:visible').waitFor();
+    await page.getByRole('button',{name:'Actualizar estado'}).click();await page.locator('[data-plus-view=active]:visible, [data-plus-subscription]:visible').first().waitFor();
     const session=await (await context.request.get(base+'/api/app/session')).json();assert.equal(session.plan,'plus');assert.equal(session.plusTest,isTest);assert.equal(session.usage.limit,100);assert.equal(session.mcpUnlimited,true);
     await page.screenshot({path:output+`${viewport.width<600?'mobile':'desktop'}-active.png`,fullPage:true});
-    await page.getByRole('link',{name:'Volver a Mi perfil'}).click();await page.locator('[data-profile-label]').filter({hasText:isTest?'Campus Plus · prueba':'Campus Plus'}).waitFor();
+    await page.locator('a[href="/app/perfil/"]:visible').first().click();await page.locator('[data-profile-label]').filter({hasText:isTest?'Campus Plus · prueba':'Campus Plus'}).waitFor();
     assert.match(await page.locator('[data-profile-usage]').textContent(),/100 de 100/);
     assert.equal(await page.getByRole('link',{name:'Mi suscripción y pagos'}).getAttribute('href'),'/app/plus/');
     await page.getByRole('link',{name:'Mi suscripción y pagos'}).click();
-    await page.locator('[data-plus-view=active]:visible').waitFor();
+    await page.locator('[data-plus-view=active]:visible, [data-plus-subscription]:visible').first().waitFor();
     const metrics=await (await context.request.get(base+'/__fixture/metrics')).json();
     for(const operation of ['plus_checkout','plus_receipt','plus_payment_review'])assert.ok(metrics.some(event=>event.properties.operation===operation&&event.properties.outcome==='success'&&event.properties.purchase_kind==='activation'));
     const activation=metrics.find(event=>event.properties.plus_status==='active'&&event.distinctId==='campus:plus-fixture-owner-1');

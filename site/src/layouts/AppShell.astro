@@ -8,7 +8,7 @@ import AppSidebar from "../components/AppSidebar.astro";
 
 interface Props {
   title: string;
-  active: "profes" | "asistente" | "copilot" | "perfil" | "turnitin" | "biblioteca";
+  active: "profes" | "asistente" | "copilot" | "perfil" | "suscripcion" | "turnitin" | "biblioteca";
 }
 
 const { title, active } = Astro.props;
@@ -85,7 +85,7 @@ const nav = [
 
       <nav class="app-mobile-nav" aria-label="Campus móvil" transition:persist="app-mobile-nav">
         {nav.map((item) => (
-          <a href={item.href} class:list={{ "is-active": active === item.id || (item.id === "asistente" && active === "profes") }} aria-current={active === item.id || (item.id === "asistente" && active === "profes") ? "page" : undefined}>
+          <a href={item.href} class:list={{ "is-active": active === item.id || (item.id === "asistente" && active === "profes") || (item.id === "perfil" && active === "suscripcion") }} aria-current={active === item.id || (item.id === "asistente" && active === "profes") || (item.id === "perfil" && active === "suscripcion") ? "page" : undefined}>
             {item.id === "asistente" ? (
               <img class="app-mobile-nav__character" src="/assets/campu/campu-wave-v2-96.webp" srcset="/assets/campu/campu-wave-v2-96.webp 96w, /assets/campu/campu-wave-v2-192.webp 192w" sizes="28px" width="28" height="28" alt="" aria-hidden="true" />
             ) : (

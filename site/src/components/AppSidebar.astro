@@ -3,7 +3,7 @@ import {CHARACTER_NAME} from '../lib/character.mjs';
 
 import { turnitinServiceEnabled, libraryServiceEnabled } from "../../feature-flags.mjs";
 interface Props {
-  active: "profes" | "asistente" | "copilot" | "perfil" | "turnitin" | "biblioteca";
+  active: "profes" | "asistente" | "copilot" | "perfil" | "suscripcion" | "turnitin" | "biblioteca";
 }
 
 const { active } = Astro.props;
@@ -14,7 +14,11 @@ const nav = [
   { id: "copilot", label: "Conectar Campus a tu IA", href: "/app/copilot/", icon: "sparkles" },
   ...(libraryServiceEnabled ? [{ id: "biblioteca", label: "Biblioteca", href: "/biblioteca/", icon: "file-text" }] : []),
   ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
-  { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "user" },
+];
+// La cuenta va aparte del producto: quién eres y qué plan pagas.
+const account = [
+  { id: "perfil", label: "Mi perfil", href: "/app/perfil/" },
+  { id: "suscripcion", label: "Mi suscripción", href: "/app/plus/" },
 ];
 ---
 
@@ -58,6 +62,22 @@ const nav = [
       </nav>
     </div>
 
+    <div class="sidebar-group">
+      <span class="sidebar-group__label">Mi cuenta</span>
+      <nav class="sidebar-menu" aria-label="Mi cuenta">
+        {account.map((item) => (
+          <a href={item.href} class:list={["sidebar-menu-btn", { "is-active": active === item.id }]} aria-current={active === item.id ? "page" : undefined}>
+            <svg viewBox="0 0 24 24" class="sidebar-menu-icon" aria-hidden="true">
+              {item.id === "perfil"
+                ? <><circle cx="12" cy="8" r="4" /><path d="M20 21a8 8 0 0 0-16 0" /></>
+                : <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></>}
+            </svg>
+            <span>{item.label}</span>
+          </a>
+        ))}
+      </nav>
+    </div>
+
     {isChat && <div id="profes-sidebar-history"></div>}
 
     <div class="sidebar-group">
@@ -91,7 +111,7 @@ const nav = [
     <div class="sidebar-plan-card" data-app-plan-card hidden>
       <strong class="sidebar-plan-title" data-app-plan-card-title>Campus</strong>
       <span class="sidebar-plan-description" data-app-plan-card-desc>Consultas disponibles</span>
-      <a href="/app/perfil/#plan" class="sidebar-plan-action" data-app-plan-card-btn>
+      <a href="/app/plus/" class="sidebar-plan-action" data-app-plan-card-btn>
         <span>Ver mi plan</span>
         <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
           <path d="M5 12h14M12 5l7 7-7 7" />
@@ -120,19 +140,19 @@ const nav = [
 
         <div class="sidebar-dropdown__separator" data-app-sidebar-auth-only hidden></div>
 
-        <a href="/app/perfil/#plan" class="sidebar-dropdown__item" role="menuitem" data-app-sidebar-auth-only hidden>
+        <a href="/app/perfil/" class="sidebar-dropdown__item" role="menuitem" data-app-sidebar-auth-only hidden>
           <svg viewBox="0 0 24 24" class="sidebar-dropdown__icon" aria-hidden="true">
             <circle cx="12" cy="8" r="3.2" />
             <path d="M5.5 19a6.5 6.5 0 0 1 13 0" />
           </svg>
-          <span>Ver mi perfil</span>
+          <span>Mi perfil</span>
         </a>
 
-        <a href="/app/perfil/#plan" class="sidebar-dropdown__item" role="menuitem" data-app-sidebar-auth-only hidden>
+        <a href="/app/plus/" class="sidebar-dropdown__item" role="menuitem" data-app-sidebar-auth-only hidden>
           <svg viewBox="0 0 24 24" class="sidebar-dropdown__icon sidebar-dropdown__icon--accent" aria-hidden="true">
             <use href="/assets/lucide.svg#sparkles" />
           </svg>
-          <span data-app-sidebar-upgrade-label>Ver mi plan</span>
+          <span data-app-sidebar-upgrade-label>Mi suscripción</span>
         </a>
 
         <div class="sidebar-dropdown__separator" data-app-sidebar-auth-only hidden></div>
