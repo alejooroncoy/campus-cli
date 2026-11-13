@@ -42,7 +42,10 @@ export function writeReport(owner: string, page: string, report: CachedReport) {
   try {
     const stored = load();
     const pages = stored?.owner === owner ? stored.pages : {};
-    pages[page] = { ...report, at: Date.now() };
+    // El pedido preparado para la IA no se guarda nunca en el navegador: solo lo que se ve.
+    const context = report.context ? { ...report.context } : report.context;
+    if (context) delete context.prompt;
+    pages[page] = { ...report, context, at: Date.now() };
     for (const key of Object.keys(pages)
       .sort((a, b) => pages[b].at - pages[a].at)
       .slice(MAX_PAGES))

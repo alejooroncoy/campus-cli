@@ -736,6 +736,8 @@ export default function CampuUpdates() {
     [fromCache, setFromCache] = useState(false),
     [nick, setNick] = useState("");
   const generation = useRef(0),
+    // Tras pausar o borrar, ninguna carga en vuelo vuelve a guardar el reporte.
+    noCache = useRef(false),
     owner = useRef<string | null>(null),
     // `status` dentro del efecto es el de la primera vista (siempre null): la
     // guarda necesita un ref para saber que ya se cargó.
@@ -822,7 +824,11 @@ export default function CampuUpdates() {
         return;
       }
       // La primera respuesta de la sesión confirma o descarta el reporte guardado.
-      const keepSaved = Boolean(saved && savedOwner && savedOwner === identity && owner.current === null);
+      // Con la misma cuenta (un reintento tras un error) tampoco se vacía: lo nuevo
+      // reemplaza a lo mostrado sin volver al esqueleto.
+      const keepSaved =
+        (identity !== null && owner.current === identity) ||
+        Boolean(saved && savedOwner && savedOwner === identity && owner.current === null);
       owner.current = identity;
       loaded.current = false;
       weekPending.current = false;
@@ -864,6 +870,7 @@ export default function CampuUpdates() {
         setNotices(n.notices);
         setNext(n.nextCursor);
         const keep = (events: any[], context: any, opened: boolean) =>
+          !noCache.current &&
           writeReport(identity, page, { status: s, notices: n.notices, next: n.nextCursor, events, context, opened });
         if (id) {
           if (result.failed) throw result.failed;
@@ -941,7 +948,10 @@ export default function CampuUpdates() {
   }
   async function save(value: Preferences) {
     const result = await api("/preferences", "POST", value);
-    if (!value.enabled) forgetReport();
+    if (!value.enabled) {
+      noCache.current = true;
+      forgetReport();
+    }
     track("campus_proactive_preferences_saved", {
       proactive_enabled: value.enabled,
       email_enabled: value.email,
@@ -1438,6 +1448,7 @@ export default function CampuUpdates() {
                       ))}
                     </ul>
                   )}
+                  {context.prompt && (
                   <div className="campu-handoff">
                     <h3>Continúa con tu IA</h3>
                     <p>
@@ -1465,6 +1476,7 @@ export default function CampuUpdates() {
                     </button>
                     <a href="/app/copilot/">Conectar Campus a mi IA →</a>
                   </div>
+                  )}
                   {!!context.claims.length && (
                     <div>
                       <h3>Lo programado en las fuentes</h3>
@@ -1608,6 +1620,8 @@ export default function CampuUpdates() {
                       onClick={() =>
                         void guarded(async () => {
                           await removePushDevice();
+                          noCache.current = true;
+                          forgetReport();
                           const result = await api("/data", "DELETE", {});
                           forgetReport();
                           track("campus_proactive_deleted");
