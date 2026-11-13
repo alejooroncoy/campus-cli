@@ -64,7 +64,7 @@ test('every matcher entry is a page that has a Markdown twin, so the rewrite nee
   }
 });
 
-test('every static page with a Markdown twin is in the matcher (the function-served /blackboard-chatgpt/ already negotiates)', () => {
+test('every page with a Markdown twin is in the matcher', () => {
   const twins: string[] = [];
   const walk = (dir: string) => {
     for (const name of readdirSync(dir)) {
@@ -77,5 +77,12 @@ test('every static page with a Markdown twin is in the matcher (the function-ser
     }
   };
   walk(PAGES);
-  assert.deepEqual(twins.filter((path) => path !== '/blackboard-chatgpt/').sort(), [...matcher].sort());
+  assert.deepEqual(twins.sort(), [...matcher].sort());
+});
+
+test('a function-built page gets its HTML function for browsers and its Markdown twin for agents', () => {
+  const browser = proxy(request('/blackboard-chatgpt/?page=2', 'text/html,application/xhtml+xml,*/*;q=0.8'));
+  assert.ok(isRewriteTo(browser, '/api/blackboard-chatgpt?page=2'));
+  assert.ok(isRewriteTo(proxy(request('/blackboard-chatgpt/', 'text/markdown')), '/blackboard-chatgpt/index.md'));
+  assert.ok(passesThrough(proxy(request('/blog/', 'text/html'))));
 });

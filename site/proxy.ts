@@ -41,9 +41,22 @@ export const prefersMarkdown = (accept: string) => {
   return markdown > 0 && markdown >= quality(accept, "text/html");
 };
 
+/**
+ * Páginas que no existen como HTML estático: las arma una función. Su carpeta solo
+ * guarda el index.md, y sin esto Vercel le sirve ese Markdown también a un navegador.
+ */
+const FUNCTION_PAGES: Record<string, string> = { "/blackboard-chatgpt/": "/api/blackboard-chatgpt" };
+
 export default function proxy(request: Request) {
-  if ((request.method !== "GET" && request.method !== "HEAD") || !prefersMarkdown(request.headers.get("accept") ?? "")) return next();
   const url = new URL(request.url);
+  const markdown = (request.method === "GET" || request.method === "HEAD") && prefersMarkdown(request.headers.get("accept") ?? "");
+  if (!markdown) {
+    const page = FUNCTION_PAGES[url.pathname];
+    if (!page) return next();
+    const target = new URL(url);
+    target.pathname = page;
+    return rewrite(target);
+  }
   if (!PAGE_PATH.test(url.pathname)) return next();
   const twin = new URL(url);
   twin.pathname = `${url.pathname}index.md`;

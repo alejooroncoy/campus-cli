@@ -369,6 +369,7 @@
       "/blackboard-cli/",
       "/blackboard-mcp/",
       "/blackboard-mcp/:client/",
+      "/blackboard-chatgpt/",
       "/blackboard-upc/",
       "/blog/",
       "/blog/:slug/",
