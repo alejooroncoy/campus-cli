@@ -91,7 +91,7 @@ function applyAccountUI(profile: UIProfileCache | null): void {
     element.hidden = !profile?.authenticated;
   });
   const upgradeLabel = document.querySelector<HTMLElement>("[data-app-sidebar-upgrade-label]");
-  if (upgradeLabel) upgradeLabel.textContent = "Ver mi plan";
+  if (upgradeLabel) upgradeLabel.textContent = "Mi suscripción";
 
   if (profile?.authenticated) {
     // Sidebar User Trigger
@@ -118,7 +118,7 @@ function applyAccountUI(profile: UIProfileCache | null): void {
       ? `${profile.remaining} consultas disponibles${profile.period === "day" ? " hoy" : ""}`
       : "Consultas disponibles";
     if (planBtn) {
-      planBtn.href = "/app/perfil/#plan";
+      planBtn.href = "/app/plus/";
       const btnSpan = planBtn.querySelector("span");
       if (btnSpan) btnSpan.textContent = "Ver mi plan";
     }

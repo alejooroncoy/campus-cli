@@ -165,6 +165,10 @@ const claudeConnectorUrl = `https://claude.ai/new?modal=add-custom-connector&con
   .connector-help-action:hover { background:#104f37; border-color:#104f37; color:#fff; }
   .connector-help-action:focus-visible { outline:3px solid var(--app-link); outline-offset:3px; }
   .connector-help-action svg { flex-shrink:0; fill:none; }
+  /* El botón baja a su propia línea cuando no cabe junto al texto, sin depender del ancho de la pantalla. */
+  .app-connector-help { flex-wrap:wrap; }
+  .app-connector-help__content { flex:999 1 260px; }
+  .connector-help-action { flex:1 0 auto; }
   @media(max-width:700px) { .connector-help-action { width:100%; } }
   .connector-intro { display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px 24px; margin:30px 0 16px; }
   .connector-intro > div { min-width:0; }
