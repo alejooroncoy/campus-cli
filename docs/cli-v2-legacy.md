@@ -391,6 +391,7 @@ Los resultados de esta muestra no garantizan la exactitud de futuras revisiones.
 | `blackboard_get_course` | Detalle de un curso |
 | `blackboard_list_contents` | Materiales y carpetas |
 | `blackboard_list_announcements` | Anuncios del curso |
+| `blackboard_recent_changes` | Lo que el profesor agregó o editó últimamente, ordenado por fecha de edición (hora de Perú), con ruta y archivos |
 | `blackboard_list_discussions` | Debates Ultra del curso, incluyendo el tema/pregunta cuando Blackboard lo expone |
 | `blackboard_get_discussion` | Detalle de un debate Ultra |
 | `blackboard_list_discussion_messages` | Publicaciones principales de un debate Ultra |

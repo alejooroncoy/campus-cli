@@ -31,10 +31,16 @@ function mount(){
   const flowLink=find<HTMLAnchorElement>('flow-link'),flowResume=find<HTMLButtonElement>('flow-resume');
   const flowPrice=(order:Order)=>{
     text('flow-amount',money(order.amountCents));
-    text('flow-renewal',`Después, ${money(order.renewalCents)} al mes. Sin cobros automáticos.`);
+    text('flow-renewal',`Luego ${money(order.renewalCents)} por mes, solo si renuevas.`);
+  };
+  /** A started QR payment reads as unfinished; a new one reads as the next step. */
+  const flowCopy=(resuming:boolean)=>{
+    text('flow-kicker',resuming?'PAGO SIN TERMINAR':'PAGO CON QR');
+    text('flow-title',resuming?'Termina tu pago.':'Paga con Yape o Plin.');
+    text('flow-copy',resuming?'Flow todavía no confirma este pago. Si ya pagaste, actualiza el estado; si no, termínalo aquí. No se cobra dos veces.':'Escanea el QR con Yape o Plin. Plus se activa cuando Flow confirma el pago.');
   };
   let lastView='';let expiryTracked=false;
-  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);if(['guest','unavailable','university','loading'].includes(view))find('subscription').hidden=true;if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}void survey.update(view,surveySession);};
+  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);if(['guest','unavailable','university','loading'].includes(view)){find('subscription').hidden=true;find('history-panel').hidden=true;}if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}void survey.update(view,surveySession);};
   async function api(path:string,data?:unknown){
     const response=await fetch(`/api/app/plus/${path}`,{method:data===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(30000),
       headers:{...analyticsHeaders(),...(data===undefined?{}:{'content-type':'application/json'})},...(data===undefined?{}:{body:JSON.stringify(data)})});
@@ -42,8 +48,8 @@ function mount(){
   }
   function failure(error:unknown){if(disposed)return;message(error instanceof Error?error.message:'No pudimos conectar con Campus. Vuelve a intentarlo sin volver a pagar.',true);track('campus_flow_failed',{step:'plus',plus_step:lastView,error_kind:error instanceof TypeError?'network':'rejected'});}
   function expired(){const ended=quote!==null&&Date.now()>=new Date(quote.expiresAt).getTime();find<HTMLButtonElement>('submit').disabled=busy||ended;find('requote').hidden=!ended;if(ended&&!expiryTracked){expiryTracked=true;track('campus_plus_quote_expired',{plus_step:'payment'});}if(ended)message('Tu reserva de precio venció. Vuelve a comprobarlo antes de pagar. Si ya pagaste, contacta a soporte.',true);return ended;}
-  async function checkout(){
-    if(busy)return;busy=true;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry]').forEach(b=>b.disabled=true);message('Comprobando tu precio…',false,true);
+  async function checkout(resume=false){
+    if(busy)return;busy=true;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry],[data-plus-flow-resume]').forEach(b=>b.disabled=true);message(resume?'Abriendo tu pago…':'Comprobando tu precio…',false,true);
     void survey.update('payment');
     track('campus_plus_checkout_started',{plus_step:lastView});
     try{
@@ -54,7 +60,9 @@ function mount(){
       if(quote!.paymentMethod==='flow'){
         const url=new URL(value.checkoutUrl);
         if(url.protocol!=='https:'||!(url.hostname==='flow.cl'||url.hostname.endsWith('.flow.cl')))throw Error('No pudimos abrir el pago de Flow.');
-        find('qa').hidden=true;flowPrice(quote!);flowLink.href=url.href;flowLink.hidden=false;flowResume.hidden=true;
+        find('qa').hidden=true;
+        if(resume){track('campus_plus_checkout_viewed',{offer:value.order.cohort,amount_cents:value.order.amountCents});location.assign(url.href);return;}
+        flowPrice(quote!);flowCopy(false);flowLink.href=url.href;flowLink.hidden=false;flowResume.hidden=true;
         quote=null;pendingPayment=true;show('flow');message();
         track('campus_plus_checkout_viewed',{offer:value.order.cohort,amount_cents:value.order.amountCents});
         return;
@@ -70,25 +78,29 @@ function mount(){
       track('campus_plus_checkout_viewed',{offer:quote!.cohort,amount_cents:quote!.amountCents});
       find('view="payment"')?.scrollIntoView?.({block:'start',behavior:'smooth'});
       root.querySelector<HTMLElement>('#plus-pay-title')?.focus({preventScroll:true});
-    }catch(error){failure(error);}finally{busy=false;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry]').forEach(b=>b.disabled=false);expired();}
+    }catch(error){failure(error);}finally{busy=false;root.querySelectorAll<HTMLButtonElement>('[data-plus-checkout],[data-plus-renew],[data-plus-retry],[data-plus-flow-resume]').forEach(b=>b.disabled=false);expired();}
   }
   /** One panel for the paid month: where it stands, when renewal opens and what was paid. */
   function renderSubscription(state:State,email:string|undefined){
     const panel=find('subscription');
     const history=state.orders.filter(order=>orderStatus[order.status]&&!order.isTest);
+    const facts=find('sub-facts');
     const subscription=state.subscription&&!state.subscription.isTest?state.subscription:null;
-    if(!subscription&&!history.length||['guest','unavailable','university'].includes(lastView)){panel.hidden=true;return;}
+    if(['guest','unavailable','university'].includes(lastView)){panel.hidden=true;find('history-panel').hidden=true;return;}
     const phase=subscription?(state.subscriptionState??phaseFromDate(subscription.activeUntil)):'none';
     const badge=find('sub-badge');
-    badge.textContent=phase==='expired'?'Vencido':phase==='expiring'?'Vence pronto':phase==='active'?'Activo':'Sin plan';
+    badge.textContent=phase==='expired'?'Plus vencido':phase==='expiring'?'Vence pronto':phase==='active'?'Activo':'';badge.hidden=phase==='none';
     badge.dataset.tone=phase==='expiring'?'soon':phase==='expired'||phase==='none'?'ended':'ok';
-    text('sub-until-label',phase==='expired'?'Venció el':'Vigente hasta');
+    text('sub-name',phase==='expired'||phase==='none'?'Campus Free':'Campus Plus');
     text('sub-until',subscription?date(subscription.activeUntil):'Sin mes activo');
-    text('sub-renewal',subscription?`${money(subscription.renewalCents)} al mes, solo si tú pagas`:'Aún no tienes un mes pagado');
-    text('sub-notice',phase==='expired'?'Te avisamos el día que venció. No enviaremos más correos.':subscription?`Te escribiremos${email?` a ${email}`:''} 7, 3 y 1 día antes de que venza.`:'Sin avisos hasta que actives Plus');
-    text('sub-rule',phase==='active'&&state.renewableFrom?`Plus no se renueva solo: si no pagas otro mes, tu cuenta vuelve a Campus Free al terminar este. Podrás renovar desde el ${date(state.renewableFrom)} y el mes nuevo se suma a los días que te queden.`
-      :phase==='expiring'?'Ya puedes renovar. El mes nuevo se suma a los días que te quedan. Si no pagas, tu cuenta vuelve a Campus Free al terminar este mes.'
-      :phase==='expired'?'Tu cuenta volvió a Campus Free. Reactiva Plus cuando quieras. No hay cobros automáticos.':'Plus es un pago mensual sin cobros automáticos.');
+    text('sub-renewal',subscription?`${money(subscription.renewalCents)} por 30 días`:'');
+    const notice=`Te avisaremos${email?` a ${email}`:''} 7, 3 y 1 día antes.`;
+    facts.hidden=phase==='none'||phase==='expired';
+    text('sub-rule',phase==='active'?`No se renueva solo. ${state.renewableFrom?`Podrás renovar desde el ${date(state.renewableFrom)} y los días se suman a los que te quedan. `:''}${notice}`
+      :phase==='expiring'&&lastView==='pending'?`Tu renovación está en revisión; los 30 días se suman cuando la confirmemos. ${notice}`
+      :phase==='expiring'?`Ya puedes renovar: los 30 días nuevos se suman a los que te quedan. Si no renuevas, vuelves a Campus Free. ${notice}`
+      :phase==='expired'?`Tu Plus venció el ${date(subscription!.activeUntil)} y tu cuenta volvió a Campus Free.`:'Todavía no tienes un mes de Plus pagado.');
+    find('sub-actions').hidden=state.currentPlan!=='plus'||!subscription;
     const list=find('sub-history');list.replaceChildren();
     for(const order of history){
       const item=document.createElement('li'),what=document.createElement('div'),amount=document.createElement('strong'),detail=document.createElement('span'),result=document.createElement('span');
@@ -96,10 +108,14 @@ function mount(){
       amount.textContent=money(order.amountCents);
       detail.textContent=[date(order.createdAt),order.paymentMethod==='flow'?'QR de Flow':'Yape o Plin',order.status==='active'&&order.activeUntil?`cubre hasta el ${date(order.activeUntil)}`:''].filter(Boolean).join(' · ');
       result.className='plus-history__status';result.dataset.status=order.status;result.textContent=orderStatus[order.status];
-      what.append(amount,detail);item.append(what,result);list.append(item);
+      what.append(amount,detail);
+      if(order.status==='rejected'&&order.note){const note=document.createElement('span');note.className='plus-history__note';note.textContent=`Motivo: ${order.note}`;what.append(note);}
+      item.append(what,result);list.append(item);
     }
     find('sub-empty').hidden=history.length>0;
-    panel.hidden=false;
+    find('history-panel').hidden=history.length===0;
+    // Without a paid month the action panel already says what to do: no empty plan card.
+    panel.hidden=!subscription;
   }
   async function load(quiet=false){
     if(!quiet)message('Comprobando tu cuenta…',false,true);
@@ -108,23 +124,23 @@ function mount(){
       surveySession=session;
       find('qa').hidden=true;
       currentOwner=session.authenticated?session.analyticsId??session.email??'account':'guest';
-      if(!session.authenticated){pendingPayment=false;show('guest');find('subscription').hidden=true;message();return;}
+      if(!session.authenticated){pendingPayment=false;show('guest');message();return;}
       if(!config.ordersAvailable){show('unavailable');message('No pudimos comprobar los pagos de Plus. No realices un pago nuevo.',true);return;}
       const state:State=await api('state');if(disposed)return;
       if(state.blocked||state.unavailable){show('unavailable');message(state.blocked?'Tu cuenta requiere revisión. Contacta a soporte.':'No pudimos verificar tu plan. Vuelve a comprobarlo.',true);return;}
       text('account',`Cuenta: ${session.email??'tu cuenta Campus'}`);
       const pending=state.orders.find(order=>order.status==='payment_review');
       const pendingFlow=state.orders.find(order=>order.status==='quoted'&&order.paymentMethod==='flow');
-      find('qa').hidden=!(pending?.isTest||state.subscription?.isTest&&!state.orders.some(order=>order.status==='active'&&order.paymentMethod==='flow'));
       pendingPayment=Boolean(pending||pendingFlow);
+      // Renewing is offered only from the active branch below; any other state starts without it.
+      find('renew').hidden=true;
       if(!pendingFlow){flowLink.removeAttribute('href');flowLink.hidden=true;}
       if(pending){show('pending');message();track('campus_plus_status_viewed',{plus_status:'payment_review',is_test:pending.isTest===true});}
       else if(pendingFlow){
-        flowPrice(pendingFlow);flowResume.hidden=!flowLink.hidden;show('flow');message();
+        flowPrice(pendingFlow);flowCopy(true);flowResume.hidden=!flowLink.hidden;show('flow');message();
       }
       else if(state.currentPlan==='plus'){
-        show('active');message();text('active-until',state.subscription?`Tu mes está activo hasta el ${date(state.subscription.activeUntil)}.`:'Tu cuenta ya tiene acceso a Campus Plus.');
-        text('active-renewal',state.subscription?.isTest?'Acceso de prueba por 24 horas. No se registró ningún pago ni renovación.':state.subscription?`Tu próxima renovación: ${money(state.subscription.renewalCents)} por mes. Sin cobros automáticos.`:'Consulta el estado de tu cuenta en Mi perfil.');
+        show('active');message();text('active-until',state.subscription?.isTest?`Acceso de prueba hasta el ${date(state.subscription.activeUntil)}. No se registró ningún pago.`:state.subscription?`Tu mes está activo hasta el ${date(state.subscription.activeUntil)}.`:'Tu cuenta tiene acceso a Campus Plus.');
         find('renew').hidden=!state.enabled||!state.eligible||!state.subscription||(state.subscriptionState??phaseFromDate(state.subscription.activeUntil))==='active';
         track('campus_plus_status_viewed',{plus_status:'active'});
       }else if(!state.enabled){show('unavailable');message('La activación de Plus está pausada. No realices un pago nuevo.',true);}
@@ -135,13 +151,20 @@ function mount(){
         const manualQuote=state.orders.some(order=>order.status==='quoted'&&!order.paymentMethod);
         const qr = Boolean(state.flowAvailable && !manualQuote);
         find('ready-copy').hidden = !qr;
-        find('manual-overview').hidden = qr;
+        text('ready-title',state.subscription&&!state.subscription.isTest?'Renueva tu mes.':'Así activas tu mes.');
+        // The three steps are for a first payment; someone renewing already knows them.
+        find('manual-overview').hidden = qr || Boolean(state.subscription&&!state.subscription.isTest);
         show('ready');message();find('checkout').textContent=state.orders.some(o=>o.status==='quoted')?'Retomar instrucciones de pago':state.subscription?'Renovar mi mes':'Ver precio y cómo pagar';}
+      // The test notice describes the panel on screen, never a past test the student is not looking at.
+      find('qa').hidden=!(lastView==='pending'&&pending?.isTest||lastView==='active'&&state.subscription?.isTest&&!state.orders.some(order=>order.status==='active'&&order.paymentMethod==='flow'));
       renderSubscription(state,session.email);
+      // One card per state: with a paid month the plan card carries the actions, so the active panel steps aside.
+      if(lastView==='active'&&!find('subscription').hidden)find('view="active"').hidden=true;
+      find('sub-connect').classList.toggle('app-button--secondary',!find('renew').hidden);
     }catch(error){if(!disposed){show('unavailable');failure(error);}}
   }
   find<HTMLButtonElement>('checkout').onclick=()=>void checkout();find<HTMLButtonElement>('renew').onclick=()=>void checkout();find<HTMLButtonElement>('retry').onclick=()=>void checkout();
-  flowResume.onclick=()=>void checkout();
+  flowResume.onclick=()=>void checkout(true);
   find<HTMLButtonElement>('requote').onclick=()=>void checkout();
   root.querySelectorAll<HTMLButtonElement>('[data-plus-refresh]').forEach(button=>button.onclick=()=>void load());
   find<HTMLButtonElement>('copy').onclick=async()=>{try{await navigator.clipboard.writeText(find('phone').textContent??'');text('copy','Copiado');message('Número copiado. Abre Yape o Plin para realizar el pago.');track('campus_plus_payment_copied');}catch{message('Selecciona el número y cópialo desde tu dispositivo.',true);}};

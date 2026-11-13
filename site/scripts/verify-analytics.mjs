@@ -12,6 +12,17 @@ assert.deepEqual(deployConfig.rewrites.slice(0, 3), [
 assert.doesNotMatch(csp.split(';').find(rule => rule.trim().startsWith('script-src')), /posthog|unsafe-eval|unsafe-inline/);
 const { outputFiles } = await build({ entryPoints: ['src/scripts/analytics-contract.ts'], bundle: true, format: 'esm', write: false });
 const { safeAnalyticsProperties, analyticsPage } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'referral', entry_source:'www.google.com', entry_landing:'home' }),
+  { entry_channel:'referral', entry_source:'www.google.com', entry_landing:'home' });
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'campaign', entry_source:'meta', entry_campaign:'123456789' }),
+  { entry_channel:'campaign', entry_source:'meta', entry_campaign:'123456789' });
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'mcp', entry_source:'chatgpt' }), { entry_channel:'mcp', entry_source:'chatgpt' });
+// Closed contract: free text never passes, whatever the channel.
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'organic', entry_source:'https://x.test/?q=private', entry_landing:'/profes/upc/ana/', entry_campaign:'Private Name' }), {});
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'campaign', entry_source:'juan_perez_gmail_com', entry_campaign:'juan_perez_gmail_com' }), { entry_channel:'campaign' });
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'mcp', entry_source:'alice.smith', entry_campaign:'123456789' }), { entry_channel:'mcp' });
+assert.deepEqual(safeAnalyticsProperties({ entry_channel:'direct', entry_source:'www.google.com' }), { entry_channel:'direct' });
+assert.deepEqual(safeAnalyticsProperties({ entry_source:'meta' }), {});
 const webBundle = await build({ entryPoints: ['src/scripts/web-analytics.ts'], bundle: true, format: 'esm', write: false });
 const { metaCampaign, engageCampaign, safeWebProperties, webPageProperties, ScrollDepth } = await import(`data:text/javascript;base64,${Buffer.from(webBundle.outputFiles[0].text).toString('base64')}`);
 assert.deepEqual(safeWebProperties({
@@ -46,6 +57,22 @@ for (const query of [
   '?utm_source=viva_engage&utm_medium=social&utm_campaign=other&utm_content=remontada_upecinos',
 ]) assert.deepEqual(engageCampaign(query), {});
 assert.deepEqual(safeWebProperties({utm_source:'viva_engage',utm_medium:'social',utm_campaign:'grupo_de_la_u',utm_content:'private@example.org'}), {});
+const whatsappSearch = '?utm_source=whatsapp&utm_medium=social&utm_campaign=mismo_prompt';
+const whatsappLabels = { utm_source: 'whatsapp', utm_medium: 'social', utm_campaign: 'mismo_prompt' };
+for (const [key, value] of Object.entries(whatsappLabels)) {
+  assert.equal(webPageProperties('/', 'https://campuscli.com', '', 400, whatsappSearch)[key], value);
+}
+assert.deepEqual(safeWebProperties({ ...whatsappLabels, utm_content: 'private@example.org' }), whatsappLabels);
+assert.deepEqual(safeWebProperties({ ...whatsappLabels, utm_campaign: 'private@example.org' }), {});
+for (const search of [
+  whatsappSearch + '&utm_campaign=mismo_prompt',
+  whatsappSearch + '&utm_content=private@example.org',
+  whatsappSearch.replace('mismo_prompt', 'other_campaign'),
+  whatsappSearch.replace('social', 'other'),
+]) {
+  const page = webPageProperties('/', 'https://campuscli.com', '', 400, search);
+  assert.ok(!('utm_source' in page) && !('utm_campaign' in page));
+}
 assert.deepEqual(metaCampaign('?utm_source=meta&utm_campaign=123456789012345&email=private@example.org'), {utm_source:'meta',utm_campaign:'123456789012345'});
 for(const source of ['facebook','instagram','fb','ig'])assert.deepEqual(metaCampaign(`?utm_source=${source}&utm_campaign=123456789012345`),{utm_source:'meta',utm_campaign:'123456789012345'});
 for (const search of ['?utm_source=meta&utm_campaign=private-name', '?utm_source=meta&utm_campaign=123456&utm_campaign=999999', '?utm_source=other&utm_campaign=123456', '?utm_source=meta&utm_campaign=private%40example.org']) assert.deepEqual(metaCampaign(search), {});
@@ -59,6 +86,7 @@ assert.deepEqual(safeAnalyticsProperties({ current_plan: 'plus', selected_plan: 
 });
 assert.deepEqual(safeAnalyticsProperties({failure_reason:'not_found',callback_requested:true,whatsappPhone:'+51999999999',phone:'+51999999999',details:'private complaint',whatsappConsent:true}),{failure_reason:'not_found',callback_requested:true});
 assert.deepEqual(safeAnalyticsProperties({failure_reason:'private complaint'}),{});
+assert.deepEqual(safeAnalyticsProperties({location:'professor_profile',target:'assistant',intent:'ask',slug:'ana-prueba'}),{location:'professor_profile',target:'assistant',intent:'ask'});
 assert.equal(analyticsPage('/app/asistente/'), 'assistant');
 assert.equal(analyticsPage('/app/asistente/c/private-id/'), 'assistant');
 assert.equal(analyticsPage('/app/profes/c/private-id/'), 'assistant');
@@ -243,6 +271,16 @@ try {
   listeners.get('click')({ target: new AppBrand('/app/plus/') });
   assert.equal(JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties.intent, 'plus', 'A Free upgrade remains an acquisition');
   assert.equal(dwell.selectedPlan(), 'plus');
+  class ProfileAsk extends AppBrand {
+    closest(selector) { return selector === 'a[href]' ? this : selector === '.prof-public__ask' ? {} : null; }
+  }
+  location.pathname = '/profes/upc/ana-prueba/';
+  listeners.get('click')({ target: new ProfileAsk('/app/asistente/') });
+  assert.deepEqual(
+    (({ location, target, intent }) => ({ location, target, intent }))(JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties),
+    { location: 'professor_profile', target: 'assistant', intent: 'ask' }, 'The professor profile CTA reaches PostHog with allowlisted location, target and intent');
+  assert.equal(dwell.selectedPlan(), 'plus', 'Asking Campus from a profile is not a plan selection');
+  location.pathname = '/app/asistente/';
   dwell.track('campus_question_retried', { step: 'question', message: 'private' });
   assert.equal(JSON.parse(storage.get('campus-analytics-debug')).at(-1).event, 'campus_question_retried');
   assert.equal('message' in JSON.parse(storage.get('campus-analytics-debug')).at(-1).properties, false);

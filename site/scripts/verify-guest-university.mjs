@@ -6,11 +6,12 @@ const load = () => import(`data:text/javascript;base64,${Buffer.from(outputFiles
 const saved = { window: globalThis.window, fetch: globalThis.fetch };
 const storage = new Map();
 globalThis.window = { localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) } };
-const upc = { id: 1, name: 'Universidad Peruana de Ciencias Aplicadas', shortName: 'UPC' };
-const upn = { id: 40, name: 'Universidad Privada del Norte', shortName: null };
-const palermo = { id: 90, name: 'Universidad de Palermo', shortName: 'UP' };
-const pacifico = { id: 25, name: 'Universidad del Pacífico', shortName: null };
-const other = { id: 2, name: 'Universidad de ejemplo', shortName: null };
+// `coverage` sale del backend (GET /api/app/universities); aquí se simula como lo devuelve hoy.
+const upc = { id: 1, name: 'Universidad Peruana de Ciencias Aplicadas', shortName: 'UPC', coverage: true };
+const upn = { id: 40, name: 'Universidad Privada del Norte', shortName: null, coverage: true };
+const palermo = { id: 90, name: 'Universidad de Palermo', shortName: 'UP', coverage: true };
+const pacifico = { id: 25, name: 'Universidad del Pacífico', shortName: null, coverage: false };
+const other = { id: 2, name: 'Universidad de ejemplo', shortName: null, coverage: false };
 const response = (value, ok = true) => ({ ok, json: async () => value });
 try {
   let api = await load();
@@ -20,7 +21,7 @@ try {
   assert.deepEqual(api.readGuestUniversity(), upc, 'The explicit choice survives a new page/module after authentication redirects');
   assert.equal(api.guestUniversitySupported(upc), true);
   for (const [choice, code] of [[upn, 'UPN'], [palermo, 'UP'], [pacifico, 'UP']]) {
-    assert.equal(api.guestUniversitySupported(choice), true, 'Catalog entries without short names still have chat coverage');
+    assert.equal(api.guestUniversitySupported(choice), choice.coverage, 'Coverage comes from the catalog attribute, not from a list in the site');
     assert.equal(api.chatUniversityCode(choice), code);
     assert.equal(api.universityLabel(choice), `${code} — ${choice.name}${code === 'UP' ? ` · ${choice === palermo ? 'Argentina' : 'Perú'}` : ''}`);
     api.rememberGuestUniversity(choice);
@@ -36,7 +37,11 @@ try {
     assert.deepEqual(api.universitySearchMatches([palermo,pacifico],api.universityLabel(choice)),[choice]);
   }
   const catalog=[upc,upn,palermo,pacifico,other];
-  assert.deepEqual(api.filterChatUniversities(catalog,''),[upc,upn,palermo,pacifico]);
+  assert.deepEqual(api.filterChatUniversities(catalog,''),[upc,upn,palermo],'Only covered universities are suggested');
+  assert.equal(api.guestUniversitySupported({...pacifico,coverage:undefined}),false,'A saved choice without the attribute never claims coverage');
+  assert.equal(api.guestUniversitySupported({...pacifico,coverage:true}),true,'Enabling a university is a catalog change, not a site change');
+  assert.equal(await api.refreshGuestUniversity(null),null);
+  assert.deepEqual(await api.refreshGuestUniversity({id:null,name:'Universidad declarada',shortName:null}),{id:null,name:'Universidad declarada',shortName:null});
   assert.deepEqual(api.filterChatUniversities(catalog,'UP'),[palermo,pacifico],'A shared acronym keeps both options visible for an explicit choice');
   assert.deepEqual(api.filterChatUniversities(catalog,'pacifico'),[pacifico]);
   assert.deepEqual(api.filterChatUniversities(catalog,'norte privada'),[upn]);
@@ -47,7 +52,7 @@ try {
   let verifiedUniversity = upc;
   globalThis.fetch = async (url, init) => {
     calls.push({ url, init });
-    if (url.endsWith('universities')) return response({ universities: [upc, upn, palermo, pacifico, other] });
+    if (url.endsWith('universities/')) return response({ universities: [upc, upn, palermo, pacifico, other] });
     if (url.endsWith('university')) return response({ universityConfirmed: true });
     return response({ authenticated: true, email: 'new@example.invalid', universityConfirmed: true, university: verifiedUniversity, profesAvailable: true, aiReady: true });
   };
@@ -56,7 +61,7 @@ try {
   assert.equal(verified.universityConfirmed, true);
   assert.equal(verified.profesAvailable, true);
   assert.equal(JSON.parse(calls.find(call => call.init?.method === 'POST').init.body).universityId, 1);
-  assert.deepEqual(calls.map(call => call.url), ['/api/app/universities', '/api/app/university', '/api/app/session']);
+  assert.deepEqual(calls.map(call => call.url), ['/api/app/universities/', '/api/app/university', '/api/app/session/']);
   for (const choice of [upn, palermo, pacifico]) {
     calls = []; verifiedUniversity = choice; api.rememberGuestUniversity(choice);
     const carried = await api.carryGuestUniversity(fresh, () => true);
@@ -87,7 +92,7 @@ try {
   window.location = { pathname: '/app/asistente/c/118adac7-9134-4f9e-b751-a145605de41c/', search: '' };
 
   api = await load();
-  globalThis.fetch = async url => response(url.endsWith('universities') ? { universities: [upc] } : {}, false);
+  globalThis.fetch = async url => response(url.endsWith('universities/') ? { universities: [upc] } : {}, false);
   assert.equal(await api.carryGuestUniversity(fresh, () => true), fresh, 'Network/API failure keeps explicit profile setup and never invents confirmed coverage');
   assert.deepEqual(api.readGuestUniversity(), upc, 'A failed save retains the choice for recovery');
 

@@ -81,6 +81,12 @@ jobs:
       - name: Campus account gate and character greeting
         run: npm --prefix site run test:account-required
         timeout-minutes: 2
+      - name: Sidebar guest note only after the session confirms a guest
+        run: npm --prefix site run test:sidebar-guest-note
+        timeout-minutes: 2
+      - name: Guest sample question and account call to action
+        run: npm --prefix site run test:guest-sample
+        timeout-minutes: 2
       - name: Direct university choice and one-tap first questions
         run: npm --prefix site run test:first-question
         timeout-minutes: 2

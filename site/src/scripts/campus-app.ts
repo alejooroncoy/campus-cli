@@ -91,7 +91,7 @@ function applyAccountUI(profile: UIProfileCache | null): void {
     element.hidden = !profile?.authenticated;
   });
   const upgradeLabel = document.querySelector<HTMLElement>("[data-app-sidebar-upgrade-label]");
-  if (upgradeLabel) upgradeLabel.textContent = "Ver mi plan";
+  if (upgradeLabel) upgradeLabel.textContent = "Mi suscripción";
 
   if (profile?.authenticated) {
     // Sidebar User Trigger
@@ -118,7 +118,7 @@ function applyAccountUI(profile: UIProfileCache | null): void {
       ? `${profile.remaining} consultas disponibles${profile.period === "day" ? " hoy" : ""}`
       : "Consultas disponibles";
     if (planBtn) {
-      planBtn.href = "/app/perfil/";
+      planBtn.href = "/app/plus/";
       const btnSpan = planBtn.querySelector("span");
       if (btnSpan) btnSpan.textContent = "Ver mi plan";
     }
@@ -153,7 +153,7 @@ let universityRequest: Promise<void> | undefined;
 async function loadUniversities(optionsEl: HTMLDataListElement | null) {
   if (!optionsEl) return;
   if (!universityChoices.length) {
-    universityRequest ??= fetch("/api/app/universities", { cache: "no-store" }).then(async response => {
+    universityRequest ??= fetch("/api/app/universities/", { cache: "no-store" }).then(async response => {
       if (!response.ok) throw new Error("No pudimos cargar las universidades. Recarga para intentarlo.");
       const data = await response.json() as { universities: UniversityChoice[] };
       universityChoices = data.universities;
@@ -190,7 +190,8 @@ function initPage() {
   const copilotAccount = document.querySelector<HTMLElement>("[data-copilot-account]");
   renderCopilotAccount(copilotAccount, "loading");
   const cachedProfile = readUICache();
-  applyAccountUI(cachedProfile);
+  // Sin caché no sabemos aún quién es: no se pinta como invitado hasta que responda la sesión.
+  if (cachedProfile) applyAccountUI(cachedProfile);
 
   const status = document.querySelector<HTMLElement>("[data-app-status]");
   const say = (text: string) => { if (status) status.textContent = text; };
@@ -208,6 +209,7 @@ function initPage() {
   const universitiesLoading = document.querySelector<HTMLElement>("[data-app-universities-loading]");
   const universityStatus = document.querySelector<HTMLElement>("[data-app-university-status]");
   const universityCancel = document.querySelector<HTMLElement>("[data-app-cancel-university]");
+  let profileShown = false;
   const setUniversityStatus = (text: string, loading = false) => {
     if (!universityStatus) return;
     universityStatus.setAttribute("aria-busy", String(loading));
@@ -248,25 +250,27 @@ function initPage() {
     if (value.authenticated && !value.universityConfirmed) showUniversityForm(readGuestUniversity());
 
     const email = document.querySelector("[data-app-email]");
-    if (email) email.textContent = value.email ?? "Inicia sesión con tu cuenta Campus.";
+    if (email) email.textContent = value.email ?? "";
     const universityName = document.querySelector("[data-app-university-name]");
     if (universityName) universityName.textContent = value.university ? universityLabel(value.university) : "Sin universidad";
     const miupcConnector = document.querySelector<HTMLElement>("#miupc");
     if (miupcConnector) miupcConnector.hidden = !canConnectMiupc(value);
     const coverage = document.querySelector<HTMLElement>("[data-app-profile-coverage]");
     if (coverage) coverage.hidden = !value.universityConfirmed || value.profesAvailable !== false;
-    const bannerStatus = document.querySelector<HTMLElement>("[data-app-banner-status]");
-    if (bannerStatus) {
-      if (value.banner?.connected) {
-        const details = [
-          value.banner.career,
-          value.banner.entryYear ? `Malla ${value.banner.entryYear}` : null,
-          value.banner.enrolledCount ? `${value.banner.enrolledCount} cursos inscritos` : null,
-        ].filter(Boolean).join(" · ");
-        bannerStatus.textContent = details ? `Conectado (${details})` : "Conectado";
-      } else {
-        bannerStatus.textContent = "No conectado (opcional para ver horario y avance)";
-      }
+    const bannerRow = profileAuthenticated?.querySelector<HTMLElement>("[data-app-banner]");
+    const bannerStatus = bannerRow?.querySelector<HTMLElement>("[data-app-banner-status]");
+    const bannerDetails = bannerRow?.querySelector<HTMLElement>("[data-app-banner-details]");
+    const bannerConnected = value.banner?.connected === true;
+    if (bannerRow) bannerRow.hidden = !bannerConnected && value.university?.shortName !== "UPC";
+    if (bannerStatus && bannerDetails) {
+      bannerStatus.dataset.connected = String(bannerConnected);
+      bannerStatus.textContent = bannerConnected ? "Conectado" : "Sin conectar";
+      const details = [
+        value.banner?.career ? formatStudentName(value.banner.career) : null,
+        value.banner?.entryYear ? `Malla ${value.banner.entryYear}` : null,
+        value.banner?.enrolledCount ? `${value.banner.enrolledCount} cursos inscritos` : null,
+      ].filter(Boolean).join(" · ");
+      bannerDetails.textContent = bannerConnected && details ? details : "Horario y matrícula de la UPC.";
     }
     if (login) login.hidden = value.authenticated;
     const logout = document.querySelector<HTMLElement>("[data-app-logout]");
@@ -282,6 +286,15 @@ function initPage() {
       const subTitle = value.banner?.connected
         ? (value.banner.career ? `UPC · ${formatStudentName(value.banner.career)}` : "UPC · Alumno")
         : (value.university?.shortName || value.email?.split("@")[1] || "Cuenta Campus");
+
+      const profileName = profileAuthenticated?.querySelector("[data-app-profile-name]");
+      const profileInitials = profileAuthenticated?.querySelector<HTMLElement>("[data-app-profile-initials]");
+      if (profileName) profileName.textContent = shortName || "Cuenta Campus";
+      if (profileInitials) {
+        profileInitials.textContent = initials;
+        profileInitials.hidden = !initials;
+        profileInitials.previousElementSibling?.toggleAttribute("hidden", Boolean(initials));
+      }
 
       const profileCache: UIProfileCache = {
         authenticated: true,
@@ -301,6 +314,13 @@ function initPage() {
     } else {
       writeUICache(null);
       applyAccountUI(null);
+    }
+
+    // Fragment targets are hidden until the authenticated profile is revealed.
+    if (profileAuthenticated && !profileAuthenticated.hidden && !profileShown) {
+      profileShown = true;
+      const target = document.getElementById(location.hash.slice(1));
+      if (target && profileAuthenticated.contains(target)) target.scrollIntoView();
     }
 
     if (profileGuest && new URLSearchParams(location.search).get("login") === "error") {
@@ -342,10 +362,9 @@ function initPage() {
     });
   });
 
+  // Cambiar universidad abre la pantalla de elección del asistente en su propia ruta y vuelve a Mi perfil al guardar.
   document.querySelector("[data-app-change-university]")?.addEventListener("click", () => {
-    showUniversityForm();
-    if (universityCancel) universityCancel.hidden = false;
-    universityInput?.focus();
+    location.assign("/app/asistente/?universidad=cambiar");
   });
 
   universityCancel?.addEventListener("click", () => {

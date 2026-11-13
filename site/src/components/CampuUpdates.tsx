@@ -1,5 +1,6 @@
 import { track } from "../scripts/analytics";
 import { useEffect, useRef, useState } from "react";
+import { cachedReportOwner, forgetReport, readReport, writeReport } from "../lib/campu-report-cache";
 import {
   getCampusSession,
   type CampusSession,
@@ -54,6 +55,34 @@ const gradeStatus: Record<string, string> = {
   final_not_published: "Promedio final aún no publicado",
   published: "Publicada",
 };
+type UpcomingItem = {
+  courseId: string;
+  course: string;
+  title: string;
+  what: string;
+  studentAction: boolean;
+  when: { kind: string; text: string };
+  from: string | null;
+  to: string | null;
+  bucket: "this_week" | "next_week" | "later" | "unscheduled";
+  inBlackboard: boolean;
+  done: boolean;
+  next: boolean;
+  after: string | null;
+  /** Vencimiento exacto publicado por Blackboard, si lo hay. */
+  dueAt?: string | null;
+  /** De dónde sale: una tarea publicada o una fila del cronograma o sílabo. */
+  source?: "blackboard" | "schedule";
+  evidenceIds?: string[];
+};
+type Upcoming = {
+  term: string;
+  week: number;
+  from: string;
+  to: string;
+  items: UpcomingItem[];
+  counts: { thisWeek: number; nextWeek: number; notInBlackboard: number };
+};
 type Context = {
   id: string;
   summary: string;
@@ -76,6 +105,7 @@ type Context = {
     locator: string;
     text: string;
   }[];
+  upcoming?: Upcoming | null;
   pending: string[];
   prompt: string;
   nextCursor?: string;
@@ -125,31 +155,201 @@ const message = (code: string) =>
   ({
     LOGIN_REQUIRED: "Entra a Campus para ver tus novedades.",
     PROACTIVE_DISABLED:
-      "Campu proactivo está en preparación. Lo habilitaremos primero para un grupo piloto.",
+      "Campito proactivo está en preparación. Lo habilitaremos primero para un grupo piloto.",
     PLAN_REQUIRED:
       "Esta función requiere el acceso MCP incluido en Campus Plus.",
     PILOT_NOT_ENABLED: "Tu cuenta todavía no está incluida en el piloto.",
     CONNECTION_REQUIRED:
       "Conecta o renueva tu Aula Virtual para activar el seguimiento.",
     CONTEXT_NOT_READY:
-      "Campu todavía está preparando este resumen. Vuelve después de la próxima revisión.",
+      "Campito todavía está preparando este resumen. Vuelve después de la próxima revisión.",
     DELETION_PENDING:
       "La eliminación de la memoria está en curso. Podrás activar de nuevo cuando termine.",
   })[code] ??
   "No pudimos completar esta acción. Tu información anterior conserva su fecha. Inténtalo de nuevo.";
+/** El sitio exige la barra final: sin ella cada consulta rebotaba con una
+ * redirección 308 y costaba una ida y vuelta más. */
+export const proactiveUrl = (path: string) => {
+  const [route, query] = path.split("?");
+  return "/api/app/proactive" + route.replace(/\/?$/, "/") + (query ? "?" + query : "");
+};
+/** Respuesta adelantada por la página (ver novedades/index.astro): se usa una sola vez. */
+function prefetched(path: string): Promise<{ ok: boolean; data: any } | null> | undefined {
+  const store = typeof window === "undefined" ? undefined : (window as any).__campuPrefetch;
+  // Solo sirve para la primera carga: más tarde se pide de nuevo.
+  if (!store || Date.now() - store.at > 15000) return undefined;
+  if (path.startsWith("/contexts/") && store.context) {
+    const hit = store.context;
+    delete store.context;
+    // Si no es la semana que se pide, null: se consulta como siempre.
+    return hit.then((x: any) => (x && x.path === path ? x : null));
+  }
+  const hit = store[path];
+  if (hit) delete store[path];
+  return hit;
+}
 async function requestApi(path: string, method = "GET", body?: unknown) {
-  const r = await fetch("/api/app/proactive" + path, {
-    method,
-    credentials: "same-origin",
-    cache: "no-store",
-    headers: { "content-type": "application/json" },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    signal: AbortSignal.timeout(25000),
-  });
-  const data = await r.json();
-  if (!r.ok) throw Error(message(data.error));
+  const early = method === "GET" ? await prefetched(path) : undefined;
+  const { ok, data } = early
+    ? early
+    : await fetch(proactiveUrl(path), {
+        method,
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "content-type": "application/json" },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        signal: AbortSignal.timeout(25000),
+      }).then(async (r) => ({ ok: r.ok, data: await r.json() }));
+  if (!ok) throw Error(message(data.error));
   return data;
 }
+const shortDay = (v: string) =>
+  new Intl.DateTimeFormat("es-PE", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  })
+    .format(new Date(v + "T00:00:00Z"))
+    .replace(".", "");
+/** "22 nov", "9–15 nov" o "30 nov–6 dic": lo mínimo para ubicar la fecha. */
+const rangeLabel = (from: string | null, to: string | null) => {
+  if (!from || !to) return "Sin fecha";
+  if (from === to) return shortDay(from);
+  const [a, b] = [shortDay(from), shortDay(to)];
+  const [dayA, monthA] = a.split(" "),
+    [, monthB] = b.split(" ");
+  return monthA === monthB ? `${dayA}–${b}` : `${a}–${b}`;
+};
+const WEEK = 7 * 86400_000;
+const CELLS = 5; // esta semana, la próxima, dos más y "Sig. semanas"
+const cellOf = (u: Upcoming, i: UpcomingItem) => {
+  if (!i.from) return -1; // sin fecha: no entra en la tira
+  // Piso, no redondeo: un domingo sigue siendo de su semana.
+  const offset = Math.floor(
+    (Date.parse(i.from + "T00:00:00Z") - Date.parse(u.from + "T00:00:00Z")) /
+      WEEK,
+  );
+  return Math.min(Math.max(offset, 0), CELLS - 1);
+};
+const cellLabel = (u: Upcoming, n: number) =>
+  n === 0
+    ? "Esta"
+    : n === 1
+      ? "Próxima"
+      : n === CELLS - 1
+        ? "Sig. semanas"
+        : `Sem ${u.week + n}`;
+
+/** Campito cuenta en una frase lo que viene; los títulos salen del cronograma y
+ * se muestran como texto. */
+function sentence(items: UpcomingItem[], u: Upcoming) {
+  const now = items.filter((i) => cellOf(u, i) === 0);
+  const next = items.filter((i) => cellOf(u, i) === 1);
+  const first = [...items]
+    .filter((i) => i.from)
+    .sort((x, y) => x.from!.localeCompare(y.from!))[0];
+  const one = (list: UpcomingItem[]) =>
+    list.length === 1 ? <b>{list[0].title}</b> : <b>{list.length} entregas</b>;
+  return (
+    <>
+      {now.length === 1 ? (
+        <>Esta semana te toca {one(now)}.</>
+      ) : now.length ? (
+        <>Esta semana tienes {one(now)}.</>
+      ) : (
+        <>Esta semana va tranquila.</>
+      )}{" "}
+      {next.length ? (
+        <>La próxima, {one(next)}.</>
+      ) : now.length || !first ? null : (
+        <>
+          Lo siguiente es <b>{first.title}</b>.
+        </>
+      )}
+    </>
+  );
+}
+
+/** Lo que el cronograma de tus cursos programa, aunque Blackboard todavía no lo
+ * tenga como tarea. Las fechas las calcula el servidor con el calendario de Mi UPC. */
+function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
+  const items = u.items.filter((i) => i.studentAction && !i.done);
+  const counts = Array.from(
+    { length: CELLS },
+    (_, n) => items.filter((i) => cellOf(u, i) === n).length,
+  );
+  const undated = items.filter((i) => cellOf(u, i) < 0);
+  const [picked, setPicked] = useState<number | null>(null);
+  if (!items.length) return null;
+  // Si el resumen cambió y la celda elegida quedó vacía, vuelve a la primera con algo.
+  const active =
+    picked !== null && counts[picked] > 0
+      ? picked
+      : Math.max(
+          counts.findIndex((c) => c > 0),
+          0,
+        );
+  return (
+    <section className="campu-card campu-upcoming">
+      <div className="campu-says">
+        <img
+          src="/assets/campu/campu-wave-v2-192.webp"
+          width="72"
+          height="72"
+          alt=""
+          aria-hidden="true"
+        />
+        <p>{sentence(items, u)}</p>
+      </div>
+      {counts.some(Boolean) && (
+        <>
+          <div className="campu-weeks" role="tablist" aria-label="Lo que viene">
+            {counts.map((count, n) => (
+              <button
+                key={n}
+                type="button"
+                role="tab"
+                aria-selected={n === active}
+                aria-label={`${cellLabel(u, n)}, ${count} ${count === 1 ? "cosa" : "cosas"}`}
+                disabled={!count}
+                onClick={() => setPicked(n)}
+              >
+                <span>{cellLabel(u, n)}</span>
+                <span className="campu-pips" aria-hidden="true">
+                  {Array.from({ length: Math.min(count, 3) }, (_, k) => (
+                    <i key={k} />
+                  ))}
+                </span>
+              </button>
+            ))}
+          </div>
+          <ul className="campu-upcoming-list" role="tabpanel">
+            {items
+              .filter((i) => cellOf(u, i) === active)
+              .map((i, n) => (
+                <li key={`${i.courseId}|${i.title}|${n}`}>
+                  <div>
+                    <strong>{i.title}</strong>
+                    <small>
+                      {i.course}
+                      {!i.inBlackboard && <em>Aún no está en Blackboard</em>}
+                    </small>
+                  </div>
+                  <span className="campu-date">{rangeLabel(i.from, i.to)}</span>
+                </li>
+              ))}
+          </ul>
+        </>
+      )}
+      {!!undated.length && (
+        <p className="campu-undated">
+          Sin fecha confirmada: {undated.map((i) => i.title).join(", ")}
+        </p>
+      )}
+    </section>
+  );
+}
+
 function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
   const miupc = f.source === "miupc:grades";
   return (
@@ -209,6 +409,314 @@ function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
     </article>
   );
 }
+const limaDay = (v: string | number | Date) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "America/Lima" }).format(
+    new Date(v),
+  );
+const daysBetween = (a: string, b: string) =>
+  Math.round(
+    (Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400_000,
+  );
+const clock = (v: string) =>
+  new Intl.DateTimeFormat("es-PE", {
+    timeStyle: "short",
+    timeZone: "America/Lima",
+  }).format(new Date(v));
+/** La hora que escribe el cronograma ("11:30 p.m.") en 24 horas; sin hora legible, vacío. */
+const timeInText = (value?: string) => {
+  const m = /\b(\d{1,2}):(\d{2})\s*([ap])\.?\s*m\b/i.exec(value ?? "");
+  if (!m || Number(m[1]) > 12 || Number(m[2]) > 59) return "";
+  return `${String((Number(m[1]) % 12) + (m[3].toLowerCase() === "p" ? 12 : 0)).padStart(2, "0")}:${m[2]}`;
+};
+const GROUPS = ["Hoy", "Esta semana", "Antes"];
+
+/** Una entrega. Se abre para ver de dónde sale: cuándo es con todas sus letras, qué dice
+ * la fuente y si Blackboard ya la tiene. Un solo botón por tarjeta, accesible con teclado. */
+function DeliveryCard({
+  i,
+  when,
+  evidence,
+}: {
+  i: UpcomingItem;
+  when: string;
+  evidence: Context["evidence"];
+}) {
+  const [open, setOpen] = useState(false);
+  const panel = "campu-more-" + (i.courseId + i.title + i.from).replace(/\W+/g, "");
+  const hour = i.dueAt
+    ? clock(i.dueAt)
+    : i.from === i.to
+      ? timeInText(i.when.text)
+      : "";
+  const day = i.from ? new Date(i.from + "T00:00:00Z") : null;
+  const proof = (i.evidenceIds ?? [])
+    .map((id) => evidence.find((e) => e.id === id))
+    .find(Boolean);
+  const origin =
+    i.source === "blackboard"
+      ? "Publicado en Blackboard"
+      : proof
+        ? `${proof.title} · ${proof.locator}`
+        : "El cronograma o el sílabo de tu curso";
+  const soon = when === "Hoy" || when === "Mañana";
+  return (
+    <li className={"campu-item" + (soon ? " soon" : "") + (open ? " open" : "")}>
+      <button
+        type="button"
+        className="campu-item-head"
+        aria-expanded={open}
+        aria-controls={panel}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="campu-chip" aria-hidden="true">
+          <b>{day ? day.getUTCDate() : "?"}</b>
+          <small>
+            {day
+              ? new Intl.DateTimeFormat("es-PE", { month: "short", timeZone: "UTC" })
+                  .format(day)
+                  .replace(".", "")
+              : ""}
+          </small>
+        </span>
+        <span className="campu-item-main">
+          <strong>{i.title}</strong>
+          <small>{i.course}</small>
+          <em>
+            {when} · {rangeLabel(i.from, i.to)}
+            {hour ? ` · ${hour}` : ""}
+          </em>
+          {!i.inBlackboard && <span className="campu-tag">Aún sin publicar</span>}
+        </span>
+        <i className="campu-chev" aria-hidden="true" />
+      </button>
+      {open && (
+        <div id={panel} className="campu-item-more">
+          <dl>
+            <dt>Cuándo</dt>
+            <dd>
+              {day && i.from === i.to
+                ? new Intl.DateTimeFormat("es-PE", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    timeZone: "UTC",
+                  }).format(day)
+                : rangeLabel(i.from, i.to)}
+              {hour ? `, ${hour}` : ""}
+            </dd>
+            <dt>Qué es</dt>
+            <dd>
+              {i.what ? i.what.charAt(0).toUpperCase() + i.what.slice(1) : "Entrega"}
+              {i.when.text ? <> · la fuente dice «{i.when.text}»</> : null}
+            </dd>
+            <dt>De dónde lo sé</dt>
+            <dd>{origin}</dd>
+          </dl>
+          {proof && (
+            <blockquote>{proof.text.replace(/\s+/g, " ").slice(0, 240)}</blockquote>
+          )}
+          {!i.inBlackboard && (
+            <p className="campu-muted">
+              Todavía no está como tarea en Blackboard. Lo sé por el cronograma,
+              confírmalo con tu profe antes de depender de esta fecha.
+            </p>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
+/** Lo que cambió en este aviso, con su valor anterior cuando lo hay. Va primero: es lo que
+ * la persona vino a ver al tocar el correo. */
+function ChangesCard({ events }: { events: any[] }) {
+  if (!events.length) return null;
+  return (
+    <section className="campu-card campu-changes">
+      <h2>Cambios de este aviso</h2>
+      {events.map((e) => (
+        <div key={e.id}>
+          <FactView fact={e.fact} removed={e.meaning === "removed"} />
+          {e.meaning === "grade_published" && (
+            <p>Antes no tenía nota registrada.</p>
+          )}
+          {typeof e.before?.weight === "number" &&
+            e.before.weight !== e.fact.weight && (
+              <p>Peso anterior registrado: {e.before.weight}%</p>
+            )}
+          {typeof e.before?.score === "number" && (
+            <p>
+              Nota anterior registrada: {e.before.score} /{" "}
+              {e.before.maxScore ?? "máximo no especificado"}
+            </p>
+          )}
+          {e.before?.dueAt && e.before.dueAt !== e.fact.dueAt && (
+            <p>Vencimiento anterior registrado: {timestamp(e.before.dueAt)}</p>
+          )}
+        </div>
+      ))}
+    </section>
+  );
+}
+/** El cambio en una frase, sin jerga: qué cambió y dónde. */
+function changeSentence(events: any[]) {
+  if (events.length !== 1) return `Encontré ${events.length} cambios en tus cursos.`;
+  const f = events[0].fact;
+  const what =
+    events[0].meaning === "removed"
+      ? "Ya no aparece"
+      : events[0].meaning === "grade_published"
+        ? "Publicaron una nota de"
+        : f.kind === "feedback"
+          ? "Cambió la retroalimentación de"
+          : f.kind === "grade"
+            ? "Cambió la nota de"
+            : f.kind === "assignment"
+              ? "Cambió la tarea"
+              : f.kind === "announcement"
+                ? "Hay un anuncio nuevo:"
+                : f.kind === "procedure"
+                  ? "Cambió el trámite"
+                  : "Cambió";
+  return `${what} ${f.title || "algo"} en ${f.course}.`;
+}
+
+/** Lo primero que se ve: una frase, lo próximo y lo nuevo. Todo lo demás está en
+ * "Ajustes y detalle". Pocas palabras, una cosa por línea. */
+function Home({
+  context,
+  events,
+  notices,
+  emailOn,
+  checkedAt,
+  incomplete,
+  more,
+  onMore,
+}: {
+  context: Context | null;
+  events: any[];
+  notices: Notice[];
+  emailOn: boolean;
+  checkedAt?: string;
+  incomplete: boolean;
+  more: boolean;
+  onMore: () => void;
+}) {
+  const today = limaDay(Date.now());
+  const u = context?.upcoming ?? null;
+  const pending = u ? u.items.filter((i) => i.studentAction && !i.done) : [];
+  const dated = pending
+    .filter((i) => i.from)
+    .sort((a, b) => a.from!.localeCompare(b.from!));
+  // Cuándo es, en palabras: hoy, mañana, en N días o esta semana.
+  const whenOf = (i: UpcomingItem) =>
+    i.from! <= today && today <= i.to!
+      ? i.from === i.to
+        ? "Hoy"
+        : "Esta semana"
+      : (() => {
+          const d = daysBetween(today, i.from!);
+          return d === 1 ? "Mañana" : `En ${d} días`;
+        })();
+  const inWeek = u ? dated.filter((i) => i.from! <= u.to) : [];
+  const later = u ? dated.filter((i) => i.from! > u.to).slice(0, 3) : [];
+  const item = (i: UpcomingItem) => (
+    <DeliveryCard
+      key={i.courseId + i.title + i.from}
+      i={i}
+      when={whenOf(i)}
+      evidence={context?.evidence ?? []}
+    />
+  );
+  const shown = notices.slice(0, 5);
+  const bucket = (n: Notice) => {
+    const d = daysBetween(limaDay(n.createdAt), today);
+    return d <= 0 ? 0 : d < 7 ? 1 : 2;
+  };
+  return (
+    <section className="campu-home">
+      <div className="campu-home-top">
+        <img
+          src="/assets/campu/campu-wave-v2-192.webp"
+          width="64"
+          height="64"
+          alt=""
+          aria-hidden="true"
+        />
+        <div>
+          <h1>{events.length ? changeSentence(events) : u ? sentence(pending, u) : "Reviso tus cursos por ti."}</h1>
+          <p>Última revisión: {timestamp(checkedAt)}</p>
+        </div>
+      </div>
+      <ChangesCard events={events} />
+      {u && (
+        <div className="campu-week">
+          <h2>Esta semana</h2>
+          {inWeek.length ? (
+            <ul>{inWeek.slice(0, 5).map(item)}</ul>
+          ) : (
+            <p className="campu-muted">Nada para esta semana en lo que revisé.</p>
+          )}
+          {inWeek.length > 5 && (
+            <small>Y {inWeek.length - 5} más en Ajustes y detalle.</small>
+          )}
+          {!!later.length && (
+            <>
+              <h2>Más adelante</h2>
+              <ul>{later.map(item)}</ul>
+            </>
+          )}
+        </div>
+      )}
+      {shown.length ? (
+        GROUPS.map((name, g) => {
+          const list = shown.filter((n) => bucket(n) === g);
+          return (
+            !!list.length && (
+              <div key={name} className="campu-day">
+                <h2>{name}</h2>
+                <ul>
+                  {list.map((n) => (
+                    <li key={n.id}>
+                      <a href={"/app/novedades/" + n.id + "/"}>
+                        <i className={n.read ? "campu-dot off" : "campu-dot"} />
+                        <span>{n.title}</span>
+                        <small>
+                          {g === 0
+                            ? clock(n.createdAt)
+                            : shortDay(limaDay(n.createdAt))}
+                        </small>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          );
+        })
+      ) : (
+        <p className="campu-muted">Todavía no hay novedades.</p>
+      )}
+      {incomplete && (
+        <p className="campu-muted">
+          Me faltan fuentes por revisar: esto no confirma que no tengas nada
+          pendiente.
+        </p>
+      )}
+      <div className="campu-home-foot">
+        <span>{emailOn ? "Te aviso por correo" : "Sin avisos por correo"}</span>
+        <button
+          type="button"
+          className="campu-link"
+          aria-expanded={more}
+          onClick={onMore}
+        >
+          {more ? "Ocultar ajustes y detalle" : "Ajustes y detalle ›"}
+        </button>
+      </div>
+    </section>
+  );
+}
 export default function CampuUpdates() {
   const [session, setSession] = useState<CampusSession | null>(null),
     [status, setStatus] = useState<any>(null),
@@ -222,12 +730,22 @@ export default function CampuUpdates() {
     [info, setInfo] = useState(""),
     [unsubscribe, setUnsubscribe] = useState<string | null>(null),
     [deleteOpen, setDeleteOpen] = useState(false),
+    [more, setMore] = useState(false),
+    [opened, setOpened] = useState(false),
+    // Se está mostrando el último reporte guardado mientras llega el actual.
+    [fromCache, setFromCache] = useState(false),
     [nick, setNick] = useState("");
   const generation = useRef(0),
+    // Tras pausar o borrar, ninguna carga en vuelo vuelve a guardar el reporte.
+    noCache = useRef(false),
     owner = useRef<string | null>(null),
     // `status` dentro del efecto es el de la primera vista (siempre null): la
     // guarda necesita un ref para saber que ya se cargó.
     loaded = useRef(false),
+    // Cuenta cuya carga está en curso. La sesión se revalida cada 15 s: si una carga
+    // lenta se reiniciaba en cada revalidación, nunca terminaba y cada vuelta sumaba
+    // consultas al servidor.
+    loading = useRef<string | null>(null),
     // El resumen semanal puede tardar en prepararse: si falla, se reintenta solo
     // /week en el siguiente evento, sin reiniciar la pantalla.
     weekPending = useRef(false),
@@ -264,6 +782,22 @@ export default function CampuUpdates() {
       return;
     }
     let mounted = true;
+    // La página del reporte: un aviso concreto o la portada de novedades.
+    const page =
+      location.pathname.match(/^\/app\/novedades\/([0-9a-f-]{36})\/?$/i)?.[1] ?? "home";
+    // Lo último que se vio aquí se muestra al instante y se actualiza en silencio.
+    const saved = readReport(page);
+    const savedOwner = saved ? cachedReportOwner() : null;
+    if (saved && savedOwner) {
+      setStatus(saved.status);
+      setPrefs(saved.status.preferences);
+      setNotices(saved.notices);
+      setNext(saved.next);
+      setEvents(saved.events);
+      setContext(saved.context);
+      setOpened(saved.opened);
+      setFromCache(true);
+    }
     async function loadWeek(version: number) {
       if (weekLoading.current === version) return;
       weekLoading.current = version;
@@ -273,6 +807,7 @@ export default function CampuUpdates() {
           setContext(c);
           weekPending.current = false;
         }
+        return c;
       } catch {
         // Aún sin contexto preparado o fallo pasajero: se reintenta después.
         if (version === generation.current) weekPending.current = true;
@@ -292,44 +827,105 @@ export default function CampuUpdates() {
         if (weekPending.current) void loadWeek(generation.current);
         return;
       }
+      if (identity !== null && owner.current === identity && loading.current === identity) return;
+      // La primera respuesta de la sesión confirma o descarta el reporte guardado.
+      // Con la misma cuenta (un reintento tras un error) tampoco se vacía: lo nuevo
+      // reemplaza a lo mostrado sin volver al esqueleto.
+      const keepSaved =
+        (identity !== null && owner.current === identity) ||
+        Boolean(saved && savedOwner && savedOwner === identity && owner.current === null);
       owner.current = identity;
       loaded.current = false;
       weekPending.current = false;
       const version = ++generation.current;
-      setStatus(null);
-      setContext(null);
-      setEvents([]);
-      setNotices([]);
+      if (!keepSaved) {
+        if (saved) forgetReport(identity);
+        setFromCache(false);
+        setStatus(null);
+        setContext(null);
+        setEvents([]);
+        setOpened(false);
+        setNotices([]);
+      }
       setError("");
       if (!identity) return;
+      loading.current = identity;
       try {
-        const s = await api("/status");
+        const id = location.pathname.match(
+          /^\/app\/novedades\/([0-9a-f-]{36})\/?$/i,
+        )?.[1];
+        // Todo en una consulta: el relay arma la página con el último escaneo, sin
+        // volver a preguntar a Blackboard. Si no puede (escaneo viejo, seguimiento
+        // pausado, relay anterior), se usan las consultas de siempre.
+        const answer = await api(id ? "/page/" + id : "/page").catch(() => null);
+        const whole =
+          answer?.status && Array.isArray(answer.notices) && (!id || answer.notice?.notice)
+            ? answer
+            : null;
+        if (!mounted || version !== generation.current) return;
+        // Estado, lista y aviso salen a la vez: quien llega desde el correo ve su
+        // reporte sin esperar tres idas y vueltas seguidas. Un fallo de la lista o
+        // del aviso se guarda y solo cuenta si el estado dice que hay servicio.
+        const failed = (error: unknown) => ({ failed: error });
+        const [s, n, result] = whole
+          ? [whole.status, { notices: whole.notices, nextCursor: whole.nextCursor }, whole.notice]
+          : await Promise.all([
+              api("/status"),
+              api("/notices").catch(failed),
+              id ? api("/notices/" + id).catch(failed) : null,
+            ]);
         if (!mounted || version !== generation.current) return;
         setStatus(s);
         setPrefs(s.preferences);
         if (!s.available) {
           loaded.current = true;
+          setFromCache(false);
+          forgetReport();
           return;
         }
-        const n = await api("/notices");
-        if (!mounted || version !== generation.current) return;
+        if (n.failed) throw n.failed;
         setNotices(n.notices);
         setNext(n.nextCursor);
-        const id = location.pathname.match(
-          /^\/app\/novedades\/([0-9a-f-]{36})\/?$/i,
-        )?.[1];
+        const keep = (events: any[], context: any, opened: boolean) =>
+          !noCache.current &&
+          writeReport(identity, page, { status: s, notices: n.notices, next: n.nextCursor, events, context, opened });
         if (id) {
-          const result = await api("/notices/" + id);
-          if (!mounted || version !== generation.current) return;
+          if (result.failed) throw result.failed;
           setEvents(result.events ?? []);
+          // El reporte se muestra ya con su semana: abrirlo antes lo enseñaba a medias.
+          let contextError: unknown,
+            c: any = null;
+          if (whole) {
+            c = whole.context;
+            setContext(c);
+          } else if (result.notice.contextId)
+            try {
+              c = await api("/contexts/" + result.notice.contextId);
+              if (!mounted || version !== generation.current) return;
+              setContext(c);
+            } catch (e) {
+              contextError = e;
+            }
+          if (!mounted || version !== generation.current) return;
+          setOpened(true);
+          setFromCache(false);
           track("campus_proactive_notice_opened");
-          if (result.notice.contextId) {
-            const c = await api("/contexts/" + result.notice.contextId);
-            if (mounted && version === generation.current) setContext(c);
-          }
+          if (contextError) throw contextError;
+          keep(result.events ?? [], c, true);
           await api("/notices/" + id, "POST", {});
         } else if (s.preferences.enabled) {
-          await loadWeek(version);
+          if (whole?.context) {
+            setContext(whole.context);
+            weekPending.current = false;
+          }
+          const c = whole?.context ?? (await loadWeek(version));
+          if (mounted && version === generation.current) {
+            setFromCache(false);
+            if (c) keep([], c, false);
+          }
+        } else {
+          setFromCache(false);
+          forgetReport();
         }
         // Solo al terminar toda la cadena: si algo falló, el siguiente evento de
         // sesión vuelve a intentarlo.
@@ -341,6 +937,9 @@ export default function CampuUpdates() {
               ? e.message
               : "No pudimos consultar tus novedades.",
           );
+      } finally {
+        // Termine bien o mal, la siguiente revalidación puede volver a intentarlo.
+        if (version === generation.current) loading.current = null;
       }
     }
     void getCampusSession()
@@ -376,6 +975,10 @@ export default function CampuUpdates() {
   }
   async function save(value: Preferences) {
     const result = await api("/preferences", "POST", value);
+    if (!value.enabled) {
+      noCache.current = true;
+      forgetReport();
+    }
     track("campus_proactive_preferences_saved", {
       proactive_enabled: value.enabled,
       email_enabled: value.email,
@@ -385,14 +988,43 @@ export default function CampuUpdates() {
     setStatus((s: any) => ({ ...s, ...result }));
     setInfo(
       value.enabled
-        ? "Preferencias guardadas. Campu revisará tus fuentes y preparará tu resumen."
-        : "Seguimiento pausado. Puedes conservar o eliminar lo que ya preparó Campu.",
+        ? "Preferencias guardadas. Campito revisará tus fuentes y preparará tu resumen."
+        : "Seguimiento pausado. Puedes conservar o eliminar lo que ya preparó Campito.",
     );
   }
   const update = <K extends keyof Preferences>(key: K, value: Preferences[K]) =>
     setPrefs((p) => ({ ...p, [key]: value }));
+  // Vista simple solo con el seguimiento activo. Un aviso sin cambios concretos
+  // (el resumen semanal del correo) abre la misma vista; uno con cambios, o que
+  // aún no cargó, muestra el detalle completo.
+  const onNotice =
+    typeof location !== "undefined" &&
+    /^\/app\/novedades\/[0-9a-f-]{36}\/?$/i.test(location.pathname);
+  const simple = Boolean(
+    status?.available &&
+      prefs.enabled &&
+      ["active", "partial"].includes(status.status) &&
+      (!onNotice || opened),
+  );
+  const showDetail = !simple || more;
+  // Mientras no se sabe qué toca mostrar, se ve el hueco del reporte: ni el
+  // encabezado de bienvenida ni los ajustes, que aparecían un momento antes del
+  // reporte. Con el aviso abierto por su enlace, se espera hasta tenerlo entero.
+  const loadingReport =
+    !error &&
+    !unsubscribe &&
+    !fromCache &&
+    (!session ||
+      (session.authenticated &&
+        (!status ||
+          (onNotice &&
+            !opened &&
+            status.available &&
+            prefs.enabled &&
+            ["active", "partial"].includes(status.status)))));
   return (
     <div className="campu-updates">
+      {!simple && !loadingReport && (
       <header className="campu-heading">
         <img
           src="/assets/campu/campu-wave-v2-192.webp"
@@ -401,7 +1033,7 @@ export default function CampuUpdates() {
           height="84"
         />
         <div>
-          <p className="campu-eyebrow">Campu proactivo · Piloto UPC</p>
+          <p className="campu-eyebrow">Campito proactivo · Piloto UPC</p>
           <h1>Tu semana, un paso adelante.</h1>
           <p>
             Me encargo de revisar las novedades para que sepas qué cambió y
@@ -409,6 +1041,7 @@ export default function CampuUpdates() {
           </p>
         </div>
       </header>
+      )}
       {error && (
         <p role="alert" className="campu-alert">
           {error}
@@ -421,7 +1054,7 @@ export default function CampuUpdates() {
       )}
       {unsubscribe ? (
         <section className="campu-card">
-          <h2>Desactivar correos de Campu</h2>
+          <h2>Desactivar correos de Campito</h2>
           <p>Confirma para dejar de recibir estos avisos por correo.</p>
           <button
             disabled={busy}
@@ -439,7 +1072,25 @@ export default function CampuUpdates() {
         </section>
       ) : (
         <>
-          {!session && !error && <p role="status">Comprobando tu cuenta…</p>}
+          {loadingReport && (
+            <section className="campu-loading" role="status" aria-busy="true">
+              <span className="app-sr-only">Abriendo tu reporte…</span>
+              <div className="campu-home-top" aria-hidden="true">
+                <img
+                  src="/assets/campu/campu-wave-v2-192.webp"
+                  width="64"
+                  height="64"
+                  alt=""
+                />
+                <div>
+                  <i className="campu-bone campu-bone-title" />
+                  <i className="campu-bone campu-bone-line" />
+                </div>
+              </div>
+              <i className="campu-bone campu-bone-card" aria-hidden="true" />
+              <i className="campu-bone campu-bone-card" aria-hidden="true" />
+            </section>
+          )}
           {session && !session.authenticated && (
             <section className="campu-card">
               <h2>Tus novedades son privadas.</h2>
@@ -459,8 +1110,24 @@ export default function CampuUpdates() {
               </a>
             </section>
           )}
-          {status && (
+          {status && !loadingReport && (
             <>
+              {simple && (
+                <Home
+                  context={context}
+                  events={events}
+                  notices={notices}
+                  emailOn={prefs.email}
+                  checkedAt={status.lastSuccessAt}
+                  incomplete={Boolean(
+                    status.coverage && !status.coverage.complete,
+                  )}
+                  more={more}
+                  onMore={() => setMore((v) => !v)}
+                />
+              )}
+              {showDetail && (
+              <>
               <section className="campu-card campu-status">
                 <div>
                   <h2>{labels[status.status] ?? "Revisando tu conexión"}</h2>
@@ -506,7 +1173,7 @@ export default function CampuUpdates() {
                           checked={prefs.enabled}
                           onChange={(e) => update("enabled", e.target.checked)}
                         />
-                        Activar Campu proactivo
+                        Activar Campito proactivo
                       </label>
                       <label>
                         <input
@@ -710,7 +1377,7 @@ export default function CampuUpdates() {
                   {!notices.length && (
                     <p>
                       {prefs.enabled
-                        ? "El primer resumen aparecerá después de que Campu revise tus fuentes."
+                        ? "El primer resumen aparecerá después de que Campito revise tus fuentes."
                         : "Activa el seguimiento para que prepare tu primera semana."}
                     </p>
                   )}
@@ -760,37 +1427,9 @@ export default function CampuUpdates() {
                   </button>
                 </section>
               </div>
-              {!!events.length && (
-                <section className="campu-card">
-                  <h2>Cambios de este aviso</h2>
-                  {events.map((e) => (
-                    <div key={e.id}>
-                      <FactView
-                        fact={e.fact}
-                        removed={e.meaning === "removed"}
-                      />
-                      {e.meaning === "grade_published" && (
-                        <p>Antes no tenía nota registrada.</p>
-                      )}
-                      {typeof e.before?.weight === "number" &&
-                        e.before.weight !== e.fact.weight && (
-                          <p>Peso anterior registrado: {e.before.weight}%</p>
-                        )}
-                      {typeof e.before?.score === "number" && (
-                        <p>
-                          Nota anterior registrada: {e.before.score} /{" "}
-                          {e.before.maxScore ?? "máximo no especificado"}
-                        </p>
-                      )}
-                      {e.before?.dueAt && e.before.dueAt !== e.fact.dueAt && (
-                        <p>
-                          Vencimiento anterior registrado:{" "}
-                          {timestamp(e.before.dueAt)}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </section>
+              {!simple && <ChangesCard events={events} />}
+              {context?.upcoming && (
+                <UpcomingView upcoming={context.upcoming} />
               )}
               {context && (
                 <section className="campu-card campu-context">
@@ -836,6 +1475,7 @@ export default function CampuUpdates() {
                       ))}
                     </ul>
                   )}
+                  {context.prompt && (
                   <div className="campu-handoff">
                     <h3>Continúa con tu IA</h3>
                     <p>
@@ -863,6 +1503,7 @@ export default function CampuUpdates() {
                     </button>
                     <a href="/app/copilot/">Conectar Campus a mi IA →</a>
                   </div>
+                  )}
                   {!!context.claims.length && (
                     <div>
                       <h3>Lo programado en las fuentes</h3>
@@ -977,7 +1618,7 @@ export default function CampuUpdates() {
               <section className="campu-card campu-privacy">
                 <h2>Tú controlas lo que preparo.</h2>
                 <p>
-                  Campu revisa tus fuentes autorizadas y prepara avisos y
+                  Campito revisa tus fuentes autorizadas y prepara avisos y
                   contexto. El contenido preparado se procesa con Luna y
                   TypeSafe para preparar y verificar indicaciones, y con
                   AtomicMemory para recuperar preparaciones. Se conserva hasta
@@ -998,7 +1639,7 @@ export default function CampuUpdates() {
                   <div>
                     <p>
                       Se borrarán el historial, el contexto y los dispositivos
-                      de Campu proactivo. La eliminación de memoria externa
+                      de Campito proactivo. La eliminación de memoria externa
                       puede quedar pendiente hasta que el proveedor responda.
                     </p>
                     <button
@@ -1006,7 +1647,10 @@ export default function CampuUpdates() {
                       onClick={() =>
                         void guarded(async () => {
                           await removePushDevice();
+                          noCache.current = true;
+                          forgetReport();
                           const result = await api("/data", "DELETE", {});
+                          forgetReport();
                           track("campus_proactive_deleted");
                           setPrefs(initial);
                           setContext(null);
@@ -1036,6 +1680,8 @@ export default function CampuUpdates() {
                   </div>
                 )}
               </section>
+              </>
+              )}
             </>
           )}
         </>

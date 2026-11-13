@@ -312,6 +312,9 @@
 .ti-product-options input{margin-top:.2rem;accent-color:#087f5b}
 .ti-product-copy{display:grid;gap:5px;min-width:0;flex:1;font-size:.85rem;line-height:1.4}
 .ti-product-copy strong{font-size:1.05rem}
+.ti-price-original{margin-right:4px;color:#58717d;font-weight:400;font-size:.85em}
+.ti-discount-note{margin:0 0 10px;padding:8px 12px;border:1px solid #cfe9df;border-radius:10px;background:#e9f7f1;color:#087f5b;font-size:.85rem;font-weight:600}
+.ti-discount-note[hidden]{display:none}
 .ti-option-status{display:flex;align-items:center;gap:5px;font-size:12px;line-height:1.5;color:var(--app-muted,#506d7f)}
 .ti-option-status:before{content:"";width:6px;height:6px;flex:0 0 auto;border-radius:50%;background:#9cabb3}
 .ti-option-status[data-state=available]{color:#087052}
@@ -343,3 +346,8 @@
 .ti-payment-observation h4 { margin:0 0 6px; font-size:14px; font-weight:600; color:#775019; }
 .ti-payment-observation p { margin:0; font-size:13px; line-height:1.6; color:#634c2e; }
 @media(max-width:650px) { .ti-order .ti-payment-help { display:flex; justify-content:center; width:100%; min-height:44px; margin:16px 0 8px; box-sizing:border-box; text-align:center; } }
+.ti-discount{margin:16px 0 0;padding-top:14px;border-top:1px dashed #c7e2d5}.ti-discount-label{display:block;font-size:12px;font-weight:600;color:#284f42;margin:0 0 8px}
+.ti-discount-row{display:flex;gap:8px}.ti-discount-row input{flex:1 1 auto;min-width:0;height:42px;padding:0 12px;border:1px solid #c9ddd3;border-radius:10px;background:#fff;font:inherit;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:#102a3a}
+.ti-discount-row input::placeholder{color:#8aa39a;letter-spacing:.04em}.ti-discount-row input:focus-visible{outline:2px solid var(--app-link);outline-offset:1px;border-color:transparent}
+.ti-discount-apply{flex:0 0 auto;height:42px;padding:0 16px;border:1px solid #1d6b52;border-radius:10px;background:#fff;color:#1d6b52;font:inherit;font-size:13px;font-weight:600;cursor:pointer}.ti-discount-apply:hover{background:#f3fbf7}.ti-discount-apply:focus-visible{outline:2px solid var(--app-link);outline-offset:2px}.ti-discount-apply:disabled{opacity:.6;cursor:progress}
+.ti-discount-status{margin:8px 0 0;font-size:12px;line-height:1.5;color:#087f5b}.ti-discount-status[data-state="error"]{color:#b42318}

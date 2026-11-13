@@ -8,14 +8,14 @@ import AppSidebar from "../components/AppSidebar.astro";
 
 interface Props {
   title: string;
-  active: "profes" | "asistente" | "copilot" | "perfil" | "turnitin" | "biblioteca";
+  active: "profes" | "asistente" | "copilot" | "perfil" | "suscripcion" | "turnitin" | "biblioteca";
 }
 
 const { title, active } = Astro.props;
 const isChat = active === "profes" || active === "asistente";
 const nav = [
   { id: "asistente", label: CHARACTER_NAME, href: "/app/asistente/", icon: "users" },
-  { id: "copilot", label: "Conectar Campus a tu IA", href: "/app/copilot/", icon: "sparkles" },
+  { id: "copilot", label: "Con. Campus a tu IA", href: "/app/copilot/", icon: "sparkles" },
   ...(libraryServiceEnabled ? [{ id: "biblioteca", label: "Biblioteca", href: "/biblioteca/", icon: "file-text" }] : []),
   ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
   { id: "perfil", label: "Mi perfil", href: "/app/perfil/", icon: "user" },
@@ -40,8 +40,8 @@ const nav = [
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Campus" />
     <link rel="stylesheet" href="/app-dashboard.css?v=26" />
-    {isChat && <link rel="stylesheet" href="/profes-chat.css?v=26" />}
-    <script is:inline async src="/campus-session-bootstrap.js?v=2"></script>
+    {isChat && <link rel="stylesheet" href="/profes-chat.css?v=37" />}
+    <script is:inline async src="/campus-session-bootstrap.js?v=4"></script>
     {isChat && <script is:inline src="/campus-conversation-bootstrap.js?v=1" data-astro-rerun></script>}
     {/* The mounted chat owns its conversation URLs and browser history. */}
     {!isChat && <ClientRouter />}
@@ -85,7 +85,7 @@ const nav = [
 
       <nav class="app-mobile-nav" aria-label="Campus móvil" transition:persist="app-mobile-nav">
         {nav.map((item) => (
-          <a href={item.href} class:list={{ "is-active": active === item.id || (item.id === "asistente" && active === "profes") }} aria-current={active === item.id || (item.id === "asistente" && active === "profes") ? "page" : undefined}>
+          <a href={item.href} class:list={{ "is-active": active === item.id || (item.id === "asistente" && active === "profes") || (item.id === "perfil" && active === "suscripcion") }} aria-current={active === item.id || (item.id === "asistente" && active === "profes") || (item.id === "perfil" && active === "suscripcion") ? "page" : undefined}>
             {item.id === "asistente" ? (
               <img class="app-mobile-nav__character" src="/assets/campu/campu-wave-v2-96.webp" srcset="/assets/campu/campu-wave-v2-96.webp 96w, /assets/campu/campu-wave-v2-192.webp 192w" sizes="28px" width="28" height="28" alt="" aria-hidden="true" />
             ) : (

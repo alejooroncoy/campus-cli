@@ -553,7 +553,7 @@ export function initLibrary(root: HTMLElement) {
   class LibraryApiError extends Error { status:number; constructor(status:number,message:string){super(message);this.status=status;} }
   async function recoveryOwnerEmail(): Promise<string> {
     if (workspaceOwner) return workspaceOwner;
-    const response=await fetch("/api/app/session",{credentials:"same-origin",cache:"no-store",signal:AbortSignal.timeout(15000)});
+    const response=await fetch("/api/app/session/",{credentials:"same-origin",cache:"no-store",signal:AbortSignal.timeout(15000)});
     const session=await response.json();
     if(!response.ok||!session.authenticated||typeof session.email!=="string")throw new Error("Inicia sesión en Campus.");
     return session.email;

@@ -2,7 +2,7 @@
 // Cached names are a display preview only; APIs always validate the real session.
 (() => {
   if (!window.__campusSessionBootstrap) {
-    const promise = fetch('/api/app/session', {
+    const promise = fetch('/api/app/session/', {
       credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(8000),
     }).then(async response => {
       if (!response.ok) throw new Error('No se pudo comprobar la sesión.');
@@ -22,6 +22,8 @@
 
   function paint() {
     if (!preview) return;
+    document.querySelectorAll('[data-app-sidebar-guest-note]').forEach(element => { element.hidden = !!preview.authenticated; });
+    document.querySelectorAll('[data-app-sidebar-footer]').forEach(element => { element.classList.toggle('sidebar-footer--guest', !preview.authenticated); });
     if (!preview.authenticated) {
       const greeting = document.querySelector('[data-home-greeting]');
       if (greeting && greeting.textContent !== 'Bienvenido a Campus') greeting.textContent = 'Bienvenido a Campus';

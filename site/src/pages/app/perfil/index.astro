@@ -2,6 +2,14 @@
 import AppShell from "../../../layouts/AppShell.astro";
 import CorrectionEmailPreference from '../../../components/CorrectionEmailPreference';
 import MarketingAccountPreference from '../../../components/MarketingAccountPreference';
+import '../../../styles/profile.css';
+
+const sections = [
+  { id: 'cuenta', label: 'Cuenta', icon: 'user' },
+  { id: 'plan', label: 'Plan y uso', icon: 'file-text' },
+  { id: 'conexiones', label: 'Conexiones', icon: 'graduation-cap' },
+  { id: 'preferencias', label: 'Preferencias', icon: 'shield-check' },
+];
 ---
 <AppShell title="Mi perfil" active="perfil">
   <section class="app-profile-loading" data-app-profile-loading role="status" aria-live="polite" aria-atomic="true">
@@ -15,20 +23,17 @@ import MarketingAccountPreference from '../../../components/MarketingAccountPref
 
   <section class="app-profile-entry" data-app-profile-error hidden role="status">
     <div class="app-profile-entry__content">
-    <p class="app-profile-entry__eyebrow">NO PUDIMOS COMPROBAR TU CUENTA</p>
-    <h1>Vuelve a comprobar tu perfil.</h1>
-    <p>No pudimos verificar tu sesión, plan o consultas. Esto no significa que hayas cerrado sesión ni que tengas Campus Free.</p>
-    <button class="app-button" type="button" data-profile-refresh>Volver a intentar</button>
+      <h1>No pudimos cargar tu perfil</h1>
+      <p>Vuelve a intentarlo para consultar tu cuenta y tu saldo.</p>
+      <button class="app-button" type="button" data-profile-refresh>Volver a intentar</button>
     </div>
   </section>
 
   <section class="app-profile-entry" data-app-profile-guest hidden>
     <div class="app-profile-entry__content">
-      <p class="app-profile-entry__eyebrow">TU CUENTA GRATIS · CAMPUS FREE</p>
-      <h1>Tu siguiente paso: Campus Free.</h1>
+      <h1>Entra a Campus</h1>
       <p class="app-profile-entry__lead">Crea tu cuenta gratis para guardar tus conversaciones y recibir 25 consultas de bienvenida.</p>
-      <a class="app-button app-profile-entry__button" data-app-login href="/api/app/auth/start?return=%2Fapp%2Fperfil%2F">Crear cuenta gratis <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
-      <p class="app-profile-entry__first-time">¿Ya tienes cuenta? Usa el mismo botón para entrar.</p>
+      <a class="app-button app-profile-entry__button" data-app-login href="/api/app/auth/start?return=%2Fapp%2Fperfil%2F">Crear cuenta o iniciar sesión <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
       <p class="app-profile-entry__note">Las 25 consultas son de bienvenida; no se renuevan cada mes.</p>
       <p class="app-profile-entry__status" data-app-status role="status" aria-live="polite"></p>
     </div>
@@ -52,72 +57,144 @@ import MarketingAccountPreference from '../../../components/MarketingAccountPref
     <p class="app-profile-university__status" data-app-university-status role="status" aria-live="polite"></p>
   </section>
 
-  <div data-app-profile-authenticated hidden>
-    <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">Mi perfil</p><h1>Tu cuenta Campus.</h1><p>Tu plan y tu uso, en un solo lugar.</p></section>
-    <section class="app-profile-plan" data-profile-account aria-labelledby="profile-plan-title">
-      <p class="app-kicker">TU PLAN ACTUAL</p>
-      <h2 id="profile-plan-title" data-profile-label>Comprobando…</h2>
-      <p class="app-profile-plan__channel">Consultas en la web</p>
-      <p class="app-profile-plan__usage" data-profile-usage aria-live="polite" hidden></p>
-      <p data-profile-note>Estamos comprobando tu plan y tu saldo.</p>
-      <p class="app-profile-plan__mcp" data-profile-mcp hidden></p>
-      <div class="app-actions">
-        <a class="app-button app-profile-upgrade" href="/app/plus/" data-profile-upgrade hidden>Activar Campus Plus <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
-        <button class="app-button app-button--secondary" type="button" data-profile-refresh>Actualizar saldo</button>
-        <a class="app-text-link" href="/app/plus/" data-profile-manage hidden>Mi suscripción y pagos</a>
-      </div>
-    </section>
-    <div class="app-split"><section class="app-panel">
-      <h2>Datos de tu cuenta</h2>
-      <div class="app-profile-row"><span>Correo de tu cuenta</span><p data-app-email>Comprobando tu sesión…</p></div>
-      <div class="app-profile-row"><span>Universidad</span><p data-app-university-name>Por comprobar</p><button class="app-profile-change-university" type="button" data-app-change-university>Cambiar universidad</button></div>
-      <p class="app-profile-coverage" data-app-profile-coverage hidden>Puedes usar el agente para estudiar y preparar trabajos. Todavía no tenemos datos verificados de profesores o cursos de tu universidad.</p>
-      <div class="app-profile-row"><span>Matrícula (Banner)</span><p data-app-banner-status>Por comprobar</p></div>
-      <div class="app-profile-row" id="miupc" hidden>
-        <span>Notas actuales · Mi UPC</span>
-        <p data-miupc-status role="status" aria-live="polite" aria-atomic="true">Conecta Mi UPC una vez para consultar tus notas actuales desde Campus.</p>
-        <div class="app-actions">
-          <button class="app-button app-button--secondary" type="button" data-miupc-connect>Conectar Mi UPC</button>
-          <a class="app-text-link" data-miupc-login target="_blank" rel="noopener noreferrer" hidden>Abrir acceso seguro ↗</a>
+  <div class="campus-profile" data-app-profile-authenticated hidden>
+    <header class="profile-heading">
+      <h1>Mi perfil</h1>
+      <p>Gestiona tu cuenta y tus conexiones.</p>
+    </header>
+
+    <nav class="profile-index" aria-label="Secciones de Mi perfil">
+      {sections.map(({ id, label, icon }) => (
+        <a href={`#${id}`}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href={`/assets/lucide.svg#${icon}`}></use></svg>
+          {label}
+        </a>
+      ))}
+    </nav>
+
+    <div class="profile-overview">
+      <section class="profile-card profile-account" id="cuenta" aria-labelledby="profile-account-title">
+        <h2 id="profile-account-title">Tu cuenta</h2>
+        <div class="profile-identity">
+          <div class="profile-avatar" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="24" height="24"><use href="/assets/lucide.svg#user"></use></svg>
+            <span data-app-profile-initials hidden></span>
+          </div>
+          <div>
+            <p class="profile-identity__name" data-app-profile-name>Cuenta Campus</p>
+            <p data-app-email></p>
+          </div>
+        </div>
+        <div class="profile-row">
+          <div class="profile-row__body">
+            <h3>Universidad</h3>
+            <p data-app-university-name>Por comprobar</p>
+            <p class="profile-note" data-app-profile-coverage hidden>Puedes usar el agente para estudiar y preparar trabajos. Todavía no tenemos datos verificados de profesores o cursos de tu universidad.</p>
+          </div>
+          <button class="app-button app-button--secondary" type="button" data-app-change-university>Cambiar universidad</button>
+        </div>
+      </section>
+
+      <section class="profile-card profile-plan" id="plan" data-profile-account aria-labelledby="profile-plan-title">
+        <p class="profile-plan__label">Plan y uso</p>
+        <h2 id="profile-plan-title" data-profile-label>Comprobando…</h2>
+        <div class="profile-plan__quota">
+          <p class="profile-plan__label">Consultas web</p>
+          <p class="profile-plan__balance" data-profile-usage aria-live="polite" hidden></p>
+          <meter data-profile-meter aria-hidden="true" hidden></meter>
+          <p class="profile-note" data-profile-note>Estamos comprobando tu plan y tu saldo.</p>
+        </div>
+        <p class="profile-note" data-profile-mcp hidden></p>
+        <div class="profile-plan__actions">
+          <a class="app-button" href="/app/plus/" data-profile-upgrade hidden>Activar Campus Plus</a>
+          <a class="app-button" href="/app/plus/" data-profile-manage hidden>Suscripción y pagos</a>
+          <button class="app-button app-button--secondary" type="button" data-profile-refresh>Actualizar saldo</button>
+        </div>
+      </section>
+    </div>
+
+    <section class="profile-group" id="conexiones" aria-labelledby="profile-connections-title">
+      <header class="profile-group__heading">
+        <h2 id="profile-connections-title">Conexiones</h2>
+        <p>Consulta tus datos académicos y usa Campus desde tu IA.</p>
+      </header>
+      <div class="profile-card profile-list">
+        <div class="profile-row" data-app-banner hidden>
+          <svg class="profile-row__icon" viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><use href="/assets/lucide.svg#graduation-cap"></use></svg>
+          <div class="profile-row__body">
+            <h3>Matrícula (Banner)</h3>
+            <p data-app-banner-details>Horario y matrícula de la UPC.</p>
+          </div>
+          <span class="profile-badge" data-app-banner-status>Por comprobar</span>
+        </div>
+        <div class="profile-row" id="miupc" hidden>
+          <svg class="profile-row__icon" viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><use href="/assets/lucide.svg#book-open"></use></svg>
+          <div class="profile-row__body">
+            <h3>Notas actuales (Mi UPC)</h3>
+            <p data-miupc-status role="status" aria-live="polite" aria-atomic="true">Comprobando tu conexión…</p>
+          </div>
+          <div class="profile-row__actions">
+            <button class="app-button app-button--secondary" type="button" data-miupc-connect disabled>Conectar Mi UPC</button>
+            <a class="app-text-link" data-miupc-login target="_blank" rel="noopener noreferrer" hidden>Abrir acceso seguro ↗</a>
+          </div>
+        </div>
+        <div class="profile-row">
+          <svg class="profile-row__icon" viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><use href="/assets/lucide.svg#sparkles"></use></svg>
+          <div class="profile-row__body">
+            <h3>Tu asistente de IA (MCP)</h3>
+            <p>Usa tu cuenta Campus para consultar desde una IA compatible.</p>
+          </div>
+          <a class="app-button app-button--secondary" href="/app/copilot/">Conectar mi IA</a>
         </div>
       </div>
-      <div class="app-actions"><button class="app-button app-button--secondary" type="button" data-app-logout hidden>Cerrar sesión</button></div>
-    </section><aside class="app-panel"><p class="app-kicker">Una sola cuenta</p><h2>Tu Campus, conectado.</h2><p>Entra con la misma cuenta en la web y en tu conector MCP. Tu plan define el uso disponible en cada canal.</p><ul class="app-info-list"><li>Tu identidad en Campus</li><li>Un plan para la web y el MCP</li><li>Tus consultas web disponibles</li><li>Tu horario y matrícula de Banner</li></ul><a class="app-text-link" href="/app/copilot/">Usar Campus con mi IA <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><p>Campus Free incluye 25 consultas de bienvenida en la web y 15 de prueba en el conector MCP. Campus Plus incluye 100 consultas diarias en la web e ilimitadas mediante MCP.</p></aside></div>
-    <section class="app-panel"><p class="app-kicker">Campu proactivo · Piloto UPC</p><h2>Tu semana, un paso adelante.</h2><p>Resúmenes semanales, novedades de tu Aula Virtual y contexto preparado para seguir desde tu IA.</p><a class="app-text-link" href="/app/novedades/">Mis novedades y preferencias →</a></section>
-    <CorrectionEmailPreference client:load />
-    <MarketingAccountPreference client:load />
-    <details class="app-panel app-memory" data-memory-root>
-      <summary><strong>Lo que Campus recuerda de ti</strong></summary>
-      <p>Tus preferencias y metas entre chats. Puedes corregirlas u olvidarlas.</p>
-      <p data-memory-status role="status" aria-live="polite">Abre esta sección para ver tu memoria.</p>
-      <div data-memory-list></div>
-      <p>Desactivar también olvida los recuerdos guardados.</p>
-      <div class="app-actions">
-        <button class="app-button app-button--secondary" type="button" data-memory-refresh>Actualizar</button>
-        <button class="app-text-link" type="button" data-memory-toggle hidden>Desactivar memoria</button>
-        <button class="app-text-link" type="button" data-memory-clear hidden>Olvidar todos los recuerdos</button>
+    </section>
+
+    <section class="profile-group" id="preferencias" aria-labelledby="profile-preferences-title">
+      <header class="profile-group__heading">
+        <h2 id="profile-preferences-title">Preferencias</h2>
+        <p>Elige qué avisos recibes y qué datos compartes.</p>
+      </header>
+      <div class="profile-preferences">
+        <div class="profile-card profile-row">
+          <div class="profile-row__body">
+            <h3>Novedades de tu Aula Virtual <span class="profile-badge">Piloto UPC</span></h3>
+            <p>Resúmenes semanales y novedades de tus cursos.</p>
+          </div>
+          <a class="app-button app-button--secondary" href="/app/novedades/">Ver novedades y ajustes</a>
+        </div>
+        <CorrectionEmailPreference client:load />
+        <MarketingAccountPreference client:load />
+        <details class="profile-card app-memory" data-memory-root>
+          <summary>
+            <span><strong>Lo que Campus recuerda de ti</strong><span>Tus preferencias y metas entre chats.</span></span>
+            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><use href="/assets/lucide.svg#arrow-down"></use></svg>
+          </summary>
+          <div class="profile-memory__content">
+            <p data-memory-status role="status" aria-live="polite">Abre esta sección para ver tu memoria.</p>
+            <div data-memory-list></div>
+            <p>Desactivar la memoria también borra los recuerdos guardados.</p>
+            <div class="app-actions">
+              <button class="app-button app-button--secondary" type="button" data-memory-refresh>Actualizar</button>
+              <button class="app-text-link" type="button" data-memory-toggle hidden>Desactivar memoria</button>
+              <button class="app-text-link" type="button" data-memory-clear hidden>Olvidar todos los recuerdos</button>
+            </div>
+          </div>
+        </details>
       </div>
-    </details>
+    </section>
+
+    <footer class="profile-footer">
+      <a class="app-text-link" href="/opiniones-campus/#compartir">Opinar sobre Campus <span aria-hidden="true">↗</span></a>
+      <button class="app-button app-button--secondary" type="button" data-app-logout hidden>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#power"></use></svg>
+        Cerrar sesión
+      </button>
+    </footer>
   </div>
-<p><a class="app-text-link" href="/opiniones-campus/#compartir">Mi opinión sobre Campus →</a></p>
+  <p class="profile-guest-feedback"><a class="app-text-link" href="/opiniones-campus/#compartir">Opinar sobre Campus <span aria-hidden="true">↗</span></a></p>
 </AppShell>
 
 <script>
   import "../../../scripts/miupc-profile";
   import "../../../scripts/user-memory";
 </script>
-
-<style is:global>
-.app-memory { margin-top: 1.5rem; }
-.app-memory summary { cursor: pointer; color: var(--ink, #102f3e); font-size: 1.1rem; }
-.app-memory .memory-record { padding: 1rem 0; border-top: 1px solid #cbdde3; }
-.app-memory .memory-record p { white-space: pre-wrap; overflow-wrap: anywhere; }
-.app-memory .memory-record h3 { margin: 0; font-size: 1rem; }
-.app-memory small { color: #4b6b7b; font-size: .85rem; }
-.app-memory textarea { width: 100%; min-height: 5rem; padding: .75rem; border: 1px solid #b6d4df; border-radius: .75rem; color: #102f3e; background: white; font: inherit; resize: vertical; }
-.app-memory button.app-text-link { appearance: none; border: 0; background: transparent; padding: .5rem 0; min-height: 44px; color: #007d9d; font: inherit; font-weight: 600; cursor: pointer; text-align: left; }
-.app-memory button.app-text-link:hover { text-decoration: underline; }
-.app-memory button:focus-visible { outline: 2px solid #00b4df; outline-offset: 3px; }
-.app-memory .app-actions { flex-wrap: wrap; gap: 1rem; }
-.app-memory [data-memory-status] { color: #4b6b7b; }
-</style>

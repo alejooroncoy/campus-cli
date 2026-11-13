@@ -6,7 +6,7 @@
 const CACHE_NAME = "campus-shell-v17";
 const STATIC_ASSETS = [
   "/app-dashboard.css?v=26",
-  "/profes-chat.css?v=26",
+  "/profes-chat.css?v=37",
   "/assets/fonts/GoogleSansFlex-Regular.woff2",
   "/assets/fonts/GoogleSansFlex-SemiBold.woff2",
   "/assets/campus-logo.webp",
@@ -218,7 +218,7 @@ self.addEventListener("fetch", (event) => {
 self.addEventListener('push', event => {
   let value;try{value=event.data?.json();}catch{return;}
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value?.id??''))return;
-  event.waitUntil(self.registration.showNotification('Campu tiene novedades para ti',{
+  event.waitUntil(self.registration.showNotification('Campito tiene novedades para ti',{
     body:'Abre Campus para revisar el contexto preparado.',icon:'/apple-touch-icon.png',
     tag:'campu-'+value.id,data:{path:'/app/novedades/'+value.id+'/'},
   }));

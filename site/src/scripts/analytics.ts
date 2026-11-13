@@ -1,6 +1,6 @@
 import { beginAccountHandoff, completeAccountHandoff } from './account-onboarding.ts';
 import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
-import { clearEntry, rememberEntry } from './entry-attribution.ts';
+import { clearEntry, clearFirstEntry, firstEntry, rememberEntry } from './entry-attribution.ts';
 import { clearCampaign, rememberCampaign, syncCampaign } from './campaign-attribution.ts';
 import { syncMarketingPreference, clearMarketingPreference } from './marketing-consent.ts';
 import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
@@ -16,6 +16,9 @@ const eventProperties = (event: string, properties: Record<string, unknown>) => 
   ...safeSurveyProperties(event, properties),
 });
 
+// Conversion events carry the first observed entry channel (see docs/posthog-web-analytics.md).
+const entryEvents = new Set(['campus_account_access_completed', 'campus_plus_checkout_viewed', 'campus_plus_checkout_started',
+  'campus_plus_submit_started', 'campus_turnitin_submit_started', 'campus_turnitin_submitted']);
 type Event = { event: string; properties: Record<string, unknown> };
 const browser = typeof window !== 'undefined' && typeof location !== 'undefined'
   && typeof location.pathname === 'string' && typeof location.hostname === 'string';
@@ -142,7 +145,8 @@ export function track(event: string, properties: Record<string, unknown> = {}): 
     ...(isTest!==undefined?{is_test:isTest}:{}),
     selected_plan: selectedPlan(),
     viewport: innerWidth < 761 ? 'mobile' : innerWidth < 1200 ? 'tablet' : 'desktop',
-    environment: local ? 'development' : 'production', ...properties,
+    environment: local ? 'development' : 'production',
+    ...(entryEvents.has(event) && !local && key ? firstEntry(key) : {}), ...properties,
     analytics_audience:audience,is_internal:audience==='internal',
     ...(isTest!==undefined||properties.is_test===true?{is_test:isTest===true||properties.is_test===true}:{}),
   }) };
@@ -199,6 +203,8 @@ export function analyticsSession(session: CampusSession): void {
   track(firstReady ? 'campus_session_ready' : 'campus_usage_updated', { authenticated: session.authenticated, remaining: session.usage?.remaining, limit: session.usage?.limit });
 }
 export function resetAnalytics(forgetCampaign = false): void {
+  // The next person on a shared browser must not inherit this account's entry channel.
+  if (browser) clearFirstEntry();
   if (browser && forgetCampaign) clearCampaign();
   if (browser && forgetCampaign) clearMarketingPreference();
   if (browser) { try { clearMcpHandoff(sessionStorage); } catch { /* Optional. */ } }
@@ -218,6 +224,7 @@ function locationFor(element: Element): string {
   if (element.closest('.cp-hero')) return 'hero';
   if (element.closest('#investigacion')) return 'research';
   if (element.closest('.cp-final')) return 'closing';
+  if (element.closest('.prof-public__ask')) return 'professor_profile';
   return location.pathname.startsWith('/app/') ? 'app' : 'other';
 }
 let webView: { properties: Record<string, unknown>; started: number; scroll: ScrollDepth } | undefined;
@@ -298,7 +305,7 @@ export function setupAnalytics(): void {
     const target = support ? 'whatsapp' : provider ? 'connect' : url.pathname === '/api/app/auth/start' ? 'auth'
       : url.hash === '#planes' ? 'plans' : url.hash === '#incluye' ? 'features' : analyticsPage(url.pathname);
     const managingPlus = anchor.hasAttribute('data-profile-manage') || currentPlan === 'plus';
-    const intent = support ? 'support' : target === 'plus' ? managingPlus ? 'navigate' : 'plus' : plan ?? (target === 'auth' ? 'signup' : target === 'connect' ? 'connect' : ['turnitin_app', 'turnitin'].includes(target) ? 'turnitin' : target === 'app' && loc !== 'app' ? 'trial' : 'navigate');
+    const intent = support ? 'support' : loc === 'professor_profile' && target === 'assistant' ? 'ask' : target === 'plus' ? managingPlus ? 'navigate' : 'plus' : plan ?? (target === 'auth' ? 'signup' : target === 'connect' ? 'connect' : ['turnitin_app', 'turnitin'].includes(target) ? 'turnitin' : target === 'app' && loc !== 'app' ? 'trial' : 'navigate');
     if (['trial', 'free', 'plus'].includes(intent)) {
       try { sessionStorage.setItem('campus-selected-plan', intent); } catch { /* Optional. */ }
     }

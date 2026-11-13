@@ -32,6 +32,19 @@ export function engageCampaign(search: string): Record<string, string> {
     || content.length !== 1 || !engageContents.has(content[0])) return {};
   return { utm_source: source[0], utm_medium: medium[0], utm_campaign: campaign[0], utm_content: content[0] };
 }
+const whatsappCampaignLabels = {
+  utm_source: 'whatsapp',
+  utm_medium: 'social',
+  utm_campaign: 'mismo_prompt',
+};
+function whatsappCampaign(search: string): Record<string, string> {
+  const query = new URLSearchParams(search);
+  const matches = Object.entries(whatsappCampaignLabels).every(([key, value]) => {
+    const values = query.getAll(key);
+    return values.length === 1 && values[0] === value;
+  });
+  return matches && !query.has('utm_content') ? whatsappCampaignLabels : {};
+}
 // These are route families, never user-provided paths, slugs or conversation IDs.
 const paths: Record<string, string> = {
   home: '/', ucal: '/upc-compra-ucal/', app: '/app/', assistant: '/app/asistente/', connect: '/app/copilot/',
@@ -61,6 +74,8 @@ export function safeWebProperties(input: Record<string, unknown>): Record<string
     && engageContents.has(input.utm_content)) {
     safe.utm_source = input.utm_source; safe.utm_medium = input.utm_medium;
     safe.utm_campaign = input.utm_campaign; safe.utm_content = input.utm_content;
+  } else if (Object.entries(whatsappCampaignLabels).every(([key, value]) => input[key] === value)) {
+    Object.assign(safe, whatsappCampaignLabels);
   }
   const base = origin(input.$current_url);
   if (base && validPath(input.$pathname)) {
@@ -129,5 +144,5 @@ export function webPageProperties(pathname: string, siteOrigin: string, referrer
   const path = paths[analyticsPage(pathname)] ?? paths.other;
   return safeWebProperties({ $current_url: siteOrigin, $pathname: path,
     $referrer: referrer || '$direct', $device_type: width < 761 ? 'Mobile' : width < 1200 ? 'Tablet' : 'Desktop',
-    ...marketingCampaign(search), ...engageCampaign(search) });
+    ...marketingCampaign(search), ...engageCampaign(search), ...whatsappCampaign(search) });
 }

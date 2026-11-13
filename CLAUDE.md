@@ -73,6 +73,7 @@ GET /learn/api/public/v1/courses/{courseId}/contents/{id}/attachments/{id}/downl
 | `blackboard_get_course` | Single course details |
 | `blackboard_list_contents` | Course materials tree |
 | `blackboard_list_announcements` | Course announcements |
+| `blackboard_recent_changes` | What the professor added/edited lately, newest first, with folder path, files and Peru time (one call; folder dates in `list_contents` are not reliable for this) |
 | `blackboard_list_discussions` | Ultra course discussions |
 | `blackboard_get_discussion` | One Ultra discussion prompt/topic |
 | `blackboard_list_discussion_messages` | Top-level posts in an Ultra discussion |

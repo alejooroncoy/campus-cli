@@ -1,3 +1,4 @@
+import { forgetReport } from "../lib/campu-report-cache";
 import {reconcilePushOwner} from './proactive-device';
 import { ACCOUNT_HANDOFF_KEY } from './account-onboarding';
 import { analyticsSession, resetAnalytics } from "./analytics";
@@ -20,6 +21,8 @@ export type CampusSession = {
   profesAvailable?: boolean;
   features?: { schedulePlanning: boolean };
   usage?: { remaining: number; limit: number; period: string };
+  // Pregunta de muestra para invitados. Solo la ofrece el backend cuando está encendida y con cupo.
+  guestSample?: { available: boolean; remaining: number; limit: number };
   banner?: {
     connected: boolean;
     fullName?: string | null;
@@ -75,7 +78,7 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
   if (pendingSession) return pendingSession;
 
   const early = typeof window !== "undefined" ? window.__campusSessionBootstrap : undefined;
-  const request = early?.promise ?? fetch("/api/app/session", {
+  const request = early?.promise ?? fetch("/api/app/session/", {
     credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(8000),
   }).then(async response => {
     if (!response.ok) throw new Error("No se pudo comprobar la sesión.");
@@ -90,6 +93,9 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
     if (pendingSession !== pending) return getCampusSession();
     if (pendingSession === pending) {
       if(!value.accessUnavailable)await reconcilePushOwner(value.authenticated?(value.analyticsId??value.email??null):null).catch(()=>{});
+      // Otra cuenta o ninguna: el reporte guardado de este navegador ya no es suyo.
+      if (!value.accessUnavailable)
+        forgetReport(value.authenticated ? (value.analyticsId ?? value.email ?? "authenticated") : null);
       await publishSessionIdentity(value, () => pendingSession === pending);
       if (pendingSession !== pending) return getCampusSession();
       if (value.accessUnavailable) {
@@ -115,6 +121,7 @@ export function getCampusSession(forceRefresh = false): Promise<CampusSession> {
 
 export function clearCampusSession(notify = true): void {
   try { forgetOfflineOwner(localStorage); } catch { /* Local storage may be unavailable. */ }
+  forgetReport();
   cachedSession = undefined;
   pendingSession = undefined;
   if (typeof window !== "undefined") delete window.__campusSessionBootstrap;

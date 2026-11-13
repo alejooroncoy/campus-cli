@@ -5,6 +5,7 @@ export const events = new Set([
   'campus_agent_examples_viewed','campus_agent_example_started',
   'campus_agent_followup_saved','campus_agent_support_opened',
   'campus_guest_signup_invite_viewed','campus_guest_signup_started','campus_guest_signup_dismissed',
+  'campus_guest_sample_assigned','campus_guest_sample_served','campus_guest_sample_cta_clicked',
   'campus_materials_handoff_ready','campus_materials_handoff_copied',
   'campus_plus_offer_viewed','campus_plus_step_viewed','campus_plus_checkout_started','campus_plus_quote_expired','campus_feedback_submitted',
   'campus_agent_response_received','campus_agent_activity','campus_agent_interrupted',
@@ -21,6 +22,7 @@ export const events = new Set([
 ]);
 const categories: Record<string, readonly string[]> = {
   example:['professor_reviews','course_professors','grade_workbook','study_plan','academic_work'],
+  guest_sample_arm:['sample','gate'],
   selection_method:['quick','search','saved'],
   failure_reason:['wrong_answer','incorrect_information','not_found','technical_problem','other'],
   analytics_audience:['customer','internal','test','unknown'],
@@ -29,9 +31,9 @@ const categories: Record<string, readonly string[]> = {
   feedback_kind:['agent','plus'],reason:['resolved','not_resolved','price','unclear_value','payment_difficult','not_needed','technical_problem','other'],
   page: ['home', 'ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'other'],
   target: ['ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'other', 'plans', 'features', 'whatsapp', 'auth'],
-  location: ['header', 'hero', 'trial', 'free', 'plus', 'features', 'research', 'onboarding', 'faq', 'closing', 'footer', 'app', 'other'],
+  location: ['header', 'hero', 'trial', 'free', 'plus', 'features', 'research', 'onboarding', 'faq', 'closing', 'footer', 'app', 'professor_profile', 'other'],
   section: ['plans', 'features', 'research', 'onboarding', 'faq', 'closing'],
-  intent: ['trial', 'free', 'plus', 'connect', 'turnitin', 'signup', 'support', 'navigate'],
+  intent: ['trial', 'free', 'plus', 'connect', 'turnitin', 'signup', 'support', 'navigate', 'ask'],
   selected_plan: ['trial', 'free', 'plus'], current_plan: ['guest', 'free', 'plus', 'unavailable'],
   plus_status: ['payment_review', 'active', 'rejected'], offer: ['founder', 'standard'],
   step: ['plus', 'session', 'university', 'question', 'connector', 'upload', 'turnitin', 'document', 'payment', 'report', 'history'],
@@ -43,14 +45,28 @@ const categories: Record<string, readonly string[]> = {
   aiClient: ['chatgpt', 'gemini', 'claude', 'cursor', 'vscode'],
   aiClientSource: ['handoff_url'],
   upload_kind: ['document', 'receipt'], copy_kind: ['name', 'url'],
+  entry_channel: ['mcp', 'campaign', 'referral', 'direct'],
   viewport: ['mobile', 'tablet', 'desktop'], environment: ['development', 'production'],
 };
-const numbers = new Set(['remaining', 'limit', 'duration_ms', 'position', 'amount_cents']);
+const numbers = new Set(['remaining', 'limit', 'duration_ms', 'position', 'amount_cents', 'http_status']);
 const booleans = new Set(['proactive_enabled','email_enabled','push_enabled','callback_requested','authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test','is_internal']);
+// The source is closed per channel: a known AI client, a known campaign source
+// or, only for referrals, a bare hostname. Campaign IDs are numeric.
+const entrySources: Record<string, readonly string[]> = { mcp: categories.aiClient, campaign: ['meta', 'email'] };
+function entryValue(key: string, value: unknown, input: Record<string, unknown>): boolean {
+  if (typeof value !== 'string') return false;
+  const channel = input.entry_channel as string;
+  if (key === 'entry_campaign') return channel === 'campaign' && /^[0-9]{6,32}$/.test(value);
+  if (key === 'entry_source') return channel === 'referral'
+    ? /^[a-z0-9](?:[a-z0-9.-]{0,98}[a-z0-9])?$/.test(value) : Boolean(entrySources[channel]?.includes(value));
+  return false;
+}
 export function safeAnalyticsProperties(input: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(input).filter(([key, value]) =>
     (['trace_id','conversation_id'].includes(key) && typeof value==='string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(value))
-    || (Object.hasOwn(categories, key) && categories[key].includes(value as string))
+    || ((Object.hasOwn(categories, key) && categories[key].includes(value as string))
+      || (key === 'entry_landing' && categories.page.includes(value as string)))
+    || (['entry_source', 'entry_campaign'].includes(key) && entryValue(key, value, input))
     || (numbers.has(key) && typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 86_400_000)
     || (booleans.has(key) && typeof value === 'boolean')));
 }

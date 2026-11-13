@@ -13,6 +13,7 @@ export function profileAccountView(session: CampusSession | 'loading' | 'error')
     state: account.state,
     label: account.label,
     usage: validUsage ? `${usage.remaining} de ${usage.limit} consultas disponibles${usage.period === 'day' ? ' hoy' : ''}` : undefined,
+    balance: validUsage && usage.limit > 0 ? usage : undefined,
     note: account.state === 'guest'
       ? `Crea tu cuenta Campus o inicia sesión para hablar con ${CHARACTER_NAME}. Campus Free incluye 25 consultas de bienvenida.`
       : !verified ? account.description : !validUsage
@@ -23,7 +24,9 @@ export function profileAccountView(session: CampusSession | 'loading' | 'error')
           ? 'Has usado tus consultas de bienvenida. No se renuevan cada mes. Puedes activar Campus Plus para continuar.'
           : 'Son consultas de bienvenida: no se renuevan cada mes.'
         : 'Este saldo corresponde al uso en la web.',
-    mcp: verified && account.state === 'plus' ? 'Con Campus Plus: consultas ilimitadas mediante MCP, el conector para tu IA compatible. Son independientes de tu cuota web.' : undefined,
+    mcp: account.state === 'plus' ? 'Las consultas desde tu IA (MCP) son ilimitadas e independientes de tu cuota web.'
+      : account.state === 'free' ? 'Tu plan incluye 15 consultas de prueba desde tu IA (MCP).'
+      : undefined,
     upgrade: account.upgrade === true,
   };
 }
@@ -48,6 +51,14 @@ export function renderProfileAccount(root: HTMLElement | null, session: CampusSe
     } else {
       node.textContent = view[key] ?? '';
       node.hidden = !view[key];
+    }
+  }
+  const meter = root.querySelector<HTMLMeterElement>('[data-profile-meter]');
+  if (meter) {
+    meter.hidden = !view.balance;
+    if (view.balance) {
+      meter.max = view.balance.limit;
+      meter.value = view.balance.remaining;
     }
   }
   const upgrade = root.querySelector<HTMLElement>('[data-profile-upgrade]');

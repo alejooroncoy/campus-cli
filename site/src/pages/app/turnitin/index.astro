@@ -5,7 +5,7 @@ import TurnitinLogin from '../../../components/TurnitinLogin.astro';
 import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro';
 ---
 <AppShell title="Informes de Turnitin" active="turnitin">
-  <link rel="stylesheet" href="/turnitin.css?v=2" />
+  <link rel="stylesheet" href="/turnitin.css?v=4" />
   <div class="ti-order-shell">
     <header class="ti-order-head">
       <h1>{turnitinServiceEnabled ? "Turnitin" : "Tus revisiones de Turnitin"}</h1>
@@ -55,6 +55,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <p class="ti-muted">Elige un informe y adjunta tu archivo. Después verás los datos para pagar.</p>
                 <fieldset class="ti-product-picker">
                   <legend>¿Qué informe necesitas?</legend>
+                  <p class="ti-discount-note" data-ti-discount-note role="status" aria-live="polite" hidden></p>
                   <div class="ti-product-options">
                     <label><input type="radio" name="report" value="ai" /><span class="ti-product-copy"><span>Solo IA · academi.cx</span><strong data-ti-option-price="ai">S/6</strong><small class="ti-option-status" data-ti-option-status="ai">Comprobando…</small></span></label>
                     <label><input type="radio" name="report" value="similarity" /><span class="ti-product-copy"><span>Solo similitud · Turnitin</span><strong data-ti-option-price="similarity">S/9</strong><small class="ti-option-status" data-ti-option-status="similarity">Comprobando…</small></span></label>
@@ -71,7 +72,7 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <p class="ti-upload-methods"><span class="ti-mobile-method">Toca el recuadro para elegir o cambiar el archivo.</span><span class="ti-desktop-method">Haz clic, arrastra o pega un archivo copiado.</span></p>
                 <button class="ti-remove-file" type="button" data-ti-remove="document" hidden>Quitar documento</button>
                 <p class="ti-upload-error" id="ti-document-error" data-ti-upload-error="document" role="alert" hidden></p>
-                <details class="ti-file-requirements"><summary>Requisitos y procesamiento</summary><p class="ti-field-help" id="ti-document-help">PDF con texto seleccionable o Word (.docx). Verificamos que el archivo sea compatible antes de procesarlo.</p><p class="ti-field-help">Procesamiento mediante Turnitin API. Los resultados pueden diferir de una revisión institucional de Turnitin.</p></details>
+                <details class="ti-file-requirements"><summary>Requisitos y procesamiento</summary><p class="ti-field-help" id="ti-document-help">PDF con texto seleccionable o Word (.docx). Verificamos que el archivo sea compatible antes de procesarlo.</p><p class="ti-field-help">Procesamiento mediante un proveedor externo. Los resultados pueden diferir de una revisión institucional de Turnitin.</p></details>
                 <div class="ti-step-action"><button class="app-button" type="button" data-ti-next>Continuar al pago <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></button><span class="ti-field-help">Tu archivo se enviará al confirmar.</span></div>
               </section>
               <section class="ti-step" data-ti-request-step="payment" aria-labelledby="ti-payment-title" hidden>
@@ -83,6 +84,11 @@ import TurnitinReportViewer from '../../../components/TurnitinReportViewer.astro
                 <div class="ti-payment">
                   <h4 class="ti-payment-step-title" data-ti-manual-heading>1. Paga por Yape o Plin</h4>
                   <div class="ti-payment-top"><span>Total por tu revisión · <span data-ti-product-summary>Similitud + IA</span></span><strong data-ti-amount>S/14</strong></div>
+                  <div class="ti-discount" data-ti-discount hidden>
+                    <label class="ti-discount-label" for="ti-discount-code">¿Tienes un código de descuento?</label>
+                    <div class="ti-discount-row"><input id="ti-discount-code" name="discountCode" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="32" placeholder="CAMPUS-XXXXXX" aria-describedby="ti-discount-status" data-ti-discount-input /><button class="ti-discount-apply" type="button" data-ti-discount-apply>Aplicar</button></div>
+                    <p class="ti-discount-status" id="ti-discount-status" data-ti-discount-status role="status" aria-live="polite" hidden></p>
+                  </div>
                   <dl data-ti-manual-details><div><dt>Número de celular</dt><dd><span data-ti-phone>—</span><button type="button" class="ti-copy-phone" data-ti-copy-phone aria-label="Copiar número de Yape o Plin"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><use href="/assets/lucide.svg#copy"></use></svg><span data-ti-copy-label>Copiar</span></button></dd></div><div><dt>Titular</dt><dd data-ti-holder>—</dd></div></dl>
                   <p class="ti-field-help" data-ti-manual-help>Verifica el titular antes de pagar. La disponibilidad se confirma al enviar tu documento y comprobante.</p>
                 </div>

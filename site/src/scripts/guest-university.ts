@@ -1,7 +1,8 @@
 import { analyticsHeaders, track } from './analytics';
 import type { CampusSession } from './campus-session';
 
-export type UniversityChoice = { id: number | null; name: string; shortName: string | null };
+// `coverage` lo decide el backend (GET /api/app/universities): hay datos verificados de profesores y cursos.
+export type UniversityChoice = { id: number | null; name: string; shortName: string | null; coverage?: boolean };
 export const GUEST_UNIVERSITY_KEY = 'campus-university-choice-v1';
 let memoryChoice: UniversityChoice | null = null;
 let choicesRequest: Promise<UniversityChoice[]> | undefined;
@@ -12,7 +13,8 @@ function validChoice(value: unknown): value is UniversityChoice {
   return (item.id === null ? !!declaredUniversity(item.name) : Number.isSafeInteger(item.id) && item.id! > 0) && typeof item.name === 'string'
     && item.name.length > 0 && item.name.length <= 300
     && (item.id !== null || item.shortName === null)
-    && (item.shortName === null || (typeof item.shortName === 'string' && item.shortName.length <= 100));
+    && (item.shortName === null || (typeof item.shortName === 'string' && item.shortName.length <= 100))
+    && (item.coverage === undefined || (typeof item.coverage === 'boolean' && item.id !== null));
 }
 export function declaredUniversity(value: unknown): UniversityChoice | null {
   if (typeof value !== 'string') return null;
@@ -42,6 +44,7 @@ export function universityLabel(item: UniversityChoice): string {
   const country = chatUniversityCode(item) === 'UP' ? chatUniversityCountry(item) : undefined;
   return country ? `${label} · ${country}` : label;
 }
+// Solo presentación (sigla y país para distinguir las dos «UP»). La cobertura NO sale de aquí: viene del backend.
 const chatUniversities = [
   ['UPC', 'Universidad Peruana de Ciencias Aplicadas', 'Perú'],
   ['UPN', 'Universidad Privada del Norte', 'Perú'],
@@ -74,10 +77,10 @@ export function filterChatUniversities(choices: UniversityChoice[], input: strin
   }).sort((a, b) => Number(guestUniversitySupported(b)) - Number(guestUniversitySupported(a)));
 }
 export function guestUniversitySupported(item: UniversityChoice | null): boolean {
-  return chatUniversityCode(item) !== undefined;
+  return item?.coverage === true;
 }
 export function loadUniversityChoices(): Promise<UniversityChoice[]> {
-  return choicesRequest ??= fetch('/api/app/universities', {
+  return choicesRequest ??= fetch('/api/app/universities/', {
     credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(8000),
   }).then(async response => {
     if (!response.ok) throw new Error('No pudimos cargar las universidades. Inténtalo otra vez.');
@@ -86,6 +89,12 @@ export function loadUniversityChoices(): Promise<UniversityChoice[]> {
     if (!choices?.length) throw new Error('No pudimos cargar las universidades. Inténtalo otra vez.');
     return choices;
   }).catch(error => { choicesRequest = undefined; throw error; });
+}
+
+/** La elección guardada en el navegador puede traer una cobertura vieja: se vuelve a leer del catálogo. */
+export async function refreshGuestUniversity(current: UniversityChoice | null): Promise<UniversityChoice | null> {
+  if (!current || current.id === null) return current;
+  return (await loadUniversityChoices()).find(item => item.id === current.id) ?? current;
 }
 
 // Only the authenticated API can confirm a university or grant coverage.
@@ -104,7 +113,7 @@ export async function carryGuestUniversity(session: CampusSession, current: () =
       body: JSON.stringify(universitySelectionPayload(choice)), signal: AbortSignal.timeout(8000),
     });
     if (!saved.ok || !current()) return session;
-    const verified = await fetch('/api/app/session', {
+    const verified = await fetch('/api/app/session/', {
       credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(8000),
     });
     if (!verified.ok) return session;

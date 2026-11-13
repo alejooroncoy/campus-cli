@@ -31,7 +31,7 @@ const server = createServer((req, res) => {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, {once:true}));
       unlockImported();`);
   }
-  if (req.url === '/api/app/session') { res.setHeader('content-type', 'application/json'); return res.end('{"authenticated":true}'); }
+  if (req.url === '/api/app/session/' || req.url === '/api/app/session') { res.setHeader('content-type', 'application/json'); return res.end('{"authenticated":true}'); }
   if (req.url?.endsWith('/readme')) { res.setHeader('content-type', 'application/json'); return res.end(JSON.stringify({ html, truncated: false })); }
   if (req.url === '/unlock.js') { res.setHeader('content-type', 'text/javascript'); return res.end(bundle.outputFiles[0].text); }
   if (req.url === '/diagram.svg') { res.setHeader('content-type', 'image/svg+xml'); return res.end('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="60"><rect width="80" height="60" fill="green"/></svg>'); }

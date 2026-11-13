@@ -107,6 +107,124 @@ const prepared = {
       text: "Semana 10: evaluación.",
     },
   ],
+  // Semana 5 del ciclo: TB1 ya entregado; TP1 es lo siguiente y no es tarea en Blackboard.
+  upcoming: {
+    term: "202602",
+    week: 5,
+    from: "2026-09-21",
+    to: "2026-09-27",
+    counts: { thisWeek: 1, nextWeek: 1, notInBlackboard: 1 },
+    items: [
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: 'TB2 <img src=x onerror="window.injected=true">',
+        what: "entrega",
+        studentAction: true,
+        when: { kind: "week", text: "Semana 5" },
+        from: "2026-09-21",
+        to: "2026-09-27",
+        bucket: "this_week",
+        inBlackboard: true,
+        done: false,
+        next: false,
+        after: null,
+      },
+      {
+        courseId: "c2",
+        course: "Otro curso",
+        title: "Avance 4",
+        what: "entrega",
+        studentAction: true,
+        when: { kind: "date", text: "Viernes 25 septiembre" },
+        from: "2026-09-25",
+        to: "2026-09-25",
+        bucket: "this_week",
+        inBlackboard: true,
+        done: false,
+        next: true,
+        after: null,
+        dueAt: "2026-09-26T04:59:00.000Z",
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: "TP1",
+        evidenceIds: ["e1"],
+        source: "schedule",
+        what: "evaluación",
+        studentAction: true,
+        when: { kind: "week", text: "Semana 6" },
+        from: "2026-09-28",
+        to: "2026-10-04",
+        bucket: "next_week",
+        inBlackboard: false,
+        done: false,
+        next: true,
+        after: "TB1",
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: "Entrega del domingo",
+        what: "entrega",
+        studentAction: true,
+        when: { kind: "date", text: "domingo 4 de octubre 11:30 p.m." },
+        from: "2026-10-04",
+        to: "2026-10-04",
+        bucket: "next_week",
+        inBlackboard: true,
+        done: false,
+        next: false,
+        after: null,
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: "TB1",
+        what: "entrega",
+        studentAction: true,
+        when: { kind: "week", text: "Semana 4" },
+        from: "2026-09-14",
+        to: "2026-09-20",
+        bucket: "this_week",
+        inBlackboard: true,
+        done: true,
+        next: false,
+        after: null,
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: "Examen parcial",
+        what: "evaluación",
+        studentAction: true,
+        when: { kind: "week", text: "Semana 9" },
+        from: "2026-10-19",
+        to: "2026-10-25",
+        bucket: "later",
+        inBlackboard: true,
+        done: false,
+        next: false,
+        after: null,
+      },
+      {
+        courseId: "c1",
+        course: "Curso de prueba",
+        title: "Examen final",
+        what: "evaluación",
+        studentAction: true,
+        when: { kind: "relative", text: "dos semanas después de la PC2" },
+        from: null,
+        to: null,
+        bucket: "unscheduled",
+        inBlackboard: false,
+        done: false,
+        next: false,
+        after: null,
+      },
+    ],
+  },
   pending: ["La plantilla no especifica el alcance del avance."],
   prompt: `Usa campus_get_prepared_context con contextId "${contextId}".`,
   nextCursor: null,
@@ -186,9 +304,13 @@ try {
       failNotices = false,
       noticesFailed = 0,
       failWeek = false,
+      weekAlt = false,
+      weeklyNotice = false,
       weekFailed = 0,
       weekDelay = 0,
-      weekStarted = 0;
+      weekStarted = 0,
+      pageCalls = 0,
+      pageOn = false;
     await page.route("**/*", async (route) => {
       const url = new URL(route.request().url());
       if (url.origin !== base) return route.abort();
@@ -201,17 +323,33 @@ try {
             body: JSON.stringify(data),
           });
       if (path === "/api/app/session") return json(session);
+      const statusBody = () => ({
+        available: true,
+        status: "active",
+        preferences,
+        nickname,
+        suggestedNickname: "Alejo",
+        lastSuccessAt: "2026-11-09T13:00:00Z",
+        coverage: { complete: false },
+        pushPublicKey: "fake-public-key",
+      });
       if (path === "/api/app/proactive/status") {
         statusCalls++;
+        return json(statusBody());
+      }
+      // La página entera en una consulta. Por defecto el relay "no puede armarla" y se
+      // usan las consultas de siempre; con pageOn responde todo junto.
+      if (/^\/api\/app\/proactive\/page(\/[0-9a-f-]{36})?$/.test(path)) {
+        pageCalls++;
+        if (!pageOn)
+          return route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ error: "PAGE_NOT_READY" }) });
+        const conAviso = path.endsWith("/" + noticeId);
         return json({
-          available: true,
-          status: "active",
-          preferences,
-          nickname,
-          suggestedNickname: "Alejo",
-          lastSuccessAt: "2026-11-09T13:00:00Z",
-          coverage: { complete: false },
-          pushPublicKey: "fake-public-key",
+          status: statusBody(),
+          notices: [{ id: noticeId, title: "Ya preparé tu semana", createdAt: "2026-11-09T13:00:00Z", read: false, contextId }],
+          nextCursor: null,
+          notice: conAviso ? { notice: { id: noticeId, contextId }, events: weeklyNotice ? [] : events } : null,
+          context: prepared,
         });
       }
       if (path === "/api/app/proactive/week") {
@@ -251,8 +389,13 @@ try {
         return json(
           method === "POST"
             ? { ok: true }
-            : { notice: { id: noticeId, contextId }, events },
+            : { notice: { id: noticeId, contextId }, events: weeklyNotice ? [] : events },
         );
+      if (path === "/api/app/proactive/week" && weekAlt)
+        return json({
+          ...prepared,
+          upcoming: { ...prepared.upcoming, items: [prepared.upcoming.items[0]] },
+        });
       if (
         path === "/api/app/proactive/week" ||
         path === "/api/app/proactive/contexts/" + contextId
@@ -278,7 +421,137 @@ try {
       return json({});
     });
     try {
+      // El detalle (ajustes, cursos, lo que se revisó) está detrás de un botón.
+      const openDetail = async () => {
+        const boton = page.getByRole("button", { name: /Ajustes y detalle/ });
+        const detalle = page.getByRole("heading", { name: "Cómo quieres que te avise" });
+        await boton.or(detalle).first().waitFor();
+        if (await boton.count()) await boton.click();
+      };
+      // Desde el enlace del correo no debe verse, ni un momento, la bienvenida ni los ajustes.
+      await page.addInitScript(() => {
+        window.__campuFlash = [];
+        new MutationObserver(() => {
+          for (const sel of [".campu-heading", ".campu-status"])
+            if (document.querySelector(sel) && !window.__campuFlash.includes(sel)) window.__campuFlash.push(sel);
+        }).observe(document, { childList: true, subtree: true });
+      });
+      const pedidas = [];
+      const anotar = (req) => {
+        const u = new URL(req.url());
+        if (u.pathname.startsWith("/api/app/")) pedidas.push(req.method() + " " + u.pathname);
+      };
+      page.on("request", anotar);
       await page.goto(base + "/app/novedades/" + noticeId + "/");
+      // Un aviso de cambios abre con el cambio primero, no con los ajustes.
+      const cambios = page.locator(".campu-home .campu-changes");
+      await cambios.waitFor();
+      page.off("request", anotar);
+      // Ninguna consulta rebota por la barra final, y el aviso y su semana se piden una sola vez.
+      assert.deepEqual(pedidas.filter((r) => !r.endsWith("/")), [], "todas con barra final");
+      for (const ruta of ["/api/app/proactive/status/", "/api/app/proactive/notices/" + noticeId + "/", "/api/app/proactive/contexts/" + contextId + "/"])
+        assert.equal(pedidas.filter((r) => r === "GET " + ruta).length, 1, ruta);
+      // Si el adelanto falla por la red, la página lo vuelve a pedir y abre el reporte igual.
+      let cortes = 0;
+      const cortar = (route) => (cortes++ === 0 ? route.abort() : route.fallback());
+      await page.route("**/api/app/proactive/notices/" + noticeId + "/", cortar);
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      await page.unroute("**/api/app/proactive/notices/" + noticeId + "/", cortar);
+      assert.ok(cortes >= 2, "se volvió a pedir el aviso");
+      // Con el relay armando la página: una sola consulta trae el reporte entero, sin
+      // pedir estado, lista, aviso ni semana por separado.
+      await page.evaluate(() => localStorage.removeItem("campu_report_v1"));
+      pageOn = true;
+      const enUna = [];
+      const anotarUna = (req) => {
+        const u = new URL(req.url());
+        if (u.pathname.startsWith("/api/app/proactive/")) enUna.push(req.method() + " " + u.pathname);
+      };
+      page.on("request", anotarUna);
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      await page.waitForTimeout(300);
+      page.off("request", anotarUna);
+      pageOn = false;
+      assert.deepEqual(
+        enUna.filter((r) => r.startsWith("GET ")),
+        ["GET /api/app/proactive/page/" + noticeId + "/"],
+        "una sola consulta de lectura",
+      );
+      assert.ok(await page.locator(".campu-week").count(), "con su semana");
+      // Si /page falla por la red, no se vuelve a pedir: se usan las consultas de siempre.
+      const pedidasCorte = [];
+      const anotarCorte = (req) => {
+        const u = new URL(req.url());
+        if (u.pathname.startsWith("/api/app/proactive/")) pedidasCorte.push(req.method() + " " + u.pathname);
+      };
+      const cortarPagina = (route) => route.abort();
+      await page.route("**/api/app/proactive/page/**", cortarPagina);
+      page.on("request", anotarCorte);
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      page.off("request", anotarCorte);
+      await page.unroute("**/api/app/proactive/page/**", cortarPagina);
+      assert.equal(pedidasCorte.filter((r) => r === "GET /api/app/proactive/page/" + noticeId + "/").length, 1, "/page se pide una vez");
+      // Servidor lento y la sesión revalidándose a mitad de la carga: la carga en curso
+      // no se reinicia, así que cada consulta sale una sola vez y el reporte termina.
+      await page.evaluate(() => localStorage.removeItem("campu_report_v1"));
+      const pedidasLentas = [];
+      const anotarLentas = (req) => {
+        const u = new URL(req.url());
+        if (u.pathname.startsWith("/api/app/proactive/")) pedidasLentas.push(req.method() + " " + u.pathname);
+      };
+      const muyLento = async (route) => { await new Promise((r) => setTimeout(r, 1500)); return route.fallback(); };
+      await page.route("**/api/app/proactive/**", muyLento);
+      page.on("request", anotarLentas);
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      for (let i = 0; i < 3; i++) {
+        await page.waitForTimeout(400);
+        await page.evaluate((detail) => window.dispatchEvent(new CustomEvent("campus:session-updated", { detail })), session);
+      }
+      await cambios.waitFor();
+      page.off("request", anotarLentas);
+      await page.unroute("**/api/app/proactive/**", muyLento);
+      for (const ruta of ["/api/app/proactive/status/", "/api/app/proactive/notices/" + noticeId + "/"])
+        assert.equal(pedidasLentas.filter((r) => r === "GET " + ruta).length, 1, "sin reinicios: " + ruta);
+      // Segunda visita: el reporte guardado aparece al instante, aunque el servidor tarde.
+      assert.ok(await page.evaluate(() => localStorage.getItem("campu_report_v1")), "quedó guardado");
+      const lento = async (route) => { await new Promise((r) => setTimeout(r, 4000)); return route.fallback(); };
+      await page.route("**/api/app/proactive/**", lento);
+      const inicio = Date.now();
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor({ timeout: 3000 });
+      assert.ok(Date.now() - inicio < 3000, "abre con lo guardado sin esperar al servidor");
+      await page.unroute("**/api/app/proactive/**", lento);
+      // Lo guardado de otra cuenta se borra en cuanto la sesión dice quién eres.
+      await page.evaluate(() => {
+        const g = JSON.parse(localStorage.getItem("campu_report_v1"));
+        localStorage.setItem("campu_report_v1", JSON.stringify({ ...g, owner: "campus:otra-cuenta" }));
+      });
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      await cambios.waitFor();
+      assert.equal(
+        JSON.parse(await page.evaluate(() => localStorage.getItem("campu_report_v1")) ?? "{}").owner,
+        session.analyticsId,
+        "lo de otra cuenta se reemplaza por el reporte propio",
+      );
+      // Lo guardado nunca lleva el pedido preparado para la IA.
+      assert.ok(!(await page.evaluate(() => localStorage.getItem("campu_report_v1") ?? "")).includes('"prompt"'), "sin pedido para la IA");
+      assert.deepEqual(await page.evaluate(() => window.__campuFlash), [], "nada parpadea antes del reporte");
+      assert.equal(await page.locator(".campu-loading").count(), 0);
+      const titularCambio = (await page.locator(".campu-home h1").innerText()).replace(/\s+/g, " ");
+      assert.match(titularCambio, /^(Encontré \d+ cambios en tus cursos\.|Cambió |Publicaron |Ya no aparece|Hay un anuncio)/, titularCambio);
+      assert.equal(await page.getByRole("heading", { name: "Cómo quieres que te avise" }).count(), 0);
+      assert.match(await cambios.innerText(), /nota oficial en mi upc/i, "el cambio se ve sin abrir nada");
+      // Y el orden: el cambio va antes que lo que viene.
+      const orden = await page.evaluate(() => {
+        const q = (s) => document.querySelector(s);
+        const c = q(".campu-home .campu-changes"), w = q(".campu-home .campu-week");
+        return !w || Boolean(c.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING);
+      });
+      assert.equal(orden, true, "el cambio va primero");
+      await openDetail();
       await page
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
         .waitFor();
@@ -291,6 +564,39 @@ try {
       );
       assert.ok(await page.getByText("Antes no tenía nota registrada.").count());
       assert.ok(await page.getByText("Peso: 15%").count());
+      // Lo que viene: Campito lo cuenta en una frase y la tira muestra cinco celdas.
+      const viene = page.locator(".campu-upcoming");
+      await viene.locator(".campu-says").waitFor();
+      const frase = (await viene.locator(".campu-says p").innerText()).replace(/\s+/g, " ");
+      assert.ok(frase.startsWith("Esta semana tienes 2 entregas"), frase);
+      // Un domingo sigue siendo de su semana: la próxima tiene dos cosas.
+      assert.ok(frase.endsWith("La próxima, 2 entregas."), frase);
+      const celdas = viene.getByRole("tab");
+      assert.equal(await celdas.count(), 5);
+      assert.deepEqual(
+        await celdas.evaluateAll((l) => l.map((b) => b.disabled)),
+        [false, false, true, true, false],
+      );
+      // Abre en la primera celda con algo; el título con HTML queda como texto.
+      assert.equal(await celdas.nth(0).getAttribute("aria-selected"), "true");
+      assert.ok(await viene.locator("li").getByText("TB2 <img", { exact: false }).count());
+      assert.equal(await viene.getByText("TB1", { exact: true }).count(), 0);
+      await viene.getByRole("tab", { name: /Próxima/ }).click();
+      assert.ok(await viene.locator("li").getByText("TP1", { exact: true }).count());
+      assert.ok(await viene.getByText("28 set–4 oct", { exact: true }).count());
+      assert.ok(await viene.locator("li").getByText("Entrega del domingo", { exact: true }).count());
+      assert.ok(await viene.getByText("4 oct", { exact: true }).count());
+      assert.ok(await viene.getByText("Aún no está en Blackboard").count());
+      await viene.getByRole("tab", { name: /Sig\. semanas/ }).click();
+      assert.ok(await viene.locator("li").getByText("Examen parcial", { exact: true }).count());
+      assert.equal(await viene.locator("li").getByText("TP1", { exact: true }).count(), 0);
+      // Lo que no tiene fecha no entra en la tira: va en una línea aparte.
+      assert.equal(await viene.locator("li").getByText("Examen final", { exact: true }).count(), 0);
+      assert.equal(
+        (await viene.locator(".campu-undated").innerText()).trim(),
+        "Sin fecha confirmada: Examen final",
+      );
+      assert.equal(await page.evaluate(() => !!window.injected), false);
       assert.ok(await page.getByText("Ya no aparece en la fuente", { exact: false }).count());
       assert.ok(
         await page
@@ -369,6 +675,9 @@ try {
         )
         .waitFor();
       assert.equal(deleted, 1);
+      // Borrar deja el navegador sin reporte guardado, también si una carga termina después.
+      await page.waitForTimeout(300);
+      assert.equal(await page.evaluate(() => localStorage.getItem("campu_report_v1")), null, "sin reporte guardado tras borrar");
       assert.equal(
         await page.getByText("Trabajo privado", { exact: false }).count(),
         0,
@@ -401,6 +710,9 @@ try {
       for (let i = 0; i < 50 && !noticesFailed; i++)
         await page.waitForTimeout(100);
       assert.ok(noticesFailed >= 1);
+      // El fallo puede llegar por el adelanto antes de que la página escuche eventos:
+      // se espera a que la página lo muestre para que el reintento no se pierda.
+      await page.locator(".campu-alert").first().waitFor();
       failNotices = false;
       const antesReintento = statusCalls;
       await page.evaluate(
@@ -410,6 +722,9 @@ try {
           ),
         session,
       );
+      // Con el aviso ya abierto, la vista pasa a la simple: el detalle se abre después.
+      await page.locator(".campu-home").waitFor();
+      await openDetail();
       await page
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
         .waitFor();
@@ -421,6 +736,7 @@ try {
       for (let i = 0; i < 50 && !weekFailed; i++)
         await page.waitForTimeout(100);
       assert.ok(weekFailed >= 1);
+      await openDetail();
       const apodoSemana = page.getByLabel("Mi apodo");
       await apodoSemana.fill("Ale");
       failWeek = false;
@@ -453,9 +769,95 @@ try {
           ),
         session,
       );
+      await openDetail();
       await page
         .getByRole("heading", { name: "Esto es lo que pude revisar." })
         .waitFor({ timeout: 8000 });
+      // Vista simple: una frase, lo próximo y lo nuevo por día; el detalle, tras un botón.
+      await page.clock.setFixedTime(new Date("2026-09-22T15:00:00-05:00"));
+      await page.goto(base + "/app/novedades/");
+      const home = page.locator(".campu-home");
+      await home
+        .locator("h1")
+        .getByText("Esta semana tienes", { exact: false })
+        .waitFor();
+      const titular = (await home.locator("h1").innerText()).replace(/\s+/g, " ");
+      assert.ok(titular.startsWith("Esta semana tienes 2 entregas"), titular);
+      assert.equal(await page.evaluate(() => !!window.injected), false);
+      // Dos entregas la misma semana, de dos cursos, cada una con su curso y su hora.
+      const semana = (await home.locator(".campu-week").innerText()).replace(/\s+/g, " ");
+      assert.ok(semana.includes("TB2 <img"), semana);
+      assert.ok(semana.includes("Curso de prueba"), semana);
+      assert.ok(semana.includes("Esta semana · 21–27 set"), semana);
+      assert.ok(semana.includes("Avance 4") && semana.includes("Otro curso"), semana);
+      assert.match(semana, /En 3 días · 25 set · (11:59|23:59)/);
+      // Lo que no está publicado se dice, y lo de la próxima semana va aparte.
+      assert.ok(/Más adelante.*TP1.*Aún sin publicar/.test(semana), semana);
+      // La hora que escribe el cronograma se muestra en 24 horas aunque Blackboard no la tenga.
+      assert.match(semana, /Entrega del domingo.*4 oct · 23:30/, semana);
+      // Una entrega se abre para ver de dónde sale, con ratón y con teclado.
+      const tp1 = home.locator(".campu-item", { hasText: "TP1" });
+      const cabeza = tp1.locator(".campu-item-head");
+      assert.equal(await cabeza.getAttribute("aria-expanded"), "false");
+      assert.equal(await tp1.locator(".campu-item-more").count(), 0);
+      await cabeza.click();
+      assert.equal(await cabeza.getAttribute("aria-expanded"), "true");
+      const mas = (await tp1.locator(".campu-item-more").innerText()).replace(/\s+/g, " ");
+      assert.ok(mas.includes("De dónde lo sé") && mas.includes("Sílabo oficial · Página 2"), mas);
+      assert.ok(mas.includes("Semana 10: evaluación."), mas);
+      assert.ok(mas.includes("Todavía no está como tarea en Blackboard"), mas);
+      await cabeza.click();
+      assert.equal(await cabeza.getAttribute("aria-expanded"), "false");
+      await cabeza.focus();
+      await page.keyboard.press("Enter");
+      assert.equal(await cabeza.getAttribute("aria-expanded"), "true");
+      await page.keyboard.press("Enter");
+      assert.equal(await cabeza.getAttribute("aria-expanded"), "false");
+      // Una entrega publicada en Blackboard no dice que falte publicarla.
+      const avance = home.locator(".campu-item", { hasText: "Avance 4" });
+      await avance.locator(".campu-item-head").click();
+      assert.equal(await avance.locator(".campu-item-more").getByText("Todavía no está como tarea").count(), 0);
+      await avance.locator(".campu-item-head").click();
+      // Las dos de esta semana y, aparte, lo que viene después (no más de tres).
+      const tarjetas = await home.locator(".campu-week .campu-item").count();
+      assert.ok(tarjetas >= 4 && tarjetas <= 5, String(tarjetas));
+      assert.equal(await home.locator(".campu-week ul").first().locator(".campu-item").count(), 2);
+      assert.equal(await home.locator(".campu-day h2").first().innerText(), "Hoy");
+      assert.equal(
+        await home.getByRole("link", { name: /Ya preparé tu semana/ }).getAttribute("href"),
+        "/app/novedades/" + noticeId + "/",
+      );
+      // Antes se guardaron las preferencias sin correo.
+      assert.equal(
+        await home.locator(".campu-home-foot span").innerText(),
+        preferences.email ? "Te aviso por correo" : "Sin avisos por correo",
+      );
+      // La cobertura incompleta no se esconde con el detalle.
+      assert.ok(await home.getByText("Me faltan fuentes por revisar", { exact: false }).count());
+      // Nada de ajustes ni de detalle hasta que se pidan.
+      const ajustes = page.getByRole("heading", { name: "Cómo quieres que te avise" });
+      assert.equal(await ajustes.count(), 0);
+      assert.equal(await page.locator(".campu-context").count(), 0);
+      await home.getByRole("button", { name: /Ajustes y detalle/ }).click();
+      await ajustes.waitFor();
+      await home.getByRole("button", { name: /Ocultar ajustes/ }).click();
+      assert.equal(await ajustes.count(), 0);
+      // El resumen cambia con la celda elegida ya vacía: vuelve a la primera con algo.
+      weeklyNotice = true;
+      await page.goto(base + "/app/novedades/" + noticeId + "/");
+      // El aviso sin cambios (como el del correo) abre la vista simple, con el detalle plegado.
+      await page.locator(".campu-home").waitFor();
+      assert.equal(await page.locator(".campu-heading").count(), 0);
+      await openDetail();
+      const cambio = page.locator(".campu-upcoming");
+      await cambio.getByRole("tab", { name: /Próxima/ }).click();
+      weekAlt = true;
+      await page.getByRole("button", { name: "Ver mi resumen de esta semana" }).click();
+      await cambio.locator("li").getByText("TB2 <img", { exact: false }).waitFor();
+      weekAlt = false;
+      assert.equal(await cambio.locator("li").count(), 1);
+      assert.equal(await cambio.getByRole("tab").first().getAttribute("aria-selected"), "true");
+      weeklyNotice = false;
       assert.deepEqual(errors, []);
       console.log(
         JSON.stringify({
@@ -463,6 +865,7 @@ try {
           weekInFlightRace: true,
           retryWeekWithoutReset: true,
           retryAfterFailure: true,
+          simpleHome: true,
           copy: true,
           preferences: true,
           noAutomaticPermission: true,
