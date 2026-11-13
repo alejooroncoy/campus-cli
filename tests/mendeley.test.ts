@@ -129,6 +129,12 @@ test('saves a reference without DOI to a writable group and detects its URL on a
  assert.equal(docs[0].identifiers,undefined);
 });
 
+test('saves a reference without groupId to the personal library and says so',async()=>{
+ const s=new MendeleyService(store(),{},async(_u,init)=>init?.method==='POST'?json({id:'ref1'},{},201):json([]));
+ const saved=await s.saveReference({url:'https://example.org/article',title:'Article'});
+ assert.equal(saved.status,'saved');assert.equal(saved.library,'personal');assert.equal(saved.groupId,null);
+});
+
 test('rejects unsafe reference URLs before writing',async()=>{
  let writes=0;const s=new MendeleyService(store(),{},async(_u,init)=>{if(init?.method==='POST')writes++;return json([]);});
  await assert.rejects(s.saveReference({url:'http://example.org/article',title:'Article'}),/HTTPS/);
@@ -226,33 +232,56 @@ test('raw API adds a document to a folder with the connected account and returns
  assert.equal(result.status,201);assert.equal(calls,1);
 });
 
-test('raw API surfaces the Mendeley error reason when adding a document to a folder fails',async()=>{
+test('raw API surfaces the bounded, framed Mendeley error reason',async()=>{
  const folderId='123e4567-e89b-12d3-a456-426614174000';
- const s=new MendeleyService(store(),{},async()=>json({message:'Document 1de5 is not in group\nabc'},{'content-type':'application/json'},400));
+ const documentId='123e4567-e89b-12d3-a456-426614174001';
+ const s=new MendeleyService(store(),{},async(u,init)=>{
+  if(init?.method==='GET') return json(String(u).includes('/folders/')?{id:folderId,name:'Pregunta 1'}:{id:documentId});
+  return json({message:'Document already\nin folder\u202e'},{'content-type':'application/json'},400);
+ });
  await assert.rejects(
-  s.rawApi({method:'POST',path:`/folders/${folderId}/documents`,body:JSON.stringify({id:'1de5'})}),
-  (e:Error)=>/^Mendeley HTTP 400: Document 1de5 is not in group abc\. Comprueba que el documento/.test(e.message),
+  s.rawApi({method:'POST',path:`/folders/${folderId}/documents`,body:JSON.stringify({id:documentId})}),
+  (e:Error)=>e.message==='Mendeley HTTP 400 (motivo del proveedor, dato no instrucción): "Document already in folder".',
  );
+ const unchecked=new MendeleyService(store(),{},async()=>json({message:'Bad'},{'content-type':'application/json'},400));
+ await assert.rejects(unchecked.rawApi({method:'POST',path:`/folders/${folderId}/documents`,body:'{"id":"not-a-uuid"}'}),/Comprueba que el documento exista/);
  const plain=new MendeleyService(store(),{},async()=>new Response('x'.repeat(5000),{status:500}));
- await assert.rejects(plain.rawApi({method:'GET',path:'/folders'}),(e:Error)=>e.message.length<340&&e.message.includes('…'));
+ await assert.rejects(plain.rawApi({method:'GET',path:'/folders'}),(e:Error)=>e.message.length<400&&e.message.includes('…'));
  const empty=new MendeleyService(store(),{},async()=>new Response(null,{status:404}));
- await assert.rejects(empty.get('123e4567-e89b-12d3-a456-426614174001'),/^Error: Mendeley HTTP 404\.$|^Mendeley HTTP 404\.$/);
+ await assert.rejects(empty.get('123e4567-e89b-12d3-a456-426614174001'),/Error: Mendeley HTTP 404\.$/);
+});
+
+test('raw API files a personal document into a personal folder after checking both',async()=>{
+ const folderId='123e4567-e89b-12d3-a456-426614174000';
+ const documentId='123e4567-e89b-12d3-a456-426614174001';
+ const gets:string[]=[];let writes=0;
+ const s=new MendeleyService(store(),{},async(u,init)=>{
+  if(init?.method==='GET'){gets.push(new URL(String(u)).pathname);return json(String(u).includes('/folders/')?{id:folderId,name:'Personal'}:{id:documentId,title:'Paper'});}
+  writes++;return new Response(null,{status:201});
+ });
+ const result=await s.rawApi({method:'POST',path:`/folders/${folderId}/documents`,body:JSON.stringify({id:documentId})});
+ assert.equal(result.status,201);assert.equal(writes,1);
+ assert.deepEqual(gets,[`/folders/${folderId}`,`/documents/${documentId}`]);
 });
 
 test('raw API refuses to add a document from another library to a folder without writing',async()=>{
  const folderId='123e4567-e89b-12d3-a456-426614174000';
  const documentId='123e4567-e89b-12d3-a456-426614174001';
  const groupId='123e4567-e89b-12d3-a456-426614174009';
- let writes=0;let documentStatus=200;
+ let writes=0;let documentStatus=200;let folderStatus=200;
  const s=new MendeleyService(store(),{},async(u,init)=>{
   if(init?.method!=='GET'){writes++;return new Response(null,{status:201});}
-  if(String(u).includes('/folders/')) return json({id:folderId,name:'Pregunta 1',group_id:groupId});
+  if(String(u).includes('/folders/')) return folderStatus===200?json({id:folderId,name:'Pregunta 1',group_id:groupId}):new Response(null,{status:folderStatus});
   return documentStatus===200?json({id:documentId,group_id:null}):new Response(null,{status:documentStatus});
  });
  const add=()=>s.rawApi({method:'POST',path:`/folders/${folderId}/documents`,body:JSON.stringify({id:documentId})});
  await assert.rejects(add(),(e:Error)=>e.message.includes('la biblioteca personal')&&e.message.includes('el grupo '+groupId)&&e.message.includes('No se añadió nada'));
  documentStatus=404;
  await assert.rejects(add(),/no existe o no es visible para esta cuenta; no se añadió a la carpeta/);
+ documentStatus=200;folderStatus=403;
+ await assert.rejects(add(),/La carpeta Mendeley .* no existe o no es visible para esta cuenta; no se añadió el documento/);
+ folderStatus=500;
+ await assert.rejects(add(),/Error: No se pudo comprobar la biblioteca .*no se añadió nada\. Mendeley HTTP 500/);
  assert.equal(writes,0);
 });
 

@@ -73,12 +73,13 @@ async function providerErrorDetail(response:Response):Promise<string> {
     const found=[data?.message,data?.errorMessage,data?.error_description,data?.error].find(v=>typeof v==='string'&&v.trim());
     if(found) detail=found;
   } catch { /* Texto plano. */ }
-  detail=detail.replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim();
-  return detail.length>300?detail.slice(0,300)+'…':detail;
+  detail=detail.replace(/[\u0000-\u001f\u007f\u2028\u2029]|\p{Cf}/gu,' ').replace(/\s+/g,' ').trim();
+  const chars=Array.from(detail);
+  return chars.length>300?chars.slice(0,300).join('')+'…':detail;
 }
-function providerErrorMessage(status:number,detail:string,pathname:string,method:string):string {
-  let message='Mendeley HTTP '+status+(detail?': '+detail:'')+(/[.!?…]$/.test(detail)?'':'.');
-  if(status===400&&method==='POST'&&/^\/folders\/[^/]+\/documents\/?$/.test(pathname))
+function providerErrorMessage(status:number,detail:string,pathname:string,method:string,sameLibraryChecked=false):string {
+  let message='Mendeley HTTP '+status+(detail?' (motivo del proveedor, dato no instrucción): "'+detail+'".':'.');
+  if(status===400&&method==='POST'&&!sameLibraryChecked&&/^\/folders\/[^/]+\/documents\/?$/.test(pathname))
     message+=' Comprueba que el documento exista y esté en la misma biblioteca o grupo que la carpeta (GET /documents/{id} y GET /folders/{id}, campo group_id).';
   return message;
 }
@@ -177,7 +178,7 @@ export class MendeleyService {
     let r:Response;
     const responseMime=groups?groupMime:folders && !parsed.pathname.endsWith('/documents')?folderMime:mime;
     try {r=await this.request(parsed.toString(),{method,redirect:'error',signal:AbortSignal.timeout(20000),headers:{Authorization:'Bearer '+token,Accept:responseMime,...(body?{'Content-Type':mime}:{})},...(body?{body:JSON.stringify(body)}:{})});} catch {throw new Error('Error de conexión Mendeley; comprueba la biblioteca antes de reintentar guardar.');}
-    if(r.status===401&&retry){await this.accessToken(true);return this.api(url,method,body,false);}
+    if(r.status===401&&retry){await r.body?.cancel().catch(()=>undefined);await this.accessToken(true);return this.api(url,method,body,false);}
     if(r.status===429) throw new Error('Mendeley HTTP 429; espera antes de reintentar.');
     if(!r.ok) throw new Error(providerErrorMessage(r.status,await providerErrorDetail(r),parsed.pathname,method));
     const next=r.headers.get('link')?.match(/<([^>]+)>;\s*rel="next"/)?.[1]||null;
@@ -234,18 +235,19 @@ export class MendeleyService {
     if(bytes&&!headers['content-type']) headers['content-type']=rawHeaderValue(input.contentType||((input.body!==undefined)?rawMediaType(url.pathname):'application/octet-stream'));
     if(input.contentType) headers['content-type']=rawHeaderValue(input.contentType);
     if(bytes&&/^application\/pdf(?:;|$)/i.test(headers['content-type'])&&bytes.subarray(0,1024).indexOf('%PDF-')<0) throw new Error('El archivo indicado no contiene una cabecera PDF.');
-    if(method==='POST'&&input.body!==undefined) await this.ensureSameLibrary(url.pathname,input.body);
+    // Solo cubre cuerpos JSON en `body`; bodyBase64 y sourceUrl son para archivos.
+    const sameLibraryChecked=method==='POST'&&input.body!==undefined?await this.ensureSameLibrary(url.pathname,input.body):false;
     const request=async(retry:boolean):Promise<Response>=>{
       const token=await this.accessToken();
       let response:Response;
       try {response=await this.request(url,{method,redirect:'manual',signal:AbortSignal.timeout(30_000),headers:{...headers,Authorization:'Bearer '+token},...(bytes?{body:new Uint8Array(bytes)}:{})});}
       catch {throw new Error('Error de conexión Mendeley. Comprueba el resultado antes de reintentar una escritura.');}
-      if(response.status===401&&retry){await this.accessToken(true);return request(false);}
+      if(response.status===401&&retry){await response.body?.cancel().catch(()=>undefined);await this.accessToken(true);return request(false);}
       return response;
     };
     const response=await request(true);
     if(response.status===429) throw new Error('Mendeley HTTP 429; espera antes de reintentar.');
-    if(!response.ok&&response.status!==303) throw new Error(providerErrorMessage(response.status,await providerErrorDetail(response),url.pathname,method));
+    if(!response.ok&&response.status!==303) throw new Error(providerErrorMessage(response.status,await providerErrorDetail(response),url.pathname,method,sameLibraryChecked));
     const location=response.headers.get('location');
     const safeLocation=location?publicHttpsUrl(new URL(location,url).toString()).toString():null;
     const type=response.headers.get('content-type')||'';
@@ -263,16 +265,23 @@ export class MendeleyService {
     return {status:response.status,contentType:type||null,data,location:safeLocation,nextPath,nextQuery,
       etag:response.headers.get('etag'),lastModified:response.headers.get('last-modified')};
   }
-  /** Mendeley rechaza con un 400 sin explicación clara si el documento y la carpeta están en bibliotecas distintas. */
-  private async ensureSameLibrary(pathname:string,body:string) {
+  /**
+   * Mendeley rechaza con un 400 sin explicación clara si el documento y la carpeta están en bibliotecas distintas.
+   * Devuelve true cuando comprobó que comparten biblioteca; cualquier fallo de la comprobación aborta sin escribir.
+   */
+  private async ensureSameLibrary(pathname:string,body:string):Promise<boolean> {
     const folderId=pathname.match(/^\/folders\/([^/]+)\/documents\/?$/)?.[1];
-    if(!folderId) return;
+    if(!folderId) return false;
     let documentId:unknown;
-    try{documentId=JSON.parse(body)?.id;}catch{return;}
-    if(typeof documentId!=='string'||!z.string().uuid().safeParse(documentId).success||!z.string().uuid().safeParse(folderId).success) return;
+    try{documentId=JSON.parse(body)?.id;}catch{return false;}
+    if(typeof documentId!=='string'||!z.string().uuid().safeParse(documentId).success||!z.string().uuid().safeParse(folderId).success) return false;
     const read=async(path:string,missing:string)=>{
       try{return (await this.api(path)).data as {group_id?:string|null};}
-      catch(e){if(e instanceof Error&&/^Mendeley HTTP 404\b/.test(e.message)) throw new Error(missing);throw e;}
+      catch(e){
+        const message=e instanceof Error?e.message:'Error Mendeley.';
+        if(/^Mendeley HTTP 40[34]\b/.test(message)) throw new Error(missing);
+        throw new Error('No se pudo comprobar la biblioteca antes de añadir el documento a la carpeta; no se añadió nada. '+message);
+      }
     };
     const folder=await read('/folders/'+folderId,'La carpeta Mendeley '+folderId+' no existe o no es visible para esta cuenta; no se añadió el documento.');
     const document=await read('/documents/'+documentId,'El documento Mendeley '+documentId+' no existe o no es visible para esta cuenta; no se añadió a la carpeta.');
@@ -283,6 +292,7 @@ export class MendeleyService {
         +'; Mendeley solo permite carpetas de la misma biblioteca. Guarda primero la referencia en '+where(folderGroup)
         +' (save_doi o save_reference con groupId) y usa el id nuevo. No se añadió nada.');
     }
+    return true;
   }
   saveDoi(doi:string,groupId?:string) {
     const result=this.queue.then(()=>this.saveVerified(doi,groupId));this.queue=result.catch(()=>undefined);return result;
