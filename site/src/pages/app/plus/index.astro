@@ -4,6 +4,7 @@ import {CHARACTER_NAME} from '../../../lib/character.mjs';
 import { turnitinServiceEnabled } from "../../../../feature-flags.mjs";
 import AppShell from '../../../layouts/AppShell.astro';
 import { commerceSupportHref } from '../../../lib/commerce-policy.mjs';
+import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
 ---
 <AppShell title="Mi suscripción" active="suscripcion">
   <link rel="stylesheet" href="/campus-plus.css?v=7" />
@@ -81,6 +82,7 @@ import { commerceSupportHref } from '../../../lib/commerce-policy.mjs';
       </form>
       <p class="plus-muted" data-survey-status role="status" aria-live="polite"></p>
     </section>
+    <WhatsAppReminders />
     <details class="app-panel plus-includes"><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>Consultas sin límite de Campus desde tu IA compatible.</li><li>100 consultas diarias con {CHARACTER_NAME} en la web.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles desde tu IA.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
     <p class="plus-support">¿Necesitas ayuda? <a class="app-text-link" href="https://wa.me/51946189585" target="_blank" rel="noopener">WhatsApp +51 946 189 585</a> · <a class="app-text-link" href={commerceSupportHref("Campus Plus")}>Escribir por correo</a> · <a class="app-text-link" href="/cancelaciones-y-devoluciones/">Cancelaciones y devoluciones</a></p>
   </div>

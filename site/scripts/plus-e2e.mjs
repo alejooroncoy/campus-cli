@@ -28,9 +28,9 @@ try{
     await page.locator('[data-plus-view=ready]:visible').waitFor();
     await page.getByRole('button',{name:'Ver precio y cómo pagar',exact:true}).click();
     const payment=page.locator('[data-plus-view=payment]:visible');await payment.waitFor();
-    assert.equal(await payment.locator('[data-plus-amount]').textContent(),'S/5');assert.match(await payment.locator('[data-plus-renewal]').textContent(),/S\/10 al mes/);
+    assert.equal(await payment.locator('[data-plus-amount]').textContent(),'S/10');assert.match(await payment.locator('[data-plus-renewal]').textContent(),/S\/10 al mes/);
     assert.equal(await payment.locator('[data-plus-phone]').textContent(),'+51946189585');
-    assert.equal(await payment.locator('[data-plus-pay-amount]').textContent(),'S/5');
+    assert.equal(await payment.locator('[data-plus-pay-amount]').textContent(),'S/10');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
     await page.screenshot({path:output+`${viewport.width<600?'mobile':'desktop'}-payment.png`,fullPage:true});
     await page.locator('#plus-receipt').setInputFiles({name:'invalid.txt',mimeType:'text/plain',buffer:Buffer.from('invalid')});
@@ -40,7 +40,7 @@ try{
     if(isTest)assert.equal((await context.request.post(base+'/__fixture/qa',{headers:{origin:base}})).status(),200);
     await page.locator('#plus-receipt').setInputFiles({name:'private-proof.png',mimeType:'image/png',buffer:receipt});
     assert.equal(await page.locator('#plus-receipt').getAttribute('aria-invalid'),'false');
-    await page.locator('[name=consent]').check();await page.getByRole('button',{name:'Enviar comprobante',exact:true}).click();
+    await payment.locator('[name=consent]').check();await page.getByRole('button',{name:'Enviar comprobante',exact:true}).click();
     await page.locator('[data-plus-view=pending]:visible').waitFor();
     const pending=await (await context.request.get(base+'/api/app/plus/state')).json(),order=pending.orders[0];
     assert.equal(order.status,'payment_review');assert.equal(pending.currentPlan,'free');
@@ -57,8 +57,8 @@ try{
     await page.screenshot({path:output+`${viewport.width<600?'mobile':'desktop'}-active.png`,fullPage:true});
     await page.locator('a[href="/app/perfil/"]:visible').first().click();await page.locator('[data-profile-label]').filter({hasText:isTest?'Campus Plus · prueba':'Campus Plus'}).waitFor();
     assert.match(await page.locator('[data-profile-usage]').textContent(),/100 de 100/);
-    assert.equal(await page.getByRole('link',{name:'Mi suscripción y pagos'}).getAttribute('href'),'/app/plus/');
-    await page.getByRole('link',{name:'Mi suscripción y pagos'}).click();
+    assert.equal(await page.locator('[data-profile-manage]').getAttribute('href'),'/app/plus/');
+    await page.locator('[data-profile-manage]').click();
     await page.locator('[data-plus-view=active]:visible, [data-plus-subscription]:visible').first().waitFor();
     const metrics=await (await context.request.get(base+'/__fixture/metrics')).json();
     for(const operation of ['plus_checkout','plus_receipt','plus_payment_review'])assert.ok(metrics.some(event=>event.properties.operation===operation&&event.properties.outcome==='success'&&event.properties.purchase_kind==='activation'));
