@@ -1,0 +1,4 @@
+# Package source for the reviewed plugin builder. Host dependencies are locked separately.
+packet-tracer-mcp==0.12.0 \
+    --hash=sha256:33a6517d2ff9abf46000aaec931dfdeef7213461ce72b36c805ef61425ff773c \
+    --hash=sha256:38d3d21f3c78117fc7c89418be63ec82f44d5d5e1e57ac7a436c9bffff454231

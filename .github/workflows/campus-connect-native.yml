@@ -1,0 +1,36 @@
+name: Campus Connect native
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'integrations/connect/**'
+      - 'integrations/packet-tracer/UPSTREAM-LICENSE.txt'
+      - 'src/cloud/connect/catalog.json'
+      - 'src/cloud/packet-tracer/policy.json'
+      - '.github/workflows/campus-connect-native.yml'
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --require-hashes -r integrations/connect/requirements.lock
+      - run: python -m pip install --no-deps --require-hashes -r integrations/connect/plugins/packet-tracer/requirements.lock
+      - run: python integrations/connect/build.py --output connect-artifact
+      - run: python -m unittest discover -s integrations/connect -p 'test_*.py'
+        env:
+          CONNECT_TEST_ARTIFACT_DIR: connect-artifact
+      - uses: actions/upload-artifact@v7
+        with:
+          name: campus-connect-${{ matrix.os }}
+          path: connect-artifact/
+          retention-days: 14

@@ -1,0 +1,629 @@
+{
+  "upstreamVersion": "0.12.0",
+  "tools": [
+    {
+      "name": "pt_list_devices",
+      "description": "Lists every device available in Packet Tracer with its ports.\nUse this to know which models, ports and cables you can use.",
+      "inputSchema": {
+        "properties": {},
+        "title": "pt_list_devicesArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_list_templates",
+      "description": "Lists every available topology template with its description.",
+      "inputSchema": {
+        "properties": {},
+        "title": "pt_list_templatesArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_get_device_details",
+      "description": "Shows the details of a specific device model.\n\nAccepts either the exact model name (e.g. '2911', '2960-24TT')\nor a catalog alias (e.g. 'router', 'switch', 'firewall').\n\nParameters:\n- model_name: model name or alias",
+      "inputSchema": {
+        "properties": {
+          "model_name": {
+            "title": "Model Name",
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "model_name"
+        ],
+        "title": "pt_get_device_detailsArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_plan_topology",
+      "description": "Generates a complete network topology plan for Packet Tracer.\n\nParameters:\n- routers: Number of routers (1-20)\n- pcs_per_lan: PCs per LAN\n- laptops_per_lan: Laptops per LAN (Laptop-PT)\n- switches_per_router: Switches per router (0-4)\n- servers: Number of servers\n- access_points: Number of Access Points (AccessPoint-PT), one per LAN\n- has_wan: Include a WAN connection (Cloud)\n- dhcp: Configure DHCP automatically\n- routing: Routing protocol (static, ospf, eigrp, rip, none)\n- router_model: Router model (1941, 2901, 2911, ISR4321; 2811 for CME voice)\n- switch_model: Switch model (2960-24TT, 3560-24PS)\n- template: Template (single_lan, multi_lan, multi_lan_wan, star, hub_spoke,\n  branch_office, router_on_a_stick, three_router_triangle, custom)\n- floating_routes: If True with routing=static, adds backup routes with AD=254\n  over alternative paths (needs a topology with multiple paths)\n- ospf_process_id: OSPF process ID (1-65535, default 1)\n- eigrp_as: EIGRP AS number (1-65535, default 100)\n- vlans: router_on_a_stick template only. Number of VLANs to spread across the PCs (0 = default 2).\n- dual_stack: If True, adds IPv6 addressing (routers via CLI, hosts via SLAAC).\n- ipv6_base: Base IPv6 prefix for dual-stack (default \"2001:db8::/32\").\n- wireless_laptops: If True, laptops connect over WiFi (wireless NIC + an AP\n  auto-associated per LAN) instead of a cable.\n\nReturns the full plan JSON.",
+      "inputSchema": {
+        "properties": {
+          "routers": {
+            "default": 2,
+            "title": "Routers",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "pcs_per_lan": {
+            "default": 3,
+            "title": "Pcs Per Lan",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "laptops_per_lan": {
+            "default": 0,
+            "title": "Laptops Per Lan",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "switches_per_router": {
+            "default": 1,
+            "title": "Switches Per Router",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "servers": {
+            "default": 0,
+            "title": "Servers",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "access_points": {
+            "default": 0,
+            "title": "Access Points",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "has_wan": {
+            "default": false,
+            "title": "Has Wan",
+            "type": "boolean"
+          },
+          "dhcp": {
+            "default": true,
+            "title": "Dhcp",
+            "type": "boolean"
+          },
+          "routing": {
+            "default": "static",
+            "title": "Routing",
+            "type": "string",
+            "maxLength": 128,
+            "enum": [
+              "static",
+              "ospf",
+              "eigrp",
+              "rip",
+              "none"
+            ]
+          },
+          "router_model": {
+            "default": "2911",
+            "title": "Router Model",
+            "type": "string",
+            "maxLength": 128
+          },
+          "switch_model": {
+            "default": "2960-24TT",
+            "title": "Switch Model",
+            "type": "string",
+            "maxLength": 128
+          },
+          "template": {
+            "default": "multi_lan",
+            "title": "Template",
+            "type": "string",
+            "maxLength": 128
+          },
+          "floating_routes": {
+            "default": false,
+            "title": "Floating Routes",
+            "type": "boolean"
+          },
+          "ospf_process_id": {
+            "default": 1,
+            "title": "Ospf Process Id",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "eigrp_as": {
+            "default": 100,
+            "title": "Eigrp As",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "vlans": {
+            "default": 0,
+            "title": "Vlans",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 64
+          },
+          "dual_stack": {
+            "default": false,
+            "title": "Dual Stack",
+            "type": "boolean"
+          },
+          "ipv6_base": {
+            "default": "2001:db8::/32",
+            "title": "Ipv6 Base",
+            "type": "string",
+            "maxLength": 128
+          },
+          "wireless_laptops": {
+            "default": false,
+            "title": "Wireless Laptops",
+            "type": "boolean"
+          }
+        },
+        "title": "pt_plan_topologyArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_validate_plan",
+      "description": "Valida el plan de topología recibido en plan_json. Devuelve errores y advertencias tipados. No lee archivos locales; usa el JSON devuelto por pt_plan_topology.",
+      "inputSchema": {
+        "properties": {
+          "plan_json": {
+            "default": "",
+            "title": "Plan Json",
+            "type": "string",
+            "maxLength": 65000
+          }
+        },
+        "title": "pt_validate_planArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_fix_plan",
+      "description": "Tries to fix the plan's errors automatically.\nFixes cables, upgrades routers that lack ports, reassigns ports.\n\nParameters:\n- plan_json: JSON of the plan to fix",
+      "inputSchema": {
+        "properties": {
+          "plan_json": {
+            "title": "Plan Json",
+            "type": "string",
+            "maxLength": 65000
+          }
+        },
+        "required": [
+          "plan_json"
+        ],
+        "title": "pt_fix_planArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_explain_plan",
+      "description": "Explains the plan's decisions in natural language.\nUseful to understand why certain models, IPs, etc. were chosen.\n\nParameters:\n- plan_json: plan JSON",
+      "inputSchema": {
+        "properties": {
+          "plan_json": {
+            "title": "Plan Json",
+            "type": "string",
+            "maxLength": 65000
+          }
+        },
+        "required": [
+          "plan_json"
+        ],
+        "title": "pt_explain_planArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_generate_configs",
+      "description": "Generates the CLI (IOS) configurations for every router and switch.\n\nParameters:\n- plan_json: plan JSON",
+      "inputSchema": {
+        "properties": {
+          "plan_json": {
+            "title": "Plan Json",
+            "type": "string",
+            "maxLength": 65000
+          }
+        },
+        "required": [
+          "plan_json"
+        ],
+        "title": "pt_generate_configsArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_full_build",
+      "description": "Planifica, valida, genera y crea la red en Packet Tracer. deploy=true requiere Packet Tracer y su extensión conectados. Campus devuelve un error si falta la conexión; no cambia al modo manual ni al portapapeles. Lee el resultado y verifica los dispositivos y un ping real antes de anunciar éxito.",
+      "inputSchema": {
+        "properties": {
+          "routers": {
+            "default": 2,
+            "title": "Routers",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "pcs_per_lan": {
+            "default": 3,
+            "title": "Pcs Per Lan",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "laptops_per_lan": {
+            "default": 0,
+            "title": "Laptops Per Lan",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "switches_per_router": {
+            "default": 1,
+            "title": "Switches Per Router",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "servers": {
+            "default": 0,
+            "title": "Servers",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "access_points": {
+            "default": 0,
+            "title": "Access Points",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "has_wan": {
+            "default": false,
+            "title": "Has Wan",
+            "type": "boolean"
+          },
+          "dhcp": {
+            "default": true,
+            "title": "Dhcp",
+            "type": "boolean"
+          },
+          "routing": {
+            "default": "static",
+            "title": "Routing",
+            "type": "string",
+            "maxLength": 128,
+            "enum": [
+              "static",
+              "ospf",
+              "eigrp",
+              "rip",
+              "none"
+            ]
+          },
+          "router_model": {
+            "default": "2911",
+            "title": "Router Model",
+            "type": "string",
+            "maxLength": 128
+          },
+          "switch_model": {
+            "default": "2960-24TT",
+            "title": "Switch Model",
+            "type": "string",
+            "maxLength": 128
+          },
+          "template": {
+            "default": "multi_lan",
+            "title": "Template",
+            "type": "string",
+            "maxLength": 128
+          },
+          "deploy": {
+            "default": true,
+            "title": "Deploy",
+            "type": "boolean"
+          },
+          "floating_routes": {
+            "default": false,
+            "title": "Floating Routes",
+            "type": "boolean"
+          },
+          "ospf_process_id": {
+            "default": 1,
+            "title": "Ospf Process Id",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "eigrp_as": {
+            "default": 100,
+            "title": "Eigrp As",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "vlans": {
+            "default": 0,
+            "title": "Vlans",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 64
+          },
+          "dual_stack": {
+            "default": false,
+            "title": "Dual Stack",
+            "type": "boolean"
+          },
+          "ipv6_base": {
+            "default": "2001:db8::/32",
+            "title": "Ipv6 Base",
+            "type": "string",
+            "maxLength": 128
+          },
+          "wireless_laptops": {
+            "default": false,
+            "title": "Wireless Laptops",
+            "type": "boolean"
+          }
+        },
+        "title": "pt_full_buildArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": true
+    },
+    {
+      "name": "pt_live_deploy",
+      "description": "Valida y crea en Packet Tracer la topología de plan_json. Requiere la extensión conectada y rechaza nombres de dispositivos duplicados. No permite plan_path ni JavaScript arbitrario. Comprueba el resultado y vuelve a leer la topología.",
+      "inputSchema": {
+        "properties": {
+          "plan_json": {
+            "default": "",
+            "title": "Plan Json",
+            "type": "string",
+            "maxLength": 65000
+          },
+          "command_delay": {
+            "default": 0.0,
+            "title": "Command Delay",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "title": "pt_live_deployArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": true
+    },
+    {
+      "name": "pt_bridge_status",
+      "description": "Checks which channel Packet Tracer is connected through.\n\nThere are two: HTTP (when the MCP Control Center window is open) and\nfile (when it is closed but PT is still open with the extension). With\neither one, deployment works.",
+      "inputSchema": {
+        "properties": {},
+        "title": "pt_bridge_statusArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_verify_connectivity",
+      "description": "Runs a REAL ping from a device in PT and returns the result.\n\nUnlike validations that are only printed as \"check it by\nhand\", this runs `ping` on the device's console and parses the real\noutput: how many packets arrived. Use it to confirm that a freshly\ndeployed topology really has connectivity.\n\nWorks with hosts (PC/Server/Laptop, format \"Packets: Sent=..\") and with\nIOS devices (router/switch, format \"Success rate is N percent\").\n\nParameters:\n- from_device: name of the device the ping starts from\n- to_ip: destination IP\n- count: reserved; PT uses its default per type (PC 4, IOS 5). A \"-n\"\n  flag would break on IOS, so it is not forced for now.\n- timeout_s: maximum wait (default 45s: on a topology deployed moments\n  ago, switch ports spend ~30s in STP before forwarding). A FAILED ping takes longer\n  than a successful one: each packet waits for its own timeout before\n  being declared lost (~13s measured for 4 lost packets).",
+      "inputSchema": {
+        "properties": {
+          "from_device": {
+            "title": "From Device",
+            "type": "string",
+            "maxLength": 128
+          },
+          "to_ip": {
+            "title": "To Ip",
+            "type": "string",
+            "maxLength": 128
+          },
+          "count": {
+            "default": 4,
+            "title": "Count",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "timeout_s": {
+            "default": 45.0,
+            "title": "Timeout S",
+            "type": "number",
+            "minimum": 1,
+            "maximum": 60
+          }
+        },
+        "required": [
+          "from_device",
+          "to_ip"
+        ],
+        "title": "pt_verify_connectivityArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_save_project",
+      "description": "Guarda el proyecto real de Packet Tracer con un nombre nuevo .pkt en Documentos/Campus/PacketTracer. No admite rutas ni sobrescribe archivos existentes. Un plan JSON no equivale al archivo .pkt.",
+      "inputSchema": {
+        "properties": {
+          "filename": {
+            "title": "Filename",
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _-]{0,79}\\.pkt$",
+            "description": "Nombre nuevo del archivo .pkt; se guarda en Documentos/Campus/PacketTracer sin sobrescribir."
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "title": "pt_save_projectArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": true
+    },
+    {
+      "name": "pt_query_topology",
+      "description": "Query current devices in Packet Tracer.\nReturns name, model, and port/IP info for each device in the active topology,\nthen every link with its real cable type (read from the link itself).\nRequires bridge connected (use pt_bridge_status to verify).",
+      "inputSchema": {
+        "properties": {},
+        "title": "pt_query_topologyArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_list_modules",
+      "description": "Lists the expansion modules available in the PT catalog.\n\nWithout filters it returns ALL modules. Useful to find the exact\nnames before calling pt_add_module.\n\nParameters:\n- router_model: if given (e.g. \"2911\", \"ISR4321\"), filters to\n  modules compatible with that router. Includes generic modules\n  (no compatible_with list) and the ones that list that model.\n- category: filters by category (e.g. \"router_hwic\", \"router_nm\",\n  \"router_nim\", \"router_wic\"). Empty = all.\n\nReturns JSON with: name, description, category, ports_added,\ncompatible_with.",
+      "inputSchema": {
+        "properties": {
+          "router_model": {
+            "default": "",
+            "title": "Router Model",
+            "type": "string",
+            "maxLength": 128
+          },
+          "category": {
+            "default": "",
+            "title": "Category",
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "title": "pt_list_modulesArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_health_check",
+      "description": "Health sweep of PT's LIVE topology.\n\nReports: down links (cabled but not up), cabled ports without an IP\n(possibly an unfinished DHCP), and duplicate IPs. Requires a connected bridge.",
+      "inputSchema": {
+        "properties": {},
+        "title": "pt_health_checkArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_inspect_ports",
+      "description": "Real state of each port of a live device in PT.\n\nReads the device, not the plan: line/protocol status, MAC, IP/mask,\nduplex, bandwidth, MTU, delay, CDP, DHCP client, NAT mode, applied\nACLs and, on a cabled port, the real cable type (straight, cross,\nserial...) and the far end (\"SW1:FastEthernet0/1\"). Flags anomalies (cable connected with the port down, line up with\nprotocol down).\n\nIt is the DETAIL view of one device; for the sweep of the whole\ntopology (down links, duplicate IPs) use pt_health_check.\n\nParameters:\n- device: device name; empty = all (verbose on large topologies).\n- only_linked: if True, returns only ports with a cable connected.\n\nExample: see why one of R1's links won't come up:\n  pt_inspect_ports(device=\"R1\", only_linked=True)",
+      "inputSchema": {
+        "properties": {
+          "device": {
+            "default": "",
+            "title": "Device",
+            "type": "string",
+            "maxLength": 128
+          },
+          "only_linked": {
+            "default": false,
+            "title": "Only Linked",
+            "type": "boolean"
+          }
+        },
+        "title": "pt_inspect_portsArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_read_routes",
+      "description": "Reads the REAL routing table of a live device (or of every router).\n\nWhat `show ip route` shows, read from the device's RoutingProcess:\nper route its prefix, protocol letter and name (C connected, L local,\nS static, O OSPF, D EIGRP, R RIP), next hop, interface, AD and metric.\nAcross several routers it lists `convergence_gaps`: prefixes a router\nrunning a dynamic protocol lacks while the others know them.\n\nParameters:\n- device: device name; empty = every device with a routing table.\n\nExample: did OSPF converge?  pt_read_routes()",
+      "inputSchema": {
+        "properties": {
+          "device": {
+            "default": "",
+            "title": "Device",
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "title": "pt_read_routesArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_read_ospf",
+      "description": "Reads OSPF's REAL state: router-id, areas and neighbours per process.\n\nEach neighbour comes with its state by name (FULL, 2WAY, INIT...), its\nrole (DR/BDR/DROTHER, null on point-to-point), local port and address.\nFlags neighbours not FULL (2WAY between DROTHERs is normal), duplicate\nrouter-ids and routers with OSPF but no neighbours.\n\nParameters:\n- device: router name; empty = every router.\n\nExample: pt_read_ospf(device=\"R1\")",
+      "inputSchema": {
+        "properties": {
+          "device": {
+            "default": "",
+            "title": "Device",
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "title": "pt_read_ospfArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_canvas_info",
+      "description": "Size of PT's visible logical view and where the devices are, so you know which\nx/y range to use before pt_add_device / pt_move_device / pt_add_note.\n\nReturns view [width, height] in canvas px (depends on the screen and the window:\n1512x599 on a 14\" MacBook, about 1900x700 on a maximised 1920x1080), zoom (0 =\n100 %), the device count and their bbox [x0, y0, x1, y1]. x/y of a device is the\ntop-left corner of its icon (about 50x40 px, labels below): keep x within\n[40, width-90] and y within [40, height-90] so everything is visible.",
+      "inputSchema": {
+        "properties": {},
+        "title": "pt_canvas_infoArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": false
+    },
+    {
+      "name": "pt_fast_forward",
+      "description": "Realtime's \"Fast Forward Time\" button: moves PT's clock ahead at once.\n\nUse it after cabling or changing switch links: STP needs ~30 s to put a\nnew port in forwarding, and fast-forwarding gets there immediately, so a\nping right after it works (measured on PT 9.0). Realtime only (in\nSimulation use pt_simulation_step). The network is not reset.\npt_live_deploy and pt_verify_connectivity already do this themselves.",
+      "inputSchema": {
+        "properties": {},
+        "title": "pt_fast_forwardArguments",
+        "type": "object",
+        "additionalProperties": false
+      },
+      "mutates": true
+    }
+  ]
+}

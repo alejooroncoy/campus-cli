@@ -39,3 +39,7 @@ tmp/
 # Material de marketing y estrategia: vive en local, no en el repo público.
 # El código de campus-cli es abierto; el plan de distribución no.
 marketing/
+
+# Campus Connect native build outputs
+/.tmp/
+/connect-artifact/
