@@ -1,6 +1,7 @@
 ---
 import AppShell from '../../../layouts/AppShell.astro';
 import CampuUpdates from '../../../components/CampuUpdates';
+import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
 ---
 <AppShell title="Novedades de Campito" active="perfil">
   <script is:inline>
@@ -30,4 +31,5 @@ import CampuUpdates from '../../../components/CampuUpdates';
     })();
   </script>
   <CampuUpdates client:load />
+  <WhatsAppReminders />
 </AppShell>

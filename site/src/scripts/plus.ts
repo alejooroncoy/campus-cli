@@ -71,7 +71,7 @@ function mount(){
       text('filename','Seleccionar comprobante');
       find('file-feedback').hidden=true;input.removeAttribute('aria-invalid');
       text('copy','Copiar número');
-      text('offer',quote!.cohort==='founder'?'PROMOCIÓN · PRIMEROS 25 DE PAGO':'CAMPUS PLUS');
+      text('offer',quote!.cohort==='founder'?'FUNDADORES · PRIMEROS 25 DE PAGO':'CAMPUS PLUS');
       text('amount',money(quote!.amountCents));text('pay-amount',money(quote!.amountCents));text('renewal',`Después, ${money(quote!.renewalCents)} al mes. Solo si decides renovar; sin cobros automáticos.`);
       text('expiry',`Precio reservado hasta las ${new Date(quote!.expiresAt).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}. Si vence antes de pagar, vuelve a comprobar tu precio.`);
       text('phone',value.phone);text('holder',value.holder);show('payment');message();

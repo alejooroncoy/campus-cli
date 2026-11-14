@@ -1,6 +1,6 @@
 {
-  "version": "2026-11-05",
-  "updatedLabel": "5 de noviembre de 2026",
+  "version": "2026-11-14",
+  "updatedLabel": "14 de noviembre de 2026",
   "responsible": "Alejandro Daniel Oroncoy Almeyda",
   "ruc": "10731724429",
   "email": "info@campuscli.com",
@@ -18,9 +18,10 @@
       "id": "precios-y-entrega",
       "title": "Precios y entrega",
       "paragraphs": [
-        "Cobro S/5 por el primer periodo de Campus Plus a los usuarios fundadores y S/10 por los siguientes. Para nuevos usuarios fuera de la promoción, cobro S/15 por periodo. Cada periodo dura 30 días desde la activación. Activo el acceso al confirmarse el pago; en pagos manuales verifico previamente el abono. Si se renueva un periodo todavía activo, sumo los 30 días al vencimiento vigente.",
+        "Cobro S/10 por periodo de Campus Plus a los primeros 25 usuarios fundadores, desde su primer periodo. Para nuevos usuarios fuera de la promoción, cobro S/15 por periodo. Cada periodo dura 30 días desde la activación. Activo el acceso al confirmarse el pago; en pagos manuales verifico previamente el abono. Si se renueva un periodo todavía activo, sumo los 30 días al vencimiento vigente.",
         "Ofrezco informes de similitud y de análisis de escritura con IA, con precios variables entre S/5 y S/20 por documento. Indico el proveedor de cada modalidad y el importe exacto antes del pago. Entrego los informes en Mis revisiones en un plazo de 10 minutos a 1 hora desde la validación del pago y del archivo compatible.",
-        "Conservo el precio aceptado para cada pedido pagado. Las variaciones posteriores no modifican una compra ya pagada."
+        "Conservo el precio aceptado para cada pedido pagado. Las variaciones posteriores no modifican una compra ya pagada.",
+        "Campus Plus incluye 3 avisos importantes por WhatsApp cada mes calendario, con autorización del usuario y un WhatsApp vinculado a su cuenta. El paquete opcional cuesta S/5 y amplía el cupo a 20 avisos totales ese mes, incluidos los 3 de la suscripción. Agrupo pendientes en un aviso y mantengo los demás avisos por correo según las preferencias del usuario. Los cupos se renuevan el primer día del mes en la hora de Lima; los avisos no utilizados no se acumulan. El paquete vence al terminar ese mes, requiere una suscripción Plus vigente y no se renueva ni se cobra automáticamente. No cobro por cada aviso adicional: al agotarse el cupo se pausan los envíos por WhatsApp."
       ]
     },
     {
