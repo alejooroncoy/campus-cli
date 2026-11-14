@@ -34,7 +34,7 @@ def make_archive(source, target):
     # Stable byte-for-byte archives across platforms. No pyc, symlinks, secrets,
     # timestamps or build-machine paths enter a plugin package.
     with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as archive:
-        for file in sorted(source.rglob('*')):
+        for file in sorted(source.rglob('*'), key=lambda file: file.relative_to(source).as_posix()):
             if file.is_file():
                 info = zipfile.ZipInfo(file.relative_to(source).as_posix(), date_time=(2026,1,1,0,0,0))
                 info.create_system = 3
@@ -84,7 +84,7 @@ def build_plugins(output):
             'id':item['id'], 'version':item['version'], 'upstreamVersion':item['upstreamVersion'],
             'entrypoint':'runner.py', 'setup':'setup.py', 'workspace':'PacketTracer',
             'permissions':item['permissions'], 'platforms':item['platforms'],
-            'files':{file.relative_to(work).as_posix():hashlib.sha256(file.read_bytes()).hexdigest() for file in sorted(work.rglob('*')) if file.is_file()}}
+            'files':{file.relative_to(work).as_posix():hashlib.sha256(file.read_bytes()).hexdigest() for file in sorted(work.rglob('*'), key=lambda file: file.relative_to(work).as_posix()) if file.is_file()}}
         (work / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8', newline='\n')
         directory = output / 'plugins' / item['id']
         archive = directory / f"campus-connect-plugin-{item['id']}-{item['version']}-any.zip"

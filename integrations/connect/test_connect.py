@@ -50,6 +50,20 @@ class ConnectTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
+    def test_package_archive_uses_platform_independent_order_and_bytes(self):
+        from build import make_archive
+        names=['Z.txt','a.txt','nested/UPPER.txt','nested/lower.txt']
+        outputs=[]
+        for index,order in enumerate([names,list(reversed(names))]):
+            folder=self.base/('source-'+str(index));folder.mkdir()
+            for name in order:
+                file=folder/name;file.parent.mkdir(parents=True,exist_ok=True);file.write_bytes(name.encode())
+            output=self.base/('archive-'+str(index)+'.zip');make_archive(folder,output)
+            with zipfile.ZipFile(output) as packaged:
+                self.assertEqual(packaged.namelist(),sorted(names))
+            outputs.append(output.read_bytes())
+        self.assertEqual(outputs[0],outputs[1])
+
     def test_install_is_verified_and_tampering_prevents_execution(self):
         self.store.install(self.entry,self.data)
         self.assertFalse(self.store.state['fixture']['enabled'])
