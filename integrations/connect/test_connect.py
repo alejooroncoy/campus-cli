@@ -176,7 +176,8 @@ class ConnectTests(unittest.TestCase):
     def test_permission_consent_cannot_install_a_changed_package(self):
         relay=Mock(origin='https://campus.example.test')
         app=Connect(relay,self.base);app.catalog=[self.entry]
-        app.change('install','fixture',True,'0.2.0','0'*64)
+        with patch('app.current_platform',return_value='windows-x64'):
+            app.change('install','fixture',True,'0.2.0','0'*64)
         self.assertIn('catálogo cambió',app.errors['fixture'])
         relay.package.assert_not_called()
         self.assertNotIn('fixture',app.packages.state)

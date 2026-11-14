@@ -11,6 +11,18 @@ on:
 permissions:
   contents: read
 jobs:
+  client-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - run: python -m pip install --require-hashes -r integrations/connect/requirements.lock
+      - run: python -m pip install --no-deps --require-hashes -r integrations/connect/plugins/packet-tracer/requirements.lock
+      - run: python integrations/connect/build.py --plugins-only
+      - run: python -m unittest discover -s integrations/connect -p 'test_*.py'
   native:
     strategy:
       fail-fast: false
