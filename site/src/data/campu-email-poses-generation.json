@@ -1,0 +1,73 @@
+{
+  "mode": "builtin image_gen; identity-preserve",
+  "reference": "public/assets/campu/campu-wave-v2-960.webp",
+  "displaySize": {
+    "desktop": 160,
+    "mobile": 112
+  },
+  "format": "PNG with alpha",
+  "poses": [
+    {
+      "name": "reminder",
+      "source": "/Users/USER/.codex/generated_images/01a1da4b-e172-7fa0-8692-4ae1e01f4ed5/exec-f1731a35-68bf-476f-adf0-531601d3a15b.png",
+      "prompt": "Use case: identity-preserve. Asset type: transactional email mascot illustration. Reference: the attached existing Campus mascot is the exact character identity to preserve, not an approximate style inspiration. Keep its round squishy bright cyan body, two short arms, two tiny blue feet, glossy dark navy oval eyes with small white highlights, curved small friendly navy smile, and soft tactile 3D finish. Match its exact face proportions, blue hue and surface material. Full body, centered in a square, all silhouette inside frame, consistent scale occupying about 80 percent of image, soft studio light from upper left, gentle three-quarter front view. Genuine transparent background alpha; no ground, no floor shadow outside the character, no environment, no text, no logos, no badge, no outline, no extra limbs, no clothing. Keep both eyes and smile fully visible. Change only the pose and add one simple prop: the mascot calmly holds a small cream-faced round analog clock with dark navy rim next to its body in one arm and gently points at the clock with its other arm. The clock is readable as a clock without letters or digits. Friendly helpful reminder, no worry or panic. Preserve the mascot identity exactly.",
+      "outputs": [
+        "public/assets/campu/email/campito-reminder-v1-256.png",
+        "public/assets/campu/email/campito-reminder-v1-768.png"
+      ]
+    },
+    {
+      "name": "weekly",
+      "source": "/Users/USER/.codex/generated_images/01a1da4b-e172-7fa0-8692-4ae1e01f4ed5/exec-f69fc71a-56ad-4c06-b1b4-26b13cd0e65f.png",
+      "prompt": "Use case: identity-preserve. Asset type: transactional email mascot illustration. Reference: the attached existing Campus mascot is the exact character identity to preserve, not an approximate style inspiration. Keep its round squishy bright cyan body, two short arms, two tiny blue feet, glossy dark navy oval eyes with small white highlights, curved small friendly navy smile, and soft tactile 3D finish. Match its exact face proportions, blue hue and surface material. Full body, centered in a square, all silhouette inside frame, consistent scale occupying about 80 percent of image, soft studio light from upper left, gentle three-quarter front view. Genuine transparent background alpha; no ground, no floor shadow outside the character, no environment, no text, no logos, no badge, no outline, no extra limbs, no clothing. Keep both eyes and smile fully visible. Change only the pose and add one simple prop: the mascot holds an open small dark navy planner with cream pages and a few cyan checkbox marks at lower chest height using its short arms. Its whole friendly face remains visible above the planner. Calm cheerful planning pose, head tilted slightly. No letters, no digits. Preserve the mascot identity exactly.",
+      "outputs": [
+        "public/assets/campu/email/campito-weekly-v1-256.png",
+        "public/assets/campu/email/campito-weekly-v1-768.png"
+      ]
+    },
+    {
+      "name": "connection",
+      "source": "/Users/USER/.codex/generated_images/01a1da4b-e172-7fa0-8692-4ae1e01f4ed5/exec-6b1b0ab9-9730-4bbe-97cd-cc710ac0cde8.png",
+      "prompt": "Use case: identity-preserve. Asset type: transactional email mascot illustration. Reference: the attached existing Campus mascot is the exact character identity to preserve, not an approximate style inspiration. Keep its round squishy bright cyan body, two short arms, two tiny blue feet, glossy dark navy oval eyes with small white highlights, curved small friendly navy smile, and soft tactile 3D finish. Match its exact face proportions, blue hue and surface material. Full body, centered in a square, all silhouette inside frame, consistent scale occupying about 80 percent of image, soft studio light from upper left, gentle three-quarter front view. Genuine transparent background alpha; no ground, no floor shadow outside the character, no environment, no text, no logos, no badge, no outline, no extra limbs, no clothing. Keep both eyes and smile fully visible. Change only the pose and add one simple prop: the mascot holds two ends of a short dark navy connector cable, one in each short hand, about to plug them together in front of its lower body. Simple rounded plug/socket pieces clearly separated by a small gap. Friendly encouraging expression, no distress. Face fully visible. No symbols, no letters, no digits. Preserve the mascot identity exactly.",
+      "outputs": [
+        "public/assets/campu/email/campito-connection-v1-256.png",
+        "public/assets/campu/email/campito-connection-v1-768.png"
+      ]
+    },
+    {
+      "name": "wave",
+      "source": "public/assets/campu/campu-wave-v2-960.webp",
+      "prompt": "Existing approved waving pose; PNG exports only.",
+      "outputs": [
+        "public/assets/campu/email/campito-wave-v1-256.png",
+        "public/assets/campu/email/campito-wave-v1-768.png"
+      ]
+    }
+  ],
+  "brandLockup": {
+    "path": "public/assets/campu/email/campus-lockup-v1.png",
+    "method": "Deterministic composition of existing brand assets with @napi-rs/canvas; no image generation or redrawing of the logo.",
+    "logo": "public/assets/campus-logo.webp",
+    "font": "public/assets/fonts/GoogleSansFlex-SemiBold.ttf",
+    "text": "Campus",
+    "cssSize": {
+      "width": 128,
+      "height": 40
+    },
+    "exportScale": 3,
+    "layout": {
+      "mark": {
+        "x": 0,
+        "y": 3,
+        "width": 34,
+        "height": 34
+      },
+      "text": {
+        "x": 44,
+        "baseline": 28,
+        "size": 21,
+        "color": "#102a3a"
+      }
+    }
+  }
+}
