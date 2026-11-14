@@ -1,0 +1,5 @@
+mcp[cli]==1.30.0
+pydantic==2.14.3
+jsonschema==4.25.1
+certifi==2026.10.23
+pyinstaller==6.16.0

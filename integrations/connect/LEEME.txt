@@ -1,0 +1,31 @@
+Campus Connect 0.2.0 beta
+
+Una app de Campus para instalar y gestionar integraciones MCP locales.
+No necesitas campus-cli, Python ni configurar un MCP por cada aplicación.
+
+1. Descomprime y abre Campus Connect.
+2. Vincula tu computadora con la misma cuenta Campus que usas en tu cliente de IA.
+3. En el catálogo, revisa los requisitos y permisos de una integración.
+4. Pulsa Instalar y después Activar. Las aplicaciones se instalan por separado.
+5. Continúa en tu cliente MCP compatible con el relay y la autenticación de Campus.
+   Deja Campus Connect y la aplicación abiertos y la computadora conectada.
+
+La beta aún no tiene firma de editor. En Mac puedes autorizar esta app concreta
+siguiendo https://support.apple.com/es-lamr/102445 : intenta abrirla y después ve a
+Configuración del Sistema > Privacidad y seguridad > Abrir de todos modos.
+Los equipos administrados pueden restringir esta autorización.
+Windows puede mostrar un aviso de editor desconocido.
+
+Packet Tracer requiere Cisco Packet Tracer 8.2+ instalado por separado.
+Al activarlo, acepta habilitar MCP Control Center en Packet Tracer.
+Antes de migrar, desactiva y cierra el compañero anterior Campus Packet Tracer;
+ambos usan el mismo puente y no deben ejecutarse simultáneamente.
+
+Puedes desactivar, actualizar y desinstalar cada integración desde el catálogo.
+Desinstalar conserva tus proyectos. Desconectar el equipo revoca toda su conexión.
+Cerrar Connect pausa las integraciones y conserva tu vinculación.
+Si no hay red al desconectar, revoca también el equipo desde tu cliente de IA.
+
+Los paquetes revisados se descargan por HTTPS desde Campus y se verifican antes
+de ejecutarse. Los MCP locales se ejecutan con los permisos de tu usuario;
+esta beta no es un sandbox del sistema operativo ni admite repositorios arbitrarios.
