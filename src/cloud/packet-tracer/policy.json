@@ -10,7 +10,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_list_templates",
@@ -21,7 +23,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_get_device_details",
@@ -41,7 +45,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_plan_topology",
@@ -178,7 +184,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_validate_plan",
@@ -196,7 +204,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_fix_plan",
@@ -216,7 +226,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_explain_plan",
@@ -236,7 +248,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_generate_configs",
@@ -256,7 +270,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_full_build",
@@ -398,7 +414,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": true
+      "mutates": true,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_live_deploy",
@@ -423,7 +441,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": true
+      "mutates": true,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_bridge_status",
@@ -434,7 +454,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_verify_connectivity",
@@ -474,7 +496,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_save_project",
@@ -496,7 +520,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": true
+      "mutates": true,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_query_topology",
@@ -507,7 +533,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_list_modules",
@@ -531,7 +559,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_health_check",
@@ -542,7 +572,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_inspect_ports",
@@ -565,7 +597,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_read_routes",
@@ -583,7 +617,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_read_ospf",
@@ -601,7 +637,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_canvas_info",
@@ -612,7 +650,9 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": false
+      "mutates": false,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
     },
     {
       "name": "pt_fast_forward",
@@ -623,7 +663,265 @@
         "type": "object",
         "additionalProperties": false
       },
-      "mutates": true
+      "mutates": true,
+      "connectOnly": false,
+      "minPackageVersion": "0.2.0"
+    },
+    {
+      "name": "pt_apply_ios_config",
+      "description": "Aplica hasta 32 líneas IOS de configuración permitidas (sin enable/configure terminal/end; Campus abre y cierra el modo de configuración) a un router o switch existente. Solo VLAN, interfaces LAN, direccionamiento, rutas estáticas y STP; no CLI arbitrario. Inspecciona cada resultado y consulta la configuración después; un lote puede aplicarse parcialmente. No reintentar a ciegas.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          },
+          "commands": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 32,
+            "items": {
+              "type": "string",
+              "maxLength": 220,
+              "pattern": "^(?![\\s\\S]*[\\r\\n])(?:exit|hostname [A-Za-z][A-Za-z0-9_-]{0,62}|vtp mode transparent|vlan [0-9]{1,4}(?:[,-][0-9]{1,4})*|name [A-Za-z0-9_-]{1,64}|interface (?:(?:vlan|Vlan) [0-9]{1,4}|(?:FastEthernet|GigabitEthernet|Ethernet|Fa|Gi|Serial|Se)[0-9]+(?:/[0-9]+){0,2}(?:\\.[0-9]+)?)|interface range (?:FastEthernet|GigabitEthernet|Ethernet|Fa|Gi|Serial|Se)[0-9]+(?:/[0-9]+){0,2}(?:\\.[0-9]+)?(?: - [0-9]+)?(?: , (?:FastEthernet|GigabitEthernet|Ethernet|Fa|Gi|Serial|Se)[0-9]+(?:/[0-9]+){0,2}(?:\\.[0-9]+)?(?: - [0-9]+)?)*|description [A-Za-z0-9 _()./-]{1,100}|(?:no )?ip routing|(?:no )?switchport|switchport mode (?:access|trunk)|switchport trunk encapsulation dot1q|switchport (?:access|trunk native) vlan [0-9]{1,4}|switchport trunk allowed vlan [0-9]{1,4}(?:[,-][0-9]{1,4})*|(?:no )?shutdown|(?:no )?ip address (?:[0-9]{1,3}\\.){3}[0-9]{1,3} (?:[0-9]{1,3}\\.){3}[0-9]{1,3}|(?:no )?ip helper-address (?:[0-9]{1,3}\\.){3}[0-9]{1,3}|ip default-gateway (?:[0-9]{1,3}\\.){3}[0-9]{1,3}|(?:no )?ip route (?:[0-9]{1,3}\\.){3}[0-9]{1,3} (?:[0-9]{1,3}\\.){3}[0-9]{1,3} (?:[0-9]{1,3}\\.){3}[0-9]{1,3}(?: [0-9]{1,3})?|spanning-tree vlan [0-9]{1,4}(?:[,-][0-9]{1,4})* priority (?:0|4096|8192|12288|16384|20480|24576|28672|32768|36864|40960|45056|49152|53248|57344|61440)|(?:no )?spanning-tree portfast|spanning-tree bpduguard enable|no ip domain-lookup)$"
+            }
+          }
+        },
+        "required": [
+          "device",
+          "commands"
+        ],
+        "additionalProperties": false
+      },
+      "mutates": true,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.1"
+    },
+    {
+      "name": "pt_read_device_config",
+      "description": "Consulta un router o switch existente por su consola IOS. La configuración puede contener datos del laboratorio: no publicarlos. Comprueba errores y que el equipo admita la consulta.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          },
+          "section": {
+            "type": "string",
+            "enum": [
+              "running-config",
+              "ip interface brief",
+              "vlan brief",
+              "interfaces trunk",
+              "ip route",
+              "spanning-tree",
+              "version",
+              "ip ssh"
+            ]
+          }
+        },
+        "required": [
+          "device",
+          "section"
+        ],
+        "additionalProperties": false
+      },
+      "mutates": false,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.1"
+    },
+    {
+      "name": "pt_save_activity",
+      "description": "Guarda una copia de la actividad .pka abierta, sin sobrescribir, en Documentos/Campus/PacketTracer. No cambia respuestas, puntuación ni protecciones del Activity Wizard. Puede requerir autorización de la actividad en Cisco.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 120,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _-]*\\.pka$(?![\\s\\S])"
+          }
+        },
+        "required": [
+          "filename"
+        ],
+        "additionalProperties": false
+      },
+      "mutates": true,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.1"
+    },
+    {
+      "name": "pt_activity_status",
+      "description": "Consulta el estado de la actividad abierta. No abre respuestas, cambia puntuaciones ni elimina protecciones.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "mutates": false,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.1"
+    },
+    {
+      "name": "pt_add_device",
+      "description": "Añade un equipo al laboratorio abierto. Descubre antes modelo, nombre y puertos reales; verifica el resultado.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          },
+          "x": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20000
+          },
+          "y": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20000
+          }
+        },
+        "required": [
+          "name",
+          "model",
+          "x",
+          "y"
+        ],
+        "additionalProperties": false
+      },
+      "mutates": true,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.1"
+    },
+    {
+      "name": "pt_add_link",
+      "description": "Añade un enlace entre puertos existentes libres. Inspecciona los puertos y modelos primero; no elimina ni sustituye enlaces.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device1": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          },
+          "port1": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          },
+          "device2": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          },
+          "port2": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          },
+          "cable_type": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          }
+        },
+        "required": [
+          "device1",
+          "port1",
+          "device2",
+          "port2",
+          "cable_type"
+        ],
+        "additionalProperties": false
+      },
+      "mutates": true,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.1"
+    },
+    {
+      "name": "pt_host_ip_config",
+      "description": "Consulta o configura IPv4 en un PC, laptop o servidor existente. DHCP depende del servidor y del enlace real; comprueba los campos devueltos.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "",
+              "static",
+              "dhcp"
+            ]
+          },
+          "ip": {
+            "type": "string",
+            "pattern": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$(?![\\s\\S])",
+            "maxLength": 15
+          },
+          "mask": {
+            "type": "string",
+            "pattern": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$(?![\\s\\S])",
+            "maxLength": 15
+          },
+          "gateway": {
+            "type": "string",
+            "pattern": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$(?![\\s\\S])",
+            "maxLength": 15
+          },
+          "dns": {
+            "type": "string",
+            "pattern": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$(?![\\s\\S])",
+            "maxLength": 15
+          },
+          "interface": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          },
+          "wait_dhcp_s": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 20
+          }
+        },
+        "required": [
+          "device"
+        ],
+        "additionalProperties": false
+      },
+      "mutates": true,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.1"
     }
   ]
 }

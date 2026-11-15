@@ -11,6 +11,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool
 from jsonschema import Draft202012Validator
+from editing import vendor_operation, checked_result
 
 ROOT = Path(__file__).parent
 WORKSPACE = Path(os.environ['CAMPUS_WORKSPACE'])
@@ -28,22 +29,18 @@ server = Server('campus-packet-tracer', version='0.12.0')
 
 @server.list_tools()
 async def tools():
-    return [Tool(name=tool['name'], description='Operación de laboratorio de Packet Tracer.', inputSchema=tool['inputSchema']) for tool in policy.values()]
+    return [Tool(name=tool['name'], description=tool['description'], inputSchema=tool['inputSchema']) for tool in policy.values()]
 
 @server.call_tool()
 async def call(name, arguments):
     if name not in policy or len(json.dumps(arguments).encode()) > 100_000:
         raise ValueError('Operación no habilitada.')
     Draft202012Validator(policy[name]['inputSchema']).validate(arguments)
-    if name == 'pt_save_project':
-        arguments = {**arguments, 'directory': str(WORKSPACE), 'overwrite': False}
     if name == 'pt_full_build' and arguments.get('deploy', True) and BRIDGE.check_bridge():
         raise ValueError('Packet Tracer no está conectado. Abre MCP Control Center antes de crear la red.')
-    result = await mcp.call_tool(name, arguments)
-    # FastMCP returns content blocks or (content, structured data).
-    if isinstance(result, tuple):
-        return result
-    return result
+    upstream_name, upstream_args = vendor_operation(name, arguments, WORKSPACE)
+    result = await mcp.call_tool(upstream_name, upstream_args)
+    return checked_result(name, arguments, result, WORKSPACE)
 
 async def main():
     BRIDGE.ensure_bridge(grace=False)
