@@ -13,7 +13,8 @@ def vendor_operation(name, arguments, workspace):
         if name == 'pt_read_device_config':
             args = {'device': args['device'], 'commands': ['enable', 'show ' + args['section']]}
         # A timeout can leave a partial batch. Never retry it automatically.
-        return 'pt_cli', {**args, 'timeout': 2.0, 'auto_confirm': False, 'show': False, 'capture': False}
+        return 'pt_cli', {**args, 'timeout': 20.0 if name == 'pt_read_device_config' else 2.0,
+                          'auto_confirm': False, 'show': False, 'capture': False}
     if name in ('pt_save_activity', 'pt_save_project'):
         root = Path(workspace).resolve()
         target = root / args['filename']
@@ -38,7 +39,7 @@ def checked_result(name, arguments, result, workspace):
         error = False
     text = '\n'.join(getattr(block, 'text', '') for block in content)
     # Vendor 0.12.0 often returns errors as ordinary text blocks.
-    if re.search(r'\[(?:ERROR|TIMEOUT|UNKNOWN COMMAND|WAITING FOR ANSWER)\]|PT error|ERR:|Not saved:|PT did not write|"ok"\s*:\s*false', text, re.I):
+    if re.search(r'\[(?:ERROR|TIMEOUT|UNKNOWN COMMAND|WAITING FOR ANSWER)\]|could not use the console|Interrupted:|No answer from PT|PT error|ERR:|Not saved:|PT did not write|"ok"\s*:\s*false', text, re.I):
         error = True
     if name in ('pt_save_activity', 'pt_save_project'):
         target = Path(workspace) / arguments['filename']

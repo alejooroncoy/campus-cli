@@ -45,6 +45,7 @@ class PacketTracerEditingTests(unittest.TestCase):
         self.validate('pt_read_device_config', args)
         name, vendor = editing.vendor_operation('pt_read_device_config', args, Path('/unused'))
         self.assertEqual((name, vendor['commands']), ('pt_cli', ['enable', 'show running-config']))
+        self.assertEqual(vendor['timeout'], 20.0)
         with self.assertRaises(ValidationError):
             self.validate('pt_read_device_config', {**args, 'section': 'running-config\nreload'})
 
@@ -77,7 +78,7 @@ class PacketTracerEditingTests(unittest.TestCase):
         checked = editing.checked_result('pt_apply_ios_config', {}, result, Path('/unused'))
         self.assertTrue(checked.isError)
         self.assertIn('VLAN created', checked.content[0].text)
-        for failure in ['[TIMEOUT]', '[UNKNOWN COMMAND]', '[WAITING FOR ANSWER]', 'PT error while saving', 'ERR:not created', '{"ok": false}']:
+        for failure in ['[TIMEOUT]', '[UNKNOWN COMMAND]', '[WAITING FOR ANSWER]', 'Could not use the console', 'No answer from PT', 'PT error while saving', 'ERR:not created', '{"ok": false}']:
             checked = editing.checked_result('pt_apply_ios_config', {}, [TextContent(type='text', text=failure)], Path('/unused'))
             self.assertTrue(checked.isError)
 
