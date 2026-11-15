@@ -118,7 +118,7 @@ def checked_result(name, arguments, result, workspace):
         error = False
     text = '\n'.join(getattr(block, 'text', '') for block in content)
     # Vendor 0.12.0 often returns errors as ordinary text blocks.
-    if re.search(r'\[(?:ERROR|TIMEOUT|UNKNOWN COMMAND|WAITING FOR ANSWER)\]|could not use the console|Interrupted:|No answer from PT|Packet Tracer is not connected|PT error|ERR:|Not saved:|PT did not write|"ok"\s*:\s*false', text, re.I):
+    if re.search(r'\A(?:Validation failed:|Error:)|\[(?:ERROR|TIMEOUT|UNKNOWN COMMAND|WAITING FOR ANSWER)\]|could not use the console|Interrupted:|No answer from PT|Packet Tracer is not connected|PT error|ERR:|Not saved:|PT did not write|"ok"\s*:\s*false', text, re.I):
         error = True
     if name in ('pt_save_activity', 'pt_save_project'):
         target = Path(workspace) / arguments['filename']

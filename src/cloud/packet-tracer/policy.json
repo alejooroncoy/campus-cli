@@ -864,7 +864,7 @@
     },
     {
       "name": "pt_host_ip_config",
-      "description": "Consulta o configura IPv4 en un PC, laptop o servidor existente. DHCP depende del servidor y del enlace real; comprueba los campos devueltos.",
+      "description": "Configura IPv4 en un PC, laptop o servidor existente y devuelve la lectura posterior. Requiere solicitar un cambio; no admite una consulta vacía. DHCP depende del servidor y enlace real; comprobar IP, máscara, gateway y DNS recibidos.",
       "inputSchema": {
         "type": "object",
         "properties": {

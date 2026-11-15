@@ -79,7 +79,7 @@ class PacketTracerEditingTests(unittest.TestCase):
         checked = editing.checked_result('pt_apply_ios_config', {}, result, Path('/unused'))
         self.assertTrue(checked.isError)
         self.assertIn('VLAN created', checked.content[0].text)
-        for failure in ['[TIMEOUT]', '[UNKNOWN COMMAND]', '[WAITING FOR ANSWER]', 'Could not use the console', 'No answer from PT', 'Packet Tracer is not connected over any channel', 'PT error while saving', 'ERR:not created', '{"ok": false}']:
+        for failure in ['Validation failed: invalid value', 'Error: duplicate device', '[TIMEOUT]', '[UNKNOWN COMMAND]', '[WAITING FOR ANSWER]', 'Could not use the console', 'No answer from PT', 'Packet Tracer is not connected over any channel', 'PT error while saving', 'ERR:not created', '{"ok": false}']:
             checked = editing.checked_result('pt_apply_ios_config', {}, [TextContent(type='text', text=failure)], Path('/unused'))
             self.assertTrue(checked.isError)
 
