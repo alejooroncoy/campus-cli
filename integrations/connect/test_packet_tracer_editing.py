@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import AsyncMock
 
 from jsonschema import Draft202012Validator, ValidationError
 from mcp.types import TextContent
@@ -81,6 +82,68 @@ class PacketTracerEditingTests(unittest.TestCase):
         for failure in ['[TIMEOUT]', '[UNKNOWN COMMAND]', '[WAITING FOR ANSWER]', 'Could not use the console', 'No answer from PT', 'PT error while saving', 'ERR:not created', '{"ok": false}']:
             checked = editing.checked_result('pt_apply_ios_config', {}, [TextContent(type='text', text=failure)], Path('/unused'))
             self.assertTrue(checked.isError)
+
+    def test_service_reads_do_not_enable_services_or_reset_wifi(self):
+        for name in ['pt_server_dhcp', 'pt_server_dns', 'pt_server_http']:
+            self.validate(name, {'device': 'Server1'})
+            operation, args = editing.vendor_operation(name, {'device': 'Server1'}, Path('/unused'))
+            self.assertEqual(operation, name)
+            self.assertIsNone(args['enable'])
+            self.assertFalse(args['show'])
+            self.assertFalse(args['capture'])
+        _, args = editing.vendor_operation('pt_wireless_ap', {'device': 'AP1'}, Path('/unused'))
+        self.assertFalse(args['reset_associations'])
+
+    def test_services_reject_paths_console_injection_and_unbounded_inputs(self):
+        invalid = [('pt_server_dhcp', {'device': 'Server1', 'max_users': 999999}),
+                   ('pt_server_dhcp', {'device': 'Server1', 'output_dir': '/tmp'}),
+                   ('pt_server_dns', {'device': 'Server1', 'records': [{'name': 'a.lab', 'type': 'A', 'value': '1.2.3.4', 'code': 'bad'}]}),
+                   ('pt_web_check', {'device': 'PC1', 'host': 'localhost/../../etc'}),
+                   ('pt_web_check', {'device': 'PC1', 'host': 'example.com@outside'}),
+                   ('pt_host_lookup', {'device': 'PC1', 'name': 'a.lab\nreload'}),
+                   ('pt_apply_security_config', {'device': 'SW1', 'commands': ['do reload']}),
+                   ('pt_generate_ssh_keys', {'device': 'SW1', 'bits': 4096})]
+        for name, args in invalid:
+            with self.subTest(operation=name), self.assertRaises(ValidationError):
+                self.validate(name, args)
+
+    def test_credentials_are_redacted_from_plain_and_structured_results(self):
+        secret = 'FixtureOnlySecret123'
+        result = ([TextContent(type='text', text='echo ' + secret)], {'result': 'echo ' + secret})
+        args = {'device': 'PC1', 'to_ip': '172.27.56.241', 'username': 'labuser', 'password': secret}
+        self.validate('pt_ssh_test', args)
+        checked = editing.checked_result('pt_ssh_test', args, result, Path('/unused'))
+        self.assertNotIn(secret, str(checked))
+        self.assertIn('[REDACTED]', str(checked))
+        args = {'device': 'SW1', 'commands': ['username labuser privilege 15 secret ' + secret]}
+        self.validate('pt_apply_security_config', args)
+        checked = editing.checked_result('pt_apply_security_config', args, result, Path('/unused'))
+        self.assertNotIn(secret, str(checked))
+
+
+class RsaPromptTests(unittest.IsolatedAsyncioTestCase):
+    async def test_generate_answers_only_the_bits_question_and_checks_ssh(self):
+        call = AsyncMock(side_effect=[[TextContent(type='text', text='[WAITING FOR ANSWER] How many bits in the modulus [512]:')],
+                                      [TextContent(type='text', text='SSH Enabled - version 2.0')]])
+        result = await editing.generate_ssh_keys(call, {'device': 'SW1', 'bits': 2048})
+        self.assertFalse(result.isError)
+        self.assertEqual(call.call_args_list[1].args[1]['commands'], ['2048', 'end', 'show ip ssh'])
+        self.assertNotIn('[WAITING FOR ANSWER]', str(result))
+
+    async def test_existing_keys_are_never_replaced(self):
+        call = AsyncMock(side_effect=[[TextContent(type='text', text='[WAITING FOR ANSWER] Do you really want to replace them? [yes/no]')],
+                                      [TextContent(type='text', text='SSH Enabled - version 2.0')]])
+        result = await editing.generate_ssh_keys(call, {'device': 'SW1', 'bits': 2048})
+        self.assertFalse(result.isError)
+        self.assertEqual(call.call_args_list[1].args[1]['commands'][0], 'no')
+
+    async def test_unknown_questions_or_disabled_ssh_are_not_success(self):
+        call = AsyncMock(return_value=[TextContent(type='text', text='Password:')])
+        self.assertTrue((await editing.generate_ssh_keys(call, {'device': 'SW1', 'bits': 2048})).isError)
+        self.assertEqual(call.call_count, 1)
+        call = AsyncMock(side_effect=[[TextContent(type='text', text='How many bits in the modulus [512]:')],
+                                      [TextContent(type='text', text='SSH Disabled - version 1.99')]])
+        self.assertTrue((await editing.generate_ssh_keys(call, {'device': 'SW1', 'bits': 2048})).isError)
 
 
 if __name__ == '__main__':
