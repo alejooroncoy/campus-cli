@@ -12,6 +12,7 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Tool
 from jsonschema import Draft202012Validator
 from editing import vendor_operation, checked_result, generate_ssh_keys
+from course_activity import read_course_activity, app_relay_origin, download_opener
 
 ROOT = Path(__file__).parent
 WORKSPACE = Path(os.environ['CAMPUS_WORKSPACE'])
@@ -38,6 +39,10 @@ async def call(name, arguments):
     Draft202012Validator(policy[name]['inputSchema']).validate(arguments)
     if name == 'pt_full_build' and arguments.get('deploy', True) and BRIDGE.check_bridge():
         raise ValueError('Packet Tracer no está conectado. Abre MCP Control Center antes de crear la red.')
+    if name == 'pt_read_course_activity':
+        if BRIDGE.check_bridge():
+            raise ValueError('Packet Tracer no está conectado. Abre Packet Tracer y MCP Control Center antes de leer la actividad.')
+        return await read_course_activity(mcp.call_tool, arguments, WORKSPACE, app_relay_origin(), download_opener())
     if name == 'pt_generate_ssh_keys':
         result = await generate_ssh_keys(mcp.call_tool, arguments)
     else:
