@@ -53,3 +53,7 @@ evidencia disponible. La legibilidad se comprueba en la imagen.
 La app 0.2.0 admite este paquete en Windows x64 y macOS Intel/Apple Silicon;
 solo se actualiza la integración con consentimiento local. Las versiones
 anteriores conservan sus operaciones revisadas y no ejecutan esta función.
+
+Los nombres duplicados se detectan antes de resolver componentes por nombre. Su
+pertenencia al clúster queda ambigua y la cobertura parcial; no se atribuye la
+ubicación del primer equipo a todos los que comparten ese nombre.

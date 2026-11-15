@@ -22,7 +22,7 @@ def review_script(arguments):
     # desktop pixels. showClusterContents only selects a view; finally restores it.
     return r'''(function(){var w=null,previous=null,changed=false,out={ok:false};try{
 var c=CONFIG,n=ipc.network();w=ipc.appWindow().getActiveWorkspace().getLogicalWorkspace();
-previous=w.getCurrentCluster();var clusters=[],items=[],notes=[],errors=[],seen={};
+previous=w.getCurrentCluster();var clusters=[],items=[],notes=[],errors=[],seen=Object.create(null);
 function walk(x,parent,depth){if(depth>20||clusters.length>=100)throw 'cluster_limit';
 var id=String(x.getId());if(seen[id])throw 'cluster_cycle';seen[id]=true;
 clusters.push({id:id,name:String(x.getName()),parent:parent});
@@ -32,9 +32,13 @@ var matches=c.cluster?clusters.filter(function(x){return x.name===c.cluster;}):
 clusters.filter(function(x){return x.id===String(previous.getId());});
 if(matches.length!==1)throw 'cluster_missing_or_ambiguous';var target=matches[0];
 var count=n.getDeviceCount();if(count>1000||n.getLinkCount()>2000)throw 'inventory_limit';
-for(var i=0;i<count;i++){var d=n.getDeviceAt(i),name=String(d.getName()),a=w.getComponentItem(name);
+var nameCounts=Object.create(null);for(var i=0;i<count;i++){var key=String(n.getDeviceAt(i).getName());
+nameCounts[key]=(nameCounts[key]||0)+1;}
+for(var i=0;i<count;i++){var d=n.getDeviceAt(i),name=String(d.getName()),a=null;
 var item={name:name,model:String(d.getModel()),clusterId:null};
-try{if(!a)throw 'component_missing';item.clusterId=String(a.getClusterID());
+if(nameCounts[name]>1){item.membershipAmbiguous=true;
+errors.push({device:name,error:'duplicate_name_membership_ambiguous'});items.push(item);continue;}
+try{a=w.getComponentItem(name);if(!a)throw 'component_missing';item.clusterId=String(a.getClusterID());
 item.x=Number(d.getXCoordinate());item.y=Number(d.getYCoordinate());
 item.width=Number(a.getWidth());item.height=Number(a.getHeight());}
 catch(e){errors.push({device:name,error:String(e)});}items.push(item);}
@@ -106,12 +110,25 @@ def review_result(raw, arguments):
     inventory = data['devices']
     counts = Counter(d['name'] for d in inventory)
     data['duplicateNames'] = [{'name': name, 'count': count} for name, count in counts.items() if count > 1]
+    # Component lookup is name-based in the documented API. Never assign the
+    # first matching component's cluster to every device with a duplicate name.
+    for d in inventory:
+        if counts[d['name']] > 1:
+            d['clusterId'] = None
+            d['membershipAmbiguous'] = True
+    data['ambiguousDevices'] = [d for d in inventory if d.get('membershipAmbiguous')]
+    if data['ambiguousDevices']:
+        data['coverage'] = 'partial'
+        if not any(e.get('error') == 'duplicate_name_membership_ambiguous' for e in data['errors']):
+            data['errors'].append({'error': 'duplicate_name_membership_ambiguous'})
     selected = data['selectedCluster']['id']
     scoped = [d for d in inventory if d['clusterId'] == selected]
     expected = arguments.get('expected_devices', [])
     data['missingExpectedDevices'] = [name for name in expected if not counts[name]]
-    data['expectedDevicesOutsideCluster'] = [d for d in inventory if d['name'] in expected and d['clusterId'] != selected]
+    data['expectedDevicesOutsideCluster'] = [d for d in inventory if d['name'] in expected and d['clusterId'] is not None and d['clusterId'] != selected]
+    data['expectedDevicesWithUnknownCluster'] = [d for d in inventory if d['name'] in expected and d['clusterId'] is None]
     data['scopedDeviceCount'] = len(scoped)
+    data['scopedCountsAreComplete'] = not any(d['clusterId'] is None for d in inventory)
     data['devices'] = scoped
     # Cisco also assigns physical power-distribution objects to these clusters.
     # Keep them visible in inventory/counts, but do not treat their off-canvas

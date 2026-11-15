@@ -20,7 +20,7 @@ def fixture():
             'selectedCluster': {'id': 'hco', 'name': 'Huanuco'},
             'deviceCount': 3, 'linkCount': 1,
             'devices': [{'name': 'PC1', 'model': 'PC-PT', 'clusterId': 'hco', 'x': 100, 'y': 100, 'width': 40, 'height': 40},
-                        {'name': 'PC1', 'model': 'PC-PT', 'clusterId': 'root', 'x': 100, 'y': 100, 'width': 40, 'height': 40},
+                        {'name': 'PC0', 'model': 'PC-PT', 'clusterId': 'root', 'x': 100, 'y': 100, 'width': 40, 'height': 40},
                         {'name': 'PC2', 'model': 'PC-PT', 'clusterId': 'root'}],
             'notes': [], 'capture': {'status': 'captured', 'cluster': 'Huanuco'},
             'image': ','.join(str(n if n < 128 else n - 256) for n in PNG)}
@@ -28,13 +28,19 @@ def fixture():
 
 class VisualTests(unittest.TestCase):
     def test_native_png_and_exact_duplicate_and_membership_evidence(self):
-        result = visual.review_result(json.dumps(fixture()), {'expected_devices': ['PC2', 'missing']})
-        self.assertFalse(result.isError)
+        f = fixture(); f['devices'][1]['name'] = 'PC1'
+        result = visual.review_result(json.dumps(f), {'expected_devices': ['PC1', 'PC2', 'missing']})
+        self.assertTrue(result.isError)
         self.assertEqual(result.content[1].data, base64.b64encode(PNG).decode())
         self.assertEqual(result.structuredContent['duplicateNames'], [{'name': 'PC1', 'count': 2}])
         self.assertEqual(result.structuredContent['missingExpectedDevices'], ['missing'])
         self.assertEqual(result.structuredContent['expectedDevicesOutsideCluster'][0]['name'], 'PC2')
-        self.assertEqual(result.structuredContent['scopedDeviceCount'], 1)
+        self.assertEqual(result.structuredContent['scopedDeviceCount'], 0)
+        self.assertFalse(result.structuredContent['scopedCountsAreComplete'])
+        self.assertEqual(result.structuredContent['coverage'], 'partial')
+        self.assertEqual(len(result.structuredContent['ambiguousDevices']), 2)
+        self.assertTrue(all(d['clusterId'] is None for d in result.structuredContent['ambiguousDevices']))
+        self.assertEqual(len(result.structuredContent['expectedDevicesWithUnknownCluster']), 2)
         self.assertEqual(result.structuredContent['visualVerification'], 'pending_image_review')
         self.assertNotIn(result.content[1].data, result.content[0].text)
 
@@ -97,6 +103,26 @@ class VisualTests(unittest.TestCase):
         result = asyncio.run(visual.review_layout(Bridge(), {}))
         self.assertTrue(result.isError)
         self.assertIn('no respondió', result.content[0].text)
+
+    @unittest.skipUnless(shutil.which('node'), 'Node required for the fake Cisco API execution')
+    def test_script_never_resolves_duplicate_devices_through_a_name_lookup(self):
+        fake = r'''
+const root={getId:()=>"root",getName:()=>"Root",getChildClusterCount:()=>0};
+const lw={getCurrentCluster:()=>root,getRootCluster:()=>root,getCanvasNoteIds:()=>[],
+getComponentItem:()=>{throw Error('ambiguous lookup must never be called');}};
+const ipc={network:()=>({getDeviceCount:()=>2,getLinkCount:()=>0,
+getDeviceAt:()=>({getName:()=>"constructor",getModel:()=>"PC-PT"})}),
+appWindow:()=>({getActiveWorkspace:()=>({getLogicalWorkspace:()=>lw})})};
+let result;function reportResult(x){result=JSON.parse(x);}
+SCRIPT
+process.stdout.write(JSON.stringify(result));
+'''.replace('SCRIPT', visual.review_script({'capture': False}))
+        result = subprocess.run(['node', '-e', fake], capture_output=True, text=True, check=True)
+        data = json.loads(result.stdout)
+        self.assertTrue(data['ok'])
+        self.assertEqual(data['coverage'], 'partial')
+        self.assertEqual(len(data['devices']), 2)
+        self.assertTrue(all(d['clusterId'] is None and d['membershipAmbiguous'] for d in data['devices']))
 
     @unittest.skipUnless(shutil.which('node'), 'Node required for the fake Cisco API execution')
     def test_script_captures_requested_cluster_and_restores_on_capture_failure(self):
