@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 import tempfile
 import threading
+import time
 import unittest
 
 from jsonschema import Draft202012Validator, ValidationError
@@ -30,6 +31,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(ACTIVITY)
         elif self.path == f'/d/{"B" * 43}':
             self.send_response(302); self.send_header('Location', 'https://elsewhere.example/x.pka'); self.end_headers()
+        elif self.path == f'/d/{"E" * 43}':
+            self.send_response(200); self.send_header('Content-Length', '100'); self.end_headers()
+            for _ in range(100):
+                self.wfile.write(b'x'); self.wfile.flush(); time.sleep(0.05)
         elif self.path == f'/d/{"C" * 43}':
             self.send_response(200); self.end_headers(); self.wfile.write(b'x' * 2048)
         else:
@@ -241,6 +246,13 @@ class CourseActivityTests(unittest.TestCase):
         result = asyncio.run(course.read_course_activity(call_tool, {'downloadUrl': f'{self.origin}/d/{TOKEN}', 'fileName': 'Red.pkt'},
                                                          self.workspace, self.origin, self.opener))
         self.assertTrue(result.isError, 'el isError del upstream se conserva')
+
+    def test_a_trickling_download_stops_at_the_overall_deadline(self):
+        started = time.monotonic()
+        with self.assertRaisesRegex(course.CourseActivityError, 'tardó demasiado'):
+            course.download(f'{self.origin}/d/{"E" * 43}', self.workspace, 'Goteo.pka', self.opener, seconds=0.3)
+        self.assertLess(time.monotonic() - started, 2.0)
+        self.assertEqual(list(self.workspace.iterdir()), [])
 
     def test_policy_separates_the_device_schema_from_the_student_request(self):
         tool = POLICY['pt_read_course_activity']
