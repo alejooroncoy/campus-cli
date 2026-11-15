@@ -28,3 +28,5 @@ The Campus adapter in `plugins/packet-tracer/editing.py` wraps the pinned vendor
 ## Packet Tracer package 0.2.2
 
 Adds bounded DHCP/DNS/HTTP service operations, simulated client DNS/web checks, SSID settings, IOS config saving, SSHv2/ACL configuration, RSA generation with known prompts only and SSH login tests with lab secrets redacted from all result surfaces. Reads leave service state and wireless associations unchanged. Reopening accepts only existing workspace .pka files and never supplies an activity password. WPA2/client profiles retain the upstream API limitation. The host stays 0.2.0 and reviewed package versions keep their supported operations.
+
+Package 0.2.3 preserves upstream error flags and late session failures after successful SSH authentication, and reports a disconnected bridge as an MCP error. Package 0.2.2 was superseded before the relay rollout; SSH tests require 0.2.3.

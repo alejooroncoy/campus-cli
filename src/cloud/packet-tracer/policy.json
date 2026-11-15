@@ -1334,7 +1334,7 @@
       },
       "mutates": true,
       "connectOnly": true,
-      "minPackageVersion": "0.2.2"
+      "minPackageVersion": "0.2.3"
     },
     {
       "name": "pt_read_cdp",

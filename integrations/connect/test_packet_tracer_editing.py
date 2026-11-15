@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import AsyncMock
 
 from jsonschema import Draft202012Validator, ValidationError
-from mcp.types import TextContent
+from mcp.types import TextContent, CallToolResult
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location('editing', ROOT / 'integrations/connect/plugins/packet-tracer/editing.py')
@@ -79,7 +79,7 @@ class PacketTracerEditingTests(unittest.TestCase):
         checked = editing.checked_result('pt_apply_ios_config', {}, result, Path('/unused'))
         self.assertTrue(checked.isError)
         self.assertIn('VLAN created', checked.content[0].text)
-        for failure in ['[TIMEOUT]', '[UNKNOWN COMMAND]', '[WAITING FOR ANSWER]', 'Could not use the console', 'No answer from PT', 'PT error while saving', 'ERR:not created', '{"ok": false}']:
+        for failure in ['[TIMEOUT]', '[UNKNOWN COMMAND]', '[WAITING FOR ANSWER]', 'Could not use the console', 'No answer from PT', 'Packet Tracer is not connected over any channel', 'PT error while saving', 'ERR:not created', '{"ok": false}']:
             checked = editing.checked_result('pt_apply_ios_config', {}, [TextContent(type='text', text=failure)], Path('/unused'))
             self.assertTrue(checked.isError)
 
@@ -120,8 +120,28 @@ class PacketTracerEditingTests(unittest.TestCase):
         checked = editing.checked_result('pt_apply_security_config', args, result, Path('/unused'))
         self.assertNotIn(secret, str(checked))
 
+    def test_authenticated_ssh_never_hides_later_failures_or_upstream_errors(self):
+        args = {'password': 'FixtureOnlySecret123'}
+        prefix = '[WAITING FOR ANSWER] Password:\nCurrent privilege level is 15\n'
+        for tail in ['Interrupted:', 'No answer from PT', 'PT error', 'ERR:broken', '[TIMEOUT]']:
+            with self.subTest(tail=tail):
+                result = [TextContent(type='text', text=prefix + tail)]
+                self.assertTrue(editing.checked_result('pt_ssh_test', args, result, Path('/unused')).isError)
+        result = CallToolResult(content=[TextContent(type='text', text=prefix)], isError=True)
+        self.assertTrue(editing.checked_result('pt_ssh_test', args, result, Path('/unused')).isError)
+        result = [TextContent(type='text', text=prefix + 'Session closed normally')]
+        checked = editing.checked_result('pt_ssh_test', args, result, Path('/unused'))
+        self.assertIn('[EXPECTED AUTH PROMPT]', str(checked))
+        self.assertNotIn('[WAITING FOR ANSWER]', str(checked))
+
 
 class RsaPromptTests(unittest.IsolatedAsyncioTestCase):
+    async def test_rsa_preserves_upstream_error_flags(self):
+        call = AsyncMock(return_value=CallToolResult(content=[TextContent(type='text', text='How many bits in the modulus [512]:')], isError=True))
+        self.assertTrue((await editing.generate_ssh_keys(call, {'device': 'SW1', 'bits': 2048})).isError)
+        self.assertEqual(call.call_count, 1)
+        call = AsyncMock(side_effect=[[TextContent(type='text', text='How many bits in the modulus [512]:')], CallToolResult(content=[TextContent(type='text', text='SSH Enabled - version 2.0')], isError=True)])
+        self.assertTrue((await editing.generate_ssh_keys(call, {'device': 'SW1', 'bits': 2048})).isError)
     async def test_generate_answers_only_the_bits_question_and_checks_ssh(self):
         call = AsyncMock(side_effect=[[TextContent(type='text', text='[WAITING FOR ANSWER] How many bits in the modulus [512]:')],
                                       [TextContent(type='text', text='SSH Enabled - version 2.0')]])
