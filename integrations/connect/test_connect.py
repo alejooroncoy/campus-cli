@@ -110,10 +110,11 @@ class ConnectTests(unittest.TestCase):
         self.assertTrue(process.closed.is_set())
 
     def test_real_packet_tracer_package_runs_separately_from_host(self):
-        package=Path(os.environ.get('CONNECT_TEST_ARTIFACT_DIR', str(ROOT/'.tmp/connect-release')))/'plugins/packet-tracer/campus-connect-plugin-packet-tracer-0.2.0-any.zip'
+        version=json.loads((ROOT/'src/cloud/connect/catalog.json').read_text(encoding='utf-8'))[0]['version']
+        package=Path(os.environ.get('CONNECT_TEST_ARTIFACT_DIR', str(ROOT/'.tmp/connect-release')))/f'plugins/packet-tracer/campus-connect-plugin-packet-tracer-{version}-any.zip'
         if not package.exists():
             self.skipTest('Build the pinned plugin before this offline integration check.')
-        entry=json.loads((ROOT/'src/cloud/connect/catalog.json').read_text())[0]
+        entry=json.loads((ROOT/'src/cloud/connect/catalog.json').read_text(encoding='utf-8'))[0]
         data=package.read_bytes()
         entry['package']={'size':len(data),'sha256':hashlib.sha256(data).hexdigest()}
         self.store.install(entry,data)

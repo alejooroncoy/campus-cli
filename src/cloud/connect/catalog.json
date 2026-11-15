@@ -2,11 +2,11 @@
   {
     "id": "packet-tracer",
     "name": "Cisco Packet Tracer",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "upstreamVersion": "0.12.0",
     "publisher": "Campus · MCP de Mats2208",
     "source": "https://github.com/Mats2208/MCP-Packet-Tracer",
-    "description": "Crea redes, consulta dispositivos y comprueba la conectividad de tus laboratorios.",
+    "description": "Crea y edita redes, consulta dispositivos y guarda proyectos y actividades de Packet Tracer.",
     "icon": "/integrations/connect/icons/packet-tracer.png",
     "requirements": [
       "Cisco Packet Tracer 8.2 o posterior instalado por separado",
@@ -14,7 +14,7 @@
     ],
     "permissions": [
       "Leer y modificar tus laboratorios de Packet Tracer",
-      "Guardar proyectos en Documentos/Campus/PacketTracer",
+      "Guardar proyectos y actividades en Documentos/Campus/PacketTracer",
       "Instalar MCP Control Center en Packet Tracer"
     ],
     "platforms": [
@@ -22,6 +22,9 @@
       "macos-x64",
       "windows-x64"
     ],
-    "runtime": "python-mcp"
+    "runtime": "python-mcp",
+    "compatibleVersions": [
+      "0.2.0"
+    ]
   }
 ]

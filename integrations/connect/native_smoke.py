@@ -14,7 +14,8 @@ parser.add_argument('--artifacts',type=Path,required=True)
 args=parser.parse_args()
 root=Path(__file__).resolve().parents[2]
 entry=json.loads((root/'src/cloud/connect/catalog.json').read_text(encoding='utf-8'))[0]
-package=args.artifacts/'plugins/packet-tracer/campus-connect-plugin-packet-tracer-0.2.0-any.zip'
+version=entry['version']
+package=args.artifacts/f'plugins/packet-tracer/campus-connect-plugin-packet-tracer-{version}-any.zip'
 data=package.read_bytes()
 entry['package']={'size':len(data),'sha256':hashlib.sha256(data).hexdigest()}
 with tempfile.TemporaryDirectory(prefix='campus-connect-native-smoke-') as base:
