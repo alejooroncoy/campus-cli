@@ -56,7 +56,7 @@ class LayoutScriptTests(unittest.TestCase):
         args = args or dict(DEVICE)
         source = FAKE.replace('MODE', json.dumps(mode), 1).replace('ARGS', json.dumps(args), 1).replace('TEXT', json.dumps(text), 1)
         source = source.replace('SCRIPT', layout.move_script(operation, args), 1)
-        result = subprocess.run(['node', '-e', source], capture_output=True, text=True, check=True)
+        result = subprocess.run(['node', '-e', source], capture_output=True, text=True, encoding='utf-8', check=True)
         return json.loads(result.stdout)
 
     def checked(self, data, operation='pt_move_device', args=None):
@@ -125,7 +125,8 @@ class LayoutScriptTests(unittest.TestCase):
         text = 'Ventas / Huánuco\n");throw Error("injected"); //'
         args = {**NOTE, 'cluster': 'Huánuco', 'expected_text': text}
         data = self.run_script('pt_move_note', args, text=text)
-        self.assertFalse(self.checked(data, 'pt_move_note', args).isError)
+        result = self.checked(data, 'pt_move_note', args)
+        self.assertFalse(result.isError, result.structuredContent)
         self.assertEqual(data['state']['note']['text'], text)
 
     def test_python_checks_readback_even_if_success_flags_are_forged(self):
