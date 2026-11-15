@@ -24,3 +24,7 @@ The beta has no publisher signature/notarization. Each integration requires expl
 The independently versioned package adds bounded IOS edits to existing routers and switches, configuration readback, new devices and links, host IPv4 configuration, activity status and saving a new `.pka` copy. The existing 21 operations remain available with package 0.2.0. New tools require a local package update and consent; Campus Connect itself stays at 0.2.0 on Windows and both Mac architectures.
 
 The Campus adapter in `plugins/packet-tracer/editing.py` wraps the pinned vendor API. Raw CLI, JavaScript, arbitrary paths and overwrites remain unavailable. IOS batches may apply partially: inspect every result and read back before repeating. Saving checks that a new nonempty file exists; activity answers, grading and password protections are unchanged. WPA2/client profiles still require Cisco's UI and live verification.
+
+## Packet Tracer package 0.2.2
+
+Adds bounded DHCP/DNS/HTTP service operations, simulated client DNS/web checks, SSID settings, IOS config saving, SSHv2/ACL configuration, RSA generation with known prompts only and SSH login tests with lab secrets redacted from all result surfaces. Reads leave service state and wireless associations unchanged. Reopening accepts only existing workspace .pka files and never supplies an activity password. WPA2/client profiles retain the upstream API limitation. The host stays 0.2.0 and reviewed package versions keep their supported operations.
