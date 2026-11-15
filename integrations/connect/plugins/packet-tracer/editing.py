@@ -12,12 +12,17 @@ def result_text(result):
     return '\n'.join(getattr(block, 'text', '') for block in blocks)
 
 
+def upstream_failed(result):
+    blocks = result[0] if isinstance(result, tuple) else result
+    return isinstance(blocks, CallToolResult) and bool(blocks.isError)
+
+
 async def generate_ssh_keys(call, arguments):
     """Answer only the two known RSA questions; never replace existing keys."""
     fixed = {'device': arguments['device'], 'timeout': 20.0, 'auto_confirm': False, 'show': False, 'capture': False}
     first = await call('pt_cli', {**fixed, 'commands': ['enable', 'configure terminal', 'crypto key generate rsa']})
     text = result_text(first)
-    if re.search(r'\[(?:ERROR|TIMEOUT|UNKNOWN COMMAND)\]', text):
+    if upstream_failed(first) or re.search(r'\[(?:ERROR|TIMEOUT|UNKNOWN COMMAND)\]', text):
         return first
     existing = bool(re.search(r'replace|already have.*keys', text, re.I))
     if existing:
@@ -29,7 +34,7 @@ async def generate_ssh_keys(call, arguments):
         return CallToolResult(content=[TextContent(type='text', text=text + '\nNo se reconoció la pregunta de RSA; inspeccionar la consola antes de continuar.')], isError=True)
     second = await call('pt_cli', {**fixed, 'commands': [answer, 'end', 'show ip ssh']})
     final = result_text(second)
-    enabled = bool(re.search(r'SSH Enabled', final, re.I))
+    enabled = not upstream_failed(second) and bool(re.search(r'SSH Enabled', final, re.I))
     expected = text.replace('[WAITING FOR ANSWER]', '[EXPECTED RSA QUESTION]')
     return CallToolResult(content=[TextContent(type='text', text=expected + '\n' + final +
         ('\nSe conservaron las claves existentes.' if existing else '\nSe comprobó el estado SSH después de generar las claves.'))], isError=not enabled)
@@ -83,10 +88,13 @@ def checked_result(name, arguments, result, workspace):
     secrets = [arguments['password']] if name == 'pt_ssh_test' else []
     if name == 'pt_apply_security_config':
         secrets += [line.split(' secret ', 1)[1] for line in arguments['commands'] if ' secret ' in line]
+    authenticated = name == 'pt_ssh_test' and bool(re.search(r'Current privilege level is [0-9]+', result_text(result), re.I))
     def redact(value):
         if isinstance(value, str):
             for secret in secrets:
                 value = value.replace(secret, '[REDACTED]')
+            if authenticated:
+                value = value.replace('[WAITING FOR ANSWER]', '[EXPECTED AUTH PROMPT]')
             return value
         if isinstance(value, dict):
             return {k: redact(v) for k, v in value.items()}
@@ -109,11 +117,8 @@ def checked_result(name, arguments, result, workspace):
         content = list(blocks)
         error = False
     text = '\n'.join(getattr(block, 'text', '') for block in content)
-    if name == 'pt_ssh_test' and re.search(r'Current privilege level is [0-9]+', text, re.I) and not re.search(r'\[(?:ERROR|TIMEOUT|UNKNOWN COMMAND)\]', text):
-        text = text.replace('[WAITING FOR ANSWER]', '[EXPECTED AUTH PROMPT]')
-        return CallToolResult(content=[TextContent(type='text', text=text)], isError=False)
     # Vendor 0.12.0 often returns errors as ordinary text blocks.
-    if re.search(r'\[(?:ERROR|TIMEOUT|UNKNOWN COMMAND|WAITING FOR ANSWER)\]|could not use the console|Interrupted:|No answer from PT|PT error|ERR:|Not saved:|PT did not write|"ok"\s*:\s*false', text, re.I):
+    if re.search(r'\A(?:Validation failed:|Error:)|\[(?:ERROR|TIMEOUT|UNKNOWN COMMAND|WAITING FOR ANSWER)\]|could not use the console|Interrupted:|No answer from PT|Packet Tracer is not connected|PT error|ERR:|Not saved:|PT did not write|"ok"\s*:\s*false', text, re.I):
         error = True
     if name in ('pt_save_activity', 'pt_save_project'):
         target = Path(workspace) / arguments['filename']
