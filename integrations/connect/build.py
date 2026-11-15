@@ -72,7 +72,7 @@ def build_plugins(output):
         metadata.mkdir()
         for name in ('METADATA','WHEEL'):
             (metadata / name).write_text(dist.read_text(name), encoding='utf-8', newline='\n')
-        for name in ('runner.py','setup.py','editing.py'):
+        for name in ('runner.py','setup.py','editing.py','visual.py'):
             shutil.copyfile(SOURCE / 'plugins' / item['id'] / name, work / name)
         shutil.copyfile(ROOT / 'src/cloud/packet-tracer/policy.json', work / 'policy.json')
         shutil.copyfile(ROOT / 'integrations/packet-tracer/UPSTREAM-LICENSE.txt', work / 'UPSTREAM-LICENSE.txt')

@@ -30,3 +30,30 @@ The Campus adapter in `plugins/packet-tracer/editing.py` wraps the pinned vendor
 Adds bounded DHCP/DNS/HTTP service operations, simulated client DNS/web checks, SSID settings, IOS config saving, SSHv2/ACL configuration, RSA generation with known prompts only and SSH login tests with lab secrets redacted from all result surfaces. Reads leave service state and wireless associations unchanged. Reopening accepts only existing workspace .pka files and never supplies an activity password. WPA2/client profiles retain the upstream API limitation. The host stays 0.2.0 and reviewed package versions keep their supported operations.
 
 Package 0.2.3 preserves upstream error flags and late session failures after successful SSH authentication, and reports a disconnected bridge as an MCP error. Package 0.2.2 was superseded before the relay rollout; SSH tests require 0.2.3.
+
+## Revisión visual MCP — paquete 0.2.4
+
+`pt_review_layout` devuelve una captura PNG real del lienzo de Cisco y evidencia
+de clústeres, inventario, nombres duplicados y equipos esperados fuera de su
+clúster. Admite `cluster` (nombre exacto), `expected_devices` y `capture=false`
+para consulta estructural. La captura solo incluye el lienzo lógico: no captura
+el escritorio ni cambia conexiones, configuración, etiquetas o preferencias.
+Si necesita seleccionar otro clúster, restaura la vista anterior incluso cuando
+falla la captura. No acepta código, rutas locales ni correcciones automáticas.
+
+El relay entrega el PNG como contenido MCP de imagen en ambos endpoints de job,
+sin publicarlo mediante enlaces. No repite el base64 en el JSON. Los límites de
+cola, cuentas y resultados se conservan; máximo 768 KB de PNG por respuesta.
+Los objetos auxiliares de distribución eléctrica se cuentan por separado de los
+equipos de red. Las alertas de solapamiento se estiman por coordenadas y pueden
+ser falsos positivos: cero alertas no certifica legibilidad. La IA debe inspeccionar
+la imagen antes de afirmar que una revisión visual pasó. Una captura ausente o datos parciales se informan como fallo, conservando la
+evidencia disponible. La legibilidad se comprueba en la imagen.
+
+La app 0.2.0 admite este paquete en Windows x64 y macOS Intel/Apple Silicon;
+solo se actualiza la integración con consentimiento local. Las versiones
+anteriores conservan sus operaciones revisadas y no ejecutan esta función.
+
+Los nombres duplicados se detectan antes de resolver componentes por nombre. Su
+pertenencia al clúster queda ambigua y la cobertura parcial; no se atribuye la
+ubicación del primer equipo a todos los que comparten ese nombre.

@@ -1445,6 +1445,40 @@
       "mutates": true,
       "connectOnly": true,
       "minPackageVersion": "0.2.2"
+    },
+    {
+      "name": "pt_review_layout",
+      "description": "Inspecciona clústeres, nombres duplicados, equipos esperados fuera de su clúster y posibles solapamientos. Devuelve una captura PNG real del lienzo mediante MCP, sin acceso al escritorio ni cambios de red. Puede seleccionar temporalmente un clúster y restaura la vista anterior. Las alertas geométricas son aproximadas: revisar la imagen antes de confirmar legibilidad. No corrige automáticamente.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cluster": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]{1,128}$(?![\\s\\S])"
+          },
+          "expected_devices": {
+            "type": "array",
+            "maxItems": 200,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+            }
+          },
+          "capture": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "mutates": false,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.4"
     }
   ]
 }
