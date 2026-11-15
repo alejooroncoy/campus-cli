@@ -2,11 +2,11 @@
   {
     "id": "packet-tracer",
     "name": "Cisco Packet Tracer",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "upstreamVersion": "0.12.0",
     "publisher": "Campus · MCP de Mats2208",
     "source": "https://github.com/Mats2208/MCP-Packet-Tracer",
-    "description": "Crea y edita redes, consulta dispositivos y guarda proyectos y actividades de Packet Tracer.",
+    "description": "Crea y edita redes, consulta dispositivos, guarda proyectos y actividades y, cuando lo pides, abre y lee una actividad de Packet Tracer de tu curso.",
     "icon": "/integrations/connect/icons/packet-tracer.png",
     "requirements": [
       "Cisco Packet Tracer 8.2 o posterior instalado por separado",
@@ -15,6 +15,7 @@
     "permissions": [
       "Leer y modificar tus laboratorios de Packet Tracer",
       "Guardar proyectos y actividades en Documentos/Campus/PacketTracer",
+      "Descargar a Documentos/Campus/PacketTracer los archivos del curso que pidas abrir, solo desde Campus",
       "Instalar MCP Control Center en Packet Tracer"
     ],
     "platforms": [
@@ -26,7 +27,8 @@
     "compatibleVersions": [
       "0.2.0",
       "0.2.1",
-      "0.2.2"
+      "0.2.2",
+      "0.2.3"
     ]
   }
 ]

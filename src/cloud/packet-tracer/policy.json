@@ -1445,6 +1445,91 @@
       "mutates": true,
       "connectOnly": true,
       "minPackageVersion": "0.2.2"
+    },
+    {
+      "name": "pt_read_course_activity",
+      "description": "Requiere Campus Connect con la integración Packet Tracer y Packet Tracer abierto en la computadora del estudiante. Lee una actividad .pka o un proyecto .pkt publicado en Blackboard SOLO cuando el estudiante lo pide: Campus descarga una copia nueva en Documentos/Campus/PacketTracer y la abre en Packet Tracer, lo que REEMPLAZA el archivo que el estudiante tenga abierto. Antes de ejecutarla pregúntale si puede cerrar lo que tiene abierto (y guardarlo si hay cambios); envía confirmReplace=true solo con su sí. Devuelve las instrucciones de la actividad como texto y la topología de trabajo; nunca la red de respuesta ni la calificación. Una actividad con contraseña responde locked=true. Usa courseId, contentId y attachmentId o fileUrl del archivo, como en blackboard_get_download_link. Si el nombre no termina en .pka o .pkt, indica format.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "downloadUrl": {
+            "type": "string",
+            "maxLength": 400,
+            "pattern": "^https?://[A-Za-z0-9.:\\[\\]-]+/d/[A-Za-z0-9_-]{40,200}$(?![\\s\\S])"
+          },
+          "fileName": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 115,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 ._()-]{0,110}\\.(pka|pkt)$(?![\\s\\S])"
+          },
+          "requestDigest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$(?![\\s\\S])"
+          }
+        },
+        "required": [
+          "downloadUrl",
+          "fileName",
+          "requestDigest"
+        ],
+        "additionalProperties": false
+      },
+      "requestSchema": {
+        "type": "object",
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9_:.-]+$(?![\\s\\S])"
+          },
+          "contentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9_:.-]+$(?![\\s\\S])"
+          },
+          "attachmentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[A-Za-z0-9_:.-]+$(?![\\s\\S])"
+          },
+          "fileUrl": {
+            "type": "string",
+            "minLength": 9,
+            "maxLength": 2000,
+            "pattern": "^https://[^\\s]+$(?![\\s\\S])"
+          },
+          "fileName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "pka",
+              "pkt"
+            ]
+          },
+          "confirmReplace": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "required": [
+          "courseId",
+          "fileName",
+          "confirmReplace"
+        ],
+        "additionalProperties": false
+      },
+      "relayPreparation": "courseFileLink",
+      "mutates": true,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.4"
     }
   ]
 }
