@@ -110,7 +110,7 @@ class CourseActivityTests(unittest.TestCase):
         result, calls = self.run_read({
             'pt_activity_open': json.dumps({'opened': str(self.workspace / 'Lab 3.pka'), 'locked': False}),
             'pt_activity_status': json.dumps(status),
-            'pt_query_topology': f'SW1 (2960) loaded from {self.workspace}/Lab 3.pka',
+            'pt_query_topology': f'DEVICES:1|LINKS:0\n\nSW1 (2960) loaded from {self.workspace}/Lab 3.pka',
         })
         self.assertFalse(result.isError)
         self.assertEqual([name for name, _ in calls], ['pt_activity_open', 'pt_activity_status', 'pt_query_topology'])
@@ -142,12 +142,12 @@ class CourseActivityTests(unittest.TestCase):
         result, calls = self.run_read({
             'pt_open_project': 'Project opened: x (fileOpen returned Ok). Devices on the canvas: 0 before → 4 now.',
             'pt_activity_status': json.dumps({'activity': False}),
-            'pt_query_topology': 'R1, SW1',
+            'pt_query_topology': 'DEVICES:2|LINKS:1\n\nR1, SW1',
         }, file_name='Topologia.pkt')
         self.assertFalse(result.isError)
         self.assertEqual(calls[0][0], 'pt_open_project')
         payload = json.loads(result.content[0].text)
-        self.assertEqual((payload['format'], payload['activity'], payload['topology']), ('pkt', False, 'R1, SW1'))
+        self.assertEqual((payload['format'], payload['activity'], payload['topology']), ('pkt', False, 'DEVICES:2|LINKS:1\n\nR1, SW1'))
         self.assertNotIn('instructions', payload)
         failed, _ = self.run_read({'pt_activity_open': f'Not opened: {self.workspace}/Lab.pka (fileOpen returned Error).'},
                                   file_name='Lab.pka')
@@ -214,10 +214,33 @@ class CourseActivityTests(unittest.TestCase):
         result, _ = self.run_read({
             'pt_activity_open': json.dumps({'opened': 'x', 'locked': False}),
             'pt_activity_status': json.dumps({'activity': True, 'locked': False, 'instructions': [page] * 5}),
-            'pt_query_topology': '網' * 60_000,
+            'pt_query_topology': 'DEVICES:1|LINKS:0\n' + '網' * 60_000,
         })
         self.assertLessEqual(len(json.dumps(json.loads(result.content[0].text)).encode()), course.MAX_RESULT_BYTES)
         self.assertTrue(json.loads(result.content[0].text)['instructions'])
+
+    def test_a_failed_topology_read_is_an_error_but_keeps_the_instructions(self):
+        status = json.dumps({'activity': True, 'locked': False, 'instructions': ['Configura R1.']})
+        for topology in ['Packet Tracer is not connected over any channel.', 'No response from PT (timeout).']:
+            result, _ = self.run_read({'pt_activity_open': json.dumps({'opened': 'x', 'locked': False}),
+                                       'pt_activity_status': status, 'pt_query_topology': topology})
+            payload = json.loads(result.content[0].text)
+            self.assertTrue(result.isError)
+            self.assertNotIn('topology', payload)
+            self.assertIn('not connected' if 'connected' in topology else 'timeout', payload['topologyError'])
+            self.assertEqual(payload['instructions'], ['Configura R1.'])
+
+        from mcp.types import CallToolResult
+        calls = []
+
+        async def call_tool(name, args):
+            calls.append(name)
+            if name == 'pt_query_topology':
+                return CallToolResult(content=[TextContent(type='text', text='DEVICES:0|LINKS:0')], isError=True)
+            return [TextContent(type='text', text={'pt_open_project': 'Project opened: x', 'pt_activity_status': '{"activity": false}'}[name])]
+        result = asyncio.run(course.read_course_activity(call_tool, {'downloadUrl': f'{self.origin}/d/{TOKEN}', 'fileName': 'Red.pkt'},
+                                                         self.workspace, self.origin, self.opener))
+        self.assertTrue(result.isError, 'el isError del upstream se conserva')
 
     def test_policy_separates_the_device_schema_from_the_student_request(self):
         tool = POLICY['pt_read_course_activity']
