@@ -25,6 +25,9 @@ MAX_BYTES = 50 * 1024 * 1024
 MAX_TEXT = 60_000
 # El host corta a los 160 s y rechaza resultados de más de 1,5 MB.
 DOWNLOAD_SECONDS = 90
+# Cada operación del socket espera a lo más esto: el peor caso es el plazo más
+# una espera, por debajo del corte del host.
+SOCKET_SECONDS = 20
 MAX_RESULT_BYTES = 1_000_000
 WINDOWS_RESERVED = re.compile(r'(?:con|prn|aux|nul|com[0-9]|lpt[0-9])(?:\..*)?', re.I)
 TOKEN_PATH = re.compile(r'/d/[A-Za-z0-9_-]{40,200}')
@@ -99,7 +102,7 @@ def download(url, workspace, file_name, opener, max_bytes=MAX_BYTES, seconds=DOW
         with os.fdopen(fd, 'wb') as output:
             request = urllib.request.Request(url, headers={'User-Agent': 'Campus-Connect-PacketTracer'})
             try:
-                response = opener.open(request, timeout=60)
+                response = opener.open(request, timeout=SOCKET_SECONDS)
             except urllib.error.HTTPError as error:
                 if error.code in (404, 410):
                     raise CourseActivityError('El enlace del archivo venció o ya se usó. Pide la lectura otra vez.') from None
@@ -114,12 +117,14 @@ def download(url, workspace, file_name, opener, max_bytes=MAX_BYTES, seconds=DOW
                     raise CourseActivityError('El archivo excede el tamaño permitido para abrirlo con Campus Connect.')
                 size = 0
                 while True:
-                    chunk = response.read(1 << 16)
+                    if time.monotonic() > deadline:
+                        raise CourseActivityError('La descarga tardó demasiado. Vuelve a pedir la lectura.')
+                    # read1 vuelve con lo que llegó en una sola lectura del socket:
+                    # un goteo no puede retener la llamada más allá de SOCKET_SECONDS.
+                    chunk = response.read1(1 << 16)
                     if not chunk:
                         break
                     size += len(chunk)
-                    if time.monotonic() > deadline:
-                        raise CourseActivityError('La descarga tardó demasiado. Vuelve a pedir la lectura.')
                     if size > max_bytes:
                         raise CourseActivityError('El archivo excede el tamaño permitido para abrirlo con Campus Connect.')
                     output.write(chunk)
