@@ -57,3 +57,31 @@ anteriores conservan sus operaciones revisadas y no ejecutan esta función.
 Los nombres duplicados se detectan antes de resolver componentes por nombre. Su
 pertenencia al clúster queda ambigua y la cobertura parcial; no se atribuye la
 ubicación del primer equipo a todos los que comparten ese nombre.
+
+## Correcciones de posición por relay — paquete 0.2.5
+
+Cualquier cliente MCP compatible puede descubrir y ejecutar `pt_move_device` y
+`pt_move_note` a través de `campus_integrations_catalog/run/job` o de los nombres
+compatibles `campus_packet_tracer_*`. No necesita iniciar otro servidor MCP.
+Campus Connect 0.2.0 sigue siendo el host de Windows, Mac Intel y Apple Silicon;
+solo se actualiza el paquete local, con el consentimiento habitual.
+
+1. Leer `pt_review_layout` con el clúster exacto para obtener posiciones y notas.
+2. Para un equipo, pasar su `device_name`, `cluster`, `expected_position`, `x` e `y`.
+   El nombre visible acompaña al equipo; no se mueve por separado.
+3. Para una anotación, usar `pt_move_note` con `note_id`, `expected_text`,
+   `cluster`, `expected_position`, `x` e `y`. Solo se admiten IDs de notas
+   existentes; su texto se conserva.
+4. Leer el resultado y comprobar `verified`. Un tiempo agotado o una lectura
+   parcial puede haber aplicado el movimiento: inspeccionar antes de reintentar.
+5. Pedir otra imagen con `pt_review_layout`, inspeccionarla y guardar una nueva
+   copia con `pt_save_activity` o `pt_save_project` cuando corresponda.
+
+Las posiciones de destino son enteros entre 0 y 10000. El adaptador rechaza
+los nombres duplicados, los cambios de posición o texto desde la revisión y
+los destinos fuera del clúster indicado. Verifica posición, pertenencia, texto
+y conteos de dispositivos/enlaces; restaura la vista anterior incluso en
+fallos. Una operación incierta conserva su evidencia de posible aplicación y
+no se reintenta ni revierte automáticamente. No expone JavaScript, comandos,
+rutas, cambio de clúster, borrado de objetos ni edición de textos. Las versiones
+anteriores conservan sus operaciones y no reciben estos nuevos trabajos.

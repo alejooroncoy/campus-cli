@@ -13,6 +13,7 @@ from mcp.types import Tool
 from jsonschema import Draft202012Validator
 from editing import vendor_operation, checked_result, generate_ssh_keys
 from visual import review_layout
+from layout import move_layout
 
 ROOT = Path(__file__).parent
 WORKSPACE = Path(os.environ['CAMPUS_WORKSPACE'])
@@ -37,6 +38,8 @@ async def call(name, arguments):
     if name not in policy or len(json.dumps(arguments).encode()) > 100_000:
         raise ValueError('Operación no habilitada.')
     Draft202012Validator(policy[name]['inputSchema']).validate(arguments)
+    if name in ('pt_move_device', 'pt_move_note'):
+        return await move_layout(BRIDGE, name, arguments)
     if name == 'pt_full_build' and arguments.get('deploy', True) and BRIDGE.check_bridge():
         raise ValueError('Packet Tracer no está conectado. Abre MCP Control Center antes de crear la red.')
     if name == 'pt_review_layout':

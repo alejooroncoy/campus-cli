@@ -1479,6 +1479,134 @@
       "mutates": false,
       "connectOnly": true,
       "minPackageVersion": "0.2.4"
+    },
+    {
+      "name": "pt_move_device",
+      "description": "Mueve un equipo existente y su nombre en el lienzo lógico, dentro de su mismo clúster. Requiere el nombre único, clúster exacto y posición previa de pt_review_layout; rechaza duplicados y datos obsoletos. Verifica posición, pertenencia y conteos después del movimiento y restaura la vista previa. No cambia configuración, texto ni conexiones. Revisar de nuevo la imagen y guardar una copia del proyecto.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cluster": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]{1,128}$(?![\\s\\S])"
+          },
+          "expected_position": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": -10000,
+                "maximum": 10000
+              },
+              "y": {
+                "type": "integer",
+                "minimum": -10000,
+                "maximum": 10000
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          },
+          "x": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "y": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "device_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9 _()./\\-]*$(?![\\s\\S])"
+          }
+        },
+        "required": [
+          "cluster",
+          "device_name",
+          "expected_position",
+          "x",
+          "y"
+        ],
+        "additionalProperties": false
+      },
+      "mutates": true,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.5"
+    },
+    {
+      "name": "pt_move_note",
+      "description": "Mueve una anotación existente identificada por note_id en pt_review_layout. Requiere clúster, texto y posición previa exactos; conserva su texto y su clúster. Solo admite notas, no dispositivos, enlaces ni formas. Verifica la posición real después y restaura la vista previa. Revisar la imagen después y guardar una copia. Los nombres de equipos se desplazan con pt_move_device.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cluster": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]{1,128}$(?![\\s\\S])"
+          },
+          "expected_position": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": -10000,
+                "maximum": 10000
+              },
+              "y": {
+                "type": "integer",
+                "minimum": -10000,
+                "maximum": 10000
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          },
+          "x": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "y": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "note_id": {
+            "type": "string",
+            "pattern": "^\\{[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\}$(?![\\s\\S])",
+            "maxLength": 38
+          },
+          "expected_text": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "cluster",
+          "note_id",
+          "expected_position",
+          "x",
+          "y",
+          "expected_text"
+        ],
+        "additionalProperties": false
+      },
+      "mutates": true,
+      "connectOnly": true,
+      "minPackageVersion": "0.2.5"
     }
   ]
 }
