@@ -50,3 +50,15 @@ assert.ok(person('survey shown',base).$survey_last_seen_date);
 assert.deepEqual(person('survey sent',{$survey_id:id}),{});
 assert.deepEqual(person('survey sent',{...completed,$survey_id:qaId}),{[`$survey_responded/${qaId}`]:true});
 console.log('Survey draft gating, supported question types, exact response IDs, partial/final deduplication and analytics isolation passed.');
+
+// Mis clases: misma frontera de privacidad, otra encuesta y solo clientes reales.
+const { CLASSES_SURVEY_ID: classesId, classesSurveyIdForAudience: classesAudience } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
+assert.equal(classesAudience('customer',false),classesId);
+for (const [aud,test] of [['customer',true],['customer',undefined],['test',true],['test',false],['internal',false],['unknown',false],[undefined,false]]) assert.equal(classesAudience(aud,test),undefined,`${aud}/${test}`);
+const classesSurvey = {...survey,id:classesId};
+assert.equal(supported(classesSurvey,classesId),true);
+assert.equal(supported(classesSurvey),false,'The Plus definition cannot be replaced by the classes survey.');
+const classesSent = {...completed,$survey_id:classesId};
+assert.deepEqual(safe('survey sent',classesSent),classesSent);
+assert.deepEqual(person('survey dismissed',{$survey_id:classesId,$survey_iteration:null}),{[`$survey_dismissed/${classesId}`]:true});
+console.log('plus-survey: ok');

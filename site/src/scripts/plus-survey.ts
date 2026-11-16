@@ -1,10 +1,18 @@
-import { canAnswerPlusSurvey, getPlusSurvey, track } from './analytics.ts';
-import { PLUS_QA_SURVEY_ID, plusSurveyIdForAudience, plusSurveyQaRequested } from './plus-survey-contract.ts';
+import { canAnswerClassesSurvey, canAnswerPlusSurvey, getClassesSurvey, getPlusSurvey, track } from './analytics.ts';
+import { PLUS_QA_SURVEY_ID, classesSurveyIdForAudience, plusSurveyIdForAudience, plusSurveyQaRequested } from './plus-survey-contract.ts';
 import type { PlusSurvey } from './plus-survey-contract.ts';
 import type { CampusSession } from './campus-session.ts';
 
-export function mountPlusSurvey(root: HTMLElement) {
-  const panel = root.querySelector<HTMLElement>('[data-plus-survey]')!;
+type SurveyAdapter = {
+  thanks: string;
+  /** Si esta vista y esta sesión pueden ver la encuesta. */
+  eligible: (view: string, session?: CampusSession) => boolean;
+  load: () => Promise<PlusSurvey | undefined>;
+  canAnswer: (owner: string) => boolean;
+};
+
+/** Panel de encuesta con el diseño de Campus. Lo usan Plus y Mis clases con reglas propias de elegibilidad. */
+export function mountSurveyPanel(panel: HTMLElement, adapter: SurveyAdapter) {
   const title = panel.querySelector<HTMLElement>('[data-survey-title]')!;
   const choices = panel.querySelector<HTMLElement>('[data-survey-choices]')!;
   const form = panel.querySelector<HTMLFormElement>('[data-survey-comment]')!;
@@ -19,11 +27,11 @@ export function mountPlusSurvey(root: HTMLElement) {
   const context = () => ({ $survey_id: survey!.id, $survey_iteration: survey!.current_iteration ?? null });
   const remember = () => { try { localStorage.setItem(storageKey, 'done'); } catch { /* Remote targeting also remembers. */ } };
   function markShown() {
-    if (visibleTracked || !eligible || disposed || !survey || !canAnswerPlusSurvey(owner)) return;
+    if (visibleTracked || !eligible || disposed || !survey || !adapter.canAnswer(owner)) return;
     visibleTracked = true; track('survey shown', context()); visibility.disconnect();
   }
   function send(completed: boolean) {
-    if (!survey || finished || disposed || !canAnswerPlusSurvey(owner)) return;
+    if (!survey || finished || disposed || !adapter.canAnswer(owner)) return;
     markShown();
     track('survey sent', { ...context(), $survey_submission_id: submission, $survey_completed: completed,
       $survey_questions: survey.questions.map(({ id, question }) => ({ id, question })),
@@ -34,7 +42,7 @@ export function mountPlusSurvey(root: HTMLElement) {
   function finish() {
     if (!answered) return;
     send(true); form.hidden = true; choices.hidden = true;
-    output.textContent = 'Gracias. Tu respuesta nos ayuda a mejorar Plus.';
+    output.textContent = adapter.thanks;
     close.setAttribute('aria-label', 'Cerrar encuesta');
   }
   close.onclick = () => {
@@ -77,9 +85,7 @@ export function mountPlusSurvey(root: HTMLElement) {
   }
   async function update(view: string, session?: CampusSession) {
     if (session && owner && owner !== session.analyticsId) { dispose(); return; }
-    eligible = view === 'ready' && session?.authenticated === true && session.plan === 'free'
-      && Boolean(plusSurveyIdForAudience(session.analyticsAudience, session.analyticsAudience === 'test' || session.plusTest === true,
-        plusSurveyQaRequested(location.pathname, location.search))) && Boolean(session.analyticsId)
+    eligible = adapter.eligible(view, session) && session?.authenticated === true && Boolean(session.analyticsId)
       && !session.accessBlocked && !session.accessUnavailable;
     panel.hidden = !eligible || !shown || finished;
     if (!eligible) { if (answered && !finished) send(true); return; }
@@ -87,18 +93,40 @@ export function mountPlusSurvey(root: HTMLElement) {
     if (shown || loading || finished) return;
     loading = true;
     try {
-      const result = await getPlusSurvey();
+      const result = await adapter.load();
       if (!result || disposed || !eligible) return;
       survey = result;
       if (survey.id === PLUS_QA_SURVEY_ID) panel.querySelector('.app-kicker')!.textContent = 'PRUEBA QA · EXCLUIDA DEL ANÁLISIS DE CLIENTES';
       storageKey = `campus-survey:${survey.id}:${owner}:${survey.current_iteration ?? 0}`;
       try { if (localStorage.getItem(storageKey)) { finished = true; return; } } catch { /* Remote targeting still applies. */ }
       render();
-    } catch { /* Optional survey failures never block Plus. */ }
+    } catch { /* Optional survey failures never block the page. */ }
     finally { loading = false; }
   }
   function dispose() {
     disposed = true; eligible = false; panel.hidden = true; visibility.disconnect();
   }
   return { update, dispose };
+}
+
+export function mountPlusSurvey(root: HTMLElement) {
+  return mountSurveyPanel(root.querySelector<HTMLElement>('[data-plus-survey]')!, {
+    thanks: 'Gracias. Tu respuesta nos ayuda a mejorar Plus.',
+    eligible: (view, session) => view === 'ready' && session?.plan === 'free'
+      && Boolean(plusSurveyIdForAudience(session.analyticsAudience, session.analyticsAudience === 'test' || session.plusTest === true,
+        plusSurveyQaRequested(location.pathname, location.search))),
+    load: getPlusSurvey,
+    canAnswer: canAnswerPlusSurvey,
+  });
+}
+
+/** Mis clases: `view` es 'ready' cuando ya hay una clase con texto y no se está grabando. */
+export function mountClassesSurvey(panel: HTMLElement) {
+  return mountSurveyPanel(panel, {
+    thanks: 'Gracias. Con tu respuesta decidimos qué mejorar primero en Mis clases.',
+    eligible: (view, session) => view === 'ready'
+      && Boolean(classesSurveyIdForAudience(session?.analyticsAudience, session?.analyticsAudience === 'test' || session?.plusTest === true)),
+    load: getClassesSurvey,
+    canAnswer: canAnswerClassesSurvey,
+  });
 }

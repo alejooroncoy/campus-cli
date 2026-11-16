@@ -3,13 +3,17 @@ import type { Survey } from '@posthog/core';
 export const PLUS_SURVEY_ID = '01a18cc9-dfcf-0000-9228-5fe27651e15d';
 // QA uses separate questions, responses and targeting, never customer traffic.
 export const PLUS_QA_SURVEY_ID = '01a18d1a-1619-0000-4e77-51afff9780a6';
+// Mis clases: después de la primera clase con texto listo. Solo clientes reales, nunca pruebas.
+export const CLASSES_SURVEY_ID = '01a1e295-af9a-0000-8ae5-d97aa4d9ad8b';
+export const classesSurveyIdForAudience = (audience: string | undefined, isTest: boolean | undefined) =>
+  audience === 'customer' && isTest === false ? CLASSES_SURVEY_ID : undefined;
 export const plusSurveyQaRequested = (pathname: string, search: string) => /^\/app\/plus\/?$/.test(pathname)
   && new URLSearchParams(search).get('survey_qa') === '1';
 export function plusSurveyIdForAudience(audience: string | undefined, isTest: boolean | undefined, qaRequested: boolean) {
   if (audience === 'customer' && isTest === false) return PLUS_SURVEY_ID;
   if (audience === 'test' && isTest === true && qaRequested) return PLUS_QA_SURVEY_ID;
 }
-const allowedSurveyId = (id: unknown) => id === PLUS_SURVEY_ID || id === PLUS_QA_SURVEY_ID;
+const allowedSurveyId = (id: unknown) => id === PLUS_SURVEY_ID || id === PLUS_QA_SURVEY_ID || id === CLASSES_SURVEY_ID;
 export const surveyEvents = new Set(['survey shown', 'survey sent', 'survey dismissed']);
 const uuid = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value);
 export type PlusSurvey = Survey & { questions: [Survey['questions'][number] & { type: 'single_choice'; choices: string[] }, ...Survey['questions']] };
