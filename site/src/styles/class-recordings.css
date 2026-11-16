@@ -264,3 +264,39 @@
 .classes-survey .plus-survey__actions .app-text-link{min-height:44px;padding:8px 0;border:0;background:transparent;cursor:pointer;font:inherit;font-size:14px}
 .classes-survey [data-survey-status]:empty{display:none}
 @media (max-width:420px){.classes-survey .plus-survey__choices{grid-template-columns:1fr}}
+
+/* Sin sesión: vista previa de una clase lista, beneficios y un solo botón. */
+.classes-signedout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;max-width:960px}
+.classes-signedout__stage{position:relative;padding:96px 24px 28px;border-radius:24px;background:linear-gradient(160deg,var(--app-sky-pale),#e9f6f1 90%)}
+.classes-signedout__campito{position:absolute;top:-18px;right:18px;width:104px;height:104px;object-fit:contain;filter:drop-shadow(0 8px 14px #0b3b4a22)}
+.classes-signedout__preview{background:var(--app-paper);border:1px solid var(--app-line);border-radius:16px;padding:16px 16px 6px;box-shadow:0 12px 28px -18px #0b3b4a55;display:grid;gap:4px}
+.classes-signedout__row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px}
+.classes-signedout__badge{font-size:11px;font-weight:700;color:var(--app-green);background:#e4f5ef;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.classes-signedout__meta{font-size:12px;color:var(--app-muted)}
+.classes-signedout__wave{display:flex;align-items:center;gap:3px;height:26px;margin:8px 0 4px}
+.classes-signedout__wave i{flex:1;height:100%;border-radius:2px;background:var(--app-accent);opacity:.75;transform:scaleY(var(--h))}
+.classes-signedout__preview ul{list-style:none;margin:0;padding:0}
+.classes-signedout__preview li{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--app-line)}
+.classes-signedout__preview li span{flex-shrink:0;font-size:11px;color:var(--app-link);font-variant-numeric:tabular-nums;padding-top:2px}
+.classes-signedout__preview li p{margin:0;font-size:12.5px;line-height:1.5}
+.classes-signedout__body h2{font-size:clamp(24px,3vw,32px);letter-spacing:-.03em;line-height:1.15;margin:0 0 20px}
+.classes-signedout__benefits{list-style:none;margin:0 0 24px;padding:0;display:grid;gap:16px}
+.classes-signedout__benefits li{display:flex;gap:14px;align-items:flex-start}
+.classes-signedout__benefits strong{display:block;font-size:15px;line-height:1.35}
+.classes-signedout__benefits small{display:block;font-size:13px;line-height:1.5;color:var(--app-muted);margin-top:2px}
+.classes-signedout__icon{flex-shrink:0;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--app-sky-pale);color:var(--app-link)}
+.classes-signedout__message{font-size:13px;line-height:1.55;margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#fff8e8;color:#775817}
+.classes .classes-signedout__cta{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding-inline:32px;font-size:16px;font-weight:700}
+.classes[data-signed-out=true] .classes-heading{display:none}
+@media(max-width:760px){
+  .classes-signedout{grid-template-columns:minmax(0,1fr);gap:20px}
+  .classes-signedout__stage{padding:40px 14px 14px;margin-top:22px;border-radius:20px}
+  .classes-signedout__campito{width:84px;height:84px;top:-30px;right:10px}
+  .classes-signedout__body h2{font-size:25px;margin-bottom:16px}
+  .classes-signedout__benefits{gap:12px;margin-bottom:16px}
+  .classes-signedout__icon{width:36px;height:36px;border-radius:11px}
+  .classes-signedout__benefits strong{font-size:14.5px}
+  /* El botón queda siempre a la vista, encima de la barra inferior. */
+  .classes-signedout__cta-bar{position:sticky;bottom:var(--app-mobile-nav-height,92px);padding:16px 0 10px;background:linear-gradient(transparent,#f4f8f8 35%);z-index:2}
+  .classes .classes-signedout__cta{display:flex;width:100%;box-sizing:border-box}
+}

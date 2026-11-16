@@ -2,7 +2,7 @@ import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import UClassNotes from './UClassNotes';
 import CharacterGreeting from './CharacterGreeting';
 import ClassesSurvey from './ClassesSurvey';
-import { CampitoListening, EmptyClasses, LevelBars, TranscriptionSteps } from './ClassRecorderVisuals';
+import { CampitoListening, EmptyClasses, LevelBars, SignedOutClasses, TranscriptionSteps } from './ClassRecorderVisuals';
 import { appendClassAudio, automaticClassTitle, clockLabel, deleteLocalClass, localClassAudio, localClasses, recordingMime, saveClass, type ClassRecording, type ClassSegment } from '../lib/class-recordings';
 
 type Config = { authenticated: boolean; owner: string | null; readable: boolean; enabled: boolean; transcribing: boolean; transcriptionLive?: boolean; liveTranscription?: boolean; liveQuestions?: boolean; preview?: boolean; model?: string; audioEnhancement?: boolean; audioEnhancementMethod?: 'voice_leveling' | 'elevenlabs_voice_isolator' | null; partBytes: number; maxBytes: number; maxSeconds: number };
@@ -594,10 +594,10 @@ export default function ClassRecorder() {
     } catch (e) { setMessage(errorText(e)); } finally { setBusy(false); }
   }
 
-  return <div className="classes" data-class-recorder data-recording={locked}>
+  return <div className="classes" data-class-recorder data-recording={locked} data-signed-out={!loading && !config?.authenticated}>
     <header className="classes-heading"><span className="classes-eyebrow">Tus clases, a tu ritmo</span><h1><span className="classes-heading-full">Graba hoy. Repasa después.</span><span className="classes-heading-mobile">Tus clases, contigo.</span></h1><p>Elige tu curso, graba y vuelve a escuchar lo que necesitas.</p></header>
     {config?.preview && <p className="classes-review-note" role="note"><strong>Prueba local.</strong> {config.transcriptionLive ? 'Transcripción real en español. Los cursos de la demo son de ejemplo.' : 'Grabación y guardado reales; transcripción simulada.'}</p>}
-    {loading ? <p role="status">Comprobando tu cuenta…</p> : !config?.authenticated ? <section className="classes-card"><h2>Tus clases tienen su espacio.</h2><p>{message || 'Inicia sesión para guardar tus grabaciones y mantenerlas separadas de otras cuentas.'}</p><a className="app-button" href="/api/app/auth/start?return=/app/clases/">Iniciar sesión</a></section> : <>
+    {loading ? <p role="status">Comprobando tu cuenta…</p> : !config?.authenticated ? <SignedOutClasses message={message} /> : <>
       <div className="classes-grid">
         <section className={`classes-card${locked ? " classes-card--capturing" : ""}`} aria-labelledby="new-class-title">
           <div className="classes-card-heading" hidden={locked}><CharacterGreeting size={72} className="classes-card-campito" /><div><span className="classes-eyebrow">Clase presencial</span><h2 id="new-class-title">Grabar una clase</h2><p className="classes-card-lede">Campito escucha contigo y deja el texto listo para repasar.</p></div></div>
