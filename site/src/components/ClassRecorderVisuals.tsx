@@ -4,25 +4,16 @@ import { useEffect, useRef, useState } from 'react';
 import CharacterGreeting from './CharacterGreeting';
 import { CHARACTER_NAME } from '../lib/character.mjs';
 
-/**
- * Campito escuchando: ojos abiertos que parpadean de vez en cuando y un halo que respira con el volumen.
- * En pausa cierra los ojos (descansa). Los ojos salen de la pose de saludo, igual que en CharacterGreeting.
- */
-export function CampitoListening({ level, paused = false, size = 112 }: { level: number; paused?: boolean; size?: number }) {
-  const intensity = paused ? 0 : Math.min(1, Math.max(0, level));
-  return <span className="classes-listener" data-paused={paused} style={{ width: size, height: size, ['--level' as string]: intensity.toFixed(2) }}
+/** Loop de escucha: sentado, parpadea y mira su cuaderno. Pausa y movimiento reducido usan una pose fija. */
+export function CampitoListening({ level, paused = false, native = false, size = 112 }: { level: number; paused?: boolean; native?: boolean; size?: number }) {
+  const intensity = paused || native ? 0 : Math.min(1, Math.max(0, level));
+  return <span className="classes-listener" data-paused={paused} data-native={native} style={{ width: size, height: size, ['--level' as string]: intensity.toFixed(2) }}
     role="img" aria-label={paused ? `${CHARACTER_NAME} en pausa` : `${CHARACTER_NAME} escuchando la clase`}>
     <span className="classes-listener__halo" aria-hidden="true" />
-    {/* El cuerpo trae un solo brazo; el otro y los ojos salen de la pose de saludo, como en CharacterGreeting.
-        Escuchando, la mano va junto a la cabeza («te escucho») y el cuerpo se inclina con calma; en pausa descansa. */}
-    <span className="classes-listener__body" aria-hidden="true">
-      <img src="/assets/campu/campu-body-v3-192.webp" srcSet="/assets/campu/campu-body-v3-192.webp 192w, /assets/campu/campu-body-v3-480.webp 480w"
-        sizes={`${size}px`} width={size} height={size} alt="" />
-      {(paused ? ['arm'] : ['arm', 'left', 'right']).map(part => <img key={part}
-        className={`classes-listener__part classes-listener__${part} character-greeting__${part}`}
-        src="/assets/campu/campu-wave-v2-192.webp" srcSet="/assets/campu/campu-wave-v2-192.webp 192w, /assets/campu/campu-wave-v2-480.webp 480w"
-        sizes={`${size}px`} width={size} height={size} alt="" />)}
-    </span>
+    <picture className="classes-listener__pose" aria-hidden="true">
+      <source media="(prefers-reduced-motion: reduce)" srcSet={paused ? '/assets/campu/campito-paused-v1-320.webp' : '/assets/campu/campito-listening-still-v1-320.webp'} />
+      <img src={paused ? '/assets/campu/campito-paused-v1-320.webp' : '/assets/campu/campito-listening-v1-320.webp'} width={size} height={size} alt="" decoding="async" />
+    </picture>
   </span>;
 }
 
