@@ -102,6 +102,11 @@ export default function UClassNotes() {
   const live = data?.session.state === 'listening' || data?.session.state === 'paused';
   // Mientras escucha, o mientras quedan fragmentos por escribir aunque la clase ya terminó, la transcripción se actualiza sola.
   const writing = live || (data?.coverage?.pending ?? 0) > 0;
+  // Si al abrir había poco texto, el resumen se vuelve a pedir solo cuando la transcripción crece.
+  const entryCount = data?.entries.length ?? 0;
+  useEffect(() => {
+    if (openId && summary.status === 'too_short' && entryCount >= 6) void loadSummary(openId);
+  }, [openId, entryCount]);
   useEffect(() => {
     if (!openId || !writing || query) return;
     const timer = setInterval(() => void load(openId, '', true), 8000);
@@ -196,7 +201,7 @@ export default function UClassNotes() {
 
       {tab === 'summary' && <div id="campu-panel-summary" role="tabpanel" aria-labelledby="campu-tab-summary">
         {summary.status === 'loading' && <p className="campu-muted">Campito está leyendo la clase para resumirla…</p>}
-        {summary.status === 'too_short' && <p className="campu-empty">Todavía hay poco texto para resumir. Vuelve cuando la clase avance.</p>}
+        {summary.status === 'too_short' && <><p className="campu-empty">Todavía hay poco texto para resumir. Vuelve cuando la clase avance.</p><button type="button" className="campu-link" onClick={() => openId && void loadSummary(openId)}>Volver a intentar</button></>}
         {summary.status === 'error' && <p className="campu-muted">{summary.message} Mientras tanto, revisa la transcripción.</p>}
         {summary.status === 'ready' && <>
           <h3>Lo importante</h3>

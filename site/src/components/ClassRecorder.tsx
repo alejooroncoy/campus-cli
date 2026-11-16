@@ -126,7 +126,8 @@ export default function ClassRecorder() {
   async function refresh(settings = config) {
     if (!settings?.owner) return;
     const expectedOwner = settings.owner;
-    const local = await localClasses(expectedOwner);
+    // Sin almacenamiento del navegador (bloqueado o privado) igual se muestran las clases de la cuenta.
+    const local = await localClasses(expectedOwner).catch(() => [] as ClassRecording[]);
     if (alive.current && expectedOwner === owner.current) setItems(local.map(r => ({ ...r, state: r.state === 'recording' && !active.current ? 'interrupted' : r.state })));
     let remote: ClassRecording[] = [];
     if (settings.readable) remote = (await json(await request(''))).recordings;
