@@ -75,10 +75,16 @@ test('Browserbase fallback delivers the real API download to identity verificati
       return new Response(new Uint8Array(pdfFixture()));
     },
   });
-  const h = harness({ openBrowser });
+  // Espera a que el lector termine de procesar el PDF (o a que el navegador falle) en vez de un plazo fijo,
+  // que en runners lentos de CI no alcanzaba.
+  let settled!: () => void; const pdfSettled = new Promise<void>(resolve => { settled = resolve; });
+  const h = harness({ openBrowser: (value: Parameters<BrowserReadingOpen>[0]) => openBrowser({ ...value,
+    onPdf: async bytes => { try { await value.onPdf(bytes); } finally { settled(); } },
+    onFailure: reason => { value.onFailure(reason); settled(); },
+  }) });
   try {
     const started = await h.reader.start({ doi, url, pageCount: 1 });
-    for (let i = 0; i < 100 && h.reader.status(started).status !== 'ready'; i++) await new Promise(resolve => setTimeout(resolve, 20));
+    await pdfSettled;
     const ready = h.reader.status(started);
     assert.equal(ready.status, 'ready'); assert.equal(ready.identityAllowed, true);
     const continued = await h.reader.read({ jobId: started.jobId, expectedSha256: ready.sha256!, startPage: 2, pageCount: 1 });
