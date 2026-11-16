@@ -220,7 +220,8 @@ export default function UClassNotes() {
               <button type="button" aria-label="Sí, me sirvió" onClick={() => void rate('up')}>👍</button>
               <button type="button" aria-label="No me sirvió" onClick={() => void rate('down')}>👎</button>
             </>}
-            {summary.stale && <button type="button" className="campu-link" onClick={() => void loadSummary(openId, true)}>Actualizar resumen</button>}
+            {/* Con la clase en vivo o con texto pendiente, el resumen puede quedarse atrás aunque viniera al día. */}
+            {(summary.stale || writing) && <button type="button" className="campu-link" onClick={() => void loadSummary(openId, true)}>Actualizar resumen</button>}
           </div>
         </>}
       </div>}
