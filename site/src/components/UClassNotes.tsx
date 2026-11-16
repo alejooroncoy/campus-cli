@@ -100,12 +100,13 @@ export default function UClassNotes() {
   function close() { current.current = ''; setOpenId(''); setData(null); setStatus(''); }
 
   const live = data?.session.state === 'listening' || data?.session.state === 'paused';
-  // Mientras escucha, la transcripción se actualiza sola.
+  // Mientras escucha, o mientras quedan fragmentos por escribir aunque la clase ya terminó, la transcripción se actualiza sola.
+  const writing = live || (data?.coverage?.pending ?? 0) > 0;
   useEffect(() => {
-    if (!openId || !live || query) return;
+    if (!openId || !writing || query) return;
     const timer = setInterval(() => void load(openId, '', true), 8000);
     return () => clearInterval(timer);
-  }, [openId, live, query]);
+  }, [openId, writing, query]);
 
   useEffect(() => {
     if (tab !== 'transcript' || !transcript.current) return;

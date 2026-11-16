@@ -95,6 +95,10 @@ export default function ClassRecorder() {
   const alive = useRef(true), owner = useRef<string | null>(null), active = useRef(false), audio = useRef<HTMLAudioElement>(null);
   // Audio que todavía no está a salvo: se está guardando o quedó solo en memoria tras un fallo. Cerrar la pestaña lo perdería.
   const unsaved = useRef(false), autoplay = useRef(false);
+  // Clase abierta y el estado de sus partes al abrirla, para refrescarla cuando termine de transcribirse.
+  const openClass = useRef<{ firstId: string; statuses: Record<string, string | undefined> } | null>(null), busyRef = useRef(false);
+  useEffect(() => { busyRef.current = busy; }, [busy]);
+  useEffect(() => { if (!selected) openClass.current = null; }, [selected]);
   const cleanupAudio = useRef<() => void>(() => {}), requestController = useRef(new AbortController());
   const detail = useRef<HTMLElement>(null), playbackPosition = useRef<number | null>(null);
   const awaitingTranscript = useRef<string | null>(null);
@@ -131,7 +135,15 @@ export default function ClassRecorder() {
     for (const remoteItem of remote) merged.set(remoteItem.id, { ...remoteItem, ...merged.get(remoteItem.id), owner: expectedOwner, status: remoteItem.status, attempts: remoteItem.attempts, cloud: remoteItem.status });
     setItems([...merged.values()].sort((a, b) => b.recordedAt.localeCompare(a.recordedAt)));
     const completed = merged.get(awaitingTranscript.current ?? '');
-    if (completed?.status === 'ready') { awaitingTranscript.current = null; void select(completed, true); }
+    if (completed?.status === 'ready') { awaitingTranscript.current = null; void select(completed, true); return; }
+    // La clase abierta se actualiza sola cuando una de sus partes termina de transcribirse, sin tener que cerrarla y abrirla.
+    const open = openClass.current;
+    if (open) {
+      const group = [...merged.values()].filter(p => p.id === open.firstId || p.continuesId === open.firstId);
+      const newlyReady = group.some(p => p.status === 'ready' && open.statuses[p.id] !== 'ready');
+      const first = merged.get(open.firstId);
+      if (newlyReady && first && !busyRef.current) void select(first);
+    }
   }
   async function loadCourses(expectedOwner = owner.current) {
     setCoursesLoading(true);
@@ -496,6 +508,7 @@ export default function ClassRecorder() {
       const group = partsOf(item);
       const joined = !offline && group.length > 1 && group.every(p => p.cloud) ? await json(await request(`/${item.id}/full`)).catch(() => null) as FullClass | null : null;
       setFull(joined); setPlayingPart(item.id);
+      openClass.current = { firstId: item.continuesId ?? item.id, statuses: Object.fromEntries(group.map(p => [p.id, p.id === item.id ? current.status : p.status])) };
       setAudioVersion(version); setAudioUrl(URL.createObjectURL(blob)); setSelected(current);
       if (announce) setMessage('Tu transcripción está lista. Revisa el texto junto al audio.');
       else if (offline) setMessage('No pudimos conectar con tu cuenta: abrimos la copia de este dispositivo. El texto aparecerá cuando vuelva la conexión.');
