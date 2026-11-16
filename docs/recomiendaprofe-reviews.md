@@ -42,10 +42,15 @@ por dos docentes de un taller de Arquitectura («A / B») se muestran en la fich
 de cada uno, con «Reseña compartida con …». Solo se vincula al docente que dicta ese
 mismo taller según el catálogo (TI para Taller 1, TIII para Taller 3).
 
-Resultado: 95 fichas y 138 reseñas distintas (144 tarjetas, porque 6 reseñas
-compartidas salen en dos fichas). Quedan fuera 6 reseñas: «Meneses / Ferraro» y
-«Antezano / Gerardo Haro» (nadie dicta ese taller en el catálogo), «Juan Alcazar
-Flores», «Zuleika Barrera» y «Mallku Inti Torres Apaza» (no están en el catálogo).
+Resultado: 96 fichas y 139 reseñas distintas (145 tarjetas, porque 6 reseñas
+compartidas salen en dos fichas). Quedan fuera 5 reseñas: «Meneses / Ferraro» y
+«Antezano / Gerardo Haro» (nadie dicta ese taller en el catálogo ni en las secciones
+visibles de Banner de 2025-2 a 2026-2), «Juan Alcazar Flores» y «Mallku Inti Torres
+Apaza» (no están en el catálogo ni en las secciones visibles de Banner 2026-1; Banner
+esconde las secciones llenas, así que no es prueba de que no existan).
+
+«Zuleika Barrera» se vinculó después a Zuleika Helen Barreda Razuri: Banner la
+muestra dictando TI (Taller 1) en 2025-2 y 2026-1.
 
 ## Presentación
 

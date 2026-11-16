@@ -2971,6 +2971,31 @@
      "text": "Bastante buena, es un poco exigente pero enseña bien y suele subir puntos si necesitas."
     }
    ]
+  },
+  {
+   "professorId": 26227,
+   "professorSlug": "zuleika-helen-barreda-razuri",
+   "sources": [
+    {
+     "sourceName": "Zuleika Barrera",
+     "sourceSlug": "zuleika-barrera",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/zuleika-barrera",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8350a715d710e6f5e08230",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/zuleika-barrera",
+     "rating": 8,
+     "difficulty": 10,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:19:19.675Z",
+     "text": "¡Dios, sentí que fue una tortura! En los parciales con los módulos vas a volar de lo estresante que es, te dejan traumas. Sin embargo, en finales todo pasa; son muy buenas arquitectas y enseñan bien. Siento que si eres disciplinado, constante y te esfuerzas al máximo, te van a ayudar y te pondrán la nota que te mereces."
+    }
+   ]
   }
  ]
 }
