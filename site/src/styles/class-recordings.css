@@ -288,6 +288,11 @@
 .classes-signedout__message{font-size:13px;line-height:1.55;margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#fff8e8;color:#775817}
 .classes .classes-signedout__cta{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding-inline:32px;font-size:16px;font-weight:700}
 .classes[data-signed-out=true] .classes-heading{display:none}
+.classes .classes-signedout__cta{gap:10px}
+.classes .classes-signedout__cta[data-opening=true]{pointer-events:none;opacity:.85}
+.classes-signedout__spinner{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:classes-spin .8s linear infinite}
+@keyframes classes-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.classes-signedout__spinner{animation-duration:2.4s}}
 @media(max-width:760px){
   .classes-signedout{grid-template-columns:minmax(0,1fr);gap:20px}
   .classes-signedout__stage{padding:40px 14px 14px;margin-top:22px;border-radius:20px}

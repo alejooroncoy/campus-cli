@@ -78,6 +78,13 @@ function BenefitIcon({ name }: { name: string }) {
 
 /** Sin sesión: muestra cómo se ve una clase lista antes de pedir el inicio de sesión. */
 export function SignedOutClasses({ message }: { message?: string }) {
+  // El inicio de sesión pasa por varias redirecciones y tarda unos segundos: el botón lo dice al instante.
+  const [opening, setOpening] = useState(false);
+  useEffect(() => {
+    const reset = (e: PageTransitionEvent) => { if (e.persisted) setOpening(false); };
+    window.addEventListener('pageshow', reset);
+    return () => window.removeEventListener('pageshow', reset);
+  }, []);
   return <section className="classes-signedout" aria-labelledby="classes-signedout-title">
     <div className="classes-signedout__stage" aria-hidden="true">
       <img className="classes-signedout__campito" src="/assets/campu/campito-listening-still-v2-256.webp" width="112" height="112" alt="" decoding="async" />
@@ -96,7 +103,7 @@ export function SignedOutClasses({ message }: { message?: string }) {
       <ul className="classes-signedout__benefits">
         {SIGNED_OUT_BENEFITS.map(b => <li key={b.icon}><span className="classes-signedout__icon"><BenefitIcon name={b.icon} /></span><span><strong>{b.title}</strong><small>{b.text}</small></span></li>)}
       </ul>
-      <div className="classes-signedout__cta-bar"><a className="app-button classes-signedout__cta" href="/api/app/auth/start?return=/app/clases/">Iniciar sesión</a></div>
+      <div className="classes-signedout__cta-bar"><a className="app-button classes-signedout__cta" href="/api/app/auth/start?return=/app/clases/" aria-busy={opening} data-opening={opening} onClick={() => setOpening(true)}>{opening ? <><span className="classes-signedout__spinner" aria-hidden="true" />Abriendo inicio de sesión…</> : 'Iniciar sesión'}</a></div>
     </div>
   </section>;
 }
