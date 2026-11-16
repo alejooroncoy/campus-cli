@@ -1,0 +1,9 @@
+Created with the built-in Imagegen tool, then assembled as a calm seven-frame loop.
+
+Prompt: Preserve Campito as a cyan rounded 3D toy mascot with glossy navy oval eyes, short arms, small feet and a tiny curved smile. Seated with a simple open blank notebook in its lap and one hand beside its head. Four aligned poses with an identical stationary camera, body and book: eyes open listening; eyes half closed; eyes closed; eyes looking down at the notebook. Genuine transparent background, soft upper-left light, no typography or decorations.
+
+Loop: listening 1700 ms; half blink 60 ms; eyes closed 100 ms; half blink 60 ms; listening 2300 ms; studying 1600 ms; listening 1400 ms.
+
+Paused pose: same character and composition, both eyes softly closed and both hands resting on the book. No raised hand.
+
+Production: animated WebP, 320 x 320, with static WebP alternatives for pause and reduced motion. GIF preview uses the app canvas background.
