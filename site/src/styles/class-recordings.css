@@ -143,3 +143,66 @@
 .classes .classes-ios-upload.is-disabled input{cursor:default}
 .classes .classes-ios-upload:focus-within{outline:2px solid var(--app-link);outline-offset:3px}
 .classes .classes-ios-minutes{max-width:260px}
+
+/* Campito en Mis clases: saluda al empezar, escucha mientras grabas y acompaña la espera del texto. */
+.classes-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.classes-card-heading{align-items:center}
+.classes-card-heading .classes-card-campito{flex-shrink:0;margin:-6px -4px -6px -8px}
+.classes-card-lede{margin:6px 0 0;font-size:14px;line-height:1.5;color:var(--app-muted)}
+
+.classes .classes-record-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding-inline:26px;font-size:15px;font-weight:700}
+.classes-rec-dot{width:11px;height:11px;border-radius:50%;background:#e5484d;box-shadow:0 0 0 3px #e5484d33}
+.classes .classes-record-button:disabled .classes-rec-dot{background:currentColor;box-shadow:none}
+
+/* Escuchando: el halo crece con el volumen; en pausa se apaga. */
+.classes-live{justify-items:center;gap:8px;padding:26px 20px 20px;background:linear-gradient(180deg,var(--app-sky-pale),var(--app-paper) 70%);border-color:transparent}
+.classes-listener{position:relative;display:block}
+.classes-listener img{position:relative;display:block;width:100%;height:100%;object-fit:contain;transition:filter .3s ease-out}
+.classes-listener__halo{position:absolute;inset:6%;border-radius:50%;background:radial-gradient(circle,#17b6e74d 0,#17b6e71a 55%,transparent 72%);
+  transform:scale(calc(1 + var(--level,0) * .55));opacity:calc(.35 + var(--level,0) * .65);transition:transform .14s ease-out,opacity .14s ease-out}
+.classes-listener[data-paused=true] .classes-listener__halo{opacity:0}
+.classes-listener .classes-listener__eye{position:absolute;inset:0;animation:classes-blink 5.2s ease-in-out infinite}
+.classes-listener .classes-listener__eye.character-greeting__right{animation-delay:.02s}
+@keyframes classes-blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+.classes-listener[data-paused=true] img{filter:saturate(.35)}
+.classes-live .classes-timer{font-size:44px;line-height:1;letter-spacing:-.03em;margin-top:4px}
+.classes-live .classes-live-state{font-size:13px;font-weight:600;color:var(--app-ink)}
+.classes-live[data-mode=recording] .classes-live-state::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#e5484d;margin-right:8px;vertical-align:1px;animation:classes-rec 1.6s ease-in-out infinite}
+.classes-levelbars{display:flex;align-items:center;gap:3px;height:34px;width:min(100%,260px);margin:6px 0 2px}
+.classes-levelbars i{flex:1;min-width:2px;height:calc(var(--h,.12) * 100%);border-radius:2px;background:var(--app-accent);transition:height .11s ease-out}
+.classes-levelbars[data-active=false] i{background:var(--app-line)}
+@keyframes classes-rec{50%{opacity:.25}}
+
+/* Después de grabar: pasos con Campito, derivados del estado de la clase. */
+.classes-steps{display:flex;gap:10px;align-items:flex-start;margin-top:10px}
+.classes-steps img{flex-shrink:0;width:36px;height:36px;object-fit:contain}
+.classes-steps ol{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:12px;line-height:1.45}
+.classes-steps li{display:flex;align-items:center;gap:8px;color:var(--app-muted)}
+.classes-steps li span{width:10px;height:10px;border-radius:50%;border:2px solid var(--app-line);flex-shrink:0}
+.classes-steps li[data-state=done]{color:var(--app-green)}
+.classes-steps li[data-state=done] span{background:var(--app-green);border-color:var(--app-green)}
+.classes-steps li[data-state=current]{color:var(--app-ink);font-weight:600}
+.classes-steps li[data-state=current] span{border-color:var(--app-accent);background:var(--app-sky-pale);animation:classes-rec 1.6s ease-in-out infinite}
+
+/* Vacío: Campito saluda y el siguiente paso queda claro. */
+.classes-empty{display:grid;justify-items:center;gap:6px}
+.classes-empty .classes-empty__campito{margin-bottom:4px}
+.classes-empty p{max-width:36ch}
+
+@media(max-width:760px){
+  .classes-card-heading .classes-card-campito{width:60px!important}
+  .classes-card-lede{font-size:13px}
+  .classes-live{padding:22px 16px 18px}
+  .classes-live .classes-timer{font-size:40px}
+  /* Barra fija de grabación (como Granola o Fabric): oscura, con el tiempo y el punto rojo. */
+  .classes-record-actions--active{background:var(--app-ink);border-color:var(--app-ink);box-shadow:0 10px 30px #102a3a40;border-radius:18px}
+  .classes-record-actions--active .classes-controls-time{color:#fff;font-weight:600;font-size:13px}
+  .classes-record-actions--active .classes-controls-time::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff6369;margin-right:8px;vertical-align:1px;animation:classes-rec 1.6s ease-in-out infinite}
+  .classes-record-actions--active>.app-button--secondary{background:#ffffff1a;border-color:#ffffff33;color:#fff}
+  .classes-record-actions--active>.app-button:not(.app-button--secondary){background:#fff;color:var(--app-ink)}
+}
+@media(prefers-reduced-motion:reduce){
+  .classes-listener__halo,.classes-levelbars i{transition:none}
+  .classes-listener .classes-listener__eye{animation:none}
+  .classes-live[data-mode=recording] .classes-live-state::before,.classes-steps li[data-state=current] span,.classes-record-actions--active .classes-controls-time::before{animation:none}
+}
