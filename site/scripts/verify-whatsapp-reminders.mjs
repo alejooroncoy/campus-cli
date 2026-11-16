@@ -17,7 +17,7 @@ const server=createServer(async(req,res)=>{
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const base=`http://127.0.0.1:${server.address().port}`;
 
-const initial={available:true,paymentsAvailable:true,subscribed:true,linked:true,enabled:false,pack:false,quota:3,used:0,remaining:3,resetsAt:'2026-12-01T05:00:00Z'};
+const initial={available:true,paymentsAvailable:true,subscribed:true,linked:true,enabled:false,pack:false,weeklyIncluded:true,weeklySent:1,quota:0,used:0,remaining:0,resetsAt:'2026-12-01T05:00:00Z'};
 const browser=await chromium.launch({headless:true});
 try{
  for(const width of [390,1280]){
@@ -34,8 +34,8 @@ try{
    return r.fulfill({json:{}});
   });
   const panel=page.locator('[data-whatsapp-reminders]');
-  const load=async()=>{await page.goto(base+'/app/plus/');await page.locator('[data-wa-summary]').filter({hasText:/avisos usados/}).waitFor();};
-  await load();assert.match(await panel.textContent(),/total sube de 5 a 20/);assert.equal(writes.length,0);
+  const load=async()=>{await page.goto(base+'/app/plus/');await page.locator('[data-wa-summary]').filter({hasText:/Resumen semanal incluido/}).waitFor();};
+  await load();assert.match(await panel.textContent(),/resumen por WhatsApp cada semana/);assert.match(await panel.textContent(),/20 avisos extra al mes por S\/5/);assert.match(await page.locator('[data-wa-summary]').textContent(),/Resumen semanal incluido \(1 enviado este mes\)\. Sin avisos extra/);assert.equal(writes.length,0);
   const saved=page.waitForResponse(r=>r.url().endsWith('/api/app/whatsapp/preferences'));
   await page.locator('[data-wa-enabled]').check();await saved;assert.deepEqual(writes[0],{enabled:true,consent:true});
   await page.waitForFunction(()=>!document.querySelector('[data-wa-enabled]').disabled);
@@ -44,7 +44,7 @@ try{
   await page.locator('[data-wa-summary]').filter({hasText:'Pago de prueba sin cobro'}).waitFor();assert.deepEqual(writes[1],{consent:true});
   if(process.argv[2])await page.screenshot({path:process.argv[2]+'/whatsapp-'+width+'.png',fullPage:true});
   state={...initial,enabled:true,pack:true,quota:20,used:20,remaining:0};await load();
-  assert.match(await page.locator('[data-wa-summary]').textContent(),/20 de 20.*Te quedan 0/);assert.equal(await page.locator('[data-wa-pack]').isVisible(),false);
+  assert.match(await page.locator('[data-wa-summary]').textContent(),/Avisos extra: 20 de 20.*Te quedan 0/);assert.equal(await page.locator('[data-wa-pack]').isVisible(),false);
   state={...initial,linked:false};await load();assert.equal(await page.locator('[data-wa-link-needed]').isVisible(),true);assert.equal(await page.locator('[data-wa-optin]').isVisible(),false);
   state={...initial,available:false};await load();assert.equal(await page.locator('[data-wa-unavailable]').isVisible(),true);assert.equal(await page.locator('[data-wa-pack]').isVisible(),false);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);assert.deepEqual(errors,[]);
