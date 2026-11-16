@@ -3,9 +3,16 @@ import { useEffect, useRef } from 'react';
 import { getCampusSession } from '../scripts/campus-session';
 import { mountClassesSurvey } from '../scripts/plus-survey';
 
-/** `ready`: ya hay una clase con el texto listo y no se está grabando ni guardando. */
-export default function ClassesSurvey({ ready }: { ready: boolean }) {
+/**
+ * `hasReadyClass`: hay una clase con el texto listo. Queda fijo una vez visto, porque al refrescar la lista
+ * los estados del servidor desaparecen un instante y eso cerraría la encuesta a medio comentario.
+ * `recording`: se está grabando o guardando; ahí la encuesta se oculta.
+ */
+export default function ClassesSurvey({ hasReadyClass, recording }: { hasReadyClass: boolean; recording: boolean }) {
   const panel = useRef<HTMLElement>(null);
+  const seenReady = useRef(false);
+  if (hasReadyClass) seenReady.current = true;
+  const ready = seenReady.current && !recording;
   const survey = useRef<ReturnType<typeof mountClassesSurvey> | null>(null);
   useEffect(() => {
     if (!panel.current) return;
