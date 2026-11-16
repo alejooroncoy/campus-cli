@@ -20,14 +20,14 @@ export function CampitoListening({ level, paused = false, native = false, size =
 /** Barras de nivel con la historia reciente del micrófono: se ve que el sonido entra, no la precisión del texto. */
 export function LevelBars({ level, active, bars = 28 }: { level: number; active: boolean; bars?: number }) {
   const [history, setHistory] = useState<number[]>(() => Array(bars).fill(0));
-  const last = useRef(0);
+  const latest = useRef(level);
+  latest.current = level;
+  // Avanza a ritmo fijo aunque el nivel no cambie: el silencio también debe verse pasar.
   useEffect(() => {
     if (!active) return;
-    const now = performance.now();
-    if (now - last.current < 110) return;
-    last.current = now;
-    setHistory(h => [...h.slice(1), Math.min(1, Math.max(0, level))]);
-  }, [level, active]);
+    const timer = window.setInterval(() => setHistory(h => [...h.slice(1), Math.min(1, Math.max(0, latest.current))]), 110);
+    return () => window.clearInterval(timer);
+  }, [active]);
   return <span className="classes-levelbars" aria-hidden="true" data-active={active}>
     {history.map((v, i) => <i key={i} style={{ ['--h' as string]: (0.12 + v * 0.88).toFixed(2) }} />)}
   </span>;
