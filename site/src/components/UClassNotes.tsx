@@ -39,7 +39,7 @@ export default function UClassNotes() {
   const [done, setDone] = useState<Set<number>>(new Set()), [rated, setRated] = useState(false);
   const [thread, setThread] = useState<Message[]>([]), [question, setQuestion] = useState(''), [follow, setFollow] = useState(true);
   const transcript = useRef<HTMLDivElement>(null), detail = useRef<HTMLElement>(null);
-  const pendingJump = useRef<number | null>(null), loading = useRef(false), current = useRef(''), asked = useRef(0);
+  const pendingJump = useRef<number | null>(null), loading = useRef(false), current = useRef(''), asked = useRef(0), generation = useRef(0);
 
   useEffect(() => {
     // Sin beta, sin extensión o sin clases: la sección no aparece.
@@ -50,7 +50,9 @@ export default function UClassNotes() {
 
   // Trae la clase completa por páginas (o todos los resultados de la búsqueda).
   async function load(id: string, search: string, quiet = false) {
-    if (loading.current) return;
+    // El sondeo en vivo no se encima a una carga en curso; abrir otra clase o buscar sí la reemplaza.
+    if (quiet && loading.current) return;
+    const run = ++generation.current;
     loading.current = true;
     if (!quiet) setStatus(search ? 'Buscando…' : 'Cargando la clase…');
     try {
@@ -58,19 +60,21 @@ export default function UClassNotes() {
       const entries: LiveEntry[] = [];
       for (let page = 0; page < 40; page++) {
         const r = await post('/context', search ? { operation: 'search', sessionId: id, query: search, after } : { operation: 'read', sessionId: id, after, limit: 60 });
+        if (run !== generation.current) return; // La reemplazó otra carga más reciente.
         if (r.status !== 'connected') throw new Error('No encontramos esta clase en tu cuenta.');
         first ??= r;
         entries.push(...r.entries);
         if (r.nextCursor === null || r.nextCursor === undefined) break;
         after = r.nextCursor;
       }
-      if (current.current !== id) return;
+      if (run !== generation.current || current.current !== id) return;
       setData({ ...first, entries });
       if (!quiet) setStatus('');
     } catch (e) {
-      if (current.current === id) setStatus(e instanceof Error ? e.message : 'No se pudo cargar la clase.');
+      if (run === generation.current && current.current === id) setStatus(e instanceof Error ? e.message : 'No se pudo cargar la clase.');
     } finally {
-      loading.current = false;
+      // Solo la carga vigente libera el turno: una reemplazada no debe dejar pasar el sondeo antes de tiempo.
+      if (run === generation.current) loading.current = false;
     }
   }
 
