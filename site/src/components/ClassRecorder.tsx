@@ -94,7 +94,7 @@ export default function ClassRecorder() {
   const recorder = useRef<MediaRecorder | null>(null), stream = useRef<MediaStream | null>(null);
   const alive = useRef(true), owner = useRef<string | null>(null), active = useRef(false), audio = useRef<HTMLAudioElement>(null);
   // Audio que todavía no está a salvo: se está guardando o quedó solo en memoria tras un fallo. Cerrar la pestaña lo perdería.
-  const unsaved = useRef(false);
+  const unsaved = useRef(false), autoplay = useRef(false);
   const cleanupAudio = useRef<() => void>(() => {}), requestController = useRef(new AbortController());
   const detail = useRef<HTMLElement>(null), playbackPosition = useRef<number | null>(null);
   const awaitingTranscript = useRef<string | null>(null);
@@ -163,11 +163,15 @@ export default function ClassRecorder() {
     const storage = (e: StorageEvent) => { if (e.key === 'campus-session-revision-v1') verifyIdentity(); };
     const channel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel('campus-session-events-v1');
     if (channel) channel.onmessage = verifyIdentity;
+    // Los enlaces internos navegan sin recargar (ClientRouter de Astro) y no disparan beforeunload: se pregunta aquí.
+    const navigate = (e: Event) => { if ((active.current || unsaved.current) && !confirm('Tu clase todavía se está grabando o guardando. Si sales, puedes perder audio. ¿Salir igual?')) e.preventDefault(); };
+    document.addEventListener('astro:before-preparation', navigate);
     window.addEventListener('beforeunload', unload); window.addEventListener('storage', storage);
     return () => {
       alive.current = false; requestController.current.abort(); active.current = false;
       if (recorder.current?.state !== 'inactive') recorder.current?.stop();
       cleanupAudio.current(); stream.current?.getTracks().forEach(t => t.stop());
+      document.removeEventListener('astro:before-preparation', navigate);
       window.removeEventListener('beforeunload', unload); window.removeEventListener('storage', storage); channel?.close();
     };
   }, []);
@@ -317,6 +321,8 @@ export default function ClassRecorder() {
     }
     if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { setMessage('Este navegador no permite grabar. Puedes subir un audio grabado con tu celular.'); return; }
     const expectedOwner = owner.current;
+    // El audio recuperado puede ser la única copia completa: primero se descarga o se descarta.
+    if (rescue) { setMessage('Descarga o descarta primero el audio recuperado: puede ser la única copia completa de tu clase.'); return; }
     setMode('starting'); active.current = true; setMessage(''); setRescue(null); setSampleUrl(''); setElapsed(0);
     try {
       const input = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: { ideal: 1 }, echoCancellation: false, noiseSuppression: false, autoGainControl: true }, video: false });
@@ -477,17 +483,22 @@ export default function ClassRecorder() {
   async function select(item: ClassRecording, announce = false) {
     setBusy(true); setMessage('');
     try {
-      let current = item;
-      if (item.cloud) current = { ...item, ...(await json(await request('/' + item.id))).recording, owner: item.owner, parts: item.parts };
+      let current = item, offline = false;
+      // Sin conexión o con la cuenta caída, una clase con copia en este dispositivo se abre igual; el texto de la cuenta es un extra.
+      if (item.cloud) {
+        try { current = { ...item, ...(await json(await request('/' + item.id))).recording, owner: item.owner, parts: item.parts }; }
+        catch (e) { if (!item.parts) throw e; offline = true; }
+      }
       const version = 'original';
       playbackPosition.current = null;
       const blob = await classBlob(current, version);
       // Si la clase tiene varias partes en tu cuenta, se muestra su transcripción unida.
       const group = partsOf(item);
-      const joined = group.length > 1 && group.every(p => p.cloud) ? await json(await request(`/${item.id}/full`)) as FullClass : null;
+      const joined = !offline && group.length > 1 && group.every(p => p.cloud) ? await json(await request(`/${item.id}/full`)).catch(() => null) as FullClass | null : null;
       setFull(joined); setPlayingPart(item.id);
       setAudioVersion(version); setAudioUrl(URL.createObjectURL(blob)); setSelected(current);
       if (announce) setMessage('Tu transcripción está lista. Revisa el texto junto al audio.');
+      else if (offline) setMessage('No pudimos conectar con tu cuenta: abrimos la copia de este dispositivo. El texto aparecerá cuando vuelva la conexión.');
     } catch (e) { setMessage(errorText(e)); } finally { setBusy(false); }
   }
   /** Partes que aún falta subir o transcribir: el botón de la clase depende de todas, no solo de la primera. */
@@ -505,7 +516,7 @@ export default function ClassRecorder() {
       const part = items.find(i => i.id === segment.partId);
       if (!part) return;
       setBusy(true);
-      try { const blob = await classBlob(part, 'original'); playbackPosition.current = target; setAudioVersion('original'); setPlayingPart(part.id); setAudioUrl(URL.createObjectURL(blob)); }
+      try { const blob = await classBlob(part, 'original'); playbackPosition.current = target; autoplay.current = true; setAudioVersion('original'); setPlayingPart(part.id); setAudioUrl(URL.createObjectURL(blob)); }
       catch (e) { setMessage(errorText(e)); } finally { setBusy(false); }
       return;
     }
@@ -514,7 +525,9 @@ export default function ClassRecorder() {
   async function changeAudio(version: 'original' | 'clean') {
     if (!selected) return;
     setBusy(true);
-    try { const position = audio.current?.currentTime ?? 0; const blob = await classBlob(selected, version); playbackPosition.current = position; setAudioVersion(version); setAudioUrl(URL.createObjectURL(blob)); }
+    // En una clase con partes, la versión cambia para la parte que se está escuchando, no para la primera.
+    const part = items.find(i => i.id === playingPart) ?? selected;
+    try { const position = audio.current?.currentTime ?? 0; const blob = await classBlob(part.id === selected.id ? selected : part, version); playbackPosition.current = position; setAudioVersion(version); setAudioUrl(URL.createObjectURL(blob)); }
     catch (e) { setMessage(errorText(e)); } finally { setBusy(false); }
   }
   async function improveTranscript(item: ClassRecording) {
@@ -621,12 +634,12 @@ export default function ClassRecorder() {
         <aside className="classes-help"><details open={helpOpen} onToggle={e => setHelpOpen(e.currentTarget.open)}><summary>Consejos para grabar mejor</summary><div className="classes-help-content"><span className="classes-eyebrow">Antes de empezar</span><h2>Si lo escuchas bien,<br />podrás repasarlo mejor.</h2><ol><li><strong>Haz una prueba desde tu asiento.</strong><p>Escúchala con audífonos. Si no entiendes las palabras, acerca el micrófono al profesor.</p></li><li><strong>Guarda la clase.</strong><p>El audio se conserva en este navegador. Sincronízalo para tener una copia privada en tu cuenta.</p></li><li><strong>Revisa el texto junto al audio.</strong><p>La transcripción automática puede equivocarse, especialmente con ruido, distancia o términos del curso.</p></li></ol><p className="classes-storage">{config.enabled ? config.transcribing ? 'Transcripción en español disponible al sincronizar.' : 'Guardado en tu cuenta disponible. La transcripción aún no está habilitada.' : 'Por ahora, el audio se guarda solo en este dispositivo. El guardado en tu cuenta aún no está habilitado.'}</p><p className="classes-note">El navegador puede borrar su almacenamiento. Descarga una copia o sincroniza antes de limpiar los datos del sitio.</p></div></details><p className="classes-mcp-note"><strong>También en tu IA.</strong> Al sincronizar, tus clases quedan asociadas a tu cuenta Campus. Cuando el texto esté listo, podrás consultarlo desde el MCP.</p></aside>
       </div>
       <div className="classes-message" role="status" aria-live="polite">{message}</div>
-      {rescue && <button className="app-button" onClick={() => { download(rescue, `clase-recuperada.${extension(rescue.type)}`); unsaved.current = false; }}>Descargar audio recuperado</button>}
+      {rescue && <div className="classes-actions"><button className="app-button" onClick={() => { download(rescue, `clase-recuperada.${extension(rescue.type)}`); unsaved.current = false; setRescue(null); }}>Descargar audio recuperado</button><button className="app-button app-button--secondary" onClick={() => { if (confirm('¿Descartar el audio recuperado? No se podrá recuperar.')) { unsaved.current = false; setRescue(null); } }}>Descartar</button></div>}
       <section className="classes-library" aria-labelledby="my-classes-title"><div className="classes-library-heading"><h2 id="my-classes-title">Mis clases</h2><button className="app-button app-button--secondary" disabled={busy || locked} onClick={() => void refresh().catch(e => setMessage(errorText(e)))}>Actualizar</button></div>
         {!items.length ? <div className="classes-empty"><strong>Tu próxima clase empieza aquí.</strong><p>Graba una clase o sube un audio para guardarlo.</p></div> : <ul className="classes-list">{items.filter(item => !item.continuesId || !items.some(i => i.id === item.continuesId)).map(item => { const group = partsOf(item); return <li key={item.id}><div><h3>{item.title}</h3><p>{item.course ? item.course + ' · ' : ''}{new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeZone: 'America/Lima' }).format(new Date(item.recordedAt))} · {clockLabel(group.reduce((n, p) => n + p.durationSeconds, 0))}{group.length > 1 ? ` · ${group.length} partes` : ''}</p><span className="classes-badge">{item.status ? statusLabel[item.status] : item.state === 'interrupted' ? 'Grabación interrumpida · Revisa el audio' : 'Guardada en este dispositivo'}</span></div><div className="classes-item-actions"><button className="app-button app-button--secondary" disabled={busy || locked || !item.bytes} onClick={() => void select(item)}>Abrir</button>{config.enabled && pendingParts(group).length > 0 && <button className="app-button" disabled={busy || locked || !pendingParts(group).some(canSync)} onClick={() => void (async () => { for (const part of pendingParts(group)) if (canSync(part)) await sync(part); })()}>{pendingParts(group).some(p => p.status === 'failed') ? 'Reintentar transcripción' : config.transcribing ? 'Transcribir clase' : 'Sincronizar'}</button>}{config.model === 'elevenlabs/scribe_v2' && item.status === 'ready' && item.transcriptionModel !== config.model && <button className="app-button" disabled={busy || locked || (item.attempts ?? 0) >= 3} onClick={() => void improveTranscript(item)}>Mejorar transcripción</button>}<button className="classes-delete" disabled={busy || locked} onClick={() => setDeleteId(item.id)}>Eliminar</button>{deleteId === item.id && <div className="classes-confirm"><span>{group.length > 1 ? `Se eliminarán el audio y el texto de las ${group.length} partes de esta clase.` : 'Se eliminarán el audio y el texto de esta clase.'}</span><button className="app-button app-button--secondary" disabled={busy} onClick={() => setDeleteId('')}>Cancelar</button><button className="app-button" disabled={busy} onClick={() => void remove(item)}>Sí, eliminar</button></div>}</div></li>; })}</ul>}
       </section>
       <NotesBoundary><UClassNotes key={config.owner ?? ''} /></NotesBoundary>
-      {selected && <section ref={detail} className="classes-card classes-detail" aria-labelledby="class-detail-title"><div className="classes-library-heading"><h2 id="class-detail-title">{selected.title}</h2><button className="classes-delete" onClick={() => { setSelected(null); setFull(null); setAudioUrl(''); }}>Cerrar</button></div>{selected.enhancedAudio && <div className="classes-audio-versions" role="group" aria-label="Versión del audio"><button type="button" disabled={busy} aria-pressed={audioVersion === 'original'} onClick={() => void changeAudio('original')}>Original</button><button type="button" disabled={busy} aria-pressed={audioVersion === 'clean'} onClick={() => void changeAudio('clean')}>{selected.enhancedAudio.method === 'voice_leveling' ? 'Voz nivelada' : 'Limpieza intensa'}</button></div>}<audio ref={audio} controls src={audioUrl} preload="metadata" onLoadedMetadata={() => { if (audio.current && playbackPosition.current !== null) { audio.current.currentTime = Math.min(playbackPosition.current, Number.isFinite(audio.current.duration) ? audio.current.duration : playbackPosition.current); playbackPosition.current = null; } }} />{selected.enhancedAudio && <p className="classes-note">{selected.enhancedAudio.method === 'voice_leveling' ? 'Texto reconocido a partir del original. La voz nivelada ajusta el volumen y conserva el ruido ambiente para proteger las voces lejanas.' : 'Texto reconocido a partir del original. La limpieza intensa puede eliminar voces lejanas. Escucha el original si falta algo.'}</p>}<div className="classes-actions"><button className="app-button app-button--secondary" disabled={busy} onClick={() => {
+      {selected && <section ref={detail} className="classes-card classes-detail" aria-labelledby="class-detail-title"><div className="classes-library-heading"><h2 id="class-detail-title">{selected.title}</h2><button className="classes-delete" onClick={() => { setSelected(null); setFull(null); setAudioUrl(''); }}>Cerrar</button></div>{selected.enhancedAudio && <div className="classes-audio-versions" role="group" aria-label="Versión del audio"><button type="button" disabled={busy} aria-pressed={audioVersion === 'original'} onClick={() => void changeAudio('original')}>Original</button><button type="button" disabled={busy} aria-pressed={audioVersion === 'clean'} onClick={() => void changeAudio('clean')}>{selected.enhancedAudio.method === 'voice_leveling' ? 'Voz nivelada' : 'Limpieza intensa'}</button></div>}<audio ref={audio} controls src={audioUrl} preload="metadata" onLoadedMetadata={() => { if (audio.current && playbackPosition.current !== null) { audio.current.currentTime = Math.min(playbackPosition.current, Number.isFinite(audio.current.duration) ? audio.current.duration : playbackPosition.current); playbackPosition.current = null; } if (audio.current && autoplay.current) { autoplay.current = false; void audio.current.play().catch(() => {}); } }} />{selected.enhancedAudio && <p className="classes-note">{selected.enhancedAudio.method === 'voice_leveling' ? 'Texto reconocido a partir del original. La voz nivelada ajusta el volumen y conserva el ruido ambiente para proteger las voces lejanas.' : 'Texto reconocido a partir del original. La limpieza intensa puede eliminar voces lejanas. Escucha el original si falta algo.'}</p>}<div className="classes-actions"><button className="app-button app-button--secondary" disabled={busy} onClick={() => {
           // En una clase con partes se descarga la parte que se está escuchando.
           const group = partsOf(selected), part = group.find(p => p.id === playingPart) ?? selected, n = group.findIndex(p => p.id === part.id) + 1;
           void classBlob(part).then(blob => download(blob, `clase${group.length > 1 ? `-parte-${n}` : ''}.${extension(part.mime)}`)).catch(e => setMessage(errorText(e)));
