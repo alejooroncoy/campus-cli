@@ -1,9 +1,9 @@
 ---
 import {CHARACTER_NAME} from '../lib/character.mjs';
 
-import { turnitinServiceEnabled, libraryServiceEnabled } from "../../feature-flags.mjs";
+import { turnitinServiceEnabled, libraryServiceEnabled, classRecordingsEnabled } from "../../feature-flags.mjs";
 interface Props {
-  active: "profes" | "asistente" | "copilot" | "perfil" | "suscripcion" | "turnitin" | "biblioteca";
+  active: "profes" | "asistente" | "copilot" | "perfil" | "suscripcion" | "turnitin" | "biblioteca" | "clases";
 }
 
 const { active } = Astro.props;
@@ -11,6 +11,7 @@ const isChat = active === "profes" || active === "asistente";
 
 const nav = [
   { id: "asistente", label: CHARACTER_NAME, href: "/app/asistente/", icon: "users" },
+  ...(classRecordingsEnabled || active === "clases" ? [{ id: "clases", label: "Mis clases", href: "/app/clases/", icon: "book-open" }] : []),
   { id: "copilot", label: "Conectar Campus a tu IA", href: "/app/copilot/", icon: "sparkles" },
   ...(libraryServiceEnabled ? [{ id: "biblioteca", label: "Biblioteca", href: "/biblioteca/", icon: "file-text" }] : []),
   ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
