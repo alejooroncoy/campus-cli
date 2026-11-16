@@ -29,7 +29,10 @@ async function transaction<T>(stores: string[], mode: IDBTransactionMode, run: (
   try {
     return await new Promise<T>((resolve, reject) => {
       const tx = db.transaction(stores, mode); let result: T;
-      tx.oncomplete = () => resolve(result); tx.onerror = tx.onabort = () => reject(tx.error ?? new Error('No hay espacio para guardar el audio.'));
+      tx.oncomplete = () => resolve(result);
+      // Solo una cuota agotada es «sin espacio»; una copia de otra cuenta aborta a propósito y se dice tal cual.
+      tx.onerror = tx.onabort = () => reject(tx.error?.name === 'QuotaExceededError' ? new Error('No hay espacio para guardar el audio.')
+        : tx.error ? new Error('No pudimos usar el almacenamiento de este dispositivo.') : new Error('Esta copia no pertenece a tu cuenta en este dispositivo.'));
       try { run(tx, value => { result = value; }); } catch (e) { tx.abort(); reject(e); }
     });
   } finally { db.close(); }

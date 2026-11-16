@@ -139,5 +139,7 @@
 .classes-device-note{flex-basis:100%}
 .classes .classes-ios-upload{position:relative;display:inline-flex;align-items:center;justify-content:center;justify-self:start;font-weight:600}
 .classes .classes-ios-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;min-height:0;padding:0;border:0}
-.classes .classes-ios-upload[aria-disabled=true]{opacity:.55}
-.classes .classes-ios-upload[aria-disabled=true] input{cursor:default}
+.classes .classes-ios-upload.is-disabled{opacity:.55}
+.classes .classes-ios-upload.is-disabled input{cursor:default}
+.classes .classes-ios-upload:focus-within{outline:2px solid var(--app-link);outline-offset:3px}
+.classes .classes-ios-minutes{max-width:260px}

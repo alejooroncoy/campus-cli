@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import UClassNotes from './UClassNotes';
 import { appendClassAudio, automaticClassTitle, clockLabel, deleteLocalClass, localClassAudio, localClasses, recordingMime, saveClass, type ClassRecording, type ClassSegment } from '../lib/class-recordings';
 
@@ -23,7 +23,7 @@ type LiveLine = { startSeconds: number; text: string; review: boolean };
 // Clase completa cuando la captura se cortó en partes: segmentos en una sola línea de tiempo.
 type FullSegment = ClassSegment & { partId: string; partSeconds: number };
 type FullClass = { groupId: string; parts: { id: string; title: string; status: string; offsetSeconds: number; durationSeconds: number }[]; segments: FullSegment[]; gaps: { fromSeconds: number; toSeconds: number }[] };
-type Continuation = { firstId: string; baseTitle: string; part: number; course: string; courseRef: { courseId?: string; courseSource?: 'blackboard' | 'banner' }; tried: boolean };
+type Continuation = { firstId: string; firstRecordedAt: string; baseTitle: string; part: number; course: string; courseRef: { courseId?: string; courseSource?: 'blackboard' | 'banner' }; tried: boolean };
 /** WAV PCM mono de 16 bits: cada ventana es un archivo completo que el servidor puede transcribir sola. */
 function wavBlob(samples: Int16Array) {
   const view = new DataView(new ArrayBuffer(44 + samples.length * 2));
@@ -56,6 +56,22 @@ function download(blob: Blob, name: string) {
   const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 
+/** Si las notas de UClass fallan al dibujarse, se ocultan; la grabación en curso no se desmonta. */
+class NotesBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() { return this.state.failed ? null : this.props.children; }
+}
+const NATIVE_STATUS = ['idle', 'starting', 'recording', 'interrupted', 'stopping'];
+/** El estado que manda la app se valida antes de usarlo: una versión vieja o un script de la página no deben romper la vista. */
+function nativeState(value: unknown): NativeRecorderState | null {
+  const v = value as NativeRecorderState | null, n = (x: unknown) => typeof x === 'number' && Number.isFinite(x) && x >= 0;
+  if (!v || !NATIVE_STATUS.includes(v.status) || !n(v.elapsedSeconds) || !n(v.part) || !v.uploads || !n(v.uploads.pending) || !n(v.uploads.done)) return null;
+  return { status: v.status, elapsedSeconds: v.elapsedSeconds, part: v.part, firstId: typeof v.firstId === 'string' ? v.firstId : null,
+    message: typeof v.message === 'string' ? v.message.slice(0, 300) : undefined,
+    uploads: { pending: v.uploads.pending, done: v.uploads.done, uploading: Boolean(v.uploads.uploading), error: typeof v.uploads.error === 'string' ? v.uploads.error.slice(0, 200) : undefined } };
+}
+
 export default function ClassRecorder() {
   const [config, setConfig] = useState<Config | null>(null), [loading, setLoading] = useState(true);
   // Se decide en el cliente para que el HTML inicial sea el mismo en todos los dispositivos.
@@ -77,6 +93,8 @@ export default function ClassRecorder() {
   const [question, setQuestion] = useState(''), [asking, setAsking] = useState(false), [answer, setAnswer] = useState<{ text: string; untilSeconds: number } | null>(null);
   const recorder = useRef<MediaRecorder | null>(null), stream = useRef<MediaStream | null>(null);
   const alive = useRef(true), owner = useRef<string | null>(null), active = useRef(false), audio = useRef<HTMLAudioElement>(null);
+  // Audio que todavía no está a salvo: se está guardando o quedó solo en memoria tras un fallo. Cerrar la pestaña lo perdería.
+  const unsaved = useRef(false);
   const cleanupAudio = useRef<() => void>(() => {}), requestController = useRef(new AbortController());
   const detail = useRef<HTMLElement>(null), playbackPosition = useRef<number | null>(null);
   const awaitingTranscript = useRef<string | null>(null);
@@ -89,6 +107,11 @@ export default function ClassRecorder() {
   async function request(path: string, init: RequestInit = {}) {
     const response = await fetch(API + path + '/', { ...init, credentials: 'same-origin', cache: 'no-store', signal: requestController.current.signal,
       headers: { 'x-campus-class-owner': owner.current ?? '', ...init.headers } });
+    // Si la sesión vence en plena clase, la grabación sigue en el dispositivo: solo se pausa el envío.
+    if (response.status === 401 && active.current) {
+      setMessage('Tu sesión venció. La grabación sigue guardándose en este dispositivo: al terminar, inicia sesión otra vez para sincronizarla.');
+      throw new Error('Tu sesión venció. La grabación continúa en este dispositivo.');
+    }
     if (response.status === 401 || response.status === 409 && (await response.clone().text()).includes('cuenta cambió')) {
       if (recorder.current?.state !== 'inactive') recorder.current?.stop();
       owner.current = null; setConfig(null); setItems([]); setSelected(null); setAudioUrl('');
@@ -128,17 +151,18 @@ export default function ClassRecorder() {
       if (settings.owner) void loadCourses(settings.owner);
       await refresh(settings);
     }).catch(e => { if (alive.current) setMessage(errorText(e)); }).finally(() => { if (alive.current) setLoading(false); });
-    const unload = (e: BeforeUnloadEvent) => { if (active.current) { e.preventDefault(); e.returnValue = ''; } };
+    const unload = (e: BeforeUnloadEvent) => { if (active.current || unsaved.current) { e.preventDefault(); e.returnValue = ''; } };
     const identityChanged = () => {
       requestController.current.abort();
       if (recorder.current?.state !== 'inactive') recorder.current?.stop();
       owner.current = null; setConfig(null); setItems([]); setSelected(null); setAudioUrl(''); setSampleUrl(''); setRescue(null); setCourses([]); setCourseId(''); setCourse(''); setLiveId(''); setLiveLines([]); setAnswer(null);
       setMessage('La cuenta cambió. Actualiza la página para continuar.');
     };
-    const storage = (e: StorageEvent) => { if (e.key === 'campus-session-revision-v1') identityChanged(); };
+    // Se verifica la cookie antes de cortar nada: los avisos de la misma cuenta son comunes y no deben detener una grabación.
+    const verifyIdentity = () => { void fetch(API + '/config/', { cache: 'no-store' }).then(json).then(settings => { if (owner.current && settings.owner !== owner.current) identityChanged(); }).catch(() => {}); };
+    const storage = (e: StorageEvent) => { if (e.key === 'campus-session-revision-v1') verifyIdentity(); };
     const channel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel('campus-session-events-v1');
-    // Verify the cookie on notifications; same-account announcements are common during page load.
-    if (channel) channel.onmessage = () => { void fetch(API + '/config/', { cache: 'no-store' }).then(json).then(settings => { if (owner.current && settings.owner !== owner.current) identityChanged(); }).catch(() => {}); };
+    if (channel) channel.onmessage = verifyIdentity;
     window.addEventListener('beforeunload', unload); window.addEventListener('storage', storage);
     return () => {
       alive.current = false; requestController.current.abort(); active.current = false;
@@ -152,7 +176,7 @@ export default function ClassRecorder() {
     if (!nativeRecorder()) return;
     let lastDone = -1, lastStatus: NativeRecorderState['status'] = 'idle';
     const onNative = (event: Event) => {
-      const state = (event as CustomEvent<NativeRecorderState>).detail;
+      const state = nativeState((event as CustomEvent<unknown>).detail);
       if (!alive.current || !state) return;
       setNative(state);
       if (state.status !== 'idle') { active.current = true; setMode(state.status === 'starting' ? 'starting' : state.status === 'stopping' ? 'saving' : 'recording'); setElapsed(state.elapsedSeconds); }
@@ -185,7 +209,8 @@ export default function ClassRecorder() {
    * El audio completo lo sigue guardando MediaRecorder en este dispositivo; si esto falla, la grabación no se afecta.
    * La copia corre en un AudioWorklet (hilo de audio), que sigue recibiendo muestras con la página en segundo plano.
    */
-  function startLive(id: string, courseName: string, recordedAt: string, context: AudioContext, source: MediaStreamAudioSourceNode, recording: () => boolean, continuesId?: string) {
+  function startLive(id: string, courseName: string, recordedAt: string, context: AudioContext, source: MediaStreamAudioSourceNode, recording: () => boolean, continuesId?: string, offsetSeconds = 0) {
+    // En una parte nueva, los minutos siguen contando desde el inicio de la clase (reloj real), como en la transcripción unida.
     const windowSamples = LIVE_RATE * LIVE_MAX_SECONDS, minSamples = LIVE_RATE * LIVE_MIN_SECONDS, block = LIVE_RATE / 10, ratio = context.sampleRate / LIVE_RATE;
     let energy = 0, energyCount = 0, samples = new Int16Array(windowSamples), filled = 0, sentSamples = 0, sequence = 0, stopped = false;
     let sum = 0, count = 0, phase = 0, pausedUntil = 0, sending = false, retry: ReturnType<typeof setTimeout> | undefined;
@@ -210,8 +235,8 @@ export default function ClassRecorder() {
           const value = await json(response);
           queue.shift();
           if (alive.current) {
-            setLiveUntil(until => Math.max(until, item.endMs / 1000)); setLiveNote('');
-            if (value.text) setLiveLines(lines => [...lines, { startSeconds: item.startMs / 1000, text: value.text, review: Boolean(value.review) }].sort((x, y) => x.startSeconds - y.startSeconds));
+            setLiveUntil(until => Math.max(until, offsetSeconds + item.endMs / 1000)); setLiveNote('');
+            if (value.text) setLiveLines(lines => [...lines, { startSeconds: offsetSeconds + item.startMs / 1000, text: value.text, review: Boolean(value.review) }].sort((x, y) => x.startSeconds - y.startSeconds));
           }
         }
       } catch {
@@ -316,7 +341,8 @@ export default function ClassRecorder() {
           // En una continuación se conserva el texto anterior en pantalla; las preguntas usan la parte actual.
           setLiveId(record.id); setLiveNote(''); setAnswer(null);
           if (!continuation) { setLiveLines([]); setLiveUntil(0); setQuestion(''); }
-          stopLive = startLive(record.id, record.course, recordedAt, context, source, () => capture.state === 'recording', continuation?.firstId);
+          stopLive = startLive(record.id, record.course, recordedAt, context, source, () => capture.state === 'recording', continuation?.firstId,
+            continuation ? Math.max(0, (Date.parse(recordedAt) - Date.parse(continuation.firstRecordedAt)) / 1000) : 0);
         }
         const values = new Float32Array(analyser.fftSize);
         const meter = () => {
@@ -356,7 +382,10 @@ export default function ClassRecorder() {
       };
       capture.onerror = () => { failed = true; if (capture.state !== 'inactive') capture.stop(); };
       capture.onstop = () => {
-        cleanupAudio.current(); active.current = false;
+        // Una sola vez: si ya se retomó la clase en otra parte, no hay que volver a mostrar «inactivo».
+        let idled = false;
+        const idle = () => { if (!idled && alive.current) { idled = true; setMode('idle'); } };
+        cleanupAudio.current(); active.current = false; if (!test) unsaved.current = true;
         if (alive.current) { setMode('saving'); setLevel(0); setLow(false); }
         void pending.then(async () => {
           const blob = new Blob(chunks, { type: record.mime });
@@ -364,18 +393,21 @@ export default function ClassRecorder() {
           else {
             record = { ...record, state: failed ? 'interrupted' : 'saved', durationSeconds: Math.min(MAX_SECONDS, Math.max(.1, seconds)) };
             await saveClass(record).catch(() => { failed = true; });
+            if (!failed) unsaved.current = false;
             if (alive.current && owner.current === expectedOwner) {
               if (failed) { setRescue(blob); setMessage('Se interrumpió el guardado. Descarga el audio recuperado antes de cerrar esta página.'); }
               else if (systemStop) {
-                setResume({ firstId: continuation?.firstId ?? record.id, baseTitle, part: part + 1, course: recordCourse, courseRef: recordCourseRef, tried: false });
+                setResume({ firstId: continuation?.firstId ?? record.id, firstRecordedAt: continuation?.firstRecordedAt ?? record.recordedAt, baseTitle, part: part + 1, course: recordCourse, courseRef: recordCourseRef, tried: false });
                 setMessage(`El sistema pausó el micrófono a los ${clockLabel(seconds)}. Guardamos esa parte y seguimos grabando la misma clase en cuanto vuelvas a Campus.`);
+                // Se puede retomar ya: la parte guardada se sube en segundo plano, sin hacer esperar a la parte siguiente.
+                idle();
               }
               else setMessage('Clase guardada en este dispositivo. Puedes sincronizarla con tu cuenta para transcribirla.');
               await refresh();
-              if (!failed && config?.transcriptionLive) await sync(record);
+              if (!failed && config?.transcriptionLive) { if (systemStop) void sync(record); else await sync(record); }
             }
           }
-        }).catch(e => { if (alive.current) setMessage(errorText(e)); }).finally(() => { if (alive.current) setMode('idle'); });
+        }).catch(e => { if (alive.current) setMessage(errorText(e)); }).finally(idle);
       };
       input.getAudioTracks().forEach(track => {
         track.onended = () => { systemStop = !test; if (capture.state !== 'inactive') capture.stop(); };
@@ -521,11 +553,12 @@ export default function ClassRecorder() {
     try {
       // Always check the server, including a partially uploaded recording after a failed connection.
       // Una clase interrumpida se elimina con todas sus partes.
-      for (const part of partsOf(item)) {
-        if (config?.readable) await json(await request('/' + part.id, { method: 'DELETE' }));
-        else if (part.cloud) throw new Error('No pudimos comprobar el borrado en tu cuenta. Vuelve a intentarlo cuando el servicio esté disponible.');
-        if (part.parts !== undefined) await deleteLocalClass(part);
-      }
+      const parts = partsOf(item);
+      if (!config?.readable && parts.some(p => p.cloud)) throw new Error('No pudimos comprobar el borrado en tu cuenta. Vuelve a intentarlo cuando el servicio esté disponible.');
+      // Primero en la cuenta, todas las partes: si una falla, no se borra nada del dispositivo y se puede reintentar entera.
+      // Una parte que nunca se subió responde 404: no hay nada que borrar allá.
+      if (config?.readable) for (const part of parts) { const response = await request('/' + part.id, { method: 'DELETE' }); if (response.status !== 404) await json(response); }
+      for (const part of parts) if (part.parts !== undefined) await deleteLocalClass(part);
       if (selected && partsOf(item).some(p => p.id === selected.id)) { setSelected(null); setFull(null); setAudioUrl(''); }
       setDeleteId(''); await refresh(); setMessage(config?.readable ? 'Clase eliminada de este dispositivo y de tu cuenta.' : 'Copia local eliminada. El servicio no está disponible para comprobar si hay una copia en tu cuenta.');
     } catch (e) { setMessage(errorText(e)); } finally { setBusy(false); }
@@ -550,7 +583,8 @@ export default function ClassRecorder() {
           {locked && <div className="classes-live"><strong className="classes-timer">{clockLabel(elapsed)}</strong><span>{mode === 'testing' ? 'Prueba de 10 segundos' : mode === 'paused' ? 'En pausa' : mode === 'starting' ? 'Abriendo micrófono…' : mode === 'saving' ? 'Guardando audio…' : native?.status === 'interrupted' ? 'Clase en pausa por el sistema' : 'Grabando tu clase'}</span>{nativeActive && native ? <small>{native.status === 'interrupted' ? 'Micrófono interrumpido. Seguimos grabando la misma clase en cuanto el teléfono lo devuelva.' : `Parte ${native.part} · Puedes bloquear el celular: la grabación sigue.`} {native.uploads.pending ? `${native.uploads.pending} parte(s) por subir.` : ''}{native.uploads.error ? ` ${native.uploads.error}` : ''}</small> : <><meter min={0} max={1} value={level} aria-label="Nivel del micrófono" /><small>{low ? 'Señal baja. Comprueba que se escuche al profesor.' : 'El nivel indica volumen, no precisión del reconocimiento.'}</small></>}</div>}
           <div className={`classes-actions classes-record-actions${locked ? " classes-record-actions--active" : ""}`} >
             {locked && <span className="classes-controls-time">{mode === 'paused' ? 'En pausa' : mode === 'testing' ? 'Prueba de micrófono' : 'Grabación'} · {clockLabel(elapsed)}</span>}
-            {!locked && device === 'ios' ? <div className="classes-ios" role="note">
+            {!locked && device === 'native' && !config.enabled ? <div className="classes-ios" role="note"><strong>Grabar desde la app se activará pronto en tu cuenta.</strong><p>Cuando esté lista, la app seguirá grabando aunque bloquees el celular.</p></div>
+            : !locked && device === 'ios' ? <div className="classes-ios" role="note">
               <strong>Grabar desde iPhone llega pronto.</strong>
               <p>Mientras tanto, graba con <b>Notas de voz</b>: sigue grabando aunque bloquees el iPhone o recibas una llamada. Al terminar, súbela aquí y Campus la transcribe.</p>
               <ol>
@@ -558,7 +592,9 @@ export default function ClassRecorder() {
                 <li>Al terminar, abre la grabación, toca Compartir y elige <b>Guardar en Archivos</b>.</li>
                 <li>Vuelve aquí, marca el permiso de arriba y elige ese audio.</li>
               </ol>
-              <label className="app-button classes-ios-upload" aria-disabled={busy || !consent}>Subir audio de Notas de voz<input type="file" accept="audio/*,.m4a" disabled={busy || !consent} onChange={e => { void importAudio(e.target.files?.[0]); e.target.value = ''; }} /></label>
+              <label className="classes-ios-minutes">Duración en minutos <span>(solo si no la detectamos)</span><input type="number" min="1" max="180" inputMode="numeric" value={uploadMinutes} onChange={e => setUploadMinutes(e.target.value)} disabled={busy} /></label>
+              <label className={`app-button classes-ios-upload${busy || !consent ? ' is-disabled' : ''}`}>Subir audio de Notas de voz<input type="file" accept="audio/*,.m4a" disabled={busy || !consent} aria-describedby={consent ? undefined : 'classes-ios-consent'} onChange={e => { void importAudio(e.target.files?.[0]); e.target.value = ''; }} /></label>
+              {!consent && <small id="classes-ios-consent">Marca primero el permiso de arriba para poder subir el audio.</small>}
               <small>Si el archivo pasa de 96 MB, en Ajustes › Notas de voz › Calidad del audio elige «Comprimida».</small>
             </div>
             : !locked ? <><button className="app-button" disabled={busy || !consent} onClick={() => void microphone(false)}>● Grabar clase</button><button className="app-button app-button--secondary" disabled={busy} onClick={() => void microphone(true)}>Probar micrófono</button>{device === 'android' && <small className="classes-device-note">Pronto: la app de Campus para grabar con la pantalla apagada. Por ahora, mantén Campus abierto mientras grabas.</small>}</> : <>
@@ -585,11 +621,11 @@ export default function ClassRecorder() {
         <aside className="classes-help"><details open={helpOpen} onToggle={e => setHelpOpen(e.currentTarget.open)}><summary>Consejos para grabar mejor</summary><div className="classes-help-content"><span className="classes-eyebrow">Antes de empezar</span><h2>Si lo escuchas bien,<br />podrás repasarlo mejor.</h2><ol><li><strong>Haz una prueba desde tu asiento.</strong><p>Escúchala con audífonos. Si no entiendes las palabras, acerca el micrófono al profesor.</p></li><li><strong>Guarda la clase.</strong><p>El audio se conserva en este navegador. Sincronízalo para tener una copia privada en tu cuenta.</p></li><li><strong>Revisa el texto junto al audio.</strong><p>La transcripción automática puede equivocarse, especialmente con ruido, distancia o términos del curso.</p></li></ol><p className="classes-storage">{config.enabled ? config.transcribing ? 'Transcripción en español disponible al sincronizar.' : 'Guardado en tu cuenta disponible. La transcripción aún no está habilitada.' : 'Por ahora, el audio se guarda solo en este dispositivo. El guardado en tu cuenta aún no está habilitado.'}</p><p className="classes-note">El navegador puede borrar su almacenamiento. Descarga una copia o sincroniza antes de limpiar los datos del sitio.</p></div></details><p className="classes-mcp-note"><strong>También en tu IA.</strong> Al sincronizar, tus clases quedan asociadas a tu cuenta Campus. Cuando el texto esté listo, podrás consultarlo desde el MCP.</p></aside>
       </div>
       <div className="classes-message" role="status" aria-live="polite">{message}</div>
-      {rescue && <button className="app-button" onClick={() => download(rescue, `clase-recuperada.${extension(rescue.type)}`)}>Descargar audio recuperado</button>}
+      {rescue && <button className="app-button" onClick={() => { download(rescue, `clase-recuperada.${extension(rescue.type)}`); unsaved.current = false; }}>Descargar audio recuperado</button>}
       <section className="classes-library" aria-labelledby="my-classes-title"><div className="classes-library-heading"><h2 id="my-classes-title">Mis clases</h2><button className="app-button app-button--secondary" disabled={busy || locked} onClick={() => void refresh().catch(e => setMessage(errorText(e)))}>Actualizar</button></div>
         {!items.length ? <div className="classes-empty"><strong>Tu próxima clase empieza aquí.</strong><p>Graba una clase o sube un audio para guardarlo.</p></div> : <ul className="classes-list">{items.filter(item => !item.continuesId || !items.some(i => i.id === item.continuesId)).map(item => { const group = partsOf(item); return <li key={item.id}><div><h3>{item.title}</h3><p>{item.course ? item.course + ' · ' : ''}{new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeZone: 'America/Lima' }).format(new Date(item.recordedAt))} · {clockLabel(group.reduce((n, p) => n + p.durationSeconds, 0))}{group.length > 1 ? ` · ${group.length} partes` : ''}</p><span className="classes-badge">{item.status ? statusLabel[item.status] : item.state === 'interrupted' ? 'Grabación interrumpida · Revisa el audio' : 'Guardada en este dispositivo'}</span></div><div className="classes-item-actions"><button className="app-button app-button--secondary" disabled={busy || locked || !item.bytes} onClick={() => void select(item)}>Abrir</button>{config.enabled && pendingParts(group).length > 0 && <button className="app-button" disabled={busy || locked || !pendingParts(group).some(canSync)} onClick={() => void (async () => { for (const part of pendingParts(group)) if (canSync(part)) await sync(part); })()}>{pendingParts(group).some(p => p.status === 'failed') ? 'Reintentar transcripción' : config.transcribing ? 'Transcribir clase' : 'Sincronizar'}</button>}{config.model === 'elevenlabs/scribe_v2' && item.status === 'ready' && item.transcriptionModel !== config.model && <button className="app-button" disabled={busy || locked || (item.attempts ?? 0) >= 3} onClick={() => void improveTranscript(item)}>Mejorar transcripción</button>}<button className="classes-delete" disabled={busy || locked} onClick={() => setDeleteId(item.id)}>Eliminar</button>{deleteId === item.id && <div className="classes-confirm"><span>{group.length > 1 ? `Se eliminarán el audio y el texto de las ${group.length} partes de esta clase.` : 'Se eliminarán el audio y el texto de esta clase.'}</span><button className="app-button app-button--secondary" disabled={busy} onClick={() => setDeleteId('')}>Cancelar</button><button className="app-button" disabled={busy} onClick={() => void remove(item)}>Sí, eliminar</button></div>}</div></li>; })}</ul>}
       </section>
-      <UClassNotes key={config.owner ?? ''} />
+      <NotesBoundary><UClassNotes key={config.owner ?? ''} /></NotesBoundary>
       {selected && <section ref={detail} className="classes-card classes-detail" aria-labelledby="class-detail-title"><div className="classes-library-heading"><h2 id="class-detail-title">{selected.title}</h2><button className="classes-delete" onClick={() => { setSelected(null); setFull(null); setAudioUrl(''); }}>Cerrar</button></div>{selected.enhancedAudio && <div className="classes-audio-versions" role="group" aria-label="Versión del audio"><button type="button" disabled={busy} aria-pressed={audioVersion === 'original'} onClick={() => void changeAudio('original')}>Original</button><button type="button" disabled={busy} aria-pressed={audioVersion === 'clean'} onClick={() => void changeAudio('clean')}>{selected.enhancedAudio.method === 'voice_leveling' ? 'Voz nivelada' : 'Limpieza intensa'}</button></div>}<audio ref={audio} controls src={audioUrl} preload="metadata" onLoadedMetadata={() => { if (audio.current && playbackPosition.current !== null) { audio.current.currentTime = Math.min(playbackPosition.current, Number.isFinite(audio.current.duration) ? audio.current.duration : playbackPosition.current); playbackPosition.current = null; } }} />{selected.enhancedAudio && <p className="classes-note">{selected.enhancedAudio.method === 'voice_leveling' ? 'Texto reconocido a partir del original. La voz nivelada ajusta el volumen y conserva el ruido ambiente para proteger las voces lejanas.' : 'Texto reconocido a partir del original. La limpieza intensa puede eliminar voces lejanas. Escucha el original si falta algo.'}</p>}<div className="classes-actions"><button className="app-button app-button--secondary" disabled={busy} onClick={() => {
           // En una clase con partes se descarga la parte que se está escuchando.
           const group = partsOf(selected), part = group.find(p => p.id === playingPart) ?? selected, n = group.findIndex(p => p.id === part.id) + 1;
