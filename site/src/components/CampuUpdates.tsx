@@ -963,10 +963,13 @@ export default function CampuUpdates() {
   }, [status?.nickname]);
   // Desde el panel de WhatsApp se llega a /app/novedades/#avisos: la sección
   // aparece al cargar el estado, así que se baja a ella cuando existe.
+  // Si los ajustes están plegados se abren primero, y se baja cuando ya existen.
   useEffect(() => {
-    if (status && location.hash === "#avisos")
-      document.getElementById("avisos")?.scrollIntoView({ block: "start" });
-  }, [Boolean(status)]);
+    if (!status || location.hash !== "#avisos") return;
+    const target = document.getElementById("avisos");
+    if (target) target.scrollIntoView({ block: "start" });
+    else setMore(true);
+  }, [Boolean(status), more]);
   async function saveNickname(value: string) {
     const clean = value.trim();
     if (clean && !/^[\p{L}][\p{L}'’ -]{0,29}$/u.test(clean))
