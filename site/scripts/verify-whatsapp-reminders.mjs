@@ -46,7 +46,7 @@ try{
   state={...initial,enabled:true,pack:true,quota:20,used:20,remaining:0};await load();
   assert.match(await page.locator('[data-wa-summary]').textContent(),/Avisos extra: 20 de 20.*Te quedan 0/);assert.equal(await page.locator('[data-wa-pack]').isVisible(),false);
   state={...initial,linked:false};await load();assert.equal(await page.locator('[data-wa-link-needed]').isVisible(),true);assert.equal(await page.locator('[data-wa-optin]').isVisible(),false);
-  state={...initial,available:false};await load();assert.equal(await page.locator('[data-wa-unavailable]').isVisible(),true);assert.equal(await page.locator('[data-wa-pack]').isVisible(),false);
+  state={...initial,available:false};await load();assert.equal(await page.locator('[data-wa-unavailable]').isVisible(),true);assert.equal(await page.locator('[data-wa-unavailable] a').getAttribute('href'),'/app/novedades/#avisos');assert.equal(await page.locator('[data-wa-pack]').isVisible(),false);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);assert.deepEqual(errors,[]);
   console.log('ok whatsapp quota, opt-in, purchase consent, unavailable, linked identity',width);await context.close();
  }

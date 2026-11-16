@@ -961,6 +961,12 @@ export default function CampuUpdates() {
   useEffect(() => {
     setNick(status?.nickname ?? "");
   }, [status?.nickname]);
+  // Desde el panel de WhatsApp se llega a /app/novedades/#avisos: la sección
+  // aparece al cargar el estado, así que se baja a ella cuando existe.
+  useEffect(() => {
+    if (status && location.hash === "#avisos")
+      document.getElementById("avisos")?.scrollIntoView({ block: "start" });
+  }, [Boolean(status)]);
   async function saveNickname(value: string) {
     const clean = value.trim();
     if (clean && !/^[\p{L}][\p{L}'’ -]{0,29}$/u.test(clean))
@@ -1151,7 +1157,7 @@ export default function CampuUpdates() {
                 </p>
               )}
               <div className="campu-columns">
-                <section className="campu-card">
+                <section className="campu-card" id="avisos">
                   <h2>Cómo quieres que te avise</h2>
                   <p>
                     Las revisiones se programan a las 8, 12, 16 y 20 h. El
