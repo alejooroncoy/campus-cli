@@ -1,0 +1,3001 @@
+{
+ "schemaVersion": 2,
+ "source": "Recomienda Profe UPC",
+ "sourceOrigin": "https://recomienda-profe-upc-frontend.vercel.app",
+ "observedAt": "2026-11-15T23:04:58Z",
+ "profiles": [
+  {
+   "professorId": 40472,
+   "professorSlug": "abraham-sopla-maslucan",
+   "sources": [
+    {
+     "sourceName": "Abraham Sopla Maslucán",
+     "sourceSlug": "abraham-sopla-maslucan",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/abraham-sopla-maslucan",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a814aecf3f17943b089aa59",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/abraham-sopla-maslucan",
+     "rating": 10,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Estructura de Datos Avanzados",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-16T05:30:20.761Z",
+     "text": "Buen profesor, algo olvidadizo pero califica bien a veces te saca de onda pero es cuestión de tenerle paciencia, explica con todo y dibujos, perfecto para subir ponderado."
+    }
+   ]
+  },
+  {
+   "professorId": 301,
+   "professorSlug": "alan-tito-gutierrez-gutierrez",
+   "sources": [
+    {
+     "sourceName": "Alan Tito Guitierrez Guitierrez",
+     "sourceSlug": "alan-tito-guitierrez-guitierrez",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/alan-tito-guitierrez-guitierrez",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8398170246800c4b620712",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/alan-tito-guitierrez-guitierrez",
+     "rating": 5,
+     "difficulty": 7,
+     "recommends": false,
+     "course": "IHC y Tecnologias Moviles",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T23:24:07.900Z",
+     "text": "Lleve Gerencia con este profe. Es exigente en cuanto estructura de informe, el problema es que baja muchos puntos en pequeñeces. Aparte que mucho mucho no enseña."
+    },
+    {
+     "id": "6a8146ff784750adff76e996",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/alan-tito-guitierrez-guitierrez",
+     "rating": 2,
+     "difficulty": 8,
+     "recommends": false,
+     "course": "IHC y Tecnologias Moviles",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-16T05:13:35.481Z",
+     "text": "Si quieres exámenes sin avisar, y además que te califique como en una ruleta si le caes bien o no, elige a este profesor:)"
+    },
+    {
+     "id": "6a814682784750adff76e995",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/alan-tito-guitierrez-guitierrez",
+     "rating": 2,
+     "difficulty": 7,
+     "recommends": false,
+     "course": "IHC y Tecnologias Moviles",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-16T05:11:30.906Z",
+     "text": "Completamente Ido, tanto para ingeneria de requisitos, como aplicaciones de software, puedes pasar pero no esperes que tu promedio suba."
+    },
+    {
+     "id": "6a40388bf510b0cff51b70ea",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/alan-tito-guitierrez-guitierrez",
+     "rating": 10,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "IHC y Tecnologias Moviles",
+     "period": "Beta comentarios 2026",
+     "createdAt": "2026-06-27T20:54:35.344Z",
+     "text": "El profesor es bastante comprensible y hasta ahora sus prácticas calificadas han sido súper fáciles. No es muy estricto y eso hace que la clase sea más llevadera. En general, todo está chévere y se entiende bien su forma de enseñar."
+    }
+   ]
+  },
+  {
+   "professorId": 28840,
+   "professorSlug": "aldo-ernesto-silva-cotlear",
+   "sources": [
+    {
+     "sourceName": "Lujan Jose / Silva Aldo",
+     "sourceSlug": "lujan-jose-silva-aldo",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lujan-jose-silva-aldo",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83af8fa7f803ec4e924fcd",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lujan-jose-silva-aldo",
+     "rating": 6,
+     "difficulty": 9,
+     "recommends": false,
+     "course": "Taller 3",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T01:04:15.183Z",
+     "text": "En mi experiencia, escuché que Aldo es un amor y te ayuda con todo, aunque le gustan los trabajos muy conceptuales que no tendrían sentido en la vida real. Sobre Luján, sentí que puede ser medio pesado, pero si lo sabes tratar te ayuda bastante. Como arquitectos en este taller me advirtieron que el nivel de exigencia es brutal y califican muy bajo, pero lo bueno es que te hacen caer en la realidad. Algunos me recomendaron no llevar con ellos nunca, mientras que otros me dijeron que el taller es fácil si te apegas al reglamento y criticas siempre.",
+     "sharedWith": [
+      "Juan Jose Lujan Chero"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 1175,
+   "professorSlug": "alejandro-serquen",
+   "sources": [
+    {
+     "sourceName": "Alejandro Serquen Pisfil",
+     "sourceSlug": "alejandro-serquen-pisfil",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/alejandro-serquen-pisfil",
+     "matchRule": "apellido + nombre + mismo curso"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83baf4e1e2a6a6022ae47d",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/alejandro-serquen-pisfil",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Matemática Básica",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T01:52:52.291Z",
+     "text": "Muy buen profe, es baje de pepita y explica bien los temas y ejercicios."
+    }
+   ]
+  },
+  {
+   "professorId": 28286,
+   "professorSlug": "alex-fernando-placido-vilcachagua",
+   "sources": [
+    {
+     "sourceName": "Alex Fernando Placido Vilcachagua",
+     "sourceSlug": "alex-fernando-placido-vilcachagua",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/alex-fernando-placido-vilcachagua",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83adb09a0ff7c7c2becd77",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/alex-fernando-placido-vilcachagua",
+     "rating": 10,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Derecho de Familia y Sucesiones",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T00:56:16.629Z",
+     "text": "Es un excelente profesor, te trata con respeto, valora la participación y la puntualidad, más que nada en los controles de lectura."
+    }
+   ]
+  },
+  {
+   "professorId": 28293,
+   "professorSlug": "allison-andrea-ponce-de-leon-diaz",
+   "sources": [
+    {
+     "sourceName": "Allison Andrea Ponce de León Díaz",
+     "sourceSlug": "allison-andrea-ponce-de-leon-diaz",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/allison-andrea-ponce-de-leon-diaz",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a87f9ddb6f7d8af900f96f5",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/allison-andrea-ponce-de-leon-diaz",
+     "rating": 5,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Revisión y Posedición",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T07:10:21.900Z",
+     "text": "Es muy exigente a medida que va avanzando el curso. Ciertamente, califica más o menos bien, pero sube las notas a MiUPC sin haber esperado las observaciones/consultas de los alumnos sobre sus evaluaciones. Además, suele lanzar comentarios pasivo-agresivos a los alumnos."
+    }
+   ]
+  },
+  {
+   "professorId": 26328,
+   "professorSlug": "ambrogio-matteo-brivio-x",
+   "sources": [
+    {
+     "sourceName": "Mateo Brivio",
+     "sourceSlug": "mateo-brivio",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/mateo-brivio",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a853a963de877c2dbb274f6",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/mateo-brivio",
+     "rating": 2,
+     "difficulty": 10,
+     "recommends": false,
+     "course": "Taller 2",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T05:09:42.161Z",
+     "text": "Si tu quieres bajar tu ponderado puedes meterte con él. Muy estricto y sobretodo te enseña cosas que no deberia aprender en ese ciclo y se enoja si es que no sabes. Muy aparte de eso es que a ultimo momento te cambia de instrucciones por ejemplo te dice que la maqueta debes de hacerla de full cartón y luego te dice que debias de usar mica."
+    }
+   ]
+  },
+  {
+   "professorId": 26894,
+   "professorSlug": "andres-estela-vega-christie",
+   "sources": [
+    {
+     "sourceName": "Andres Vega Christie",
+     "sourceSlug": "andres-vega-christie",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/andres-vega-christie",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a835089ec7421a5581da352",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/andres-vega-christie",
+     "rating": 10,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:18:49.883Z",
+     "text": "¡Lo adoré! Llevé Taller 1 y 2 con él y me pareció el profe más empático, amistoso y comprensivo de todos. Siempre escucha tus dudas y es demasiado tolerante si llegas tarde. Sentí que nunca se contradice en sus consejos, busca guiarte rápido y siempre le ve el lado bueno a tu maqueta para alentarte."
+    }
+   ]
+  },
+  {
+   "professorId": 455,
+   "professorSlug": "angel-david-miklavec-moreno",
+   "sources": [
+    {
+     "sourceName": "Angel David Miklavec Moreno",
+     "sourceSlug": "angel-david-miklavec-moreno",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/angel-david-miklavec-moreno",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8a7c79ff432f098d396fdf",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/angel-david-miklavec-moreno",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Estadística Aplicada ll",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-23T04:52:09.113Z",
+     "text": "Paciente con los alumnos no se hace problemas para ayudar y las evaluaciones que toma son muy fáciles."
+    }
+   ]
+  },
+  {
+   "professorId": 358,
+   "professorSlug": "armando-rene-lanegra-viteri",
+   "sources": [
+    {
+     "sourceName": "Armando Rene Lanegra Viteri",
+     "sourceSlug": "armando-rene-lanegra-viteri",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/armando-rene-lanegra-viteri",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8940a0ea9368854fc8ae87",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/armando-rene-lanegra-viteri",
+     "rating": 10,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Seminario Integrado de Investigación",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-22T06:24:32.814Z",
+     "text": "Llevé seminario con el profe Armando en modalidad virtual, lo recomiendo, explica muy bien todos los temas, brinda ejemplos y publica recordatorios con todo lo que se requiere para realizar los trabajos. Siempre habrá espacio para las preguntas y los feedbacks ayudan demasiado, conforme pasen las clases, el profesor siempre revisará todos los avances de todos los grupos. Les aconsejo tener un buen grupo, o que al menos la mayoría sea responsable ya que los trabajos son progresivos en todas las clases, anoten lo que el profe les comente en los feedbacks y apliquenlo correctamente, con eso se aseguran un 20 ;)"
+    }
+   ]
+  },
+  {
+   "professorId": 458,
+   "professorSlug": "beatriz-miranda",
+   "sources": [
+    {
+     "sourceName": "Beatriz E. Miranda de Lama",
+     "sourceSlug": "beatriz-e-miranda-de-lama",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/beatriz-e-miranda-de-lama",
+     "matchRule": "apellido + nombre + mismo curso"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8483904132f2910c3a0a6c",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/beatriz-e-miranda-de-lama",
+     "rating": 8,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Derecho Laboral",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T16:08:48.838Z",
+     "text": "La profesora emplea controles de lectura escritos Parcial y Final son orales (tipo audiencia) por lo que exigirá el profesionalismo para los mismos."
+    }
+   ]
+  },
+  {
+   "professorId": 27106,
+   "professorSlug": "carla-arlene-germany-huangal",
+   "sources": [
+    {
+     "sourceName": "Carla Arlene Germany Huangal",
+     "sourceSlug": "carla-arlene-germany-huangal",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/carla-arlene-germany-huangal",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a852a4b8207769c3f433b26",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/carla-arlene-germany-huangal",
+     "rating": 8,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Marketing Digital",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T04:00:11.676Z",
+     "text": "Llevé Marketing Digital con ella, muy buena profesora, enseña y explica muy bien. Tener en cuenta participar en clase y enviar los trabajos de clase a tiempo porque esa es la nota de los DD, si no te nota mucho y faltas, a lo mucho tendrás un 14 o hasta menos. Eso es lo único que me confundió ya que yo si participé en casi todas las exposiciones, no falte ninguna clase y me puso 16 en la DD1. Después de eso, los trabajos desafían tu creatividad, aprendes de marcas reales. Se requiere de un buen grupo y que todos entiendan el trabajo si es que la profesora les pregunta. No es muy estricta con parciales y finales, siempre y cuando apliquen todo lo aprendido, ella no tendrá dudas."
+    }
+   ]
+  },
+  {
+   "professorId": 27431,
+   "professorSlug": "carlos-alberto-kanematsu-hazama",
+   "sources": [
+    {
+     "sourceName": "Carlos Kanematsu Hazama",
+     "sourceSlug": "carlos-kanematsu-hazama",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/carlos-kanematsu-hazama",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83a28334f0e1f82e4d24b2",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/carlos-kanematsu-hazama",
+     "rating": 10,
+     "difficulty": 2,
+     "recommends": true,
+     "course": "Gestión del Capital Humano Global",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T00:08:35.874Z",
+     "text": "El mejor profesor ame el curso con el, es muy gracioso y hace lo posible para poder acordarse tu nombre :)"
+    }
+   ]
+  },
+  {
+   "professorId": 27377,
+   "professorSlug": "cesar-augusto-irigoyen-changllio",
+   "sources": [
+    {
+     "sourceName": "Raul Romero / Irigoyen",
+     "sourceSlug": "raul-romero-irigoyen",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/raul-romero-irigoyen",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83afb278de5d92ce025009",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/raul-romero-irigoyen",
+     "rating": 9,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Taller 3",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T01:04:50.459Z",
+     "text": "Me comentaron que es muy bueno y enseña bien. Sentí que solo tienes que trabajar en clase cumpliendo lo que te pida y ser muy puntual. Noté que César te aprueba, califica alto y va subiendo la nota conforme avanzan las semanas, aunque me dijeron que tiene favoritos.",
+     "sharedWith": [
+      "Raul Giuseppe Romero Ripamonti"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 39493,
+   "professorSlug": "cesar-david-campos-lozano",
+   "sources": [
+    {
+     "sourceName": "Cesar Campos",
+     "sourceSlug": "cesar-campos",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/cesar-campos",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a841852c16106b8ded2d23e",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/cesar-campos",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Dibujo Arquitectónico",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T08:31:14.045Z",
+     "text": "El mejor profesor, lo recomiendo mucho."
+    }
+   ]
+  },
+  {
+   "professorId": 444,
+   "professorSlug": "christian-cesar-mendoza-uriarte",
+   "sources": [
+    {
+     "sourceName": "Christian Mendoza Uriarte",
+     "sourceSlug": "christian-mendoza-uriarte",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/christian-mendoza-uriarte",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83d2d9304da738082a5312",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/christian-mendoza-uriarte",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Estadística Aplicada ll",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T03:34:49.795Z",
+     "text": "Muy buen profesor. Por fin pude entender el curso de Estadística. Y a pesar de haberlo llevado en verano, logró explicarlo muy a detalle todo. Es además muy considerado y te explica paso a paso hasta que realmente te quede claro todo."
+    },
+    {
+     "id": "6a83ccc4191f81d27e11dec9",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/christian-mendoza-uriarte",
+     "rating": 10,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Estadística Aplicada ll",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T03:08:52.407Z",
+     "text": "El profe es buenísimo, explica bien los temas, ante cualquier duda tiene la paciencia de explicártelo hasta que entiendas, es bastante considerado, sobre todo en las sustentaciones orales, y en los trabajos grupales califica lo justo. En caso te falte nota para pasar el profe no duda en ayudarte de cualquier forma siempre y cuando hayas mostrado interés y ganas durante el curso."
+    }
+   ]
+  },
+  {
+   "professorId": 40240,
+   "professorSlug": "david-hugo-obando-pacheco",
+   "sources": [
+    {
+     "sourceName": "Hugo Obando Pacheco",
+     "sourceSlug": "hugo-obando-pacheco",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/hugo-obando-pacheco",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8390fceee02045461e9340",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/hugo-obando-pacheco",
+     "rating": 10,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Cálculo I",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T22:53:48.003Z",
+     "text": "Es un buen profesor y su método de enseñanza es bueno"
+    }
+   ]
+  },
+  {
+   "professorId": 27164,
+   "professorSlug": "denise-goshima-zamami",
+   "sources": [
+    {
+     "sourceName": "Goshima Zamami",
+     "sourceSlug": "goshima-zamami",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/goshima-zamami",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a834ea94ee5e7ab77cba579",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/goshima-zamami",
+     "rating": 9,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:10:49.647Z",
+     "text": "Me pareció un amor de arquitecta y muy buena persona. Sentí que es súper carismática y extrovertida, lo cual me ayudó muchísimo a desenvolverme durante las críticas de mis trabajos. Además, califica alto."
+    }
+   ]
+  },
+  {
+   "professorId": 28377,
+   "professorSlug": "edinson-jonel-quispe-pecho",
+   "sources": [
+    {
+     "sourceName": "Edinson Quispe Pecho",
+     "sourceSlug": "edinson-quispe-pecho",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/edinson-quispe-pecho",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8395dd5d80aafbe4205d67",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/edinson-quispe-pecho",
+     "rating": 9,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Estática",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T23:14:37.887Z",
+     "text": "Es buen profe, enseña bastante bien, responde cualquier duda, califica lo justo y considera la resolución aunque el resultado esté mal, cuando lleve con él dejó que mi amigo hiciera el trabajo final otra vez para salvar e incluso te tiene más consideración si no tienes faltas."
+    }
+   ]
+  },
+  {
+   "professorId": 28664,
+   "professorSlug": "elizabeth-del-pilar-saenz-musayon",
+   "sources": [
+    {
+     "sourceName": "Elízabeth Del Pilar Sáenz Musayón",
+     "sourceSlug": "elizabeth-del-pilar-saenz-musayon",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/elizabeth-del-pilar-saenz-musayon",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a3d4b916d49905cf5055bc8",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/elizabeth-del-pilar-saenz-musayon",
+     "rating": 8,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Diseño de Base de Datos",
+     "period": "Beta comentarios 2026",
+     "createdAt": "2026-06-25T15:38:57.500Z",
+     "text": "La profesora enseña bien y, si participas o siempre te ve asistiendo a sus clases, te toma en consideración. Al comienzo se loquea hasta el punto de que te dan ganas de botarla, pero después, cuando te pone la nota del trabajo parcial, todo cambia: te pone buena nota y es chévere el resto del ciclo. Una de sus principales reglas es: ¡NO USAR CELULAR! En conclusión, solo se loquea en la PC1."
+    },
+    {
+     "id": "6a3c1dccea466fc6703eaa71",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/elizabeth-del-pilar-saenz-musayon",
+     "rating": 9,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Diseño de Base de Datos",
+     "period": "Beta comentarios 2026",
+     "createdAt": "2026-06-24T18:11:24.635Z",
+     "text": "Enseña muy bien y es muy atenta. Es exigente pero si realmente demuestras que te esfuerzas por aprender el curso y haces un buen proyecto hasta te regala nota. Nomás mete miedo con sus examenes pero terminan siendo relativamente sencillos (he visto examenes peores de otros profes). Se ponderó el curso con 19 casi 20. Elizabeth mi pastora nada me faltará."
+    }
+   ]
+  },
+  {
+   "professorId": 26248,
+   "professorSlug": "elmer-bazan-cordova",
+   "sources": [
+    {
+     "sourceName": "Elmer Bazan Cordoba",
+     "sourceSlug": "elmer-bazan-cordoba",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/elmer-bazan-cordoba",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a84948a498ebc72577fe81b",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/elmer-bazan-cordoba",
+     "rating": 10,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Estática",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T17:21:14.624Z",
+     "text": "Enseña bien y coloca lo que enseña en sus pracitcas y examenes parciales y finales."
+    }
+   ]
+  },
+  {
+   "professorId": 28318,
+   "professorSlug": "erick-jozsef-pozsgai-hernani",
+   "sources": [
+    {
+     "sourceName": "Erick Jozsef Pozsgai Hernani",
+     "sourceSlug": "erick-jozsef-pozsgai-hernani",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/erick-jozsef-pozsgai-hernani",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a85ea8c5cdf46fcc8415752",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/erick-jozsef-pozsgai-hernani",
+     "rating": 10,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Cálculo I",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T17:40:28.066Z",
+     "text": "El mejor profesor de cálculo en mi opinión, es considerado con las notas si ve que te esfuerzas y brinda apoyo a sus alumnos."
+    },
+    {
+     "id": "6a8519c137d95321b8c83387",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/erick-jozsef-pozsgai-hernani",
+     "rating": 10,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Fundamentos para el Cálculo",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T02:49:37.831Z",
+     "text": "Buen profesor, te brinda apoyo en clases, tiene interés en que aprendas."
+    }
+   ]
+  },
+  {
+   "professorId": 1236,
+   "professorSlug": "ernesto-valencia-segura",
+   "sources": [
+    {
+     "sourceName": "Ernesto Valencia Segura",
+     "sourceSlug": "ernesto-valencia-segura",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/ernesto-valencia-segura",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83e07aa914351ce97291b3",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/ernesto-valencia-segura",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Ecuaciones diferenciales y álgebra lineal",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T04:32:58.605Z",
+     "text": "Considero que es un buen profe y motiva a aprender."
+    }
+   ]
+  },
+  {
+   "professorId": 27113,
+   "professorSlug": "eugenio-bruno-giacchetti-lobaton",
+   "sources": [
+    {
+     "sourceName": "Giaccheti / Balerdi",
+     "sourceSlug": "giaccheti-balerdi",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/giaccheti-balerdi",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a86143db7206136d06cc421",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/giaccheti-balerdi",
+     "rating": 9,
+     "difficulty": 10,
+     "recommends": true,
+     "course": "Taller 3",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T20:38:21.876Z",
+     "text": "Me parecieron los mejores, pero sentí que son muy, pero muy exigentes. No obstante, noté que aquí aprendes lo mínimo indispensable para pasarla súper bien en T4; solo te diría que te esfuerces y le des con todo.",
+     "sharedWith": [
+      "Jorge Alberto Balerdi Arrarte"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 396,
+   "professorSlug": "fernando-lucen-bartra",
+   "sources": [
+    {
+     "sourceName": "Fernando Martín Ricardo Lucen Bartra",
+     "sourceSlug": "fernando-martin-ricardo-lucen-bartra",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/fernando-martin-ricardo-lucen-bartra",
+     "matchRule": "tres palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a84973e4f35b3086a0ed650",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/fernando-martin-ricardo-lucen-bartra",
+     "rating": 1,
+     "difficulty": 10,
+     "recommends": false,
+     "course": "Cálculo I",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T17:32:46.055Z",
+     "text": "Es el peor profesor, en clases te humilla si no sabes, nunca lo elijas."
+    }
+   ]
+  },
+  {
+   "professorId": 1241,
+   "professorSlug": "fernando-valverde",
+   "sources": [
+    {
+     "sourceName": "Fernando Valverde",
+     "sourceSlug": "fernando-valverde",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/fernando-valverde",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8338e25a02db201f250b33",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/fernando-valverde",
+     "rating": 9,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Teoría Constitucional y Política",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T16:37:54.413Z",
+     "text": "Se nota que le apasiona el tema y lo domina muy bien. Siempre se toma un tiempo para responder dudas. Hay muchos trabajos en grupo y participaciones. Las lecturas pueden ser un poco pesadas. Al final del curso hizo un sorteo para regalar su libro."
+    }
+   ]
+  },
+  {
+   "professorId": 385,
+   "professorSlug": "franco-lobo-collantes",
+   "sources": [
+    {
+     "sourceName": "Juan Lobo Collantes",
+     "sourceSlug": "juan-lobo-collantes",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/juan-lobo-collantes",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a833a01add0f19ddcf6977c",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/juan-lobo-collantes",
+     "rating": 9,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Microeconomía",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T16:42:41.016Z",
+     "text": "¡Buen profe! Explica demasiado bien y es gracioso. No usa PPTs, por lo que le gusta que los alumnos apunten lo que habla y lo que anota en la pizarra. Les recomiendo tomar nota de todo, incluyendo la parte gráfica, porque eso es lo que viene en los exámenes. Califica lo justo y en las exposiciones grupales las notas son individuales."
+    }
+   ]
+  },
+  {
+   "professorId": 27261,
+   "professorSlug": "genesis-layla-hernandez-enriquez",
+   "sources": [
+    {
+     "sourceName": "Genesis Layla Hernandez Enriquez",
+     "sourceSlug": "genesis-layla-hernandez-enriquez",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/genesis-layla-hernandez-enriquez",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a87fb918e5418eb6baa3928",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/genesis-layla-hernandez-enriquez",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Chino TI1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T07:17:37.952Z",
+     "text": "Es una profesora muy alegre y paciente."
+    }
+   ]
+  },
+  {
+   "professorId": 27187,
+   "professorSlug": "gianina-lizeth-guerrero-gonzales",
+   "sources": [
+    {
+     "sourceName": "Gianina Guerrero / Melissa Gaviola",
+     "sourceSlug": "gianina-guerrero-melissa-gaviola",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/gianina-guerrero-melissa-gaviola",
+     "matchRule": "revisión manual"
+    },
+    {
+     "sourceName": "Gianina Guerrero / Patricia Rozas",
+     "sourceSlug": "gianina-guerrero-patricia-rozas",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/gianina-guerrero-patricia-rozas",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8352147360836a8d42d8ae",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/gianina-guerrero-melissa-gaviola",
+     "rating": 7,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:25:24.967Z",
+     "text": "Sentí que Gianina es un amor, súper amigable y pone notas altas; me iría con ella sin pensarlo. Sin embargo, no recomendaría a Melissa porque me jaló por no saber pintar, aunque reconozco que al final es objetiva y te obliga a aprender a ser preciso.",
+     "sharedWith": [
+      "Melisa Estefania Gaviola Vargas"
+     ]
+    },
+    {
+     "id": "6a8350557360836a8d42d8ac",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/gianina-guerrero-patricia-rozas",
+     "rating": 10,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:17:57.864Z",
+     "text": "¡Giani me pareció un amor, la mejor del planeta! Y Paty es igual de linda. Sentí que ambas hacen una gran dupla, son súper lindas enseñando y califican alto. Sin pensarlo me volvería a meter con ellas.",
+     "sharedWith": [
+      "Patricia Rozas Schmitt"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 951,
+   "professorSlug": "gonzalo-pablo-mori-pereyra",
+   "sources": [
+    {
+     "sourceName": "Gonzalo Pablo Mori Pereyra",
+     "sourceSlug": "gonzalo-pablo-mori-pereyra",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/gonzalo-pablo-mori-pereyra",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a852dfd8207769c3f433b28",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/gonzalo-pablo-mori-pereyra",
+     "rating": 7,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Fundamentos de Sistemas de Información",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T04:15:57.059Z",
+     "text": "En mi experiencia, al momento de tomar su clase la verdad que se me ha dificultado en poder entender porque explica/codea muy rápido; sin embargo, hubo momentos en el curso que mis examenes no se han enviado correctamente y me ha ayudado con eso (mandarle de nuevo a su correo). Además, en algunas ocasiones te sube medio/un punto por actividades en clase. Eso si, a veces puede ser muy frío o directo con sus comentarios."
+    }
+   ]
+  },
+  {
+   "professorId": 4616,
+   "professorSlug": "guido-hernan-mendoza-fantinato",
+   "sources": [
+    {
+     "sourceName": "Guido Mendoza",
+     "sourceSlug": "guido-mendoza",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/guido-mendoza",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8462be6914807cea903e5e",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/guido-mendoza",
+     "rating": 10,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Organización del Estado",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T13:48:46.601Z",
+     "text": "Recomiendo muchísimo al profesor Guido. Es de esos profesores que no solo enseñan, sino que logran transmitir su pasión por el Derecho y hacer que realmente te enamores de la carrera. Sus clases me ayudaron a ver el Derecho de una manera diferente y a confirmar que elegí la carrera correcta. Si tienen la oportunidad de llevar un curso con él, definitivamente lo recomiendo. ⚖️❤️"
+    },
+    {
+     "id": "6a83faa1787bc76b0b428b01",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/guido-mendoza",
+     "rating": 10,
+     "difficulty": 2,
+     "recommends": true,
+     "course": "Organización del Estado",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T06:24:33.082Z",
+     "text": "Un gran profesor, se nota mucho su experiencia, le gusta enseñar. Los trabajos son de forma grupal, le gusta las participaciones y califica alto."
+    },
+    {
+     "id": "6a83bf511c77a4b2a4b8b2cb",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/guido-mendoza",
+     "rating": 10,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Organización del Estado",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T02:11:29.164Z",
+     "text": "Es un excelente profesor. Es una persona muy preparada y con amplio conocimiento en los temas que enseña. Sus clases son didácticas, dinámicas y hacen que aprender sea mucho más entretenido, por lo que no se sienten aburridas ni pesadas. Además, es muy comprensivo con sus estudiantes y siempre busca que todos puedan entender los temas antes de continuar. Se nota que tiene vocación por la enseñanza y que realmente se preocupa por que sus alumnos aprendan. Sin duda, es un profesor que transmite confianza y hace que las clases sean mucho más agradables. (o´･ω･`o)"
+    },
+    {
+     "id": "6a83be56540e905e2782e155",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/guido-mendoza",
+     "rating": 10,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Organización del Estado",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T02:07:18.646Z",
+     "text": "muy buen profe, tiene mucha pero mucha paciencia con los alumnos 🫶🏻 es muy dinámico en las clases y siempre hace trabajos grupales"
+    },
+    {
+     "id": "6a83aa05e3cecd1a38541ac7",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/guido-mendoza",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Organización del Estado",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T00:40:37.628Z",
+     "text": "Excelente profesor, enseña muy bien. Hace dinámicas cómo trabajos grupales pero es muy paciente. Sin duda, volvería a llevar con este profesor porque no es exigente cómo otros."
+    }
+   ]
+  },
+  {
+   "professorId": 29054,
+   "professorSlug": "hung-chu-tung-extranjero",
+   "sources": [
+    {
+     "sourceName": "Hung Chu Tung",
+     "sourceSlug": "hung-chu-tung",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/hung-chu-tung",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a84c284c64fb3714ff5f2b3",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/hung-chu-tung",
+     "rating": 10,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Chino Avanzado III",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T20:37:24.389Z",
+     "text": "La profesora es muy dinámica, paciente y califica muy bien (si es que te preparas bien, claro)."
+    }
+   ]
+  },
+  {
+   "professorId": 27893,
+   "professorSlug": "ignacio-morales-bermudez-escomel",
+   "sources": [
+    {
+     "sourceName": "Ignacio Morales",
+     "sourceSlug": "ignacio-morales",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/ignacio-morales",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8342b15a02db201f250b36",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/ignacio-morales",
+     "rating": 8,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Contabilidad para Abogados",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T17:19:45.556Z",
+     "text": "Es buena gente, aunque a veces se \"volaba\" con los temas, es realmente muy bueno explicando y, si no entiendes, no tiene problema en volver a explicar. Escribe TODO en la pizarra."
+    }
+   ]
+  },
+  {
+   "professorId": 27604,
+   "professorSlug": "jaime-junior-lozano-navarro",
+   "sources": [
+    {
+     "sourceName": "Jaime Junior Lozano Navarro",
+     "sourceSlug": "jaime-junior-lozano-navarro",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jaime-junior-lozano-navarro",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a87fa7cbabd6986ddfc0f3a",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jaime-junior-lozano-navarro",
+     "rating": 10,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Writing Techniques for Translators",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T07:13:00.566Z",
+     "text": "Llevar este curso con Junior es lo mejor que me ha pasado en mi vida universitaria. El profesor es demasiado paciente y comprensivo."
+    }
+   ]
+  },
+  {
+   "professorId": 27525,
+   "professorSlug": "jeanette-paola-liao-sanchez",
+   "sources": [
+    {
+     "sourceName": "Paola Liao / Carmen Suarez",
+     "sourceSlug": "paola-liao-carmen-suarez",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/paola-liao-carmen-suarez",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8351287360836a8d42d8ad",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/paola-liao-carmen-suarez",
+     "rating": 8,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:21:28.412Z",
+     "text": "A Paola la sentí como una persona muy linda. En cuanto a Carmen, me pareció muy buena enseñando el taller, pero debes tener en cuenta que es bastante estricta.",
+     "sharedWith": [
+      "Carmen Suarez"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 4,
+   "professorSlug": "jesus-manuel-acosta-neyra",
+   "sources": [
+    {
+     "sourceName": "Jesus Manuel Acosta Neyra",
+     "sourceSlug": "jesus-manuel-acosta-neyra",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jesus-manuel-acosta-neyra",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a867e248f4dc7c0d7b46199",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jesus-manuel-acosta-neyra",
+     "rating": 5,
+     "difficulty": 5,
+     "recommends": false,
+     "course": "Cálculo I",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-20T04:10:12.178Z",
+     "text": "En sistemas y sociedad hablaba mucho de su vida y no se le entendia, en fin tienes que caerle bien y si te pone buena nota sino te agarra de punto."
+    },
+    {
+     "id": "6a83d273b519fbd71acecb9c",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jesus-manuel-acosta-neyra",
+     "rating": 1,
+     "difficulty": 5,
+     "recommends": false,
+     "course": "Cálculo I",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T03:33:07.498Z",
+     "text": "Lo llevé en virtual con él. En lugar de hacer click al enlace del video para el trabajo parcial, seleccionaba toda la URL, la copiaba y la pegaba. La cosa es que la pegó mal y obviamente el video salia como que no existía. Puso 0 de calificación por eso. Le reclamamos y le dijimos que el video sí se veía. Él mostró que no y le dijimos de su error, y en lugar de aceptar la culpa y calificar bien su excusa fue: \"Igual no lo vi en su momento. Se quedan con su 0\" ???? Encima a otro grupo los mandó a exponer a la última hora de la clase por falta de tiempo. La clase se acababa y le dijeron para exponer, y él nada que les dejaba. Al final acaba la hora y dice \"Como no expusieron, tienen 0\""
+    }
+   ]
+  },
+  {
+   "professorId": 110,
+   "professorSlug": "jhonatan-jesus-cabel-pozo",
+   "sources": [
+    {
+     "sourceName": "Jhonatan Jesus Cabel Pozo",
+     "sourceSlug": "jhonatan-jesus-cabel-pozo",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jhonatan-jesus-cabel-pozo",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a84a81fd22b7897ca82f842",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jhonatan-jesus-cabel-pozo",
+     "rating": 9,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Seminarion de Investigación Académica II",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T18:44:47.632Z",
+     "text": "Buen profesor, si exige bastante pero si le sigues la corriente y le haces platica es muy buen profe."
+    },
+    {
+     "id": "6a83e89ea914351ce97291b4",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jhonatan-jesus-cabel-pozo",
+     "rating": 2,
+     "difficulty": 8,
+     "recommends": false,
+     "course": "Seminarion de Investigación Académica II",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T05:07:42.731Z",
+     "text": "Muy exigente, no se le entiende a la hora de explicar y califica bajo."
+    }
+   ]
+  },
+  {
+   "professorId": 1020,
+   "professorSlug": "jhonny-edward-perez-armijo",
+   "sources": [
+    {
+     "sourceName": "Jhonny Edward Perez Armijo",
+     "sourceSlug": "jhonny-edward-perez-armijo",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jhonny-edward-perez-armijo",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83f3fd99d685060e3e7e43",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jhonny-edward-perez-armijo",
+     "rating": 3,
+     "difficulty": 9,
+     "recommends": false,
+     "course": "Matemática Discreta",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T05:56:13.289Z",
+     "text": "Si lo que realmente buscas es tener un ciclo tranquilo no es la opción, es exigente al 100 ,pide evidencia excesiva (ya saben a lo que me refiero), eso si domina los temas pero repito si lo que buscas es un curso tranquilo este no es el profesor."
+    },
+    {
+     "id": "6a839a2eed3e934ac0db1bd4",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jhonny-edward-perez-armijo",
+     "rating": 7,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Matemática Discreta",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T23:33:02.762Z",
+     "text": "Es un profesor que personalmente recomendaría, tiene lados serios y estrictos pero también cómico. Mi consejo personal, no te confíes y esfuerzate desde el inicio en sus respectivos cursos, pero después todo correcto y si apoya dentro de las clases"
+    },
+    {
+     "id": "6a7f221bf0e1e1556c6dd891",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jhonny-edward-perez-armijo",
+     "rating": 9,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Matemática Discreta",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-14T14:11:39.654Z",
+     "text": "Aquí está la verdad de ese profe, es bromista con los estudiantes, hace su clase chevre, en los trabajos grupales te pide mas mostrar tu programa que el codigo. Buen profe."
+    },
+    {
+     "id": "6a3c0f5dea466fc6703eaa6e",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jhonny-edward-perez-armijo",
+     "rating": 10,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Matemática Discreta",
+     "period": "Beta comentarios 2026",
+     "createdAt": "2026-06-24T17:09:49.759Z",
+     "text": "Es un profesor exigente pero aprendes en todos los problemas , muy buen profesor , no regala nota y aprendes bastante 👌"
+    },
+    {
+     "id": "6a38c667ea466fc6703eaa62",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jhonny-edward-perez-armijo",
+     "rating": 8,
+     "difficulty": 9,
+     "recommends": true,
+     "course": "Matemática Discreta",
+     "period": "Beta comentarios 2026",
+     "createdAt": "2026-06-22T05:21:43.170Z",
+     "text": "Es un buen profesor, enseña bien, hace que la clase no sea aburrida, no regala nota :'D pero si aprendes y bastante"
+    }
+   ]
+  },
+  {
+   "professorId": 26422,
+   "professorSlug": "joan-enrique-caravedo-duran",
+   "sources": [
+    {
+     "sourceName": "Joan Enrique Caravedo Durán",
+     "sourceSlug": "joan-enrique-caravedo-duran",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/joan-enrique-caravedo-duran",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83e0d62fa0b8364d5fc4f3",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/joan-enrique-caravedo-duran",
+     "rating": 10,
+     "difficulty": 9,
+     "recommends": true,
+     "course": "Filosofía",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T04:34:30.063Z",
+     "text": "Buen profe, explica muy bien los temas del curso y hace mapas mentales en el pizarrón."
+    }
+   ]
+  },
+  {
+   "professorId": 39459,
+   "professorSlug": "jorge-alberto-balerdi-arrarte",
+   "sources": [
+    {
+     "sourceName": "Giaccheti / Balerdi",
+     "sourceSlug": "giaccheti-balerdi",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/giaccheti-balerdi",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a86143db7206136d06cc421",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/giaccheti-balerdi",
+     "rating": 9,
+     "difficulty": 10,
+     "recommends": true,
+     "course": "Taller 3",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T20:38:21.876Z",
+     "text": "Me parecieron los mejores, pero sentí que son muy, pero muy exigentes. No obstante, noté que aquí aprendes lo mínimo indispensable para pasarla súper bien en T4; solo te diría que te esfuerces y le des con todo.",
+     "sharedWith": [
+      "Eugenio Bruno Giacchetti Lobaton"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 28037,
+   "professorSlug": "jorge-raul-olaechea-catter",
+   "sources": [
+    {
+     "sourceName": "Jorge Olaechea Catter",
+     "sourceSlug": "jorge-olaechea-catter",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jorge-olaechea-catter",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a852c95ac69a7a259b4bee4",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jorge-olaechea-catter",
+     "rating": 10,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Temas de Filosofía",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T04:09:57.904Z",
+     "text": "Considero que es el mejor profesor en lo que respecta a Filosofía, si te parece un curso aburrido, este profesor te va a gustar. Explica la filosofía con temas actuales, te invita a participar sin forzarte, siempre hay espacio para las dudas. Las clases son más como una conversación que una clase, es excelente el ambiente que otorga el profesor. Eso sí, debes leer, prepararte antes de clase, porque la participación si cuenta, y aún mejor, hacer mini apuntes es muy útil, con solo conceptos puedes asegurar un 20, no tienes porque memorizar todo, los exámenes consisten en conectar temas actuales con filosofía. Las notas son netamente individuales incluso en el final que es en duplas."
+    }
+   ]
+  },
+  {
+   "professorId": 39479,
+   "professorSlug": "jose-luis-lopez-calle",
+   "sources": [
+    {
+     "sourceName": "(N.D) Lopez Calle",
+     "sourceSlug": "nd-lopez-calle",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/nd-lopez-calle",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83434078e88a6c6d7096ef",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/nd-lopez-calle",
+     "rating": 10,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Fundamentos de la Gerencia",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T17:22:08.631Z",
+     "text": "El profe es \"un amor\" y le gusta que los alumnos participen. Sus PPTs son de mucha ayuda, el trabajo final es algo denso, por lo que recomiendo tomar precauciones, elegir bien el grupo y organizarse con tiempo."
+    }
+   ]
+  },
+  {
+   "professorId": 984,
+   "professorSlug": "jose-luis-ojeda-merino",
+   "sources": [
+    {
+     "sourceName": "Jose Ojeda Merino",
+     "sourceSlug": "jose-ojeda-merino",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jose-ojeda-merino",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a867ddd5f0a0b9087bcb01d",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jose-ojeda-merino",
+     "rating": 10,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Programacion Orientada a Objetos",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-20T04:09:01.206Z",
+     "text": "El profesor Ojeda es muy estricto y cumple todas las normas del curso. Enseña muy bien y siempre nos reta con ejercicios nuevos. Aprenderás bien los conceptos y desarrollarás tu lógica de programación. Tiene una de las evaluaciones más exigentes, a diferencia de otros profesores. Si te gusta la programación y los retos, es 100% recomendado. Si quieres pasar el curso fácilmente, llévalo con otro profesor. Solo para valientes."
+    },
+    {
+     "id": "6a86791916eeb7f613c70a4e",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/jose-ojeda-merino",
+     "rating": 5,
+     "difficulty": 8,
+     "recommends": false,
+     "course": "Programacion Orientada a Objetos",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-20T03:48:41.718Z",
+     "text": "Uno de los profes más jodidos que pueden haber para POO, sus clases son aburridas y no explica nada la verdad, siempre dice que debemos revisar el material preclase, y en la clase el no da ningún ejercicio para poder practicar. Está traumado con la IA, mínimo fallo y ya te califica negativamente y te explica que usaste IA sobre que no es así. Evita a este profesor a toda costa."
+    }
+   ]
+  },
+  {
+   "professorId": 257,
+   "professorSlug": "juan-antonio-flores-moroco",
+   "sources": [
+    {
+     "sourceName": "Juan Antonio Flores Moroco",
+     "sourceSlug": "juan-antonio-flores-moroco",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/juan-antonio-flores-moroco",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83b401a7f803ec4e924fd0",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/juan-antonio-flores-moroco",
+     "rating": 8,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Open Source",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T01:23:13.384Z",
+     "text": "El curso es fácil. El profesor explica bien. Curso filtro"
+    }
+   ]
+  },
+  {
+   "professorId": 29202,
+   "professorSlug": "juan-carlos-vega-moran",
+   "sources": [
+    {
+     "sourceName": "Juan Carlos Vega Morán",
+     "sourceSlug": "juan-carlos-vega-moran",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/juan-carlos-vega-moran",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a87f16718071c71d2c593db",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/juan-carlos-vega-moran",
+     "rating": 1,
+     "difficulty": 8,
+     "recommends": false,
+     "course": "Iniciación a la Traducción",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T06:34:15.383Z",
+     "text": "Para él solo existe una forma de traducir, lo que genera que no puedas desarrollar un estilo propio."
+    }
+   ]
+  },
+  {
+   "professorId": 27613,
+   "professorSlug": "juan-jose-lujan-chero",
+   "sources": [
+    {
+     "sourceName": "Lujan Jose / Silva Aldo",
+     "sourceSlug": "lujan-jose-silva-aldo",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lujan-jose-silva-aldo",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83af8fa7f803ec4e924fcd",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lujan-jose-silva-aldo",
+     "rating": 6,
+     "difficulty": 9,
+     "recommends": false,
+     "course": "Taller 3",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T01:04:15.183Z",
+     "text": "En mi experiencia, escuché que Aldo es un amor y te ayuda con todo, aunque le gustan los trabajos muy conceptuales que no tendrían sentido en la vida real. Sobre Luján, sentí que puede ser medio pesado, pero si lo sabes tratar te ayuda bastante. Como arquitectos en este taller me advirtieron que el nivel de exigencia es brutal y califican muy bajo, pero lo bueno es que te hacen caer en la realidad. Algunos me recomendaron no llevar con ellos nunca, mientras que otros me dijeron que el taller es fácil si te apegas al reglamento y criticas siempre.",
+     "sharedWith": [
+      "Aldo Ernesto Silva Cotlear"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 424,
+   "professorSlug": "juan-manuel-mattos-quevedo",
+   "sources": [
+    {
+     "sourceName": "Juan Manuel Mattos Quevedo",
+     "sourceSlug": "juan-manuel-mattos-quevedo",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/juan-manuel-mattos-quevedo",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a853b05824add03380e596f",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/juan-manuel-mattos-quevedo",
+     "rating": 1,
+     "difficulty": 5,
+     "recommends": false,
+     "course": "Matemática Computacional",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T05:11:33.483Z",
+     "text": "Es bueno enseñando y califica bien, pero nunca pierde la oportunidad para humillar a algún alumno y pasar malos ratos, evitalo si puedes."
+    },
+    {
+     "id": "6a83ffd53c2b11c0645f70f7",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/juan-manuel-mattos-quevedo",
+     "rating": 10,
+     "difficulty": 2,
+     "recommends": true,
+     "course": "Matemática Computacional",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T06:46:45.787Z",
+     "text": "Si tienes buen proyecto en grupo y repasas por tu cuenta todos los temas como mate básica o cálculo, pasas sin problema, hay exoneración y las PCs y epcs son fáciles con el profe, es coordinador del curso y respetado por muchos alumnos, solo pa estudiantes disciplinados claramente, califica lo que es."
+    },
+    {
+     "id": "6a81462a39b8d84071115758",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/juan-manuel-mattos-quevedo",
+     "rating": 2,
+     "difficulty": 8,
+     "recommends": false,
+     "course": "Matemática Computacional",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-16T05:10:02.736Z",
+     "text": "Busca otras opciones si no te gusta la exigencia o pasar malos ratos."
+    }
+   ]
+  },
+  {
+   "professorId": 1059,
+   "professorSlug": "julio-cesar-quispe-linares",
+   "sources": [
+    {
+     "sourceName": "Julio César Quispe Linares",
+     "sourceSlug": "julio-cesar-quispe-linares",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/julio-cesar-quispe-linares",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8461b9d928a9ef0fcaeb35",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/julio-cesar-quispe-linares",
+     "rating": 10,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Fundamentos en Programación",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T13:44:25.029Z",
+     "text": "El profe es muy bueno enseñando se los recomiendo te da una buena retroalimentacion y te da las fijas del examen."
+    },
+    {
+     "id": "6a844ac16914807cea903e55",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/julio-cesar-quispe-linares",
+     "rating": 10,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Programacion Orientada a Objetos",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T12:06:25.204Z",
+     "text": "Super bueno, ayuda siempre a sus alumnos y enseña muy bien."
+    }
+   ]
+  },
+  {
+   "professorId": 27861,
+   "professorSlug": "julio-jose-montenegro-muro",
+   "sources": [
+    {
+     "sourceName": "Julio José Montenegro Muro",
+     "sourceSlug": "julio-jose-montenegro-muro",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/julio-jose-montenegro-muro",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a87f05aff9824b9d471bb15",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/julio-jose-montenegro-muro",
+     "rating": 8,
+     "difficulty": 2,
+     "recommends": true,
+     "course": "Software Especializado 2 (N)",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T06:29:46.491Z",
+     "text": "El profesor resuelve dudas y es atento, me ayudó en cada clase."
+    }
+   ]
+  },
+  {
+   "professorId": 398,
+   "professorSlug": "karina-maria-ludowieg-rios",
+   "sources": [
+    {
+     "sourceName": "Karina Ludoweing Rios",
+     "sourceSlug": "karina-ludoweing-rios",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/karina-ludoweing-rios",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a834d364ee5e7ab77cba577",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/karina-ludoweing-rios",
+     "rating": 9,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:04:38.922Z",
+     "text": "Noté que se preocupa muchísimo porque realmente aprendas en su taller. Sentí que califica alto, es muy comprensiva y hace una excelente dupla con el arquitecto Tsubasa Oue."
+    }
+   ]
+  },
+  {
+   "professorId": 958,
+   "professorSlug": "katherine-munoz",
+   "sources": [
+    {
+     "sourceName": "Katherine Giselle Muñoz Díaz",
+     "sourceSlug": "katherine-giselle-munoz-diaz",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/katherine-giselle-munoz-diaz",
+     "matchRule": "apellido + nombre + mismo curso"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8510f67ce33eb04a23c784",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/katherine-giselle-munoz-diaz",
+     "rating": 3,
+     "difficulty": 7,
+     "recommends": false,
+     "course": "Comportamiento del Consumidor",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T02:12:06.063Z",
+     "text": "Ella hace sus propios exámenes, califica duro a veces en su explicación no llega a un punto exacto porque se pierde explicando y si llegas 15 minutos después no tienes nota no perdona ni una."
+    },
+    {
+     "id": "6a83b597a7f803ec4e924fd1",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/katherine-giselle-munoz-diaz",
+     "rating": 9,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Comportamiento del Consumidor",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T01:29:59.236Z",
+     "text": "Explica muy bien la profe y es súper divertida"
+    }
+   ]
+  },
+  {
+   "professorId": 28367,
+   "professorSlug": "lourdes-yahaira-quiroz-melendez",
+   "sources": [
+    {
+     "sourceName": "Lourdes Yahaira Quiroz Melendez",
+     "sourceSlug": "lourdes-yahaira-quiroz-melendez",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lourdes-yahaira-quiroz-melendez",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a84c416e90877af57ca4187",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lourdes-yahaira-quiroz-melendez",
+     "rating": 10,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Metodología de la Investigación",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T20:44:06.838Z",
+     "text": "De las mejores opciones en este curso. Califica bien y proporciona un feedback adecuado."
+    },
+    {
+     "id": "6a84c334e90877af57ca4186",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lourdes-yahaira-quiroz-melendez",
+     "rating": 8,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Análisis Textual para la Traducción",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T20:40:20.636Z",
+     "text": "Explica y califica bien."
+    }
+   ]
+  },
+  {
+   "professorId": 26600,
+   "professorSlug": "lucia-chu-perez",
+   "sources": [
+    {
+     "sourceName": "Lucía Chú",
+     "sourceSlug": "lucia-chu",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lucia-chu",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a87fb27babd6986ddfc0f3b",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lucia-chu",
+     "rating": 10,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Chino TI4",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T07:15:51.777Z",
+     "text": "Adoré llevar este curso con Lucía. Es muy buena profesora y demasiado profesional."
+    }
+   ]
+  },
+  {
+   "professorId": 29340,
+   "professorSlug": "lucio-wong-kwok",
+   "sources": [
+    {
+     "sourceName": "Lucio Wong Kwok",
+     "sourceSlug": "lucio-wong-kwok",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lucio-wong-kwok",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a86732136031a71857a908e",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/lucio-wong-kwok",
+     "rating": 10,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Comportamiento del Consumidor",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-20T03:23:13.841Z",
+     "text": "Es el mejor profesor!! super dinámico, super divertido, se le entiende todo super bien, es un 10/10."
+    }
+   ]
+  },
+  {
+   "professorId": 92,
+   "professorSlug": "ludwig-mirko-bermudez-angeles",
+   "sources": [
+    {
+     "sourceName": "Ludwig Mirko Bermudez Angeles",
+     "sourceSlug": "ludwig-mirko-bermudez-angeles",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/ludwig-mirko-bermudez-angeles",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a84cfcfc64fb3714ff5f2b6",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/ludwig-mirko-bermudez-angeles",
+     "rating": 9,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Marketing II",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T21:34:07.857Z",
+     "text": "De los mejores profesores de marketing, explica muy bien y tiene bastante conocimiento."
+    },
+    {
+     "id": "6a83d44536e271fa158a999a",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/ludwig-mirko-bermudez-angeles",
+     "rating": 10,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Marketing II",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T03:40:53.854Z",
+     "text": "Es un profesor chévere, y aunque mientras más avanzas de ciclo te exige un poco más no quita que sea buen profesor. Su curso lo pasé con 18 😊."
+    }
+   ]
+  },
+  {
+   "professorId": 1075,
+   "professorSlug": "luis-alberto-raymundo-chacaltana",
+   "sources": [
+    {
+     "sourceName": "Luis Raymundo",
+     "sourceSlug": "luis-raymundo",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-raymundo",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8148ebb8225481023f3e45",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-raymundo",
+     "rating": 10,
+     "difficulty": 2,
+     "recommends": true,
+     "course": "Algoritmos",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-16T05:21:47.705Z",
+     "text": "Uno de los mejores profesores en cualquier curso que enseñe, explica detalladamente y si no entiendes puedes pedirle ayuda, siempre trata de estar ahí."
+    },
+    {
+     "id": "6a8147e1d8e3ea5733303a9d",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-raymundo",
+     "rating": 10,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Algoritmos",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-16T05:17:21.348Z",
+     "text": "Excelente docente, paciente y dinámico, si participas en clase puedes obtener medio punto para tus PC, es algo flexible pero correcto, recomendado."
+    }
+   ]
+  },
+  {
+   "professorId": 29071,
+   "professorSlug": "luis-alberto-ulfe-vega",
+   "sources": [
+    {
+     "sourceName": "Luis Ulfe Vega",
+     "sourceSlug": "luis-ulfe-vega",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-ulfe-vega",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83973575571ba1abefd62e",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-ulfe-vega",
+     "rating": 7,
+     "difficulty": 9,
+     "recommends": false,
+     "course": "Investigación de Operaciones 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T23:20:21.027Z",
+     "text": "Examenes regulares, enseña maso y en los examenes te vigila mucho pdta: subio 3 puntos por asistir a una conferencia y se puso feliz por el compartir (es diabetico)"
+    },
+    {
+     "id": "6a8396d85d80aafbe4205d6a",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-ulfe-vega",
+     "rating": 9,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Investigación de Operaciones 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T23:18:48.473Z",
+     "text": "Sus exámenes son relativamente fáciles y casi siempre usa los mismos ejercicios, explica súper bien y te ayuda a resolver ejercicios cuando le preguntas, súper atento, en las sustentaciones finales también es súper fresh si ve que sabes, también regala puntos en clase asi que traten de no faltar. (dato: cuando mandes video de la sustenta final trata de hacer partes medio complicadas para que en la expo presencial no te mate)"
+    }
+   ]
+  },
+  {
+   "professorId": 1294,
+   "professorSlug": "luis-alberto-vives-garnique",
+   "sources": [
+    {
+     "sourceName": "Luis Alberto Vives Enrique",
+     "sourceSlug": "luis-alberto-vives-enrique",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-alberto-vives-enrique",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8679de8f4dc7c0d7b46198",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-alberto-vives-enrique",
+     "rating": 10,
+     "difficulty": 2,
+     "recommends": true,
+     "course": "Arquitectura de Computadoras y Sistemas Operativos",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-20T03:51:58.747Z",
+     "text": "El profesor explica bien los conceptos, es paciente con los estudiantes y siempre responde a las dudas. Lo negativo es que hay días en los que no enseña y nos manda a realizar lecturas o tareas; además, en algunas ocasiones demora en preparar la clase. Si quieres aprender más, te recomiendo insistirle para que inicie la clase antes. También puedes pedirle las evaluaciones de ciclos anteriores, ya que suele compartir sus propios exámenes y otros recursos que pueden servir para estudiar."
+    },
+    {
+     "id": "6a83f60c99d685060e3e7e44",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-alberto-vives-enrique",
+     "rating": 10,
+     "difficulty": 10,
+     "recommends": true,
+     "course": "Arquitectura de Computadoras y Sistemas Operativos",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T06:05:00.950Z",
+     "text": "Profe exigente pero filtro para los vagos, buen profe en general."
+    }
+   ]
+  },
+  {
+   "professorId": 151,
+   "professorSlug": "luis-castillo",
+   "sources": [
+    {
+     "sourceName": "Luis Castilllo",
+     "sourceSlug": "luis-castilllo",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-castilllo",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83b4e4e3cecd1a38541ace",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-castilllo",
+     "rating": 9,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Estática",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T01:27:00.083Z",
+     "text": "El profe es chevere, explica sus clases de manera clara y ordenada. Sus examenes son coherentes con lo que se aprende en clase. Ciertamente, es un buen inicio para llevar este y el resto de cursos q le siguen."
+    },
+    {
+     "id": "6a833ef19222cc3b813b067b",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/luis-castilllo",
+     "rating": 10,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Estática",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T17:03:45.908Z",
+     "text": "A comparación de otros profesores enseña súper bien."
+    }
+   ]
+  },
+  {
+   "professorId": 28072,
+   "professorSlug": "luis-felipe-orna-costa",
+   "sources": [
+    {
+     "sourceName": "Felipe Orna",
+     "sourceSlug": "felipe-orna",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/felipe-orna",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a834ed74ee5e7ab77cba57a",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/felipe-orna",
+     "rating": 8,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:11:35.207Z",
+     "text": "Me pareció un buen arqui. Si buscas aprender pero prefieres llevar el ciclo de manera un poco más relajada y sin tanta presión, te diría que te metas a su taller."
+    }
+   ]
+  },
+  {
+   "professorId": 27186,
+   "professorSlug": "magna-julia-guerrero-celis",
+   "sources": [
+    {
+     "sourceName": "Julia Magna",
+     "sourceSlug": "julia-magna",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/julia-magna",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83e15c2bdb0f9552835aa5",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/julia-magna",
+     "rating": 10,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Cálculo I",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T04:36:44.716Z",
+     "text": "Una de las mejores profesora, enseña super bien y explica claro."
+    },
+    {
+     "id": "6a83a2d550089050f1d9f340",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/julia-magna",
+     "rating": 10,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Cálculo I",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T00:09:57.383Z",
+     "text": "Fue la profe de mi primer ciclo me encanto como explicaba, entendí de todo la mejor para empezar la U"
+    }
+   ]
+  },
+  {
+   "professorId": 372,
+   "professorSlug": "manuel-leon-ayarza",
+   "sources": [
+    {
+     "sourceName": "Manuel León",
+     "sourceSlug": "manuel-leon",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/manuel-leon",
+     "matchRule": "todas las palabras del nombre + curso"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8547aa114744185be11b4b",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/manuel-leon",
+     "rating": 10,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Derecho Laboral",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T06:05:30.549Z",
+     "text": "Es muy exigente. A pesar de todo suele ser amable y comprensivo con los estudiantes. Suele hacer preguntas en clase a alumnos al azar y no hace roche si te equivocas, puedes equivocarte sin tener miedo a ser juzgado. Eso sí, en los parciales y finales no se admiten errores, cada cosa que dices o explicas puede estar sujeta a preguntas después así debes saber bien todo de lo que hablas. Muy buen profesor, explica bien y te hace aprender."
+    },
+    {
+     "id": "6a83d5656ef582ca03d23007",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/manuel-leon",
+     "rating": 10,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Derecho Laboral",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T03:45:41.702Z",
+     "text": "Exige bastante si le participas en clase y te da oportunidades de mejora si fallas, si no lo haces te exigirá en parcial o final de forma oral y ahí no hay correcciones."
+    }
+   ]
+  },
+  {
+   "professorId": 27501,
+   "professorSlug": "marco-antonio-leon-baca",
+   "sources": [
+    {
+     "sourceName": "Marco Antonio Leon Baca",
+     "sourceSlug": "marco-antonio-leon-baca",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/marco-antonio-leon-baca",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a3df3967ba29f3134f66706",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/marco-antonio-leon-baca",
+     "rating": 9,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Arquitectura de Computadoras",
+     "period": "Beta comentarios 2026",
+     "createdAt": "2026-06-26T03:35:50.875Z",
+     "text": "El profesor domina los temas, resuelve dudas y brinda información clave para los exámenes. En clase, vigila las pantallas durante las pruebas, aunque sin exceso. Destaca en laboratorio, explicando con gran claridad cada actividad. Al evaluar trabajos es muy exigente con el formato, llegando a bajar puntos por la carátula; sin embargo, califica de forma justa si sigues la rúbrica al pie de la letra. Recomiendo el curso si buscas aprender realmente. Eso sí, elige bien a tu grupo, ya que las actividades son extensas y requieren dedicación. ¡Mucha suerte, cachimbo!"
+    },
+    {
+     "id": "6a3df03bdcb82653c1a1e195",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/marco-antonio-leon-baca",
+     "rating": 8,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Arquitectura de Computadoras",
+     "period": "Beta comentarios 2026",
+     "createdAt": "2026-06-26T03:21:31.787Z",
+     "text": "Es buen profesor, no molesta con la asistencia, te explica los temas rapido y te indica como vendra en la evaluaciones pero ten cuidado con los trabajos grupales, ahi es exigente para revisar."
+    }
+   ]
+  },
+  {
+   "professorId": 1219,
+   "professorSlug": "marko-anibal-torres-flores",
+   "sources": [
+    {
+     "sourceName": "Marko Aníbal Torres",
+     "sourceSlug": "marko-anibal-torres",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/marko-anibal-torres",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a85e24181c80b984f4f1b17",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/marko-anibal-torres",
+     "rating": 10,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Ingeniería De Carreteras",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T17:05:05.865Z",
+     "text": "BUENAZOOO, se pasa super y sabe explicar todo demasiado bien."
+    },
+    {
+     "id": "6a83bcaf1c77a4b2a4b8b2c9",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/marko-anibal-torres",
+     "rating": 10,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Ingeniería De Carreteras",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T02:00:15.413Z",
+     "text": "Buenisimo profe, aprendes y tiene canal de yt para guiarte"
+    }
+   ]
+  },
+  {
+   "professorId": 27102,
+   "professorSlug": "melisa-estefania-gaviola-vargas",
+   "sources": [
+    {
+     "sourceName": "Gianina Guerrero / Melissa Gaviola",
+     "sourceSlug": "gianina-guerrero-melissa-gaviola",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/gianina-guerrero-melissa-gaviola",
+     "matchRule": "revisión manual"
+    },
+    {
+     "sourceName": "Melisa Gaviola",
+     "sourceSlug": "melisa-gaviola",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/melisa-gaviola",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8352147360836a8d42d8ae",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/gianina-guerrero-melissa-gaviola",
+     "rating": 7,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:25:24.967Z",
+     "text": "Sentí que Gianina es un amor, súper amigable y pone notas altas; me iría con ella sin pensarlo. Sin embargo, no recomendaría a Melissa porque me jaló por no saber pintar, aunque reconozco que al final es objetiva y te obliga a aprender a ser preciso.",
+     "sharedWith": [
+      "Gianina Lizeth Guerrero Gonzales"
+     ]
+    },
+    {
+     "id": "6a834ec17360836a8d42d8ab",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/melisa-gaviola",
+     "rating": 10,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:11:13.866Z",
+     "text": "¡Es un amor! Sentí que es una arquitecta estricta, pero a la hora de las notas califica súper bien. Además, noté que tiene muchísima paciencia para explicar. La recomiendo totalmente."
+    }
+   ]
+  },
+  {
+   "professorId": 29160,
+   "professorSlug": "michael-gerhard-vargas-moya",
+   "sources": [
+    {
+     "sourceName": "Collins / Michael Vargas",
+     "sourceSlug": "collins-michael-vargas",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/collins-michael-vargas",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a834ff9ec7421a5581da350",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/collins-michael-vargas",
+     "rating": 2,
+     "difficulty": 9,
+     "recommends": false,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:16:25.362Z",
+     "text": "Sinceramente te diría que jamás en tu vida pienses en ir con Vargas. Sentí que su taller es para sufrir; a menos que seas masoquista, dale entra.",
+     "sharedWith": [
+      "Collins"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 28353,
+   "professorSlug": "milagritos-esther-quintana-mogollon",
+   "sources": [
+    {
+     "sourceName": "Milagritos Quintana",
+     "sourceSlug": "milagritos-quintana",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/milagritos-quintana",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a87a68b24a1bcf9ec551552",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/milagritos-quintana",
+     "rating": 2,
+     "difficulty": 4,
+     "recommends": false,
+     "course": "Organización del Estado",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T01:14:51.880Z",
+     "text": "Solo quiere hacer exposiciones no explica casi nada o nada de los temas y encima cuando uno pregunta sobre el tema algunas veces responde de mala manera o sino no responde"
+    },
+    {
+     "id": "6a87a1b6e70e355492eddf33",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/milagritos-quintana",
+     "rating": 2,
+     "difficulty": 6,
+     "recommends": false,
+     "course": "Teoría Constitucional y Política",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T00:54:14.629Z",
+     "text": "La peor profesora que tuve hasta el momento. Se cree la gran cosa y no acepta ningún tipo de reclamo o queja, así sea de ella la culpa. Casi todas las clases son exposiciones y exige demasiado para lo que ella te da como maestra."
+    },
+    {
+     "id": "6a84cba098bef9fd5b99b1d2",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/milagritos-quintana",
+     "rating": 3,
+     "difficulty": 5,
+     "recommends": false,
+     "course": "Teoría Constitucional y Política",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T21:16:16.987Z",
+     "text": "Es un poco creída y siento que su método de enseñanza no es el que todo el mundo quisiera. No es mala pero no la recomendaría."
+    }
+   ]
+  },
+  {
+   "professorId": 251,
+   "professorSlug": "nedin-esteban-fernandez-quispe",
+   "sources": [
+    {
+     "sourceName": "Nedin Esteban Fernandez Quispe",
+     "sourceSlug": "nedin-esteban-fernandez-quispe",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/nedin-esteban-fernandez-quispe",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a814a70f3f17943b089aa58",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/nedin-esteban-fernandez-quispe",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Matemática Discreta",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-16T05:28:16.234Z",
+     "text": "Este profesor demasiada buena gente, lleva un montón de salones pero siempre enseña con la misma energía, si tienes alguna duda, él te ayudará, lo recomiendo demasiado."
+    },
+    {
+     "id": "6a814a6af3f17943b089aa57",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/nedin-esteban-fernandez-quispe",
+     "rating": 10,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Matemática Discreta",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-16T05:28:10.845Z",
+     "text": "Excelente docente, muy flexible, no hostiga a los estudiantes, le gusta la participación, da mucho feedback y explica muy bien en clase."
+    }
+   ]
+  },
+  {
+   "professorId": 27942,
+   "professorSlug": "noelia-maritza-munante-salazar",
+   "sources": [
+    {
+     "sourceName": "Noelia Muñante / Pilar Guerra",
+     "sourceSlug": "noelia-munante-pilar-guerra",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/noelia-munante-pilar-guerra",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8350354ee5e7ab77cba57b",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/noelia-munante-pilar-guerra",
+     "rating": 4,
+     "difficulty": 7,
+     "recommends": false,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:17:25.744Z",
+     "text": "En mi experiencia, el problema es cuando Noelia enseña sola, ya que sentí que se le olvida todo. Por ejemplo, me pasaba que decía que habría crítica formativa para la siguiente clase, y a última hora lo cambiaba a entrega o crítica calificada.",
+     "sharedWith": [
+      "Pilar Rosario Guerra Guillen"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 13,
+   "professorSlug": "olga-alejandra-alcantara-francia",
+   "sources": [
+    {
+     "sourceName": "Olga Alejandra Alcantara Francia",
+     "sourceSlug": "olga-alejandra-alcantara-francia",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/olga-alejandra-alcantara-francia",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a86726ad23ae08ed326ed56",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/olga-alejandra-alcantara-francia",
+     "rating": 1,
+     "difficulty": 8,
+     "recommends": false,
+     "course": "Derecho Comercial y Publicitario",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-20T03:20:10.512Z",
+     "text": "No te va a perdonar NI UNA, parece disfrutar maltratando alumnos."
+    },
+    {
+     "id": "6a85174d16688af5f0de8665",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/olga-alejandra-alcantara-francia",
+     "rating": 2,
+     "difficulty": 8,
+     "recommends": false,
+     "course": "Derecho Comercial y Publicitario",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T02:39:09.973Z",
+     "text": "Esta profe no te perdona ni una siempre está molesta sus explicaciones en la clase son confusas y en el examen final vienen varios casos. Dependes tambien de tu grupo de trabajo"
+    }
+   ]
+  },
+  {
+   "professorId": 26919,
+   "professorSlug": "oscar-eduardo-felix-limas",
+   "sources": [
+    {
+     "sourceName": "Oscar Eduardo Felix Limas",
+     "sourceSlug": "oscar-eduardo-felix-limas",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/oscar-eduardo-felix-limas",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a849dc9d22b7897ca82f83f",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/oscar-eduardo-felix-limas",
+     "rating": 7,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Fundamentos de Marketing",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T18:00:41.633Z",
+     "text": "Lo recomiendo para Fundamentos de Marketing, yo lo llevé en virtual y sus clases siempre fueron dinámicas, mostraba ejemplos reales y actuales de publicidad, da espacio para resolver dudas. Lo único tedioso era de que las indicaciones de los parciales y finales no terminaba de explicarlo bien. Fuera de eso, las asesorías y feedbacks muy buenos. La dificultad si es un poco alta ya que a pesar de que muestra mucha confianza y flexibilidad al enseñar, para calificar es un poco estricto y evalúa mucho la capacidad del alumno y cuánto ha aprendido de los temas del curso. En las exposiciones el profesor siempre preguntara a cada integrante, todos deben saber. Consejo: tengan un buen grupo."
+    }
+   ]
+  },
+  {
+   "professorId": 29292,
+   "professorSlug": "oscar-ivan-villafuerte-bazan",
+   "sources": [
+    {
+     "sourceName": "Oscar Ivan Villafuerte Bazan",
+     "sourceSlug": "oscar-ivan-villafuerte-bazan",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/oscar-ivan-villafuerte-bazan",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a814b80b2a71a2f8e25dc82",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/oscar-ivan-villafuerte-bazan",
+     "rating": 8,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Ingeniería de Requisitos",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-16T05:32:48.665Z",
+     "text": "Buen docente, algo duro de calificar pero se guía en la rubrica y suele pasarte las fijas, es flexible pero recto, eso si, casi no perdona desperfectos."
+    }
+   ]
+  },
+  {
+   "professorId": 28639,
+   "professorSlug": "patricia-rozas-schmitt",
+   "sources": [
+    {
+     "sourceName": "Gianina Guerrero / Patricia Rozas",
+     "sourceSlug": "gianina-guerrero-patricia-rozas",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/gianina-guerrero-patricia-rozas",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8350557360836a8d42d8ac",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/gianina-guerrero-patricia-rozas",
+     "rating": 10,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:17:57.864Z",
+     "text": "¡Giani me pareció un amor, la mejor del planeta! Y Paty es igual de linda. Sentí que ambas hacen una gran dupla, son súper lindas enseñando y califican alto. Sin pensarlo me volvería a meter con ellas.",
+     "sharedWith": [
+      "Gianina Lizeth Guerrero Gonzales"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 26476,
+   "professorSlug": "pedro-segundo-castaneda-vargas",
+   "sources": [
+    {
+     "sourceName": "Pedro Segundo Castañera Vargas",
+     "sourceSlug": "pedro-segundo-castanera-vargas",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/pedro-segundo-castanera-vargas",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83e8e08de47c4c7842af18",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/pedro-segundo-castanera-vargas",
+     "rating": 3,
+     "difficulty": 10,
+     "recommends": false,
+     "course": "Taller de Desempeño Profesional",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T05:08:48.206Z",
+     "text": "Nunca pone 20, suele calificar bastante bajo y te pone excusas para todo."
+    }
+   ]
+  },
+  {
+   "professorId": 460,
+   "professorSlug": "peter-jonathan-montalvo-garcia",
+   "sources": [
+    {
+     "sourceName": "Peter Montalvo Garcia",
+     "sourceSlug": "peter-montalvo-garcia",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/peter-montalvo-garcia",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a3c12a7ea466fc6703eaa6f",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/peter-montalvo-garcia",
+     "rating": 10,
+     "difficulty": 2,
+     "recommends": true,
+     "course": "Complejidad Algorítmica",
+     "period": "Beta comentarios 2026",
+     "createdAt": "2026-06-24T17:23:51.809Z",
+     "text": "Excelente profesor, te da puntos por realizar actividades en clase para tu PC y para los trabajos grupales califica bien."
+    }
+   ]
+  },
+  {
+   "professorId": 27180,
+   "professorSlug": "pilar-rosario-guerra-guillen",
+   "sources": [
+    {
+     "sourceName": "Noelia Muñante / Pilar Guerra",
+     "sourceSlug": "noelia-munante-pilar-guerra",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/noelia-munante-pilar-guerra",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8350354ee5e7ab77cba57b",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/noelia-munante-pilar-guerra",
+     "rating": 4,
+     "difficulty": 7,
+     "recommends": false,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:17:25.744Z",
+     "text": "En mi experiencia, el problema es cuando Noelia enseña sola, ya que sentí que se le olvida todo. Por ejemplo, me pasaba que decía que habría crítica formativa para la siguiente clase, y a última hora lo cambiaba a entrega o crítica calificada.",
+     "sharedWith": [
+      "Noelia Maritza Muñante Salazar"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 39797,
+   "professorSlug": "rafael-jesus-parra-torres",
+   "sources": [
+    {
+     "sourceName": "Rafael Parra",
+     "sourceSlug": "rafael-parra",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/rafael-parra",
+     "matchRule": "todas las palabras del nombre + curso"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a87c5cfe5460c7af2091744",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/rafael-parra",
+     "rating": 9,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Introducción a la Contabilidad Financiera",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T03:28:16.002Z",
+     "text": "Explica muy bien, es atento es responder dudas del curso"
+    }
+   ]
+  },
+  {
+   "professorId": 4632,
+   "professorSlug": "raul-aza-derteano",
+   "sources": [
+    {
+     "sourceName": "Raúl Ygor Aza Derteano",
+     "sourceSlug": "raul-ygor-aza-derteano",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/raul-ygor-aza-derteano",
+     "matchRule": "tres palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83c1c5e1e2a6a6022ae47e",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/raul-ygor-aza-derteano",
+     "rating": 10,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Derecho Societario y Corporativo",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T02:21:57.725Z",
+     "text": "Definitivamente el mejor profesor de la carrera. Explica super bien, es muy dinámico y si algo no entiendes no dudes en preguntarle. Califica generalmente alto si es que lo ameritas, eso si debes llegar temprano a sus clases."
+    },
+    {
+     "id": "6a83a7fca7f803ec4e924fc6",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/raul-ygor-aza-derteano",
+     "rating": 10,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Derecho Societario y Corporativo",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T00:31:56.408Z",
+     "text": "El profe es buenaso en lo que enseña, maneja y explica muy bien el curso. Pone 20 si lo ameritas asi que si no eres vago y pones de tu parte pasas el curso con 20. Aparte hace la clase más dinamica con algunas lecturas antes de clase que si contestas correctamente te suman puntos en algun control que hayas sacado baja nota."
+    },
+    {
+     "id": "6a839dd150089050f1d9f33d",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/raul-ygor-aza-derteano",
+     "rating": 10,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Derecho Societario y Corporativo",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T23:48:33.175Z",
+     "text": "El profesor es experto en la materia, las normas del LGS te lo explica de la manera más fácil posible con analogías y ejemplos, le gusta que presten atención, que pregunten y que participes, aunque te equivoques."
+    }
+   ]
+  },
+  {
+   "professorId": 28610,
+   "professorSlug": "raul-giuseppe-romero-ripamonti",
+   "sources": [
+    {
+     "sourceName": "Raul Romero / Irigoyen",
+     "sourceSlug": "raul-romero-irigoyen",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/raul-romero-irigoyen",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83afb278de5d92ce025009",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/raul-romero-irigoyen",
+     "rating": 9,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Taller 3",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T01:04:50.459Z",
+     "text": "Me comentaron que es muy bueno y enseña bien. Sentí que solo tienes que trabajar en clase cumpliendo lo que te pida y ser muy puntual. Noté que César te aprueba, califica alto y va subiendo la nota conforme avanzan las semanas, aunque me dijeron que tiene favoritos.",
+     "sharedWith": [
+      "Cesar Augusto Irigoyen Changllio"
+     ]
+    }
+   ]
+  },
+  {
+   "professorId": 373,
+   "professorSlug": "renzo-orlando-leon-guia",
+   "sources": [
+    {
+     "sourceName": "Renzo León Guia",
+     "sourceSlug": "renzo-leon-guia",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/renzo-leon-guia",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83d4fd6ef582ca03d23006",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/renzo-leon-guia",
+     "rating": 9,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Teoría de los Tributos",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T03:43:57.956Z",
+     "text": "Cuándo él te diga que leas un artículo o resolución, léelo, eso vendrá en el exámen o control."
+    }
+   ]
+  },
+  {
+   "professorId": 26145,
+   "professorSlug": "roger-felix-arrieta-gallardo",
+   "sources": [
+    {
+     "sourceName": "Roger Felix Arrieta Gallardo",
+     "sourceSlug": "roger-felix-arrieta-gallardo",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/roger-felix-arrieta-gallardo",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83f45ca914351ce97291b5",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/roger-felix-arrieta-gallardo",
+     "rating": 9,
+     "difficulty": 2,
+     "recommends": true,
+     "course": "Logística Integrada y Cadena de Suministros",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T05:57:48.950Z",
+     "text": "Lo llevé en virtual con el profe y solo hacía que hagamos expos sobre los temas de forma grupal. Era muy bueno poniendo las notas de 16 no bajaban. Y su clase no es tan aburrida para virtual. Si o si pasas si entregas todas tus expos cada semana!"
+    }
+   ]
+  },
+  {
+   "professorId": 28437,
+   "professorSlug": "ruben-alfredo-real-ventocilla",
+   "sources": [
+    {
+     "sourceName": "Ruben Ventocilla",
+     "sourceSlug": "ruben-ventocilla",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/ruben-ventocilla",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a833cf55c169badcaab7b5d",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/ruben-ventocilla",
+     "rating": 8,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Fundamentos de la Contratación I",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T16:55:17.265Z",
+     "text": "Sabe mucho, casi no usa PPTs, por lo que el alumno graba sus clases. A veces puede ser algo aburrido, pero el contenido deja una muy buena base. Hay muchos trabajos en grupo. Fomenta el análisis, busca participación y terminaba todas las clases con una pequeña charla motivacional."
+    }
+   ]
+  },
+  {
+   "professorId": 351,
+   "professorSlug": "salazar-ruiz-kevin-edgar",
+   "sources": [
+    {
+     "sourceName": "Kevin Salazar",
+     "sourceSlug": "kevin-salazar",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/kevin-salazar",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83b2f3a7f803ec4e924fcf",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/kevin-salazar",
+     "rating": 9,
+     "difficulty": 2,
+     "recommends": true,
+     "course": "IHC y Tecnologias Moviles",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T01:18:43.370Z",
+     "text": "Si quieres pasar el curso ponte con el si enseña bien, es creo que el mejor en cuanto a las elecciones de morales o requejoxd, pero en lo personal creo que le faltó explicar unos cuantos temas por ejemplo teníamos que llevar también JavaScript pero no vimos ningún tema de ello. Igual con CSS solo nos enseñó la parte de FlexBox pero no CSS Grid o tablas en HTML."
+    },
+    {
+     "id": "6a839e4d50089050f1d9f33e",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/kevin-salazar",
+     "rating": 10,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "IHC y Tecnologias Moviles",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T23:50:37.757Z",
+     "text": "El mejor profesores de IHC, dinámico, puntual, te ayuda a aprender"
+    }
+   ]
+  },
+  {
+   "professorId": 27992,
+   "professorSlug": "santiago-raul-nieto-valladares",
+   "sources": [
+    {
+     "sourceName": "Santiago Raul Nieto",
+     "sourceSlug": "santiago-raul-nieto",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/santiago-raul-nieto",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8350bb15d710e6f5e08231",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/santiago-raul-nieto",
+     "rating": 8,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:19:39.079Z",
+     "text": "Me pareció muy amable, atento y siempre dispuesto a resolver mis dudas. Fue muy comprensivo y hasta nos extendió las entregas 30 minutos para no afectarnos o eliminaba la nota más baja. Lo único que sentí que le faltó, para ser el primer taller, es explicar un poco más a fondo cómo utilizar ciertos materiales."
+    }
+   ]
+  },
+  {
+   "professorId": 26963,
+   "professorSlug": "sergio-luis-flores-castro",
+   "sources": [
+    {
+     "sourceName": "Sergio Luis Flores Castro",
+     "sourceSlug": "sergio-luis-flores-castro",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sergio-luis-flores-castro",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8942dac0b78f55c18766c1",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sergio-luis-flores-castro",
+     "rating": 8,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Nuevos Medios y Proyectos Digitales",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-22T06:34:02.885Z",
+     "text": "Llevé el curso de nuevos medios (virtual) con el profe Sergio y lo recomiendo, el curso de por si es sencillo, suele explicar con ejemplos reales, nos brinda herramientas para los trabajos y da tiempos de break para no saturarnos :D porque el curso es bastante teórico. Eso sí, los trabajos son un poco pesados, antes de cada clase se debe realizar un vídeo grupal acerca de la preclase, por lo que se debe leer los contenidos. Además, en cada clase siempre habrá exposiciones, así que como consejo tengan un buen grupo. El trabajo final es un proyecto de comunicación que ayude a resolver un problema real, todo debe estar documentado en escrito tipo ensayo de investigación. Mucha suerte!"
+    }
+   ]
+  },
+  {
+   "professorId": 463,
+   "professorSlug": "sergio-montoro",
+   "sources": [
+    {
+     "sourceName": "Sergio Montoro Llamosa",
+     "sourceSlug": "sergio-montoro-llamosa",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sergio-montoro-llamosa",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a834bd6880b81f295cd718d",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sergio-montoro-llamosa",
+     "rating": 9,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T17:58:46.981Z",
+     "text": "Llevé taller con él y me pareció de los mejores. Sentí que sus clases son geniales, amenas y bastante divertidas. Siempre está criticando tus avances hasta el final y considero que califica lo justo y alto. Solo te diría que no te pierdas en el ciclo. Hace muy buena dupla con Pasquel Cook."
+    }
+   ]
+  },
+  {
+   "professorId": 28857,
+   "professorSlug": "silvana-sobrevilla-garcia",
+   "sources": [
+    {
+     "sourceName": "Silvana Sobrevilla Garcia",
+     "sourceSlug": "silvana-sobrevilla-garcia",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/silvana-sobrevilla-garcia",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a87f0dfff9824b9d471bb17",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/silvana-sobrevilla-garcia",
+     "rating": 7,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Taller de Interpretación 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T06:31:59.004Z",
+     "text": "Profesora muy exigente, pero si ve que le metes punche te ayuda y sus recomendaciones siempre te hacen mejorar."
+    }
+   ]
+  },
+  {
+   "professorId": 40215,
+   "professorSlug": "sissy-carlin-salazar",
+   "sources": [
+    {
+     "sourceName": "Sissy (Carlin Salazar)",
+     "sourceSlug": "sissy-carlin-salazar",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sissy-carlin-salazar",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a84cadedc065fb44b26cd96",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sissy-carlin-salazar",
+     "rating": 10,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Derecho de Propiedad",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T21:13:02.500Z",
+     "text": "Una profe muy linda, yo llevé por primera vez con ella en 7mo ciclo y aprendí bastante. 100% recomendada."
+    },
+    {
+     "id": "6a83c6cf191f81d27e11dec8",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sissy-carlin-salazar",
+     "rating": 10,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Derecho de Propiedad",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T02:43:27.559Z",
+     "text": "La profesora es muy buena dando la introducción a la carrera de derecho la lleve en 1er ciclo y enseñaba muy bien daba retro y califica alto."
+    },
+    {
+     "id": "6a83be7d191f81d27e11dec6",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sissy-carlin-salazar",
+     "rating": 10,
+     "difficulty": 10,
+     "recommends": true,
+     "course": "Derecho de Propiedad",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T02:07:57.620Z",
+     "text": "La mejor docente de la carrera de Derecho. Es una de esas docentes que hace que ame aún más mi carrera. Es empática, inteligente y siempre está dispuesta a apoyarte cuando tienes alguna duda. Explica los temas de manera clara y didáctica, y demuestra ser una profesional muy preparada. Se nota su compromiso con sus estudiantes y con la enseñanza. Muchos le tenemos bastante cariño 🩷."
+    },
+    {
+     "id": "6a83bd781c77a4b2a4b8b2ca",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sissy-carlin-salazar",
+     "rating": 10,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Derecho de Propiedad",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T02:03:36.584Z",
+     "text": "es una profesora muy paciente, logra conectar muy bien con todos los alumnos y se nota que le gusta enseñar 🥹💗 de las mejores profesoras y sus evaluaciones son muy fáciles si estudias 🫶🏻"
+    },
+    {
+     "id": "6a839e56ec3afe580ac4b84a",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sissy-carlin-salazar",
+     "rating": 10,
+     "difficulty": 8,
+     "recommends": true,
+     "course": "Derecho de Propiedad",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T23:50:46.149Z",
+     "text": "Es muy buena explicando, califica alto también"
+    },
+    {
+     "id": "6a833984a834cf4d3c1f90ce",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/sissy-carlin-salazar",
+     "rating": 10,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Derecho de Propiedad",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T16:40:36.156Z",
+     "text": "Es una de las mejoras profesoras. Explica muy bien y usa ejemplos que ayudan a comprender. Sus clases son dinámicas y entretenidas, lo que ayuda a sobrellevar las 4 horas de clase. La mitad de la clase es teoría y la otra mitad se dedica a leer una casación."
+    }
+   ]
+  },
+  {
+   "professorId": 25,
+   "professorSlug": "soledad-alvarez-macchietto",
+   "sources": [
+    {
+     "sourceName": "Soledad Macchieto",
+     "sourceSlug": "soledad-macchieto",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/soledad-macchieto",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83d40fb519fbd71acecb9e",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/soledad-macchieto",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Introducción a Psicología",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T03:39:59.830Z",
+     "text": "Buena profe, linda, se nota que ama enseñar."
+    }
+   ]
+  },
+  {
+   "professorId": 28110,
+   "professorSlug": "tsubasa-oue-extranjero",
+   "sources": [
+    {
+     "sourceName": "Tsubasa Oue",
+     "sourceSlug": "tsubasa-oue",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/tsubasa-oue",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83b2ee9a0ff7c7c2becd7b",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/tsubasa-oue",
+     "rating": 9,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T01:18:38.905Z",
+     "text": "Un gran arquitecto, realmente trata de conectar con cada proyecto que presentan los alumnos, con al menos que hayan hecho lo mínimo requerido para cada entrega, porque es exigente en el nivel de acabados y el porqué de tu trabajo. No se te hará un taller dificil si estas desde la primera clase al dia con todo, no son proyectos complicados pero no te puedes atrasar ni faltar a las criticas, es ahi donde resuelve casi todas las dudas y es muy claro."
+    },
+    {
+     "id": "6a834e044ee5e7ab77cba578",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/tsubasa-oue",
+     "rating": 9,
+     "difficulty": 7,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:08:04.679Z",
+     "text": "Me pareció un gran profesor. Aunque sentí que es exigente, sus críticas fueron siempre constructivas y me explicó todo de manera muy clara. Noté que califica muy alto cuando realmente te lo mereces. Su taller me pareció uno de los más completos para entender la creación de espacios; realmente aprendí muchísimo y amé el curso."
+    }
+   ]
+  },
+  {
+   "professorId": 1079,
+   "professorSlug": "walter-juan-requejo-chaname",
+   "sources": [
+    {
+     "sourceName": "Walter Juan Requejo Chaname",
+     "sourceSlug": "walter-juan-requejo-chaname",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/walter-juan-requejo-chaname",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a852bd38207769c3f433b27",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/walter-juan-requejo-chaname",
+     "rating": 7,
+     "difficulty": 6,
+     "recommends": true,
+     "course": "IHC y Tecnologias Moviles",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T04:06:43.660Z",
+     "text": "Si no te puedes meter con Kevin Salazar en IHC, la mejor opción es Requejo, díria que es más justo con la rúbrica, se guía demasiado de eso. En 2026-1, la PC2 y el final se ha vuelto un poco más complicado pq es demasiado, así que asegura con el trabajo grupal (ten un buen grupo, sino jalaste). No es tan malo como lo aparentan, simplementa es un profe como dije anteriormente que se guía demasiado en la rúbrica (muchos no leen eso)."
+    }
+   ]
+  },
+  {
+   "professorId": 26160,
+   "professorSlug": "william-alexander-astete-dominguez",
+   "sources": [
+    {
+     "sourceName": "William Alexander Astete Dominguez",
+     "sourceSlug": "william-alexander-astete-dominguez",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/william-alexander-astete-dominguez",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a87f7d458ceffbfa38db1de",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/william-alexander-astete-dominguez",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Software Especializado 2 (N)",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T07:01:40.507Z",
+     "text": "El mejor profesor de toda esta línea."
+    },
+    {
+     "id": "6a87f089ff9824b9d471bb16",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/william-alexander-astete-dominguez",
+     "rating": 10,
+     "difficulty": 1,
+     "recommends": true,
+     "course": "Software Especializado 2 (N)",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-21T06:30:33.882Z",
+     "text": "Él realmente te hace el trabajo en clase."
+    }
+   ]
+  },
+  {
+   "professorId": 26320,
+   "professorSlug": "william-eduardo-bravo-garcia",
+   "sources": [
+    {
+     "sourceName": "William Bravos",
+     "sourceSlug": "william-bravos",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/william-bravos",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a86804e5f0a0b9087bcb01e",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/william-bravos",
+     "rating": 10,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Fundamentos de sistemas de la Informacion",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-20T04:19:26.110Z",
+     "text": "Es un profesor exigente. Sus evaluaciones son fáciles, le gusta que los trabajos sean innovadores. Curso veinteable. Si desapruebas con este profesor, retírate, no sirves."
+    },
+    {
+     "id": "6a867868d23ae08ed326ed57",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/william-bravos",
+     "rating": 3,
+     "difficulty": 8,
+     "recommends": false,
+     "course": "Fundamentos de sistemas de la Informacion",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-20T03:45:44.302Z",
+     "text": "No desaprovechaba la oportunidad de humillar a los alumnos y más de la mitad del tiempo de clase se la pasaba renegando de que no le reclamemos en los exámenes ya que el era importante y no debíamos reclamar nada de lo que calificaba. Un martirio aprobar con él."
+    },
+    {
+     "id": "6a8621f036152f768a58981a",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/william-bravos",
+     "rating": 10,
+     "difficulty": 5,
+     "recommends": true,
+     "course": "Fundamentos de sistemas de la Informacion",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-19T21:36:48.082Z",
+     "text": "Te muestra la realidad de como será tu carrera pero a la vez muy comprensivo y muy bueno enseñando. Muy buen equilibrio entre programador y profesor."
+    }
+   ]
+  },
+  {
+   "professorId": 27089,
+   "professorSlug": "wilson-ademir-garcia-velasquez",
+   "sources": [
+    {
+     "sourceName": "Wilson Garcia",
+     "sourceSlug": "wilson-garcia",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/wilson-garcia",
+     "matchRule": "todas las palabras del nombre"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a834e1d279b951fa47ce7ed",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/wilson-garcia",
+     "rating": 9,
+     "difficulty": 4,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:08:29.109Z",
+     "text": "Por mi experiencia y lo que escuché de él, sentí que es un amor de persona y sumamente paciente. Siento que puedes aprender un montón en sus clases."
+    }
+   ]
+  },
+  {
+   "professorId": 39859,
+   "professorSlug": "yackeline-antonieta-bautista-flores",
+   "sources": [
+    {
+     "sourceName": "Yackeline Antonieta Bautista Flores",
+     "sourceSlug": "yackeline-antonieta-bautista-flores",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/yackeline-antonieta-bautista-flores",
+     "matchRule": "nombre idéntico"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a83e8448de47c4c7842af17",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/yackeline-antonieta-bautista-flores",
+     "rating": 9,
+     "difficulty": 3,
+     "recommends": true,
+     "course": "Taller de Desempeño Profesional",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-18T05:06:12.679Z",
+     "text": "Bastante buena, es un poco exigente pero enseña bien y suele subir puntos si necesitas."
+    }
+   ]
+  },
+  {
+   "professorId": 26227,
+   "professorSlug": "zuleika-helen-barreda-razuri",
+   "sources": [
+    {
+     "sourceName": "Zuleika Barrera",
+     "sourceSlug": "zuleika-barrera",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/zuleika-barrera",
+     "matchRule": "revisión manual"
+    }
+   ],
+   "reviews": [
+    {
+     "id": "6a8350a715d710e6f5e08230",
+     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/zuleika-barrera",
+     "rating": 8,
+     "difficulty": 10,
+     "recommends": true,
+     "course": "Taller 1",
+     "period": "Beta Comentarios 2026-02",
+     "createdAt": "2026-08-17T18:19:19.675Z",
+     "text": "¡Dios, sentí que fue una tortura! En los parciales con los módulos vas a volar de lo estresante que es, te dejan traumas. Sin embargo, en finales todo pasa; son muy buenas arquitectas y enseñan bien. Siento que si eres disciplinado, constante y te esfuerzas al máximo, te van a ayudar y te pondrán la nota que te mereces."
+    }
+   ]
+  }
+ ]
+}

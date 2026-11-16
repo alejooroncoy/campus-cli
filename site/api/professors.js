@@ -1,6 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {validSlug,professorPath,directoryBody,profileBody,formBody,renderPublicPage,reviewCard,isIndexableProfile,profileSEO,INDEXABLE_MIN_COMMENTS,SUBSTANTIVE_COMMENT_CHARS} from '../src/lib/professor-pages.mjs';
 import {profeMatchCommentCounts,profeMatchSourceCommentCounts} from '../src/lib/profematch-excerpts.mjs';
+import {recomiendaProfeCommentCounts} from '../src/lib/recomiendaprofe-reviews.mjs';
 const origin='https://campuscli.com';
 export async function professorsPage(request,{fetchData=fetch,loadTemplate=()=>readFile(new URL('../.generated/professors.html',import.meta.url),'utf8'),preview=false}={}){
  const url=new URL(request.url),path=(url.searchParams.get('route')||url.pathname).replace(/\/?$/,url.pathname.endsWith('.xml')||url.searchParams.get('route')?.endsWith('.xml')?'':'/');
@@ -65,11 +66,12 @@ export default {fetch:professorsPage};
  * withProfeMatchSnapshots; si no, cuenta el snapshot de esa fuente. Sin el detalle por fuente (backend
  * anterior) se usa el snapshot de la ficha.
  */
-export function indexableProfessors(rows=[],{minComments=INDEXABLE_MIN_COMMENTS,counts=profeMatchCommentCounts(SUBSTANTIVE_COMMENT_CHARS),sourceCounts=profeMatchSourceCommentCounts(SUBSTANTIVE_COMMENT_CHARS)}={}){
+export function indexableProfessors(rows=[],{minComments=INDEXABLE_MIN_COMMENTS,counts=profeMatchCommentCounts(SUBSTANTIVE_COMMENT_CHARS),sourceCounts=profeMatchSourceCommentCounts(SUBSTANTIVE_COMMENT_CHARS),recomiendaCounts=recomiendaProfeCommentCounts(SUBSTANTIVE_COMMENT_CHARS)}={}){
  const profeMatch=p=>{
   if(!p.profematch)return 0;
   if(!Array.isArray(p.profematch_sources)||!p.profematch_sources.length)return counts.get(p.slug)??0;
   return p.profematch_sources.reduce((sum,s)=>sum+(s?.synced?Math.max(0,Number(s.comments)||0):sourceCounts.get(`${p.slug}|${s?.sourceId}`)??0),0);
  };
- return rows.filter(p=>validSlug(p.slug)&&Number(p.comments??0)+profeMatch(p)>=minComments);
+ // Recomienda Profe se vincula por slug de Campus en el snapshot: no depende de una marca del backend.
+ return rows.filter(p=>validSlug(p.slug)&&Number(p.comments??0)+profeMatch(p)+(recomiendaCounts.get(p.slug)??0)>=minComments);
 }

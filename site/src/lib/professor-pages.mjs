@@ -1,4 +1,5 @@
 import {matchedComments,courseSourceRatings} from './profematch-excerpts.mjs';
+import {recomiendaProfeReviews,validRecomiendaProfeURL,RECOMIENDA_PROFE_LABEL} from './recomiendaprofe-reviews.mjs';
 export const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const validSlug=slug=>typeof slug==='string'&&slug.length<=180&&/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
 export const professorPath=slug=>`/profes/upc/${slug}/`;
@@ -185,6 +186,9 @@ function combinedRating(data,ratings){
  const externalCount=safe.reduce((sum,r)=>sum+Number(r.ratingCount),0);
  const externalSum=safe.reduce((sum,r)=>sum+Number(r.score)*2*Number(r.ratingCount),0);
  if(externalCount)means.push(externalSum/externalCount);
+ // Recomienda Profe ya puntúa de 1 a 10: entra como una fuente más, sin convertir.
+ const recomienda=recomiendaProfeReviews(data.professor)?.reviews??[];
+ if(recomienda.length)means.push(recomienda.reduce((sum,r)=>sum+r.rating,0)/recomienda.length);
  return {average:means.length?means.reduce((sum,value)=>sum+value,0)/means.length:null,sourceCount:means.length};
 }
 
@@ -192,8 +196,10 @@ function validReviewSourceURL(url,source){
  try{const value=new URL(url);if(value.username||value.password||value.search||value.hash)return false;
   if(source==='MisProfesores')return value.origin==='https://peru.misprofesores.com'&&/^\/profesores\/[A-Za-z0-9-]+_[0-9]+\/?$/.test(value.pathname);
   if(source==='ProfeMatch')return value.origin==='https://profematchperu.com'&&/^\/u\/upc\/profesor\/[1-9]\d*-[a-z0-9-]+\/?$/.test(value.pathname);
+  if(source===RECOMIENDA_PROFE_LABEL)return validRecomiendaProfeURL(url);
   return false;}catch{return false;}
 }
+const sourceOfURL=url=>url.includes('profematchperu.com')?'ProfeMatch':url.includes('recomienda-profe-upc-frontend.vercel.app')?RECOMIENDA_PROFE_LABEL:'MisProfesores';
 function reviewDateOrder(value,label=''){
  const direct=Date.parse(value??'');if(Number.isFinite(direct))return direct;
  const months={enero:0,febrero:1,marzo:2,abril:3,mayo:4,junio:5,julio:6,agosto:7,septiembre:8,octubre:9,noviembre:10,diciembre:11};
@@ -219,6 +225,8 @@ function unifiedReviewItems(data,ratings){
   items.push({source:'ProfeMatch',sources:['ProfeMatch'],identity:comment.id?`ProfeMatch:${comment.id}`:null,rating:Number(comment.rating)*2,text:comment.text,course:source.courseLabel,dateLabel:comment.dateLabel,order:reviewDateOrder(null,comment.dateLabel),url:source.sourceUrl,comment});
   }
  }
+ const recomienda=recomiendaProfeReviews(data.professor);
+ for(const review of recomienda?.reviews??[])items.push({source:RECOMIENDA_PROFE_LABEL,sources:[RECOMIENDA_PROFE_LABEL],identity:`RecomiendaProfe:${review.id}`,rating:review.rating,text:review.text,course:review.course,date:review.createdAt,order:reviewDateOrder(review.createdAt),url:review.sourceUrl,recommends:review.recommends,sharedWith:review.sharedWith});
  const unique=[],seen=new Set();
  for(const item of items){
   const key=item.identity;
@@ -236,10 +244,10 @@ function withReviewKey(html,identity){return identity?html.replace('<article',`<
 function renderUnifiedReviewCard(item){
  const labels=item.sources.join(' · '),sources=`<span class="prof-public__review-source">Fuente: ${e(labels)}</span>`;
  const links=[...(item.urls??[]),...(item.url?[item.url]:[])].filter((url,index,list)=>list.indexOf(url)===index);
- const sourceLinks=links.map(url=>{const source=url.includes('profematchperu.com')?'ProfeMatch':'MisProfesores';if(!validReviewSourceURL(url,source))return '';return `<a href="${e(url)}" target="_blank" rel="noopener noreferrer">Ver fuente en ${e(source)} ${icon('arrow-up-right')}<span class="visually-hidden"> (abre en otra pestaña)</span></a>`;}).join('');
+ const sourceLinks=links.map(url=>{const source=sourceOfURL(url);if(!validReviewSourceURL(url,source))return '';return `<a href="${e(url)}" target="_blank" rel="noopener noreferrer">Ver fuente en ${e(source)} ${icon('arrow-up-right')}<span class="visually-hidden"> (abre en otra pestaña)</span></a>`;}).join('');
  if(item.native)return reviewCard({...item.native}, {profile:true,sourceLabel:labels,sourceLinks});
  const date=item.dateLabel||item.date?publicDate(item.dateLabel||item.date)||String(item.dateLabel||item.date):'';
- const chips=`<div class="prof-public__chips">${item.course?`<span>${e(item.course)}</span>`:''}${item.term?`<span>Ciclo ${e(item.term)}</span>`:''}${sources}</div>`;
+ const chips=`<div class="prof-public__chips">${item.course?`<span>${e(item.course)}</span>`:''}${item.term?`<span>Ciclo ${e(item.term)}</span>`:''}${typeof item.recommends==='boolean'?`<span>${item.recommends?'Lo recomienda':'No lo recomienda'}</span>`:''}${item.sharedWith?.length?`<span>Reseña compartida con ${e(joinList(item.sharedWith))}</span>`:''}${sources}</div>`;
  const replies=item.comment?externalThread(item.comment,item.url):'';
  const summary=item.summary?`<p class="prof-public__help">Media de ${e(item.ratingCount)} ${item.ratingCount===1?'valoración':'valoraciones'}${date?` · Consultada el ${e(date)}`:''}.</p>`:`<p class="prof-public__comment">${e(item.text)}</p>`;
  return `<article class="prof-public__review" ${item.comment?.id&&/^profematch-\d+-review-\d+$/.test(item.comment.id)?`id="${e(item.comment.id)}"`:''}>${reviewHeader(item.summary?'Puntuación media':'Estudiante',item.rating,10)}${chips}${summary}${date&&!item.summary?`<footer>${e(date)}</footer>`:''}${replies}${sourceLinks?`<div class="prof-public__source-links">${sourceLinks}</div>`:''}</article>`;
@@ -260,12 +268,12 @@ function profileReviewsSection(data,ratings){
  const items=unifiedReviewItems(data,ratings),count=items.filter(item=>!item.summary).length,summaryCount=items.length-count;
  const catalog=data.catalogReviews,returnLink=data.catalogBefore?link(`${professorPath(data.professor.slug)}#resenas`,`${icon('arrow-left')} Volver a las opiniones recientes`):'';
  const more=catalog?.nextCursor?link(`${professorPath(data.professor.slug)}?before=${catalog.nextCursor}#resenas`,`Leer más opiniones ${icon('arrow-right')}`,'prof-public__more').replace('<a ','<a data-catalog-more '):'';
- const references=[...(catalog?.sourceUrls??[]).filter(url=>validReviewSourceURL(url,'MisProfesores')).map(url=>({url,source:'MisProfesores'})),...(ratings??[]).filter(r=>externalRatingsSection([r])).map(r=>({url:r.sourceUrl,source:'ProfeMatch'}))];
- const referenceHTML=references.filter((item,index)=>references.findIndex(other=>other.url===item.url)===index).map(item=>`<a href="${e(item.url)}" target="_blank" rel="noopener noreferrer">Ver fuente en ${e(item.source)} ${icon('arrow-up-right')}<span class="visually-hidden"> (abre en otra pestaña)</span></a>`).join('');
+ const references=[...(catalog?.sourceUrls??[]).filter(url=>validReviewSourceURL(url,'MisProfesores')).map(url=>({url,source:'MisProfesores'})),...(ratings??[]).filter(r=>externalRatingsSection([r])).map(r=>({url:r.sourceUrl,source:'ProfeMatch'})),...(()=>{const r=recomiendaProfeReviews(data.professor),urls=r?.sourceUrls??[];return urls.map(url=>({url,source:RECOMIENDA_PROFE_LABEL,detail:urls.length>1?r.sources?.find(s=>s.sourceUrl===url)?.sourceName:null}));})()];
+ const referenceHTML=references.filter((item,index)=>references.findIndex(other=>other.url===item.url)===index).map(item=>`<a href="${e(item.url)}" target="_blank" rel="noopener noreferrer">Ver fuente en ${e(item.source)}${item.detail?` (${e(item.detail)})`:''} ${icon('arrow-up-right')}<span class="visually-hidden"> (abre en otra pestaña)</span></a>`).join('');
  const unavailable=(ratings??[]).filter(r=>externalRatingsSection([r])&&r.commentsStatus==='unavailable').map(r=>`<p class="prof-public__help">No pudimos mostrar los comentarios de ProfeMatch. ${validReviewSourceURL(r.sourceUrl,'ProfeMatch')?`<a href="${e(r.sourceUrl)}" target="_blank" rel="noopener noreferrer">Ver la fuente ${icon('arrow-up-right')}</a>`:''}</p>`).join('');
  const catalogShown=items.filter(item=>item.source==='MisProfesores'&&!item.summary).length,catalogTotal=Number(catalog?.stats?.commentCount),total=Number.isFinite(catalogTotal)&&catalogTotal>catalogShown?count-catalogShown+catalogTotal:count;
  const visibleLabel=`${total>count?`Mostrando ${count} de ${total} opiniones`:`${count} ${count===1?'opinión':'opiniones'}`}${summaryCount?` · ${summaryCount} ${summaryCount===1?'puntuación agregada':'puntuaciones agregadas'}`:''}`;
- return `<section id="resenas" class="prof-public__native"><div class="prof-public__section-heading"><h2>Opiniones y puntuaciones</h2><span class="prof-public__help" data-reviews-label${total>count?` data-total="${total}"`:''}>${visibleLabel}</span></div><p class="prof-public__muted">Reunimos comentarios de Campus, MisProfesores y ProfeMatch en una sola lista. Las puntuaciones se muestran en una escala común de 0 a 10 y cada opinión conserva su fuente.</p>${referenceHTML?`<div class="prof-public__source-links">${referenceHTML}</div>`:''}<a class="prof-public__compose" href="${writingURL(data.professor.slug)}"><span class="prof-public__review-avatar">${icon('user')}</span><span>¿Cómo te fue con este profesor?</span>${icon('arrow-right')}</a>${returnLink}<div class="prof-public__unified-reviews" data-profile-reviews data-professor-id="${data.professor.id}">${items.map(unifiedReviewCard).join('')||`<div class="prof-public__empty"><h3>Esta ficha aún no tiene comentarios públicos</h3><p>Tu experiencia puede ayudar a quien está por matricularse.</p>${link(writingURL(data.professor.slug),'Escribir la primera reseña','button')}</div>`}</div>${data.nextCursor?`<button class="prof-public__more" data-profile-more data-cursor="${data.nextCursor}">Leer más opiniones de Campus</button><p data-profile-status role="status"></p>`:''}${more}${unavailable}</section>`;
+ return `<section id="resenas" class="prof-public__native"><div class="prof-public__section-heading"><h2>Opiniones y puntuaciones</h2><span class="prof-public__help" data-reviews-label${total>count?` data-total="${total}"`:''}>${visibleLabel}</span></div><p class="prof-public__muted">Reunimos comentarios de Campus, MisProfesores, ProfeMatch y Recomienda Profe en una sola lista. Las puntuaciones se muestran en una escala común de 0 a 10 y cada opinión conserva su fuente.</p>${referenceHTML?`<div class="prof-public__source-links">${referenceHTML}</div>`:''}<a class="prof-public__compose" href="${writingURL(data.professor.slug)}"><span class="prof-public__review-avatar">${icon('user')}</span><span>¿Cómo te fue con este profesor?</span>${icon('arrow-right')}</a>${returnLink}<div class="prof-public__unified-reviews" data-profile-reviews data-professor-id="${data.professor.id}">${items.map(unifiedReviewCard).join('')||`<div class="prof-public__empty"><h3>Esta ficha aún no tiene comentarios públicos</h3><p>Tu experiencia puede ayudar a quien está por matricularse.</p>${link(writingURL(data.professor.slug),'Escribir la primera reseña','button')}</div>`}</div>${data.nextCursor?`<button class="prof-public__more" data-profile-more data-cursor="${data.nextCursor}">Leer más opiniones de Campus</button><p data-profile-status role="status"></p>`:''}${more}${unavailable}</section>`;
 }
 const joinList=list=>list.length<2?list.join(''):`${list.slice(0,-1).join(', ')} y ${list.at(-1)}`;
 const fit=(text,max)=>text.length<=max?text:`${text.slice(0,max-1).replace(/\s+\S*$/,'')}…`;
