@@ -11,8 +11,8 @@ export function CampitoListening({ level, paused = false, native = false, size =
     role="img" aria-label={paused ? `${CHARACTER_NAME} en pausa` : `${CHARACTER_NAME} escuchando la clase`}>
     <span className="classes-listener__halo" aria-hidden="true" />
     <picture className="classes-listener__pose" aria-hidden="true">
-      <source media="(prefers-reduced-motion: reduce)" srcSet={paused ? '/assets/campu/campito-paused-v1-320.webp' : '/assets/campu/campito-listening-still-v1-320.webp'} />
-      <img src={paused ? '/assets/campu/campito-paused-v1-320.webp' : '/assets/campu/campito-listening-v2-320.webp'} width={size} height={size} alt="" decoding="async" />
+      <source media="(prefers-reduced-motion: reduce)" srcSet={paused ? '/assets/campu/campito-paused-v1-320.webp' : '/assets/campu/campito-listening-still-v2-256.webp'} />
+      <img src={paused ? '/assets/campu/campito-paused-v1-320.webp' : '/assets/campu/campito-listening-v3-256.webp'} width={size} height={size} alt="" decoding="async" />
     </picture>
   </span>;
 }
