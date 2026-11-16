@@ -35,7 +35,7 @@ try{
   });
   const panel=page.locator('[data-whatsapp-reminders]');
   const load=async()=>{await page.goto(base+'/app/plus/');await page.locator('[data-wa-summary]').filter({hasText:/avisos usados/}).waitFor();};
-  await load();assert.match(await panel.textContent(),/total sube de 3 a 20/);assert.equal(writes.length,0);
+  await load();assert.match(await panel.textContent(),/total sube de 5 a 20/);assert.equal(writes.length,0);
   const saved=page.waitForResponse(r=>r.url().endsWith('/api/app/whatsapp/preferences'));
   await page.locator('[data-wa-enabled]').check();await saved;assert.deepEqual(writes[0],{enabled:true,consent:true});
   await page.waitForFunction(()=>!document.querySelector('[data-wa-enabled]').disabled);
