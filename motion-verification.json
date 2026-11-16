@@ -1,0 +1,26 @@
+{
+  "renderedFps": 50,
+  "durationMs": 9600,
+  "interpolatedFrames": 120,
+  "bodyChanges": 0,
+  "seamIdentical": true,
+  "blink": {
+    "closeMs": 120,
+    "closedMs": 40,
+    "openMs": 180
+  },
+  "gaze": {
+    "downMs": 800,
+    "upMs": 900
+  },
+  "formats": [
+    "gif",
+    "lossless animated webp"
+  ],
+  "webpEncodedFrames": 119,
+  "gifEncodedFrames": 116,
+  "webpResolution": 256,
+  "gifResolution": 320,
+  "decodedBodyChanges": 0,
+  "decodedSeamIdentical": true
+}
