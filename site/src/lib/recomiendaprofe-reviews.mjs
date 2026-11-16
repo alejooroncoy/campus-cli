@@ -6,23 +6,26 @@ const ORIGIN='https://recomienda-profe-upc-frontend.vercel.app';
 export function validRecomiendaProfeURL(url){
  try{const value=new URL(url);return value.origin===ORIGIN&&!value.username&&!value.password&&!value.search&&!value.hash&&/^\/profesores\/[a-z0-9]+(?:-[a-z0-9]+)*\/?$/.test(value.pathname);}catch{return false;}
 }
+// sharedWith: docentes con quienes el alumno firmó la reseña (talleres dictados en pareja).
+const validShared=value=>value===undefined||(Array.isArray(value)&&value.length>0&&value.every(name=>typeof name==='string'&&name.trim()&&name.length<=120));
 function validReview(r){
- return r&&/^[a-f0-9]{24}$/.test(r.id)&&typeof r.text==='string'&&r.text.trim()&&Number.isInteger(r.rating)&&r.rating>=1&&r.rating<=10&&Number.isFinite(Date.parse(r.createdAt));
+ return r&&/^[a-f0-9]{24}$/.test(r.id)&&validRecomiendaProfeURL(r.sourceUrl)&&typeof r.text==='string'&&r.text.trim()&&Number.isInteger(r.rating)&&r.rating>=1&&r.rating<=10&&Number.isFinite(Date.parse(r.createdAt))&&validShared(r.sharedWith);
 }
 /** Reseñas vinculadas a esta ficha. El id y el slug de Campus deben coincidir: el nombre no basta. */
 export function recomiendaProfeReviews(professor,profiles=corpus.profiles){
  if(!professor)return null;
  const record=profiles.find(p=>p.professorId===professor.id&&p.professorSlug===professor.slug);
- if(!record||!validRecomiendaProfeURL(record.sourceUrl)||!Array.isArray(record.reviews))return null;
+ if(!record||!Array.isArray(record.reviews))return null;
  const seen=new Set();
  const reviews=record.reviews.filter(r=>{if(!validReview(r)||seen.has(r.id))return false;seen.add(r.id);return true;});
- return reviews.length?{...record,reviews}:null;
+ if(!reviews.length)return null;
+ return {...record,reviews,sourceUrls:[...new Set(reviews.map(r=>r.sourceUrl))]};
 }
 /** Comentarios por slug para decidir el sitemap sin abrir cada ficha. */
 export function recomiendaProfeCommentCounts(minChars=0,profiles=corpus.profiles){
  const counts=new Map();
  for(const record of profiles){
-  if(!record||typeof record.professorSlug!=='string'||!validRecomiendaProfeURL(record.sourceUrl)||!Array.isArray(record.reviews))continue;
+  if(!record||typeof record.professorSlug!=='string'||!Array.isArray(record.reviews))continue;
   const seen=new Set();
   for(const r of record.reviews){
    if(!validReview(r)||r.text.trim().length<minChars||seen.has(r.id))continue;
