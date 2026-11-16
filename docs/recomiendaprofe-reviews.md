@@ -34,22 +34,31 @@ solo lectura:
    mismo curso.
 4. Si no, coinciden tres o más palabras con un único candidato.
 
-Se descartan las reseñas firmadas por varios docentes («A / B»), los nombres sin
-un candidato único y los que solo tienen nombres de pila (por ejemplo, «Julia
-Magna»). Resultado: 69 profesores y 107 reseñas vinculadas. Quedan fuera 27
-profesores y 37 reseñas.
+Revisión manual del 15/11/2026 (`manual.json`): se añadieron 14 profesores con
+erratas en el nombre o el apellido (Castañera → Castañeda, Ludoweing → Ludowieg,
+Castilllo → Castillo…). En todos coincide el curso o el área, salvo «Julia Magna»
+y «Juan Lobo Collantes», que el usuario aprobó expresamente. Las reseñas firmadas
+por dos docentes de un taller de Arquitectura («A / B») se muestran en la ficha
+de cada uno, con «Reseña compartida con …». Solo se vincula al docente que dicta ese
+mismo taller según el catálogo (TI para Taller 1, TIII para Taller 3).
+
+Resultado: 95 fichas y 138 reseñas distintas (144 tarjetas, porque 6 reseñas
+compartidas salen en dos fichas). Quedan fuera 6 reseñas: «Meneses / Ferraro» y
+«Antezano / Gerardo Haro» (nadie dicta ese taller en el catálogo), «Juan Alcazar
+Flores», «Zuleika Barrera» y «Mallku Inti Torres Apaza» (no están en el catálogo).
 
 ## Presentación
 
 Las reseñas entran en la lista unificada «Opiniones y puntuaciones», con
 «Fuente: Recomienda Profe», curso, si lo recomienda, fecha y enlace a la ficha de
-origen. La escala ya es de 1 a 10 y la media entra como una fuente más en el
+origen. Cada reseña guarda su propio enlace, porque una ficha de Campus puede reunir
+varias fichas de la fuente. Las compartidas añaden «Reseña compartida con …». La escala ya es de 1 a 10 y la media entra como una fuente más en el
 promedio conjunto. Cuentan para el umbral de indexación y el sitemap.
 
 ## Actualizar
 
 Los scripts y el volcado completo están en `output/recomienda-profe-2026-11-15/`,
 que git no sigue: `fetch_rp.py` → `match_rp.py` → `match2_rp.py` → `decide_rp.py`
-→ `build_rp_json.py`. Se ejecutan con `python3 -I`. Revisa `decisions.json` antes de
+→ `build_rp_json.py` (lee también `manual.json`). Se ejecutan con `python3 -I`. Revisa `decisions.json` antes de
 sustituir el snapshot. Para retirar una reseña o un profesor, quita su entrada
 del JSON y publica.
