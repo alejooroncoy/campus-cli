@@ -13,11 +13,16 @@ export function CampitoListening({ level, paused = false, size = 112 }: { level:
   return <span className="classes-listener" data-paused={paused} style={{ width: size, height: size, ['--level' as string]: intensity.toFixed(2) }}
     role="img" aria-label={paused ? `${CHARACTER_NAME} en pausa` : `${CHARACTER_NAME} escuchando la clase`}>
     <span className="classes-listener__halo" aria-hidden="true" />
-    <img src="/assets/campu/campu-body-v3-192.webp" srcSet="/assets/campu/campu-body-v3-192.webp 192w, /assets/campu/campu-body-v3-480.webp 480w"
-      sizes={`${size}px`} width={size} height={size} alt="" />
-    {!paused && ['left', 'right'].map(eye => <img key={eye} className={`classes-listener__eye character-greeting__${eye}`}
-      src="/assets/campu/campu-wave-v2-192.webp" srcSet="/assets/campu/campu-wave-v2-192.webp 192w, /assets/campu/campu-wave-v2-480.webp 480w"
-      sizes={`${size}px`} width={size} height={size} alt="" aria-hidden="true" />)}
+    {/* El cuerpo trae un solo brazo; el otro y los ojos salen de la pose de saludo, como en CharacterGreeting.
+        Escuchando, la mano va junto a la cabeza («te escucho») y el cuerpo se inclina con calma; en pausa descansa. */}
+    <span className="classes-listener__body" aria-hidden="true">
+      <img src="/assets/campu/campu-body-v3-192.webp" srcSet="/assets/campu/campu-body-v3-192.webp 192w, /assets/campu/campu-body-v3-480.webp 480w"
+        sizes={`${size}px`} width={size} height={size} alt="" />
+      {(paused ? ['arm'] : ['arm', 'left', 'right']).map(part => <img key={part}
+        className={`classes-listener__part classes-listener__${part} character-greeting__${part}`}
+        src="/assets/campu/campu-wave-v2-192.webp" srcSet="/assets/campu/campu-wave-v2-192.webp 192w, /assets/campu/campu-wave-v2-480.webp 480w"
+        sizes={`${size}px`} width={size} height={size} alt="" />)}
+    </span>
   </span>;
 }
 

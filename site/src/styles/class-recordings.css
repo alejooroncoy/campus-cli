@@ -157,13 +157,23 @@
 /* Escuchando: el halo crece con el volumen; en pausa se apaga. */
 .classes-live{justify-items:center;gap:8px;padding:26px 20px 20px;background:linear-gradient(180deg,var(--app-sky-pale),var(--app-paper) 70%);border-color:transparent}
 .classes-listener{position:relative;display:block}
-.classes-listener img{position:relative;display:block;width:100%;height:100%;object-fit:contain;transition:filter .3s ease-out}
 .classes-listener__halo{position:absolute;inset:6%;border-radius:50%;background:radial-gradient(circle,#17b6e74d 0,#17b6e71a 55%,transparent 72%);
   transform:scale(calc(1 + var(--level,0) * .55));opacity:calc(.35 + var(--level,0) * .65);transition:transform .14s ease-out,opacity .14s ease-out}
 .classes-listener[data-paused=true] .classes-listener__halo{opacity:0}
-.classes-listener .classes-listener__eye{position:absolute;inset:0;animation:classes-blink 5.2s ease-in-out infinite}
-.classes-listener .classes-listener__eye.character-greeting__right{animation-delay:.02s}
+.classes-listener__body{position:absolute;inset:0;display:block;transform-origin:50% 92%;
+  animation:classes-listen-tilt 4.8s ease-in-out infinite;translate:0 calc(var(--level,0) * -5px);transition:translate .14s ease-out}
+.classes-listener__body img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;transition:filter .3s ease-out}
+/* Ojos: parpadean de vez en cuando. */
+.classes-listener .classes-listener__left,.classes-listener .classes-listener__right{animation:classes-blink 5.2s ease-in-out infinite}
+.classes-listener .classes-listener__right{animation-delay:.02s}
+/* Mano junto a la cabeza, como para escuchar mejor; se acomoda despacio. */
+.classes-listener .classes-listener__arm{rotate:-22deg;animation:classes-listen-hand 3.6s ease-in-out infinite}
+.classes-listener[data-paused=true] .classes-listener__body{animation:none;translate:0 0}
+.classes-listener[data-paused=true] .classes-listener__arm{rotate:118deg;animation:none}
+.classes-listener[data-paused=true] img{filter:saturate(.35)}
 @keyframes classes-blink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+@keyframes classes-listen-tilt{0%,100%{rotate:-3deg}50%{rotate:3deg}}
+@keyframes classes-listen-hand{0%,100%{rotate:-22deg}40%{rotate:-30deg}70%{rotate:-18deg}}
 .classes-listener[data-paused=true] img{filter:saturate(.35)}
 .classes-live .classes-timer{font-size:44px;line-height:1;letter-spacing:-.03em;margin-top:4px}
 .classes-live .classes-live-state{font-size:13px;font-weight:600;color:var(--app-ink)}
@@ -203,6 +213,6 @@
 }
 @media(prefers-reduced-motion:reduce){
   .classes-listener__halo,.classes-levelbars i{transition:none}
-  .classes-listener .classes-listener__eye{animation:none}
+  .classes-listener__body,.classes-listener .classes-listener__left,.classes-listener .classes-listener__right,.classes-listener .classes-listener__arm{animation:none}
   .classes-live[data-mode=recording] .classes-live-state::before,.classes-steps li[data-state=current] span,.classes-record-actions--active .classes-controls-time::before{animation:none}
 }
