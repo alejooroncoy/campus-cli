@@ -1,0 +1,8 @@
+---
+import AppShell from '../../../layouts/AppShell.astro';
+import ClassRecorder from '../../../components/ClassRecorder';
+import '../../../styles/class-recordings.css';
+---
+<AppShell title="Mis clases" active="clases">
+  <ClassRecorder client:load />
+</AppShell>

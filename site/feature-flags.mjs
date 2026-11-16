@@ -11,3 +11,7 @@ export function publicHomeHtml(html) {
 }
 
 export const libraryServiceEnabled = process.env.CAMPUS_LIBRARY_ENABLED === "true";
+
+// Mis clases (grabación de clases presenciales). Apagado salvo que el build lo pida: en beta cerrada
+// la página existe en /app/clases/ pero no aparece en la navegación.
+export const classRecordingsEnabled = process.env.CAMPUS_CLASSES_WEB_ENABLED === 'true';
