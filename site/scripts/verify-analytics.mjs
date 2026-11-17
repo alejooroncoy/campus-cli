@@ -11,7 +11,7 @@ assert.deepEqual(deployConfig.rewrites.slice(0, 3), [
 ]);
 assert.doesNotMatch(csp.split(';').find(rule => rule.trim().startsWith('script-src')), /posthog|unsafe-eval|unsafe-inline/);
 const { outputFiles } = await build({ entryPoints: ['src/scripts/analytics-contract.ts'], bundle: true, format: 'esm', write: false });
-const { safeAnalyticsProperties, analyticsPage } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
+const { safeAnalyticsProperties, analyticsPage, clientShell } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
 assert.deepEqual(safeAnalyticsProperties({ entry_channel:'referral', entry_source:'www.google.com', entry_landing:'home' }),
   { entry_channel:'referral', entry_source:'www.google.com', entry_landing:'home' });
 assert.deepEqual(safeAnalyticsProperties({ entry_channel:'campaign', entry_source:'meta', entry_campaign:'123456789' }),
@@ -23,6 +23,15 @@ assert.deepEqual(safeAnalyticsProperties({ entry_channel:'campaign', entry_sourc
 assert.deepEqual(safeAnalyticsProperties({ entry_channel:'mcp', entry_source:'alice.smith', entry_campaign:'123456789' }), { entry_channel:'mcp' });
 assert.deepEqual(safeAnalyticsProperties({ entry_channel:'direct', entry_source:'www.google.com' }), { entry_channel:'direct' });
 assert.deepEqual(safeAnalyticsProperties({ entry_source:'meta' }), {});
+// APK o web: solo cuenta la marca que inyecta la app junto con su puente nativo.
+assert.equal(clientShell(undefined), 'web');
+assert.equal(clientShell({}), 'web');
+assert.equal(clientShell({ CampusNative: { platform: 'android' } }), 'web', 'Sin el puente de React Native no es la app');
+assert.equal(clientShell({ CampusNative: { platform: 'android' }, ReactNativeWebView: {} }), 'android_app');
+assert.equal(clientShell({ CampusNative: { platform: 'ios' }, ReactNativeWebView: {} }), 'ios_app');
+assert.equal(clientShell({ CampusNative: { platform: 'windows' }, ReactNativeWebView: {} }), 'web');
+assert.deepEqual(safeAnalyticsProperties({ client_shell: 'android_app' }), { client_shell: 'android_app' });
+assert.deepEqual(safeAnalyticsProperties({ client_shell: 'Samsung SM-A515F' }), {});
 const webBundle = await build({ entryPoints: ['src/scripts/web-analytics.ts'], bundle: true, format: 'esm', write: false });
 const { metaCampaign, engageCampaign, safeWebProperties, webPageProperties, ScrollDepth } = await import(`data:text/javascript;base64,${Buffer.from(webBundle.outputFiles[0].text).toString('base64')}`);
 assert.deepEqual(safeWebProperties({

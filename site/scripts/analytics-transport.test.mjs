@@ -105,6 +105,7 @@ try{
   assert.equal(view.properties.$host,'campus.analytics.test');
   assert.equal(view.properties.$device_type,'Desktop');
   assert.match(view.properties.$raw_user_agent, /Chrome\/140/);
+  assert.ok(events.every(e=>e.event==='$identify'||e.properties.client_shell==='web'),'Un navegador normal se marca como web en todos los eventos');
   assert.equal(view.properties.$referrer,'https://www.google.com/');
   assert.equal(view.properties.$referring_domain,'www.google.com');
   await page.locator('button').click();
