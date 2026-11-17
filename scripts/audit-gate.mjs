@@ -28,7 +28,14 @@ try {
   report = error.stdout;
   if (!report) throw error;
 }
-const { vulnerabilities = {} } = JSON.parse(report);
+const parsed = JSON.parse(report);
+// Si npm no pudo consultar el registro, también responde JSON, pero con un error y sin
+// informe. Eso no es "sin alertas": se falla cerrado.
+if (parsed.error || typeof parsed.vulnerabilities !== "object" || parsed.vulnerabilities === null) {
+  console.error(`No se pudo completar la auditoría en ${dir}: ${parsed.error?.summary || parsed.error?.code || "el registro no devolvió un informe de vulnerabilidades"}`);
+  process.exit(1);
+}
+const { vulnerabilities } = parsed;
 
 const today = new Date().toISOString().slice(0, 10);
 const seen = new Map();
