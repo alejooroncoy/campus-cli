@@ -713,6 +713,22 @@ try {
       await page
         .getByRole("heading", { name: "Tus novedades son privadas." })
         .waitFor();
+      // El botón de entrar se lee bien: contraste AA (4.5:1) entre texto y fondo.
+      const contraste = await page
+        .getByRole("link", { name: "Entrar a Campus" })
+        .evaluate((el) => {
+          const s = getComputedStyle(el);
+          const lum = (c) => {
+            const [r, g, b] = c.match(/\d+(\.\d+)?/g).slice(0, 3).map((v) => {
+              const x = v / 255;
+              return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+            });
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          };
+          const [a, b] = [lum(s.color), lum(s.backgroundColor)].sort((x, y) => y - x);
+          return (a + 0.05) / (b + 0.05);
+        });
+      assert.ok(contraste >= 4.5, "contraste de Entrar a Campus: " + contraste.toFixed(2));
       assert.equal(
         await page
           .getByRole("button", { name: "Guardar preferencias" })

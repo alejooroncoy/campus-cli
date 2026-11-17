@@ -177,7 +177,9 @@
   display: block;
   text-align: left;
 }
-.campu-updates a {
+/* El color de enlace no aplica a los botones: en el fondo celeste de
+   .app-button quedaba en 2.4:1; con su tinta propia llega a 6.3:1. */
+.campu-updates a:not(.app-button) {
   color: #087082;
   text-underline-offset: 4px;
 }
