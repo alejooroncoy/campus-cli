@@ -8,7 +8,7 @@ import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
 import { webEvents, safeWebProperties, webPageProperties, ScrollDepth } from './web-analytics.ts';
 import { startWebVitals } from './performance-analytics.ts';
-import { safeSurveyProperties, surveyEvents, surveyPersonProperties, PLUS_QA_SURVEY_ID, plusSurveyIdForAudience, plusSurveyQaRequested, classesSurveyIdForAudience } from './plus-survey-contract.ts';
+import { safeSurveyProperties, surveyEvents, surveyPersonProperties, PLUS_QA_SURVEY_ID, plusSurveyIdForAudience, plusSurveyQaRequested, classesSurveyIdForAudience, classFeedbackSurveyIdForAudience } from './plus-survey-contract.ts';
 
 const allowedEvent = (event: string) => events.has(event) || webEvents.has(event) || surveyEvents.has(event);
 const eventProperties = (event: string, properties: Record<string, unknown>) => ({
@@ -49,7 +49,8 @@ let audience='unknown';
 const activeSurveyId = () => plusSurveyIdForAudience(audience, isTest, browser && plusSurveyQaRequested(location.pathname, location.search));
 // Mis clases no depende del plan: basta una cuenta de cliente con sesión.
 const activeClassesSurveyId = () => currentPlan === 'free' || currentPlan === 'plus' ? classesSurveyIdForAudience(audience, isTest) : undefined;
-const surveyActive = (id: unknown) => Boolean(id) && (id === activeSurveyId() || id === activeClassesSurveyId());
+const activeClassFeedbackSurveyId = () => currentPlan === 'free' || currentPlan === 'plus' ? classFeedbackSurveyIdForAudience(audience, isTest) : undefined;
+const surveyActive = (id: unknown) => Boolean(id) && (id === activeSurveyId() || id === activeClassesSurveyId() || id === activeClassFeedbackSurveyId());
 let mounted = false;
 let observer: IntersectionObserver | undefined;
 const sectionTimers = new Map<HTMLElement, ReturnType<typeof setTimeout>>();
@@ -191,6 +192,16 @@ export async function getClassesSurvey() {
   if (identity === owner && activeClassesSurveyId() === surveyId) return survey;
 }
 export const canAnswerClassesSurvey = (owner: string) => identity === owner && Boolean(activeClassesSurveyId());
+export async function getClassFeedbackSurvey() {
+  const surveyId = activeClassFeedbackSurveyId();
+  if (local || !identity || !surveyId) return;
+  const owner = identity;
+  const sdk = await clientReady;
+  if (!sdk || identity !== owner) return;
+  const survey = await sdk.getPlusSurvey({ analytics_audience: audience, is_test: String(isTest), is_internal: 'false' }, surveyId);
+  if (identity === owner && activeClassFeedbackSurveyId() === surveyId) return survey;
+}
+export const canAnswerClassFeedbackSurvey = (owner: string) => identity === owner && Boolean(activeClassFeedbackSurveyId());
 export function analyticsSession(session: CampusSession): void {
   if (!browser || session.accessUnavailable) return;
   sessionResolved = true;

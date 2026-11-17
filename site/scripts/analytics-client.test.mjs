@@ -52,7 +52,7 @@ async function fixture({ known = false, blockStorage = false, bot = false, surve
     if (surveyMode && url.origin === 'https://posthog.analytics.test' && url.pathname === '/api/surveys/') {
       surveyRequests.push('definition');
       return route.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({surveys:[{
-        id:'01a18cc9-dfcf-0000-9228-5fe27651e15d',type:'api',schedule:'once',
+        id:surveyMode==='class-feedback'?'01a1e744-d879-0000-b5f5-cafefaa4e69e':'01a18cc9-dfcf-0000-9228-5fe27651e15d',type:'api',schedule:surveyMode==='class-feedback'?'always':'once',
         start_date:surveyMode==='draft'?null:'2026-01-01T00:00:00Z',
         ...(surveyMode==='expired'?{end_date:'2020-01-01T00:00:00Z'}:{}),
         targeting_flag_key:'survey-audience',internal_targeting_flag_key:'survey-unanswered',
@@ -63,8 +63,9 @@ async function fixture({ known = false, blockStorage = false, bot = false, surve
       surveyRequests.push('flags');
       const input=req.postDataJSON();
       assert.equal(input.distinct_id,buyer);
-      assert.deepEqual([...input.flag_keys_to_evaluate].sort(),['survey-audience','survey-unanswered']);
-      return route.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({featureFlags:{'survey-audience':surveyMode!=='target-miss','survey-unanswered':surveyMode!=='already-answered'},featureFlagPayloads:{}})});
+      // La pregunta por clase se repite: el flag de «ya respondió» no se evalúa.
+      assert.deepEqual([...input.flag_keys_to_evaluate].sort(),surveyMode==='class-feedback'?['survey-audience']:['survey-audience','survey-unanswered']);
+      return route.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify({featureFlags:{'survey-audience':surveyMode!=='target-miss','survey-unanswered':surveyMode!=='already-answered'&&surveyMode!=='class-feedback'},featureFlagPayloads:{}})});
     }
     if (url.origin === 'https://posthog.analytics.test' && url.pathname === '/batch/') {
       const bytes = req.postDataBuffer();
@@ -159,12 +160,12 @@ try {
     assert.equal(retry.accepted.find(e => e.event === 'persisted_conversion').uuid, uuid);
     assert.deepEqual(retry.errors, []); assert.deepEqual(retry.unexpected, []);
   } finally { await retry.context.close(); }
-  for (const surveyMode of ['eligible','target-miss','already-answered','draft','expired']) {
+  for (const surveyMode of ['eligible','target-miss','already-answered','draft','expired','class-feedback']) {
     const f=await fixture({surveyMode});
     try {
       await f.open('/modern'); await f.page.evaluate(id=>client.identify(id),buyer);
-      const survey=await f.page.evaluate(()=>client.getPlusSurvey({analytics_audience:'customer',is_test:'false',is_internal:'false'}));
-      assert.equal(Boolean(survey),surveyMode==='eligible',surveyMode);
+      const survey=await f.page.evaluate(id=>client.getPlusSurvey({analytics_audience:'customer',is_test:'false',is_internal:'false'},id),surveyMode==='class-feedback'?'01a1e744-d879-0000-b5f5-cafefaa4e69e':undefined);
+      assert.equal(Boolean(survey),surveyMode==='eligible'||surveyMode==='class-feedback',surveyMode);
       assert.deepEqual(f.surveyRequests,surveyMode==='draft'||surveyMode==='expired'?['definition']:['definition','flags']);
       assert.deepEqual(f.errors,[]);assert.deepEqual(f.unexpected,[]);
     } finally {await f.context.close();}

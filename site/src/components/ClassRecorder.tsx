@@ -2,6 +2,7 @@ import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import UClassNotes from './UClassNotes';
 import CharacterGreeting from './CharacterGreeting';
 import ClassesSurvey from './ClassesSurvey';
+import ClassFeedback from './ClassFeedback';
 import { CampitoListening, EmptyClasses, LevelBars, SignedOutClasses, TranscriptionSteps } from './ClassRecorderVisuals';
 import { appendClassAudio, automaticClassTitle, clockLabel, deleteLocalClass, localClassAudio, localClasses, recordingMime, saveClass, type ClassRecording, type ClassSegment } from '../lib/class-recordings';
 
@@ -10,7 +11,20 @@ const API = '/api/app/classes';
 const MAX_BYTES = 96 * 1024 * 1024;
 const MAX_SECONDS = 10800;
 type Course = { id: string; name: string; source: 'blackboard' | 'banner'; code?: string };
-const statusLabel: Record<string, string> = { draft: 'Audio por sincronizar', queued: 'Esperando transcripción', processing: 'Transcribiendo en español', ready: 'Texto disponible · Revisión pendiente', failed: 'No se pudo transcribir' };
+const statusLabel: Record<string, string> = { draft: 'Audio por sincronizar', queued: 'Esperando transcripción', processing: 'Transcribiendo en español', ready: 'Texto listo', failed: 'No se pudo transcribir' };
+/** Fecha corta de la lista, en hora de Perú: «5 nov»; el año solo si no es el actual. */
+function shortDate(iso: string) {
+  const date = new Date(iso), year = (d: Date) => new Intl.DateTimeFormat('es-PE', { year: 'numeric', timeZone: 'America/Lima' }).format(d);
+  return new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short', timeZone: 'America/Lima', ...(year(date) === year(new Date()) ? {} : { year: 'numeric' }) })
+    .format(date).replace('.', '');
+}
+/** Duración legible: «11 s», «45 min», «1 h 32 min». */
+function durationLabel(seconds: number) {
+  const s = Math.max(0, Math.round(seconds));
+  if (s < 60) return `${s} s`;
+  const minutes = Math.round(s / 60);
+  return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h${minutes % 60 ? ` ${minutes % 60} min` : ''}`;
+}
 const errorText = (e: unknown) => e instanceof Error ? e.message : 'No se pudo completar la acción.';
 async function json(response: Response) {
   // Una página de error del proxy (HTML) no debe llegar al alumno como un error de JSON.
@@ -108,6 +122,8 @@ export default function ClassRecorder() {
   const [native, setNative] = useState<NativeRecorderState | null>(null), refreshRef = useRef<() => Promise<void>>(async () => {});
   const nativeActive = Boolean(native && native.status !== 'idle');
   const locked = mode !== 'idle';
+  const feedbackClass = useRef<ClassRecording | undefined>(undefined);
+  const [menuId, setMenuId] = useState('');
   const chosenCourse = courses.find(c => c.id === courseId);
   const courseRef = chosenCourse ? { courseId: chosenCourse.id, courseSource: chosenCourse.source } : {};
 
@@ -594,6 +610,16 @@ export default function ClassRecorder() {
     } catch (e) { setMessage(errorText(e)); } finally { setBusy(false); }
   }
 
+  // Pregunta por clase: solo sobre la clase más reciente, cuando todas sus partes tienen el texto listo.
+  const latestClass = items.find(item => !item.continuesId);
+  const latestReady = latestClass && partsOf(latestClass).every(part => part.status === 'ready') ? latestClass : undefined;
+  // Al refrescar, la lista se reemplaza un instante por los registros locales (sin estado del servidor): la pregunta
+  // sigue montada sobre la misma clase para no perder un comentario a medio escribir. Cambia solo si la clase se
+  // borró o el servidor ya conoce una clase más reciente.
+  if (latestReady) feedbackClass.current = latestReady;
+  else if (feedbackClass.current && (!items.some(item => item.id === feedbackClass.current!.id)
+    || (latestClass && latestClass.id !== feedbackClass.current.id && latestClass.status))) feedbackClass.current = undefined;
+  const askAbout = feedbackClass.current;
   return <div className="classes" data-class-recorder data-recording={locked} data-signed-out={!loading && !config?.authenticated}>
     <header className="classes-heading"><span className="classes-eyebrow">Tus clases, a tu ritmo</span><h1><span className="classes-heading-full">Graba hoy. Repasa después.</span><span className="classes-heading-mobile">Tus clases, contigo.</span></h1><p>Elige tu curso, graba y vuelve a escuchar lo que necesitas.</p></header>
     {config?.preview && <p className="classes-review-note" role="note"><strong>Prueba local.</strong> {config.transcriptionLive ? 'Transcripción real en español. Los cursos de la demo son de ejemplo.' : 'Grabación y guardado reales; transcripción simulada.'}</p>}
@@ -647,13 +673,59 @@ export default function ClassRecorder() {
           {!locked && device !== 'ios' && <><p className="classes-note">Prueba el micrófono desde tu asiento. Cuanto más clara llegue la voz, mejor será el texto. {nativeRecorder() && config.enabled ? 'En la app puedes bloquear el celular o guardarlo: la clase se graba por partes y se sube sola.' : 'Mantén la página abierta y la pantalla encendida al grabar.'}</p>
           <details className="classes-import"><summary>Ya tengo un audio grabado</summary><label>Duración en minutos <span>(si el navegador no la detecta)</span><input type="number" min="1" max="180" value={uploadMinutes} onChange={e => setUploadMinutes(e.target.value)} disabled={locked || busy} /></label><label className="classes-file">Elegir audio<input type="file" accept="audio/*,.m4a,.mp3,.wav,.webm,.ogg,.mp4" disabled={locked || busy || !consent} onChange={e => { void importAudio(e.target.files?.[0]); e.target.value = ''; }} /></label><p className="classes-note">Hasta 3 horas y 96 MB. M4A, MP3, WAV, WebM, Ogg o MP4.</p></details></>}
         </section>
-        <aside className="classes-help"><details open={helpOpen} onToggle={e => setHelpOpen(e.currentTarget.open)}><summary>Consejos para grabar mejor</summary><div className="classes-help-content"><span className="classes-eyebrow">Antes de empezar</span><h2>Si lo escuchas bien,<br />podrás repasarlo mejor.</h2><ol><li><strong>Haz una prueba desde tu asiento.</strong><p>Escúchala con audífonos. Si no entiendes las palabras, acerca el micrófono al profesor.</p></li><li><strong>Guarda la clase.</strong><p>El audio se conserva en este navegador. Sincronízalo para tener una copia privada en tu cuenta.</p></li><li><strong>Revisa el texto junto al audio.</strong><p>La transcripción automática puede equivocarse, especialmente con ruido, distancia o términos del curso.</p></li></ol><p className="classes-storage">{config.enabled ? config.transcribing ? 'Transcripción en español disponible al sincronizar.' : 'Guardado en tu cuenta disponible. La transcripción aún no está habilitada.' : 'Por ahora, el audio se guarda solo en este dispositivo. El guardado en tu cuenta aún no está habilitado.'}</p><p className="classes-note">El navegador puede borrar su almacenamiento. Descarga una copia o sincroniza antes de limpiar los datos del sitio.</p></div></details><p className="classes-mcp-note"><strong>También en tu IA.</strong> Al sincronizar, tus clases quedan asociadas a tu cuenta Campus. Cuando el texto esté listo, podrás consultarlo desde el MCP.</p></aside>
+        <aside className="classes-help">
+          {/* Consejos en filas cortas con ícono (patrón de Cal AI en Mobbin), no párrafos. */}
+          <details open={helpOpen} onToggle={e => setHelpOpen(e.currentTarget.open)}><summary>Consejos para grabar mejor</summary>
+            <ul className="classes-tips">
+              <li><span className="classes-tip__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 15v-3a8 8 0 0 1 16 0v3" /><rect x="3" y="14" width="4" height="6" rx="1.5" /><rect x="17" y="14" width="4" height="6" rx="1.5" /></svg></span><span><strong>Prueba el audio desde tu asiento</strong><small>Si no se entiende, acércate al profe.</small></span></li>
+              <li><span className="classes-tip__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg></span><span>{nativeRecorder() ? <><strong>Puedes bloquear el celular</strong><small>Sigue grabando con la pantalla apagada.</small></> : <><strong>Deja esta página abierta</strong><small>Si la cierras, la grabación se corta.</small></>}</span></li>
+              <li><span className="classes-tip__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4 4L19 7" /></svg></span><span><strong>Revisa nombres y fórmulas</strong><small>El texto automático puede fallar con ruido.</small></span></li>
+            </ul>
+            {!(config.enabled && config.transcribing) && <p className="classes-note">{config.enabled ? 'La transcripción aún no está habilitada; el audio se guarda en tu cuenta.' : 'Por ahora el audio se guarda solo en este dispositivo.'}</p>}
+            {!nativeRecorder() && <p className="classes-note">El audio queda en este navegador hasta que se sube a tu cuenta. No borres los datos del sitio antes.</p>}
+          </details>
+          {/* «También en tu IA»: qué se puede preguntar y cómo conectarlo (patrón de Superpower y Snapchat My AI en Mobbin). */}
+          <section className="classes-ai" aria-labelledby="classes-ai-title">
+            <div className="classes-ai__head"><span className="classes-tip__icon classes-ai__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" /></svg></span>
+              <div><h2 id="classes-ai-title">Pregúntale a tu IA por tus clases</h2><p>En ChatGPT, Claude o Gemini, incluso mientras grabas.</p></div></div>
+            <ul className="classes-ai__examples" aria-label="Ejemplos de preguntas">
+              <li>«¿Qué dijo el profe sobre el examen?»</li>
+              <li>«Resume la clase de hoy en 5 puntos»</li>
+              <li>«¿Qué tarea dejaron para la próxima?»</li>
+            </ul>
+            <a className="app-button classes-ai__cta" href="/app/copilot/">Conectar Campus a mi IA</a>
+          </section>
+        </aside>
       </div>
       <div className="classes-message" role="status" aria-live="polite">{message}</div>
       {rescue && <div className="classes-actions"><button className="app-button" onClick={() => { download(rescue, `clase-recuperada.${extension(rescue.type)}`); unsaved.current = false; setRescue(null); }}>Descargar audio recuperado</button><button className="app-button app-button--secondary" onClick={() => { if (confirm('¿Descartar el audio recuperado? No se podrá recuperar.')) { unsaved.current = false; setRescue(null); } }}>Descartar</button></div>}
       <ClassesSurvey hasReadyClass={items.some(item => item.status === 'ready')} recording={locked} />
+      {askAbout && <ClassFeedback key={askAbout.id} classId={askAbout.id} title={askAbout.title} active={!locked} />}
       <section className="classes-library" aria-labelledby="my-classes-title"><div className="classes-library-heading"><h2 id="my-classes-title">Mis clases</h2><button className="app-button app-button--secondary" disabled={busy || locked} onClick={() => void refresh().catch(e => setMessage(errorText(e)))}>Actualizar</button></div>
-        {!items.length ? <EmptyClasses /> : <ul className="classes-list">{items.filter(item => !item.continuesId || !items.some(i => i.id === item.continuesId)).map(item => { const group = partsOf(item); return <li key={item.id}><div className="classes-item-main"><h3>{item.title}</h3><p>{item.course ? item.course + ' · ' : ''}{new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeZone: 'America/Lima' }).format(new Date(item.recordedAt))} · {clockLabel(group.reduce((n, p) => n + p.durationSeconds, 0))}{group.length > 1 ? ` · ${group.length} partes` : ''}</p>{['draft', 'queued', 'processing'].includes(item.status ?? '') ? <TranscriptionSteps status={item.status} /> : <span className="classes-badge" data-status={item.status ?? item.state}>{item.status ? statusLabel[item.status] : item.state === 'interrupted' ? 'Grabación interrumpida · Revisa el audio' : 'Guardada en este dispositivo'}</span>}</div><div className="classes-item-actions"><button className="app-button" disabled={busy || locked || !item.bytes} onClick={() => void select(item)}>Abrir</button>{config.enabled && pendingParts(group).length > 0 && <button className="app-button app-button--secondary" disabled={busy || locked || !pendingParts(group).some(canSync)} onClick={() => void (async () => { for (const part of pendingParts(group)) if (canSync(part)) await sync(part); })()}>{pendingParts(group).some(p => p.status === 'failed') ? 'Reintentar transcripción' : config.transcribing ? 'Transcribir clase' : 'Sincronizar'}</button>}{config.model === 'elevenlabs/scribe_v2' && item.status === 'ready' && item.transcriptionModel !== config.model && <button className="app-button app-button--secondary" disabled={busy || locked || (item.attempts ?? 0) >= 3} onClick={() => void improveTranscript(item)}>Mejorar transcripción</button>}<button className="classes-delete" disabled={busy || locked} onClick={() => setDeleteId(item.id)}>Eliminar</button>{deleteId === item.id && <div className="classes-confirm"><span>{group.length > 1 ? `Se eliminarán el audio y el texto de las ${group.length} partes de esta clase.` : 'Se eliminarán el audio y el texto de esta clase.'}</span><button className="app-button app-button--secondary" disabled={busy} onClick={() => setDeleteId('')}>Cancelar</button><button className="app-button" disabled={busy} onClick={() => void remove(item)}>Sí, eliminar</button></div>}</div></li>; })}</ul>}
+        {!items.length ? <EmptyClasses /> : <ul className="classes-list">{items.filter(item => !item.continuesId || !items.some(i => i.id === item.continuesId)).map(item => { const group = partsOf(item); const inProgress = ['draft', 'queued', 'processing'].includes(item.status ?? ''); const status = item.status ?? item.state; return <li key={item.id} className="classes-row" data-status={status}>
+          {/* Toda la fila abre la clase (patrón de Waking Up, Insight Timer y X en Mobbin); lo secundario va en «⋯». */}
+          <button type="button" className="classes-row__open" disabled={busy || locked || !item.bytes} onClick={() => void select(item)} aria-label={`Abrir ${item.title}`}>
+            <span className="classes-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg></span>
+            <span className="classes-row__body">
+              <span className="classes-row__title">{item.title}</span>
+              {item.course && <span className="classes-row__course">{item.course}</span>}
+              <span className="classes-row__meta">
+                <span className="classes-row__fact"><svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{shortDate(item.recordedAt)}</span>
+                <span className="classes-row__fact"><svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 4.5V8l2.5 1.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{durationLabel(group.reduce((n, p) => n + p.durationSeconds, 0))}</span>
+                {group.length > 1 && <span className="classes-row__fact">{group.length} partes</span>}
+              </span>
+              {!inProgress && <span className="classes-badge" data-status={status}>{item.status === 'ready' ? '✓ ' : ''}{item.status ? statusLabel[item.status] : item.state === 'interrupted' ? 'Grabación interrumpida · Revisa el audio' : 'Guardada en este dispositivo'}</span>}
+            </span>
+          </button>
+          <button type="button" className="classes-row__more" disabled={busy || locked} aria-label={`Más opciones de ${item.title}`} aria-expanded={menuId === item.id} onClick={() => { setMenuId(menuId === item.id ? '' : item.id); setDeleteId(''); }}>⋯</button>
+          {inProgress && <div className="classes-row__steps"><TranscriptionSteps status={item.status} /></div>}
+          {((config.enabled && pendingParts(group).length > 0) || (config.model === 'elevenlabs/scribe_v2' && item.status === 'ready' && item.transcriptionModel !== config.model) || menuId === item.id) && <div className="classes-item-actions">
+            {config.enabled && pendingParts(group).length > 0 && <button className="app-button app-button--secondary" disabled={busy || locked || !pendingParts(group).some(canSync)} onClick={() => void (async () => { for (const part of pendingParts(group)) if (canSync(part)) await sync(part); })()}>{pendingParts(group).some(p => p.status === 'failed') ? 'Reintentar transcripción' : config.transcribing ? 'Transcribir clase' : 'Sincronizar'}</button>}
+            {config.model === 'elevenlabs/scribe_v2' && item.status === 'ready' && item.transcriptionModel !== config.model && <button className="app-button app-button--secondary" disabled={busy || locked || (item.attempts ?? 0) >= 3} onClick={() => void improveTranscript(item)}>Mejorar transcripción</button>}
+            {menuId === item.id && <button className="classes-delete" disabled={busy || locked} onClick={() => setDeleteId(item.id)}>Eliminar clase</button>}
+            {deleteId === item.id && <div className="classes-confirm"><span>{group.length > 1 ? `Se eliminarán el audio y el texto de las ${group.length} partes de esta clase.` : 'Se eliminarán el audio y el texto de esta clase.'}</span><button className="app-button app-button--secondary" disabled={busy} onClick={() => { setDeleteId(''); setMenuId(''); }}>Cancelar</button><button className="app-button" disabled={busy} onClick={() => void remove(item)}>Sí, eliminar</button></div>}
+          </div>}
+        </li>; })}</ul>}
       </section>
       <NotesBoundary><UClassNotes key={config.owner ?? ''} /></NotesBoundary>
       {selected && <section ref={detail} className="classes-card classes-detail" aria-labelledby="class-detail-title"><div className="classes-library-heading"><h2 id="class-detail-title">{selected.title}</h2><button className="classes-delete" onClick={() => { setSelected(null); setFull(null); setAudioUrl(''); }}>Cerrar</button></div>{selected.enhancedAudio && <div className="classes-audio-versions" role="group" aria-label="Versión del audio"><button type="button" disabled={busy} aria-pressed={audioVersion === 'original'} onClick={() => void changeAudio('original')}>Original</button><button type="button" disabled={busy} aria-pressed={audioVersion === 'clean'} onClick={() => void changeAudio('clean')}>{selected.enhancedAudio.method === 'voice_leveling' ? 'Voz nivelada' : 'Limpieza intensa'}</button></div>}<audio ref={audio} controls src={audioUrl} preload="metadata" onLoadedMetadata={() => { if (audio.current && playbackPosition.current !== null) { audio.current.currentTime = Math.min(playbackPosition.current, Number.isFinite(audio.current.duration) ? audio.current.duration : playbackPosition.current); playbackPosition.current = null; } if (audio.current && autoplay.current) { autoplay.current = false; void audio.current.play().catch(() => {}); } }} />{selected.enhancedAudio && <p className="classes-note">{selected.enhancedAudio.method === 'voice_leveling' ? 'Texto reconocido a partir del original. La voz nivelada ajusta el volumen y conserva el ruido ambiente para proteger las voces lejanas.' : 'Texto reconocido a partir del original. La limpieza intensa puede eliminar voces lejanas. Escucha el original si falta algo.'}</p>}<div className="classes-actions"><button className="app-button app-button--secondary" disabled={busy} onClick={() => {

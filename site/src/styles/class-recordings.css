@@ -248,6 +248,7 @@
 /* Encuesta de mejoras: mismo panel que la de Plus (campus-plus.css no se carga aquí). */
 .classes-survey{display:grid;gap:12px;margin-bottom:20px;border-color:#b8dce6;background:#f5fbfd}
 .classes-survey[hidden]{display:none}
+.classes-feedback__class{margin:-4px 0 0;font-weight:600;color:var(--app-ink,#123142);overflow-wrap:anywhere}
 .classes-survey h2{margin:0;font-size:clamp(19px,3vw,22px);line-height:1.3;max-width:34ch}
 .classes-survey .plus-survey__header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .classes-survey .plus-survey__close{display:grid;place-items:center;width:44px;height:44px;margin:-12px -12px -8px 0;border:0;border-radius:50%;background:transparent;color:#506d7f;font:inherit;font-size:26px;cursor:pointer}
@@ -264,6 +265,23 @@
 .classes-survey .plus-survey__actions .app-text-link{min-height:44px;padding:8px 0;border:0;background:transparent;cursor:pointer;font:inherit;font-size:14px}
 .classes-survey [data-survey-status]:empty{display:none}
 @media (max-width:420px){.classes-survey .plus-survey__choices{grid-template-columns:1fr}}
+/* Encuesta de mejoras: opciones como etiquetas que se acomodan en filas, más corta en el celular. */
+.classes-survey:not(.classes-feedback) .plus-survey__choices{display:flex;flex-wrap:wrap;gap:8px}
+.classes-survey:not(.classes-feedback) .plus-survey__choices[hidden]{display:none}
+.classes-survey:not(.classes-feedback) .plus-survey__choice{min-height:40px;padding:8px 14px;border-radius:999px;line-height:1.3}
+/* Pregunta por clase: compacta, primero 👍/👎 y opciones cortas solo tras 👎. */
+.classes-feedback{gap:10px;padding-top:16px;padding-bottom:16px}
+.classes-feedback .app-kicker{margin:0}
+.classes-feedback h2{font-size:17px}
+.classes-feedback .plus-survey__choices[data-step=rating]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.classes-feedback .plus-survey__choices[data-step=problems]{display:flex;flex-wrap:wrap;gap:8px}
+.classes-feedback .plus-survey__choices[data-step=problems][hidden]{display:none}
+.plus-survey__rate{min-height:48px;padding:10px 12px;border:1px solid #b8d4df;border-radius:12px;background:#fff;color:#15394b;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.plus-survey__rate--good{border-color:#9fd8c2;background:var(--app-mint,#d9f1e8);color:#0b5e45}
+.plus-survey__rate:hover{border-color:#087fa4}
+.plus-survey__chip{min-height:40px;padding:8px 14px;border:1px solid #b8d4df;border-radius:999px;background:#fff;color:#15394b;font:inherit;font-size:14px;line-height:1.3;cursor:pointer}
+.plus-survey__chip:hover{border-color:#087fa4;background:#e2f6fb}
+.plus-survey__rate:focus-visible,.plus-survey__chip:focus-visible{outline:2px solid #087fa4;outline-offset:2px}
 
 /* Sin sesión: vista previa de una clase lista, beneficios y un solo botón. */
 .classes-signedout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;max-width:960px}
@@ -305,3 +323,54 @@
   .classes-signedout__cta-bar{position:sticky;bottom:var(--app-mobile-nav-height,92px);padding:16px 0 10px;background:linear-gradient(transparent,#f4f8f8 35%);z-index:2}
   .classes .classes-signedout__cta{display:flex;width:100%;box-sizing:border-box}
 }
+/* Lista de clases: toda la fila abre la clase; ícono, título, datos, estado y ⋯ para lo secundario. */
+.classes-list>li.classes-row{grid-template-columns:minmax(0,1fr) auto;gap:0 4px;padding:0;align-items:stretch}
+.classes-row__open{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start;width:100%;min-height:76px;padding:16px 4px 16px 16px;border:0;border-radius:14px 0 0 14px;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.classes-row__open:hover:not(:disabled){background:#f6fbfc}
+.classes-row__open:disabled{opacity:1;cursor:default}
+.classes-row__icon{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--app-sky-pale,#e2f6fb);color:var(--app-link,#087fa4)}
+.classes-row[data-status=ready] .classes-row__icon{background:var(--app-mint,#d9f1e8);color:var(--app-green,#087f5b)}
+.classes-row[data-status=failed] .classes-row__icon,.classes-row[data-status=interrupted] .classes-row__icon{background:#fff3d6;color:#775817}
+.classes-row__body{display:grid;gap:4px;min-width:0}
+.classes-row__title{font-size:15px;font-weight:650;line-height:1.35;color:var(--app-ink);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.classes-row__course{font-size:13px;font-weight:600;line-height:1.4;color:#2a5367;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.classes-row__meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;line-height:1.4;color:var(--app-muted)}
+.classes-row__fact{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.classes-row__fact svg{flex-shrink:0;color:#7d97a6}
+.classes-row .classes-badge{justify-self:start;margin-top:2px;padding:2px 10px;border-radius:999px;background:var(--app-mint,#d9f1e8);font-size:12px}
+.classes-row .classes-badge[data-status=failed],.classes-row .classes-badge[data-status=interrupted]{background:#fff3d6}
+.classes-row .classes-badge[data-status=draft],.classes-row .classes-badge[data-status=saved]{background:#eef3f5;color:var(--app-muted)}
+.classes-row__more{align-self:start;margin-top:10px;width:44px;height:44px;margin-right:8px;border:0;border-radius:50%;background:transparent;color:var(--app-muted);font:inherit;font-size:20px;letter-spacing:1px;cursor:pointer}
+.classes-row__more:hover:not(:disabled),.classes-row__more[aria-expanded=true]{background:#eef6f8;color:var(--app-ink)}
+.classes-row__steps,.classes-row>.classes-item-actions{grid-column:1/-1;margin:0 16px 16px}
+.classes-row>.classes-item-actions{padding-top:12px}
+.classes-row .classes-delete{color:var(--app-danger,#b42318);font-size:13px;font-weight:600}
+.classes-row .classes-confirm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;font-size:13px;padding-top:4px}
+.classes-row .classes-confirm>span{grid-column:1/-1;line-height:1.5}
+.classes-row .classes-confirm .app-button{min-width:0;width:100%}
+.classes-row .classes-confirm .app-button:last-child{background:var(--app-danger,#b42318);border-color:var(--app-danger,#b42318);color:#fff}
+.classes-row .classes-delete{min-height:40px;padding:4px 0}
+.classes-row>.classes-item-actions{width:auto;min-width:0}
+/* Consejos: filas cortas con ícono. */
+.classes-tips{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.classes-tips li{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--app-line);border-radius:14px;background:var(--app-paper)}
+.classes-tips li>span:last-child{display:grid;gap:2px;min-width:0}
+.classes-tips strong{font-size:14px;line-height:1.35}
+.classes-tips small{font-size:13px;line-height:1.4;color:var(--app-muted)}
+.classes-tip__icon{flex-shrink:0;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--app-sky-pale,#e2f6fb);color:var(--app-link,#087fa4)}
+.classes-help>details+.classes-ai{margin-top:18px}
+/* También en tu IA: tarjeta con ejemplos de preguntas y botón para conectar. */
+.classes-ai{display:grid;gap:12px;padding:18px;border:1px solid #c9e4ee;border-radius:18px;background:linear-gradient(180deg,#f2fbfe,#fff)}
+.classes-ai__head{display:flex;gap:12px;align-items:flex-start}
+.classes-ai__icon{background:#e8e3ff;color:#5b43c9}
+.classes-ai h2{margin:0;font-size:17px;line-height:1.3;letter-spacing:-.01em}
+.classes-ai__head p{margin:3px 0 0;font-size:13px;line-height:1.45;color:var(--app-muted)}
+.classes-ai__examples{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.classes-ai__examples li{padding:10px 12px;border-radius:12px;background:#fff;border:1px solid var(--app-line);font-size:14px;line-height:1.4;color:#24485b}
+.classes-ai__cta{justify-self:start;text-decoration:none}
+@media(max-width:760px){.classes-ai__cta{justify-self:stretch;text-align:center}}
+.classes-help .classes-tips li,.classes-help .classes-ai__examples li{counter-increment:none;margin:0;font-size:inherit}
+.classes-help .classes-tips li{padding:12px}
+.classes-help .classes-ai__examples li{padding:10px 12px;font-size:14px}
+.classes-help .classes-tips li:before,.classes-help .classes-ai__examples li:before{content:none}
+.classes-help .classes-ai__examples li{justify-self:start;border:0;border-radius:16px 16px 16px 4px;background:#e9f3f7;color:#1d4558}

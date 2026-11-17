@@ -7,13 +7,17 @@ export const PLUS_QA_SURVEY_ID = '01a18d1a-1619-0000-4e77-51afff9780a6';
 export const CLASSES_SURVEY_ID = '01a1e295-af9a-0000-8ae5-d97aa4d9ad8b';
 export const classesSurveyIdForAudience = (audience: string | undefined, isTest: boolean | undefined) =>
   audience === 'customer' && isTest === false ? CLASSES_SURVEY_ID : undefined;
+// Mis clases, una vez por clase: cuando el texto de cada clase queda listo. Se repite, así que no marca a la persona como respondida.
+export const CLASS_FEEDBACK_SURVEY_ID = '01a1e744-d879-0000-b5f5-cafefaa4e69e';
+export const classFeedbackSurveyIdForAudience = (audience: string | undefined, isTest: boolean | undefined) =>
+  audience === 'customer' && isTest === false ? CLASS_FEEDBACK_SURVEY_ID : undefined;
 export const plusSurveyQaRequested = (pathname: string, search: string) => /^\/app\/plus\/?$/.test(pathname)
   && new URLSearchParams(search).get('survey_qa') === '1';
 export function plusSurveyIdForAudience(audience: string | undefined, isTest: boolean | undefined, qaRequested: boolean) {
   if (audience === 'customer' && isTest === false) return PLUS_SURVEY_ID;
   if (audience === 'test' && isTest === true && qaRequested) return PLUS_QA_SURVEY_ID;
 }
-const allowedSurveyId = (id: unknown) => id === PLUS_SURVEY_ID || id === PLUS_QA_SURVEY_ID || id === CLASSES_SURVEY_ID;
+const allowedSurveyId = (id: unknown) => id === PLUS_SURVEY_ID || id === PLUS_QA_SURVEY_ID || id === CLASSES_SURVEY_ID || id === CLASS_FEEDBACK_SURVEY_ID;
 export const surveyEvents = new Set(['survey shown', 'survey sent', 'survey dismissed']);
 const uuid = (value: unknown): value is string => typeof value === 'string' && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(value);
 export type PlusSurvey = Survey & { questions: [Survey['questions'][number] & { type: 'single_choice'; choices: string[] }, ...Survey['questions']] };
@@ -40,14 +44,15 @@ export function safeSurveyProperties(event: string, input: Record<string, unknow
 
 export function surveyPersonProperties(event: string, input: Record<string, unknown>): Record<string, string | boolean> {
   const safe = safeSurveyProperties(event, input);
-  if (!safe.$survey_id) return {};
+  // La pregunta por clase se repite: marcar a la persona la escondería para siempre.
+  if (!safe.$survey_id || safe.$survey_id === CLASS_FEEDBACK_SURVEY_ID) return {};
   if (event === 'survey shown') return { $survey_last_seen_date: new Date().toISOString() };
   const suffix = typeof safe.$survey_iteration === 'number' && safe.$survey_iteration > 0 ? `/${safe.$survey_iteration}` : '';
   return { [`$survey_${event === 'survey sent' ? 'responded' : 'dismissed'}/${safe.$survey_id}${suffix}`]: true };
 }
 
 export function supportedPlusSurvey(survey: Survey, expectedId: string = PLUS_SURVEY_ID): survey is PlusSurvey {
-  if (!allowedSurveyId(expectedId) || survey.id !== expectedId || survey.type !== 'api' || survey.schedule && survey.schedule !== 'once'
+  if (!allowedSurveyId(expectedId) || survey.id !== expectedId || survey.type !== 'api' || survey.schedule && survey.schedule !== (expectedId === CLASS_FEEDBACK_SURVEY_ID ? 'always' : 'once')
     || survey.current_iteration != null && (!Number.isSafeInteger(survey.current_iteration) || survey.current_iteration < 0)
     || !survey.start_date || !Number.isFinite(Date.parse(survey.start_date)) || Date.parse(survey.start_date) > Date.now()
     || survey.end_date && (!Number.isFinite(Date.parse(survey.end_date)) || Date.parse(survey.end_date) <= Date.now())
