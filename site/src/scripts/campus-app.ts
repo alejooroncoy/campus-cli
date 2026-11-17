@@ -503,10 +503,12 @@ function initPage() {
 }
 
 // Hook into Astro's View Transitions lifecycle (initial load and every client-side page load)
-// La app Android marca su WebView con window.CampusNative: ahí se muestra Mis clases aunque la web no lo publique.
+// Mis clases en beta: el menú lo muestra dentro de la app Android (window.CampusNative) y a las cuentas Plus
+// (incluye cortesía y admin), que son las que pueden grabar. Las cuentas gratis no lo ven.
 function revealNativeOnly(): void {
-  if (!(window as Window & { CampusNative?: unknown }).CampusNative) return;
-  document.querySelectorAll<HTMLElement>("[data-native-only]").forEach(el => { el.hidden = false; });
+  const show = () => document.querySelectorAll<HTMLElement>("[data-native-only]").forEach(el => { el.hidden = false; });
+  if ((window as Window & { CampusNative?: unknown }).CampusNative) { show(); return; }
+  void getCampusSession().then(session => { if (session?.authenticated && session.plan === "plus") show(); }).catch(() => {});
 }
 document.addEventListener("astro:page-load", revealNativeOnly);
 // Páginas sin ClientRouter (el chat) no emiten astro:page-load: se revela también en la carga normal.
