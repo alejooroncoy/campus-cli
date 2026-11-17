@@ -43,8 +43,7 @@ jobs:
       - run: npm run build
       - run: npm test
       - run: npm --prefix site ci
-      # Como npm audit --audit-level=high, con excepciones temporales listadas en scripts/audit-high.mjs.
-      - run: node scripts/audit-high.mjs site
+      - run: node scripts/audit-gate.mjs site
       - run: npm --prefix site run build
       - run: npm --prefix site run check
       - run: npm --prefix site run test:app
