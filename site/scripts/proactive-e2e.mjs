@@ -114,6 +114,10 @@ const prepared = {
     from: "2026-09-21",
     to: "2026-09-27",
     counts: { thisWeek: 1, nextWeek: 1, notInBlackboard: 1 },
+    // Cursos sin cronograma con fechas: se dicen, para que no parezcan semanas libres.
+    uncovered: [
+      { courseId: "c9", course: "Matemática Computacional - Virtual", reason: "no_syllabus" },
+    ],
     items: [
       {
         courseId: "c1",
@@ -596,6 +600,10 @@ try {
         (await viene.locator(".campu-undated").innerText()).trim(),
         "Sin fecha confirmada: Examen final",
       );
+      // Un curso sin cronograma se nombra con su motivo, sin el sufijo "- Virtual".
+      const sinCronograma = (await viene.locator(".campu-uncovered").innerText()).replace(/\s+/g, " ");
+      assert.match(sinCronograma, /solo te aviso lo que publiquen en Blackboard/, sinCronograma);
+      assert.match(sinCronograma, /Matemática Computacional no encontré su sílabo ni un cronograma/, sinCronograma);
       assert.equal(await page.evaluate(() => !!window.injected), false);
       assert.ok(await page.getByText("Ya no aparece en la fuente", { exact: false }).count());
       assert.ok(
@@ -855,7 +863,8 @@ try {
       await page.getByRole("button", { name: "Ver mi resumen de esta semana" }).click();
       await cambio.locator("li").getByText("TB2 <img", { exact: false }).waitFor();
       weekAlt = false;
-      assert.equal(await cambio.locator("li").count(), 1);
+      // Solo las entregas de la tira: la lista de cursos sin cronograma va aparte.
+      assert.equal(await cambio.locator(".campu-upcoming-list li").count(), 1);
       assert.equal(await cambio.getByRole("tab").first().getAttribute("aria-selected"), "true");
       weeklyNotice = false;
       assert.deepEqual(errors, []);

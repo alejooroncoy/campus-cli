@@ -397,6 +397,32 @@
   overflow-wrap: anywhere;
 }
 
+/* Cursos sin cronograma: que un curso vacío no parezca una semana libre. */
+.campu-uncovered {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid #e3edf2;
+  color: #6a8593;
+  font-size: 13px;
+}
+.campu-uncovered p {
+  margin: 0 0 6px;
+}
+.campu-uncovered ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+.campu-uncovered li {
+  overflow-wrap: anywhere;
+}
+.campu-uncovered strong {
+  color: #24414f;
+  font-weight: 600;
+}
+
 /* Vista simple: una frase, lo próximo y lo nuevo. */
 .campu-home {
   max-width: 640px;
