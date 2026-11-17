@@ -153,7 +153,14 @@ export default function ClassRecorder() {
     const expectedOwner = settings.owner;
     // Sin almacenamiento del navegador (bloqueado o privado) igual se muestran las clases de la cuenta.
     const local = await localClasses(expectedOwner).catch(() => [] as ClassRecording[]);
-    if (alive.current && expectedOwner === owner.current) setItems(local.map(r => ({ ...r, state: r.state === 'recording' && !active.current ? 'interrupted' : r.state })));
+    // Mientras llega la lista de la cuenta se conservan sus filas y sus estados: si no, la clase abierta (solo en la
+    // cuenta) desaparecería un instante, desmontando su reproductor y perdiendo la posición del audio.
+    if (alive.current && expectedOwner === owner.current) setItems(previous => {
+      const before = new Map(previous.map(r => [r.id, r]));
+      const fresh = local.map(r => ({ ...before.get(r.id), ...r, state: r.state === 'recording' && !active.current ? 'interrupted' as const : r.state }));
+      const ids = new Set(fresh.map(r => r.id));
+      return [...fresh, ...previous.filter(r => r.cloud && !ids.has(r.id))].sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
+    });
     let remote: ClassRecording[] = [];
     if (settings.readable) remote = (await json(await request(''))).recordings;
     if (!alive.current || expectedOwner !== owner.current) return;
@@ -552,7 +559,7 @@ export default function ClassRecorder() {
     return new Blob(parts, { type: source.mime });
   }
   async function select(item: ClassRecording, announce = false) {
-    setBusy(true); setMessage(''); setOpening(item.continuesId ?? item.id);
+    setBusy(true); setMessage(''); setOpening(rowIdOf(item));
     try {
       let current = item, offline = false;
       // Sin conexión o con la cuenta caída, una clase con copia en este dispositivo se abre igual; el texto de la cuenta es un extra.
@@ -649,8 +656,11 @@ export default function ClassRecorder() {
     } catch (e) { setMessage(errorText(e)); } finally { setBusy(false); }
   }
 
+  /** Fila de la lista que representa una clase: la primera parte, o la propia si la primera no está (igual que el filtro de la lista). */
+  const rowIdOf = (item: ClassRecording) => item.continuesId && items.some(i => i.id === item.continuesId) ? item.continuesId : item.id;
+  const isOpen = (item: ClassRecording) => Boolean(selected && rowIdOf(selected) === item.id);
   /** Detalle de la clase abierta: se muestra dentro de su tarjeta, como acordeón, justo debajo de lo que se tocó. */
-  const detailPanel = () => selected && <section ref={detail} className="classes-detail" id={`class-detail-${selected.continuesId ?? selected.id}`} aria-labelledby="class-detail-title"><div className="classes-library-heading"><h2 id="class-detail-title" className="app-sr-only">{selected.title}</h2><button className="classes-delete" onClick={() => { setSelected(null); setFull(null); setAudioUrl(''); }}>Ocultar ▲</button></div>{selected.enhancedAudio && <div className="classes-audio-versions" role="group" aria-label="Versión del audio"><button type="button" disabled={busy} aria-pressed={audioVersion === 'original'} onClick={() => void changeAudio('original')}>Original</button><button type="button" disabled={busy} aria-pressed={audioVersion === 'clean'} onClick={() => void changeAudio('clean')}>{selected.enhancedAudio.method === 'voice_leveling' ? 'Voz nivelada' : 'Limpieza intensa'}</button></div>}<audio ref={audio} controls src={audioUrl} preload="metadata" onLoadedMetadata={() => { if (audio.current && playbackPosition.current !== null) { audio.current.currentTime = Math.min(playbackPosition.current, Number.isFinite(audio.current.duration) ? audio.current.duration : playbackPosition.current); playbackPosition.current = null; } if (audio.current && autoplay.current) { autoplay.current = false; void audio.current.play().catch(() => {}); } }} />{selected.enhancedAudio && <p className="classes-note">{selected.enhancedAudio.method === 'voice_leveling' ? 'Texto reconocido a partir del original. La voz nivelada ajusta el volumen y conserva el ruido ambiente para proteger las voces lejanas.' : 'Texto reconocido a partir del original. La limpieza intensa puede eliminar voces lejanas. Escucha el original si falta algo.'}</p>}<div className="classes-actions"><button className="app-button app-button--secondary" disabled={busy} onClick={() => {
+  const detailPanel = () => selected && <section ref={detail} className="classes-detail" id={`class-detail-${rowIdOf(selected)}`} aria-labelledby="class-detail-title"><div className="classes-library-heading"><h2 id="class-detail-title" className="app-sr-only">{selected.title}</h2><button className="classes-delete" onClick={() => { setSelected(null); setFull(null); setAudioUrl(''); }}>Ocultar ▲</button></div>{selected.enhancedAudio && <div className="classes-audio-versions" role="group" aria-label="Versión del audio"><button type="button" disabled={busy} aria-pressed={audioVersion === 'original'} onClick={() => void changeAudio('original')}>Original</button><button type="button" disabled={busy} aria-pressed={audioVersion === 'clean'} onClick={() => void changeAudio('clean')}>{selected.enhancedAudio.method === 'voice_leveling' ? 'Voz nivelada' : 'Limpieza intensa'}</button></div>}<audio ref={audio} controls src={audioUrl} preload="metadata" onLoadedMetadata={() => { if (audio.current && playbackPosition.current !== null) { audio.current.currentTime = Math.min(playbackPosition.current, Number.isFinite(audio.current.duration) ? audio.current.duration : playbackPosition.current); playbackPosition.current = null; } if (audio.current && autoplay.current) { autoplay.current = false; void audio.current.play().catch(() => {}); } }} />{selected.enhancedAudio && <p className="classes-note">{selected.enhancedAudio.method === 'voice_leveling' ? 'Texto reconocido a partir del original. La voz nivelada ajusta el volumen y conserva el ruido ambiente para proteger las voces lejanas.' : 'Texto reconocido a partir del original. La limpieza intensa puede eliminar voces lejanas. Escucha el original si falta algo.'}</p>}<div className="classes-actions"><button className="app-button app-button--secondary" disabled={busy} onClick={() => {
           // En una clase con partes se descarga la parte que se está escuchando.
           const group = partsOf(selected), part = group.find(p => p.id === playingPart) ?? selected, n = group.findIndex(p => p.id === part.id) + 1;
           void classBlob(part).then(blob => download(blob, `clase${group.length > 1 ? `-parte-${n}` : ''}.${extension(part.mime)}`)).catch(e => setMessage(errorText(e)));
@@ -756,9 +766,9 @@ export default function ClassRecorder() {
       <section className="classes-library" aria-labelledby="my-classes-title"><div className="classes-library-heading"><h2 id="my-classes-title">Mis clases</h2><button className="app-button app-button--secondary" disabled={busy || locked} onClick={() => void refresh().catch(e => setMessage(errorText(e)))}>Actualizar</button></div>
         {!items.length ? <EmptyClasses /> : <ul className="classes-list">{items.filter(item => !item.continuesId || !items.some(i => i.id === item.continuesId)).map(item => { const group = partsOf(item); const inProgress = ['draft', 'queued', 'processing'].includes(item.status ?? ''); const status = item.status ?? item.state; return <li key={item.id} className="classes-row" data-status={status}>
           {/* Toda la fila abre la clase (patrón de Waking Up, Insight Timer y X en Mobbin); lo secundario va en «⋯». */}
-          <button type="button" className="classes-row__open" disabled={busy || locked || !item.bytes} aria-expanded={Boolean(selected && (selected.continuesId ?? selected.id) === item.id)} aria-controls={`class-detail-${item.id}`}
-            onClick={() => { if (selected && (selected.continuesId ?? selected.id) === item.id) { setSelected(null); setFull(null); setAudioUrl(''); } else void select(item); }}
-            aria-label={selected && (selected.continuesId ?? selected.id) === item.id ? `Cerrar ${item.title}` : `Abrir ${item.title}`}>
+          <button type="button" className="classes-row__open" disabled={busy || locked || !item.bytes} aria-expanded={isOpen(item)} aria-controls={`class-detail-${item.id}`}
+            onClick={() => { if (isOpen(item)) { setSelected(null); setFull(null); setAudioUrl(''); } else void select(item); }}
+            aria-label={isOpen(item) ? `Cerrar ${item.title}` : `Abrir ${item.title}`}>
             <span className="classes-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg></span>
             <span className="classes-row__body">
               <span className="classes-row__title">{item.title}</span>
@@ -774,7 +784,7 @@ export default function ClassRecorder() {
           <button type="button" className="classes-row__more" disabled={busy || locked} aria-label={`Más opciones de ${item.title}`} aria-expanded={menuId === item.id} onClick={() => { setMenuId(menuId === item.id ? '' : item.id); setDeleteId(''); }}>⋯</button>
           {inProgress && <div className="classes-row__steps"><TranscriptionSteps status={item.status} /></div>}
           {opening === item.id && <p className="classes-row__opening" role="status"><span className="classes-signedout__spinner" aria-hidden="true" />Abriendo la clase…</p>}
-          {selected && (selected.continuesId ?? selected.id) === item.id && detailPanel()}
+          {isOpen(item) && detailPanel()}
           {((config.enabled && pendingParts(group).length > 0) || (config.model === 'elevenlabs/scribe_v2' && item.status === 'ready' && item.transcriptionModel !== config.model) || menuId === item.id) && <div className="classes-item-actions">
             {config.enabled && pendingParts(group).length > 0 && <button className="app-button app-button--secondary" disabled={busy || locked || !pendingParts(group).some(canSync)} onClick={() => void (async () => { for (const part of pendingParts(group)) if (canSync(part)) await sync(part); })()}>{pendingParts(group).some(p => p.status === 'failed') ? 'Reintentar transcripción' : config.transcribing ? 'Transcribir clase' : 'Sincronizar'}</button>}
             {config.model === 'elevenlabs/scribe_v2' && item.status === 'ready' && item.transcriptionModel !== config.model && <button className="app-button app-button--secondary" disabled={busy || locked || (item.attempts ?? 0) >= 3} onClick={() => void improveTranscript(item)}>Mejorar transcripción</button>}
