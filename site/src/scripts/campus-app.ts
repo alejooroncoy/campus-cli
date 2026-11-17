@@ -509,6 +509,8 @@ function revealNativeOnly(): void {
   document.querySelectorAll<HTMLElement>("[data-native-only]").forEach(el => { el.hidden = false; });
 }
 document.addEventListener("astro:page-load", revealNativeOnly);
+// Páginas sin ClientRouter (el chat) no emiten astro:page-load: se revela también en la carga normal.
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", revealNativeOnly); else revealNativeOnly();
 document.addEventListener("astro:page-load", initPage);
 document.addEventListener("astro:before-swap", () => { stopMobileKeyboard?.(); stopMobileKeyboard = undefined; });
 
