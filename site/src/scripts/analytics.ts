@@ -3,7 +3,7 @@ import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { clearEntry, clearFirstEntry, firstEntry, rememberEntry } from './entry-attribution.ts';
 import { clearCampaign, rememberCampaign, syncCampaign } from './campaign-attribution.ts';
 import { syncMarketingPreference, clearMarketingPreference } from './marketing-consent.ts';
-import { analyticsPage, events, safeAnalyticsProperties } from './analytics-contract.ts';
+import { analyticsPage, clientShell, events, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
 import { webEvents, safeWebProperties, webPageProperties, ScrollDepth } from './web-analytics.ts';
@@ -93,6 +93,8 @@ if (browser && !local && key && host) {
         // Discard SDK's implicit referrer, title, search, URL, device and person
         // properties; retain only correlation fields and our closed contract.
         event.properties = { ...eventProperties(event.event, original),
+          // APK o web: se calcula aquí para que ningún llamador pueda fijarlo.
+          client_shell: clientShell(),
           // The browser SDK authenticates ingestion with this public project
           // token. Keep our configured token, never a caller-supplied value.
           token: key,

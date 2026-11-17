@@ -47,6 +47,7 @@ const categories: Record<string, readonly string[]> = {
   upload_kind: ['document', 'receipt'], copy_kind: ['name', 'url'],
   entry_channel: ['mcp', 'campaign', 'referral', 'direct'],
   viewport: ['mobile', 'tablet', 'desktop'], environment: ['development', 'production'],
+  client_shell: ['android_app', 'ios_app', 'web'],
 };
 const numbers = new Set(['remaining', 'limit', 'duration_ms', 'position', 'amount_cents', 'http_status']);
 const booleans = new Set(['proactive_enabled','email_enabled','push_enabled','callback_requested','authenticated', 'supported', 'valid', 'new_conversation', 'university_confirmed', 'is_test','is_internal']);
@@ -69,6 +70,16 @@ export function safeAnalyticsProperties(input: Record<string, unknown>): Record<
     || (['entry_source', 'entry_campaign'].includes(key) && entryValue(key, value, input))
     || (numbers.has(key) && typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 86_400_000)
     || (booleans.has(key) && typeof value === 'boolean')));
+}
+type NativeShell = { CampusNative?: { platform?: unknown }; ReactNativeWebView?: unknown };
+/**
+ * Dónde corre la página: la app de Campus marca su WebView con `window.CampusNative` antes de cargar
+ * la web. Se lee del navegador, nunca de lo que mande quien llama a track(), para que la APK se pueda
+ * medir aparte de la web (encuesta, Mis clases, páginas vistas).
+ */
+export function clientShell(scope: NativeShell | undefined = typeof window === 'undefined' ? undefined : window as NativeShell): 'android_app' | 'ios_app' | 'web' {
+  const platform = scope?.ReactNativeWebView ? scope.CampusNative?.platform : undefined;
+  return platform === 'android' ? 'android_app' : platform === 'ios' ? 'ios_app' : 'web';
 }
 export function analyticsPage(path: string): string {
   path = path.split(/[?#]/, 1)[0].replace(/\/$/, '') + '/';
