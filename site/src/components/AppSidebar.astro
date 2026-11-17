@@ -11,7 +11,7 @@ const isChat = active === "profes" || active === "asistente";
 
 const nav = [
   { id: "asistente", label: CHARACTER_NAME, href: "/app/asistente/", icon: "users" },
-  // En beta, Mis clases está en el menú de la app Android aunque la web no lo muestre (lo revela campus-app.ts).
+  // En beta, Mis clases sale en el menú de la app Android y de las cuentas Plus aunque la web no lo publique (lo revela campus-app.ts).
   { id: "clases", label: "Mis clases", href: "/app/clases/", icon: "book-open", nativeOnly: !(classRecordingsEnabled || active === "clases") },
   { id: "copilot", label: "Conectar Campus a tu IA", href: "/app/copilot/", icon: "sparkles" },
   ...(libraryServiceEnabled ? [{ id: "biblioteca", label: "Biblioteca", href: "/biblioteca/", icon: "file-text" }] : []),
