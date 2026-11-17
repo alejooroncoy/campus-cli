@@ -8,7 +8,7 @@ import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
 import { webEvents, safeWebProperties, webPageProperties, ScrollDepth } from './web-analytics.ts';
 import { startWebVitals } from './performance-analytics.ts';
-import { safeSurveyProperties, surveyEvents, surveyPersonProperties, PLUS_QA_SURVEY_ID, plusSurveyIdForAudience, plusSurveyQaRequested } from './plus-survey-contract.ts';
+import { safeSurveyProperties, surveyEvents, surveyPersonProperties, PLUS_QA_SURVEY_ID, plusSurveyIdForAudience, plusSurveyQaRequested, classesSurveyIdForAudience } from './plus-survey-contract.ts';
 
 const allowedEvent = (event: string) => events.has(event) || webEvents.has(event) || surveyEvents.has(event);
 const eventProperties = (event: string, properties: Record<string, unknown>) => ({
@@ -47,6 +47,9 @@ let currentPlan = 'unavailable';
 let isTest: boolean | undefined;
 let audience='unknown';
 const activeSurveyId = () => plusSurveyIdForAudience(audience, isTest, browser && plusSurveyQaRequested(location.pathname, location.search));
+// Mis clases no depende del plan: basta una cuenta de cliente con sesión.
+const activeClassesSurveyId = () => currentPlan === 'free' || currentPlan === 'plus' ? classesSurveyIdForAudience(audience, isTest) : undefined;
+const surveyActive = (id: unknown) => Boolean(id) && (id === activeSurveyId() || id === activeClassesSurveyId());
 let mounted = false;
 let observer: IntersectionObserver | undefined;
 const sectionTimers = new Map<HTMLElement, ReturnType<typeof setTimeout>>();
@@ -85,7 +88,7 @@ if (browser && !local && key && host) {
       before_send: event => {
         if (!event || (!allowedEvent(event.event) && event.event !== '$identify')) return null;
         const original = event.properties ?? {};
-        if (surveyEvents.has(event.event) && (!safeSurveyProperties(event.event, original).$survey_id || original.$survey_id !== activeSurveyId())) return null;
+        if (surveyEvents.has(event.event) && (!safeSurveyProperties(event.event, original).$survey_id || !surveyActive(original.$survey_id))) return null;
         const surveyPerson = surveyPersonProperties(event.event, original);
         // Discard SDK's implicit referrer, title, search, URL, device and person
         // properties; retain only correlation fields and our closed contract.
@@ -138,7 +141,7 @@ export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
 }
 export function track(event: string, properties: Record<string, unknown> = {}): void {
   if (!browser || !allowedEvent(event)) return;
-  if (surveyEvents.has(event) && (!safeSurveyProperties(event, properties).$survey_id || properties.$survey_id !== activeSurveyId())) return;
+  if (surveyEvents.has(event) && (!safeSurveyProperties(event, properties).$survey_id || !surveyActive(properties.$survey_id))) return;
   const item = { event, properties: eventProperties(event, {
     ...(() => { try { return mcpHandoff(location.href, sessionStorage); } catch { return {}; } })(),
     page: analyticsPage(location.pathname), current_plan: currentPlan,
@@ -176,6 +179,16 @@ export async function getPlusSurvey() {
   if (identity === owner && activeSurveyId() === surveyId && currentPlan === 'free') return survey;
 }
 export const canAnswerPlusSurvey = (owner: string) => identity === owner && Boolean(activeSurveyId()) && currentPlan === 'free';
+export async function getClassesSurvey() {
+  const surveyId = activeClassesSurveyId();
+  if (local || !identity || !surveyId) return;
+  const owner = identity;
+  const sdk = await clientReady;
+  if (!sdk || identity !== owner) return;
+  const survey = await sdk.getPlusSurvey({ analytics_audience: audience, is_test: String(isTest), is_internal: 'false' }, surveyId);
+  if (identity === owner && activeClassesSurveyId() === surveyId) return survey;
+}
+export const canAnswerClassesSurvey = (owner: string) => identity === owner && Boolean(activeClassesSurveyId());
 export function analyticsSession(session: CampusSession): void {
   if (!browser || session.accessUnavailable) return;
   sessionResolved = true;

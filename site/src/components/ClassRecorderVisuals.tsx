@@ -60,3 +60,50 @@ export function EmptyClasses() {
     <p>Graba una clase o sube un audio. {CHARACTER_NAME} la transcribe para que la repases cuando quieras.</p>
   </div>;
 }
+
+const PREVIEW_BARS = [.3, .55, .8, .45, .9, .6, .35, .7, 1, .5, .65, .4, .85, .55, .3, .6, .75, .45, .9, .5, .35, .65, .8, .4];
+const SIGNED_OUT_BENEFITS: { icon: string; title: string; text: string }[] = [
+  { icon: 'mic', title: 'Graba desde tu celular', text: 'Eliges el curso y dejas grabando.' },
+  { icon: 'text', title: 'Recibe el texto en español', text: `${CHARACTER_NAME} la transcribe para que repases.` },
+  { icon: 'lock', title: 'Solo en tu cuenta', text: 'Separadas de otras cuentas.' },
+];
+function BenefitIcon({ name }: { name: string }) {
+  const paths: Record<string, string> = {
+    mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-7 9a7 7 0 0 0 14 0M12 19v2',
+    text: 'M5 6h14M5 10h14M5 14h9M5 18h6',
+    lock: 'M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z',
+  };
+  return <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>;
+}
+
+/** Sin sesión: muestra cómo se ve una clase lista antes de pedir el inicio de sesión. */
+export function SignedOutClasses({ message }: { message?: string }) {
+  // El inicio de sesión pasa por varias redirecciones y tarda unos segundos: el botón lo dice al instante.
+  const [opening, setOpening] = useState(false);
+  useEffect(() => {
+    const reset = (e: PageTransitionEvent) => { if (e.persisted) setOpening(false); };
+    window.addEventListener('pageshow', reset);
+    return () => window.removeEventListener('pageshow', reset);
+  }, []);
+  return <section className="classes-signedout" aria-labelledby="classes-signedout-title">
+    <div className="classes-signedout__stage" aria-hidden="true">
+      <img className="classes-signedout__campito" src="/assets/campu/campito-listening-still-v2-256.webp" width="112" height="112" alt="" decoding="async" />
+      <div className="classes-signedout__preview">
+        <div className="classes-signedout__row"><strong>Clase de ejemplo</strong><span className="classes-signedout__badge">Texto listo</span></div>
+        <span className="classes-signedout__meta">Lunes · 1 h 32 min</span>
+        <span className="classes-signedout__wave">{PREVIEW_BARS.map((h, i) => <i key={i} style={{ ['--h' as string]: h }} />)}</span>
+        <ul>
+          <li><span>12:04</span><p>Lo importante para el examen es entender el porqué, no solo la fórmula.</p></li>
+        </ul>
+      </div>
+    </div>
+    <div className="classes-signedout__body">
+      <h2 id="classes-signedout-title">Tus clases, en texto para repasar.</h2>
+      {message && <p className="classes-signedout__message" role="status">{message}</p>}
+      <ul className="classes-signedout__benefits">
+        {SIGNED_OUT_BENEFITS.map(b => <li key={b.icon}><span className="classes-signedout__icon"><BenefitIcon name={b.icon} /></span><span><strong>{b.title}</strong><small>{b.text}</small></span></li>)}
+      </ul>
+      <div className="classes-signedout__cta-bar"><a className="app-button classes-signedout__cta" href="/api/app/auth/start?return=/app/clases/" aria-busy={opening} data-opening={opening} onClick={() => setOpening(true)}>{opening ? <><span className="classes-signedout__spinner" aria-hidden="true" />Abriendo inicio de sesión…</> : 'Iniciar sesión'}</a></div>
+    </div>
+  </section>;
+}
