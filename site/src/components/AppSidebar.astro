@@ -11,7 +11,8 @@ const isChat = active === "profes" || active === "asistente";
 
 const nav = [
   { id: "asistente", label: CHARACTER_NAME, href: "/app/asistente/", icon: "users" },
-  ...(classRecordingsEnabled || active === "clases" ? [{ id: "clases", label: "Mis clases", href: "/app/clases/", icon: "book-open" }] : []),
+  // En beta, Mis clases está en el menú de la app Android aunque la web no lo muestre (lo revela campus-app.ts).
+  { id: "clases", label: "Mis clases", href: "/app/clases/", icon: "book-open", nativeOnly: !(classRecordingsEnabled || active === "clases") },
   { id: "copilot", label: "Conectar Campus a tu IA", href: "/app/copilot/", icon: "sparkles" },
   ...(libraryServiceEnabled ? [{ id: "biblioteca", label: "Biblioteca", href: "/biblioteca/", icon: "file-text" }] : []),
   ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
@@ -47,6 +48,8 @@ const account = [
         {nav.map((item) => (
           <a
             href={item.href}
+            hidden={item.nativeOnly || undefined}
+            data-native-only={item.nativeOnly ? "" : undefined}
             class:list={["sidebar-menu-btn", { "is-active": active === item.id || (item.id === "asistente" && active === "profes") }]}
             aria-current={active === item.id || (item.id === "asistente" && active === "profes") ? "page" : undefined}
           >

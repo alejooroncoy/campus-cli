@@ -503,6 +503,12 @@ function initPage() {
 }
 
 // Hook into Astro's View Transitions lifecycle (initial load and every client-side page load)
+// La app Android marca su WebView con window.CampusNative: ahí se muestra Mis clases aunque la web no lo publique.
+function revealNativeOnly(): void {
+  if (!(window as Window & { CampusNative?: unknown }).CampusNative) return;
+  document.querySelectorAll<HTMLElement>("[data-native-only]").forEach(el => { el.hidden = false; });
+}
+document.addEventListener("astro:page-load", revealNativeOnly);
 document.addEventListener("astro:page-load", initPage);
 document.addEventListener("astro:before-swap", () => { stopMobileKeyboard?.(); stopMobileKeyboard = undefined; });
 

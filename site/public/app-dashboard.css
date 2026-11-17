@@ -2392,3 +2392,6 @@ button:disabled {
 .app-account-preference__choice input:disabled { opacity:.5; cursor:default; }
 .app-account-preference__note { font-size:13px; }
 .app-account-preference [role="status"] { min-height:1.5em; margin-top:12px; font-size:13px; }
+
+/* Entradas del menú que solo se muestran dentro de la app (data-native-only). */
+.app-mobile-nav a[hidden],.sidebar-menu-btn[hidden]{display:none}
