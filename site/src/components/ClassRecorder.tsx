@@ -12,6 +12,19 @@ const MAX_BYTES = 96 * 1024 * 1024;
 const MAX_SECONDS = 10800;
 type Course = { id: string; name: string; source: 'blackboard' | 'banner'; code?: string };
 const statusLabel: Record<string, string> = { draft: 'Audio por sincronizar', queued: 'Esperando transcripción', processing: 'Transcribiendo en español', ready: 'Texto listo', failed: 'No se pudo transcribir' };
+/** Fecha corta de la lista, en hora de Perú: «5 nov»; el año solo si no es el actual. */
+function shortDate(iso: string) {
+  const date = new Date(iso), year = (d: Date) => new Intl.DateTimeFormat('es-PE', { year: 'numeric', timeZone: 'America/Lima' }).format(d);
+  return new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'short', timeZone: 'America/Lima', ...(year(date) === year(new Date()) ? {} : { year: 'numeric' }) })
+    .format(date).replace('.', '');
+}
+/** Duración legible: «11 s», «45 min», «1 h 32 min». */
+function durationLabel(seconds: number) {
+  const s = Math.max(0, Math.round(seconds));
+  if (s < 60) return `${s} s`;
+  const minutes = Math.round(s / 60);
+  return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h${minutes % 60 ? ` ${minutes % 60} min` : ''}`;
+}
 const errorText = (e: unknown) => e instanceof Error ? e.message : 'No se pudo completar la acción.';
 async function json(response: Response) {
   // Una página de error del proxy (HTML) no debe llegar al alumno como un error de JSON.
@@ -673,7 +686,12 @@ export default function ClassRecorder() {
             <span className="classes-row__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 11v2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg></span>
             <span className="classes-row__body">
               <span className="classes-row__title">{item.title}</span>
-              <span className="classes-row__meta">{item.course ? item.course + ' · ' : ''}{new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeZone: 'America/Lima' }).format(new Date(item.recordedAt))} · {clockLabel(group.reduce((n, p) => n + p.durationSeconds, 0))}{group.length > 1 ? ` · ${group.length} partes` : ''}</span>
+              {item.course && <span className="classes-row__course">{item.course}</span>}
+              <span className="classes-row__meta">
+                <span className="classes-row__fact"><svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14"><rect x="2" y="3" width="12" height="11" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M2 6.5h12M5.5 1.5v3M10.5 1.5v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{shortDate(item.recordedAt)}</span>
+                <span className="classes-row__fact"><svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M8 4.5V8l2.5 1.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{durationLabel(group.reduce((n, p) => n + p.durationSeconds, 0))}</span>
+                {group.length > 1 && <span className="classes-row__fact">{group.length} partes</span>}
+              </span>
               {!inProgress && <span className="classes-badge" data-status={status}>{item.status === 'ready' ? '✓ ' : ''}{item.status ? statusLabel[item.status] : item.state === 'interrupted' ? 'Grabación interrumpida · Revisa el audio' : 'Guardada en este dispositivo'}</span>}
             </span>
           </button>
