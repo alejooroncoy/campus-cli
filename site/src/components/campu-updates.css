@@ -177,11 +177,28 @@
   display: block;
   text-align: left;
 }
-/* El color de enlace no aplica a los botones: en el fondo celeste de
-   .app-button quedaba en 2.4:1; con su tinta propia llega a 6.3:1. */
+/* El color de enlace no aplica a los botones: sobre el celeste de .app-button
+   quedaba en 2.4:1. */
 .campu-updates a:not(.app-button) {
   color: #087082;
   text-underline-offset: 4px;
+}
+/* Dentro de Novedades, un enlace con forma de botón usa el mismo botón oscuro
+   que el resto de la página: blanco sobre #103b48. */
+.campu-updates .app-button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: 9px;
+  background: #103b48;
+  color: #fff;
+  font-size: 15px;
+  text-decoration: none;
+}
+.campu-updates .app-button:hover:not(:disabled) {
+  background: #0a2a35;
+}
+.campu-card p + .app-button {
+  margin-top: 14px;
 }
 .campu-updates :is(button, a, input, textarea, select, summary):focus-visible {
   outline: 3px solid #00a8c5;
