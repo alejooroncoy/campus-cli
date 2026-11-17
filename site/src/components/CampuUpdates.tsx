@@ -82,7 +82,19 @@ type Upcoming = {
   to: string;
   items: UpcomingItem[];
   counts: { thisWeek: number; nextWeek: number; notInBlackboard: number };
+  /** Cursos de los que no se encontró un cronograma con fechas. */
+  uncovered?: {
+    courseId: string;
+    course: string;
+    reason: "no_syllabus" | "no_dates" | "no_resolved_dates";
+  }[];
 };
+/** Por qué un curso no aparece en "lo que viene", dicho para el estudiante. */
+const UNCOVERED_REASON = {
+  no_syllabus: "no encontré su sílabo ni un cronograma",
+  no_dates: "su sílabo no trae fechas que pueda leer",
+  no_resolved_dates: "tiene evaluaciones, pero sin fecha clara",
+} as const;
 type Context = {
   id: string;
   summary: string;
@@ -256,6 +268,8 @@ function sentence(items: UpcomingItem[], u: Upcoming) {
         <>Esta semana te toca {one(now)}.</>
       ) : now.length ? (
         <>Esta semana tienes {one(now)}.</>
+      ) : u.uncovered?.length ? (
+        <>Esta semana no veo nada en los cursos con cronograma.</>
       ) : (
         <>Esta semana va tranquila.</>
       )}{" "}
@@ -270,6 +284,28 @@ function sentence(items: UpcomingItem[], u: Upcoming) {
   );
 }
 
+/** Cursos sin cronograma con fechas: un curso vacío no es una semana libre, y el
+ * estudiante tiene que saber de cuáles solo verá lo ya publicado. */
+function UncoveredNote({ list }: { list: NonNullable<Upcoming["uncovered"]> }) {
+  if (!list.length) return null;
+  return (
+    <div className="campu-uncovered">
+      <p>
+        De {list.length === 1 ? "este curso" : "estos cursos"} solo te aviso lo
+        que publiquen en Blackboard:
+      </p>
+      <ul>
+        {list.map((c) => (
+          <li key={c.courseId}>
+            <strong>{c.course.replace(/\s+-\s+Virtual$/, "")}</strong>{" "}
+            <small>{UNCOVERED_REASON[c.reason] ?? "sin cronograma"}</small>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /** Lo que el cronograma de tus cursos programa, aunque Blackboard todavía no lo
  * tenga como tarea. Las fechas las calcula el servidor con el calendario de Mi UPC. */
 function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
@@ -279,8 +315,9 @@ function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
     (_, n) => items.filter((i) => cellOf(u, i) === n).length,
   );
   const undated = items.filter((i) => cellOf(u, i) < 0);
+  const uncovered = u.uncovered ?? [];
   const [picked, setPicked] = useState<number | null>(null);
-  if (!items.length) return null;
+  if (!items.length && !uncovered.length) return null;
   // Si el resumen cambió y la celda elegida quedó vacía, vuelve a la primera con algo.
   const active =
     picked !== null && counts[picked] > 0
@@ -346,6 +383,7 @@ function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
           Sin fecha confirmada: {undated.map((i) => i.title).join(", ")}
         </p>
       )}
+      <UncoveredNote list={uncovered} />
     </section>
   );
 }
@@ -655,7 +693,11 @@ function Home({
           {inWeek.length ? (
             <ul>{inWeek.slice(0, 5).map(item)}</ul>
           ) : (
-            <p className="campu-muted">Nada para esta semana en lo que revisé.</p>
+            <p className="campu-muted">
+              {u.uncovered?.length
+                ? "Nada para esta semana en los cursos con cronograma."
+                : "Nada para esta semana en lo que revisé."}
+            </p>
           )}
           {inWeek.length > 5 && (
             <small>Y {inWeek.length - 5} más en Ajustes y detalle.</small>
@@ -666,6 +708,7 @@ function Home({
               <ul>{later.map(item)}</ul>
             </>
           )}
+          <UncoveredNote list={u.uncovered ?? []} />
         </div>
       )}
       {shown.length ? (
