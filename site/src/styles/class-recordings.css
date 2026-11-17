@@ -265,6 +265,23 @@
 .classes-survey .plus-survey__actions .app-text-link{min-height:44px;padding:8px 0;border:0;background:transparent;cursor:pointer;font:inherit;font-size:14px}
 .classes-survey [data-survey-status]:empty{display:none}
 @media (max-width:420px){.classes-survey .plus-survey__choices{grid-template-columns:1fr}}
+/* Encuesta de mejoras: opciones como etiquetas que se acomodan en filas, más corta en el celular. */
+.classes-survey:not(.classes-feedback) .plus-survey__choices{display:flex;flex-wrap:wrap;gap:8px}
+.classes-survey:not(.classes-feedback) .plus-survey__choices[hidden]{display:none}
+.classes-survey:not(.classes-feedback) .plus-survey__choice{min-height:40px;padding:8px 14px;border-radius:999px;line-height:1.3}
+/* Pregunta por clase: compacta, primero 👍/👎 y opciones cortas solo tras 👎. */
+.classes-feedback{gap:10px;padding-top:16px;padding-bottom:16px}
+.classes-feedback .app-kicker{margin:0}
+.classes-feedback h2{font-size:17px}
+.classes-feedback .plus-survey__choices[data-step=rating]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.classes-feedback .plus-survey__choices[data-step=problems]{display:flex;flex-wrap:wrap;gap:8px}
+.classes-feedback .plus-survey__choices[data-step=problems][hidden]{display:none}
+.plus-survey__rate{min-height:48px;padding:10px 12px;border:1px solid #b8d4df;border-radius:12px;background:#fff;color:#15394b;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.plus-survey__rate--good{border-color:#9fd8c2;background:var(--app-mint,#d9f1e8);color:#0b5e45}
+.plus-survey__rate:hover{border-color:#087fa4}
+.plus-survey__chip{min-height:40px;padding:8px 14px;border:1px solid #b8d4df;border-radius:999px;background:#fff;color:#15394b;font:inherit;font-size:14px;line-height:1.3;cursor:pointer}
+.plus-survey__chip:hover{border-color:#087fa4;background:#e2f6fb}
+.plus-survey__rate:focus-visible,.plus-survey__chip:focus-visible{outline:2px solid #087fa4;outline-offset:2px}
 
 /* Sin sesión: vista previa de una clase lista, beneficios y un solo botón. */
 .classes-signedout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;max-width:960px}

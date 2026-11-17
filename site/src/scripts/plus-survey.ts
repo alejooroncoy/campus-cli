@@ -11,6 +11,8 @@ type SurveyAdapter = {
   canAnswer: (owner: string) => boolean;
   /** Separa lo respondido por elemento (una clase), para encuestas que se repiten. */
   scope?: string;
+  /** Respuesta positiva: si existe, se pregunta primero 👍/👎 y las demás opciones solo aparecen tras 👎. */
+  positive?: string;
   /** Si la respuesta elegida pide el comentario de la segunda pregunta. Por defecto, siempre. */
   asksFollowup?: (choice: string) => boolean;
 };
@@ -46,6 +48,8 @@ export function mountSurveyPanel(panel: HTMLElement, adapter: SurveyAdapter) {
   function finish() {
     if (!answered) return;
     send(true); form.hidden = true; choices.hidden = true;
+    // La pregunta ya no aplica: el título pasa a ser el agradecimiento.
+    title.textContent = '¡Gracias!';
     output.textContent = adapter.thanks;
     close.setAttribute('aria-label', 'Cerrar encuesta');
   }
@@ -68,22 +72,35 @@ export function mountSurveyPanel(panel: HTMLElement, adapter: SurveyAdapter) {
     if (!survey || shown || !eligible || disposed || finished) return;
     shown = true; submission = crypto.randomUUID();
     title.textContent = survey.questions[0].question;
-    choices.replaceChildren(...survey.questions[0].choices.map(choice => {
-      const button = document.createElement('button'); button.type = 'button'; button.className = 'plus-survey__choice'; button.textContent = choice;
-      button.onclick = () => {
+    const pick = (choice: string) => {
+      if (!eligible || disposed || answered || finished) return;
+      answered = true; answers[survey!.questions[0].id!] = choice;
+      choices.hidden = true; close.setAttribute('aria-label', 'Terminar encuesta');
+      output.textContent = 'Tu respuesta ya quedó guardada.';
+      const followup = adapter.asksFollowup?.(choice) === false ? undefined : survey!.questions[1];
+      if (followup) {
+        send(false); title.textContent = followup.question;
+        form.querySelector('label')!.textContent = followup.question;
+        form.hidden = false; comment.focus({ preventScroll: true });
+      } else finish();
+    };
+    const button = (text: string, className: string, onclick: () => void) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = className; b.textContent = text; b.onclick = onclick; return b;
+    };
+    const all = survey.questions[0].choices, positive = adapter.positive && all.includes(adapter.positive) ? adapter.positive : undefined;
+    if (positive) {
+      // Primero 👍 o 👎; solo si hubo un problema se abren las opciones cortas (patrón de Nike Run Club, Slack, Notion).
+      const problems = all.filter(c => c !== positive);
+      const showProblems = () => {
         if (!eligible || disposed || answered || finished) return;
-        answered = true; answers[survey!.questions[0].id!] = choice;
-        choices.hidden = true; close.setAttribute('aria-label', 'Terminar encuesta');
-        output.textContent = 'Tu respuesta ya quedó guardada.';
-        const followup = adapter.asksFollowup?.(choice) === false ? undefined : survey!.questions[1];
-        if (followup) {
-          send(false); title.textContent = followup.question;
-          form.querySelector('label')!.textContent = followup.question;
-          form.hidden = false; comment.focus({ preventScroll: true });
-        } else finish();
+        choices.dataset.step = 'problems'; title.textContent = '¿Qué falló?';
+        choices.replaceChildren(...problems.map(c => button(c, 'plus-survey__chip', () => pick(c))));
+        (choices.firstElementChild as HTMLElement | null)?.focus({ preventScroll: true });
       };
-      return button;
-    }));
+      choices.dataset.step = 'rating';
+      choices.replaceChildren(button(`👍 ${positive}`, 'plus-survey__rate plus-survey__rate--good', () => pick(positive)),
+        button('👎 Algo falló', 'plus-survey__rate', showProblems));
+    } else choices.replaceChildren(...all.map(choice => button(choice, 'plus-survey__choice', () => pick(choice))));
     panel.hidden = false;
     visibility.observe(panel);
   }
@@ -115,7 +132,7 @@ export function mountSurveyPanel(panel: HTMLElement, adapter: SurveyAdapter) {
 
 export function mountPlusSurvey(root: HTMLElement) {
   return mountSurveyPanel(root.querySelector<HTMLElement>('[data-plus-survey]')!, {
-    thanks: 'Gracias. Tu respuesta nos ayuda a mejorar Plus.',
+    thanks: 'Tu respuesta nos ayuda a mejorar Plus.',
     eligible: (view, session) => view === 'ready' && session?.plan === 'free'
       && Boolean(plusSurveyIdForAudience(session.analyticsAudience, session.analyticsAudience === 'test' || session.plusTest === true,
         plusSurveyQaRequested(location.pathname, location.search))),
@@ -127,7 +144,7 @@ export function mountPlusSurvey(root: HTMLElement) {
 /** Mis clases: `view` es 'ready' cuando ya hay una clase con texto y no se está grabando. */
 export function mountClassesSurvey(panel: HTMLElement) {
   return mountSurveyPanel(panel, {
-    thanks: 'Gracias. Con tu respuesta decidimos qué mejorar primero en Mis clases.',
+    thanks: 'Con tu respuesta decidimos qué mejorar primero en Mis clases.',
     eligible: (view, session) => view === 'ready'
       && Boolean(classesSurveyIdForAudience(session?.analyticsAudience, session?.analyticsAudience === 'test' || session?.plusTest === true)),
     load: getClassesSurvey,
@@ -138,11 +155,12 @@ export function mountClassesSurvey(panel: HTMLElement) {
 /** Mis clases, una vez por clase: `classId` separa lo respondido; «Salió bien» no pide comentario. */
 export function mountClassFeedbackSurvey(panel: HTMLElement, classId: string) {
   return mountSurveyPanel(panel, {
-    thanks: 'Gracias. Lo revisamos para que tus próximas clases salgan mejor.',
+    thanks: 'Lo revisamos para que tus próximas clases salgan mejor.',
     eligible: view => view === 'ready',
     load: getClassFeedbackSurvey,
     canAnswer: canAnswerClassFeedbackSurvey,
     scope: classId,
+    positive: 'Salió bien',
     asksFollowup: choice => choice !== 'Salió bien',
   });
 }

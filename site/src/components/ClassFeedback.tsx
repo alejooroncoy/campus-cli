@@ -38,7 +38,6 @@ export default function ClassFeedback({ classId, title, active }: { classId: str
     <div className="plus-survey__header"><p className="app-kicker">TU ÚLTIMA CLASE</p><button type="button" className="plus-survey__close" data-survey-close aria-label="Cerrar pregunta">×</button></div>
     <p className="classes-feedback__class">{title}</p>
     <h2 id={`class-feedback-title-${classId}`} data-survey-title />
-    <p className="classes-note">Responder es opcional. Con cada clase vemos qué falla y lo corregimos.</p>
     <div className="plus-survey__choices" data-survey-choices role="group" aria-labelledby={`class-feedback-title-${classId}`} />
     <form data-survey-comment hidden>
       <label className="app-sr-only" htmlFor={`class-feedback-comment-${classId}`} />
