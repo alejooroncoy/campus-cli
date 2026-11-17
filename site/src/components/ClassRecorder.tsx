@@ -52,7 +52,9 @@ function wavBlob(samples: Int16Array) {
   return new Blob([view], { type: 'audio/wav' });
 }
 /** Estado que envía la app de Campus (Expo) cuando el teléfono graba la clase. */
-type NativeRecorderState = { status: 'idle' | 'starting' | 'recording' | 'interrupted' | 'stopping'; elapsedSeconds: number; part: number; firstId: string | null; message?: string; uploads: { pending: number; uploading: boolean; done: number; error?: string } };
+type NativeRecorderState = { status: 'idle' | 'starting' | 'recording' | 'interrupted' | 'stopping'; elapsedSeconds: number; part: number; firstId: string | null; message?: string; uploads: { pending: number; uploading: boolean; done: number; error?: string };
+  /** Texto en vivo de la app: `liveId` es la parte en curso (la app sube el audio; la web lee el texto y pregunta). */
+  live?: { liveId: string | null; note?: string } };
 type NativeBridge = { CampusNative?: { recorder?: number }; ReactNativeWebView?: { postMessage(data: string): void } };
 /** Dentro de la app, la grabación la hace el teléfono: sigue con la pantalla bloqueada y sube cada parte sola. */
 const nativeRecorder = () => typeof window !== 'undefined' && Boolean((window as NativeBridge).CampusNative?.recorder && (window as NativeBridge).ReactNativeWebView);
@@ -86,7 +88,8 @@ function nativeState(value: unknown): NativeRecorderState | null {
   if (!v || !NATIVE_STATUS.includes(v.status) || !n(v.elapsedSeconds) || !n(v.part) || !v.uploads || !n(v.uploads.pending) || !n(v.uploads.done)) return null;
   return { status: v.status, elapsedSeconds: v.elapsedSeconds, part: v.part, firstId: typeof v.firstId === 'string' ? v.firstId : null,
     message: typeof v.message === 'string' ? v.message.slice(0, 300) : undefined,
-    uploads: { pending: v.uploads.pending, done: v.uploads.done, uploading: Boolean(v.uploads.uploading), error: typeof v.uploads.error === 'string' ? v.uploads.error.slice(0, 200) : undefined } };
+    uploads: { pending: v.uploads.pending, done: v.uploads.done, uploading: Boolean(v.uploads.uploading), error: typeof v.uploads.error === 'string' ? v.uploads.error.slice(0, 200) : undefined },
+    live: v.live && typeof v.live === 'object' ? { liveId: typeof v.live.liveId === 'string' && /^[0-9a-f-]{36}$/i.test(v.live.liveId) ? v.live.liveId : null, note: typeof v.live.note === 'string' ? v.live.note.slice(0, 200) : undefined } : undefined };
 }
 
 export default function ClassRecorder() {
@@ -105,6 +108,8 @@ export default function ClassRecorder() {
   const [sampleUrl, setSampleUrl] = useState(''), [rescue, setRescue] = useState<Blob | null>(null), [deleteId, setDeleteId] = useState('');
   const [uploadMinutes, setUploadMinutes] = useState('');
   const [liveId, setLiveId] = useState(''), [liveLines, setLiveLines] = useState<LiveLine[]>([]), [liveUntil, setLiveUntil] = useState(0), [liveNote, setLiveNote] = useState('');
+  /** Partes de la clase grabadas por la app: su desfase en la clase y el texto en vivo de cada una. */
+  const nativeParts = useRef<{ id: string; offset: number; until: number; lines: LiveLine[] }[]>([]);
   const [resume, setResume] = useState<Continuation | null>(null), [full, setFull] = useState<FullClass | null>(null), [playingPart, setPlayingPart] = useState('');
   const microphoneRef = useRef<(test: boolean, continuation?: Continuation) => Promise<void>>(async () => {});
   const [question, setQuestion] = useState(''), [asking, setAsking] = useState(false), [answer, setAnswer] = useState<{ text: string; untilSeconds: number } | null>(null);
@@ -215,6 +220,15 @@ export default function ClassRecorder() {
       const state = nativeState((event as CustomEvent<unknown>).detail);
       if (!alive.current || !state) return;
       setNative(state);
+      // La app transcribe en vivo cada parte; la web muestra su texto y permite preguntar sobre la clase.
+      if (state.status !== 'idle' && state.live?.liveId) {
+        const next = state.live.liveId;
+        // Una clase nueva empieza sin texto; una parte nueva de la misma clase se suma al final de la anterior.
+        if (lastStatus === 'idle') { nativeParts.current = []; setLiveLines([]); setLiveUntil(0); setAnswer(null); }
+        if (!nativeParts.current.some(p => p.id === next)) nativeParts.current.push({ id: next, offset: nativeParts.current.reduce((n, p) => Math.max(n, p.offset + p.until), 0), until: 0, lines: [] });
+        setLiveId(next);
+      }
+      if (state.live?.note !== undefined) setLiveNote(state.live.note ?? '');
       if (state.status !== 'idle') { active.current = true; setMode(state.status === 'starting' ? 'starting' : state.status === 'stopping' ? 'saving' : 'recording'); setElapsed(state.elapsedSeconds); }
       else if (lastStatus !== 'idle') { active.current = false; setMode('idle'); }
       if (state.message && state.status !== lastStatus) setMessage(state.message);
@@ -335,6 +349,27 @@ export default function ClassRecorder() {
       try { node?.disconnect(); silent.disconnect(); } catch { /* El contexto ya puede estar cerrado. */ }
     };
   }
+  // Con la app grabando, la web lee cada pocos segundos el texto en vivo de la parte en curso.
+  useEffect(() => {
+    if (!liveId || !native || native.status === 'idle' || !config?.liveTranscription) return;
+    let stopped = false;
+    const poll = async () => {
+      const part = nativeParts.current.find(p => p.id === liveId);
+      if (!part || document.hidden) return;
+      try {
+        const value = await json(await request(`/live/${liveId}`));
+        if (stopped || !alive.current) return;
+        part.until = Number(value.untilSeconds) || part.until;
+        part.lines = (Array.isArray(value.segments) ? value.segments : []).filter((x: { text?: unknown }) => typeof x.text === 'string' && x.text)
+          .map((x: { startSeconds: number; text: string; review?: boolean }) => ({ startSeconds: part.offset + x.startSeconds, text: x.text, review: Boolean(x.review) }));
+        setLiveLines(nativeParts.current.flatMap(p => p.lines).sort((a, b) => a.startSeconds - b.startSeconds));
+        setLiveUntil(part.offset + part.until);
+      } catch { /* El texto en vivo es opcional: la grabación sigue en el teléfono. */ }
+    };
+    void poll();
+    const timer = setInterval(() => void poll(), 5000);
+    return () => { stopped = true; clearInterval(timer); };
+  }, [liveId, native?.status, config?.liveTranscription]);
   async function askLive() {
     if (!liveId || question.trim().length < 2 || asking) return;
     setAsking(true);
