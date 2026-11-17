@@ -225,8 +225,9 @@ export default function ClassRecorder() {
       if (lastStatus === 'idle' && state.status !== 'idle') { nativeParts.current = []; setLiveId(''); setLiveLines([]); setLiveUntil(0); setAnswer(null); }
       if (state.status !== 'idle' && state.live?.liveId) {
         const next = state.live.liveId;
-        // Una parte nueva empieza en el minuto de la clase que informa la app (no depende de lo que la web alcanzó a leer).
-        if (!nativeParts.current.some(p => p.id === next)) nativeParts.current.push({ id: next, offset: nativeParts.current.length ? state.elapsedSeconds : 0, until: 0, lines: [] });
+        // Una parte nueva empieza en el minuto de la clase que informa la app; mientras la app cierra la parte anterior ese
+        // total puede no incluirla todavía, así que nunca empieza antes del final conocido de la anterior.
+        if (!nativeParts.current.some(p => p.id === next)) nativeParts.current.push({ id: next, offset: nativeParts.current.length ? Math.max(state.elapsedSeconds, ...nativeParts.current.map(p => p.offset + p.until)) : 0, until: 0, lines: [] });
         setLiveId(next);
       }
       if (state.live?.note !== undefined) setLiveNote(state.live.note ?? '');
