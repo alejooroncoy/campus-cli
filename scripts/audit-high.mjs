@@ -13,7 +13,13 @@ const dir = process.argv[2] ?? '.';
 let raw;
 try { raw = execFileSync('npm', ['--prefix', dir, 'audit', '--json'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }); }
 catch (error) { raw = error.stdout; } // npm audit sale con 1 cuando hay advertencias: el JSON viene igual.
-const report = JSON.parse(raw);
+let report;
+try { report = JSON.parse(raw); } catch { report = null; }
+// Si npm no pudo consultar el registro devuelve un JSON de error: eso no es un audit aprobado.
+if (!report || report.error || typeof report.vulnerabilities !== 'object' || typeof report.metadata?.vulnerabilities !== 'object') {
+  console.error(`npm audit no devolvió un informe válido para ${dir}${report?.error ? `: ${report.error.summary ?? report.error.code ?? 'error'}` : ''}.`);
+  process.exit(1);
+}
 const blocking = new Map();
 for (const vulnerability of Object.values(report.vulnerabilities ?? {})) {
   for (const via of vulnerability.via ?? []) {
