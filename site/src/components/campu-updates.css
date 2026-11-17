@@ -8,7 +8,7 @@
   display: flex;
   gap: 22px;
   align-items: center;
-  margin: 8px 0 32px;
+  margin: 0 0 20px;
 }
 .campu-heading img {
   flex: none;
@@ -64,8 +64,54 @@
   justify-content: space-between;
   gap: 24px;
 }
+.campu-status {
+  padding: 14px 22px;
+}
+.campu-status h2 {
+  font-size: 17px;
+  margin: 0 0 2px;
+}
 .campu-status p {
-  margin: 6px 0;
+  margin: 2px 0;
+  font-size: 14px;
+}
+/* Ajustes plegados: una sola fila hasta que se abren. */
+.campu-fold > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.campu-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.campu-fold > summary h2 {
+  margin: 0;
+}
+.campu-fold > summary > span {
+  flex: none;
+  font-weight: 600;
+  color: #087b8b;
+}
+.campu-fold > summary > span::after {
+  content: " ▾";
+}
+.campu-context > summary {
+  align-items: flex-start;
+}
+.campu-context > summary p {
+  margin: 0;
+}
+.campu-context > summary h2 {
+  margin: 4px 0 6px;
+}
+.campu-fold[open] > summary {
+  margin-bottom: 14px;
+}
+.campu-fold[open] > summary > span::after {
+  content: " ▴";
 }
 .campu-card fieldset {
   border: 0;
@@ -236,7 +282,7 @@
 .campu-context details {
   margin-top: 26px;
 }
-.campu-context summary {
+.campu-context details summary {
   cursor: pointer;
   min-height: 44px;
   font-weight: 600;

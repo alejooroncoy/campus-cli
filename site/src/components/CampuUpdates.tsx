@@ -965,6 +965,10 @@ export default function CampuUpdates() {
   // aparece al cargar el estado, así que se baja a ella cuando existe.
   // Si los ajustes están plegados se abren primero, y se baja cuando ya existen.
   // Solo la llegada inicial: después la persona puede volver a plegarlos.
+  // Los ajustes plegados recuerdan si la persona los abrió: guardar no los cierra.
+  const [settingsOpen, setSettingsOpen] = useState(
+    () => typeof location !== "undefined" && location.hash === "#avisos",
+  );
   const anchored = useRef(false);
   useEffect(() => {
     if (anchored.current || !status || location.hash !== "#avisos") return;
@@ -1035,6 +1039,241 @@ export default function CampuUpdates() {
             status.available &&
             prefs.enabled &&
             ["active", "partial"].includes(status.status)))));
+  // Los ajustes van después de las novedades: quien entra a Novedades viene a
+  // ver qué cambió. Solo con el seguimiento apagado van primero, para activarlo.
+  // Con el seguimiento activo se pliegan: están a mano sin ocupar la página. Se
+  // abren solos si está apagado o si se llega por el enlace #avisos.
+  const renderSettings = () => (
+    <details
+      className="campu-card campu-fold"
+      id="avisos"
+      open={!prefs.enabled || settingsOpen}
+      onToggle={(e) => setSettingsOpen(e.currentTarget.open)}
+    >
+      <summary>
+        <h2>Cómo quieres que te avise</h2>
+        <span>Ajustes</span>
+      </summary>
+      <p>
+        Las revisiones se programan a las 8, 12, 16 y 20 h. El
+        resumen semanal se prepara el lunes. Los avisos importantes
+        se agrupan, con un máximo de dos al día además del resumen.
+      </p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void guarded(() => save(prefs));
+        }}
+      >
+        <fieldset disabled={busy}>
+          <legend>Seguimiento y canales</legend>
+          <label>
+            <input
+              type="checkbox"
+              disabled={!status.available && !prefs.enabled}
+              checked={prefs.enabled}
+              onChange={(e) => update("enabled", e.target.checked)}
+            />
+            Activar Campito proactivo
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={prefs.email}
+              onChange={(e) => update("email", e.target.checked)}
+            />
+            Avisos al correo de mi cuenta
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={prefs.push}
+              onChange={(e) => update("push", e.target.checked)}
+            />
+            Avisos push en mis dispositivos registrados
+          </label>
+        </fieldset>
+        <p className="campu-muted">
+          El resumen prepara el contexto de los cursos elegidos. Las
+          categorías siguientes filtran los avisos de cambios. Los
+          trámites se consultan solo si activas su opción.
+        </p>
+        <fieldset disabled={busy}>
+          <legend>Qué novedades incluir en los avisos</legend>
+          {categories.map(([key, label]) => (
+            <label key={key}>
+              <input
+                type="checkbox"
+                checked={prefs.categories.includes(key)}
+                onChange={(e) =>
+                  update(
+                    "categories",
+                    e.target.checked
+                      ? [...prefs.categories, key]
+                      : prefs.categories.filter((x) => x !== key),
+                  )
+                }
+              />
+              {label}
+            </label>
+          ))}
+          <label>
+            <input
+              type="checkbox"
+              checked={prefs.procedures}
+              onChange={(e) =>
+                update("procedures", e.target.checked)
+              }
+            />
+            Cambios en mis solicitudes de trámites de Mi UPC
+          </label>
+        </fieldset>
+        {!!status.courses?.length && (
+          <fieldset disabled={busy}>
+            <legend>Cursos</legend>
+            <label>
+              <input
+                type="checkbox"
+                checked={!prefs.courses.length}
+                onChange={(e) =>
+                  update(
+                    "courses",
+                    e.target.checked
+                      ? []
+                      : status.courses.map((c: any) => c.id),
+                  )
+                }
+              />
+              Todos los cursos disponibles
+            </label>
+            {status.courses.map((c: any) => (
+              <label key={c.id}>
+                <input
+                  type="checkbox"
+                  checked={
+                    !prefs.courses.length ||
+                    prefs.courses.includes(c.id)
+                  }
+                  onChange={(e) => {
+                    const all = prefs.courses.length
+                      ? prefs.courses
+                      : status.courses.map((c: any) => c.id);
+                    const selected = e.target.checked
+                      ? [...all, c.id]
+                      : all.filter((id: string) => id !== c.id);
+                    if (!selected.length) {
+                      setInfo(
+                        "Conserva al menos un curso o pausa el seguimiento.",
+                      );
+                      return;
+                    }
+                    update("courses", [
+                      ...new Set(selected),
+                    ] as string[]);
+                  }}
+                />
+                {c.name}
+              </label>
+            ))}
+          </fieldset>
+        )}
+        <label>
+          Zona horaria
+          <select
+            value={prefs.timezone}
+            onChange={(e) => update("timezone", e.target.value)}
+          >
+            <option>America/Lima</option>
+            <option>America/Bogota</option>
+            <option>America/Mexico_City</option>
+            <option>Europe/Madrid</option>
+          </select>
+        </label>
+        <p className="campu-muted">
+          Sin avisos entre las 22 y las 8 h de tu zona. Puedes
+          pausar y eliminar tus preparaciones cuando quieras.
+        </p>
+        <button
+          disabled={busy || (!status.available && prefs.enabled)}
+          type="submit"
+        >
+          {busy ? "Guardando…" : "Guardar preferencias"}
+        </button>
+      </form>
+      {status.suggestedNickname !== undefined && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void guarded(() => saveNickname(nick));
+          }}
+        >
+          <fieldset disabled={busy}>
+            <legend>Cómo te digo</legend>
+            <label>
+              Mi apodo
+              <input
+                type="text"
+                maxLength={30}
+                autoComplete="nickname"
+                value={nick}
+                placeholder={status.suggestedNickname ?? "Tu nombre"}
+                onChange={(e) => setNick(e.target.value)}
+              />
+            </label>
+            <p className="campu-muted">
+              Así te saludo en los correos. Si lo dejas vacío uso{" "}
+              {status.suggestedNickname
+                ? status.suggestedNickname
+                : "tu nombre"}
+              . Cambiarlo no afecta tus avisos ni tus preferencias.
+            </p>
+            <button type="submit">Guardar apodo</button>
+          </fieldset>
+        </form>
+      )}
+      <div className="campu-device">
+        <h3>Este dispositivo</h3>
+        <p>
+          El permiso push se pide solo al pulsar este botón. En
+          iPhone o iPad, primero instala Campus en tu pantalla de
+          inicio.
+        </p>
+        <button
+          className="campu-secondary"
+          disabled={
+            busy || !status.available || !status.pushPublicKey
+          }
+          onClick={() =>
+            void guarded(async () => {
+              await enablePushDevice(
+                status.pushPublicKey,
+                session?.analyticsId ?? session?.email ?? "",
+              );
+              setInfo(
+                "Dispositivo registrado. Activa el canal push y guarda tus preferencias para recibir avisos.",
+              );
+            })
+          }
+        >
+          Permitir push aquí
+        </button>
+        <button
+          className="campu-link"
+          disabled={busy}
+          onClick={() =>
+            void guarded(async () => {
+              await removePushDevice();
+              setInfo(
+                "Los avisos push se desactivaron en este dispositivo.",
+              );
+            })
+          }
+        >
+          Desactivar en este dispositivo
+        </button>
+      </div>
+    </details>
+  );
   return (
     <div className="campu-updates">
       {!simple && !loadingReport && (
@@ -1163,294 +1402,86 @@ export default function CampuUpdates() {
                   una cuenta habilitada para participar.
                 </p>
               )}
-              <div className="campu-columns">
-                <section className="campu-card" id="avisos">
-                  <h2>Cómo quieres que te avise</h2>
-                  <p>
-                    Las revisiones se programan a las 8, 12, 16 y 20 h. El
-                    resumen semanal se prepara el lunes. Los avisos importantes
-                    se agrupan, con un máximo de dos al día además del resumen.
-                  </p>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      void guarded(() => save(prefs));
-                    }}
-                  >
-                    <fieldset disabled={busy}>
-                      <legend>Seguimiento y canales</legend>
-                      <label>
-                        <input
-                          type="checkbox"
-                          disabled={!status.available && !prefs.enabled}
-                          checked={prefs.enabled}
-                          onChange={(e) => update("enabled", e.target.checked)}
-                        />
-                        Activar Campito proactivo
-                      </label>
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={prefs.email}
-                          onChange={(e) => update("email", e.target.checked)}
-                        />
-                        Avisos al correo de mi cuenta
-                      </label>
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={prefs.push}
-                          onChange={(e) => update("push", e.target.checked)}
-                        />
-                        Avisos push en mis dispositivos registrados
-                      </label>
-                    </fieldset>
-                    <p className="campu-muted">
-                      El resumen prepara el contexto de los cursos elegidos. Las
-                      categorías siguientes filtran los avisos de cambios. Los
-                      trámites se consultan solo si activas su opción.
-                    </p>
-                    <fieldset disabled={busy}>
-                      <legend>Qué novedades incluir en los avisos</legend>
-                      {categories.map(([key, label]) => (
-                        <label key={key}>
-                          <input
-                            type="checkbox"
-                            checked={prefs.categories.includes(key)}
-                            onChange={(e) =>
-                              update(
-                                "categories",
-                                e.target.checked
-                                  ? [...prefs.categories, key]
-                                  : prefs.categories.filter((x) => x !== key),
-                              )
-                            }
-                          />
-                          {label}
-                        </label>
-                      ))}
-                      <label>
-                        <input
-                          type="checkbox"
-                          checked={prefs.procedures}
-                          onChange={(e) =>
-                            update("procedures", e.target.checked)
-                          }
-                        />
-                        Cambios en mis solicitudes de trámites de Mi UPC
-                      </label>
-                    </fieldset>
-                    {!!status.courses?.length && (
-                      <fieldset disabled={busy}>
-                        <legend>Cursos</legend>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={!prefs.courses.length}
-                            onChange={(e) =>
-                              update(
-                                "courses",
-                                e.target.checked
-                                  ? []
-                                  : status.courses.map((c: any) => c.id),
-                              )
-                            }
-                          />
-                          Todos los cursos disponibles
-                        </label>
-                        {status.courses.map((c: any) => (
-                          <label key={c.id}>
-                            <input
-                              type="checkbox"
-                              checked={
-                                !prefs.courses.length ||
-                                prefs.courses.includes(c.id)
-                              }
-                              onChange={(e) => {
-                                const all = prefs.courses.length
-                                  ? prefs.courses
-                                  : status.courses.map((c: any) => c.id);
-                                const selected = e.target.checked
-                                  ? [...all, c.id]
-                                  : all.filter((id: string) => id !== c.id);
-                                if (!selected.length) {
-                                  setInfo(
-                                    "Conserva al menos un curso o pausa el seguimiento.",
-                                  );
-                                  return;
-                                }
-                                update("courses", [
-                                  ...new Set(selected),
-                                ] as string[]);
-                              }}
-                            />
-                            {c.name}
-                          </label>
-                        ))}
-                      </fieldset>
-                    )}
-                    <label>
-                      Zona horaria
-                      <select
-                        value={prefs.timezone}
-                        onChange={(e) => update("timezone", e.target.value)}
-                      >
-                        <option>America/Lima</option>
-                        <option>America/Bogota</option>
-                        <option>America/Mexico_City</option>
-                        <option>Europe/Madrid</option>
-                      </select>
-                    </label>
-                    <p className="campu-muted">
-                      Sin avisos entre las 22 y las 8 h de tu zona. Puedes
-                      pausar y eliminar tus preparaciones cuando quieras.
-                    </p>
-                    <button
-                      disabled={busy || (!status.available && prefs.enabled)}
-                      type="submit"
-                    >
-                      {busy ? "Guardando…" : "Guardar preferencias"}
-                    </button>
-                  </form>
-                  {status.suggestedNickname !== undefined && (
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        void guarded(() => saveNickname(nick));
-                      }}
-                    >
-                      <fieldset disabled={busy}>
-                        <legend>Cómo te digo</legend>
-                        <label>
-                          Mi apodo
-                          <input
-                            type="text"
-                            maxLength={30}
-                            autoComplete="nickname"
-                            value={nick}
-                            placeholder={status.suggestedNickname ?? "Tu nombre"}
-                            onChange={(e) => setNick(e.target.value)}
-                          />
-                        </label>
-                        <p className="campu-muted">
-                          Así te saludo en los correos. Si lo dejas vacío uso{" "}
-                          {status.suggestedNickname
-                            ? status.suggestedNickname
-                            : "tu nombre"}
-                          . Cambiarlo no afecta tus avisos ni tus preferencias.
-                        </p>
-                        <button type="submit">Guardar apodo</button>
-                      </fieldset>
-                    </form>
-                  )}
-                  <div className="campu-device">
-                    <h3>Este dispositivo</h3>
-                    <p>
-                      El permiso push se pide solo al pulsar este botón. En
-                      iPhone o iPad, primero instala Campus en tu pantalla de
-                      inicio.
-                    </p>
-                    <button
-                      className="campu-secondary"
-                      disabled={
-                        busy || !status.available || !status.pushPublicKey
-                      }
-                      onClick={() =>
-                        void guarded(async () => {
-                          await enablePushDevice(
-                            status.pushPublicKey,
-                            session?.analyticsId ?? session?.email ?? "",
-                          );
-                          setInfo(
-                            "Dispositivo registrado. Activa el canal push y guarda tus preferencias para recibir avisos.",
-                          );
-                        })
-                      }
-                    >
-                      Permitir push aquí
-                    </button>
-                    <button
-                      className="campu-link"
-                      disabled={busy}
-                      onClick={() =>
-                        void guarded(async () => {
-                          await removePushDevice();
-                          setInfo(
-                            "Los avisos push se desactivaron en este dispositivo.",
-                          );
-                        })
-                      }
-                    >
-                      Desactivar en este dispositivo
-                    </button>
-                  </div>
-                </section>
-                <section className="campu-card">
-                  <h2>Lo que encontré para ti</h2>
-                  {!notices.length && (
-                    <p>
-                      {prefs.enabled
-                        ? "El primer resumen aparecerá después de que Campito revise tus fuentes."
-                        : "Activa el seguimiento para que prepare tu primera semana."}
-                    </p>
-                  )}
-                  <ul className="campu-notices">
-                    {notices.map((n) => (
-                      <li key={n.id}>
-                        <a href={"/app/novedades/" + n.id + "/"}>
-                          {!n.read && (
-                            <span className="campu-dot" aria-label="Sin leer" />
-                          )}
-                          {n.title}
-                          <small>{timestamp(n.createdAt)}</small>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                  {next && (
-                    <button
-                      className="campu-secondary"
-                      disabled={busy}
-                      onClick={() =>
-                        void guarded(async () => {
-                          const n = await api("/notices?cursor=" + next);
-                          setNotices((v) => [...v, ...n.notices]);
-                          setNext(n.nextCursor);
-                        })
-                      }
-                    >
-                      Ver más avisos
-                    </button>
-                  )}
-                  <p className="campu-muted">
-                    La fecha del aviso indica cuándo detecté el cambio. No
-                    prueba cuándo lo publicó el profesor.
-                  </p>
-                  <button
-                    className="campu-link"
-                    disabled={busy}
-                    onClick={() =>
-                      void guarded(async () => {
-                        setContext(await api("/week"));
-                        setEvents([]);
-                      })
-                    }
-                  >
-                    Ver mi resumen de esta semana
-                  </button>
-                </section>
-              </div>
-              {!simple && <ChangesCard events={events} />}
+              {/* Lo próximo va primero: es lo que se viene a ver. */}
               {context?.upcoming && (
                 <UpcomingView upcoming={context.upcoming} />
               )}
-              {context && (
-                <section className="campu-card campu-context">
-                  <p className="campu-eyebrow">
-                    Contexto preparado · {timestamp(context.preparedAt)}
+              {!prefs.enabled && renderSettings()}
+              <div
+                className={
+                  !simple && events.length ? "campu-columns" : undefined
+                }
+              >
+              <section className="campu-card">
+                <h2>Lo que encontré para ti</h2>
+                {!notices.length && (
+                  <p>
+                    {prefs.enabled
+                      ? "El primer resumen aparecerá después de que Campito revise tus fuentes."
+                      : "Activa el seguimiento para que prepare tu primera semana."}
                   </p>
-                  <h2>Esto es lo que pude revisar.</h2>
-                  <p>{context.summary}</p>
+                )}
+                <ul className="campu-notices">
+                  {notices.map((n) => (
+                    <li key={n.id}>
+                      <a href={"/app/novedades/" + n.id + "/"}>
+                        {!n.read && (
+                          <span className="campu-dot" aria-label="Sin leer" />
+                        )}
+                        {n.title}
+                        <small>{timestamp(n.createdAt)}</small>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                {next && (
+                  <button
+                    className="campu-secondary"
+                    disabled={busy}
+                    onClick={() =>
+                      void guarded(async () => {
+                        const n = await api("/notices?cursor=" + next);
+                        setNotices((v) => [...v, ...n.notices]);
+                        setNext(n.nextCursor);
+                      })
+                    }
+                  >
+                    Ver más avisos
+                  </button>
+                )}
+                <p className="campu-muted">
+                  La fecha del aviso indica cuándo detecté el cambio. No
+                  prueba cuándo lo publicó el profesor.
+                </p>
+                <button
+                  className="campu-link"
+                  disabled={busy}
+                  onClick={() =>
+                    void guarded(async () => {
+                      setContext(await api("/week"));
+                      setEvents([]);
+                    })
+                  }
+                >
+                  Ver mi resumen de esta semana
+                </button>
+              </section>
+              {!simple && <ChangesCard events={events} />}
+              </div>
+              {context && (
+                // Plegado: a la vista queda la frase de lo revisado; las fuentes, el
+                // pedido para la IA y la evidencia se abren cuando se quieren.
+                <details className="campu-card campu-fold campu-context">
+                  <summary>
+                    <div>
+                      <p className="campu-eyebrow">
+                        Contexto preparado · {timestamp(context.preparedAt)}
+                      </p>
+                      <h2>Esto es lo que pude revisar.</h2>
+                      <p>{context.summary}</p>
+                    </div>
+                    <span>Ver detalle</span>
+                  </summary>
                   <p
                     className={
                       context.freshness === "stale"
@@ -1626,8 +1657,9 @@ export default function CampuUpdates() {
                       </button>
                     )}
                   </details>
-                </section>
+                </details>
               )}
+              {prefs.enabled && renderSettings()}
               <section className="campu-card campu-privacy">
                 <h2>Tú controlas lo que preparo.</h2>
                 <p>

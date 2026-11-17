@@ -603,6 +603,11 @@ try {
           .getByText("Notas oficiales de Mi UPC: necesita que renueves la conexión")
           .count(),
       );
+      // Lo revisado llega plegado: la frase se ve y el detalle se abre a pedido.
+      const revisado = page.locator("details.campu-context");
+      assert.equal(await revisado.getAttribute("open"), null);
+      assert.ok(await revisado.locator(":scope > summary").getByText(prepared.summary).isVisible());
+      await revisado.locator(":scope > summary").click();
       await page
         .getByRole("button", { name: "Copiar pedido preparado" })
         .click();
@@ -610,6 +615,17 @@ try {
         (await page.evaluate(() => window.copies))[0],
         prepared.prompt,
       );
+      // Con el seguimiento activo, los ajustes llegan plegados después de las novedades.
+      const plegados = page.locator("details#avisos");
+      assert.equal(await plegados.getAttribute("open"), null);
+      assert.ok(
+        await page.evaluate(() => {
+          const pos = (sel) => document.querySelector(sel)?.getBoundingClientRect().top ?? -1;
+          return pos(".campu-upcoming") < pos(".campu-notices") && pos(".campu-notices") < pos("details#avisos");
+        }),
+        "entregas, luego avisos, luego ajustes",
+      );
+      await plegados.locator("summary").click();
       await page.getByLabel("Avisos al correo de mi cuenta").uncheck();
       await page.getByRole("button", { name: "Guardar preferencias" }).click();
       await page
@@ -737,6 +753,7 @@ try {
         await page.waitForTimeout(100);
       assert.ok(weekFailed >= 1);
       await openDetail();
+      await page.locator("details#avisos summary").click();
       const apodoSemana = page.getByLabel("Mi apodo");
       await apodoSemana.fill("Ale");
       failWeek = false;
