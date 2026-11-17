@@ -2,7 +2,7 @@ import PostHog from 'posthog-js-lite';
 import { isLikelyBot } from '@posthog/browser-common/utils/blocked-uas';
 import { PostHogPersistedProperty } from '@posthog/core';
 import type { CaptureEvent, PostHogQueueItem } from '@posthog/core';
-import { PLUS_SURVEY_ID, supportedPlusSurvey } from './plus-survey-contract.ts';
+import { CLASS_FEEDBACK_SURVEY_ID, PLUS_SURVEY_ID, supportedPlusSurvey } from './plus-survey-contract.ts';
 import type { PlusSurvey } from './plus-survey-contract.ts';
 
 export interface AnalyticsClient {
@@ -107,7 +107,8 @@ class NavigationSafePostHog extends PostHog {
     if (!survey || !supportedPlusSurvey(survey, surveyId) || this.optedOut || owner !== this.getDistinctId()) return;
     const key = (name: string) => survey[name as keyof typeof survey] as string | undefined
       || survey.feature_flag_keys?.find(f => f.key === name)?.value;
-    const keys = ['linked_flag_key', 'targeting_flag_key', 'internal_targeting_flag_key'].map(key).filter((v): v is string => Boolean(v));
+    // La pregunta por clase se repite: el flag interno de PostHog la escondería tras la primera respuesta.
+    const keys = ['linked_flag_key', 'targeting_flag_key', ...(surveyId === CLASS_FEEDBACK_SURVEY_ID ? [] : ['internal_targeting_flag_key'])].map(key).filter((v): v is string => Boolean(v));
     // Evaluate only this survey's flags, on demand. General automatic flags stay disabled.
     if (!key('internal_targeting_flag_key')) return;
     const result = await this.getFeatureFlagsStateless(owner, {}, properties, {}, true, keys);

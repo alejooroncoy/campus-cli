@@ -61,4 +61,16 @@ assert.equal(supported(classesSurvey),false,'The Plus definition cannot be repla
 const classesSent = {...completed,$survey_id:classesId};
 assert.deepEqual(safe('survey sent',classesSent),classesSent);
 assert.deepEqual(person('survey dismissed',{$survey_id:classesId,$survey_iteration:null}),{[`$survey_dismissed/${classesId}`]:true});
+// Pregunta por clase: se repite (schedule always) y nunca marca a la persona como respondida.
+const { CLASS_FEEDBACK_SURVEY_ID: feedbackId, classFeedbackSurveyIdForAudience: feedbackAudience } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
+assert.equal(feedbackAudience('customer',false),feedbackId);
+for (const [aud,test] of [['customer',true],['test',true],['internal',false],['unknown',false]]) assert.equal(feedbackAudience(aud,test),undefined,`${aud}/${test}`);
+const feedbackSurvey = {...survey,id:feedbackId,schedule:'always'};
+assert.equal(supported(feedbackSurvey,feedbackId),true);
+assert.equal(supported({...feedbackSurvey,schedule:'once'},feedbackId),false,'La pregunta por clase debe repetirse.');
+assert.equal(supported({...classesSurvey,schedule:'always'},classesId),false,'Las demás encuestas siguen siendo de una vez.');
+assert.equal(supported(feedbackSurvey),false);
+const feedbackSent = {...completed,$survey_id:feedbackId};
+assert.deepEqual(safe('survey sent',feedbackSent),feedbackSent);
+for (const event of ['survey shown','survey sent','survey dismissed']) assert.deepEqual(person(event,{...feedbackSent}),{},`${event} no marca a la persona`);
 console.log('plus-survey: ok');

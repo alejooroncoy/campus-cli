@@ -1,4 +1,4 @@
-import { canAnswerClassesSurvey, canAnswerPlusSurvey, getClassesSurvey, getPlusSurvey, track } from './analytics.ts';
+import { canAnswerClassFeedbackSurvey, canAnswerClassesSurvey, canAnswerPlusSurvey, getClassFeedbackSurvey, getClassesSurvey, getPlusSurvey, track } from './analytics.ts';
 import { PLUS_QA_SURVEY_ID, classesSurveyIdForAudience, plusSurveyIdForAudience, plusSurveyQaRequested } from './plus-survey-contract.ts';
 import type { PlusSurvey } from './plus-survey-contract.ts';
 import type { CampusSession } from './campus-session.ts';
@@ -9,6 +9,10 @@ type SurveyAdapter = {
   eligible: (view: string, session?: CampusSession) => boolean;
   load: () => Promise<PlusSurvey | undefined>;
   canAnswer: (owner: string) => boolean;
+  /** Separa lo respondido por elemento (una clase), para encuestas que se repiten. */
+  scope?: string;
+  /** Si la respuesta elegida pide el comentario de la segunda pregunta. Por defecto, siempre. */
+  asksFollowup?: (choice: string) => boolean;
 };
 
 /** Panel de encuesta con el diseño de Campus. Lo usan Plus y Mis clases con reglas propias de elegibilidad. */
@@ -71,7 +75,7 @@ export function mountSurveyPanel(panel: HTMLElement, adapter: SurveyAdapter) {
         answered = true; answers[survey!.questions[0].id!] = choice;
         choices.hidden = true; close.setAttribute('aria-label', 'Terminar encuesta');
         output.textContent = 'Tu respuesta ya quedó guardada.';
-        const followup = survey!.questions[1];
+        const followup = adapter.asksFollowup?.(choice) === false ? undefined : survey!.questions[1];
         if (followup) {
           send(false); title.textContent = followup.question;
           form.querySelector('label')!.textContent = followup.question;
@@ -97,7 +101,7 @@ export function mountSurveyPanel(panel: HTMLElement, adapter: SurveyAdapter) {
       if (!result || disposed || !eligible) return;
       survey = result;
       if (survey.id === PLUS_QA_SURVEY_ID) panel.querySelector('.app-kicker')!.textContent = 'PRUEBA QA · EXCLUIDA DEL ANÁLISIS DE CLIENTES';
-      storageKey = `campus-survey:${survey.id}:${owner}:${survey.current_iteration ?? 0}`;
+      storageKey = `campus-survey:${survey.id}:${owner}:${survey.current_iteration ?? 0}${adapter.scope ? `:${adapter.scope}` : ''}`;
       try { if (localStorage.getItem(storageKey)) { finished = true; return; } } catch { /* Remote targeting still applies. */ }
       render();
     } catch { /* Optional survey failures never block the page. */ }
@@ -128,5 +132,17 @@ export function mountClassesSurvey(panel: HTMLElement) {
       && Boolean(classesSurveyIdForAudience(session?.analyticsAudience, session?.analyticsAudience === 'test' || session?.plusTest === true)),
     load: getClassesSurvey,
     canAnswer: canAnswerClassesSurvey,
+  });
+}
+
+/** Mis clases, una vez por clase: `classId` separa lo respondido; «Salió bien» no pide comentario. */
+export function mountClassFeedbackSurvey(panel: HTMLElement, classId: string) {
+  return mountSurveyPanel(panel, {
+    thanks: 'Gracias. Lo revisamos para que tus próximas clases salgan mejor.',
+    eligible: view => view === 'ready',
+    load: getClassFeedbackSurvey,
+    canAnswer: canAnswerClassFeedbackSurvey,
+    scope: classId,
+    asksFollowup: choice => choice !== 'Salió bien',
   });
 }

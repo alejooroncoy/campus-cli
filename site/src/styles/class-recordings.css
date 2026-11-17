@@ -248,6 +248,7 @@
 /* Encuesta de mejoras: mismo panel que la de Plus (campus-plus.css no se carga aquí). */
 .classes-survey{display:grid;gap:12px;margin-bottom:20px;border-color:#b8dce6;background:#f5fbfd}
 .classes-survey[hidden]{display:none}
+.classes-feedback__class{margin:-4px 0 0;font-weight:600;color:var(--app-ink,#123142);overflow-wrap:anywhere}
 .classes-survey h2{margin:0;font-size:clamp(19px,3vw,22px);line-height:1.3;max-width:34ch}
 .classes-survey .plus-survey__header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .classes-survey .plus-survey__close{display:grid;place-items:center;width:44px;height:44px;margin:-12px -12px -8px 0;border:0;border-radius:50%;background:transparent;color:#506d7f;font:inherit;font-size:26px;cursor:pointer}
