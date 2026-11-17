@@ -1473,13 +1473,14 @@ export default function CampuUpdates() {
                 // pedido para la IA y la evidencia se abren cuando se quieren.
                 <details className="campu-card campu-fold campu-context">
                   <summary>
-                    <div>
-                      <p className="campu-eyebrow">
+                    {/* En <summary> solo caben un título y texto en línea. */}
+                    <span className="campu-fold-text">
+                      <span className="campu-eyebrow">
                         Contexto preparado · {timestamp(context.preparedAt)}
-                      </p>
+                      </span>
                       <h2>Esto es lo que pude revisar.</h2>
-                      <p>{context.summary}</p>
-                    </div>
+                      <span>{context.summary}</span>
+                    </span>
                     <span>Ver detalle</span>
                   </summary>
                   <p

@@ -90,19 +90,26 @@
 .campu-fold > summary h2 {
   margin: 0;
 }
-.campu-fold > summary > span {
+.campu-fold > summary > span:last-child {
   flex: none;
   font-weight: 600;
   color: #087b8b;
 }
-.campu-fold > summary > span::after {
+.campu-fold > summary > span:last-child::after {
   content: " ▾";
 }
 .campu-context > summary {
   align-items: flex-start;
 }
-.campu-context > summary p {
-  margin: 0;
+.campu-fold-text,
+.campu-fold-text > span {
+  display: block;
+}
+.campu-fold-text {
+  min-width: 0;
+}
+.campu-fold-text > span:last-child {
+  line-height: 1.65;
 }
 .campu-context > summary h2 {
   margin: 4px 0 6px;
@@ -110,7 +117,7 @@
 .campu-fold[open] > summary {
   margin-bottom: 14px;
 }
-.campu-fold[open] > summary > span::after {
+.campu-fold[open] > summary > span:last-child::after {
   content: " ▴";
 }
 .campu-card fieldset {
