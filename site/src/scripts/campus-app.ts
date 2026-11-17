@@ -505,11 +505,17 @@ function initPage() {
 // Hook into Astro's View Transitions lifecycle (initial load and every client-side page load)
 // Mis clases en beta: el menú lo muestra dentro de la app Android (window.CampusNative) y a las cuentas Plus
 // (incluye cortesía y admin), que son las que pueden grabar. Las cuentas gratis no lo ven.
-function revealNativeOnly(): void {
-  const show = () => document.querySelectorAll<HTMLElement>("[data-native-only]").forEach(el => { el.hidden = false; });
-  if ((window as Window & { CampusNative?: unknown }).CampusNative) { show(); return; }
-  void getCampusSession().then(session => { if (session?.authenticated && session.plan === "plus") show(); }).catch(() => {});
+function setClassesNav(visible: boolean): void {
+  document.querySelectorAll<HTMLElement>("[data-native-only]").forEach(el => { el.hidden = !visible; });
 }
+const classesNavFor = (session?: CampusSession | null) =>
+  Boolean((window as Window & { CampusNative?: unknown }).CampusNative) || (session?.authenticated === true && session.plan === "plus");
+function revealNativeOnly(): void {
+  if (classesNavFor()) { setClassesNav(true); return; }
+  void getCampusSession().then(session => setClassesNav(classesNavFor(session))).catch(() => {});
+}
+// El menú sigue el plan en vivo: aparece al activar Plus y se oculta si vence, sin recargar.
+window.addEventListener("campus:session-updated", event => setClassesNav(classesNavFor((event as CustomEvent<CampusSession>).detail)));
 document.addEventListener("astro:page-load", revealNativeOnly);
 // Páginas sin ClientRouter (el chat) no emiten astro:page-load: se revela también en la carga normal.
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", revealNativeOnly); else revealNativeOnly();
