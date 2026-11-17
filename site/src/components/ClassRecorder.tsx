@@ -52,12 +52,14 @@ function wavBlob(samples: Int16Array) {
   return new Blob([view], { type: 'audio/wav' });
 }
 /** Estado que envía la app de Campus (Expo) cuando el teléfono graba la clase. */
-type NativeRecorderState = { status: 'idle' | 'starting' | 'recording' | 'interrupted' | 'stopping'; elapsedSeconds: number; part: number; firstId: string | null; message?: string; uploads: { pending: number; uploading: boolean; done: number; error?: string };
+type NativeRecorderState = { status: 'idle' | 'starting' | 'recording' | 'paused' | 'interrupted' | 'stopping'; elapsedSeconds: number; part: number; firstId: string | null; message?: string; uploads: { pending: number; uploading: boolean; done: number; error?: string };
   /** Texto en vivo de la app: `liveId` es la parte en curso (la app sube el audio; la web lee el texto y pregunta). */
   live?: { liveId: string | null; note?: string } };
 type NativeBridge = { CampusNative?: { recorder?: number }; ReactNativeWebView?: { postMessage(data: string): void } };
 /** Dentro de la app, la grabación la hace el teléfono: sigue con la pantalla bloqueada y sube cada parte sola. */
 const nativeRecorder = () => typeof window !== 'undefined' && Boolean((window as NativeBridge).CampusNative?.recorder && (window as NativeBridge).ReactNativeWebView);
+/** La app acepta pausar y reanudar desde la web (CampusNative.recorder ≥ 2, APK 0.1.2+). */
+const nativeCanPause = () => nativeRecorder() && ((window as NativeBridge).CampusNative?.recorder ?? 0) >= 2;
 const toNative = (message: unknown) => (window as NativeBridge).ReactNativeWebView?.postMessage(JSON.stringify(message));
 /**
  * Dónde se graba: la laptop graba en la web (aguanta con la pantalla en reposo), el celular con la app.
@@ -81,7 +83,8 @@ class NotesBoundary extends Component<{ children: ReactNode }, { failed: boolean
   static getDerivedStateFromError() { return { failed: true }; }
   render() { return this.state.failed ? null : this.props.children; }
 }
-const NATIVE_STATUS = ['idle', 'starting', 'recording', 'interrupted', 'stopping'];
+// paused: la app 0.1.2+ pausa la misma parte (desde la web o la notificación).
+const NATIVE_STATUS = ['idle', 'starting', 'recording', 'paused', 'interrupted', 'stopping'];
 /** El estado que manda la app se valida antes de usarlo: una versión vieja o un script de la página no deben romper la vista. */
 function nativeState(value: unknown): NativeRecorderState | null {
   const v = value as NativeRecorderState | null, n = (x: unknown) => typeof x === 'number' && Number.isFinite(x) && x >= 0;
@@ -239,7 +242,7 @@ export default function ClassRecorder() {
         setLiveId(next);
       }
       if (state.live?.note !== undefined) setLiveNote(state.live.note ?? '');
-      if (state.status !== 'idle') { active.current = true; setMode(state.status === 'starting' ? 'starting' : state.status === 'stopping' ? 'saving' : 'recording'); setElapsed(state.elapsedSeconds); }
+      if (state.status !== 'idle') { active.current = true; setMode(state.status === 'starting' ? 'starting' : state.status === 'stopping' ? 'saving' : state.status === 'paused' ? 'paused' : 'recording'); setElapsed(state.elapsedSeconds); }
       else if (lastStatus !== 'idle') { active.current = false; setMode('idle'); }
       if (state.message && state.status !== lastStatus) setMessage(state.message);
       if (lastDone >= 0 && state.uploads.done !== lastDone) void refreshRef.current().catch(() => {});
@@ -696,7 +699,7 @@ export default function ClassRecorder() {
             <details className="classes-optional-title"><summary><span>{title.trim() ? 'Título propio' : 'Nombre automático'}</span><span className="classes-title-change">Cambiar título</span></summary><p className="classes-auto-title">Usamos el curso y la fecha. Puedes añadir un título propio.</p><label>Título de la clase<input value={title} onChange={e => setTitle(e.target.value)} maxLength={160} placeholder="Se genera automáticamente" autoComplete="off" /></label></details>
             <label className="classes-consent"><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} />Tengo permiso para grabar y guardar esta clase.</label>
           </fieldset>
-          {locked && <div className="classes-live" data-mode={mode} data-paused={mode === 'paused' || native?.status === 'interrupted'}><CampitoListening level={nativeActive ? 0 : level} native={nativeActive} paused={mode === 'paused' || native?.status === 'interrupted'} /><strong className="classes-timer">{clockLabel(elapsed)}</strong><span className="classes-live-state">{mode === 'testing' ? 'Prueba de 10 segundos' : mode === 'paused' ? 'En pausa' : mode === 'starting' ? 'Abriendo micrófono…' : mode === 'saving' ? 'Guardando audio…' : native?.status === 'interrupted' ? 'Clase en pausa por el sistema' : 'Grabando tu clase'}</span>{nativeActive && native ? <small>{native.status === 'interrupted' ? 'Micrófono interrumpido. Seguimos grabando la misma clase en cuanto el teléfono lo devuelva.' : <><strong className="classes-native-reassurance">Puedes bloquear el celular: la grabación sigue.</strong>Parte {native.part}.</>} {native.uploads.pending ? `${native.uploads.pending} parte(s) por subir.` : ''}{native.uploads.error ? ` ${native.uploads.error}` : ''}</small> : <><LevelBars level={level} active={mode === 'recording' || mode === 'testing'} /><meter className="classes-sr-only" min={0} max={1} value={level} aria-label="Nivel del micrófono" /><small>{low ? 'Señal baja. Comprueba que se escuche al profesor.' : 'El nivel indica volumen, no precisión del reconocimiento.'}</small></>}</div>}
+          {locked && <div className="classes-live" data-mode={mode} data-paused={mode === 'paused' || native?.status === 'interrupted'}><CampitoListening level={nativeActive ? 0 : level} native={nativeActive} paused={mode === 'paused' || native?.status === 'interrupted'} /><strong className="classes-timer">{clockLabel(elapsed)}</strong><span className="classes-live-state">{mode === 'testing' ? 'Prueba de 10 segundos' : mode === 'paused' ? 'En pausa' : mode === 'starting' ? 'Abriendo micrófono…' : mode === 'saving' ? 'Guardando audio…' : native?.status === 'interrupted' ? 'Clase en pausa por el sistema' : 'Grabando tu clase'}</span>{nativeActive && native ? <small>{native.status === 'paused' ? 'Grabación en pausa. También puedes reanudarla desde la notificación del celular.' : native.status === 'interrupted' ? 'Micrófono interrumpido. Seguimos grabando la misma clase en cuanto el teléfono lo devuelva.' : <><strong className="classes-native-reassurance">Puedes bloquear el celular: la grabación sigue.</strong>Parte {native.part}.</>} {native.uploads.pending ? `${native.uploads.pending} parte(s) por subir.` : ''}{native.uploads.error ? ` ${native.uploads.error}` : ''}</small> : <><LevelBars level={level} active={mode === 'recording' || mode === 'testing'} /><meter className="classes-sr-only" min={0} max={1} value={level} aria-label="Nivel del micrófono" /><small>{low ? 'Señal baja. Comprueba que se escuche al profesor.' : 'El nivel indica volumen, no precisión del reconocimiento.'}</small></>}</div>}
           <div className={`classes-actions classes-record-actions${locked ? " classes-record-actions--active" : ""}`} data-mode={mode} data-paused={mode === 'paused' || native?.status === 'interrupted'}>
             {locked && <span className="classes-controls-time">{mode === 'paused' || native?.status === 'interrupted' ? 'En pausa' : mode === 'testing' ? 'Prueba de micrófono' : mode === 'starting' ? 'Abriendo micrófono' : mode === 'saving' ? 'Guardando audio' : 'Grabación'} · {clockLabel(elapsed)}</span>}
             {!locked && device === 'native' && !config.enabled ? <div className="classes-ios" role="note"><strong>Grabar desde la app se activará pronto en tu cuenta.</strong><p>Cuando esté lista, la app seguirá grabando aunque bloquees el celular.</p></div>
@@ -714,6 +717,7 @@ export default function ClassRecorder() {
               <small>Si el archivo pasa de 96 MB, en Ajustes › Notas de voz › Calidad del audio elige «Comprimida».</small>
             </div>
             : !locked ? <><button className="app-button classes-record-button" disabled={busy || !consent} aria-describedby={!consent ? 'classes-record-reason' : undefined} onClick={() => void microphone(false)}><span className="classes-rec-dot" aria-hidden="true" />Grabar clase</button>{!consent && <small className="classes-record-reason" id="classes-record-reason">Marca el permiso para grabar.</small>}<button className="app-button app-button--secondary" disabled={busy} onClick={() => void microphone(true)}>Probar micrófono</button>{device === 'android' && <small className="classes-device-note">Pronto: la app de Campus para grabar con la pantalla apagada. Por ahora, mantén Campus abierto mientras grabas.</small>}</> : <>
+              {['recording','paused'].includes(mode) && nativeActive && nativeCanPause() && <button className="app-button app-button--secondary" onClick={() => toNative({ type: mode === 'paused' ? 'campus:record:resume' : 'campus:record:pause' })}>{mode === 'paused' ? 'Reanudar' : 'Pausar'}</button>}
               {['recording','paused'].includes(mode) && !nativeActive && <button className="app-button app-button--secondary" onClick={() => { const r = recorder.current; if (!r) return; if (r.state === 'recording') { r.pause(); setMode('paused'); } else if (r.state === 'paused') { r.resume(); setMode('recording'); } }}>{mode === 'paused' ? 'Continuar' : 'Pausar'}</button>}
               <button className="app-button" disabled={['starting','saving'].includes(mode)} onClick={() => { if (nativeActive) toNative({ type: 'campus:record:stop' }); else if (recorder.current?.state !== 'inactive') recorder.current?.stop(); }}>{config.transcriptionLive && mode !== 'testing' ? 'Detener y transcribir' : 'Detener y guardar'}</button>
             </>}
