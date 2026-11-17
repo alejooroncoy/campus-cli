@@ -221,11 +221,12 @@ export default function ClassRecorder() {
       if (!alive.current || !state) return;
       setNative(state);
       // La app transcribe en vivo cada parte; la web muestra su texto y permite preguntar sobre la clase.
+      // Una clase nueva empieza sin texto, aunque la app avise su id en vivo un poco después.
+      if (lastStatus === 'idle' && state.status !== 'idle') { nativeParts.current = []; setLiveId(''); setLiveLines([]); setLiveUntil(0); setAnswer(null); }
       if (state.status !== 'idle' && state.live?.liveId) {
         const next = state.live.liveId;
-        // Una clase nueva empieza sin texto; una parte nueva de la misma clase se suma al final de la anterior.
-        if (lastStatus === 'idle') { nativeParts.current = []; setLiveLines([]); setLiveUntil(0); setAnswer(null); }
-        if (!nativeParts.current.some(p => p.id === next)) nativeParts.current.push({ id: next, offset: nativeParts.current.reduce((n, p) => Math.max(n, p.offset + p.until), 0), until: 0, lines: [] });
+        // Una parte nueva empieza en el minuto de la clase que informa la app (no depende de lo que la web alcanzó a leer).
+        if (!nativeParts.current.some(p => p.id === next)) nativeParts.current.push({ id: next, offset: nativeParts.current.length ? state.elapsedSeconds : 0, until: 0, lines: [] });
         setLiveId(next);
       }
       if (state.live?.note !== undefined) setLiveNote(state.live.note ?? '');
