@@ -25,8 +25,9 @@ function mount(){
       toggle.checked=s.enabled;toggle.disabled=false;
       form.hidden=!s.available||!s.paymentsAvailable||!s.subscribed||!s.linked||s.pack;
       summary.textContent=!s.subscribed?'Los recordatorios están incluidos con Plus vigente.':
-        `${s.used} de ${s.quota} avisos usados este mes. Te quedan ${s.remaining}.${s.pack?' Tu paquete está activo.':''}`;
-      find('[data-wa-reset]').textContent='Los cupos se renuevan el '+new Date(s.resetsAt).toLocaleDateString('es-PE',{timeZone:'America/Lima',day:'numeric',month:'long'})+'. Los avisos no usados no se acumulan.';
+        `Resumen semanal incluido${s.weeklySent?` (${s.weeklySent} enviado${s.weeklySent===1?'':'s'} este mes)`:''}. `+
+        (s.pack?`Avisos extra: ${s.used} de ${s.quota} usados este mes. Te quedan ${s.remaining}.`:'Sin avisos extra este mes.');
+      find('[data-wa-reset]').textContent='Los avisos extra se renuevan el '+new Date(s.resetsAt).toLocaleDateString('es-PE',{timeZone:'America/Lima',day:'numeric',month:'long'})+'. Los avisos no usados no se acumulan.';
     }catch(e){if(!disposed){summary.textContent=e instanceof Error?e.message:'No pudimos comprobar tus avisos.';toggle.disabled=true;form.hidden=true;}}
   }
   toggle.onchange=async()=>{
@@ -48,6 +49,9 @@ function mount(){
   };
   const changed=()=>{disposed=true;root.hidden=true;void Promise.resolve().then(mount);};
   window.addEventListener('campus:session-updated',changed);
-  void load();cleanup=()=>{disposed=true;window.removeEventListener('campus:session-updated',changed);};
+  // Al volver de WhatsApp tras vincular el número, se vuelve a comprobar.
+  const back=()=>{if(document.visibilityState==='visible'&&!busy&&!find('[data-wa-link-needed]').hidden)void load();};
+  document.addEventListener('visibilitychange',back);
+  void load();cleanup=()=>{disposed=true;window.removeEventListener('campus:session-updated',changed);document.removeEventListener('visibilitychange',back);};
 }
 document.addEventListener('astro:page-load',mount);document.addEventListener('astro:before-swap',()=>cleanup());mount();

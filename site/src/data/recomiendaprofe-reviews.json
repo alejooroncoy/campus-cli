@@ -2948,31 +2948,6 @@
    ]
   },
   {
-   "professorId": 39859,
-   "professorSlug": "yackeline-antonieta-bautista-flores",
-   "sources": [
-    {
-     "sourceName": "Yackeline Antonieta Bautista Flores",
-     "sourceSlug": "yackeline-antonieta-bautista-flores",
-     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/yackeline-antonieta-bautista-flores",
-     "matchRule": "nombre idéntico"
-    }
-   ],
-   "reviews": [
-    {
-     "id": "6a83e8448de47c4c7842af17",
-     "sourceUrl": "https://recomienda-profe-upc-frontend.vercel.app/profesores/yackeline-antonieta-bautista-flores",
-     "rating": 9,
-     "difficulty": 3,
-     "recommends": true,
-     "course": "Taller de Desempeño Profesional",
-     "period": "Beta Comentarios 2026-02",
-     "createdAt": "2026-08-18T05:06:12.679Z",
-     "text": "Bastante buena, es un poco exigente pero enseña bien y suele subir puntos si necesitas."
-    }
-   ]
-  },
-  {
    "professorId": 26227,
    "professorSlug": "zuleika-helen-barreda-razuri",
    "sources": [
