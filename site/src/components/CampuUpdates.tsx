@@ -1,5 +1,5 @@
 import { track } from "../scripts/analytics";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cachedReportOwner, forgetReport, readReport, writeReport } from "../lib/campu-report-cache";
 import {
   getCampusSession,
@@ -308,7 +308,20 @@ function UncoveredNote({ list }: { list: NonNullable<Upcoming["uncovered"]> }) {
 
 /** Lo que el cronograma de tus cursos programa, aunque Blackboard todavía no lo
  * tenga como tarea. Las fechas las calcula el servidor con el calendario de Mi UPC. */
-function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
+/** En la vista simple (Home) va sin tarjeta propia (bare), sin la frase de Campito
+ * cuando el titular ya la dice (quiet), y cada entrega usa la tarjeta que muestra
+ * de dónde sale la fecha (renderItem). */
+function UpcomingView({
+  upcoming: u,
+  bare,
+  quiet,
+  renderItem,
+}: {
+  upcoming: Upcoming;
+  bare?: boolean;
+  quiet?: boolean;
+  renderItem?: (i: UpcomingItem) => ReactNode;
+}) {
   const items = u.items.filter((i) => i.studentAction && !i.done);
   const counts = Array.from(
     { length: CELLS },
@@ -327,17 +340,19 @@ function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
           0,
         );
   return (
-    <section className="campu-card campu-upcoming">
-      <div className="campu-says">
-        <img
-          src="/assets/campu/campu-wave-v2-192.webp"
-          width="72"
-          height="72"
-          alt=""
-          aria-hidden="true"
-        />
-        <p>{sentence(items, u)}</p>
-      </div>
+    <section className={bare ? "campu-upcoming campu-upcoming--bare" : "campu-card campu-upcoming"}>
+      {!quiet && (
+        <div className="campu-says">
+          <img
+            src="/assets/campu/campu-wave-v2-192.webp"
+            width="72"
+            height="72"
+            alt=""
+            aria-hidden="true"
+          />
+          <p>{sentence(items, u)}</p>
+        </div>
+      )}
       {counts.some(Boolean) && (
         <>
           <div className="campu-weeks" role="tablist" aria-label="Tu calendario">
@@ -360,22 +375,28 @@ function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
               </button>
             ))}
           </div>
+          {renderItem ? (
+            <ul className="campu-week-list" role="tabpanel">
+              {items.filter((i) => cellOf(u, i) === active).map(renderItem)}
+            </ul>
+          ) : (
           <ul className="campu-upcoming-list" role="tabpanel">
-            {items
-              .filter((i) => cellOf(u, i) === active)
-              .map((i, n) => (
-                <li key={`${i.courseId}|${i.title}|${n}`}>
-                  <div>
-                    <strong>{i.title}</strong>
-                    <small>
-                      {i.course}
-                      {!i.inBlackboard && <em>Aún no está en Blackboard</em>}
-                    </small>
-                  </div>
-                  <span className="campu-date">{rangeLabel(i.from, i.to)}</span>
-                </li>
-              ))}
-          </ul>
+              {items
+                .filter((i) => cellOf(u, i) === active)
+                .map((i, n) => (
+                  <li key={`${i.courseId}|${i.title}|${n}`}>
+                    <div>
+                      <strong>{i.title}</strong>
+                      <small>
+                        {i.course}
+                        {!i.inBlackboard && <em>Aún no está en Blackboard</em>}
+                      </small>
+                    </div>
+                    <span className="campu-date">{rangeLabel(i.from, i.to)}</span>
+                  </li>
+                ))}
+            </ul>
+          )}
         </>
       )}
       {!!undated.length && (
@@ -643,9 +664,6 @@ function Home({
   const today = limaDay(Date.now());
   const u = context?.upcoming ?? null;
   const pending = u ? u.items.filter((i) => i.studentAction && !i.done) : [];
-  const dated = pending
-    .filter((i) => i.from)
-    .sort((a, b) => a.from!.localeCompare(b.from!));
   // Cuándo es, en palabras: hoy, mañana, en N días o esta semana.
   const whenOf = (i: UpcomingItem) =>
     i.from! <= today && today <= i.to!
@@ -656,8 +674,6 @@ function Home({
           const d = daysBetween(today, i.from!);
           return d === 1 ? "Mañana" : `En ${d} días`;
         })();
-  const inWeek = u ? dated.filter((i) => i.from! <= u.to) : [];
-  const later = u ? dated.filter((i) => i.from! > u.to).slice(0, 3) : [];
   const item = (i: UpcomingItem) => (
     <DeliveryCard
       key={i.courseId + i.title + i.from}
@@ -687,30 +703,9 @@ function Home({
         </div>
       </div>
       <ChangesCard events={events} />
-      {u && (
-        <div className="campu-week">
-          <h2>Esta semana</h2>
-          {inWeek.length ? (
-            <ul>{inWeek.slice(0, 5).map(item)}</ul>
-          ) : (
-            <p className="campu-muted">
-              {u.uncovered?.length
-                ? "Nada para esta semana en los cursos con cronograma."
-                : "Nada para esta semana en lo que revisé."}
-            </p>
-          )}
-          {inWeek.length > 5 && (
-            <small>Y {inWeek.length - 5} más en Ajustes y detalle.</small>
-          )}
-          {!!later.length && (
-            <>
-              <h2>Más adelante</h2>
-              <ul>{later.map(item)}</ul>
-            </>
-          )}
-          <UncoveredNote list={u.uncovered ?? []} />
-        </div>
-      )}
+      {/* Con cambios, el titular habla de ellos: la frase de lo que viene va en el calendario. */}
+      {u && <UpcomingView upcoming={u} bare quiet={!events.length} renderItem={item} />}
+      <h2 className="campu-home-label">Avisos que te mandé</h2>
       {shown.length ? (
         GROUPS.map((name, g) => {
           const list = shown.filter((n) => bucket(n) === g);
@@ -754,7 +749,7 @@ function Home({
           aria-expanded={more}
           onClick={onMore}
         >
-          {more ? "Ocultar ajustes y detalle" : "Ajustes y detalle ›"}
+          {more ? "Ocultar ajustes" : "Ajustes de avisos ›"}
         </button>
       </div>
     </section>
@@ -1044,7 +1039,7 @@ export default function CampuUpdates() {
     setStatus((s: any) => ({ ...s, ...result }));
     setInfo(
       value.enabled
-        ? "Preferencias guardadas. Campito revisará tus fuentes y preparará tu resumen."
+        ? "Listo. Reviso tus cursos y te armo tu resumen."
         : "Seguimiento pausado. Puedes conservar o eliminar lo que ya preparó Campito.",
     );
   }
@@ -1184,35 +1179,77 @@ export default function CampuUpdates() {
               )}
               {showDetail && (
               <>
-              <section className="campu-card campu-status">
-                <div>
-                  <h2>{labels[status.status] ?? "Revisando tu conexión"}</h2>
-                  <p>
-                    Última revisión completa: {timestamp(status.lastSuccessAt)}
-                  </p>
-                  {status.lastError && <p>{status.lastError}</p>}
-                  {status.coverage && !status.coverage.complete && (
-                    <p>
-                      Hay fuentes pendientes. Esto no confirma que no tengas
-                      novedades o entregas.
-                    </p>
-                  )}
-                </div>
-                <a href="/app/copilot/">Revisar conexión con mi IA →</a>
-              </section>
               {!status.available && (
                 <p className="campu-alert">
-                  Este piloto requiere Campus Plus, una conexión UPC activa y
-                  una cuenta habilitada para participar.
+                  Tu calendario necesita Campus Plus y tu conexión UPC
+                  activa.
                 </p>
               )}
-              <div className="campu-columns">
+              {!simple && context?.upcoming && (
+                <UpcomingView upcoming={context.upcoming} />
+              )}
+              {!simple && <ChangesCard events={events} />}
+                <section className="campu-card">
+                  {/* Arriba ya están los últimos: aquí va el historial completo. */}
+                  <h2>{simple ? "Todos tus avisos" : "Avisos que te mandé"}</h2>
+                  {!notices.length && (
+                    <p>
+                      {prefs.enabled
+                        ? "Tu primer resumen aparece apenas termine de revisar tus cursos."
+                        : "Activa \u201cRevisar mis cursos por mí\u201d en los ajustes y te armo tu primera semana."}
+                    </p>
+                  )}
+                  <ul className="campu-notices">
+                    {notices.map((n) => (
+                      <li key={n.id}>
+                        <a href={"/app/novedades/" + n.id + "/"}>
+                          {!n.read && (
+                            <span className="campu-dot" aria-label="Sin leer" />
+                          )}
+                          {n.title}
+                          <small>{timestamp(n.createdAt)}</small>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  {next && (
+                    <button
+                      className="campu-secondary"
+                      disabled={busy}
+                      onClick={() =>
+                        void guarded(async () => {
+                          const n = await api("/notices?cursor=" + next);
+                          setNotices((v) => [...v, ...n.notices]);
+                          setNext(n.nextCursor);
+                        })
+                      }
+                    >
+                      Ver más avisos
+                    </button>
+                  )}
+                  <p className="campu-muted">
+                    La fecha es cuando me di cuenta del cambio, no cuando lo
+                    publicó el profesor.
+                  </p>
+                  <button
+                    className="campu-link"
+                    disabled={busy}
+                    onClick={() =>
+                      void guarded(async () => {
+                        setContext(await api("/week"));
+                        setEvents([]);
+                      })
+                    }
+                  >
+                    Ver mi resumen de esta semana
+                  </button>
+                </section>
                 <section className="campu-card" id="avisos">
-                  <h2>Cómo quieres que te avise</h2>
+                  <h2>Ajustes de avisos</h2>
                   <p>
-                    Las revisiones se programan a las 8, 12, 16 y 20 h. El
-                    resumen semanal se prepara el lunes. Los avisos importantes
-                    se agrupan, con un máximo de dos al día además del resumen.
+                    Reviso tus cursos a las 8, 12, 16 y 20 h y cada lunes te
+                    armo el resumen de la semana. Si cambia algo importante te
+                    aviso, máximo dos veces al día.
                   </p>
                   <form
                     onSubmit={(e) => {
@@ -1221,7 +1258,7 @@ export default function CampuUpdates() {
                     }}
                   >
                     <fieldset disabled={busy}>
-                      <legend>Seguimiento y canales</legend>
+                      <legend>Dónde te aviso</legend>
                       <label>
                         <input
                           type="checkbox"
@@ -1229,7 +1266,7 @@ export default function CampuUpdates() {
                           checked={prefs.enabled}
                           onChange={(e) => update("enabled", e.target.checked)}
                         />
-                        Activar Campito proactivo
+                        Revisar mis cursos por mí
                       </label>
                       <label>
                         <input
@@ -1237,7 +1274,7 @@ export default function CampuUpdates() {
                           checked={prefs.email}
                           onChange={(e) => update("email", e.target.checked)}
                         />
-                        Avisos al correo de mi cuenta
+                        Por correo
                       </label>
                       <label>
                         <input
@@ -1245,16 +1282,15 @@ export default function CampuUpdates() {
                           checked={prefs.push}
                           onChange={(e) => update("push", e.target.checked)}
                         />
-                        Avisos push en mis dispositivos registrados
+                        Notificaciones en mis dispositivos
                       </label>
                     </fieldset>
                     <p className="campu-muted">
-                      El resumen prepara el contexto de los cursos elegidos. Las
-                      categorías siguientes filtran los avisos de cambios. Los
-                      trámites se consultan solo si activas su opción.
+                      Elige de qué quieres enterarte. Tus trámites de Mi UPC solo
+                      los reviso si los marcas.
                     </p>
                     <fieldset disabled={busy}>
-                      <legend>Qué novedades incluir en los avisos</legend>
+                      <legend>De qué te aviso</legend>
                       {categories.map(([key, label]) => (
                         <label key={key}>
                           <input
@@ -1280,7 +1316,7 @@ export default function CampuUpdates() {
                             update("procedures", e.target.checked)
                           }
                         />
-                        Cambios en mis solicitudes de trámites de Mi UPC
+                        Mis trámites de Mi UPC
                       </label>
                     </fieldset>
                     {!!status.courses?.length && (
@@ -1345,14 +1381,14 @@ export default function CampuUpdates() {
                       </select>
                     </label>
                     <p className="campu-muted">
-                      Sin avisos entre las 22 y las 8 h de tu zona. Puedes
-                      pausar y eliminar tus preparaciones cuando quieras.
+                      No te escribo entre las 22 y las 8 h. Puedes pausarlo o
+                      borrar lo que preparé cuando quieras.
                     </p>
                     <button
                       disabled={busy || (!status.available && prefs.enabled)}
                       type="submit"
                     >
-                      {busy ? "Guardando…" : "Guardar preferencias"}
+                      {busy ? "Guardando…" : "Guardar ajustes"}
                     </button>
                   </form>
                   {status.suggestedNickname !== undefined && (
@@ -1389,8 +1425,8 @@ export default function CampuUpdates() {
                   <div className="campu-device">
                     <h3>Este dispositivo</h3>
                     <p>
-                      El permiso push se pide solo al pulsar este botón. En
-                      iPhone o iPad, primero instala Campus en tu pantalla de
+                      Para recibir notificaciones aquí, pulsa el botón. En
+                      iPhone o iPad, primero agrega Campus a tu pantalla de
                       inicio.
                     </p>
                     <button
@@ -1410,7 +1446,7 @@ export default function CampuUpdates() {
                         })
                       }
                     >
-                      Permitir push aquí
+                      Activar notificaciones aquí
                     </button>
                     <button
                       className="campu-link"
@@ -1428,65 +1464,22 @@ export default function CampuUpdates() {
                     </button>
                   </div>
                 </section>
-                <section className="campu-card">
-                  <h2>Lo que encontré para ti</h2>
-                  {!notices.length && (
+              <section className="campu-card campu-status">
+                <div>
+                  <h2>{labels[status.status] ?? "Revisando tu conexión"}</h2>
+                  <p>
+                    Última revisión completa: {timestamp(status.lastSuccessAt)}
+                  </p>
+                  {status.lastError && <p>{status.lastError}</p>}
+                  {status.coverage && !status.coverage.complete && (
                     <p>
-                      {prefs.enabled
-                        ? "El primer resumen aparecerá después de que Campito revise tus fuentes."
-                        : "Activa el seguimiento para que prepare tu primera semana."}
+                      Hay fuentes pendientes. Esto no confirma que no tengas
+                      novedades o entregas.
                     </p>
                   )}
-                  <ul className="campu-notices">
-                    {notices.map((n) => (
-                      <li key={n.id}>
-                        <a href={"/app/novedades/" + n.id + "/"}>
-                          {!n.read && (
-                            <span className="campu-dot" aria-label="Sin leer" />
-                          )}
-                          {n.title}
-                          <small>{timestamp(n.createdAt)}</small>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                  {next && (
-                    <button
-                      className="campu-secondary"
-                      disabled={busy}
-                      onClick={() =>
-                        void guarded(async () => {
-                          const n = await api("/notices?cursor=" + next);
-                          setNotices((v) => [...v, ...n.notices]);
-                          setNext(n.nextCursor);
-                        })
-                      }
-                    >
-                      Ver más avisos
-                    </button>
-                  )}
-                  <p className="campu-muted">
-                    La fecha del aviso indica cuándo detecté el cambio. No
-                    prueba cuándo lo publicó el profesor.
-                  </p>
-                  <button
-                    className="campu-link"
-                    disabled={busy}
-                    onClick={() =>
-                      void guarded(async () => {
-                        setContext(await api("/week"));
-                        setEvents([]);
-                      })
-                    }
-                  >
-                    Ver mi resumen de esta semana
-                  </button>
-                </section>
-              </div>
-              {!simple && <ChangesCard events={events} />}
-              {context?.upcoming && (
-                <UpcomingView upcoming={context.upcoming} />
-              )}
+                </div>
+                <a href="/app/copilot/">Revisar conexión con mi IA →</a>
+              </section>
               {context && (
                 <section className="campu-card campu-context">
                   <p className="campu-eyebrow">
