@@ -31,5 +31,32 @@ import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
     })();
   </script>
   <CampuUpdates client:load />
-  <WhatsAppReminders />
+  <div class="novedades-extra">
+    <WhatsAppReminders />
+  </div>
 </AppShell>
+<style is:global>
+  /* La tarjeta de WhatsApp va fuera del componente de React: toma sus mismos
+     márgenes y, en la vista simple, el ancho de su columna central. */
+  .novedades-extra {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 3vw, 36px) clamp(16px, 3vw, 36px);
+  }
+  @media (max-width: 760px) {
+    .novedades-extra {
+      padding: 0 10px 16px;
+    }
+  }
+  astro-island:has(.campu-home):not(:has(#avisos)) ~ .novedades-extra .wa-card {
+    max-width: 640px;
+    margin-inline: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(200px, 240px);
+    gap: 22px;
+  }
+  @media (max-width: 720px) {
+    astro-island:has(.campu-home):not(:has(#avisos)) ~ .novedades-extra .wa-card {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
