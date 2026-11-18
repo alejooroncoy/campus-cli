@@ -9,7 +9,8 @@ function mount(){
   const find=<T extends HTMLElement=HTMLElement>(selector:string)=>root.querySelector<T>(selector)!;
   const summary=find('[data-wa-summary]'),toggle=find<HTMLInputElement>('[data-wa-enabled]'),form=find<HTMLFormElement>('[data-wa-pack]');
   async function api(path='',value?:unknown){
-    const r=await fetch('/api/app/whatsapp'+path,{method:value===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',
+    // Con barra final: el sitio usa trailingSlash y sin ella cada consulta pasa por un 308.
+    const r=await fetch('/api/app/whatsapp'+path+'/',{method:value===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',
       headers:value===undefined?{}:{'content-type':'application/json'},body:value===undefined?undefined:JSON.stringify(value),signal:AbortSignal.timeout(25000)});
     const result=await r.json();if(!r.ok)throw Error(result.error??'No pudimos comprobar tus avisos.');return result;
   }

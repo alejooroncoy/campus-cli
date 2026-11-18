@@ -36,7 +36,7 @@ try{
   const panel=page.locator('[data-whatsapp-reminders]');
   const load=async()=>{await page.goto(base+'/app/plus/');await page.locator('[data-wa-summary]').filter({hasText:/Resumen semanal incluido/}).waitFor();};
   await load();assert.match(await panel.textContent(),/resumen por WhatsApp cada semana/);assert.match(await panel.textContent(),/20 avisos extra al mes por S\/5/);assert.match(await page.locator('[data-wa-summary]').textContent(),/Resumen semanal incluido \(1 enviado este mes\)\. Sin avisos extra/);assert.equal(writes.length,0);
-  const saved=page.waitForResponse(r=>r.url().endsWith('/api/app/whatsapp/preferences'));
+  const saved=page.waitForResponse(r=>r.url().endsWith('/api/app/whatsapp/preferences/'));
   await page.locator('[data-wa-enabled]').check();await saved;assert.deepEqual(writes[0],{enabled:true,consent:true});
   await page.waitForFunction(()=>!document.querySelector('[data-wa-enabled]').disabled);
   await page.locator('[data-wa-pack] button').click();assert.equal(writes.length,1,'purchase requires explicit consent');
