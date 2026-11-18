@@ -340,7 +340,7 @@ function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
       </div>
       {counts.some(Boolean) && (
         <>
-          <div className="campu-weeks" role="tablist" aria-label="Lo que viene">
+          <div className="campu-weeks" role="tablist" aria-label="Tu calendario">
             {counts.map((count, n) => (
               <button
                 key={n}
@@ -1089,8 +1089,8 @@ export default function CampuUpdates() {
           height="84"
         />
         <div>
-          <p className="campu-eyebrow">Campito proactivo · Piloto UPC</p>
-          <h1>Tu semana, un paso adelante.</h1>
+          <p className="campu-eyebrow">Tu calendario · UPC</p>
+          <h1>Tu calendario, un paso adelante.</h1>
           <p>
             Me encargo de revisar las novedades para que sepas qué cambió y
             puedas continuar con tu IA.

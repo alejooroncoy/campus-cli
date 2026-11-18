@@ -8,7 +8,7 @@ import AppSidebar from "../components/AppSidebar.astro";
 
 interface Props {
   title: string;
-  active: "profes" | "asistente" | "copilot" | "perfil" | "suscripcion" | "turnitin" | "biblioteca" | "clases";
+  active: "profes" | "asistente" | "copilot" | "perfil" | "suscripcion" | "turnitin" | "biblioteca" | "clases" | "calendario";
 }
 
 const { title, active } = Astro.props;
@@ -17,6 +17,7 @@ const nav = [
   { id: "asistente", label: CHARACTER_NAME, href: "/app/asistente/", icon: "users" },
   // En beta, Mis clases sale en el menú de la app Android y de las cuentas Plus aunque la web no lo publique (lo revela campus-app.ts).
   { id: "clases", label: "Mis clases", href: "/app/clases/", icon: "book-open", nativeOnly: !(classRecordingsEnabled || active === "clases") },
+  { id: "calendario", label: "Calendario", href: "/app/novedades/", icon: "calendar-days" },
   { id: "copilot", label: "Con. Campus a tu IA", href: "/app/copilot/", icon: "sparkles" },
   ...(libraryServiceEnabled ? [{ id: "biblioteca", label: "Biblioteca", href: "/biblioteca/", icon: "file-text" }] : []),
   ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
