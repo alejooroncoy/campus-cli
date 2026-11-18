@@ -427,8 +427,8 @@ try {
     try {
       // El detalle (ajustes, cursos, lo que se revisó) está detrás de un botón.
       const openDetail = async () => {
-        const boton = page.getByRole("button", { name: /Ajustes y detalle/ });
-        const detalle = page.getByRole("heading", { name: "Cómo quieres que te avise" });
+        const boton = page.getByRole("button", { name: /Ajustes de avisos/ });
+        const detalle = page.getByRole("heading", { name: "Ajustes de avisos" });
         await boton.or(detalle).first().waitFor();
         if (await boton.count()) await boton.click();
       };
@@ -483,7 +483,7 @@ try {
         ["GET /api/app/proactive/page/" + noticeId + "/"],
         "una sola consulta de lectura",
       );
-      assert.ok(await page.locator(".campu-week").count(), "con su semana");
+      assert.ok(await page.locator(".campu-upcoming").count(), "con su semana");
       // Si /page falla por la red, no se vuelve a pedir: se usan las consultas de siempre.
       const pedidasCorte = [];
       const anotarCorte = (req) => {
@@ -546,12 +546,12 @@ try {
       assert.equal(await page.locator(".campu-loading").count(), 0);
       const titularCambio = (await page.locator(".campu-home h1").innerText()).replace(/\s+/g, " ");
       assert.match(titularCambio, /^(Encontré \d+ cambios en tus cursos\.|Cambió |Publicaron |Ya no aparece|Hay un anuncio)/, titularCambio);
-      assert.equal(await page.getByRole("heading", { name: "Cómo quieres que te avise" }).count(), 0);
+      assert.equal(await page.getByRole("heading", { name: "Ajustes de avisos" }).count(), 0);
       assert.match(await cambios.innerText(), /nota oficial en mi upc/i, "el cambio se ve sin abrir nada");
       // Y el orden: el cambio va antes que lo que viene.
       const orden = await page.evaluate(() => {
         const q = (s) => document.querySelector(s);
-        const c = q(".campu-home .campu-changes"), w = q(".campu-home .campu-week");
+        const c = q(".campu-home .campu-changes"), w = q(".campu-home .campu-upcoming");
         return !w || Boolean(c.compareDocumentPosition(w) & Node.DOCUMENT_POSITION_FOLLOWING);
       });
       assert.equal(orden, true, "el cambio va primero");
@@ -583,14 +583,15 @@ try {
       );
       // Abre en la primera celda con algo; el título con HTML queda como texto.
       assert.equal(await celdas.nth(0).getAttribute("aria-selected"), "true");
-      assert.ok(await viene.locator("li").getByText("TB2 <img", { exact: false }).count());
+      assert.ok(await viene.locator("li").getByText("TB2", { exact: true }).count());
       assert.equal(await viene.getByText("TB1", { exact: true }).count(), 0);
       await viene.getByRole("tab", { name: /Próxima/ }).click();
       assert.ok(await viene.locator("li").getByText("TP1", { exact: true }).count());
-      assert.ok(await viene.getByText("28 set–4 oct", { exact: true }).count());
+      const proxima = (await viene.locator("[role=tabpanel]").innerText()).replace(/\s+/g, " ");
+      assert.match(proxima, /28 set–4 oct/, proxima);
       assert.ok(await viene.locator("li").getByText("Entrega del domingo", { exact: true }).count());
-      assert.ok(await viene.getByText("4 oct", { exact: true }).count());
-      assert.ok(await viene.getByText("Aún no está en Blackboard").count());
+      assert.match(proxima, /Entrega del domingo.*4 oct/, proxima);
+      assert.ok(await viene.getByText("Aún sin publicar").count());
       await viene.getByRole("tab", { name: /Sig\. semanas/ }).click();
       assert.ok(await viene.locator("li").getByText("Examen parcial", { exact: true }).count());
       assert.equal(await viene.locator("li").getByText("TP1", { exact: true }).count(), 0);
@@ -618,10 +619,10 @@ try {
         (await page.evaluate(() => window.copies))[0],
         prepared.prompt,
       );
-      await page.getByLabel("Avisos al correo de mi cuenta").uncheck();
-      await page.getByRole("button", { name: "Guardar preferencias" }).click();
+      await page.getByLabel("Por correo").uncheck();
+      await page.getByRole("button", { name: "Guardar ajustes" }).click();
       await page
-        .getByText("Preferencias guardadas.", { exact: false })
+        .getByText("Listo. Reviso tus cursos", { exact: false })
         .waitFor();
       assert.equal(saved, 1);
       assert.equal(preferences.email, false);
@@ -707,7 +708,7 @@ try {
         .waitFor();
       assert.equal(
         await page
-          .getByRole("button", { name: "Guardar preferencias" })
+          .getByRole("button", { name: "Guardar ajustes" })
           .count(),
         0,
       );
@@ -792,19 +793,30 @@ try {
       const titular = (await home.locator("h1").innerText()).replace(/\s+/g, " ");
       assert.ok(titular.startsWith("Esta semana tienes 2 entregas"), titular);
       assert.equal(await page.evaluate(() => !!window.injected), false);
-      // Dos entregas la misma semana, de dos cursos, cada una con su curso y su hora.
-      const semana = (await home.locator(".campu-week").innerText()).replace(/\s+/g, " ");
-      assert.ok(semana.includes("TB2 <img"), semana);
+      // El calendario por semanas va arriba: esta semana, dos entregas de dos cursos con su hora.
+      const cal = home.locator(".campu-upcoming");
+      const tabs = cal.getByRole("tab");
+      assert.equal(await tabs.first().getAttribute("aria-selected"), "true");
+      const semana = (await cal.locator("[role=tabpanel]").innerText()).replace(/\s+/g, " ");
+      // Un título con HTML se muestra limpio: ni se ejecuta ni se ven las etiquetas.
+      assert.ok(semana.includes("TB2") && !semana.includes("<img"), semana);
+      assert.equal((await page.locator("body").innerText()).includes("onerror"), false);
       assert.ok(semana.includes("Curso de prueba"), semana);
-      assert.ok(semana.includes("Esta semana · 21–27 set"), semana);
       assert.ok(semana.includes("Avance 4") && semana.includes("Otro curso"), semana);
       assert.match(semana, /En 3 días · 25 set · (11:59|23:59)/);
-      // Lo que no está publicado se dice, y lo de la próxima semana va aparte.
-      assert.ok(/Más adelante.*TP1.*Aún sin publicar/.test(semana), semana);
-      // La hora que escribe el cronograma se muestra en 24 horas aunque Blackboard no la tenga.
-      assert.match(semana, /Entrega del domingo.*4 oct · 23:30/, semana);
+      assert.equal(await cal.locator("[role=tabpanel] .campu-item").count(), 2);
+      // Una entrega publicada en Blackboard no dice que falte publicarla.
+      const avance = cal.locator(".campu-item", { hasText: "Avance 4" });
+      await avance.locator(".campu-item-head").click();
+      assert.equal(await avance.locator(".campu-item-more").getByText("Todavía no está como tarea").count(), 0);
+      await avance.locator(".campu-item-head").click();
+      // La próxima semana va en su pestaña: lo no publicado se dice y la hora del cronograma va en 24 h.
+      await cal.getByRole("tab", { name: /Próxima/ }).click();
+      const proximaSemana = (await cal.locator("[role=tabpanel]").innerText()).replace(/\s+/g, " ");
+      assert.ok(/TP1.*Aún sin publicar/.test(proximaSemana), proximaSemana);
+      assert.match(proximaSemana, /Entrega del domingo.*4 oct · 23:30/, proximaSemana);
       // Una entrega se abre para ver de dónde sale, con ratón y con teclado.
-      const tp1 = home.locator(".campu-item", { hasText: "TP1" });
+      const tp1 = cal.locator(".campu-item", { hasText: "TP1" });
       const cabeza = tp1.locator(".campu-item-head");
       assert.equal(await cabeza.getAttribute("aria-expanded"), "false");
       assert.equal(await tp1.locator(".campu-item-more").count(), 0);
@@ -821,15 +833,9 @@ try {
       assert.equal(await cabeza.getAttribute("aria-expanded"), "true");
       await page.keyboard.press("Enter");
       assert.equal(await cabeza.getAttribute("aria-expanded"), "false");
-      // Una entrega publicada en Blackboard no dice que falte publicarla.
-      const avance = home.locator(".campu-item", { hasText: "Avance 4" });
-      await avance.locator(".campu-item-head").click();
-      assert.equal(await avance.locator(".campu-item-more").getByText("Todavía no está como tarea").count(), 0);
-      await avance.locator(".campu-item-head").click();
-      // Las dos de esta semana y, aparte, lo que viene después (no más de tres).
-      const tarjetas = await home.locator(".campu-week .campu-item").count();
-      assert.ok(tarjetas >= 4 && tarjetas <= 5, String(tarjetas));
-      assert.equal(await home.locator(".campu-week ul").first().locator(".campu-item").count(), 2);
+      await tabs.first().click();
+      // Los avisos van debajo del calendario, con su título.
+      assert.equal(await home.getByRole("heading", { name: "Avisos que te mandé" }).count(), 1);
       assert.equal(await home.locator(".campu-day h2").first().innerText(), "Hoy");
       assert.equal(
         await home.getByRole("link", { name: /Ya preparé tu semana/ }).getAttribute("href"),
@@ -843,10 +849,10 @@ try {
       // La cobertura incompleta no se esconde con el detalle.
       assert.ok(await home.getByText("Me faltan fuentes por revisar", { exact: false }).count());
       // Nada de ajustes ni de detalle hasta que se pidan.
-      const ajustes = page.getByRole("heading", { name: "Cómo quieres que te avise" });
+      const ajustes = page.getByRole("heading", { name: "Ajustes de avisos" });
       assert.equal(await ajustes.count(), 0);
       assert.equal(await page.locator(".campu-context").count(), 0);
-      await home.getByRole("button", { name: /Ajustes y detalle/ }).click();
+      await home.getByRole("button", { name: /Ajustes de avisos/ }).click();
       await ajustes.waitFor();
       await home.getByRole("button", { name: /Ocultar ajustes/ }).click();
       assert.equal(await ajustes.count(), 0);
@@ -861,10 +867,10 @@ try {
       await cambio.getByRole("tab", { name: /Próxima/ }).click();
       weekAlt = true;
       await page.getByRole("button", { name: "Ver mi resumen de esta semana" }).click();
-      await cambio.locator("li").getByText("TB2 <img", { exact: false }).waitFor();
+      await cambio.locator("li").getByText("TB2", { exact: true }).waitFor();
       weekAlt = false;
       // Solo las entregas de la tira: la lista de cursos sin cronograma va aparte.
-      assert.equal(await cambio.locator(".campu-upcoming-list li").count(), 1);
+      assert.equal(await cambio.locator("[role=tabpanel] > li").count(), 1);
       assert.equal(await cambio.getByRole("tab").first().getAttribute("aria-selected"), "true");
       weeklyNotice = false;
       assert.deepEqual(errors, []);
