@@ -23,7 +23,10 @@
   --app-mint:#d9f1e8;
   --app-green:#087f5b;
   --app-danger:#b42318;
-  --app-mobile-nav-height:calc(92px + env(safe-area-inset-bottom));
+  /* Margen inferior seguro. Dentro de la app Android la página llega hasta el borde y la app informa el alto de
+     la barra de gestos en --campus-native-bottom (el WebView no siempre lo da en env()). */
+  --app-safe-bottom:max(env(safe-area-inset-bottom), var(--campus-native-bottom, 0px));
+  --app-mobile-nav-height:calc(92px + var(--app-safe-bottom));
 }
 * {
   box-sizing: border-box;
@@ -906,7 +909,7 @@ button:disabled {
     display: none;
   }
   .app-main {
-    padding: 28px 18px calc(106px + env(safe-area-inset-bottom));
+    padding: 28px 18px calc(106px + var(--app-safe-bottom));
   }
   .app-page-heading {
     margin-bottom: 24px;
@@ -978,7 +981,7 @@ button:disabled {
     grid-auto-columns: minmax(0, 1fr);
     align-items: center;
     height: var(--app-mobile-nav-height);
-    padding: 12px 8px calc(12px + env(safe-area-inset-bottom));
+    padding: 12px 8px calc(12px + var(--app-safe-bottom));
     background: var(--app-canvas);
     border-top: 1px solid var(--app-line);
   }

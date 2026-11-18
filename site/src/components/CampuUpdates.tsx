@@ -1,5 +1,5 @@
 import { track } from "../scripts/analytics";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cachedReportOwner, forgetReport, readReport, writeReport } from "../lib/campu-report-cache";
 import {
   getCampusSession,
@@ -82,7 +82,19 @@ type Upcoming = {
   to: string;
   items: UpcomingItem[];
   counts: { thisWeek: number; nextWeek: number; notInBlackboard: number };
+  /** Cursos de los que no se encontró un cronograma con fechas. */
+  uncovered?: {
+    courseId: string;
+    course: string;
+    reason: "no_syllabus" | "no_dates" | "no_resolved_dates";
+  }[];
 };
+/** Por qué un curso no aparece en "lo que viene", dicho para el estudiante. */
+const UNCOVERED_REASON = {
+  no_syllabus: "no encontré su sílabo ni un cronograma",
+  no_dates: "su sílabo no trae fechas que pueda leer",
+  no_resolved_dates: "tiene evaluaciones, pero sin fecha clara",
+} as const;
 type Context = {
   id: string;
   summary: string;
@@ -240,6 +252,18 @@ const cellLabel = (u: Upcoming, n: number) =>
         ? "Sig. semanas"
         : `Sem ${u.week + n}`;
 
+/** Títulos y nombres que vienen de Blackboard, del sílabo o de un aviso se muestran
+ * como texto limpio: sin etiquetas HTML ni entidades. React ya impide que se
+ * ejecuten; esto evita que se vean "<b>" o "&amp;" en pantalla. */
+const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", apos: "'", nbsp: " " };
+function plain(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (_, e) => ENTITIES[e])
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** Campito cuenta en una frase lo que viene; los títulos salen del cronograma y
  * se muestran como texto. */
 function sentence(items: UpcomingItem[], u: Upcoming) {
@@ -249,13 +273,15 @@ function sentence(items: UpcomingItem[], u: Upcoming) {
     .filter((i) => i.from)
     .sort((x, y) => x.from!.localeCompare(y.from!))[0];
   const one = (list: UpcomingItem[]) =>
-    list.length === 1 ? <b>{list[0].title}</b> : <b>{list.length} entregas</b>;
+    list.length === 1 ? <b>{plain(list[0].title)}</b> : <b>{list.length} entregas</b>;
   return (
     <>
       {now.length === 1 ? (
         <>Esta semana te toca {one(now)}.</>
       ) : now.length ? (
         <>Esta semana tienes {one(now)}.</>
+      ) : u.uncovered?.length ? (
+        <>Esta semana no veo nada en los cursos con cronograma.</>
       ) : (
         <>Esta semana va tranquila.</>
       )}{" "}
@@ -263,24 +289,60 @@ function sentence(items: UpcomingItem[], u: Upcoming) {
         <>La próxima, {one(next)}.</>
       ) : now.length || !first ? null : (
         <>
-          Lo siguiente es <b>{first.title}</b>.
+          Lo siguiente es <b>{plain(first.title)}</b>.
         </>
       )}
     </>
   );
 }
 
+/** Cursos sin cronograma con fechas: un curso vacío no es una semana libre, y el
+ * estudiante tiene que saber de cuáles solo verá lo ya publicado. */
+function UncoveredNote({ list }: { list: NonNullable<Upcoming["uncovered"]> }) {
+  if (!list.length) return null;
+  return (
+    <div className="campu-uncovered">
+      <p>
+        De {list.length === 1 ? "este curso" : "estos cursos"} solo te aviso lo
+        que publiquen en Blackboard:
+      </p>
+      <ul>
+        {list.map((c) => (
+          <li key={c.courseId}>
+            <strong>{plain(c.course).replace(/\s+-\s+Virtual$/, "")}</strong>{" "}
+            <small>{UNCOVERED_REASON[c.reason] ?? "sin cronograma"}</small>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 /** Lo que el cronograma de tus cursos programa, aunque Blackboard todavía no lo
  * tenga como tarea. Las fechas las calcula el servidor con el calendario de Mi UPC. */
-function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
+/** En la vista simple (Home) va sin tarjeta propia (bare), sin la frase de Campito
+ * cuando el titular ya la dice (quiet), y cada entrega usa la tarjeta que muestra
+ * de dónde sale la fecha (renderItem). */
+function UpcomingView({
+  upcoming: u,
+  bare,
+  quiet,
+  renderItem,
+}: {
+  upcoming: Upcoming;
+  bare?: boolean;
+  quiet?: boolean;
+  renderItem?: (i: UpcomingItem) => ReactNode;
+}) {
   const items = u.items.filter((i) => i.studentAction && !i.done);
   const counts = Array.from(
     { length: CELLS },
     (_, n) => items.filter((i) => cellOf(u, i) === n).length,
   );
   const undated = items.filter((i) => cellOf(u, i) < 0);
+  const uncovered = u.uncovered ?? [];
   const [picked, setPicked] = useState<number | null>(null);
-  if (!items.length) return null;
+  if (!items.length && !uncovered.length) return null;
   // Si el resumen cambió y la celda elegida quedó vacía, vuelve a la primera con algo.
   const active =
     picked !== null && counts[picked] > 0
@@ -290,20 +352,22 @@ function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
           0,
         );
   return (
-    <section className="campu-card campu-upcoming">
-      <div className="campu-says">
-        <img
-          src="/assets/campu/campu-wave-v2-192.webp"
-          width="72"
-          height="72"
-          alt=""
-          aria-hidden="true"
-        />
-        <p>{sentence(items, u)}</p>
-      </div>
+    <section className={bare ? "campu-upcoming campu-upcoming--bare" : "campu-card campu-upcoming"}>
+      {!quiet && (
+        <div className="campu-says">
+          <img
+            src="/assets/campu/campu-wave-v2-192.webp"
+            width="72"
+            height="72"
+            alt=""
+            aria-hidden="true"
+          />
+          <p>{sentence(items, u)}</p>
+        </div>
+      )}
       {counts.some(Boolean) && (
         <>
-          <div className="campu-weeks" role="tablist" aria-label="Lo que viene">
+          <div className="campu-weeks" role="tablist" aria-label="Tu calendario">
             {counts.map((count, n) => (
               <button
                 key={n}
@@ -323,29 +387,36 @@ function UpcomingView({ upcoming: u }: { upcoming: Upcoming }) {
               </button>
             ))}
           </div>
+          {renderItem ? (
+            <ul className="campu-week-list" role="tabpanel">
+              {items.filter((i) => cellOf(u, i) === active).map(renderItem)}
+            </ul>
+          ) : (
           <ul className="campu-upcoming-list" role="tabpanel">
-            {items
-              .filter((i) => cellOf(u, i) === active)
-              .map((i, n) => (
-                <li key={`${i.courseId}|${i.title}|${n}`}>
-                  <div>
-                    <strong>{i.title}</strong>
-                    <small>
-                      {i.course}
-                      {!i.inBlackboard && <em>Aún no está en Blackboard</em>}
-                    </small>
-                  </div>
-                  <span className="campu-date">{rangeLabel(i.from, i.to)}</span>
-                </li>
-              ))}
-          </ul>
+              {items
+                .filter((i) => cellOf(u, i) === active)
+                .map((i, n) => (
+                  <li key={`${i.courseId}|${i.title}|${n}`}>
+                    <div>
+                      <strong>{plain(i.title)}</strong>
+                      <small>
+                        {plain(i.course)}
+                        {!i.inBlackboard && <em>Aún no está en Blackboard</em>}
+                      </small>
+                    </div>
+                    <span className="campu-date">{rangeLabel(i.from, i.to)}</span>
+                  </li>
+                ))}
+            </ul>
+          )}
         </>
       )}
       {!!undated.length && (
         <p className="campu-undated">
-          Sin fecha confirmada: {undated.map((i) => i.title).join(", ")}
+          Sin fecha confirmada: {undated.map((i) => plain(i.title)).join(", ")}
         </p>
       )}
+      <UncoveredNote list={uncovered} />
     </section>
   );
 }
@@ -355,7 +426,7 @@ function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
   return (
     <article className="campu-fact">
       <p className="campu-eyebrow">
-        {f.course} ·{" "}
+        {plain(f.course)} ·{" "}
         {removed
           ? "Ya no aparece en la fuente"
           : f.kind === "assignment"
@@ -372,7 +443,7 @@ function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
                     ? "Anuncio"
                     : "Material"}
       </p>
-      <h3>{f.title || "Sin título publicado"}</h3>
+      <h3>{plain(f.title) || "Sin título publicado"}</h3>
       {f.dueAt && (
         <p>
           Vence: {timestamp(f.dueAt)}{" "}
@@ -456,7 +527,7 @@ function DeliveryCard({
     i.source === "blackboard"
       ? "Publicado en Blackboard"
       : proof
-        ? `${proof.title} · ${proof.locator}`
+        ? `${plain(proof.title)} · ${plain(proof.locator)}`
         : "El cronograma o el sílabo de tu curso";
   const soon = when === "Hoy" || when === "Mañana";
   return (
@@ -479,8 +550,8 @@ function DeliveryCard({
           </small>
         </span>
         <span className="campu-item-main">
-          <strong>{i.title}</strong>
-          <small>{i.course}</small>
+          <strong>{plain(i.title)}</strong>
+          <small>{plain(i.course)}</small>
           <em>
             {when} · {rangeLabel(i.from, i.to)}
             {hour ? ` · ${hour}` : ""}
@@ -578,7 +649,7 @@ function changeSentence(events: any[]) {
                 : f.kind === "procedure"
                   ? "Cambió el trámite"
                   : "Cambió";
-  return `${what} ${f.title || "algo"} en ${f.course}.`;
+  return `${what} ${plain(f.title) || "algo"} en ${plain(f.course)}.`;
 }
 
 /** Lo primero que se ve: una frase, lo próximo y lo nuevo. Todo lo demás está en
@@ -605,9 +676,6 @@ function Home({
   const today = limaDay(Date.now());
   const u = context?.upcoming ?? null;
   const pending = u ? u.items.filter((i) => i.studentAction && !i.done) : [];
-  const dated = pending
-    .filter((i) => i.from)
-    .sort((a, b) => a.from!.localeCompare(b.from!));
   // Cuándo es, en palabras: hoy, mañana, en N días o esta semana.
   const whenOf = (i: UpcomingItem) =>
     i.from! <= today && today <= i.to!
@@ -618,8 +686,6 @@ function Home({
           const d = daysBetween(today, i.from!);
           return d === 1 ? "Mañana" : `En ${d} días`;
         })();
-  const inWeek = u ? dated.filter((i) => i.from! <= u.to) : [];
-  const later = u ? dated.filter((i) => i.from! > u.to).slice(0, 3) : [];
   const item = (i: UpcomingItem) => (
     <DeliveryCard
       key={i.courseId + i.title + i.from}
@@ -649,25 +715,9 @@ function Home({
         </div>
       </div>
       <ChangesCard events={events} />
-      {u && (
-        <div className="campu-week">
-          <h2>Esta semana</h2>
-          {inWeek.length ? (
-            <ul>{inWeek.slice(0, 5).map(item)}</ul>
-          ) : (
-            <p className="campu-muted">Nada para esta semana en lo que revisé.</p>
-          )}
-          {inWeek.length > 5 && (
-            <small>Y {inWeek.length - 5} más en Ajustes y detalle.</small>
-          )}
-          {!!later.length && (
-            <>
-              <h2>Más adelante</h2>
-              <ul>{later.map(item)}</ul>
-            </>
-          )}
-        </div>
-      )}
+      {/* Con cambios, el titular habla de ellos: la frase de lo que viene va en el calendario. */}
+      {u && <UpcomingView upcoming={u} bare quiet={!events.length} renderItem={item} />}
+      <h2 className="campu-home-label">Avisos que te mandé</h2>
       {shown.length ? (
         GROUPS.map((name, g) => {
           const list = shown.filter((n) => bucket(n) === g);
@@ -680,7 +730,7 @@ function Home({
                     <li key={n.id}>
                       <a href={"/app/novedades/" + n.id + "/"}>
                         <i className={n.read ? "campu-dot off" : "campu-dot"} />
-                        <span>{n.title}</span>
+                        <span>{plain(n.title)}</span>
                         <small>
                           {g === 0
                             ? clock(n.createdAt)
@@ -711,7 +761,7 @@ function Home({
           aria-expanded={more}
           onClick={onMore}
         >
-          {more ? "Ocultar ajustes y detalle" : "Ajustes y detalle ›"}
+          {more ? "Ocultar ajustes" : "Ajustes de avisos ›"}
         </button>
       </div>
     </section>
@@ -1005,7 +1055,7 @@ export default function CampuUpdates() {
     setStatus((s: any) => ({ ...s, ...result }));
     setInfo(
       value.enabled
-        ? "Preferencias guardadas. Campito revisará tus fuentes y preparará tu resumen."
+        ? "Listo. Reviso tus cursos y te armo tu resumen."
         : "Seguimiento pausado. Puedes conservar o eliminar lo que ya preparó Campito.",
     );
   }
@@ -1039,241 +1089,6 @@ export default function CampuUpdates() {
             status.available &&
             prefs.enabled &&
             ["active", "partial"].includes(status.status)))));
-  // Los ajustes van después de las novedades: quien entra a Novedades viene a
-  // ver qué cambió. Solo con el seguimiento apagado van primero, para activarlo.
-  // Con el seguimiento activo se pliegan: están a mano sin ocupar la página. Se
-  // abren solos si está apagado o si se llega por el enlace #avisos.
-  const renderSettings = () => (
-    <details
-      className="campu-card campu-fold"
-      id="avisos"
-      open={!prefs.enabled || settingsOpen}
-      onToggle={(e) => setSettingsOpen(e.currentTarget.open)}
-    >
-      <summary>
-        <h2>Cómo quieres que te avise</h2>
-        <span>Ajustes</span>
-      </summary>
-      <p>
-        Las revisiones se programan a las 8, 12, 16 y 20 h. El
-        resumen semanal se prepara el lunes. Los avisos importantes
-        se agrupan, con un máximo de dos al día además del resumen.
-      </p>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void guarded(() => save(prefs));
-        }}
-      >
-        <fieldset disabled={busy}>
-          <legend>Seguimiento y canales</legend>
-          <label>
-            <input
-              type="checkbox"
-              disabled={!status.available && !prefs.enabled}
-              checked={prefs.enabled}
-              onChange={(e) => update("enabled", e.target.checked)}
-            />
-            Activar Campito proactivo
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={prefs.email}
-              onChange={(e) => update("email", e.target.checked)}
-            />
-            Avisos al correo de mi cuenta
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={prefs.push}
-              onChange={(e) => update("push", e.target.checked)}
-            />
-            Avisos push en mis dispositivos registrados
-          </label>
-        </fieldset>
-        <p className="campu-muted">
-          El resumen prepara el contexto de los cursos elegidos. Las
-          categorías siguientes filtran los avisos de cambios. Los
-          trámites se consultan solo si activas su opción.
-        </p>
-        <fieldset disabled={busy}>
-          <legend>Qué novedades incluir en los avisos</legend>
-          {categories.map(([key, label]) => (
-            <label key={key}>
-              <input
-                type="checkbox"
-                checked={prefs.categories.includes(key)}
-                onChange={(e) =>
-                  update(
-                    "categories",
-                    e.target.checked
-                      ? [...prefs.categories, key]
-                      : prefs.categories.filter((x) => x !== key),
-                  )
-                }
-              />
-              {label}
-            </label>
-          ))}
-          <label>
-            <input
-              type="checkbox"
-              checked={prefs.procedures}
-              onChange={(e) =>
-                update("procedures", e.target.checked)
-              }
-            />
-            Cambios en mis solicitudes de trámites de Mi UPC
-          </label>
-        </fieldset>
-        {!!status.courses?.length && (
-          <fieldset disabled={busy}>
-            <legend>Cursos</legend>
-            <label>
-              <input
-                type="checkbox"
-                checked={!prefs.courses.length}
-                onChange={(e) =>
-                  update(
-                    "courses",
-                    e.target.checked
-                      ? []
-                      : status.courses.map((c: any) => c.id),
-                  )
-                }
-              />
-              Todos los cursos disponibles
-            </label>
-            {status.courses.map((c: any) => (
-              <label key={c.id}>
-                <input
-                  type="checkbox"
-                  checked={
-                    !prefs.courses.length ||
-                    prefs.courses.includes(c.id)
-                  }
-                  onChange={(e) => {
-                    const all = prefs.courses.length
-                      ? prefs.courses
-                      : status.courses.map((c: any) => c.id);
-                    const selected = e.target.checked
-                      ? [...all, c.id]
-                      : all.filter((id: string) => id !== c.id);
-                    if (!selected.length) {
-                      setInfo(
-                        "Conserva al menos un curso o pausa el seguimiento.",
-                      );
-                      return;
-                    }
-                    update("courses", [
-                      ...new Set(selected),
-                    ] as string[]);
-                  }}
-                />
-                {c.name}
-              </label>
-            ))}
-          </fieldset>
-        )}
-        <label>
-          Zona horaria
-          <select
-            value={prefs.timezone}
-            onChange={(e) => update("timezone", e.target.value)}
-          >
-            <option>America/Lima</option>
-            <option>America/Bogota</option>
-            <option>America/Mexico_City</option>
-            <option>Europe/Madrid</option>
-          </select>
-        </label>
-        <p className="campu-muted">
-          Sin avisos entre las 22 y las 8 h de tu zona. Puedes
-          pausar y eliminar tus preparaciones cuando quieras.
-        </p>
-        <button
-          disabled={busy || (!status.available && prefs.enabled)}
-          type="submit"
-        >
-          {busy ? "Guardando…" : "Guardar preferencias"}
-        </button>
-      </form>
-      {status.suggestedNickname !== undefined && (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void guarded(() => saveNickname(nick));
-          }}
-        >
-          <fieldset disabled={busy}>
-            <legend>Cómo te digo</legend>
-            <label>
-              Mi apodo
-              <input
-                type="text"
-                maxLength={30}
-                autoComplete="nickname"
-                value={nick}
-                placeholder={status.suggestedNickname ?? "Tu nombre"}
-                onChange={(e) => setNick(e.target.value)}
-              />
-            </label>
-            <p className="campu-muted">
-              Así te saludo en los correos. Si lo dejas vacío uso{" "}
-              {status.suggestedNickname
-                ? status.suggestedNickname
-                : "tu nombre"}
-              . Cambiarlo no afecta tus avisos ni tus preferencias.
-            </p>
-            <button type="submit">Guardar apodo</button>
-          </fieldset>
-        </form>
-      )}
-      <div className="campu-device">
-        <h3>Este dispositivo</h3>
-        <p>
-          El permiso push se pide solo al pulsar este botón. En
-          iPhone o iPad, primero instala Campus en tu pantalla de
-          inicio.
-        </p>
-        <button
-          className="campu-secondary"
-          disabled={
-            busy || !status.available || !status.pushPublicKey
-          }
-          onClick={() =>
-            void guarded(async () => {
-              await enablePushDevice(
-                status.pushPublicKey,
-                session?.analyticsId ?? session?.email ?? "",
-              );
-              setInfo(
-                "Dispositivo registrado. Activa el canal push y guarda tus preferencias para recibir avisos.",
-              );
-            })
-          }
-        >
-          Permitir push aquí
-        </button>
-        <button
-          className="campu-link"
-          disabled={busy}
-          onClick={() =>
-            void guarded(async () => {
-              await removePushDevice();
-              setInfo(
-                "Los avisos push se desactivaron en este dispositivo.",
-              );
-            })
-          }
-        >
-          Desactivar en este dispositivo
-        </button>
-      </div>
-    </details>
-  );
   return (
     <div className="campu-updates">
       {!simple && !loadingReport && (
@@ -1285,8 +1100,8 @@ export default function CampuUpdates() {
           height="84"
         />
         <div>
-          <p className="campu-eyebrow">Campito proactivo · Piloto UPC</p>
-          <h1>Tu semana, un paso adelante.</h1>
+          <p className="campu-eyebrow">Tu calendario · UPC</p>
+          <h1>Tu calendario, un paso adelante.</h1>
           <p>
             Me encargo de revisar las novedades para que sepas qué cambió y
             puedas continuar con tu IA.
@@ -1380,6 +1195,302 @@ export default function CampuUpdates() {
               )}
               {showDetail && (
               <>
+              {!status.available && (
+                <p className="campu-alert">
+                  Tu calendario necesita Campus Plus y tu conexión UPC
+                  activa.
+                </p>
+              )}
+              {!simple && context?.upcoming && (
+                <UpcomingView upcoming={context.upcoming} />
+              )}
+              {!simple && <ChangesCard events={events} />}
+                <section className="campu-card">
+                  {/* Arriba ya están los últimos: aquí va el historial completo. */}
+                  <h2>{simple ? "Todos tus avisos" : "Avisos que te mandé"}</h2>
+                  {!notices.length && (
+                    <p>
+                      {prefs.enabled
+                        ? "Tu primer resumen aparece apenas termine de revisar tus cursos."
+                        : "Activa \u201cRevisar mis cursos por mí\u201d en los ajustes y te armo tu primera semana."}
+                    </p>
+                  )}
+                  <ul className="campu-notices">
+                    {notices.map((n) => (
+                      <li key={n.id}>
+                        <a href={"/app/novedades/" + n.id + "/"}>
+                          {!n.read && (
+                            <span className="campu-dot" aria-label="Sin leer" />
+                          )}
+                          {plain(n.title)}
+                          <small>{timestamp(n.createdAt)}</small>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  {next && (
+                    <button
+                      className="campu-secondary"
+                      disabled={busy}
+                      onClick={() =>
+                        void guarded(async () => {
+                          const n = await api("/notices?cursor=" + next);
+                          setNotices((v) => [...v, ...n.notices]);
+                          setNext(n.nextCursor);
+                        })
+                      }
+                    >
+                      Ver más avisos
+                    </button>
+                  )}
+                  <p className="campu-muted">
+                    La fecha es cuando me di cuenta del cambio, no cuando lo
+                    publicó el profesor.
+                  </p>
+                  <button
+                    className="campu-link"
+                    disabled={busy}
+                    onClick={() =>
+                      void guarded(async () => {
+                        setContext(await api("/week"));
+                        setEvents([]);
+                      })
+                    }
+                  >
+                    Ver mi resumen de esta semana
+                  </button>
+                </section>
+                {/* Plegados en el detalle: están a mano sin ocupar la página. Se
+                    abren solos si el seguimiento está apagado, en la vista simple
+                    (ahí se piden con su botón) o al llegar por #avisos. */}
+                <details
+                  className="campu-card campu-fold"
+                  id="avisos"
+                  open={!prefs.enabled || simple || settingsOpen}
+                  onToggle={(e) => setSettingsOpen(e.currentTarget.open)}
+                >
+                  <summary>
+                    <h2>Ajustes de avisos</h2>
+                    <span>Ajustes</span>
+                  </summary>
+                  <p>
+                    Reviso tus cursos a las 8, 12, 16 y 20 h y cada lunes te
+                    armo el resumen de la semana. Si cambia algo importante te
+                    aviso, máximo dos veces al día.
+                  </p>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void guarded(() => save(prefs));
+                    }}
+                  >
+                    <fieldset disabled={busy}>
+                      <legend>Dónde te aviso</legend>
+                      <label>
+                        <input
+                          type="checkbox"
+                          disabled={!status.available && !prefs.enabled}
+                          checked={prefs.enabled}
+                          onChange={(e) => update("enabled", e.target.checked)}
+                        />
+                        Revisar mis cursos por mí
+                      </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={prefs.email}
+                          onChange={(e) => update("email", e.target.checked)}
+                        />
+                        Por correo
+                      </label>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={prefs.push}
+                          onChange={(e) => update("push", e.target.checked)}
+                        />
+                        Notificaciones en mis dispositivos
+                      </label>
+                    </fieldset>
+                    <p className="campu-muted">
+                      Elige de qué quieres enterarte. Tus trámites de Mi UPC solo
+                      los reviso si los marcas.
+                    </p>
+                    <fieldset disabled={busy}>
+                      <legend>De qué te aviso</legend>
+                      {categories.map(([key, label]) => (
+                        <label key={key}>
+                          <input
+                            type="checkbox"
+                            checked={prefs.categories.includes(key)}
+                            onChange={(e) =>
+                              update(
+                                "categories",
+                                e.target.checked
+                                  ? [...prefs.categories, key]
+                                  : prefs.categories.filter((x) => x !== key),
+                              )
+                            }
+                          />
+                          {label}
+                        </label>
+                      ))}
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={prefs.procedures}
+                          onChange={(e) =>
+                            update("procedures", e.target.checked)
+                          }
+                        />
+                        Mis trámites de Mi UPC
+                      </label>
+                    </fieldset>
+                    {!!status.courses?.length && (
+                      <fieldset disabled={busy}>
+                        <legend>Cursos</legend>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={!prefs.courses.length}
+                            onChange={(e) =>
+                              update(
+                                "courses",
+                                e.target.checked
+                                  ? []
+                                  : status.courses.map((c: any) => c.id),
+                              )
+                            }
+                          />
+                          Todos los cursos disponibles
+                        </label>
+                        {status.courses.map((c: any) => (
+                          <label key={c.id}>
+                            <input
+                              type="checkbox"
+                              checked={
+                                !prefs.courses.length ||
+                                prefs.courses.includes(c.id)
+                              }
+                              onChange={(e) => {
+                                const all = prefs.courses.length
+                                  ? prefs.courses
+                                  : status.courses.map((c: any) => c.id);
+                                const selected = e.target.checked
+                                  ? [...all, c.id]
+                                  : all.filter((id: string) => id !== c.id);
+                                if (!selected.length) {
+                                  setInfo(
+                                    "Conserva al menos un curso o pausa el seguimiento.",
+                                  );
+                                  return;
+                                }
+                                update("courses", [
+                                  ...new Set(selected),
+                                ] as string[]);
+                              }}
+                            />
+                            {plain(c.name)}
+                          </label>
+                        ))}
+                      </fieldset>
+                    )}
+                    <label>
+                      Zona horaria
+                      <select
+                        value={prefs.timezone}
+                        onChange={(e) => update("timezone", e.target.value)}
+                      >
+                        <option>America/Lima</option>
+                        <option>America/Bogota</option>
+                        <option>America/Mexico_City</option>
+                        <option>Europe/Madrid</option>
+                      </select>
+                    </label>
+                    <p className="campu-muted">
+                      No te escribo entre las 22 y las 8 h. Puedes pausarlo o
+                      borrar lo que preparé cuando quieras.
+                    </p>
+                    <button
+                      disabled={busy || (!status.available && prefs.enabled)}
+                      type="submit"
+                    >
+                      {busy ? "Guardando…" : "Guardar ajustes"}
+                    </button>
+                  </form>
+                  {status.suggestedNickname !== undefined && (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void guarded(() => saveNickname(nick));
+                      }}
+                    >
+                      <fieldset disabled={busy}>
+                        <legend>Cómo te digo</legend>
+                        <label>
+                          Mi apodo
+                          <input
+                            type="text"
+                            maxLength={30}
+                            autoComplete="nickname"
+                            value={nick}
+                            placeholder={status.suggestedNickname ?? "Tu nombre"}
+                            onChange={(e) => setNick(e.target.value)}
+                          />
+                        </label>
+                        <p className="campu-muted">
+                          Así te saludo en los correos. Si lo dejas vacío uso{" "}
+                          {status.suggestedNickname
+                            ? status.suggestedNickname
+                            : "tu nombre"}
+                          . Cambiarlo no afecta tus avisos ni tus preferencias.
+                        </p>
+                        <button type="submit">Guardar apodo</button>
+                      </fieldset>
+                    </form>
+                  )}
+                  <div className="campu-device">
+                    <h3>Este dispositivo</h3>
+                    <p>
+                      Para recibir notificaciones aquí, pulsa el botón. En
+                      iPhone o iPad, primero agrega Campus a tu pantalla de
+                      inicio.
+                    </p>
+                    <button
+                      className="campu-secondary"
+                      disabled={
+                        busy || !status.available || !status.pushPublicKey
+                      }
+                      onClick={() =>
+                        void guarded(async () => {
+                          await enablePushDevice(
+                            status.pushPublicKey,
+                            session?.analyticsId ?? session?.email ?? "",
+                          );
+                          setInfo(
+                            "Dispositivo registrado. Activa el canal push y guarda tus preferencias para recibir avisos.",
+                          );
+                        })
+                      }
+                    >
+                      Activar notificaciones aquí
+                    </button>
+                    <button
+                      className="campu-link"
+                      disabled={busy}
+                      onClick={() =>
+                        void guarded(async () => {
+                          await removePushDevice();
+                          setInfo(
+                            "Los avisos push se desactivaron en este dispositivo.",
+                          );
+                        })
+                      }
+                    >
+                      Desactivar en este dispositivo
+                    </button>
+                  </div>
+                </details>
               <section className="campu-card campu-status">
                 <div>
                   <h2>{labels[status.status] ?? "Revisando tu conexión"}</h2>
@@ -1396,78 +1507,6 @@ export default function CampuUpdates() {
                 </div>
                 <a href="/app/copilot/">Revisar conexión con mi IA →</a>
               </section>
-              {!status.available && (
-                <p className="campu-alert">
-                  Este piloto requiere Campus Plus, una conexión UPC activa y
-                  una cuenta habilitada para participar.
-                </p>
-              )}
-              {/* Lo próximo va primero: es lo que se viene a ver. */}
-              {context?.upcoming && (
-                <UpcomingView upcoming={context.upcoming} />
-              )}
-              {!prefs.enabled && renderSettings()}
-              <div
-                className={
-                  !simple && events.length ? "campu-columns" : undefined
-                }
-              >
-              <section className="campu-card">
-                <h2>Lo que encontré para ti</h2>
-                {!notices.length && (
-                  <p>
-                    {prefs.enabled
-                      ? "El primer resumen aparecerá después de que Campito revise tus fuentes."
-                      : "Activa el seguimiento para que prepare tu primera semana."}
-                  </p>
-                )}
-                <ul className="campu-notices">
-                  {notices.map((n) => (
-                    <li key={n.id}>
-                      <a href={"/app/novedades/" + n.id + "/"}>
-                        {!n.read && (
-                          <span className="campu-dot" aria-label="Sin leer" />
-                        )}
-                        {n.title}
-                        <small>{timestamp(n.createdAt)}</small>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-                {next && (
-                  <button
-                    className="campu-secondary"
-                    disabled={busy}
-                    onClick={() =>
-                      void guarded(async () => {
-                        const n = await api("/notices?cursor=" + next);
-                        setNotices((v) => [...v, ...n.notices]);
-                        setNext(n.nextCursor);
-                      })
-                    }
-                  >
-                    Ver más avisos
-                  </button>
-                )}
-                <p className="campu-muted">
-                  La fecha del aviso indica cuándo detecté el cambio. No
-                  prueba cuándo lo publicó el profesor.
-                </p>
-                <button
-                  className="campu-link"
-                  disabled={busy}
-                  onClick={() =>
-                    void guarded(async () => {
-                      setContext(await api("/week"));
-                      setEvents([]);
-                    })
-                  }
-                >
-                  Ver mi resumen de esta semana
-                </button>
-              </section>
-              {!simple && <ChangesCard events={events} />}
-              </div>
               {context && (
                 // Plegado: a la vista queda la frase de lo revisado; las fuentes, el
                 // pedido para la IA y la evidencia se abren cuando se quieren.
@@ -1624,7 +1663,7 @@ export default function CampuUpdates() {
                     {context.evidence.map((e) => (
                       <article key={e.id} className="campu-fact">
                         <h4>
-                          {e.course} · {e.title}
+                          {plain(e.course)} · {plain(e.title)}
                         </h4>
                         <small>{e.locator}</small>
                         <p className="campu-preserve">{e.text}</p>
@@ -1660,7 +1699,6 @@ export default function CampuUpdates() {
                   </details>
                 </details>
               )}
-              {prefs.enabled && renderSettings()}
               <section className="campu-card campu-privacy">
                 <h2>Tú controlas lo que preparo.</h2>
                 <p>

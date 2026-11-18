@@ -374,3 +374,10 @@
 .classes-help .classes-ai__examples li{padding:10px 12px;font-size:14px}
 .classes-help .classes-tips li:before,.classes-help .classes-ai__examples li:before{content:none}
 .classes-help .classes-ai__examples li{justify-self:start;border:0;border-radius:16px 16px 16px 4px;background:#e9f3f7;color:#1d4558}
+/* La clase se abre dentro de su tarjeta (acordeón), justo debajo de lo que se tocó. */
+.classes-row{scroll-margin-top:16px}
+.classes-row .classes-detail{grid-column:1/-1;margin:0;padding:4px 16px 18px;border-top:1px solid var(--app-line);min-width:0}
+.classes-row .classes-detail>.classes-library-heading{justify-content:flex-end;margin:0 0 6px}
+.classes-row .classes-detail>.classes-library-heading .classes-delete{color:var(--app-muted);font-size:13px;font-weight:600;min-height:40px}
+.classes-row__opening{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:0 16px 14px;font-size:13px;font-weight:600;color:var(--app-link,#087fa4)}
+.classes-row__opening .classes-signedout__spinner{border-color:#b8dce6;border-top-color:var(--app-link,#087fa4)}

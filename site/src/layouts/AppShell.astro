@@ -8,15 +8,16 @@ import AppSidebar from "../components/AppSidebar.astro";
 
 interface Props {
   title: string;
-  active: "profes" | "asistente" | "copilot" | "perfil" | "suscripcion" | "turnitin" | "biblioteca" | "clases";
+  active: "profes" | "asistente" | "copilot" | "perfil" | "suscripcion" | "turnitin" | "biblioteca" | "clases" | "calendario";
 }
 
 const { title, active } = Astro.props;
 const isChat = active === "profes" || active === "asistente";
 const nav = [
   { id: "asistente", label: CHARACTER_NAME, href: "/app/asistente/", icon: "users" },
-  // En beta, Mis clases está en el menú de la app Android aunque la web no lo muestre (lo revela campus-app.ts).
+  // En beta, Mis clases sale en el menú de la app Android y de las cuentas Plus aunque la web no lo publique (lo revela campus-app.ts).
   { id: "clases", label: "Mis clases", href: "/app/clases/", icon: "book-open", nativeOnly: !(classRecordingsEnabled || active === "clases") },
+  { id: "calendario", label: "Calendario", href: "/app/novedades/", icon: "calendar-days" },
   { id: "copilot", label: "Con. Campus a tu IA", href: "/app/copilot/", icon: "sparkles" },
   ...(libraryServiceEnabled ? [{ id: "biblioteca", label: "Biblioteca", href: "/biblioteca/", icon: "file-text" }] : []),
   ...(turnitinServiceEnabled ? [{ id: "turnitin", label: "Turnitin", href: "/app/turnitin/", icon: "file-text" }] : []),
@@ -41,7 +42,7 @@ const nav = [
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Campus" />
-    <link rel="stylesheet" href="/app-dashboard.css?v=27" />
+    <link rel="stylesheet" href="/app-dashboard.css?v=28" />
     {isChat && <link rel="stylesheet" href="/profes-chat.css?v=37" />}
     <script is:inline async src="/campus-session-bootstrap.js?v=4"></script>
     {isChat && <script is:inline src="/campus-conversation-bootstrap.js?v=1" data-astro-rerun></script>}
