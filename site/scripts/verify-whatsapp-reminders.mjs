@@ -29,24 +29,33 @@ try{
    if(u.pathname==='/api/app/whatsapp')return r.fulfill({json:state});
    if(u.pathname==='/api/app/whatsapp/preferences'){const input=r.request().postDataJSON();writes.push(input);state.enabled=input.enabled;return r.fulfill({json:{enabled:state.enabled}});}
    if(u.pathname==='/api/app/whatsapp/checkout'){writes.push(r.request().postDataJSON());return r.fulfill({status:409,json:{error:'Pago de prueba sin cobro'}});}
+   // Tu calendario (/app/novedades/) no es lo que se prueba aquí: responde como servicio no disponible.
+   if(u.pathname.startsWith('/api/app/proactive'))return r.fulfill({status:503,json:{error:'PROACTIVE_UNAVAILABLE'}});
    if(u.pathname==='/api/app/plus/config')return r.fulfill({json:{enabled:true,ordersAvailable:true}});
    if(u.pathname==='/api/app/plus/state')return r.fulfill({json:{orders:[],subscription:null,subscriptionState:'none',currentPlan:'plus',enabled:true,eligible:true,flowAvailable:true}});
    return r.fulfill({json:{}});
   });
-  const panel=page.locator('[data-whatsapp-reminders]');
-  const load=async()=>{await page.goto(base+'/app/plus/');await page.locator('[data-wa-summary]').filter({hasText:/Resumen semanal incluido/}).waitFor();};
-  await load();assert.match(await panel.textContent(),/resumen por WhatsApp cada semana/);assert.match(await panel.textContent(),/20 avisos extra al mes por S\/5/);assert.match(await page.locator('[data-wa-summary]').textContent(),/Resumen semanal incluido \(1 enviado este mes\)\. Sin avisos extra/);assert.equal(writes.length,0);
+  const panel=page.locator('[data-whatsapp-reminders]'),summary=page.locator('[data-wa-summary]'),pack=page.locator('[data-wa-pack-wrap]');
+  // Espera a que la tarjeta pinte el estado que devuelve la API (data-state), no un texto concreto.
+  const load=async(expected,url='/app/plus/')=>{await page.goto(base+url);await page.locator(`[data-whatsapp-reminders][data-state="${expected}"]`).waitFor({state:'attached'});};
+  await load('off');assert.match(await panel.textContent(),/Un mensaje a la semana/);assert.equal(await summary.textContent(),'');assert.equal(await pack.isVisible(),false,'el paquete se ofrece después de encender el resumen');assert.equal(writes.length,0);
   const saved=page.waitForResponse(r=>r.url().endsWith('/api/app/whatsapp/preferences/'));
   await page.locator('[data-wa-enabled]').check();await saved;assert.deepEqual(writes[0],{enabled:true,consent:true});
+  await page.locator('[data-whatsapp-reminders][data-state="on"]').waitFor({state:'attached'});
   await page.waitForFunction(()=>!document.querySelector('[data-wa-enabled]').disabled);
+  assert.equal(await summary.textContent(),'Activo · 1 resumen este mes');
+  await pack.locator('summary').click();assert.match(await pack.textContent(),/20 por S\/5 al mes/);
   await page.locator('[data-wa-pack] button').click();assert.equal(writes.length,1,'purchase requires explicit consent');
   await page.locator('[data-wa-pack] [name=consent]').check();await page.locator('[data-wa-pack] button').click();
-  await page.locator('[data-wa-summary]').filter({hasText:'Pago de prueba sin cobro'}).waitFor();assert.deepEqual(writes[1],{consent:true});
+  await summary.filter({hasText:'Pago de prueba sin cobro'}).waitFor();assert.deepEqual(writes[1],{consent:true});assert.equal(await summary.getAttribute('data-error'),'true');
   if(process.argv[2])await page.screenshot({path:process.argv[2]+'/whatsapp-'+width+'.png',fullPage:true});
-  state={...initial,enabled:true,pack:true,quota:20,used:20,remaining:0};await load();
-  assert.match(await page.locator('[data-wa-summary]').textContent(),/Avisos extra: 20 de 20.*Te quedan 0/);assert.equal(await page.locator('[data-wa-pack]').isVisible(),false);
-  state={...initial,linked:false};await load();assert.equal(await page.locator('[data-wa-link-needed]').isVisible(),true);assert.equal(await page.locator('[data-wa-optin]').isVisible(),false);
-  state={...initial,available:false};await load();assert.equal(await page.locator('[data-wa-unavailable]').isVisible(),true);assert.equal(await page.locator('[data-wa-unavailable] a').getAttribute('href'),'/app/novedades/#avisos');assert.equal(await page.locator('[data-wa-pack]').isVisible(),false);
+  state={...initial,enabled:true,pack:true,quota:20,used:20,remaining:0};await load('on');
+  assert.match(await summary.textContent(),/Avisos al momento: te quedan 0 de 20 hasta el 1 de diciembre/);assert.equal(await summary.getAttribute('data-error'),null);assert.equal(await pack.isVisible(),false);
+  state={...initial,linked:false};await load('link');assert.equal(await page.locator('[data-wa-link-needed]').isVisible(),true);assert.equal(await page.locator('[data-wa-optin]').isVisible(),false);
+  state={...initial,available:false};await load('unavailable');assert.equal(await page.locator('[data-wa-unavailable]').isVisible(),true);assert.equal(await page.locator('[data-wa-unavailable] a').getAttribute('href'),'/app/novedades/#avisos');assert.equal(await pack.isVisible(),false);
+  // Sin Plus: en Mi suscripción el pago ya está arriba; en Tu calendario la tarjeta lleva a Plus.
+  state={...initial,subscribed:false,linked:false,enabled:false};await load('free');assert.equal(await page.locator('[data-wa-upsell]').isVisible(),false);
+  await load('free','/app/novedades/');assert.equal(await page.locator('[data-wa-upsell]').isVisible(),true);assert.equal(await page.locator('[data-wa-upsell] a').getAttribute('href'),'/app/plus/');assert.equal(await page.locator('[data-wa-unavailable]').isVisible(),false);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);assert.deepEqual(errors,[]);
   console.log('ok whatsapp quota, opt-in, purchase consent, unavailable, linked identity',width);await context.close();
  }

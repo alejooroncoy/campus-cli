@@ -1,24 +1,245 @@
-<section class="app-panel" data-whatsapp-reminders hidden aria-labelledby="whatsapp-reminders-title">
-  <p class="app-kicker">SOLO LO IMPORTANTE</p>
-  <h2 id="whatsapp-reminders-title">Tus pendientes por WhatsApp</h2>
-  <p>Tu Plus incluye un resumen por WhatsApp cada semana: lo que ya publicaron en tus cursos y lo que viene según tu sílabo o tus clases.</p>
-  <p data-wa-summary role="status" aria-live="polite">Comprobando tus avisos…</p>
-  <p data-wa-reset class="plus-muted"></p>
-  <div data-wa-unavailable hidden>
-    <p>Estamos activando WhatsApp. Mientras tanto, recibe tu resumen semanal y los cambios importantes en tu correo, con Campito proactivo.</p>
-    <a class="app-button" href="/app/novedades/#avisos">Recibirlos por correo</a>
+<section class="app-panel wa-card" data-whatsapp-reminders hidden aria-labelledby="whatsapp-reminders-title">
+  <div class="wa-card__copy">
+    <h2 id="whatsapp-reminders-title">Tu semana, en tu WhatsApp</h2>
+    <p class="wa-card__lead">Un mensaje a la semana: lo que ya publicaron en tus cursos y lo que viene según tu sílabo o tus clases.</p>
+    <p class="wa-card__status" data-wa-summary role="status" aria-live="polite">Comprobando tus avisos…</p>
+
+    <div class="wa-card__step" data-wa-upsell hidden>
+      <a class="app-button" href="/app/plus/">Activar Plus</a>
+      <p class="wa-card__fine">Viene incluido en Plus.</p>
+    </div>
+
+    <div class="wa-card__step" data-wa-unavailable hidden>
+      <a class="app-button" href="/app/novedades/#avisos">Recibirlo por correo</a>
+      <p class="wa-card__fine">Estamos activando WhatsApp. Mientras tanto, te llega a tu correo.</p>
+    </div>
+
+    <div class="wa-card__step" data-wa-link-needed hidden>
+      <a class="app-button" href="https://wa.me/51937751448?text=Hola%2C%20quiero%20vincular%20mi%20WhatsApp%20a%20mi%20cuenta%20Campus" target="_blank" rel="noopener">Vincular mi WhatsApp</a>
+      <p class="wa-card__fine">Te respondemos con un enlace: ábrelo con este mismo correo. Esta página se actualiza sola.</p>
+    </div>
+
+    <label class="wa-card__switch" data-wa-optin hidden>
+      <input type="checkbox" role="switch" data-wa-enabled />
+      <span>Quiero recibir mi resumen y mis avisos en mi WhatsApp. Lo apago aquí cuando quiera.</span>
+    </label>
+
+    <details class="wa-card__extra" data-wa-pack-wrap hidden>
+      <summary>Avisos al momento: 20 por S/5 al mes</summary>
+      <form data-wa-pack>
+        <p>Te avisamos apenas cambia algo importante, como una nota nueva o una fecha que se adelanta, y antes de que venza una entrega.</p>
+        <p class="wa-card__fine" data-wa-reset></p>
+        <label class="wa-card__consent"><input type="checkbox" required name="consent" /><span>Acepto pagar S/5 por este mes. Sin renovación automática. <a class="app-text-link" href="/cancelaciones-y-devoluciones/#precios-y-entrega">Condiciones</a></span></label>
+        <button class="app-button" type="submit">Activar por S/5</button>
+      </form>
+    </details>
   </div>
-  <div data-wa-link-needed hidden>
-    <p>Para recibirlos, vincula tu número: escríbele a Campus por WhatsApp y entra con el enlace que te manda, usando este mismo correo. Así comprobamos que el número es tuyo.</p>
-    <a class="app-button" href="https://wa.me/51937751448?text=Hola%2C%20quiero%20vincular%20mi%20WhatsApp%20a%20mi%20cuenta%20Campus" target="_blank" rel="noopener">Vincular mi WhatsApp</a>
-    <p class="plus-muted">Cuando termines, vuelve a esta página: se actualiza sola.</p>
-  </div>
-  <label class="plus-consent" data-wa-optin hidden><input type="checkbox" data-wa-enabled /><span>Quiero recibir mi resumen semanal y mis avisos en el WhatsApp vinculado a mi cuenta. Puedo desactivarlos aquí.</span></label>
-  <form data-wa-pack hidden>
-    <p><strong>20 avisos extra al mes por S/5.</strong> Te avisamos en el momento de los cambios importantes, como una nota nueva o una fecha que se adelanta, y de las entregas por vencer. Vence al finalizar este mes. Sin renovación automática ni cargos por aviso.</p>
-    <label class="plus-consent"><input type="checkbox" required name="consent" /><span>Acepto pagar S/5 por el paquete de este mes. <a class="app-text-link" href="/cancelaciones-y-devoluciones/#precios-y-entrega">Condiciones</a>.</span></label>
-    <button class="app-button" type="submit">Activar 20 avisos extra por S/5</button>
-  </form>
-  <p class="plus-muted">Sin documentos en el mensaje. Necesitas Plus vigente. Al agotar los avisos extra se pausan hasta el próximo mes; el resumen semanal sigue llegando.</p>
+
+  <figure class="wa-card__preview">
+    <div class="wa-chat" aria-hidden="true">
+      <div class="wa-chat__bubble">
+        <p>Tu semana en Campus ya está lista. Ya publicado en tus cursos: un examen de Cálculo el viernes 20. Lo que viene según tu sílabo o tus clases: un trabajo de Finanzas el lunes 23. Revisa el detalle en tu cuenta.</p>
+        <span class="wa-chat__meta">Puedes desactivar estos avisos desde tu cuenta Campus.</span>
+        <span class="wa-chat__button">Ver mi semana</span>
+      </div>
+    </div>
+    <figcaption>Así te llega. Sin archivos adjuntos.</figcaption>
+  </figure>
 </section>
+
+<style>
+  .wa-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+    gap: 28px;
+    align-items: center;
+  }
+  .wa-card [hidden] {
+    display: none !important;
+  }
+  .wa-card__copy {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    min-width: 0;
+  }
+  .wa-card h2 {
+    margin: 0;
+    font-size: 20px;
+    letter-spacing: -.02em;
+    text-wrap: balance;
+  }
+  .wa-card p {
+    margin: 0;
+  }
+  .wa-card__lead {
+    color: var(--app-muted);
+    font-size: 14px;
+    line-height: 1.55;
+    max-width: 46ch;
+  }
+  .wa-card__status {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--app-green);
+  }
+  .wa-card__status[data-error="true"] {
+    color: var(--app-danger);
+    font-weight: 500;
+  }
+  .wa-card__status:empty {
+    display: none;
+  }
+  .wa-card__step {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+  }
+  .wa-card__fine {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--app-muted);
+    max-width: 46ch;
+  }
+  .wa-card__switch {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    cursor: pointer;
+    max-width: 52ch;
+  }
+  .wa-card__switch input {
+    appearance: none;
+    flex: none;
+    position: relative;
+    width: 40px;
+    height: 24px;
+    margin: 0;
+    border-radius: 999px;
+    background: var(--app-line);
+    cursor: pointer;
+    transition: background .2s cubic-bezier(.16, 1, .3, 1);
+  }
+  .wa-card__switch input::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--app-paper);
+    box-shadow: 0 1px 2px rgba(16, 42, 58, .25);
+    transition: transform .2s cubic-bezier(.16, 1, .3, 1);
+  }
+  .wa-card__switch input:checked {
+    background: var(--app-green);
+  }
+  .wa-card__switch input:checked::after {
+    transform: translateX(16px);
+  }
+  .wa-card__switch input:disabled {
+    opacity: .5;
+    cursor: wait;
+  }
+  .wa-card__switch input:focus-visible,
+  .wa-card__consent input:focus-visible,
+  .wa-card__extra summary:focus-visible {
+    outline: 3px solid var(--app-accent);
+    outline-offset: 3px;
+  }
+  .wa-card__extra {
+    border-top: 1px solid var(--app-line);
+    padding-top: 12px;
+  }
+  .wa-card__extra summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--app-link);
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+  }
+  .wa-card__extra form {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+    padding-top: 8px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .wa-card__consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .wa-card__consent input {
+    accent-color: var(--app-link);
+    width: 18px;
+    height: 18px;
+    flex: none;
+    margin: 1px 0 0;
+  }
+  .wa-card__preview {
+    margin: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .wa-card__preview figcaption {
+    font-size: 12px;
+    color: var(--app-muted);
+    text-align: center;
+  }
+  .wa-chat {
+    padding: 18px 14px;
+    border-radius: 14px;
+    background: #efeae2;
+  }
+  .wa-chat__bubble {
+    position: relative;
+    padding: 9px 11px 0;
+    border-radius: 2px 10px 10px 10px;
+    background: #ffffff;
+    color: #111b21;
+    font-size: 13px;
+    line-height: 1.45;
+    box-shadow: 0 1px 1px rgba(11, 20, 26, .13);
+  }
+  .wa-chat__meta {
+    display: block;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #667781;
+    padding: 6px 0 9px;
+  }
+  .wa-chat__button {
+    display: block;
+    margin: 0 -11px;
+    padding: 9px;
+    border-top: 1px solid #e9edef;
+    text-align: center;
+    font-weight: 600;
+    color: #027eb5;
+  }
+  @media (max-width: 720px) {
+    .wa-card {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    .wa-card__step .app-button {
+      width: 100%;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wa-card__switch input,
+    .wa-card__switch input::after {
+      transition: none;
+    }
+  }
+</style>
 <script src="../scripts/whatsapp-reminders.ts"></script>
