@@ -252,6 +252,18 @@ const cellLabel = (u: Upcoming, n: number) =>
         ? "Sig. semanas"
         : `Sem ${u.week + n}`;
 
+/** Títulos y nombres que vienen de Blackboard, del sílabo o de un aviso se muestran
+ * como texto limpio: sin etiquetas HTML ni entidades. React ya impide que se
+ * ejecuten; esto evita que se vean "<b>" o "&amp;" en pantalla. */
+const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", apos: "'", nbsp: " " };
+function plain(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (_, e) => ENTITIES[e])
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** Campito cuenta en una frase lo que viene; los títulos salen del cronograma y
  * se muestran como texto. */
 function sentence(items: UpcomingItem[], u: Upcoming) {
@@ -261,7 +273,7 @@ function sentence(items: UpcomingItem[], u: Upcoming) {
     .filter((i) => i.from)
     .sort((x, y) => x.from!.localeCompare(y.from!))[0];
   const one = (list: UpcomingItem[]) =>
-    list.length === 1 ? <b>{list[0].title}</b> : <b>{list.length} entregas</b>;
+    list.length === 1 ? <b>{plain(list[0].title)}</b> : <b>{list.length} entregas</b>;
   return (
     <>
       {now.length === 1 ? (
@@ -277,7 +289,7 @@ function sentence(items: UpcomingItem[], u: Upcoming) {
         <>La próxima, {one(next)}.</>
       ) : now.length || !first ? null : (
         <>
-          Lo siguiente es <b>{first.title}</b>.
+          Lo siguiente es <b>{plain(first.title)}</b>.
         </>
       )}
     </>
@@ -297,7 +309,7 @@ function UncoveredNote({ list }: { list: NonNullable<Upcoming["uncovered"]> }) {
       <ul>
         {list.map((c) => (
           <li key={c.courseId}>
-            <strong>{c.course.replace(/\s+-\s+Virtual$/, "")}</strong>{" "}
+            <strong>{plain(c.course).replace(/\s+-\s+Virtual$/, "")}</strong>{" "}
             <small>{UNCOVERED_REASON[c.reason] ?? "sin cronograma"}</small>
           </li>
         ))}
@@ -386,9 +398,9 @@ function UpcomingView({
                 .map((i, n) => (
                   <li key={`${i.courseId}|${i.title}|${n}`}>
                     <div>
-                      <strong>{i.title}</strong>
+                      <strong>{plain(i.title)}</strong>
                       <small>
-                        {i.course}
+                        {plain(i.course)}
                         {!i.inBlackboard && <em>Aún no está en Blackboard</em>}
                       </small>
                     </div>
@@ -401,7 +413,7 @@ function UpcomingView({
       )}
       {!!undated.length && (
         <p className="campu-undated">
-          Sin fecha confirmada: {undated.map((i) => i.title).join(", ")}
+          Sin fecha confirmada: {undated.map((i) => plain(i.title)).join(", ")}
         </p>
       )}
       <UncoveredNote list={uncovered} />
@@ -414,7 +426,7 @@ function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
   return (
     <article className="campu-fact">
       <p className="campu-eyebrow">
-        {f.course} ·{" "}
+        {plain(f.course)} ·{" "}
         {removed
           ? "Ya no aparece en la fuente"
           : f.kind === "assignment"
@@ -431,7 +443,7 @@ function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
                     ? "Anuncio"
                     : "Material"}
       </p>
-      <h3>{f.title || "Sin título publicado"}</h3>
+      <h3>{plain(f.title) || "Sin título publicado"}</h3>
       {f.dueAt && (
         <p>
           Vence: {timestamp(f.dueAt)}{" "}
@@ -515,7 +527,7 @@ function DeliveryCard({
     i.source === "blackboard"
       ? "Publicado en Blackboard"
       : proof
-        ? `${proof.title} · ${proof.locator}`
+        ? `${plain(proof.title)} · ${plain(proof.locator)}`
         : "El cronograma o el sílabo de tu curso";
   const soon = when === "Hoy" || when === "Mañana";
   return (
@@ -538,8 +550,8 @@ function DeliveryCard({
           </small>
         </span>
         <span className="campu-item-main">
-          <strong>{i.title}</strong>
-          <small>{i.course}</small>
+          <strong>{plain(i.title)}</strong>
+          <small>{plain(i.course)}</small>
           <em>
             {when} · {rangeLabel(i.from, i.to)}
             {hour ? ` · ${hour}` : ""}
@@ -637,7 +649,7 @@ function changeSentence(events: any[]) {
                 : f.kind === "procedure"
                   ? "Cambió el trámite"
                   : "Cambió";
-  return `${what} ${f.title || "algo"} en ${f.course}.`;
+  return `${what} ${plain(f.title) || "algo"} en ${plain(f.course)}.`;
 }
 
 /** Lo primero que se ve: una frase, lo próximo y lo nuevo. Todo lo demás está en
@@ -718,7 +730,7 @@ function Home({
                     <li key={n.id}>
                       <a href={"/app/novedades/" + n.id + "/"}>
                         <i className={n.read ? "campu-dot off" : "campu-dot"} />
-                        <span>{n.title}</span>
+                        <span>{plain(n.title)}</span>
                         <small>
                           {g === 0
                             ? clock(n.createdAt)
@@ -1206,7 +1218,7 @@ export default function CampuUpdates() {
                           {!n.read && (
                             <span className="campu-dot" aria-label="Sin leer" />
                           )}
-                          {n.title}
+                          {plain(n.title)}
                           <small>{timestamp(n.createdAt)}</small>
                         </a>
                       </li>
@@ -1363,7 +1375,7 @@ export default function CampuUpdates() {
                                 ] as string[]);
                               }}
                             />
-                            {c.name}
+                            {plain(c.name)}
                           </label>
                         ))}
                       </fieldset>
@@ -1628,7 +1640,7 @@ export default function CampuUpdates() {
                     {context.evidence.map((e) => (
                       <article key={e.id} className="campu-fact">
                         <h4>
-                          {e.course} · {e.title}
+                          {plain(e.course)} · {plain(e.title)}
                         </h4>
                         <small>{e.locator}</small>
                         <p className="campu-preserve">{e.text}</p>

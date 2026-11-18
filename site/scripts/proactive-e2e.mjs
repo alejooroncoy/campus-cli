@@ -583,7 +583,7 @@ try {
       );
       // Abre en la primera celda con algo; el título con HTML queda como texto.
       assert.equal(await celdas.nth(0).getAttribute("aria-selected"), "true");
-      assert.ok(await viene.locator("li").getByText("TB2 <img", { exact: false }).count());
+      assert.ok(await viene.locator("li").getByText("TB2", { exact: true }).count());
       assert.equal(await viene.getByText("TB1", { exact: true }).count(), 0);
       await viene.getByRole("tab", { name: /Próxima/ }).click();
       assert.ok(await viene.locator("li").getByText("TP1", { exact: true }).count());
@@ -798,7 +798,9 @@ try {
       const tabs = cal.getByRole("tab");
       assert.equal(await tabs.first().getAttribute("aria-selected"), "true");
       const semana = (await cal.locator("[role=tabpanel]").innerText()).replace(/\s+/g, " ");
-      assert.ok(semana.includes("TB2 <img"), semana);
+      // Un título con HTML se muestra limpio: ni se ejecuta ni se ven las etiquetas.
+      assert.ok(semana.includes("TB2") && !semana.includes("<img"), semana);
+      assert.equal((await page.locator("body").innerText()).includes("onerror"), false);
       assert.ok(semana.includes("Curso de prueba"), semana);
       assert.ok(semana.includes("Avance 4") && semana.includes("Otro curso"), semana);
       assert.match(semana, /En 3 días · 25 set · (11:59|23:59)/);
@@ -865,7 +867,7 @@ try {
       await cambio.getByRole("tab", { name: /Próxima/ }).click();
       weekAlt = true;
       await page.getByRole("button", { name: "Ver mi resumen de esta semana" }).click();
-      await cambio.locator("li").getByText("TB2 <img", { exact: false }).waitFor();
+      await cambio.locator("li").getByText("TB2", { exact: true }).waitFor();
       weekAlt = false;
       // Solo las entregas de la tira: la lista de cursos sin cronograma va aparte.
       assert.equal(await cambio.locator("[role=tabpanel] > li").count(), 1);
