@@ -262,7 +262,25 @@ const events = [
       id: "material:x",
       kind: "material",
       course: "Curso de prueba",
-      title: "Guía retirada",
+      // Así lo guardaban los avisos antiguos: nombre interno, fecha como estado y entidades.
+      title: "ultraDocumentBody",
+      status: "2026-08-16T17:55:38.570Z",
+      text: "Tópicos: · &nbsp;&nbsp;&nbsp; Planificar la gestión de los Riesgos.",
+      source: "blackboard_list_contents",
+    },
+  },
+  {
+    id: "ev3",
+    kind: "material_changed",
+    meaning: "record_changed",
+    detectedAt: "2026-11-09T13:00:00Z",
+    fact: {
+      id: "material:y",
+      kind: "material",
+      course: "Curso de prueba",
+      title: "ultraDocumentBody",
+      status: "2026-11-16T21:33:37.230Z",
+      text: "Control &amp; Monitoreo:\n&nbsp;&nbsp;Validar el alcance. Usa 0 < x < 10 y x > 2, y escribe &lt;section&gt; como ejemplo.",
       source: "blackboard_list_contents",
     },
   },
@@ -606,7 +624,18 @@ try {
       assert.match(sinCronograma, /solo te aviso lo que publiquen en Blackboard/, sinCronograma);
       assert.match(sinCronograma, /Matemática Computacional no encontré su sílabo ni un cronograma/, sinCronograma);
       assert.equal(await page.evaluate(() => !!window.injected), false);
-      assert.ok(await page.getByText("Ya no aparece en la fuente", { exact: false }).count());
+      // Un material retirado se resume en una línea; no se lista página por página.
+      const cambiosTexto = (await page.locator(".campu-changes").first().innerText()).replace(/[^\S\n]+/g, " ");
+      assert.match(cambiosTexto, /Tu profe retiró o reorganizó una página de material\. No necesitas hacer nada\./, cambiosTexto);
+      assert.equal(await page.getByText("Ya no aparece en la fuente", { exact: false }).count(), 0);
+      assert.ok(!cambiosTexto.includes("Planificar la gestión de los Riesgos"), cambiosTexto);
+      // Un material cambiado de un aviso antiguo: sin nombre interno, sin fecha como estado y sin entidades.
+      assert.match(cambiosTexto, /Página del curso/, cambiosTexto);
+      assert.match(cambiosTexto, /Control & Monitoreo:\nValidar el alcance\./, cambiosTexto);
+      // Comparaciones y ejemplos escritos por el profesor no se borran al limpiar.
+      assert.ok(cambiosTexto.includes("Usa 0 < x < 10 y x > 2, y escribe <section> como ejemplo."), cambiosTexto);
+      const pagina = await page.locator("body").innerText();
+      for (const raro of ["ultraDocumentBody", "&nbsp;", "&amp;", "Estado: 2026-"]) assert.ok(!pagina.includes(raro), raro);
       assert.ok(
         await page
           .getByText("Notas oficiales de Mi UPC: necesita que renueves la conexión")

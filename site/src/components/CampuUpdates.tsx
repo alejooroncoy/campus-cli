@@ -255,14 +255,42 @@ const cellLabel = (u: Upcoming, n: number) =>
 /** Títulos y nombres que vienen de Blackboard, del sílabo o de un aviso se muestran
  * como texto limpio: sin etiquetas HTML ni entidades. React ya impide que se
  * ejecuten; esto evita que se vean "<b>" o "&amp;" en pantalla. */
-const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", apos: "'", nbsp: " " };
+const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+const decodeEntities = (value: string) =>
+  value.replace(/&(?:#(\d{1,7})|#x([0-9a-f]{1,6})|(amp|lt|gt|quot|apos|nbsp));/gi, (whole, dec, hex, name) => {
+    if (name) return ENTITIES[name.toLowerCase()];
+    const code = dec ? Number(dec) : parseInt(hex, 16);
+    return code > 0 && code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff) ? String.fromCodePoint(code) : whole;
+  });
+/** Una etiqueta de verdad: "<" seguido de un nombre, un cierre o un comentario. Una
+ * comparación escrita por el profesor ("0 < x < 10 y x > 2") no lo es y se conserva. */
+const TAG = /<!--[\s\S]*?-->|<\/?[a-z][^<>]*>/gi;
+/** Títulos y nombres en una línea: sin etiquetas y con las entidades convertidas. Las
+ * etiquetas se quitan antes de convertir, así un "&lt;section&gt;" escrito como
+ * ejemplo queda como texto. */
 function plain(value: unknown): string {
-  return String(value ?? "")
-    .replace(/&(amp|lt|gt|quot|#39|apos|nbsp);/g, (_, e) => ENTITIES[e])
-    .replace(/<[^>]*>/g, " ")
+  return decodeEntities(String(value ?? "").replace(TAG, " "))
     .replace(/\s+/g, " ")
     .trim();
 }
+/** El texto largo de un registro. El relay ya le quitó las etiquetas: aquí solo se
+ * convierten las entidades que los avisos antiguos guardaron sin convertir (&nbsp;),
+ * sin tocar comparaciones ni ejemplos, y se conservan los saltos de línea. */
+function plainText(value: unknown): string {
+  return decodeEntities(String(value ?? ""))
+    .replace(/[^\S\n]+/g, " ")
+    .replace(/ ?\n ?/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+/** Nombre interno de Blackboard Ultra para el texto de una página: no es un título. */
+const factTitle = (value: unknown) => {
+  const title = plain(value);
+  return title === "ultraDocumentBody" ? "Página del curso" : title;
+};
+/** Que el profesor retire o reorganice una página no pide nada al estudiante: se
+ * resume en una línea en vez de listar cada página. */
+const tidied = (e: any) => e?.fact?.kind === "material" && e?.meaning === "removed";
 
 /** Campito cuenta en una frase lo que viene; los títulos salen del cronograma y
  * se muestran como texto. */
@@ -443,7 +471,7 @@ function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
                     ? "Anuncio"
                     : "Material"}
       </p>
-      <h3>{plain(f.title) || "Sin título publicado"}</h3>
+      <h3>{factTitle(f.title) || "Sin título publicado"}</h3>
       {f.dueAt && (
         <p>
           Vence: {timestamp(f.dueAt)}{" "}
@@ -459,12 +487,13 @@ function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
         </p>
       )}
       {typeof f.weight === "number" && <p>Peso: {f.weight}%</p>}
-      {f.status && (
+      {/* En un material no hay estado: los avisos antiguos guardaban ahí una fecha técnica. */}
+      {f.status && f.kind !== "material" && (
         <p>
           Estado: {miupc ? (gradeStatus[f.status] ?? f.status) : f.status}
         </p>
       )}
-      {f.text && <p className="campu-preserve">{f.text}</p>}
+      {f.text && <p className="campu-preserve">{plainText(f.text)}</p>}
       {removed && (
         <small>
           Lo vi en dos revisiones completas seguidas sin este registro. Se
@@ -600,11 +629,21 @@ function DeliveryCard({
 
 /** Lo que cambió en este aviso, con su valor anterior cuando lo hay. Va primero: es lo que
  * la persona vino a ver al tocar el correo. */
-function ChangesCard({ events }: { events: any[] }) {
-  if (!events.length) return null;
+function ChangesCard({ events: all }: { events: any[] }) {
+  const events = all.filter((e) => !tidied(e));
+  const reorganized = all.length - events.length;
+  if (!all.length) return null;
   return (
     <section className="campu-card campu-changes">
       <h2>Cambios de este aviso</h2>
+      {!!reorganized && (
+        <p className="campu-muted campu-tidied">
+          {reorganized === 1
+            ? "Tu profe retiró o reorganizó una página de material."
+            : `Tu profe retiró o reorganizó ${reorganized} páginas de material.`}{" "}
+          No necesitas hacer nada.
+        </p>
+      )}
       {events.map((e) => (
         <div key={e.id}>
           <FactView fact={e.fact} removed={e.meaning === "removed"} />
@@ -649,7 +688,7 @@ function changeSentence(events: any[]) {
                 : f.kind === "procedure"
                   ? "Cambió el trámite"
                   : "Cambió";
-  return `${what} ${plain(f.title) || "algo"} en ${plain(f.course)}.`;
+  return `${what} ${factTitle(f.title) || "algo"} en ${plain(f.course)}.`;
 }
 
 /** Lo primero que se ve: una frase, lo próximo y lo nuevo. Todo lo demás está en
@@ -674,6 +713,7 @@ function Home({
   onMore: () => void;
 }) {
   const today = limaDay(Date.now());
+  const changed = events.filter((e) => !tidied(e));
   const u = context?.upcoming ?? null;
   const pending = u ? u.items.filter((i) => i.studentAction && !i.done) : [];
   // Cuándo es, en palabras: hoy, mañana, en N días o esta semana.
@@ -710,13 +750,13 @@ function Home({
           aria-hidden="true"
         />
         <div>
-          <h1>{events.length ? changeSentence(events) : u ? sentence(pending, u) : "Reviso tus cursos por ti."}</h1>
+          <h1>{changed.length ? changeSentence(changed) : u ? sentence(pending, u) : "Reviso tus cursos por ti."}</h1>
           <p>Última revisión: {timestamp(checkedAt)}</p>
         </div>
       </div>
       <ChangesCard events={events} />
       {/* Con cambios, el titular habla de ellos: la frase de lo que viene va en el calendario. */}
-      {u && <UpcomingView upcoming={u} bare quiet={!events.length} renderItem={item} />}
+      {u && <UpcomingView upcoming={u} bare quiet={!changed.length} renderItem={item} />}
       <h2 className="campu-home-label">Avisos que te mandé</h2>
       {shown.length ? (
         GROUPS.map((name, g) => {
