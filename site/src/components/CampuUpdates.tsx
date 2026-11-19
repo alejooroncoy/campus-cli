@@ -262,16 +262,22 @@ const decodeEntities = (value: string) =>
     const code = dec ? Number(dec) : parseInt(hex, 16);
     return code > 0 && code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff) ? String.fromCodePoint(code) : whole;
   });
+/** Una etiqueta de verdad: "<" seguido de un nombre, un cierre o un comentario. Una
+ * comparación escrita por el profesor ("0 < x < 10 y x > 2") no lo es y se conserva. */
+const TAG = /<!--[\s\S]*?-->|<\/?[a-z][^<>]*>/gi;
+/** Títulos y nombres en una línea: sin etiquetas y con las entidades convertidas. Las
+ * etiquetas se quitan antes de convertir, así un "&lt;section&gt;" escrito como
+ * ejemplo queda como texto. */
 function plain(value: unknown): string {
-  return decodeEntities(String(value ?? ""))
-    .replace(/<[^>]*>/g, " ")
+  return decodeEntities(String(value ?? "").replace(TAG, " "))
     .replace(/\s+/g, " ")
     .trim();
 }
-/** Como plain, pero conserva los saltos de línea de un texto largo. */
+/** El texto largo de un registro. El relay ya le quitó las etiquetas: aquí solo se
+ * convierten las entidades que los avisos antiguos guardaron sin convertir (&nbsp;),
+ * sin tocar comparaciones ni ejemplos, y se conservan los saltos de línea. */
 function plainText(value: unknown): string {
   return decodeEntities(String(value ?? ""))
-    .replace(/<[^>]*>/g, " ")
     .replace(/[^\S\n]+/g, " ")
     .replace(/ ?\n ?/g, "\n")
     .replace(/\n{3,}/g, "\n\n")

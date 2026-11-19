@@ -280,7 +280,7 @@ const events = [
       course: "Curso de prueba",
       title: "ultraDocumentBody",
       status: "2026-11-16T21:33:37.230Z",
-      text: "Control &amp; Monitoreo:\n&nbsp;&nbsp;Validar el alcance.",
+      text: "Control &amp; Monitoreo:\n&nbsp;&nbsp;Validar el alcance. Usa 0 < x < 10 y x > 2, y escribe &lt;section&gt; como ejemplo.",
       source: "blackboard_list_contents",
     },
   },
@@ -632,6 +632,8 @@ try {
       // Un material cambiado de un aviso antiguo: sin nombre interno, sin fecha como estado y sin entidades.
       assert.match(cambiosTexto, /Página del curso/, cambiosTexto);
       assert.match(cambiosTexto, /Control & Monitoreo:\nValidar el alcance\./, cambiosTexto);
+      // Comparaciones y ejemplos escritos por el profesor no se borran al limpiar.
+      assert.ok(cambiosTexto.includes("Usa 0 < x < 10 y x > 2, y escribe <section> como ejemplo."), cambiosTexto);
       const pagina = await page.locator("body").innerText();
       for (const raro of ["ultraDocumentBody", "&nbsp;", "&amp;", "Estado: 2026-"]) assert.ok(!pagina.includes(raro), raro);
       assert.ok(
