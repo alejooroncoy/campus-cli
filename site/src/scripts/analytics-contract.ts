@@ -18,8 +18,20 @@ export const events = new Set([
   'campus_turnitin_step_viewed', 'campus_turnitin_payment_copied',
   'campus_turnitin_submit_started', 'campus_turnitin_status_updated', 'campus_turnitin_history_refreshed', 'campus_turnitin_history_filtered',
   'campus_turnitin_reports_opened', 'campus_turnitin_report_requested', 'campus_turnitin_report_displayed', 'campus_turnitin_download_clicked',
-  'campus_turnitin_submitted', 'campus_logout_completed',
+  'campus_turnitin_submitted', 'campus_logout_completed', '$feature_flag_called',
 ]);
+// Experimentos A/B: cada flag y sus variantes posibles. Solo estos viajan como
+// exposición ($feature_flag_called) y como propiedad $feature/<flag> de los eventos.
+export const experiments: Record<string, readonly string[]> = {
+  'campito-hero-angle': ['control', 'ponte-al-dia', 'trabajo'],
+};
+const experimentValue = (key: string, value: unknown, input: Record<string, unknown>): boolean => {
+  if (typeof value !== 'string') return false;
+  if (key.startsWith('$feature/')) return Boolean(experiments[key.slice(9)]?.includes(value));
+  if (key === '$feature_flag') return Object.hasOwn(experiments, value);
+  if (key === '$feature_flag_response') return typeof input.$feature_flag === 'string' && Boolean(experiments[input.$feature_flag]?.includes(value));
+  return false;
+};
 const categories: Record<string, readonly string[]> = {
   example:['professor_reviews','course_professors','grade_workbook','study_plan','academic_work'],
   guest_sample_arm:['sample','gate'],
@@ -29,11 +41,11 @@ const categories: Record<string, readonly string[]> = {
   plus_step:['guest','ready','university','payment','pending','active','rejected','unavailable','loading'],
   activity:['connecting','search','course','reviews','answer','academic','grades'],
   feedback_kind:['agent','plus'],reason:['resolved','not_resolved','price','unclear_value','payment_difficult','not_needed','technical_problem','other'],
-  page: ['home', 'ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'other'],
-  target: ['ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'other', 'plans', 'features', 'whatsapp', 'auth'],
+  page: ['home', 'ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'campito', 'other'],
+  target: ['ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'campito', 'other', 'plans', 'features', 'whatsapp', 'auth', 'campito_install'],
   location: ['header', 'hero', 'trial', 'free', 'plus', 'features', 'research', 'onboarding', 'faq', 'closing', 'footer', 'app', 'professor_profile', 'other'],
   section: ['plans', 'features', 'research', 'onboarding', 'faq', 'closing'],
-  intent: ['trial', 'free', 'plus', 'connect', 'turnitin', 'signup', 'support', 'navigate', 'ask'],
+  intent: ['trial', 'free', 'plus', 'connect', 'turnitin', 'signup', 'support', 'navigate', 'ask', 'install'],
   selected_plan: ['trial', 'free', 'plus'], current_plan: ['guest', 'free', 'plus', 'unavailable'],
   plus_status: ['payment_review', 'active', 'rejected'], offer: ['founder', 'standard'],
   step: ['plus', 'session', 'university', 'question', 'connector', 'upload', 'turnitin', 'document', 'payment', 'report', 'history'],
@@ -68,6 +80,7 @@ export function safeAnalyticsProperties(input: Record<string, unknown>): Record<
     || ((Object.hasOwn(categories, key) && categories[key].includes(value as string))
       || (key === 'entry_landing' && categories.page.includes(value as string)))
     || (['entry_source', 'entry_campaign'].includes(key) && entryValue(key, value, input))
+    || experimentValue(key, value, input)
     || (numbers.has(key) && typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 86_400_000)
     || (booleans.has(key) && typeof value === 'boolean')));
 }
@@ -88,6 +101,6 @@ export function analyticsPage(path: string): string {
   if (/^\/profes\/upc\/[a-z0-9]+(?:-[a-z0-9]+)*\/escribir\/$/.test(path)) return 'professor_review_form';
   if (/^\/profes\/upc\/[a-z0-9]+(?:-[a-z0-9]+)*\/$/.test(path)) return 'professor_profile';
   if (path.startsWith('/biblioteca/') && path !== '/biblioteca/') return 'library_item';
-  const routes: Record<string, string> = { '/upc-compra-ucal/': 'ucal', '/ucal/': 'ucal', '/profes/upc/': 'professor_directory', '/profes/resenas/': 'professor_reviews', '/biblioteca/': 'library', '/app/biblioteca/': 'library_app', '/opiniones-campus/': 'campus_reviews', '/app/resenas/': 'campus_reviews', '/about/': 'about', '/contacto/': 'contact', '/terminos/': 'terms', '/no-afiliacion/': 'independence', '/': 'home', '/app/': 'app', '/app/asistente/': 'assistant', '/app/plus/': 'plus', '/app/copilot/': 'connect', '/app/perfil/': 'profile', '/app/turnitin/': 'turnitin_app', '/turnitin/': 'turnitin', '/profes/': 'professors', '/campus-cli/': 'cli', '/blackboard-upc/': 'blackboard_upc', '/blackboard-chatgpt/': 'chatgpt', '/blackboard-cli/': 'terminal', '/blackboard-mcp/': 'mcp', '/privacidad/': 'privacy' };
+  const routes: Record<string, string> = { '/upc-compra-ucal/': 'ucal', '/ucal/': 'ucal', '/profes/upc/': 'professor_directory', '/profes/resenas/': 'professor_reviews', '/biblioteca/': 'library', '/app/biblioteca/': 'library_app', '/opiniones-campus/': 'campus_reviews', '/app/resenas/': 'campus_reviews', '/about/': 'about', '/contacto/': 'contact', '/terminos/': 'terms', '/no-afiliacion/': 'independence', '/': 'home', '/app/': 'app', '/app/asistente/': 'assistant', '/app/plus/': 'plus', '/app/copilot/': 'connect', '/app/perfil/': 'profile', '/app/turnitin/': 'turnitin_app', '/turnitin/': 'turnitin', '/profes/': 'professors', '/campus-cli/': 'cli', '/blackboard-upc/': 'blackboard_upc', '/blackboard-chatgpt/': 'chatgpt', '/blackboard-cli/': 'terminal', '/blackboard-mcp/': 'mcp', '/privacidad/': 'privacy', '/campito/': 'campito' };
   return routes[path] ?? (path.startsWith('/blog/') ? 'blog' : path.startsWith('/blackboard-mcp/') ? 'mcp' : 'other');
 }

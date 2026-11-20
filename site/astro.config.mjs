@@ -44,6 +44,7 @@ fromFile("/", "./src/html/index.html");
 fromFile("/upc-compra-ucal/", "./src/data/ucal.ts");
 fromFile("/campus-cli/", "./src/html/campus-cli/index.html");
 fromFile("/profes/", "./src/html/profes/index.html");
+fromFile("/campito/", "./src/html/campito/index.html");
 // The service page's content revision, preserved across unrelated deploys.
 lastmod.set("/turnitin/", "2026-10-15");
 // The tools are .astro pages (their text lives in the page and in src/lib/apa-tool-content.ts), so there is

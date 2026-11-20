@@ -12,6 +12,7 @@ export interface AnalyticsClient {
   get_distinct_id(): string;
   get_session_id(): string;
   getPlusSurvey(properties: Record<string, string>, surveyId?: string): Promise<PlusSurvey | undefined>;
+  getFlagVariant(key: string): Promise<string | undefined>;
 }
 
 interface Options {
@@ -115,6 +116,15 @@ class NavigationSafePostHog extends PostHog {
     if (this.optedOut || owner !== this.getDistinctId() || !keys.every(k => result.flags?.[k] === true || typeof result.flags?.[k] === 'string' && Boolean(result.flags[k]))) return;
     return survey;
   }
+  // Variante de un experimento, evaluada solo cuando la página la pide (los flags automáticos siguen apagados).
+  async getFlagVariant(key: string): Promise<string | undefined> {
+    if (this.optedOut) return;
+    const owner = this.getDistinctId();
+    const result = await this.getFeatureFlagsStateless(owner, {}, {}, {}, true, [key]);
+    const value = result.flags?.[key];
+    if (this.optedOut || owner !== this.getDistinctId()) return;
+    return typeof value === 'string' ? value : undefined;
+  }
   fetch(url: string, options: Parameters<PostHog['fetch']>[1]) {
     // Flush promptly and let in-flight conversions finish during navigation.
     const request = { ...options, keepalive: true, credentials: 'omit' as const };
@@ -179,5 +189,7 @@ export function createAnalyticsClient(key: string, options: Options): AnalyticsC
     get_distinct_id: () => sdk.getDistinctId(),
     get_session_id: () => sdk.getSessionId(),
     getPlusSurvey: (properties, surveyId) => (sdk as NavigationSafePostHog).getPlusSurvey(properties, surveyId),
+    // Un bot no entra al experimento: no pide el flag ni cuenta como exposición.
+    getFlagVariant: flag => bot ? Promise.resolve(undefined) : sdk.getFlagVariant(flag),
   };
 }

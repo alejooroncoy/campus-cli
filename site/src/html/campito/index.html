@@ -1,0 +1,192 @@
+<!--
+THESIS: tu clase con memoria. Campito acompaña la clase de UClass mientras la sigues: guarda lo que se dice con su minuto y te lo devuelve cuando lo necesitas. Rechaza el «sigue con lo tuyo»: Campito ayuda a seguir la clase, no a saltársela.
+OWN-WORLD: el mundo de Campus (canvas #f4f8f8, tinta #102a3a, cielo #17b6e7, Campus Sans, botón noche); la ventana de UClass con el panel de Campito al lado es el escenario recurrente; los minutos van en cielo #087fa4 como la marca que une lo dicho y lo guardado.
+STORY: el alumno ve su clase con un panel que no se pierde nada, cree que entenderá y repasará mejor, y lo agrega a Chrome.
+FIRST VIEWPORT: izquierda, título y botón «Agrégalo a Chrome»; derecha, UClass con la diapositiva y los subtítulos, y Campito al lado llenándose de apuntes con su minuto.
+FORM: «Clase con memoria», reemplaza a «Dos pestañas» a pedido del fundador; seed a882b410.
+-->
+<main id="inicio" class="campus-landing cf">
+  <section class="cp-hero cf-hero shell" aria-labelledby="cf-title">
+    <div class="cp-hero__copy">
+      <p class="cp-kicker"><span></span> EXTENSIÓN PARA CHROME · PARA UPC</p>
+      <h1 id="cf-title" data-cf-copy="title">Lo que el profe dice una sola vez, <em>guardado.</em></h1>
+      <p class="cp-lead" data-cf-copy="lead">{{CHARACTER_NAME}} acompaña tu clase de UClass: toma apuntes con el minuto de cada cosa y, si algo no te quedó claro, te responde «¿qué acaba de explicar?».</p>
+      <div class="cp-actions">
+        <a class="button cf-install" href="https://chromewebstore.google.com/detail/dhkmcgkafhfhelolngmdgepiddjmphld?utm_source=campuscli&amp;utm_medium=web&amp;utm_campaign=campito" target="_blank" rel="noopener noreferrer">Agrégalo a Chrome <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
+      </div>
+      <a class="cf-pill" href="#precio"><span class="cf-pill__dot"></span><!-- trial:start -->Tu primera clase es gratis · <!-- trial:end -->Precio fundador: <strong>S/10 al mes</strong> <s>S/15</s></a>
+      <p class="cf-requirements">Chrome en computadora · Clases en UClass de la UPC</p>
+    </div>
+
+    <figure class="cf-stage" data-cf-demo aria-label="Ejemplo: una clase de UClass con el panel de Campito guardando lo que dice el profesor con su minuto">
+      <div class="cf-browser" data-step="class">
+        <div class="cf-browser__tabs" aria-hidden="true">
+          <span class="cf-tab cf-tab--class"><i class="cf-tab__live"></i>UClass · Clase en vivo</span>
+        </div>
+        <div class="cf-browser__address" aria-hidden="true"><span></span>upc.class.com/ics/meeting</div>
+        <div class="cf-browser__body">
+          <div class="cf-room" aria-hidden="true">
+            <div class="cf-slide">
+              <p class="cf-slide__kicker">Semana 13</p>
+              <p class="cf-slide__title">Valor ganado</p>
+              <ul><li>EV, PV y AC</li><li>CPI = EV / AC</li><li>SPI = EV / PV</li></ul>
+            </div>
+            <p class="cf-caption" data-cf-caption>«Para la práctica calificada, este ejercicio es el que más vale.»</p>
+          </div>
+
+          <aside class="cf-side" aria-hidden="true">
+            <div class="cf-side__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="26" height="26" alt="" />{{CHARACTER_NAME}}<span>Escuchando</span></div>
+            <ol class="cf-notes">
+              <li data-note="1"><time>min 95</time>PI Planning: alinea equipos y planifica por iteraciones.</li>
+              <li data-note="2"><time>min 99</time>System Demo frente al demo quincenal.</li>
+              <li data-note="3"><time>min 104</time>Valor ganado: el ejercicio con más puntaje en la práctica calificada.</li>
+            </ol>
+            <div class="cf-side__ask">
+              <p class="cf-side__question" data-cf-ask="question">¿Qué acaba de explicar?</p>
+              <p class="cf-side__answer" data-cf-ask="answer">Cómo calcular el CPI y el SPI con valor ganado, y que ese ejercicio será el de mayor puntaje en la práctica calificada.<span>Profesor · min 104</span></p>
+            </div>
+            <div class="cf-side__summary">
+              <p class="cf-side__question">¿Qué hay que hacer en el trabajo?</p>
+              <ol class="cf-side__steps">
+                <li>Calcular el CPI y el SPI del caso con el Excel de fórmulas.<span>min 104</span></li>
+                <li>Interpretar si el proyecto va atrasado o sobre costo.<span>min 106</span></li>
+              </ol>
+              <p class="cf-side__gap"><strong>No lo dijo:</strong> el formato de entrega. Pregúntaselo al profe antes de que termine la clase.</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <figcaption><span>Ejemplo a partir de una clase real, sin datos del curso ni del profe.</span><button type="button" data-cf-replay hidden>Ver de nuevo <svg class="cp-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2.7 8.4M3 4v6h6"></path></svg></button></figcaption>
+    </figure>
+  </section>
+
+  <section class="cf-traits shell" aria-label="Cómo escucha Campito">
+    <div class="cf-trait">
+      <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 8h18M8 21h8"/></svg>
+      <p><strong>No entra a tu clase.</strong> Escucha el audio de tu pestaña de UClass. No aparece como otro participante.</p>
+    </div>
+    <div class="cf-trait">
+      <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2.5Z"/><path d="M8 7h6M8 11h4"/></svg>
+      <p><strong>Sabe de qué curso es.</strong> Reconoce la sala con tu Blackboard: cada clase queda en su curso.</p>
+    </div>
+    <div class="cf-trait">
+      <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      <p><strong>Guarda texto, no audio.</strong> Lo que se dice queda escrito con su minuto. Borras la clase y se borra todo.</p>
+    </div>
+  </section>
+
+  <section class="cf-features shell" aria-labelledby="cf-features-title">
+    <h2 id="cf-features-title">Para entender mejor tu clase, no para saltártela.</h2>
+    <div class="cf-features__grid" data-cf-tabs>
+      <div class="cf-features__list" role="tablist" aria-label="Qué hace Campito">
+        <button type="button" role="tab" id="cf-tab-ask" aria-controls="cf-panel-ask" aria-selected="true">
+          <strong>Te pone al día si tuviste que salir</strong>
+          <span>¿Te llamaron del trabajo o te fuiste un momento? Al volver, pregúntale qué te perdiste: te resume lo que pasó, con el minuto de cada cosa.</span>
+        </button>
+        <button type="button" role="tab" id="cf-tab-summary" aria-controls="cf-panel-summary" aria-selected="false" tabindex="-1">
+          <strong>Te explica el trabajo que dejó</strong>
+          <span>¿No te quedó del todo claro? Pregúntale qué hay que hacer: te dice lo que explicó el profe, con el minuto, y lo que no dijo, para que se lo preguntes antes de que termine la clase.</span>
+        </button>
+        <button type="button" role="tab" id="cf-tab-list" aria-controls="cf-panel-list" aria-selected="false" tabindex="-1">
+          <strong>Te avisa si te nombran</strong>
+          <span>Si estabas tomando apuntes y el profe dijo tu nombre o empezó a tomar lista, suena para que respondas.</span>
+        </button>
+      </div>
+
+      <div class="cf-panel" role="tabpanel" id="cf-panel-ask" aria-labelledby="cf-tab-ask">
+        <div class="cf-card">
+          <div class="cf-card__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="28" height="28" alt="" />{{CHARACTER_NAME}}<span class="cf-card__state">Escuchando</span></div>
+          <p class="cf-card__question">Volví. ¿Qué me perdí?</p>
+          <div class="cf-card__answer">
+            <p>Mientras estabas fuera, el profe explicó cómo calcular el CPI y el SPI con <strong>valor ganado</strong> y dijo que ese ejercicio tendrá el mayor puntaje en la práctica calificada. También compartió un Excel con las fórmulas.</p>
+            <span class="cf-card__source">Profesor · min 98 a 107</span>
+          </div>
+          <p class="cf-card__note">También le puedes preguntar «¿qué acaba de explicar?» o «¿qué dijo del examen?».</p>
+        </div>
+      </div>
+
+      <div class="cf-panel" role="tabpanel" id="cf-panel-summary" aria-labelledby="cf-tab-summary" hidden>
+        <div class="cf-card">
+          <div class="cf-card__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="28" height="28" alt="" />{{CHARACTER_NAME}}<span class="cf-card__state">Escuchando</span></div>
+          <p class="cf-card__question">¿Qué hay que hacer en el trabajo?</p>
+          <dl class="cf-summary">
+            <dt>Lo que explicó</dt>
+            <dd>Calcular el CPI y el SPI del caso con el Excel de fórmulas que compartió.<span>min 104</span></dd>
+            <dd>Interpretar si el proyecto va atrasado o sobre costo.<span>min 106</span></dd>
+            <dd>Se entrega en la práctica calificada de la próxima semana.<span>min 102</span></dd>
+          </dl>
+          <p class="cf-card__gap"><strong>No lo dijo:</strong> el formato de entrega. Pregúntaselo al profe antes de que termine la clase.</p>
+        </div>
+      </div>
+
+      <div class="cf-panel" role="tabpanel" id="cf-panel-list" aria-labelledby="cf-tab-list" hidden>
+        <div class="cf-card">
+          <div class="cf-card__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="28" height="28" alt="" />{{CHARACTER_NAME}}<span class="cf-card__state">Escuchando</span></div>
+          <div class="cf-card__alert">
+            <strong>Te están llamando</strong>
+            <span>Escuché tu nombre en la clase. Revisa si te toca responder.</span>
+            <div class="cf-alert__actions"><span class="cf-alert__ok">Entendido</span><span>Apagar avisos</span></div>
+          </div>
+          <p class="cf-card__note">Lo que tú dices nunca dispara el aviso. Lo apagas desde el panel cuando quieras.</p>
+        </div>
+      </div>
+    </div>
+    <p class="cf-features__note">Ejemplos a partir de una clase real, sin datos del curso ni del profe.</p>
+  </section>
+
+  <section class="cf-privacy shell" aria-labelledby="cf-privacy-title">
+    <h2 id="cf-privacy-title">Lo que guarda, y lo que no.</h2>
+    <ul>
+      <li><strong>Texto, no audio.</strong> La clase queda escrita para tus apuntes. El audio no se guarda.</li>
+      <li><strong>Tu voz, solo si la autorizas.</strong> Te lo pregunta una vez, y guarda lo que dices solo mientras tu micrófono está abierto en UClass.</li>
+      <li><strong>Tus apuntes son tuyos.</strong> Nadie más los ve. «Eliminar esta clase» borra el texto, el resumen y el chat.</li>
+      <li><strong>Lo apagas cuando quieras.</strong> Un clic en el ícono de {{CHARACTER_NAME}} termina la escucha.</li>
+    </ul>
+  </section>
+
+  <section class="cf-pricing shell" id="precio" aria-labelledby="cf-pricing-title">
+    <div class="cf-pricing__copy">
+      <p class="cp-kicker"><span></span> PRECIO FUNDADOR</p>
+      <h2 id="cf-pricing-title">S/10 al mes para los primeros 25 que se suman.</h2>
+      <p>Ya hay alumnos fundadores usando Campus Plus. Cuando se completen los 25 cupos, el precio pasa a S/15 al mes para los que lleguen después.</p>
+      <ul class="cf-pricing__list">
+        <li>{{CHARACTER_NAME}} en tus clases de UClass: apuntes con su minuto, «¿qué me perdí?» y el trabajo que dejaron</li>
+        <li>Te avisa si te nombran o empiezan a tomar lista</li>
+        <li>Tus clases grabadas, desde sus transcripciones</li>
+        <li>100 consultas al día en la web y consultas ilimitadas con tu IA</li>
+        <li>Resumen semanal por WhatsApp</li>
+      </ul>
+    </div>
+    <div class="cf-plan">
+      <p class="cf-plan__name">Campus Plus</p>
+      <p class="cf-plan__price"><s>S/15</s><strong>S/10</strong><span>al mes</span></p>
+      <p class="cf-plan__then">Precio fundador. Después de los primeros 25, S/15 al mes.</p>
+      <div class="cf-seats" data-cf-seats>
+        <div class="cf-seats__row" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <p class="cf-seats__label" data-cf-seats-label>Cupos limitados: los primeros 25 de pago.</p>
+      </div>
+      <!-- trial:start --><p class="cf-plan__trial">Tu primera clase es gratis.</p><!-- trial:end -->
+      <a class="button button--full cf-install" href="https://chromewebstore.google.com/detail/dhkmcgkafhfhelolngmdgepiddjmphld?utm_source=campuscli&amp;utm_medium=web&amp;utm_campaign=campito" target="_blank" rel="noopener noreferrer">Agrégalo a Chrome <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
+      <p class="cf-plan__fine">Sin renovación automática. Pagas un mes con Yape o Plin.</p>
+    </div>
+  </section>
+
+  <section class="cp-final cf-final shell" aria-labelledby="cf-final-title">
+    <img src="/assets/campu/campu-wave-v2-192.webp" width="96" height="96" alt="" />
+    <h2 id="cf-final-title">Pruébalo en tu próxima clase.</h2>
+    <p>Lo agregas a Chrome, entras a tu clase de UClass y tocas a {{CHARACTER_NAME}}.</p>
+    <a class="button cf-install" href="https://chromewebstore.google.com/detail/dhkmcgkafhfhelolngmdgepiddjmphld?utm_source=campuscli&amp;utm_medium=web&amp;utm_campaign=campito" target="_blank" rel="noopener noreferrer">Agrégalo a Chrome <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
+  </section>
+
+  <section class="cp-faq shell" id="faq" aria-labelledby="cf-faq-title">
+    <div><h2 id="cf-faq-title">Antes de instalar.</h2></div>
+    <div class="cp-faq__items">
+      <details><summary>¿El profe o mis compañeros se enteran?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>No. {{CHARACTER_NAME}} no entra a la sala ni aparece como participante: escucha el audio que ya llega a tu pestaña de UClass.</p></details>
+      <details><summary>¿Sigue escuchando si me voy un momento?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Sí, mientras la pestaña de UClass siga abierta y la clase se escuche en ella. Si se cae tu internet, {{CHARACTER_NAME}} tampoco oye esa parte: para eso está la grabación oficial cuando la publican.</p></details>
+      <details><summary>¿Reemplaza a la grabación de la clase?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>No. La grabación oficial llega después; {{CHARACTER_NAME}} te sirve durante la clase y te deja los apuntes al terminar, con el minuto de cada cosa para ir directo a esa parte.</p></details>
+      <details><summary>¿Se equivoca?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Puede, sobre todo si el audio llega mal. Por eso cada respuesta trae el minuto: revisas qué se dijo exactamente. No reemplaza estar atento a tu clase.</p></details>
+      <details><summary>¿Graba mi voz?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Solo si lo autorizas, una vez, y solo mientras tu micrófono está abierto en UClass. Se guarda como texto.</p></details>
+      <details><summary>¿Funciona en otras universidades?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Por ahora, solo en las clases de UClass de la UPC, con Chrome en computadora. Campus no está afiliado a la UPC.</p></details>
+    </div>
+  </section>
+</main>

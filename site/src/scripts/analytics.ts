@@ -3,7 +3,7 @@ import { mcpHandoff, clearMcpHandoff } from './mcp-handoff.ts';
 import { clearEntry, clearFirstEntry, firstEntry, rememberEntry } from './entry-attribution.ts';
 import { clearCampaign, rememberCampaign, syncCampaign } from './campaign-attribution.ts';
 import { syncMarketingPreference, clearMarketingPreference } from './marketing-consent.ts';
-import { analyticsPage, clientShell, events, safeAnalyticsProperties } from './analytics-contract.ts';
+import { analyticsPage, clientShell, events, experiments, safeAnalyticsProperties } from './analytics-contract.ts';
 import type { CampusSession } from './campus-session';
 import type { AnalyticsClient } from './analytics-client';
 import { webEvents, safeWebProperties, webPageProperties, ScrollDepth } from './web-analytics.ts';
@@ -152,7 +152,7 @@ export function track(event: string, properties: Record<string, unknown> = {}): 
     selected_plan: selectedPlan(),
     viewport: innerWidth < 761 ? 'mobile' : innerWidth < 1200 ? 'tablet' : 'desktop',
     environment: local ? 'development' : 'production',
-    ...(entryEvents.has(event) && !local && key ? firstEntry(key) : {}), ...properties,
+    ...(entryEvents.has(event) && !local && key ? firstEntry(key) : {}), ...experimentProperties, ...properties,
     analytics_audience:audience,is_internal:audience==='internal',
     ...(isTest!==undefined||properties.is_test===true?{is_test:isTest===true||properties.is_test===true}:{}),
   }) };
@@ -163,6 +163,33 @@ export function track(event: string, properties: Record<string, unknown> = {}): 
     console.debug('[Campus analytics · local]', JSON.stringify(item));
   } else if (client) client.capture(item.event, item.properties);
   else if (key && host) { queue = [...queue.slice(-99), item]; persistQueue(); }
+}
+// Variantes de experimentos ya vistas en esta página: viajan en cada evento que sigue
+// (por ejemplo, el clic de instalación) para que PostHog compare las versiones.
+const experimentProperties: Record<string, string> = {};
+/**
+ * La variante de un experimento para este visitante. Registra la exposición una vez.
+ * Sin PostHog (vista local, sin clave o sin respuesta a tiempo) devuelve «control» y no
+ * cuenta como exposición. En local se puede forzar con ?variante=test para revisar.
+ */
+export async function experimentVariant(flag: string, timeoutMs = 1200): Promise<string> {
+  const variants = experiments[flag];
+  if (!browser || !variants) return 'control';
+  if (local) {
+    const forced = new URLSearchParams(location.search).get('variante');
+    return forced && variants.includes(forced) ? forced : 'control';
+  }
+  if (!key) return 'control';
+  const variant = await Promise.race([
+    clientReady.then(sdk => sdk?.getFlagVariant(flag)).catch(() => undefined),
+    new Promise<undefined>(resolve => setTimeout(resolve, timeoutMs)),
+  ]);
+  if (!variant || !variants.includes(variant)) return 'control';
+  if (experimentProperties[`$feature/${flag}`] !== variant) {
+    experimentProperties[`$feature/${flag}`] = variant;
+    track('$feature_flag_called', { $feature_flag: flag, $feature_flag_response: variant });
+  }
+  return variant;
 }
 export function analyticsHeaders(): Record<string, string> {
   const distinctId = local ? identity ?? localId : client?.get_distinct_id();
@@ -326,12 +353,14 @@ export function setupAnalytics(): void {
     const loc = locationFor(anchor);
     const support = url.origin === 'https://wa.me' && url.pathname === '/51946189585';
     const provider = ({ 'chatgpt.com': 'chatgpt', 'claude.ai': 'claude', 'gemini.google.com': 'gemini' } as Record<string, string>)[url.hostname];
-    if (!support && !provider && url.origin !== location.origin) return;
+    // La ficha de Campito en la Chrome Web Store: es la instalación, aunque salga del sitio.
+    const store = url.hostname === 'chromewebstore.google.com';
+    if (!support && !provider && !store && url.origin !== location.origin) return;
     const plan = ['free', 'plus', 'trial'].includes(loc) ? loc : undefined;
-    const target = support ? 'whatsapp' : provider ? 'connect' : url.pathname === '/api/app/auth/start' ? 'auth'
+    const target = support ? 'whatsapp' : store ? 'campito_install' : provider ? 'connect' : url.pathname === '/api/app/auth/start' ? 'auth'
       : url.hash === '#planes' ? 'plans' : url.hash === '#incluye' ? 'features' : analyticsPage(url.pathname);
     const managingPlus = anchor.hasAttribute('data-profile-manage') || currentPlan === 'plus';
-    const intent = support ? 'support' : loc === 'professor_profile' && target === 'assistant' ? 'ask' : target === 'plus' ? managingPlus ? 'navigate' : 'plus' : plan ?? (target === 'auth' ? 'signup' : target === 'connect' ? 'connect' : ['turnitin_app', 'turnitin'].includes(target) ? 'turnitin' : target === 'app' && loc !== 'app' ? 'trial' : 'navigate');
+    const intent = support ? 'support' : store ? 'install' : loc === 'professor_profile' && target === 'assistant' ? 'ask' : target === 'plus' ? managingPlus ? 'navigate' : 'plus' : plan ?? (target === 'auth' ? 'signup' : target === 'connect' ? 'connect' : ['turnitin_app', 'turnitin'].includes(target) ? 'turnitin' : target === 'app' && loc !== 'app' ? 'trial' : 'navigate');
     if (['trial', 'free', 'plus'].includes(intent)) {
       try { sessionStorage.setItem('campus-selected-plan', intent); } catch { /* Optional. */ }
     }
