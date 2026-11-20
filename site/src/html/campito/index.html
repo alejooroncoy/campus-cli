@@ -10,7 +10,7 @@ FORM: «Clase con memoria», reemplaza a «Dos pestañas» a pedido del fundador
     <div class="cp-hero__copy">
       <p class="cp-kicker"><span></span> EXTENSIÓN PARA CHROME · PARA UPC</p>
       <h1 id="cf-title" data-cf-copy="title">Lo que el profe dice una sola vez, <em>guardado.</em></h1>
-      <p class="cp-lead" data-cf-copy="lead">{{CHARACTER_NAME}} acompaña tu clase de UClass: toma apuntes con el minuto de cada cosa, te responde «¿qué acaba de explicar?» y al terminar te deja lo que hay que entregar.</p>
+      <p class="cp-lead" data-cf-copy="lead">{{CHARACTER_NAME}} acompaña tu clase de UClass y toma apuntes con el minuto de cada cosa. ¿Te llamaron del trabajo en plena clase? Al volver, pregúntale qué te perdiste y te pone al día.</p>
       <div class="cp-actions">
         <a class="button cf-install" href="https://chromewebstore.google.com/detail/dhkmcgkafhfhelolngmdgepiddjmphld?utm_source=campuscli&amp;utm_medium=web&amp;utm_campaign=campito" target="_blank" rel="noopener noreferrer">Agrégalo a Chrome <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
       </div>
@@ -43,14 +43,17 @@ FORM: «Clase con memoria», reemplaza a «Dos pestañas» a pedido del fundador
               <li data-note="3"><time>min 104</time>Valor ganado: el ejercicio con más puntaje en la práctica calificada.</li>
             </ol>
             <div class="cf-side__ask">
-              <p class="cf-side__question">¿Qué acaba de explicar?</p>
-              <p class="cf-side__answer">Cómo calcular el CPI y el SPI con valor ganado, y que ese ejercicio será el de mayor puntaje en la práctica calificada.<span>Profesor · min 104</span></p>
+              <p class="cf-side__question">Me llamaron del trabajo. ¿Qué me perdí?</p>
+              <p class="cf-side__answer">En los últimos 12 minutos: explicó el System Demo frente al demo quincenal, cómo calcular el CPI y el SPI con valor ganado, y que ese ejercicio será el de mayor puntaje en la práctica calificada.<span>Profesor · min 95 a 107</span></p>
             </div>
-            <dl class="cf-side__summary">
-              <dt>Para entregar</dt>
-              <dd>Practicar el caso de valor ganado con el Excel de fórmulas.<span>min 104</span></dd>
-              <dd>Práctica calificada: la próxima semana.<span>min 102</span></dd>
-            </dl>
+            <div class="cf-side__summary">
+              <p class="cf-side__question">¿Qué hay que hacer en el trabajo?</p>
+              <ol class="cf-side__steps">
+                <li>Calcular el CPI y el SPI del caso con el Excel de fórmulas.<span>min 104</span></li>
+                <li>Interpretar si el proyecto va atrasado o sobre costo.<span>min 106</span></li>
+              </ol>
+              <p class="cf-side__gap"><strong>No lo dijo:</strong> el formato de entrega. Pregúntaselo al profe antes de que termine la clase.</p>
+            </div>
           </aside>
         </div>
       </div>
@@ -78,12 +81,12 @@ FORM: «Clase con memoria», reemplaza a «Dos pestañas» a pedido del fundador
     <div class="cf-features__grid" data-cf-tabs>
       <div class="cf-features__list" role="tablist" aria-label="Qué hace Campito">
         <button type="button" role="tab" id="cf-tab-ask" aria-controls="cf-panel-ask" aria-selected="true">
-          <strong>«¿Qué acaba de explicar?», con el minuto</strong>
-          <span>¿Se te fue una idea o no la entendiste? Pregúntale y te responde con lo que dijo el profe y cuándo.</span>
+          <strong>Te pone al día si tuviste que salir</strong>
+          <span>¿Te llamaron del trabajo o te fuiste un momento? Al volver, pregúntale qué te perdiste: te resume lo que pasó, con el minuto de cada cosa.</span>
         </button>
         <button type="button" role="tab" id="cf-tab-summary" aria-controls="cf-panel-summary" aria-selected="false" tabindex="-1">
-          <strong>Sales con lo que hay que entregar</strong>
-          <span>Al terminar, un resumen con temas, tareas y fechas, cada uno con su minuto.</span>
+          <strong>Te explica el trabajo que dejó</strong>
+          <span>¿No te quedó del todo claro? Pregúntale qué hay que hacer: te dice lo que explicó el profe, con el minuto, y lo que no dijo, para que se lo preguntes antes de que termine la clase.</span>
         </button>
         <button type="button" role="tab" id="cf-tab-list" aria-controls="cf-panel-list" aria-selected="false" tabindex="-1">
           <strong>Te avisa si te nombran</strong>
@@ -94,25 +97,26 @@ FORM: «Clase con memoria», reemplaza a «Dos pestañas» a pedido del fundador
       <div class="cf-panel" role="tabpanel" id="cf-panel-ask" aria-labelledby="cf-tab-ask">
         <div class="cf-card">
           <div class="cf-card__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="28" height="28" alt="" />{{CHARACTER_NAME}}<span class="cf-card__state">Escuchando</span></div>
-          <p class="cf-card__question">¿Qué dijo del examen?</p>
+          <p class="cf-card__question">Volví. ¿Qué me perdí?</p>
           <div class="cf-card__answer">
-            <p>Que en la práctica calificada el ejercicio de <strong>valor ganado</strong> tendrá el mayor puntaje, y que compartió un Excel con las fórmulas para practicar.</p>
-            <span class="cf-card__source">Profesor · min 104</span>
+            <p>Mientras estabas fuera, el profe explicó cómo calcular el CPI y el SPI con <strong>valor ganado</strong> y dijo que ese ejercicio tendrá el mayor puntaje en la práctica calificada. También compartió un Excel con las fórmulas.</p>
+            <span class="cf-card__source">Profesor · min 98 a 107</span>
           </div>
+          <p class="cf-card__note">También le puedes preguntar «¿qué acaba de explicar?» o «¿qué dijo del examen?».</p>
         </div>
       </div>
 
       <div class="cf-panel" role="tabpanel" id="cf-panel-summary" aria-labelledby="cf-tab-summary" hidden>
         <div class="cf-card">
-          <div class="cf-card__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="28" height="28" alt="" />Resumen de la clase<span class="cf-card__state cf-card__state--done">Terminada</span></div>
+          <div class="cf-card__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="28" height="28" alt="" />{{CHARACTER_NAME}}<span class="cf-card__state">Escuchando</span></div>
+          <p class="cf-card__question">¿Qué hay que hacer en el trabajo?</p>
           <dl class="cf-summary">
-            <dt>Para entregar</dt>
-            <dd>Practicar el caso de valor ganado con el Excel de fórmulas.<span>min 104</span></dd>
-            <dd>Práctica calificada: la próxima semana.<span>min 102</span></dd>
-            <dt>Temas</dt>
-            <dd>PI Planning: alinea equipos y planifica por iteraciones.<span>min 95</span></dd>
-            <dd>System Demo frente al demo quincenal.<span>min 99</span></dd>
+            <dt>Lo que explicó</dt>
+            <dd>Calcular el CPI y el SPI del caso con el Excel de fórmulas que compartió.<span>min 104</span></dd>
+            <dd>Interpretar si el proyecto va atrasado o sobre costo.<span>min 106</span></dd>
+            <dd>Se entrega en la práctica calificada de la próxima semana.<span>min 102</span></dd>
           </dl>
+          <p class="cf-card__gap"><strong>No lo dijo:</strong> el formato de entrega. Pregúntaselo al profe antes de que termine la clase.</p>
         </div>
       </div>
 
@@ -153,6 +157,7 @@ FORM: «Clase con memoria», reemplaza a «Dos pestañas» a pedido del fundador
     <div><h2 id="cf-faq-title">Antes de instalar.</h2></div>
     <div class="cp-faq__items">
       <details><summary>¿El profe o mis compañeros se enteran?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>No. {{CHARACTER_NAME}} no entra a la sala ni aparece como participante: escucha el audio que ya llega a tu pestaña de UClass.</p></details>
+      <details><summary>¿Sigue escuchando si me voy un momento?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Sí, mientras la pestaña de UClass siga abierta y la clase se escuche en ella. Si se cae tu internet, {{CHARACTER_NAME}} tampoco oye esa parte: para eso está la grabación oficial cuando la publican.</p></details>
       <details><summary>¿Reemplaza a la grabación de la clase?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>No. La grabación oficial llega después; {{CHARACTER_NAME}} te sirve durante la clase y te deja los apuntes al terminar, con el minuto de cada cosa para ir directo a esa parte.</p></details>
       <details><summary>¿Se equivoca?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Puede, sobre todo si el audio llega mal. Por eso cada respuesta trae el minuto: revisas qué se dijo exactamente. No reemplaza estar atento a tu clase.</p></details>
       <details><summary>¿Graba mi voz?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Solo si lo autorizas, una vez, y solo mientras tu micrófono está abierto en UClass. Se guarda como texto.</p></details>

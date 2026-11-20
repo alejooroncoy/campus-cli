@@ -41,9 +41,13 @@
 .cf-side__question { width: fit-content; max-width: 90%; margin: 0 0 8px auto; padding: 7px 11px; border-radius: 12px 12px 4px 12px; background: var(--night); color: #fff; font-size: 12.5px; }
 .cf-side__answer { margin: 0; padding: 9px 11px; border-radius: 12px 12px 12px 4px; background: #f1f6f7; font-size: 12.5px; line-height: 1.5; }
 .cf-side__answer span { display: block; margin-top: 6px; }
+.cf-side__steps { display: grid; gap: 6px; margin: 0 0 8px; padding: 0 0 0 16px; font-size: 12.5px; line-height: 1.45; }
+.cf-side__steps span { display: block; color: #087fa4; font-size: 11px; font-weight: 700; }
+.cf-side__gap, .cf-card__gap { margin: 0; padding: 8px 10px; border-radius: 10px; background: #fff6e0; color: #6b4a0e; font-size: 12.5px; line-height: 1.45; }
+.cf-card__gap { margin: 0 16px 16px; padding: 12px 14px; font-size: 13.5px; }
 .cf-side__summary dt { margin: 0 0 4px; color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: .4px; }
 .cf-side__summary dd { display: grid; gap: 2px; margin: 0; padding: 7px 0; border-bottom: 1px solid #edf2f4; font-size: 12.5px; line-height: 1.45; }
-.cf-browser[data-step="ask"] .cf-notes li:not(:last-child), .cf-browser[data-step="summary"] .cf-notes { display: none; }
+.cf-browser[data-step="ask"] .cf-notes, .cf-browser[data-step="summary"] .cf-notes { display: none; }
 .cf-browser[data-step="ask"] .cf-side__ask, .cf-browser[data-step="summary"] .cf-side__summary { display: block; animation: cf-rise 520ms cubic-bezier(.16, 1, .3, 1); }
 @keyframes cf-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 /* Mientras PostHog decide la versión (como mucho 0,8 s), el texto que cambia no se muestra. */

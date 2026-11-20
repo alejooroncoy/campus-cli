@@ -5,9 +5,9 @@ import { CHARACTER_NAME } from '../lib/character.mjs';
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-// Versión A («¿qué dijo?»): los apuntes se llenan y terminas preguntando qué acaba de
-// explicar. Versión B («resumen»): los apuntes se llenan y la clase termina con lo que
-// hay que entregar. Sin animación queda en el momento final de cada versión.
+// Versión A («¿qué me perdí?»): los apuntes se llenan y, al volver de una llamada,
+// preguntas qué te perdiste. Versión B («el trabajo»): preguntas qué hay que hacer en
+// el trabajo que dejó el profe y Campito marca lo que no dijo. Sin animación queda en el momento final de cada versión.
 const CAPTIONS = [
   '«El PI Planning alinea a todos los equipos al inicio.»',
   '«No confundan el System Demo con el demo quincenal.»',
@@ -86,8 +86,8 @@ function setupTabs(root: HTMLElement): void {
 // Versión B del experimento: otro título y subtítulo, la escena termina en el resumen
 // y la pestaña del resumen va primero. La A es el HTML tal cual.
 const ANGLE_B_COPY: Record<string, string> = {
-  title: 'Sal de clase con lo que hay que <em>entregar.</em>',
-  lead: `${CHARACTER_NAME} acompaña tu clase de UClass y al terminar te deja las tareas, las fechas y los temas, cada uno con su minuto. Si algo no quedó claro, pregúntale.`,
+  title: 'Sal de clase sabiendo qué hay que <em>hacer.</em>',
+  lead: `${CHARACTER_NAME} acompaña tu clase de UClass. ¿Dejaron un trabajo y no te quedó del todo claro? Pregúntale qué hay que hacer: te lo explica con lo que dijo el profe y te marca lo que falta preguntarle.`,
 };
 
 function applyAngle(root: HTMLElement, angle: string): void {
