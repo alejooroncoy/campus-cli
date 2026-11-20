@@ -143,7 +143,9 @@ function mount(){
       else if(state.currentPlan==='plus'){
         // Plus por rol (cortesía o admin) puede convivir con un mes pagado ya vencido: ese mes no es el plan actual.
         const paidPhase=state.subscription?(state.subscriptionState??phaseFromDate(state.subscription.activeUntil)):'none';
-        show('active');message();text('active-until',state.subscription?.isTest?`Acceso de prueba hasta el ${date(state.subscription.activeUntil)}. No se registró ningún pago.`:state.subscription&&paidPhase!=='expired'?`Tu mes está activo hasta el ${date(state.subscription.activeUntil)}.`:'Tu cuenta tiene acceso a Campus Plus.');
+        // Una prueba de QA ya vencida tampoco es el plan actual: el acceso viene del rol.
+        const testActive=state.subscription?.isTest===true&&phaseFromDate(state.subscription.activeUntil)!=='expired';
+        show('active');message();text('active-until',testActive?`Acceso de prueba hasta el ${date(state.subscription!.activeUntil)}. No se registró ningún pago.`:state.subscription&&!state.subscription.isTest&&paidPhase!=='expired'?`Tu mes está activo hasta el ${date(state.subscription.activeUntil)}.`:'Tu cuenta tiene acceso a Campus Plus.');
         find('renew').hidden=!state.enabled||!state.eligible||!state.subscription||paidPhase!=='expiring';
         track('campus_plus_status_viewed',{plus_status:'active'});
       }else if(!state.enabled){show('unavailable');message('La activación de Plus está pausada. No realices un pago nuevo.',true);}
@@ -159,7 +161,7 @@ function mount(){
         find('manual-overview').hidden = qr || Boolean(state.subscription&&!state.subscription.isTest);
         show('ready');message();find('checkout').textContent=state.orders.some(o=>o.status==='quoted')?'Retomar instrucciones de pago':state.subscription?'Renovar mi mes':'Ver precio y cómo pagar';}
       // The test notice describes the panel on screen, never a past test the student is not looking at.
-      find('qa').hidden=!(lastView==='pending'&&pending?.isTest||lastView==='active'&&state.subscription?.isTest&&!state.orders.some(order=>order.status==='active'&&order.paymentMethod==='flow'));
+      find('qa').hidden=!(lastView==='pending'&&pending?.isTest||lastView==='active'&&state.subscription?.isTest&&phaseFromDate(state.subscription.activeUntil)!=='expired'&&!state.orders.some(order=>order.status==='active'&&order.paymentMethod==='flow'));
       renderSubscription(state,session.email);
       // One card per state: with a paid month the plan card carries the actions, so the active panel steps aside.
       if(lastView==='active'&&!find('subscription').hidden)find('view="active"').hidden=true;
