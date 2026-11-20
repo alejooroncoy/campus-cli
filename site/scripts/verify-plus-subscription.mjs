@@ -28,6 +28,10 @@ const scenarios={
   never:{view:'ready',plan:'free',state:{orders:[],subscription:null,subscriptionState:'none',renewableFrom:null,currentPlan:'free',enabled:true,eligible:true,flowAvailable:true},panel:false},
   // Captura del 2026-11-12: prueba vencida, un pago observado y un QR sin terminar. Sin aviso de prueba ni tres "Sin…".
   unfinished:{view:'flow',plan:'free',state:{orders:[order({status:'quoted',activeUntil:null,createdAt:iso(-1*day),amountCents:500,renewalCents:1000}),order({status:'rejected',paymentMethod:undefined,activeUntil:null,createdAt:iso(-27*day),amountCents:500,note:'El monto no coincide.'}),order({isTest:true,createdAt:iso(-2*day),activeUntil:iso(-1*day)})],subscription:{cohort:'founder',renewalCents:1000,activeUntil:iso(-1*day),isTest:true},subscriptionState:'expired',renewableFrom:null,currentPlan:'free',enabled:true,eligible:true,flowAvailable:true},panel:false,qa:false,history:/Motivo: El monto no coincide\./},
+  // Cuenta 770 (2026-11-20): cortesía con un mes pagado ya vencido. Sigue en Plus; nada de «volvió a Campus Free».
+  courtesyexpired:{view:'active',plan:'plus',state:{orders:[order({createdAt:iso(-44*day),activeUntil:iso(-14*day)})],subscription:{cohort:'standard',renewalCents:1500,activeUntil:iso(-14*day)},subscriptionState:'expired',renewableFrom:iso(-21*day),currentPlan:'plus',enabled:true,eligible:true,flowAvailable:true},panel:false,activeText:/^Tu cuenta tiene acceso a Campus Plus\.$/,renewHidden:true,history:/Historial de pagos/},
+  // Admin con una prueba de QA ya vencida: no es «acceso de prueba hasta» una fecha pasada ni aviso de prueba.
+  adminexpiredtest:{view:'active',plan:'plus',state:{orders:[order({isTest:true,createdAt:iso(-3*day),activeUntil:iso(-2*day)})],subscription:{cohort:'founder',renewalCents:1000,activeUntil:iso(-2*day),isTest:true},subscriptionState:'none',renewableFrom:null,currentPlan:'plus',enabled:true,eligible:true,flowAvailable:true},panel:false,qa:false,activeText:/^Tu cuenta tiene acceso a Campus Plus\.$/,renewHidden:true},
   qa:{view:'active',plan:'plus',state:{orders:[order({isTest:true})],subscription:{cohort:'founder',renewalCents:1000,activeUntil:iso(0.5*day),isTest:true},subscriptionState:'none',renewableFrom:null,currentPlan:'plus',enabled:true,eligible:true,flowAvailable:true},panel:false},
 };
 const browser=await chromium.launch({headless:true});
@@ -61,6 +65,11 @@ try{
         if(sc.name)assert.equal((await page.locator('[data-plus-sub-name]').textContent()).trim(),sc.name,name);
         assert.match(await page.locator('[data-plus-history-panel]').textContent(),/Historial de pagos/);
         assert.doesNotMatch(text,/[—–]/,'no dash separators');
+      }
+      if(sc.activeText){
+        assert.match((await page.locator('[data-plus-active-until]').textContent()).trim(),sc.activeText,name+' active text');
+        assert.equal(await page.locator('[data-plus-renew]').isHidden(),sc.renewHidden,name+' renew button');
+        assert.doesNotMatch(await page.locator('main').innerText(),/Campus Free|Plus vencido/,name+' must not say Free');
       }
       if(sc.history)assert.match(await page.locator('[data-plus-history-panel]').textContent(),sc.history,name+' history');
       if(sc.qa===false)assert.equal(await page.locator('[data-plus-qa]').isVisible(),false,name+' must not show the test notice');
