@@ -5,9 +5,10 @@ import { CHARACTER_NAME } from '../lib/character.mjs';
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-// Versión A («¿qué me perdí?»): los apuntes se llenan y, al volver de una llamada,
-// preguntas qué te perdiste. Versión B («el trabajo»): preguntas qué hay que hacer en
-// el trabajo que dejó el profe y Campito marca lo que no dijo. Sin animación queda en el momento final de cada versión.
+// Tres versiones (experimento campito-hero-angle). Los apuntes se llenan igual y la
+// escena termina distinto: control pregunta «¿qué acaba de explicar?»; «ponte-al-dia»
+// vuelve de una llamada del trabajo y pregunta qué se perdió; «trabajo» pregunta qué
+// hay que hacer y Campito marca lo que el profe no dijo. Sin animación queda en el final.
 const CAPTIONS = [
   '«El PI Planning alinea a todos los equipos al inicio.»',
   '«No confundan el System Demo con el demo quincenal.»',
@@ -20,7 +21,7 @@ function setupDemo(stage: HTMLElement, angle: string): void {
   const caption = stage.querySelector<HTMLElement>('[data-cf-caption]');
   const replay = stage.querySelector<HTMLButtonElement>('[data-cf-replay]');
   if (!browser) return;
-  const finale = angle === 'test' ? 'summary' : 'ask';
+  const finale = angle === 'trabajo' ? 'summary' : 'ask';
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
     notes.forEach((note) => note.classList.add('is-on'));
     browser.dataset.step = finale;
@@ -83,22 +84,42 @@ function setupTabs(root: HTMLElement): void {
   });
 }
 
-// Versión B del experimento: otro título y subtítulo, la escena termina en el resumen
-// y la pestaña del resumen va primero. La A es el HTML tal cual.
-const ANGLE_B_COPY: Record<string, string> = {
-  title: 'Sal de clase sabiendo qué hay que <em>hacer.</em>',
-  lead: `${CHARACTER_NAME} acompaña tu clase de UClass. ¿Dejaron un trabajo y no te quedó del todo claro? Pregúntale qué hay que hacer: te lo explica con lo que dijo el profe y te marca lo que falta preguntarle.`,
+// El HTML es la versión control; las otras cambian título, subtítulo, el final de la
+// escena y qué función se muestra primero.
+type Angle = { title: string; lead: string; ask?: { question: string; answer: string }; tab?: string };
+const ANGLES: Record<string, Angle> = {
+  'ponte-al-dia': {
+    title: '¿Te llamaron del trabajo en plena clase? Ponte al <em>día.</em>',
+    lead: `${CHARACTER_NAME} sigue tu clase de UClass mientras atiendes. Al volver, pregúntale qué te perdiste y te resume esos minutos, con el minuto de cada cosa.`,
+    ask: {
+      question: 'Me llamaron del trabajo. ¿Qué me perdí?',
+      answer: 'En los últimos 12 minutos: explicó el System Demo frente al demo quincenal, cómo calcular el CPI y el SPI con valor ganado, y que ese ejercicio será el de mayor puntaje en la práctica calificada.<span>Profesor · min 95 a 107</span>',
+    },
+    tab: 'cf-tab-ask',
+  },
+  trabajo: {
+    title: 'Sal de clase sabiendo qué hay que <em>hacer.</em>',
+    lead: `${CHARACTER_NAME} acompaña tu clase de UClass. ¿Dejaron un trabajo y no te quedó del todo claro? Pregúntale qué hay que hacer: te lo explica con lo que dijo el profe y te marca lo que falta preguntarle.`,
+    tab: 'cf-tab-summary',
+  },
 };
 
 function applyAngle(root: HTMLElement, angle: string): void {
-  if (angle !== 'test') return;
+  const version = ANGLES[angle];
+  if (!version) return;
+  const copy: Record<string, string> = { title: version.title, lead: version.lead };
   root.querySelectorAll<HTMLElement>('[data-cf-copy]').forEach((el) => {
-    const html = ANGLE_B_COPY[el.dataset.cfCopy ?? ''];
+    const html = copy[el.dataset.cfCopy ?? ''];
     if (html) el.innerHTML = html;
   });
-  const summary = root.querySelector<HTMLButtonElement>('#cf-tab-summary');
-  const list = summary?.parentElement;
-  if (summary && list) { list.prepend(summary); summary.click(); }
+  if (version.ask) {
+    root.querySelectorAll<HTMLElement>('[data-cf-ask]').forEach((el) => {
+      const html = version.ask![el.dataset.cfAsk as 'question' | 'answer'];
+      if (html) el.innerHTML = html;
+    });
+  }
+  const tab = version.tab ? root.querySelector<HTMLButtonElement>('#' + version.tab) : null;
+  if (tab?.parentElement) { tab.parentElement.prepend(tab); tab.click(); }
 }
 
 async function start(): Promise<void> {

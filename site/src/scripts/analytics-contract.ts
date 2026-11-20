@@ -23,7 +23,7 @@ export const events = new Set([
 // Experimentos A/B: cada flag y sus variantes posibles. Solo estos viajan como
 // exposición ($feature_flag_called) y como propiedad $feature/<flag> de los eventos.
 export const experiments: Record<string, readonly string[]> = {
-  'campito-hero-angle': ['control', 'test'],
+  'campito-hero-angle': ['control', 'ponte-al-dia', 'trabajo'],
 };
 const experimentValue = (key: string, value: unknown, input: Record<string, unknown>): boolean => {
   if (typeof value !== 'string') return false;
