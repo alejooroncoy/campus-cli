@@ -21,7 +21,8 @@ function fixture(options={}) {
   const run={head_sha:revision,head_branch:'main',event:'push',status:'completed',conclusion:'success',head_repository:{full_name:policy.repository},...(options.run??{})};
   const github=async path=>{
     if(path.includes('/git/ref/')){mainReads++;return {object:{sha:options.stale||options.advanceMain&&mainReads>=3?previous:revision}};}
-    if(path.includes('/actions/'))return {workflow_runs:[run]};
+    // El índice de GitHub para status= va con retraso: con ese filtro, una ejecución recién terminada no aparece.
+    if(path.includes('/actions/'))return {workflow_runs:options.statusIndexLag&&/[?&]status=/.test(path)?[]:[run]};
     if(path.includes('/compare/'))return {status:options.comparison??'ahead'};
     throw Error('Unexpected GitHub request '+path);
   };
@@ -36,6 +37,10 @@ function fixture(options={}) {
   };
   return {mutations,input:{revision,github,vercel,attempts:1,wait:async()=>{},liveInfo:async()=>({revision,branch:'main',environment:'production'})}};
 }
+test('publishes a just-finished CI run that GitHub has not indexed by status yet',async()=>{
+  const f=fixture({statusIndexLag:true});await publishSite(f.input);
+  assert.deepEqual(f.mutations,[{path:'/v2/deployments/dpl_candidate/aliases',body:{alias:'campuscli.com'}}]);
+});
 test('only checked current main can move the production domain and auto-aliasing stays off',async()=>{
   const f=fixture();const result=await publishSite(f.input);
   assert.equal(result.revision,revision);
@@ -46,7 +51,7 @@ for(const [name,options] of [
   ['CLI upload',{deployment:{source:'cli'}}],['no matching deployment',{noDeployment:true}],
   ['preview build',{deployment:{target:'preview'}}],['another project',{deployment:{projectId:'prj_other'}}],
   ['failed build',{deployment:{readyState:'ERROR'}}],['unfinished build',{deployment:{readyState:'BUILDING'}}],
-  ['failed CI',{run:{conclusion:'failure'}}],['PR CI',{run:{event:'pull_request'}}],['foreign CI',{run:{head_repository:{full_name:'other/repo'}}}],
+  ['failed CI',{run:{conclusion:'failure'}}],['unfinished CI',{run:{status:'in_progress',conclusion:null}}],['PR CI',{run:{event:'pull_request'}}],['foreign CI',{run:{head_repository:{full_name:'other/repo'}}}],
   ['automatic domain assignment enabled',{project:{autoAssignCustomDomains:true}}],
   ['older production revision',{comparison:'behind'}],['unrelated history',{comparison:'diverged'}],
   ['unknown current provenance',{unknownCurrent:true}],['concurrent publication',{concurrent:true}],
