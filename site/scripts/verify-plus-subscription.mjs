@@ -61,8 +61,8 @@ try{
         const renew=page.locator('[data-plus-renew]');
         if(sc.view==='active')assert.equal(await renew.isHidden(),sc.renewHidden,name+' renew button');
         const text=await panel.textContent()+(await page.locator('[data-plus-history-panel]').textContent());
-        if(sc.facts==='byRole'){assert.equal((await page.locator('[data-plus-sub-renewal]').textContent()).trim(),'No la necesitas',name+' renewal');assert.equal((await page.locator('[data-plus-sub-until-label]').textContent()).trim(),'Mes pagado hasta',name+' until label');}
-        else if(sc.view==='active')assert.equal((await page.locator('[data-plus-sub-until-label]').textContent()).trim(),'Vigente hasta',name+' until label');
+        if(sc.view==='active')assert.equal((await page.locator('[data-plus-sub-until-label]').textContent()).trim(),sc.facts==='byRole'?'Mes pagado hasta':'Vigente hasta',name+' until label');
+        if(sc.facts==='byRole')assert.equal((await page.locator('[data-plus-sub-renewal]').textContent()).trim(),'No la necesitas',name+' renewal');
         else if(sc.facts!==false)assert.match(text,/estudiante@example\.test/,name+' notice');
         else assert.equal(await page.locator('[data-plus-sub-facts]').isVisible(),false,name+' facts');
         if(sc.noText)assert.doesNotMatch(await page.locator('main').innerText(),sc.noText,name+' wrong promise');
