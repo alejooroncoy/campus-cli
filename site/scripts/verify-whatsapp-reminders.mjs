@@ -38,6 +38,13 @@ try{
   const panel=page.locator('[data-whatsapp-reminders]'),summary=page.locator('[data-wa-summary]'),pack=page.locator('[data-wa-pack-wrap]');
   // Espera a que la tarjeta pinte el estado que devuelve la API (data-state), no un texto concreto.
   const load=async(expected,url='/app/plus/')=>{await page.goto(base+url);await page.locator(`[data-whatsapp-reminders][data-state="${expected}"]`).waitFor({state:'attached'});};
+  // Sin el campo phone (servicio anterior) no se inventa un número; con él, se muestra enmascarado y se puede cambiar.
+  await load('off');assert.equal(await page.locator('[data-wa-number]').isVisible(),false);
+  state={...initial,phone:'+51 ••• ••• 585'};await load('off');
+  assert.equal(await page.locator('[data-wa-phone]').textContent(),'+51 ••• ••• 585');
+  assert.match(await page.locator('[data-wa-change]').getAttribute('href'),/^https:\/\/wa\.me\/51937751448\?text=/);
+  state={...initial,phone:'Usuario de WhatsApp'};await load('off');assert.equal(await page.locator('[data-wa-phone]').textContent(),'tu WhatsApp vinculado');
+  state={...initial};
   await load('off');assert.match(await panel.textContent(),/Un mensaje a la semana/);assert.equal(await summary.textContent(),'');assert.equal(await pack.isVisible(),false,'el paquete se ofrece después de encender el resumen');assert.equal(writes.length,0);
   const saved=page.waitForResponse(r=>r.url().endsWith('/api/app/whatsapp/preferences/'));
   await page.locator('[data-wa-enabled]').check();await saved;assert.deepEqual(writes[0],{enabled:true,consent:true});
@@ -51,7 +58,7 @@ try{
   if(process.argv[2])await page.screenshot({path:process.argv[2]+'/whatsapp-'+width+'.png',fullPage:true});
   state={...initial,enabled:true,pack:true,quota:20,used:20,remaining:0};await load('on');
   assert.match(await summary.textContent(),/Avisos al momento: te quedan 0 de 20 hasta el 1 de diciembre/);assert.equal(await summary.getAttribute('data-error'),null);assert.equal(await pack.isVisible(),false);
-  state={...initial,linked:false};await load('link');assert.equal(await page.locator('[data-wa-link-needed]').isVisible(),true);assert.equal(await page.locator('[data-wa-optin]').isVisible(),false);
+  state={...initial,linked:false,phone:null};await load('link');assert.equal(await page.locator('[data-wa-link-needed]').isVisible(),true);assert.equal(await page.locator('[data-wa-number]').isVisible(),false);assert.equal(await page.locator('[data-wa-optin]').isVisible(),false);
   state={...initial,available:false};await load('unavailable');assert.equal(await page.locator('[data-wa-unavailable]').isVisible(),true);assert.equal(await page.locator('[data-wa-unavailable] a').getAttribute('href'),'/app/novedades/#avisos');assert.equal(await pack.isVisible(),false);
   // Sin Plus: en Mi suscripción el pago ya está arriba; en Tu calendario la tarjeta lleva a Plus.
   state={...initial,subscribed:false,linked:false,enabled:false};await load('free');assert.equal(await page.locator('[data-wa-upsell]').isVisible(),false);
