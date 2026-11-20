@@ -14,18 +14,7 @@ FORM: «Clase con memoria», reemplaza a «Dos pestañas» a pedido del fundador
       <div class="cp-actions">
         <a class="button cf-install" href="https://chromewebstore.google.com/detail/dhkmcgkafhfhelolngmdgepiddjmphld?utm_source=campuscli&amp;utm_medium=web&amp;utm_campaign=campito" target="_blank" rel="noopener noreferrer">Agrégalo a Chrome <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
       </div>
-      <!-- trial:start --><div class="cf-price" aria-label="Precio fundador de Campus Plus: S/10 al mes para los primeros 25 de pago; después, S/15">
-        <p class="cf-price__badge">PRECIO FUNDADOR · PRIMEROS 25 DE PAGO</p>
-        <p class="cf-price__amount"><strong>S/10</strong><span>al mes</span><s>S/15</s></p>
-        <div class="cf-price__seats" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <p class="cf-price__note"><strong>Tu primera clase es gratis.</strong> Después, Campus Plus sin renovación automática. Al completarse los 25 cupos, sube a S/15.</p>
-      </div><!-- trial:end -->
-      <!-- plus:start --><div class="cf-price" aria-label="Precio fundador de Campus Plus: S/10 al mes para los primeros 25 de pago; después, S/15">
-        <p class="cf-price__badge">PRECIO FUNDADOR · PRIMEROS 25 DE PAGO</p>
-        <p class="cf-price__amount"><strong>S/10</strong><span>al mes</span><s>S/15</s></p>
-        <div class="cf-price__seats" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <p class="cf-price__note">Con Campus Plus, sin renovación automática. Al completarse los 25 cupos, sube a S/15.</p>
-      </div><!-- plus:end -->
+      <a class="cf-pill" href="#precio"><span class="cf-pill__dot"></span><!-- trial:start -->Tu primera clase es gratis · <!-- trial:end -->Precio fundador: <strong>S/10 al mes</strong> <s>S/15</s></a>
       <p class="cf-requirements">Chrome en computadora · Clases en UClass de la UPC</p>
     </div>
 
@@ -155,21 +144,37 @@ FORM: «Clase con memoria», reemplaza a «Dos pestañas» a pedido del fundador
     </ul>
   </section>
 
+  <section class="cf-pricing shell" id="precio" aria-labelledby="cf-pricing-title">
+    <div class="cf-pricing__copy">
+      <p class="cp-kicker"><span></span> PRECIO FUNDADOR</p>
+      <h2 id="cf-pricing-title">S/10 al mes para los primeros 25 que se suman.</h2>
+      <p>Ya hay alumnos fundadores usando Campus Plus. Cuando se completen los 25 cupos, el precio pasa a S/15 al mes para los que lleguen después.</p>
+      <ul class="cf-pricing__list">
+        <li>{{CHARACTER_NAME}} en tus clases de UClass: apuntes con su minuto, «¿qué me perdí?» y el trabajo que dejaron</li>
+        <li>Te avisa si te nombran o empiezan a tomar lista</li>
+        <li>Tus clases grabadas, desde sus transcripciones</li>
+        <li>100 consultas al día en la web y consultas ilimitadas con tu IA</li>
+        <li>Resumen semanal por WhatsApp</li>
+      </ul>
+    </div>
+    <div class="cf-plan">
+      <p class="cf-plan__name">Campus Plus</p>
+      <p class="cf-plan__price"><s>S/15</s><strong>S/10</strong><span>al mes</span></p>
+      <p class="cf-plan__then">Precio fundador. Después de los primeros 25, S/15 al mes.</p>
+      <div class="cf-seats" data-cf-seats>
+        <div class="cf-seats__row" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <p class="cf-seats__label" data-cf-seats-label>Cupos limitados: los primeros 25 de pago.</p>
+      </div>
+      <!-- trial:start --><p class="cf-plan__trial">Tu primera clase es gratis.</p><!-- trial:end -->
+      <a class="button button--full cf-install" href="https://chromewebstore.google.com/detail/dhkmcgkafhfhelolngmdgepiddjmphld?utm_source=campuscli&amp;utm_medium=web&amp;utm_campaign=campito" target="_blank" rel="noopener noreferrer">Agrégalo a Chrome <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
+      <p class="cf-plan__fine">Sin renovación automática. Pagas un mes con Yape o Plin.</p>
+    </div>
+  </section>
+
   <section class="cp-final cf-final shell" aria-labelledby="cf-final-title">
     <img src="/assets/campu/campu-wave-v2-192.webp" width="96" height="96" alt="" />
     <h2 id="cf-final-title">Pruébalo en tu próxima clase.</h2>
-    <!-- trial:start --><p>Tu primera clase es gratis. Si te sirve, sigue con el precio fundador.</p><div class="cf-price" aria-label="Precio fundador de Campus Plus: S/10 al mes para los primeros 25 de pago; después, S/15">
-        <p class="cf-price__badge">PRECIO FUNDADOR · PRIMEROS 25 DE PAGO</p>
-        <p class="cf-price__amount"><strong>S/10</strong><span>al mes</span><s>S/15</s></p>
-        <div class="cf-price__seats" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <p class="cf-price__note">Sin renovación automática. Al completarse los 25 cupos, sube a S/15.</p>
-      </div><!-- trial:end -->
-    <!-- plus:start --><p>Viene con Campus Plus, a precio fundador mientras queden cupos.</p><div class="cf-price" aria-label="Precio fundador de Campus Plus: S/10 al mes para los primeros 25 de pago; después, S/15">
-        <p class="cf-price__badge">PRECIO FUNDADOR · PRIMEROS 25 DE PAGO</p>
-        <p class="cf-price__amount"><strong>S/10</strong><span>al mes</span><s>S/15</s></p>
-        <div class="cf-price__seats" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-        <p class="cf-price__note">Sin renovación automática. Al completarse los 25 cupos, sube a S/15.</p>
-      </div><!-- plus:end -->
+    <p>Lo agregas a Chrome, entras a tu clase de UClass y tocas a {{CHARACTER_NAME}}.</p>
     <a class="button cf-install" href="https://chromewebstore.google.com/detail/dhkmcgkafhfhelolngmdgepiddjmphld?utm_source=campuscli&amp;utm_medium=web&amp;utm_campaign=campito" target="_blank" rel="noopener noreferrer">Agrégalo a Chrome <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
   </section>
 

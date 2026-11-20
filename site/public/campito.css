@@ -4,17 +4,12 @@
 /* Portada */
 .cf-hero h1 { max-width: 560px; }
 .cf-offer { margin: 18px 0 6px; max-width: 460px; color: var(--ink); font-size: 15px; line-height: 1.55; }
-/* Precio fundador: tarjeta con el precio grande, el normal tachado y los 25 cupos. */
-.cf-price { width: min(100%, 420px); margin: 20px 0 10px; padding: 16px 18px 14px; border: 1px solid #bfe6d6; border-radius: 16px; background: linear-gradient(180deg, #effaf5, #ffffff); box-shadow: 0 14px 30px -24px rgba(8, 127, 91, .55); }
-.cf-price__badge { display: inline-flex; margin: 0 0 8px; padding: 4px 9px; border-radius: 999px; background: var(--green); color: #fff; font-size: 10.5px; font-weight: 700; letter-spacing: .6px; }
-.cf-price__amount { display: flex; align-items: baseline; gap: 8px; margin: 0 0 10px; }
-.cf-price__amount strong { color: var(--ink); font-size: 40px; line-height: 1; letter-spacing: -1.5px; }
-.cf-price__amount span { color: var(--muted); font-size: 15px; }
-.cf-price__amount s { margin-left: 4px; color: #8aa1ad; font-size: 17px; font-weight: 600; text-decoration-thickness: 2px; }
-.cf-price__seats { display: grid; grid-template-columns: repeat(25, 1fr); gap: 4px; margin: 0 0 10px; }
-.cf-price__seats i { aspect-ratio: 1; max-width: 12px; border: 1.5px solid #58b893; border-radius: 4px; background: #fff; }
-.cf-price__note { margin: 0; color: #3f5d6b; font-size: 13px; line-height: 1.5; }
-.cf-final .cf-price { margin: 4px auto 20px; text-align: left; }
+/* Precio en la portada: una píldora que lleva a la sección de precio. */
+.cf-pill { display: inline-flex; align-items: center; gap: 8px; margin: 18px 0 10px; padding: 7px 14px 7px 10px; border: 1px solid #bfe6d6; border-radius: 999px; background: #effaf5; color: var(--ink); font-size: 14px; transition: border-color 180ms ease, background 180ms ease; }
+.cf-pill:hover { border-color: #58b893; background: #e3f6ee; }
+.cf-pill__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(8, 127, 91, .15); }
+.cf-pill s { color: #7d97a3; }
+
 .cf-requirements { margin: 0; color: var(--muted); font-size: 13px; }
 
 .cf-stage { margin: 0; }
@@ -107,6 +102,29 @@
 .cf-summary dd span { flex: none; color: #087fa4; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .cf-features__note { margin: 18px 0 0; color: var(--muted); font-size: 12px; text-align: right; }
 
+/* Precio fundador: lo que incluye a la izquierda, el plan a la derecha. */
+.cf-pricing { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 64px; align-items: center; padding-block: 88px; border-top: 1px solid var(--line); }
+.cf-pricing h2 { max-width: 520px; margin: 0 0 18px; font-size: clamp(30px, 3vw, 42px); line-height: 1.1; letter-spacing: -1.4px; text-wrap: balance; }
+.cf-pricing__copy > p { max-width: 520px; margin: 0 0 24px; color: var(--muted); font-size: 16.5px; line-height: 1.65; }
+.cf-pricing__list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.cf-pricing__list li { position: relative; padding-left: 30px; font-size: 15.5px; line-height: 1.5; }
+.cf-pricing__list li::before { content: ""; position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23087f5b' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center / 12px no-repeat; }
+.cf-plan { padding: 28px; border: 1px solid var(--line); border-radius: 20px; background: var(--paper); box-shadow: 0 30px 60px -36px rgba(16, 42, 58, .4); }
+.cf-plan__name { margin: 0 0 12px; font-size: 18px; font-weight: 700; }
+.cf-plan__price { display: flex; align-items: baseline; gap: 10px; margin: 0 0 6px; }
+.cf-plan__price s { color: #7d97a3; font-size: 22px; font-weight: 600; }
+.cf-plan__price strong { font-size: 52px; line-height: 1; letter-spacing: -2px; }
+.cf-plan__price span { color: var(--muted); font-size: 16px; }
+.cf-plan__then { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+.cf-seats { margin: 0 0 20px; padding: 14px; border-radius: 12px; background: #f3f8f9; }
+.cf-seats__row { display: grid; grid-template-columns: repeat(25, 1fr); gap: 4px; margin-bottom: 10px; }
+.cf-seats__row i { aspect-ratio: 1; border-radius: 3px; background: #dbe7eb; transition: background 360ms cubic-bezier(.16, 1, .3, 1); }
+.cf-seats__row i.is-taken { background: var(--green); }
+.cf-seats__label { margin: 0; color: var(--ink); font-size: 13.5px; }
+.cf-seats__label strong { color: var(--green); }
+.cf-plan__trial { margin: 0 0 12px; color: var(--green); font-size: 14px; font-weight: 600; }
+.cf-plan__fine { margin: 12px 0 0; color: var(--muted); font-size: 12.5px; text-align: center; }
+
 /* Privacidad */
 .cf-privacy { display: grid; grid-template-columns: 1fr 1.4fr; gap: 64px; padding-block: 72px; border-top: 1px solid var(--line); }
 .cf-privacy h2 { margin: 0; font-size: clamp(28px, 2.6vw, 38px); line-height: 1.12; letter-spacing: -1.2px; }
@@ -124,6 +142,7 @@
   .cf-traits { grid-template-columns: 1fr; gap: 22px; padding-bottom: 56px; }
   .cf-features__grid { grid-template-columns: 1fr; gap: 24px; }
   .cf-privacy { grid-template-columns: 1fr; gap: 28px; }
+  .cf-pricing { grid-template-columns: 1fr; gap: 32px; padding-block: 64px; }
 }
 @media (max-width: 640px) {
   .cf-browser__body { grid-template-columns: 1fr; min-height: 0; }

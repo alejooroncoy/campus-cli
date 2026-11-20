@@ -132,5 +132,31 @@ async function start(): Promise<void> {
   document.querySelectorAll<HTMLElement>('[data-cf-demo]').forEach((stage) => setupDemo(stage, angle));
 }
 
+// Cupos fundadores: el servidor dice cuántos de los 25 ya pagaron (solo el número).
+// Sin respuesta, la tarjeta se queda con «cupos limitados» y nada pintado: nunca un
+// número inventado. En local se puede previsualizar con ?cupos=4.
+async function showSeats(): Promise<void> {
+  const box = document.querySelector<HTMLElement>('[data-cf-seats]');
+  const label = box?.querySelector<HTMLElement>('[data-cf-seats-label]');
+  if (!box || !label) return;
+  let seats: { limit: number; taken: number } | undefined;
+  const preview = ['localhost', '127.0.0.1'].includes(location.hostname) ? Number(new URLSearchParams(location.search).get('cupos')) : NaN;
+  if (Number.isInteger(preview) && preview >= 0) seats = { limit: 25, taken: preview };
+  else {
+    try {
+      const response = await fetch('/api/app/plus/founders', { cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(5000) });
+      if (response.ok) seats = await response.json();
+    } catch { /* Sin dato, sin número. */ }
+  }
+  if (!seats || !Number.isInteger(seats.taken) || !Number.isInteger(seats.limit) || seats.limit <= 0) return;
+  const taken = Math.max(0, Math.min(seats.taken, seats.limit));
+  box.querySelectorAll('i').forEach((seat, index) => seat.classList.toggle('is-taken', index < taken));
+  const left = seats.limit - taken;
+  label.innerHTML = left > 0
+    ? `<strong>${taken} de ${seats.limit}</strong> cupos fundadores tomados. Quedan ${left}.`
+    : 'Los 25 cupos fundadores ya se tomaron.';
+}
+
 document.querySelectorAll<HTMLElement>('[data-cf-tabs]').forEach(setupTabs);
 void start();
+void showSeats();
