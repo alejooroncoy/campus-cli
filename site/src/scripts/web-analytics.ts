@@ -49,7 +49,7 @@ function whatsappCampaign(search: string): Record<string, string> {
 const paths: Record<string, string> = {
   home: '/', ucal: '/upc-compra-ucal/', app: '/app/', assistant: '/app/asistente/', connect: '/app/copilot/',
   profile: '/app/perfil/', plus: '/app/plus/', turnitin_app: '/app/turnitin/',
-  turnitin: '/turnitin/', professors: '/profes/', professor_directory: '/profes/upc/',
+  turnitin: '/turnitin/', campito: '/campito/', professors: '/profes/', professor_directory: '/profes/upc/',
   professor_profile: '/profes/upc/:professor/', professor_review_form: '/profes/upc/:professor/escribir/',
   professor_reviews: '/profes/resenas/', library: '/biblioteca/', library_item: '/biblioteca/:item/',
   library_app: '/app/biblioteca/', campus_reviews: '/opiniones-campus/', cli: '/campus-cli/',

@@ -73,13 +73,16 @@ function setupTabs(root: HTMLElement): void {
     }
     if (focus) tab.focus();
   };
-  tabs.forEach((tab, index) => {
+  tabs.forEach((tab) => {
     tab.addEventListener('click', () => select(tab));
     tab.addEventListener('keydown', (event) => {
-      const next = { ArrowDown: index + 1, ArrowRight: index + 1, ArrowUp: index - 1, ArrowLeft: index - 1, Home: 0, End: tabs.length - 1 }[event.key];
+      // El orden se lee del DOM: las versiones del experimento reordenan las pestañas.
+      const order = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      const index = order.indexOf(tab);
+      const next = { ArrowDown: index + 1, ArrowRight: index + 1, ArrowUp: index - 1, ArrowLeft: index - 1, Home: 0, End: order.length - 1 }[event.key];
       if (next === undefined) return;
       event.preventDefault();
-      select(tabs[(next + tabs.length) % tabs.length], true);
+      select(order[(next + order.length) % order.length], true);
     });
   });
 }
