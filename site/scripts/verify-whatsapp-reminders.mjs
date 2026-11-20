@@ -28,6 +28,7 @@ try{
    if(u.pathname==='/api/app/session')return r.fulfill({json:{authenticated:true,email:'fixture@example.test',plan:'plus',universityConfirmed:true,analyticsId:'campus:fixture'}});
    if(u.pathname==='/api/app/whatsapp')return r.fulfill({json:state});
    if(u.pathname==='/api/app/whatsapp/preferences'){const input=r.request().postDataJSON();writes.push(input);state.enabled=input.enabled;return r.fulfill({json:{enabled:state.enabled}});}
+   if(u.pathname==='/api/app/whatsapp/phone'){const input=r.request().postDataJSON();writes.push(input);state={...state,linked:true,phone:'+51 ••• ••• 321'};return r.fulfill({json:{phone:state.phone}});}
    if(u.pathname==='/api/app/whatsapp/checkout'){writes.push(r.request().postDataJSON());return r.fulfill({status:409,json:{error:'Pago de prueba sin cobro'}});}
    // Tu calendario (/app/novedades/) no es lo que se prueba aquí: responde como servicio no disponible.
    if(u.pathname.startsWith('/api/app/proactive'))return r.fulfill({status:503,json:{error:'PROACTIVE_UNAVAILABLE'}});
@@ -42,7 +43,10 @@ try{
   await load('off');assert.equal(await page.locator('[data-wa-number]').isVisible(),false);
   state={...initial,phone:'+51 ••• ••• 585'};await load('off');
   assert.equal(await page.locator('[data-wa-phone]').textContent(),'+51 ••• ••• 585');
-  assert.match(await page.locator('[data-wa-change]').getAttribute('href'),/^https:\/\/wa\.me\/51937751448\?text=/);
+  // Cambiar número se hace aquí mismo: nada abre WhatsApp.
+  assert.equal(await page.locator('[data-whatsapp-reminders] a[href*="wa.me"]').count(),0);
+  await page.locator('[data-wa-change]').click();assert.equal(await page.locator('[data-wa-phone-form]').isVisible(),true);assert.equal(await page.locator('[data-wa-number]').isVisible(),false);
+  await page.locator('[data-wa-phone-cancel]').click();assert.equal(await page.locator('[data-wa-phone-form]').isVisible(),false);assert.equal(await page.locator('[data-wa-number]').isVisible(),true);
   state={...initial,phone:'Usuario de WhatsApp'};await load('off');assert.equal(await page.locator('[data-wa-phone]').textContent(),'tu WhatsApp vinculado');
   state={...initial};
   await load('off');assert.match(await panel.textContent(),/Un mensaje a la semana/);assert.equal(await summary.textContent(),'');assert.equal(await pack.isVisible(),false,'el paquete se ofrece después de encender el resumen');assert.equal(writes.length,0);
@@ -58,7 +62,15 @@ try{
   if(process.argv[2])await page.screenshot({path:process.argv[2]+'/whatsapp-'+width+'.png',fullPage:true});
   state={...initial,enabled:true,pack:true,quota:20,used:20,remaining:0};await load('on');
   assert.match(await summary.textContent(),/Avisos al momento: te quedan 0 de 20 hasta el 1 de diciembre/);assert.equal(await summary.getAttribute('data-error'),null);assert.equal(await pack.isVisible(),false);
-  state={...initial,linked:false,phone:null};await load('link');assert.equal(await page.locator('[data-wa-link-needed]').isVisible(),true);assert.equal(await page.locator('[data-wa-number]').isVisible(),false);assert.equal(await page.locator('[data-wa-optin]').isVisible(),false);
+  state={...initial,linked:false,phone:null};await load('link');assert.equal(await page.locator('[data-wa-phone-form]').isVisible(),true);assert.equal(await page.locator('[data-wa-phone-cancel]').isVisible(),false);assert.equal(await page.locator('[data-wa-number]').isVisible(),false);assert.equal(await page.locator('[data-wa-optin]').isVisible(),false);
+  // Un número que no se reconoce no se manda; uno válido se confirma antes de guardarse.
+  const writesBefore=writes.length,input=page.locator('[data-wa-phone-input]'),submit=page.locator('[data-wa-phone-submit]'),hintEl=page.locator('[data-wa-phone-hint]');
+  await input.fill('12345');await submit.click();assert.equal(await hintEl.getAttribute('data-error'),'true');assert.equal(writes.length,writesBefore);
+  await input.fill('987 654 321');await submit.click();assert.equal(await hintEl.textContent(),'¿Es +51 987 654 321? Ahí te llegarán tus avisos.');assert.equal(await submit.textContent(),'Sí, es mi número');assert.equal(writes.length,writesBefore);
+  const savedPhone=page.waitForResponse(r=>r.url().endsWith('/api/app/whatsapp/phone/'));await submit.click();await savedPhone;
+  assert.deepEqual(writes.at(-1),{phone:'987 654 321'});
+  await page.locator('[data-whatsapp-reminders][data-state="off"]').waitFor({state:'attached'});
+  assert.equal(await page.locator('[data-wa-phone]').textContent(),'+51 ••• ••• 321');assert.equal(await page.locator('[data-wa-phone-form]').isVisible(),false);assert.equal(await page.locator('[data-wa-optin]').isVisible(),true);
   state={...initial,available:false};await load('unavailable');assert.equal(await page.locator('[data-wa-unavailable]').isVisible(),true);assert.equal(await page.locator('[data-wa-unavailable] a').getAttribute('href'),'/app/novedades/#avisos');assert.equal(await pack.isVisible(),false);
   // Sin Plus: en Mi suscripción el pago ya está arriba; en Tu calendario la tarjeta lleva a Plus.
   state={...initial,subscribed:false,linked:false,enabled:false};await load('free');assert.equal(await page.locator('[data-wa-upsell]').isVisible(),false);

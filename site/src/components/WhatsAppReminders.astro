@@ -14,15 +14,21 @@
       <p class="wa-card__fine">Estamos activando WhatsApp. Mientras tanto, te llega a tu correo.</p>
     </div>
 
-    <div class="wa-card__step" data-wa-link-needed hidden>
-      <a class="app-button" href="https://wa.me/51937751448?text=Hola%2C%20quiero%20vincular%20mi%20WhatsApp%20a%20mi%20cuenta%20Campus" target="_blank" rel="noopener">Vincular mi WhatsApp</a>
-      <p class="wa-card__fine">Te respondemos con un enlace: ábrelo con este mismo correo. Esta página se actualiza sola.</p>
-    </div>
-
     <p class="wa-card__number" data-wa-number hidden>
       <span>Te llega a <strong data-wa-phone></strong></span>
-      <a class="app-text-link" data-wa-change href="https://wa.me/51937751448?text=Hola%2C%20quiero%20vincular%20mi%20WhatsApp%20a%20mi%20cuenta%20Campus" target="_blank" rel="noopener">Cambiar número</a>
+      <button type="button" class="app-text-link wa-card__change" data-wa-change>Cambiar número</button>
     </p>
+
+    <!-- El número se escribe aquí mismo, sin pasar por WhatsApp. Solo decide a dónde llegan los avisos. -->
+    <form class="wa-card__phone" data-wa-phone-form hidden novalidate>
+      <label for="wa-phone-input">Tu número de WhatsApp</label>
+      <div class="wa-card__phone-row">
+        <input id="wa-phone-input" type="tel" inputmode="tel" autocomplete="tel" maxlength="25" placeholder="987 654 321" data-wa-phone-input />
+        <button class="app-button" type="submit" data-wa-phone-submit>Guardar</button>
+      </div>
+      <p class="wa-card__fine" data-wa-phone-hint aria-live="polite">Si no es de Perú, escríbelo con + y el código de país.</p>
+      <button type="button" class="app-text-link wa-card__change" data-wa-phone-cancel hidden>Cancelar</button>
+    </form>
 
     <label class="wa-card__switch" data-wa-optin hidden>
       <input type="checkbox" role="switch" data-wa-enabled />
@@ -114,6 +120,48 @@
     font-size: 13px;
     line-height: 1.5;
     color: var(--app-muted);
+  }
+  .wa-card__change {
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+  }
+  .wa-card__phone {
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+    max-width: 100%;
+  }
+  .wa-card__phone label {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .wa-card__phone-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+  .wa-card__phone input {
+    flex: 1 1 160px;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 12px;
+    border: 1px solid var(--app-line, #d6d3cd);
+    border-radius: 10px;
+    background: var(--app-surface, #fff);
+    color: inherit;
+    font: inherit;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+  .wa-card__phone input[aria-invalid="true"] {
+    border-color: var(--app-danger, #b42318);
+  }
+  .wa-card__phone [data-wa-phone-hint][data-error] {
+    color: var(--app-danger, #b42318);
   }
   .wa-card__number strong {
     color: var(--app-ink, inherit);
