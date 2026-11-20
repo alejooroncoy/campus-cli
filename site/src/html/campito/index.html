@@ -1,16 +1,16 @@
 <!--
-THESIS: la clase está en una pestaña y el alumno en otra; Campito cruza de una a otra en el momento justo. Rechaza el hero de "notas con IA" con una captura estática.
-OWN-WORLD: el mundo de Campus (canvas #f4f8f8, tinta #102a3a, cielo #17b6e7, Campus Sans, botón noche); la ventana de Chrome con dos pestañas es el escenario recurrente; el aviso de Campito usa el naranja del ícono (#c2410c) como única señal de alarma.
-STORY: el alumno que trabaja ve su propia escena, cree que Campito le cubre la lista sin mirar la clase y lo agrega a Chrome.
-FIRST VIEWPORT: izquierda, título y botón «Agrégalo a Chrome»; derecha, navegador con UClass y Trabajo.xlsx: la clase avanza en la pestaña de atrás, el aviso cae sobre el Excel.
-FORM: «Dos pestañas», 3.º de 6 estructuras; seed a882b410.
+THESIS: tu clase con memoria. Campito acompaña la clase de UClass mientras la sigues: guarda lo que se dice con su minuto y te lo devuelve cuando lo necesitas. Rechaza el «sigue con lo tuyo»: Campito ayuda a seguir la clase, no a saltársela.
+OWN-WORLD: el mundo de Campus (canvas #f4f8f8, tinta #102a3a, cielo #17b6e7, Campus Sans, botón noche); la ventana de UClass con el panel de Campito al lado es el escenario recurrente; los minutos van en cielo #087fa4 como la marca que une lo dicho y lo guardado.
+STORY: el alumno ve su clase con un panel que no se pierde nada, cree que entenderá y repasará mejor, y lo agrega a Chrome.
+FIRST VIEWPORT: izquierda, título y botón «Agrégalo a Chrome»; derecha, UClass con la diapositiva y los subtítulos, y Campito al lado llenándose de apuntes con su minuto.
+FORM: «Clase con memoria», reemplaza a «Dos pestañas» a pedido del fundador; seed a882b410.
 -->
 <main id="inicio" class="campus-landing cf">
   <section class="cp-hero cf-hero shell" aria-labelledby="cf-title">
     <div class="cp-hero__copy">
       <p class="cp-kicker"><span></span> EXTENSIÓN PARA CHROME · PARA UPC</p>
-      <h1 id="cf-title">Sigue con lo tuyo. {{CHARACTER_NAME}} te avisa cuando <em>pasan lista.</em></h1>
-      <p class="cp-lead">Escucha tu clase de UClass mientras trabajas en otra pestaña. Suena cuando empiezan a pasar lista, te dice qué dijo el profe con su minuto y al final te deja lo que hay que entregar.</p>
+      <h1 id="cf-title" data-cf-copy="title">Lo que el profe dice una sola vez, <em>guardado.</em></h1>
+      <p class="cp-lead" data-cf-copy="lead">{{CHARACTER_NAME}} acompaña tu clase de UClass: toma apuntes con el minuto de cada cosa, te responde «¿qué acaba de explicar?» y al terminar te deja lo que hay que entregar.</p>
       <div class="cp-actions">
         <a class="button cf-install" href="https://chromewebstore.google.com/detail/dhkmcgkafhfhelolngmdgepiddjmphld?utm_source=campuscli&amp;utm_medium=web&amp;utm_campaign=campito" target="_blank" rel="noopener noreferrer">Agrégalo a Chrome <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
       </div>
@@ -19,49 +19,42 @@ FORM: «Dos pestañas», 3.º de 6 estructuras; seed a882b410.
       <p class="cf-requirements">Chrome en computadora · Clases en UClass de la UPC</p>
     </div>
 
-    <figure class="cf-stage" data-cf-demo aria-label="Ejemplo: Campito suena sobre tu Excel cuando en la clase empiezan a responder «Presente, profesor»">
-      <div class="cf-browser" data-step="work">
+    <figure class="cf-stage" data-cf-demo aria-label="Ejemplo: una clase de UClass con el panel de Campito guardando lo que dice el profesor con su minuto">
+      <div class="cf-browser" data-step="class">
         <div class="cf-browser__tabs" aria-hidden="true">
-          <span class="cf-tab cf-tab--class"><i class="cf-tab__live"></i>UClass · Clase en vivo<svg class="cf-tab__sound" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></span>
-          <span class="cf-tab cf-tab--work">Trabajo.xlsx</span>
+          <span class="cf-tab cf-tab--class"><i class="cf-tab__live"></i>UClass · Clase en vivo</span>
         </div>
-        <div class="cf-browser__address" aria-hidden="true"><span></span>docs.google.com/spreadsheets</div>
+        <div class="cf-browser__address" aria-hidden="true"><span></span>upc.class.com/ics/meeting</div>
         <div class="cf-browser__body">
-          <div class="cf-sheet" aria-hidden="true">
-            <div class="cf-sheet__row cf-sheet__row--head"><span></span><span>A</span><span>B</span><span>C</span><span>D</span></div>
-            <div class="cf-sheet__row"><span>1</span><span>Proveedor</span><span>Pedido</span><span>Monto</span><span>Estado</span></div>
-            <div class="cf-sheet__row"><span>2</span><span>Andina SAC</span><span>OC-1182</span><span>4 250,00</span><span>Por pagar</span></div>
-            <div class="cf-sheet__row"><span>3</span><span>Ferreyra</span><span>OC-1183</span><span>1 980,50</span><span>Pagado</span></div>
-            <div class="cf-sheet__row cf-sheet__row--active"><span>4</span><span>Lumen Perú</span><span>OC-1184</span><span class="cf-sheet__cell">7 300,00</span><span></span></div>
-            <div class="cf-sheet__row"><span>5</span><span></span><span></span><span></span><span></span></div>
-            <div class="cf-sheet__row"><span>6</span><span></span><span></span><span></span><span></span></div>
-          </div>
-
-          <div class="cf-class" aria-hidden="true">
-            <p class="cf-class__label"><i></i>En tu clase, ahora</p>
-            <ol class="cf-class__lines">
-              <li data-line="1"><b>Profesor</b> Álvarez.</li>
-              <li data-line="2"><b>Sala</b> Presente, profesor.</li>
-              <li data-line="3"><b>Profesor</b> Benavides.</li>
-              <li data-line="4"><b>Sala</b> Presente, profe.</li>
-              <li class="cf-class__you"><b>Profesor</b> Tu apellido.</li>
-            </ol>
-          </div>
-
-          <div class="cf-alert" role="presentation">
-            <img src="/assets/campu/campu-wave-v2-96.webp" width="48" height="48" alt="" />
-            <div>
-              <p class="cf-alert__ring"><i></i><i></i><i></i>Sonando</p>
-              <strong>El profesor va a tomar lista</strong>
-              <span>Mantente atento: puede que te llame pronto. Toca Entendido para callar la alarma.</span>
-              <div class="cf-alert__actions"><span class="cf-alert__ok">Entendido</span><span>Apagar avisos</span></div>
+          <div class="cf-room" aria-hidden="true">
+            <div class="cf-slide">
+              <p class="cf-slide__kicker">Semana 13</p>
+              <p class="cf-slide__title">Valor ganado</p>
+              <ul><li>EV, PV y AC</li><li>CPI = EV / AC</li><li>SPI = EV / PV</li></ul>
             </div>
+            <p class="cf-caption" data-cf-caption>«Para la práctica calificada, este ejercicio es el que más vale.»</p>
           </div>
 
-          <div class="cf-reply" aria-hidden="true"><b>Tú</b> Presente, profesor.</div>
+          <aside class="cf-side" aria-hidden="true">
+            <div class="cf-side__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="26" height="26" alt="" />{{CHARACTER_NAME}}<span>Escuchando</span></div>
+            <ol class="cf-notes">
+              <li data-note="1"><time>min 95</time>PI Planning: alinea equipos y planifica por iteraciones.</li>
+              <li data-note="2"><time>min 99</time>System Demo frente al demo quincenal.</li>
+              <li data-note="3"><time>min 104</time>Valor ganado: el ejercicio con más puntaje en la práctica calificada.</li>
+            </ol>
+            <div class="cf-side__ask">
+              <p class="cf-side__question">¿Qué acaba de explicar?</p>
+              <p class="cf-side__answer">Cómo calcular el CPI y el SPI con valor ganado, y que ese ejercicio será el de mayor puntaje en la práctica calificada.<span>Profesor · min 104</span></p>
+            </div>
+            <dl class="cf-side__summary">
+              <dt>Para entregar</dt>
+              <dd>Practicar el caso de valor ganado con el Excel de fórmulas.<span>min 104</span></dd>
+              <dd>Práctica calificada: la próxima semana.<span>min 102</span></dd>
+            </dl>
+          </aside>
         </div>
       </div>
-      <figcaption><span>Ejemplo con apellidos cambiados, a partir de una clase real.</span><button type="button" data-cf-replay hidden>Ver de nuevo <svg class="cp-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2.7 8.4M3 4v6h6"></path></svg></button></figcaption>
+      <figcaption><span>Ejemplo a partir de una clase real, sin datos del curso ni del profe.</span><button type="button" data-cf-replay hidden>Ver de nuevo <svg class="cp-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2.7 8.4M3 4v6h6"></path></svg></button></figcaption>
     </figure>
   </section>
 
@@ -80,57 +73,25 @@ FORM: «Dos pestañas», 3.º de 6 estructuras; seed a882b410.
     </div>
   </section>
 
-  <section class="cf-evidence shell" aria-labelledby="cf-evidence-title">
-    <div class="cf-evidence__copy">
-      <h2 id="cf-evidence-title">Tu profe no avisa que va a pasar lista.</h2>
-      <p>Revisamos clases reales de noviembre. En dos de tres, el profe nunca dijo «vamos a pasar lista»: empezó a leer apellidos y cada uno respondió «Presente, profesor».</p>
-      <p>{{CHARACTER_NAME}} reconoce esa cadena. Con el segundo «presente» ya suena, antes de que lleguen a tu apellido. Y si el profe sí lo anuncia, suena desde el anuncio.</p>
-    </div>
-    <figure class="cf-roll">
-      <ol>
-        <li><time>37:04</time><span><b>Profesor</b> Álvarez.</span></li>
-        <li><time>37:05</time><span><b>Sala</b> Presente, profe.</span></li>
-        <li><time>37:07</time><span><b>Profesor</b> Benavides.</span></li>
-        <li class="cf-roll__hit"><time>37:08</time><span><b>Sala</b> Presente, profe.</span><em>{{CHARACTER_NAME}} suena</em></li>
-        <li><time>37:11</time><span><b>Profesor</b> Cabrera.</span></li>
-        <li class="cf-roll__gap"><span>12 apellidos más</span></li>
-        <li class="cf-roll__you"><time>38:31</time><span><b>Profesor</b> Tu apellido.</span><em>83 segundos después</em></li>
-      </ol>
-      <figcaption>Clase real de noviembre de 2026. Apellidos cambiados.</figcaption>
-    </figure>
-  </section>
-
   <section class="cf-features shell" aria-labelledby="cf-features-title">
-    <h2 id="cf-features-title">Lo que el profe dice una sola vez, guardado.</h2>
+    <h2 id="cf-features-title">Para entender mejor tu clase, no para saltártela.</h2>
     <div class="cf-features__grid" data-cf-tabs>
       <div class="cf-features__list" role="tablist" aria-label="Qué hace Campito">
-        <button type="button" role="tab" id="cf-tab-list" aria-controls="cf-panel-list" aria-selected="true">
-          <strong>Te avisa de la lista y de tu nombre</strong>
-          <span>Una alarma que se repite hasta que tocas Entendido o abres tu micrófono para responder.</span>
-        </button>
-        <button type="button" role="tab" id="cf-tab-ask" aria-controls="cf-panel-ask" aria-selected="false" tabindex="-1">
-          <strong>Te dice qué dijo, con el minuto</strong>
-          <span>Te distrajiste o te saliste un rato: pregúntale y te responde con lo dicho y cuándo.</span>
+        <button type="button" role="tab" id="cf-tab-ask" aria-controls="cf-panel-ask" aria-selected="true">
+          <strong>«¿Qué acaba de explicar?», con el minuto</strong>
+          <span>¿Se te fue una idea o no la entendiste? Pregúntale y te responde con lo que dijo el profe y cuándo.</span>
         </button>
         <button type="button" role="tab" id="cf-tab-summary" aria-controls="cf-panel-summary" aria-selected="false" tabindex="-1">
-          <strong>Te deja lo que hay que entregar</strong>
-          <span>Al terminar, un resumen con temas, tareas y fechas.</span>
+          <strong>Sales con lo que hay que entregar</strong>
+          <span>Al terminar, un resumen con temas, tareas y fechas, cada uno con su minuto.</span>
+        </button>
+        <button type="button" role="tab" id="cf-tab-list" aria-controls="cf-panel-list" aria-selected="false" tabindex="-1">
+          <strong>Te avisa si te nombran</strong>
+          <span>Si estabas tomando apuntes y el profe dijo tu nombre o empezó a tomar lista, suena para que respondas.</span>
         </button>
       </div>
 
-      <div class="cf-panel" role="tabpanel" id="cf-panel-list" aria-labelledby="cf-tab-list">
-        <div class="cf-card">
-          <div class="cf-card__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="28" height="28" alt="" />{{CHARACTER_NAME}}<span class="cf-card__state">Escuchando</span></div>
-          <div class="cf-card__alert">
-            <strong>Te están llamando</strong>
-            <span>Escuché tu nombre en la clase. Revisa si te toca responder. Toca Entendido para callar la alarma.</span>
-            <div class="cf-alert__actions"><span class="cf-alert__ok">Entendido</span><span>Apagar avisos</span></div>
-          </div>
-          <p class="cf-card__note">Basta tu apellido, aunque el profe lo pronuncie distinto. Lo que tú dices nunca dispara el aviso.</p>
-        </div>
-      </div>
-
-      <div class="cf-panel" role="tabpanel" id="cf-panel-ask" aria-labelledby="cf-tab-ask" hidden>
+      <div class="cf-panel" role="tabpanel" id="cf-panel-ask" aria-labelledby="cf-tab-ask">
         <div class="cf-card">
           <div class="cf-card__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="28" height="28" alt="" />{{CHARACTER_NAME}}<span class="cf-card__state">Escuchando</span></div>
           <p class="cf-card__question">¿Qué dijo del examen?</p>
@@ -154,6 +115,18 @@ FORM: «Dos pestañas», 3.º de 6 estructuras; seed a882b410.
           </dl>
         </div>
       </div>
+
+      <div class="cf-panel" role="tabpanel" id="cf-panel-list" aria-labelledby="cf-tab-list" hidden>
+        <div class="cf-card">
+          <div class="cf-card__bar"><img src="/assets/campu/campu-wave-v2-96.webp" width="28" height="28" alt="" />{{CHARACTER_NAME}}<span class="cf-card__state">Escuchando</span></div>
+          <div class="cf-card__alert">
+            <strong>Te están llamando</strong>
+            <span>Escuché tu nombre en la clase. Revisa si te toca responder.</span>
+            <div class="cf-alert__actions"><span class="cf-alert__ok">Entendido</span><span>Apagar avisos</span></div>
+          </div>
+          <p class="cf-card__note">Lo que tú dices nunca dispara el aviso. Lo apagas desde el panel cuando quieras.</p>
+        </div>
+      </div>
     </div>
     <p class="cf-features__note">Ejemplos a partir de una clase real, sin datos del curso ni del profe.</p>
   </section>
@@ -164,7 +137,7 @@ FORM: «Dos pestañas», 3.º de 6 estructuras; seed a882b410.
       <li><strong>Texto, no audio.</strong> La clase queda escrita para tus apuntes. El audio no se guarda.</li>
       <li><strong>Tu voz, solo si la autorizas.</strong> Te lo pregunta una vez, y guarda lo que dices solo mientras tu micrófono está abierto en UClass.</li>
       <li><strong>Tus apuntes son tuyos.</strong> Nadie más los ve. «Eliminar esta clase» borra el texto, el resumen y el chat.</li>
-      <li><strong>Lo apagas cuando quieras.</strong> Un clic en el ícono de {{CHARACTER_NAME}} termina la escucha. Los avisos se apagan desde el panel.</li>
+      <li><strong>Lo apagas cuando quieras.</strong> Un clic en el ícono de {{CHARACTER_NAME}} termina la escucha.</li>
     </ul>
   </section>
 
@@ -180,9 +153,9 @@ FORM: «Dos pestañas», 3.º de 6 estructuras; seed a882b410.
     <div><h2 id="cf-faq-title">Antes de instalar.</h2></div>
     <div class="cp-faq__items">
       <details><summary>¿El profe o mis compañeros se enteran?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>No. {{CHARACTER_NAME}} no entra a la sala ni aparece como participante: escucha el audio que ya llega a tu pestaña de UClass.</p></details>
-      <details><summary>¿Tengo que tener la clase a la vista?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>No. Puedes estar en otra pestaña o en otra ventana: la alarma suena igual y, si te nombran, Chrome resalta la ventana de la clase. Solo deja abierta la pestaña de UClass.</p></details>
-      <details><summary>¿Y si no detecta la lista?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Puede pasar si el audio llega muy mal o el profe toma lista de una forma distinta. {{CHARACTER_NAME}} avisa por lo que escucha; no reemplaza estar pendiente de tu clase.</p></details>
-      <details><summary>¿Graba mi voz?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Solo si lo autorizas, una vez, y solo mientras tu micrófono está abierto en UClass. Se guarda como texto. Tu propia voz nunca dispara la alarma.</p></details>
+      <details><summary>¿Reemplaza a la grabación de la clase?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>No. La grabación oficial llega después; {{CHARACTER_NAME}} te sirve durante la clase y te deja los apuntes al terminar, con el minuto de cada cosa para ir directo a esa parte.</p></details>
+      <details><summary>¿Se equivoca?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Puede, sobre todo si el audio llega mal. Por eso cada respuesta trae el minuto: revisas qué se dijo exactamente. No reemplaza estar atento a tu clase.</p></details>
+      <details><summary>¿Graba mi voz?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Solo si lo autorizas, una vez, y solo mientras tu micrófono está abierto en UClass. Se guarda como texto.</p></details>
       <details><summary>¿Funciona en otras universidades?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Por ahora, solo en las clases de UClass de la UPC, con Chrome en computadora. Campus no está afiliado a la UPC.</p></details>
     </div>
   </section>

@@ -18,8 +18,20 @@ export const events = new Set([
   'campus_turnitin_step_viewed', 'campus_turnitin_payment_copied',
   'campus_turnitin_submit_started', 'campus_turnitin_status_updated', 'campus_turnitin_history_refreshed', 'campus_turnitin_history_filtered',
   'campus_turnitin_reports_opened', 'campus_turnitin_report_requested', 'campus_turnitin_report_displayed', 'campus_turnitin_download_clicked',
-  'campus_turnitin_submitted', 'campus_logout_completed',
+  'campus_turnitin_submitted', 'campus_logout_completed', '$feature_flag_called',
 ]);
+// Experimentos A/B: cada flag y sus variantes posibles. Solo estos viajan como
+// exposición ($feature_flag_called) y como propiedad $feature/<flag> de los eventos.
+export const experiments: Record<string, readonly string[]> = {
+  'campito-hero-angle': ['control', 'test'],
+};
+const experimentValue = (key: string, value: unknown, input: Record<string, unknown>): boolean => {
+  if (typeof value !== 'string') return false;
+  if (key.startsWith('$feature/')) return Boolean(experiments[key.slice(9)]?.includes(value));
+  if (key === '$feature_flag') return Object.hasOwn(experiments, value);
+  if (key === '$feature_flag_response') return typeof input.$feature_flag === 'string' && Boolean(experiments[input.$feature_flag]?.includes(value));
+  return false;
+};
 const categories: Record<string, readonly string[]> = {
   example:['professor_reviews','course_professors','grade_workbook','study_plan','academic_work'],
   guest_sample_arm:['sample','gate'],
@@ -68,6 +80,7 @@ export function safeAnalyticsProperties(input: Record<string, unknown>): Record<
     || ((Object.hasOwn(categories, key) && categories[key].includes(value as string))
       || (key === 'entry_landing' && categories.page.includes(value as string)))
     || (['entry_source', 'entry_campaign'].includes(key) && entryValue(key, value, input))
+    || experimentValue(key, value, input)
     || (numbers.has(key) && typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 86_400_000)
     || (booleans.has(key) && typeof value === 'boolean')));
 }

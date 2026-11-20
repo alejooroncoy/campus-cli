@@ -1,42 +1,50 @@
-// Página de Campito: la escena de las dos pestañas y las funciones en pestañas.
+// Página de Campito: la clase con memoria, las funciones en pestañas y el
+// experimento del ángulo de la portada (campito-hero-angle).
+import { experimentVariant } from './analytics.ts';
+import { CHARACTER_NAME } from '../lib/character.mjs';
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-// La clase avanza en la pestaña de atrás; con el segundo «presente», el aviso cae
-// sobre el Excel; después vuelves a la clase y respondes. Sin animación (o si el
-// alumno la desactivó), la escena queda en el aviso, que es el momento clave.
-function setupDemo(stage: HTMLElement): void {
+// Versión A («¿qué dijo?»): los apuntes se llenan y terminas preguntando qué acaba de
+// explicar. Versión B («resumen»): los apuntes se llenan y la clase termina con lo que
+// hay que entregar. Sin animación queda en el momento final de cada versión.
+const CAPTIONS = [
+  '«El PI Planning alinea a todos los equipos al inicio.»',
+  '«No confundan el System Demo con el demo quincenal.»',
+  '«Para la práctica calificada, este ejercicio es el que más vale.»',
+];
+
+function setupDemo(stage: HTMLElement, angle: string): void {
   const browser = stage.querySelector<HTMLElement>('.cf-browser');
-  const lines = [...stage.querySelectorAll<HTMLElement>('.cf-class__lines li[data-line]')];
+  const notes = [...stage.querySelectorAll<HTMLElement>('[data-note]')];
+  const caption = stage.querySelector<HTMLElement>('[data-cf-caption]');
   const replay = stage.querySelector<HTMLButtonElement>('[data-cf-replay]');
   if (!browser) return;
-  const still = () => {
-    lines.forEach((line) => line.classList.add('is-on'));
-    browser.dataset.step = 'alert';
-  };
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return still();
+  const finale = angle === 'test' ? 'summary' : 'ask';
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    notes.forEach((note) => note.classList.add('is-on'));
+    browser.dataset.step = finale;
+    return;
+  }
 
   let run = 0;
   async function play(): Promise<void> {
     const id = ++run;
     const alive = () => id === run;
     if (replay) replay.hidden = true;
-    browser!.dataset.step = 'work';
-    lines.forEach((line) => line.classList.remove('is-on'));
-    await wait(900);
-    for (const line of lines) {
+    browser!.dataset.step = 'class';
+    notes.forEach((note) => note.classList.remove('is-on'));
+    await wait(700);
+    for (const [index, note] of notes.entries()) {
       if (!alive()) return;
-      line.classList.add('is-on');
+      if (caption) caption.textContent = CAPTIONS[index] ?? caption.textContent;
+      await wait(900);
+      if (!alive()) return;
+      note.classList.add('is-on');
       await wait(1100);
     }
     if (!alive()) return;
-    browser!.dataset.step = 'alert';
-    await wait(3600);
-    if (!alive()) return;
-    browser!.dataset.step = 'reply';
-    await wait(2600);
-    if (!alive()) return;
-    browser!.dataset.step = 'alert';
+    browser!.dataset.step = finale;
     if (replay) replay.hidden = false;
   }
 
@@ -75,5 +83,33 @@ function setupTabs(root: HTMLElement): void {
   });
 }
 
-document.querySelectorAll<HTMLElement>('[data-cf-demo]').forEach(setupDemo);
+// Versión B del experimento: otro título y subtítulo, la escena termina en el resumen
+// y la pestaña del resumen va primero. La A es el HTML tal cual.
+const ANGLE_B_COPY: Record<string, string> = {
+  title: 'Sal de clase con lo que hay que <em>entregar.</em>',
+  lead: `${CHARACTER_NAME} acompaña tu clase de UClass y al terminar te deja las tareas, las fechas y los temas, cada uno con su minuto. Si algo no quedó claro, pregúntale.`,
+};
+
+function applyAngle(root: HTMLElement, angle: string): void {
+  if (angle !== 'test') return;
+  root.querySelectorAll<HTMLElement>('[data-cf-copy]').forEach((el) => {
+    const html = ANGLE_B_COPY[el.dataset.cfCopy ?? ''];
+    if (html) el.innerHTML = html;
+  });
+  const summary = root.querySelector<HTMLButtonElement>('#cf-tab-summary');
+  const list = summary?.parentElement;
+  if (summary && list) { list.prepend(summary); summary.click(); }
+}
+
+async function start(): Promise<void> {
+  const root = document.querySelector<HTMLElement>('.cf');
+  if (!root) return;
+  root.dataset.angle = 'pending';
+  const angle = await experimentVariant('campito-hero-angle', 800);
+  applyAngle(root, angle);
+  root.dataset.angle = angle;
+  document.querySelectorAll<HTMLElement>('[data-cf-demo]').forEach((stage) => setupDemo(stage, angle));
+}
+
 document.querySelectorAll<HTMLElement>('[data-cf-tabs]').forEach(setupTabs);
+void start();

@@ -6,12 +6,12 @@ const body = campitoPageHtml(rawBody);
 const url = 'https://campuscli.com/campito/';
 const store = 'https://chromewebstore.google.com/detail/dhkmcgkafhfhelolngmdgepiddjmphld';
 const description = campitoTrialEnabled
-  ? 'Campito escucha tu clase de UClass mientras trabajas en otra pestaña: suena cuando pasan lista, te dice qué dijo el profe con su minuto y te deja lo que hay que entregar. Tu primera clase es gratis.'
-  : 'Campito escucha tu clase de UClass mientras trabajas en otra pestaña: suena cuando pasan lista, te dice qué dijo el profe con su minuto y te deja lo que hay que entregar. Con Campus Plus.';
+  ? 'Campito acompaña tu clase de UClass: toma apuntes con el minuto de cada cosa, te responde qué acaba de explicar el profe y al terminar te deja lo que hay que entregar. Tu primera clase es gratis.'
+  : 'Campito acompaña tu clase de UClass: toma apuntes con el minuto de cada cosa, te responde qué acaba de explicar el profe y al terminar te deja lo que hay que entregar. Con Campus Plus.';
 const image = 'https://campuscli.com/assets/og-default.jpg';
 const schemas = [
   { '@context': 'https://schema.org', '@type': 'WebPage', '@id': url + '#webpage', url,
-    name: 'Campito: te avisa cuando pasan lista en UClass | Campus', description, inLanguage: 'es-PE',
+    name: 'Campito: tus clases de UClass, con apuntes y su minuto | Campus', description, inLanguage: 'es-PE',
     dateModified: '2026-11-19', mainEntity: { '@id': url + '#app' }, breadcrumb: { '@id': url + '#breadcrumb' } },
   { '@context': 'https://schema.org', '@type': 'SoftwareApplication', '@id': url + '#app',
     name: 'Campito', applicationCategory: 'EducationalApplication', operatingSystem: 'Chrome', url, downloadUrl: store, description,
@@ -22,10 +22,10 @@ const schemas = [
       { '@type': 'ListItem', position: 2, name: 'Campito', item: url } ] },
 ];
 ---
-<Base title="Campito: te avisa cuando pasan lista en UClass | Campus" description={description}
+<Base title="Campito: tus clases de UClass, con apuntes y su minuto | Campus" description={description}
   headerAction={{ label: 'Instalar', href: store + '?utm_source=campuscli&utm_medium=web&utm_campaign=campito' }}
   canonical={url} markdownUrl={url + 'index.md'} schemas={schemas}
-  ogTitle="Campito te avisa cuando pasan lista"
+  ogTitle="Lo que el profe dice una sola vez, guardado"
   ogImage={image} ogImageType="image/jpeg"
   ogImageAlt="Campito, la extensión de Campus para tus clases de UClass.">
   <link slot="head" rel="stylesheet" href="/campus-landing.css" />
