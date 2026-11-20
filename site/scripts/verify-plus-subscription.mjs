@@ -32,6 +32,8 @@ const scenarios={
   courtesyexpired:{view:'active',plan:'plus',state:{orders:[order({createdAt:iso(-44*day),activeUntil:iso(-14*day)})],subscription:{cohort:'standard',renewalCents:1500,activeUntil:iso(-14*day)},subscriptionState:'expired',renewableFrom:iso(-21*day),currentPlan:'plus',enabled:true,eligible:true,flowAvailable:true},panel:false,activeText:/^Tu cuenta tiene acceso a Campus Plus\.$/,renewHidden:true,history:/Historial de pagos/},
   // Admin con una prueba de QA ya vencida: no es «acceso de prueba hasta» una fecha pasada ni aviso de prueba.
   adminexpiredtest:{view:'active',plan:'plus',state:{orders:[order({isTest:true,createdAt:iso(-3*day),activeUntil:iso(-2*day)})],subscription:{cohort:'founder',renewalCents:1000,activeUntil:iso(-2*day),isTest:true},subscriptionState:'none',renewableFrom:null,currentPlan:'plus',enabled:true,eligible:true,flowAvailable:true},panel:false,qa:false,activeText:/^Tu cuenta tiene acceso a Campus Plus\.$/,renewHidden:true},
+  // Cortesía con un mes pagado que vence pronto: Plus por rol, sin «Vence pronto», sin renovar ni prometer avisos.
+  courtesyexpiring:{view:'active',plan:'plus',state:{orders:[order({createdAt:iso(-27*day),activeUntil:iso(3*day)})],subscription:{cohort:'standard',renewalCents:1500,activeUntil:iso(3*day)},subscriptionState:'expiring',renewableFrom:iso(-4*day),currentPlan:'plus',planByRole:true,enabled:true,eligible:true,flowAvailable:true},badge:'Activo',renewHidden:true,rule:/viene de tu tipo de cuenta/,facts:'byRole',noText:/Campus Free|Vence pronto|Te avisaremos|Ya puedes renovar/},
   qa:{view:'active',plan:'plus',state:{orders:[order({isTest:true})],subscription:{cohort:'founder',renewalCents:1000,activeUntil:iso(0.5*day),isTest:true},subscriptionState:'none',renewableFrom:null,currentPlan:'plus',enabled:true,eligible:true,flowAvailable:true},panel:false},
 };
 const browser=await chromium.launch({headless:true});
@@ -59,8 +61,11 @@ try{
         const renew=page.locator('[data-plus-renew]');
         if(sc.view==='active')assert.equal(await renew.isHidden(),sc.renewHidden,name+' renew button');
         const text=await panel.textContent()+(await page.locator('[data-plus-history-panel]').textContent());
-        if(sc.facts!==false)assert.match(text,/estudiante@example\.test/,name+' notice');
+        if(sc.facts==='byRole'){assert.equal((await page.locator('[data-plus-sub-renewal]').textContent()).trim(),'No la necesitas',name+' renewal');assert.equal((await page.locator('[data-plus-sub-until-label]').textContent()).trim(),'Mes pagado hasta',name+' until label');}
+        else if(sc.view==='active')assert.equal((await page.locator('[data-plus-sub-until-label]').textContent()).trim(),'Vigente hasta',name+' until label');
+        else if(sc.facts!==false)assert.match(text,/estudiante@example\.test/,name+' notice');
         else assert.equal(await page.locator('[data-plus-sub-facts]').isVisible(),false,name+' facts');
+        if(sc.noText)assert.doesNotMatch(await page.locator('main').innerText(),sc.noText,name+' wrong promise');
         assert.ok(((text.match(/cobros? autom/g)??[]).length)<=1,name+' repeats the no-autopay notice');
         if(sc.name)assert.equal((await page.locator('[data-plus-sub-name]').textContent()).trim(),sc.name,name);
         assert.match(await page.locator('[data-plus-history-panel]').textContent(),/Historial de pagos/);
