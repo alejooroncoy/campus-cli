@@ -6,7 +6,7 @@ import { mountPlusSurvey } from './plus-survey.ts';
 
 type Order = {id:string;accountId:number;kind:string;cohort:string;status:string;amountCents:number;renewalCents:number;expiresAt:string;createdAt:string;activeUntil:string|null;note:string;isTest?:boolean;paymentMethod?:'flow'};
 type SubscriptionState='none'|'active'|'expiring'|'expired';
-type State = {orders:Order[];currentPlan:string;subscription:{activeUntil:string;renewalCents:number;isTest?:boolean}|null;subscriptionState?:SubscriptionState;renewableFrom?:string|null;admin:boolean;enabled:boolean;eligible:boolean;blocked:boolean;unavailable:boolean;flowAvailable?:boolean};
+type State = {orders:Order[];currentPlan:string;subscription:{activeUntil:string;renewalCents:number;isTest?:boolean}|null;subscriptionState?:SubscriptionState;renewableFrom?:string|null;planByRole?:boolean;admin:boolean;enabled:boolean;eligible:boolean;blocked:boolean;unavailable:boolean;flowAvailable?:boolean};
 const money=(cents:number)=>`S/${cents/100}`;
 const date=(value:string)=>new Date(value).toLocaleDateString('es-PE',{day:'numeric',month:'long',year:'numeric'});
 /** Same rule as the server, used only while an older server does not send subscriptionState. */
@@ -88,15 +88,19 @@ function mount(){
     const subscription=state.subscription&&!state.subscription.isTest?state.subscription:null;
     if(['guest','unavailable','university'].includes(lastView)){panel.hidden=true;find('history-panel').hidden=true;return;}
     const phase=subscription?(state.subscriptionState??phaseFromDate(subscription.activeUntil)):'none';
+    // Plus por rol (cortesía o admin): el mes pagado no es lo que da el acceso, así que nunca «vence pronto» ni se renueva.
+    const byRole=state.planByRole===true&&state.currentPlan==='plus';
     const badge=find('sub-badge');
-    badge.textContent=phase==='expired'?'Plus vencido':phase==='expiring'?'Vence pronto':phase==='active'?'Activo':'';badge.hidden=phase==='none';
-    badge.dataset.tone=phase==='expiring'?'soon':phase==='expired'||phase==='none'?'ended':'ok';
+    badge.textContent=phase==='expired'?'Plus vencido':phase==='expiring'&&!byRole?'Vence pronto':phase==='active'||phase==='expiring'?'Activo':'';badge.hidden=phase==='none';
+    badge.dataset.tone=phase==='expiring'&&!byRole?'soon':phase==='expired'||phase==='none'?'ended':'ok';
     text('sub-name',phase==='expired'||phase==='none'?'Campus Free':'Campus Plus');
+    text('sub-until-label',byRole?'Mes pagado hasta':'Vigente hasta');
     text('sub-until',subscription?date(subscription.activeUntil):'Sin mes activo');
-    text('sub-renewal',subscription?`${money(subscription.renewalCents)} por 30 días`:'');
+    text('sub-renewal',byRole?'No la necesitas':subscription?`${money(subscription.renewalCents)} por 30 días`:'');
     const notice=`Te avisaremos${email?` a ${email}`:''} 7, 3 y 1 día antes.`;
     facts.hidden=phase==='none'||phase==='expired';
-    text('sub-rule',phase==='active'?`No se renueva solo. ${state.renewableFrom?`Podrás renovar desde el ${date(state.renewableFrom)} y los días se suman a los que te quedan. `:''}${notice}`
+    text('sub-rule',byRole&&(phase==='active'||phase==='expiring')?'Tu acceso a Campus Plus viene de tu tipo de cuenta y no vence con este mes. No necesitas renovar y no te enviaremos avisos de vencimiento.'
+      :phase==='active'?`No se renueva solo. ${state.renewableFrom?`Podrás renovar desde el ${date(state.renewableFrom)} y los días se suman a los que te quedan. `:''}${notice}`
       :phase==='expiring'&&lastView==='pending'?`Tu renovación está en revisión; los 30 días se suman cuando la confirmemos. ${notice}`
       :phase==='expiring'?`Ya puedes renovar: los 30 días nuevos se suman a los que te quedan. Si no renuevas, vuelves a Campus Free. ${notice}`
       :phase==='expired'?`Tu Plus venció el ${date(subscription!.activeUntil)} y tu cuenta volvió a Campus Free.`:'Todavía no tienes un mes de Plus pagado.');
@@ -146,7 +150,7 @@ function mount(){
         // Una prueba de QA ya vencida tampoco es el plan actual: el acceso viene del rol.
         const testActive=state.subscription?.isTest===true&&phaseFromDate(state.subscription.activeUntil)!=='expired';
         show('active');message();text('active-until',testActive?`Acceso de prueba hasta el ${date(state.subscription!.activeUntil)}. No se registró ningún pago.`:state.subscription&&!state.subscription.isTest&&paidPhase!=='expired'?`Tu mes está activo hasta el ${date(state.subscription.activeUntil)}.`:'Tu cuenta tiene acceso a Campus Plus.');
-        find('renew').hidden=!state.enabled||!state.eligible||!state.subscription||paidPhase!=='expiring';
+        find('renew').hidden=state.planByRole===true||!state.enabled||!state.eligible||!state.subscription||paidPhase!=='expiring';
         track('campus_plus_status_viewed',{plus_status:'active'});
       }else if(!state.enabled){show('unavailable');message('La activación de Plus está pausada. No realices un pago nuevo.',true);}
       else if(!state.eligible){show('university');message();}
