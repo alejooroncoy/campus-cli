@@ -19,6 +19,11 @@
       <p class="wa-card__fine">Te respondemos con un enlace: ábrelo con este mismo correo. Esta página se actualiza sola.</p>
     </div>
 
+    <p class="wa-card__number" data-wa-number hidden>
+      <span>Te llega a <strong data-wa-phone></strong></span>
+      <a class="app-text-link" data-wa-change href="https://wa.me/51937751448?text=Hola%2C%20quiero%20vincular%20mi%20WhatsApp%20a%20mi%20cuenta%20Campus" target="_blank" rel="noopener">Cambiar número</a>
+    </p>
+
     <label class="wa-card__switch" data-wa-optin hidden>
       <input type="checkbox" role="switch" data-wa-enabled />
       <span>Quiero recibir mi resumen y mis avisos en mi WhatsApp. Lo apago aquí cuando quiera.</span>
@@ -100,6 +105,20 @@
     line-height: 1.5;
     color: var(--app-muted);
     max-width: 46ch;
+  }
+  .wa-card__number {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    align-items: baseline;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--app-muted);
+  }
+  .wa-card__number strong {
+    color: var(--app-ink, inherit);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
   .wa-card__switch {
     display: flex;

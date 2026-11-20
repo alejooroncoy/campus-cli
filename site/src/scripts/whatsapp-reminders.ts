@@ -29,6 +29,10 @@ function mount(){
       find('[data-wa-unavailable]').hidden=!s.subscribed||s.available;
       find('[data-wa-link-needed]').hidden=!s.available||!s.subscribed||s.linked;
       find('[data-wa-optin]').hidden=!s.available||!s.subscribed||!s.linked;
+      // A qué número llega, enmascarado en el servidor. Sin número (o con usuario de WhatsApp) se dice sin cifras.
+      const number=find('[data-wa-number]');
+      number.hidden=!s.available||!s.subscribed||!s.linked||typeof s.phone!=='string';
+      if(typeof s.phone==='string')find('[data-wa-phone]').textContent=/\d/.test(s.phone)?s.phone:'tu WhatsApp vinculado';
       toggle.checked=s.enabled;toggle.disabled=false;
       find('[data-wa-pack-wrap]').hidden=!s.available||!s.paymentsAvailable||!s.subscribed||!s.linked||!s.enabled||s.pack;
       const sent=s.weeklySent?` · ${s.weeklySent} resumen${s.weeklySent===1?'':'es'} este mes`:'';
@@ -58,7 +62,9 @@ function mount(){
   const changed=()=>{disposed=true;root.hidden=true;void Promise.resolve().then(mount);};
   window.addEventListener('campus:session-updated',changed);
   // Al volver de WhatsApp tras vincular el número, se vuelve a comprobar.
-  const back=()=>{if(document.visibilityState==='visible'&&!busy&&!find('[data-wa-link-needed]').hidden)void load();};
+  // Lo mismo tras tocar "Cambiar número": el número nuevo aparece al volver.
+  let relinking=false;find('[data-wa-change]').addEventListener('click',()=>{relinking=true;});
+  const back=()=>{if(document.visibilityState==='visible'&&!busy&&(relinking||!find('[data-wa-link-needed]').hidden)){relinking=false;void load();}};
   document.addEventListener('visibilitychange',back);
   void load();cleanup=()=>{disposed=true;window.removeEventListener('campus:session-updated',changed);document.removeEventListener('visibilitychange',back);};
 }
