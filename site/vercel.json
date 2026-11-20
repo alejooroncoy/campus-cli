@@ -55,6 +55,10 @@
   ],
   "rewrites": [
     {
+      "source": "/cal/:file",
+      "destination": "https://mcp.campuscli.com/v1/calendar/:file"
+    },
+    {
       "source": "/c-events/static/:path(.*)",
       "destination": "https://us-assets.i.posthog.com/static/:path"
     },

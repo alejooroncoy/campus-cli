@@ -322,6 +322,8 @@ try {
       deleted = 0,
       nickname = null,
       nicknameCalls = 0,
+      calendarUrl = null,
+      calendarCalls = [],
       statusCalls = 0,
       failNotices = false,
       noticesFailed = 0,
@@ -354,6 +356,7 @@ try {
         lastSuccessAt: "2026-11-09T13:00:00Z",
         coverage: { complete: false },
         pushPublicKey: "fake-public-key",
+        calendarUrl,
       });
       if (path === "/api/app/proactive/status") {
         statusCalls++;
@@ -435,6 +438,14 @@ try {
         nicknameCalls++;
         nickname = JSON.parse(route.request().postData()).nickname || null;
         return json({ nickname, suggestedNickname: "Alejo" });
+      }
+      if (path === "/api/app/proactive/calendar") {
+        const body = method === "POST" ? JSON.parse(route.request().postData() || "{}") : {};
+        calendarCalls.push(method + (body.reset ? " reset" : ""));
+        if (method === "DELETE") calendarUrl = null;
+        else if (!calendarUrl || body.reset)
+          calendarUrl = "https://campuscli.com/cal/" + "T".repeat(40) + calendarCalls.length + ".ics";
+        return json({ calendarUrl });
       }
       if (path === "/api/app/proactive/data" && method === "DELETE") {
         deleted++;
@@ -895,6 +906,32 @@ try {
       assert.equal(await cabeza.getAttribute("aria-expanded"), "false");
       await tabs.first().click();
       // Los avisos van debajo del calendario, con su título.
+      // Tus entregas en Google Calendar u Outlook: debajo de las semanas, con un enlace privado.
+      const sync = home.locator(".campu-cal-sync");
+      assert.ok((await sync.boundingBox()).y > (await cal.boundingBox()).y, "va después del calendario");
+      await sync.getByRole("button", { name: "Conectar mi calendario" }).click();
+      const google = sync.getByRole("link", { name: "Google Calendar" });
+      await google.waitFor();
+      const first = calendarUrl;
+      assert.equal(
+        await google.getAttribute("href"),
+        "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(first.replace("https:", "webcal:")),
+      );
+      assert.match(await sync.getByRole("link", { name: "Outlook", exact: true }).getAttribute("href"), /^https:\/\/outlook\.office\.com\/calendar\/0\/addfromweb\?url=https%3A%2F%2Fcampuscli\.com%2Fcal%2F/);
+      assert.equal(await sync.getByRole("link", { name: "iPhone o Mac" }).getAttribute("href"), first.replace("https:", "webcal:"));
+      await sync.getByRole("button", { name: "Copiar enlace" }).click();
+      await sync.getByRole("status").waitFor();
+      assert.equal(await page.evaluate(() => window.copies.at(-1)), first);
+      // El enlace es una credencial: no queda en el reporte guardado del navegador.
+      assert.ok(!(await page.evaluate(() => localStorage.getItem("campu_report_v1") ?? "")).includes("/cal/"), "sin enlace en caché");
+      await sync.locator("summary", { hasText: "Tu enlace es privado" }).click();
+      await sync.getByRole("button", { name: "Cambiar enlace" }).click();
+      await sync.getByText(/tu enlace es nuevo/).waitFor();
+      assert.notEqual(calendarUrl, first);
+      assert.equal(await sync.getByRole("link", { name: "iPhone o Mac" }).getAttribute("href"), calendarUrl.replace("https:", "webcal:"));
+      await sync.getByRole("button", { name: "Quitar" }).click();
+      await sync.getByRole("button", { name: "Conectar mi calendario" }).waitFor();
+      assert.deepEqual(calendarCalls, ["POST", "POST reset", "DELETE"]);
       assert.equal(await home.getByRole("heading", { name: "Avisos que te mandé" }).count(), 1);
       assert.equal(await home.locator(".campu-day h2").first().innerText(), "Hoy");
       assert.equal(

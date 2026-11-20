@@ -9,6 +9,7 @@ import {
   enablePushDevice,
   removePushDevice,
 } from "../scripts/proactive-device";
+import CalendarSubscribe from "./CalendarSubscribe";
 import "./campu-updates.css";
 
 type Preferences = {
@@ -706,7 +707,9 @@ function Home({
   incomplete,
   more,
   onMore,
+  calendarSync,
 }: {
+  calendarSync?: ReactNode;
   context: Context | null;
   events: any[];
   notices: Notice[];
@@ -761,6 +764,7 @@ function Home({
       <ChangesCard events={events} />
       {/* Con cambios, el titular habla de ellos: la frase de lo que viene va en el calendario. */}
       {u && <UpcomingView upcoming={u} bare quiet={!changed.length} renderItem={item} />}
+      {u && calendarSync}
       <h2 className="campu-home-label">Avisos que te mandé</h2>
       {shown.length ? (
         GROUPS.map((name, g) => {
@@ -982,7 +986,7 @@ export default function CampuUpdates() {
         setNext(n.nextCursor);
         const keep = (events: any[], context: any, opened: boolean) =>
           !noCache.current &&
-          writeReport(identity, page, { status: s, notices: n.notices, next: n.nextCursor, events, context, opened });
+          writeReport(identity, page, { status: { ...s, calendarUrl: null }, notices: n.notices, next: n.nextCursor, events, context, opened });
         if (id) {
           if (result.failed) throw result.failed;
           setEvents(result.events ?? []);
@@ -1068,6 +1072,20 @@ export default function CampuUpdates() {
       target.scrollIntoView({ block: "start" });
     } else setMore(true);
   }, [Boolean(status), more]);
+  // El enlace del calendario es una credencial: no se guarda en el reporte local.
+  const calendarSync = status?.available ? (
+    <CalendarSubscribe
+      url={status.calendarUrl ?? null}
+      connect={async (reset) => {
+        const result = await api("/calendar", "POST", reset ? { reset: true } : {});
+        setStatus((s: any) => ({ ...s, calendarUrl: result.calendarUrl }));
+      }}
+      remove={async () => {
+        await api("/calendar", "DELETE");
+        setStatus((s: any) => ({ ...s, calendarUrl: null }));
+      }}
+    />
+  ) : null;
   async function saveNickname(value: string) {
     const clean = value.trim();
     if (clean && !/^[\p{L}][\p{L}'’ -]{0,29}$/u.test(clean))
@@ -1231,6 +1249,7 @@ export default function CampuUpdates() {
                   )}
                   more={more}
                   onMore={() => setMore((v) => !v)}
+                  calendarSync={calendarSync}
                 />
               )}
               {showDetail && (
@@ -1244,6 +1263,7 @@ export default function CampuUpdates() {
               {!simple && context?.upcoming && (
                 <UpcomingView upcoming={context.upcoming} />
               )}
+              {!simple && context?.upcoming && calendarSync}
               {!simple && <ChangesCard events={events} />}
                 <section className="campu-card">
                   {/* Arriba ya están los últimos: aquí va el historial completo. */}
