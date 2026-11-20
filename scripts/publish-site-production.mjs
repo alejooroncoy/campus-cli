@@ -31,7 +31,9 @@ export async function publishSite({revision, github, vercel, liveInfo, wait = ms
     || `${project.link?.org}/${project.link?.repo}` !== policy.repository) {
     throw Error('Release protection is not enabled: require main and disable automatic domain assignment.');
   }
-  const runs = (await github(`${repo}/actions/workflows/ci.yml/runs?branch=main&event=push&head_sha=${revision}&status=completed&per_page=10`)).workflow_runs ?? [];
+  // Sin filtro `status` en la URL: GitHub tarda minutos u horas en indexar `status=completed` para una
+  // ejecución recién terminada y la lista sale vacía. El estado y la conclusión se comprueban abajo, run por run.
+  const runs = (await github(`${repo}/actions/workflows/ci.yml/runs?branch=main&event=push&head_sha=${revision}&per_page=10`)).workflow_runs ?? [];
   if (!runs.some(run => run.head_sha === revision && run.head_branch === 'main' && run.event === 'push'
     && run.status === 'completed' && run.conclusion === 'success'
     && run.head_repository?.full_name === policy.repository)) throw Error('CI has not passed for this exact main revision.');
