@@ -866,6 +866,8 @@ try {
       assert.match(await franja.innerText(), /Tu semana en WhatsApp\s*Con Plus/);
       assert.ok((await franja.boundingBox()).y < (await home.boundingBox()).y, "la franja va antes del calendario");
       assert.ok((await franja.boundingBox()).height <= 48, "la franja ocupa una línea");
+      // Con la franja, la tarjeta no se repite al final de la página.
+      assert.equal(await page.locator(".novedades-extra [data-whatsapp-reminders]").isVisible(), false);
       await franja.click();
       const hoja = page.locator("[data-wa-sheet]");
       await hoja.locator("[data-whatsapp-reminders] [data-wa-upsell] a").waitFor();
