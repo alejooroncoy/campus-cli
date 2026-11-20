@@ -373,6 +373,7 @@
       "/blackboard-upc/",
       "/blog/",
       "/blog/:slug/",
+      "/campito/",
       "/campus-cli/",
       "/herramientas/formato-apa-7/",
       "/herramientas/normas-apa-7ma-edicion/",
