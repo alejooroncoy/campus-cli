@@ -549,6 +549,10 @@ function DeliveryCard({
       ? timeInText(i.when.text)
       : "";
   const day = i.from ? new Date(i.from + "T00:00:00Z") : null;
+  // Fin del rango cuando la fuente solo da la semana; null si es un día exacto.
+  const last = i.from && i.to && i.to !== i.from ? new Date(i.to + "T00:00:00Z") : null;
+  const month = (d: Date) =>
+    new Intl.DateTimeFormat("es-PE", { month: "short", timeZone: "UTC" }).format(d).replace(".", "");
   const proof = (i.evidenceIds ?? [])
     .map((id) => evidence.find((e) => e.id === id))
     .find(Boolean);
@@ -568,14 +572,11 @@ function DeliveryCard({
         aria-controls={panel}
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="campu-chip" aria-hidden="true">
-          <b>{day ? day.getUTCDate() : "?"}</b>
+        {/* Una semana no es un día: con solo el lunes parece vencido desde el lunes. */}
+        <span className={"campu-chip" + (last ? " range" : "")} aria-hidden="true">
+          <b>{day ? (last ? `${day.getUTCDate()}–${last.getUTCDate()}` : day.getUTCDate()) : "?"}</b>
           <small>
-            {day
-              ? new Intl.DateTimeFormat("es-PE", { month: "short", timeZone: "UTC" })
-                  .format(day)
-                  .replace(".", "")
-              : ""}
+            {day ? (last && month(last) !== month(day) ? `${month(day)}–${month(last)}` : month(day)) : ""}
           </small>
         </span>
         <span className="campu-item-main">

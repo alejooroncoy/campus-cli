@@ -835,6 +835,14 @@ try {
       assert.match(semana, /En 3 días · 25 set · (11:59|23:59)/);
       assert.equal(await cal.locator("[role=tabpanel] .campu-item").count(), 2);
       // Una entrega publicada en Blackboard no dice que falte publicarla.
+      // Con día exacto el recuadro trae ese día; con solo la semana, el rango y no el lunes.
+      const chip = async (title) =>
+        (await cal.locator(".campu-item", { hasText: title }).locator(".campu-chip").innerText())
+          .replace(/\s+/g, " ")
+          .trim()
+          .toLowerCase();
+      assert.match(await chip("Avance 4"), /^25 se[pt]/);
+      assert.match(await chip("TB2"), /^21–27 se[pt]/);
       const avance = cal.locator(".campu-item", { hasText: "Avance 4" });
       await avance.locator(".campu-item-head").click();
       assert.equal(await avance.locator(".campu-item-more").getByText("Todavía no está como tarea").count(), 0);
