@@ -859,6 +859,20 @@ try {
         await cruce.evaluate((el) => [...el.children].every((c) => c.getBoundingClientRect().width <= el.clientWidth - 4)),
         "el mes no desborda",
       );
+      // Por debajo de la columna lateral, WhatsApp va en una franja arriba del calendario
+      // (sin Plus en esta prueba) que abre la misma tarjeta en una hoja y la devuelve al cerrar.
+      const franja = page.locator("[data-wa-strip]");
+      await franja.waitFor();
+      assert.match(await franja.innerText(), /Tu semana en WhatsApp\s*Con Plus/);
+      assert.ok((await franja.boundingBox()).y < (await home.boundingBox()).y, "la franja va antes del calendario");
+      assert.ok((await franja.boundingBox()).height <= 48, "la franja ocupa una línea");
+      await franja.click();
+      const hoja = page.locator("[data-wa-sheet]");
+      await hoja.locator("[data-whatsapp-reminders] [data-wa-upsell] a").waitFor();
+      assert.equal(await hoja.evaluate((d) => d.open), true);
+      await page.keyboard.press("Escape");
+      await page.locator(".novedades-extra [data-whatsapp-reminders]").waitFor({ state: "attached" });
+      assert.equal(await hoja.evaluate((d) => d.open), false);
       // Una entrega se abre para ver de dónde sale, con ratón y con teclado.
       const tp1 = cal.locator(".campu-item", { hasText: "TP1" });
       const cabeza = tp1.locator(".campu-item-head");
