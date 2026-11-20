@@ -55,10 +55,6 @@
   ],
   "rewrites": [
     {
-      "source": "/cal/:file",
-      "destination": "https://mcp.campuscli.com/v1/calendar/:file"
-    },
-    {
       "source": "/c-events/static/:path(.*)",
       "destination": "https://us-assets.i.posthog.com/static/:path"
     },
@@ -69,6 +65,10 @@
     {
       "source": "/c-events/:path(.*)",
       "destination": "https://us.i.posthog.com/:path"
+    },
+    {
+      "source": "/cal/:file",
+      "destination": "https://mcp.campuscli.com/v1/calendar/:file"
     },
     {
       "source": "/app/novedades/:id([0-9a-fA-F-]{36})/",
