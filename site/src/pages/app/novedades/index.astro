@@ -69,6 +69,13 @@ import WhatsAppStrip from '../../../components/WhatsAppStrip.astro';
   .novedades-layout:has(#avisos) .novedades-strip {
     display: none;
   }
+  /* Con la franja visible, la tarjeta solo se abre desde ella: abajo no se repite. Al
+     tocar la franja, la tarjeta pasa a la hoja, que está fuera de esta columna. */
+  @media (max-width: 1239px) {
+    .novedades-layout:has(.campu-home):not(:has(#avisos)):has(.wa-strip:not([hidden])) .novedades-extra {
+      display: none;
+    }
+  }
   .novedades-layout:has(.campu-home):not(:has(#avisos)) .wa-card {
     max-width: 640px;
     margin-inline: auto;
