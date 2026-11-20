@@ -852,6 +852,13 @@ try {
       const proximaSemana = (await cal.locator("[role=tabpanel]").innerText()).replace(/\s+/g, " ");
       assert.ok(/TP1.*Aún sin publicar/.test(proximaSemana), proximaSemana);
       assert.match(proximaSemana, /Entrega del domingo.*4 oct · 23:30/, proximaSemana);
+      // Un rango que cruza de mes no se sale del recuadro.
+      const cruce = cal.locator(".campu-item", { hasText: "TP1" }).locator(".campu-chip");
+      assert.match((await cruce.innerText()).replace(/\s+/g, " ").trim().toLowerCase(), /^28–4 se[pt]–oct/);
+      assert.ok(
+        await cruce.evaluate((el) => [...el.children].every((c) => c.getBoundingClientRect().width <= el.clientWidth - 4)),
+        "el mes no desborda",
+      );
       // Una entrega se abre para ver de dónde sale, con ratón y con teclado.
       const tp1 = cal.locator(".campu-item", { hasText: "TP1" });
       const cabeza = tp1.locator(".campu-item-head");

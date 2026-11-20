@@ -573,7 +573,10 @@ function DeliveryCard({
         onClick={() => setOpen((v) => !v)}
       >
         {/* Una semana no es un día: con solo el lunes parece vencido desde el lunes. */}
-        <span className={"campu-chip" + (last ? " range" : "")} aria-hidden="true">
+        <span
+          className={"campu-chip" + (last ? " range" : "") + (last && day && month(last) !== month(day) ? " two-months" : "")}
+          aria-hidden="true"
+        >
           <b>{day ? (last ? `${day.getUTCDate()}–${last.getUTCDate()}` : day.getUTCDate()) : "?"}</b>
           <small>
             {day ? (last && month(last) !== month(day) ? `${month(day)}–${month(last)}` : month(day)) : ""}

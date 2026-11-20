@@ -605,6 +605,10 @@
 .campu-chip.range small {
   letter-spacing: 0;
 }
+/* "AGO–SET" a 12px casi no deja margen en 52px. */
+.campu-chip.two-months small {
+  font-size: 11px;
+}
 .soon .campu-chip {
   background: #2d7a86;
   color: #fff;
