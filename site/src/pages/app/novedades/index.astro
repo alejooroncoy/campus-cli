@@ -2,6 +2,7 @@
 import AppShell from '../../../layouts/AppShell.astro';
 import CampuUpdates from '../../../components/CampuUpdates';
 import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
+import WhatsAppStrip from '../../../components/WhatsAppStrip.astro';
 ---
 <AppShell title="Tu calendario" active="calendario">
   <script is:inline>
@@ -30,14 +31,20 @@ import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
       window.__campuPrefetch = early;
     })();
   </script>
-  <CampuUpdates client:load />
-  <div class="novedades-extra">
-    <WhatsAppReminders />
+  <div class="novedades-layout">
+    <div class="novedades-main">
+      <div class="novedades-strip"><WhatsAppStrip /></div>
+      <CampuUpdates client:load />
+    </div>
+    <aside class="novedades-extra" aria-label="Tu semana en WhatsApp">
+      <WhatsAppReminders />
+    </aside>
   </div>
 </AppShell>
 <style is:global>
-  /* La tarjeta de WhatsApp va fuera del componente de React: toma sus mismos
-     márgenes y, en la vista simple, el ancho de su columna central. */
+  /* La tarjeta de WhatsApp va fuera del componente de React. En celular y en
+     pantallas medianas va abajo, con los mismos márgenes; en escritorio, en la
+     vista simple, pasa a una columna a la derecha que acompaña al calendario. */
   .novedades-extra {
     max-width: 1120px;
     margin: 0 auto;
@@ -48,15 +55,71 @@ import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
       padding: 0 10px 16px;
     }
   }
-  astro-island:has(.campu-home):not(:has(#avisos)) ~ .novedades-extra .wa-card {
+  /* Franja de WhatsApp: en celular y pantallas medianas, arriba del calendario en la vista
+     simple. Abre la tarjeta completa en una hoja inferior. */
+  .novedades-strip {
+    padding: 0 clamp(16px, 3vw, 36px);
+  }
+  @media (max-width: 760px) {
+    .novedades-strip {
+      padding: 0 10px;
+    }
+  }
+  .novedades-layout:not(:has(.campu-home)) .novedades-strip,
+  .novedades-layout:has(#avisos) .novedades-strip {
+    display: none;
+  }
+  .novedades-layout:has(.campu-home):not(:has(#avisos)) .wa-card {
     max-width: 640px;
     margin-inline: auto;
     grid-template-columns: minmax(0, 1fr) minmax(200px, 240px);
     gap: 22px;
   }
   @media (max-width: 720px) {
-    astro-island:has(.campu-home):not(:has(#avisos)) ~ .novedades-extra .wa-card {
+    .novedades-layout:has(.campu-home):not(:has(#avisos)) .wa-card {
       grid-template-columns: 1fr;
+    }
+  }
+  @media (min-width: 1240px) {
+    .novedades-layout:has(.campu-home):not(:has(#avisos)):has(.wa-card:not([hidden])) {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      column-gap: 28px;
+      align-items: start;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding-right: clamp(16px, 3vw, 36px);
+    }
+    .novedades-layout:has(.campu-home):not(:has(#avisos)) .novedades-strip {
+      display: none;
+    }
+    .novedades-layout:has(.campu-home):not(:has(#avisos)):has(.wa-card:not([hidden])) .campu-updates {
+      padding-right: 0;
+    }
+    .novedades-layout:has(.campu-home):not(:has(#avisos)):has(.wa-card:not([hidden])) .novedades-extra {
+      position: sticky;
+      top: 24px;
+      margin: 0;
+      max-width: none;
+      padding: clamp(16px, 3vw, 36px) 0 24px;
+    }
+    .novedades-layout:has(.campu-home):not(:has(#avisos)) .novedades-extra .wa-card {
+      max-width: none;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      padding: 20px;
+    }
+    .novedades-extra .wa-card h2 {
+      font-size: 17px;
+    }
+    .novedades-extra .wa-card__lead {
+      font-size: 13px;
+    }
+    .novedades-extra .wa-chat {
+      padding: 12px 10px;
+    }
+    .novedades-extra .wa-chat__bubble {
+      font-size: 12px;
     }
   }
 </style>
