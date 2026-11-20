@@ -115,7 +115,8 @@ function mount(){
     find('sub-empty').hidden=history.length>0;
     find('history-panel').hidden=history.length===0;
     // Without a paid month the action panel already says what to do: no empty plan card.
-    panel.hidden=!subscription;
+    // Con Plus por rol, un mes vencido no se muestra: diría «volvió a Campus Free» a quien sigue en Plus.
+    panel.hidden=!subscription||(phase==='expired'&&state.currentPlan==='plus');
   }
   async function load(quiet=false){
     if(!quiet)message('Comprobando tu cuenta…',false,true);
@@ -140,8 +141,10 @@ function mount(){
         flowPrice(pendingFlow);flowCopy(true);flowResume.hidden=!flowLink.hidden;show('flow');message();
       }
       else if(state.currentPlan==='plus'){
-        show('active');message();text('active-until',state.subscription?.isTest?`Acceso de prueba hasta el ${date(state.subscription.activeUntil)}. No se registró ningún pago.`:state.subscription?`Tu mes está activo hasta el ${date(state.subscription.activeUntil)}.`:'Tu cuenta tiene acceso a Campus Plus.');
-        find('renew').hidden=!state.enabled||!state.eligible||!state.subscription||(state.subscriptionState??phaseFromDate(state.subscription.activeUntil))==='active';
+        // Plus por rol (cortesía o admin) puede convivir con un mes pagado ya vencido: ese mes no es el plan actual.
+        const paidPhase=state.subscription?(state.subscriptionState??phaseFromDate(state.subscription.activeUntil)):'none';
+        show('active');message();text('active-until',state.subscription?.isTest?`Acceso de prueba hasta el ${date(state.subscription.activeUntil)}. No se registró ningún pago.`:state.subscription&&paidPhase!=='expired'?`Tu mes está activo hasta el ${date(state.subscription.activeUntil)}.`:'Tu cuenta tiene acceso a Campus Plus.');
+        find('renew').hidden=!state.enabled||!state.eligible||!state.subscription||paidPhase!=='expiring';
         track('campus_plus_status_viewed',{plus_status:'active'});
       }else if(!state.enabled){show('unavailable');message('La activación de Plus está pausada. No realices un pago nuevo.',true);}
       else if(!state.eligible){show('university');message();}
