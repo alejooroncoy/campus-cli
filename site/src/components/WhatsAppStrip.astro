@@ -1,0 +1,158 @@
+---
+// Franja de una línea arriba del calendario, para celular y pantallas medianas, y
+// hoja inferior con la tarjeta completa de WhatsApp. En escritorio la tarjeta va en
+// la columna derecha y la franja no se muestra (ver novedades/index.astro).
+---
+<button class="wa-strip" type="button" data-wa-strip hidden aria-haspopup="dialog" aria-controls="wa-sheet">
+  <span class="wa-strip__dot" aria-hidden="true"></span>
+  <span class="wa-strip__text" data-wa-strip-text>Tu semana en WhatsApp</span>
+  <span class="wa-strip__action" data-wa-strip-action>Activar</span>
+  <span class="wa-strip__chev" aria-hidden="true"></span>
+</button>
+
+<dialog class="wa-sheet" id="wa-sheet" data-wa-sheet aria-label="Tu semana en WhatsApp">
+  <div class="wa-sheet__bar">
+    <span class="wa-sheet__grip" aria-hidden="true"></span>
+    <button class="wa-sheet__close" type="button" data-wa-sheet-close aria-label="Cerrar">×</button>
+  </div>
+  <div class="wa-sheet__body" data-wa-sheet-body></div>
+</dialog>
+
+<style>
+  .wa-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 640px;
+    min-height: 44px;
+    margin: 12px auto 0;
+    padding: 10px 14px;
+    border: 1px solid var(--app-line);
+    border-radius: 12px;
+    background: var(--app-paper);
+    color: var(--app-ink);
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .wa-strip[hidden] {
+    display: none;
+  }
+  .wa-strip:focus-visible {
+    outline: 3px solid var(--app-link);
+    outline-offset: 2px;
+  }
+  .wa-strip__dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #25d366;
+  }
+  .wa-strip[data-state="on"] .wa-strip__dot {
+    background: var(--app-green);
+  }
+  .wa-strip__text {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+  }
+  .wa-strip__action {
+    flex: none;
+    color: var(--app-link);
+    font-weight: 600;
+  }
+  .wa-strip[data-state="on"] .wa-strip__action {
+    color: var(--app-muted);
+    font-weight: 500;
+  }
+  .wa-strip__chev {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-top: 2px solid var(--app-muted);
+    border-right: 2px solid var(--app-muted);
+    transform: rotate(45deg);
+  }
+  .wa-sheet {
+    position: fixed;
+    inset: auto 0 0 0;
+    width: 100%;
+    max-width: 720px;
+    max-height: 88dvh;
+    margin: 0 auto;
+    padding: 0;
+    border: 0;
+    border-radius: 18px 18px 0 0;
+    background: var(--app-paper);
+    color: var(--app-ink);
+    box-shadow: 0 -8px 32px rgba(16, 42, 58, .18);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .wa-sheet::backdrop {
+    background: rgba(16, 42, 58, .45);
+  }
+  .wa-sheet[open] {
+    animation: wa-sheet-in .24s cubic-bezier(.16, 1, .3, 1);
+  }
+  @keyframes wa-sheet-in {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+  .wa-sheet__bar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    height: 36px;
+    background: var(--app-paper);
+  }
+  .wa-sheet__grip {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--app-line);
+  }
+  .wa-sheet__close {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--app-muted);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .wa-sheet__close:focus-visible {
+    outline: 3px solid var(--app-link);
+  }
+  .wa-sheet__body {
+    padding: 0 6px calc(12px + env(safe-area-inset-bottom));
+  }
+  /* Dentro de la hoja la tarjeta no lleva su propio marco. */
+  .wa-sheet__body :global(.wa-card) {
+    border: 0;
+    box-shadow: none;
+    margin: 0;
+    max-width: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wa-sheet[open] {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { mountWhatsAppStrip } from "../scripts/whatsapp-strip";
+  document.addEventListener("astro:page-load", mountWhatsAppStrip);
+  mountWhatsAppStrip();
+</script>

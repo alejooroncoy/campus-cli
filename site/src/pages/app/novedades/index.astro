@@ -2,6 +2,7 @@
 import AppShell from '../../../layouts/AppShell.astro';
 import CampuUpdates from '../../../components/CampuUpdates';
 import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
+import WhatsAppStrip from '../../../components/WhatsAppStrip.astro';
 ---
 <AppShell title="Tu calendario" active="calendario">
   <script is:inline>
@@ -32,6 +33,7 @@ import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
   </script>
   <div class="novedades-layout">
     <div class="novedades-main">
+      <div class="novedades-strip"><WhatsAppStrip /></div>
       <CampuUpdates client:load />
     </div>
     <aside class="novedades-extra" aria-label="Tu semana en WhatsApp">
@@ -53,6 +55,20 @@ import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
       padding: 0 10px 16px;
     }
   }
+  /* Franja de WhatsApp: en celular y pantallas medianas, arriba del calendario en la vista
+     simple. Abre la tarjeta completa en una hoja inferior. */
+  .novedades-strip {
+    padding: 0 clamp(16px, 3vw, 36px);
+  }
+  @media (max-width: 760px) {
+    .novedades-strip {
+      padding: 0 10px;
+    }
+  }
+  .novedades-layout:not(:has(.campu-home)) .novedades-strip,
+  .novedades-layout:has(#avisos) .novedades-strip {
+    display: none;
+  }
   .novedades-layout:has(.campu-home):not(:has(#avisos)) .wa-card {
     max-width: 640px;
     margin-inline: auto;
@@ -73,6 +89,9 @@ import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
       max-width: 1120px;
       margin: 0 auto;
       padding-right: clamp(16px, 3vw, 36px);
+    }
+    .novedades-layout:has(.campu-home):not(:has(#avisos)) .novedades-strip {
+      display: none;
     }
     .novedades-layout:has(.campu-home):not(:has(#avisos)):has(.wa-card:not([hidden])) .campu-updates {
       padding-right: 0;
