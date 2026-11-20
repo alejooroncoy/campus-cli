@@ -326,12 +326,14 @@ export function setupAnalytics(): void {
     const loc = locationFor(anchor);
     const support = url.origin === 'https://wa.me' && url.pathname === '/51946189585';
     const provider = ({ 'chatgpt.com': 'chatgpt', 'claude.ai': 'claude', 'gemini.google.com': 'gemini' } as Record<string, string>)[url.hostname];
-    if (!support && !provider && url.origin !== location.origin) return;
+    // La ficha de Campito en la Chrome Web Store: es la instalación, aunque salga del sitio.
+    const store = url.hostname === 'chromewebstore.google.com';
+    if (!support && !provider && !store && url.origin !== location.origin) return;
     const plan = ['free', 'plus', 'trial'].includes(loc) ? loc : undefined;
-    const target = support ? 'whatsapp' : provider ? 'connect' : url.pathname === '/api/app/auth/start' ? 'auth'
+    const target = support ? 'whatsapp' : store ? 'campito_install' : provider ? 'connect' : url.pathname === '/api/app/auth/start' ? 'auth'
       : url.hash === '#planes' ? 'plans' : url.hash === '#incluye' ? 'features' : analyticsPage(url.pathname);
     const managingPlus = anchor.hasAttribute('data-profile-manage') || currentPlan === 'plus';
-    const intent = support ? 'support' : loc === 'professor_profile' && target === 'assistant' ? 'ask' : target === 'plus' ? managingPlus ? 'navigate' : 'plus' : plan ?? (target === 'auth' ? 'signup' : target === 'connect' ? 'connect' : ['turnitin_app', 'turnitin'].includes(target) ? 'turnitin' : target === 'app' && loc !== 'app' ? 'trial' : 'navigate');
+    const intent = support ? 'support' : store ? 'install' : loc === 'professor_profile' && target === 'assistant' ? 'ask' : target === 'plus' ? managingPlus ? 'navigate' : 'plus' : plan ?? (target === 'auth' ? 'signup' : target === 'connect' ? 'connect' : ['turnitin_app', 'turnitin'].includes(target) ? 'turnitin' : target === 'app' && loc !== 'app' ? 'trial' : 'navigate');
     if (['trial', 'free', 'plus'].includes(intent)) {
       try { sessionStorage.setItem('campus-selected-plan', intent); } catch { /* Optional. */ }
     }
