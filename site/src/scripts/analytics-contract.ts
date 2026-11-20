@@ -2,6 +2,7 @@
 // academic content, file names, email, OAuth codes or receipts.
 export const events = new Set([
   'campus_proactive_notice_opened','campus_proactive_context_copied','campus_proactive_preferences_saved','campus_proactive_deleted',
+  'campus_calendar_feed_created','campus_calendar_feed_opened','campus_calendar_feed_reset','campus_calendar_feed_removed',
   'campus_agent_examples_viewed','campus_agent_example_started',
   'campus_agent_followup_saved','campus_agent_support_opened',
   'campus_guest_signup_invite_viewed','campus_guest_signup_started','campus_guest_signup_dismissed',
@@ -42,7 +43,7 @@ const categories: Record<string, readonly string[]> = {
   activity:['connecting','search','course','reviews','answer','academic','grades'],
   feedback_kind:['agent','plus'],reason:['resolved','not_resolved','price','unclear_value','payment_difficult','not_needed','technical_problem','other'],
   page: ['home', 'ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'campito', 'other'],
-  target: ['ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'campito', 'other', 'plans', 'features', 'whatsapp', 'auth', 'campito_install'],
+  target: ['ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'campito', 'other', 'plans', 'features', 'whatsapp', 'auth', 'campito_install', 'google', 'outlook', 'apple', 'copy'],
   location: ['header', 'hero', 'trial', 'free', 'plus', 'features', 'research', 'onboarding', 'faq', 'closing', 'footer', 'app', 'professor_profile', 'other'],
   section: ['plans', 'features', 'research', 'onboarding', 'faq', 'closing'],
   intent: ['trial', 'free', 'plus', 'connect', 'turnitin', 'signup', 'support', 'navigate', 'ask', 'install'],
