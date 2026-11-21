@@ -49,6 +49,14 @@ const schemas = [
     mainEntity: [
       {
         "@type": "Question",
+        name: "¿Puedo tener ChatGPT gratis estando en la UPC?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Sí. Puedes usar el plan gratuito de ChatGPT con tu propia cuenta; no necesitas ser estudiante de la UPC para acceder a ese plan. ChatGPT Plus es una suscripción distinta y no está incluida en Campus. Si buscas un beneficio institucional, confirma su disponibilidad y condiciones con la universidad.",
+        },
+      },
+      {
+        "@type": "Question",
         name: "¿Necesito ChatGPT Plus para conectar Blackboard?",
         acceptedAnswer: {
           "@type": "Answer",
@@ -86,7 +94,7 @@ const schemas = [
 
 <Base
   title={"Blackboard UPC en ChatGPT, sin instalar nada | Campus"}
-  description={"Conecta el Aula Virtual de la UPC con ChatGPT o Claude, también desde el móvil. Pregunta por tus cursos, tareas y notas sin copiar archivos ni instalar nada."}
+  description={"Conecta Blackboard UPC con ChatGPT o Claude. Consulta tareas, notas y materiales, y conoce la diferencia entre ChatGPT gratis y Campus Plus."}
   canonical={url}
   ogTitle={"Tu Aula Virtual UPC dentro de ChatGPT"}
   ogDescription={"Pregunta por tus cursos, tareas y notas desde ChatGPT o Claude, también en el móvil. Sin instalar nada."}
