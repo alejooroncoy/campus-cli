@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { track } from "../scripts/analytics";
 
 /** Tu calendario en el calendario que ya usas: un enlace privado (.ics) que se agrega
@@ -68,6 +68,51 @@ const TILES = [
 ] as const;
 const COPIED ="Enlace copiado. Pégalo en tu calendario como «Desde URL» o «Suscribirse».";
 const failure = (e: unknown) => (e instanceof Error ? e.message : "No pudimos completar esta acción.");
+
+/** En celular, una franja como la de WhatsApp, justo debajo de ella. Al tocarla, la tarjeta
+ * se abre en una hoja inferior. */
+export function CalendarStrip({ connected, children }: { connected: boolean; children: ReactNode }) {
+  const sheet = useRef<HTMLDialogElement>(null);
+  return (
+    <>
+      <button
+        type="button"
+        className="campu-cal-strip"
+        data-state={connected ? "on" : "off"}
+        aria-haspopup="dialog"
+        onClick={() => sheet.current?.showModal()}
+      >
+        <span className="campu-cal-strip-logo" aria-hidden="true">
+          {LOGOS.google}
+        </span>
+        <span className="campu-cal-strip-text">
+          {connected ? "Tus entregas están en tu calendario" : "Tus entregas en tu calendario"}
+        </span>
+        <span className="campu-cal-strip-action">{connected ? "Ajustes" : "Agregar"}</span>
+        <span className="campu-cal-strip-chev" aria-hidden="true" />
+      </button>
+      <dialog
+        ref={sheet}
+        className="campu-cal-sheet"
+        aria-label="Tus entregas en tu calendario"
+        onClick={(e) => e.target === e.currentTarget && e.currentTarget.close()}
+      >
+        <div className="campu-cal-sheet-bar">
+          <span className="campu-cal-sheet-grip" aria-hidden="true" />
+          <button
+            type="button"
+            className="campu-cal-sheet-close"
+            aria-label="Cerrar"
+            onClick={() => sheet.current?.close()}
+          >
+            ×
+          </button>
+        </div>
+        <div className="campu-cal-sheet-body">{children}</div>
+      </dialog>
+    </>
+  );
+}
 
 export default function CalendarSubscribe({
   url,

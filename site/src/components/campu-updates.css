@@ -834,3 +834,135 @@
   color: #1f6b46 !important;
   font-weight: 600;
 }
+
+/* Celular: franja de una línea como la de WhatsApp y hoja inferior con la tarjeta. */
+.campu-updates .campu-cal-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--app-line, #d4e1e6);
+  border-radius: 12px;
+  background: var(--app-paper, #fff);
+  color: var(--app-ink, #103b48);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.campu-updates .campu-cal-strip:focus-visible {
+  outline: 3px solid var(--app-link, #087082);
+  outline-offset: 2px;
+}
+.campu-cal-strip-logo {
+  flex: none;
+  display: grid;
+  width: 16px;
+  height: 16px;
+}
+.campu-cal-strip-logo svg {
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: none;
+}
+.campu-cal-strip-text {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+.campu-cal-strip-action {
+  flex: none;
+  color: var(--app-link, #087082);
+  font-weight: 600;
+}
+.campu-cal-strip[data-state="on"] .campu-cal-strip-action {
+  color: var(--app-muted, #506d7f);
+  font-weight: 500;
+}
+.campu-cal-strip-chev {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-top: 2px solid var(--app-muted, #506d7f);
+  border-right: 2px solid var(--app-muted, #506d7f);
+  transform: rotate(45deg);
+}
+.campu-cal-sheet {
+  position: fixed;
+  inset: auto 0 0 0;
+  width: 100%;
+  max-width: 720px;
+  max-height: 88dvh;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 18px 18px 0 0;
+  background: var(--app-paper, #fff);
+  color: var(--app-ink, #103b48);
+  box-shadow: 0 -8px 32px rgba(16, 42, 58, 0.18);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.campu-cal-sheet::backdrop {
+  background: rgba(16, 42, 58, 0.45);
+}
+.campu-cal-sheet[open] {
+  animation: campu-cal-sheet-in 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes campu-cal-sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.campu-cal-sheet-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  height: 36px;
+  background: var(--app-paper, #fff);
+}
+.campu-cal-sheet-grip {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--app-line, #d4e1e6);
+}
+.campu-updates .campu-cal-sheet-close {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--app-muted, #506d7f);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.campu-cal-sheet-body {
+  padding: 0 6px calc(12px + env(safe-area-inset-bottom));
+}
+/* Dentro de la hoja la tarjeta no lleva su propio marco. */
+.campu-cal-sheet-body .campu-cal-sync {
+  margin: 0;
+  border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .campu-cal-sheet[open] {
+    animation: none;
+  }
+}

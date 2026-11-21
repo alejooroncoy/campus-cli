@@ -907,13 +907,23 @@ try {
       await tabs.first().click();
       // Los avisos van debajo del calendario, con su título.
       // Tus entregas en Google Calendar u Outlook: debajo de WhatsApp, con un enlace privado.
-      // Con la franja (celular y pantallas medianas), entre la franja y el calendario.
-      const sync = page.locator(".novedades-main > .novedades-cal .campu-cal-sync");
-      await sync.waitFor();
+      // Con la franja (celular y pantallas medianas): su propia franja debajo de la de
+      // WhatsApp, antes del calendario, que abre la tarjeta en una hoja inferior.
+      const calFranja = page.locator(".novedades-main > .novedades-cal .campu-cal-strip");
+      await calFranja.waitFor();
       assert.equal(await page.locator(".campu-cal-sync").count(), 1, "una sola vez");
       const bajoFranja = await franja.boundingBox();
-      assert.ok((await sync.boundingBox()).y >= bajoFranja.y + bajoFranja.height, "va debajo de la franja");
-      assert.ok((await sync.boundingBox()).y < (await home.boundingBox()).y, "y antes del calendario");
+      const cajaCal = await calFranja.boundingBox();
+      assert.ok(cajaCal.y >= bajoFranja.y + bajoFranja.height, "va debajo de la franja de WhatsApp");
+      assert.ok(cajaCal.y < (await home.boundingBox()).y, "y antes del calendario");
+      assert.ok(Math.abs(cajaCal.x - bajoFranja.x) < 2 && Math.abs(cajaCal.width - bajoFranja.width) < 2, "mismo ancho");
+      assert.match(await calFranja.innerText(), /Tus entregas en tu calendario\s*Agregar/);
+      if (process.env.CAL_SHOT_DIR && width === 390) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular-franjas.png" });
+      const calHoja = page.locator(".campu-cal-sheet");
+      assert.equal(await calHoja.isVisible(), false);
+      await calFranja.click();
+      await calHoja.waitFor();
+      const sync = calHoja.locator(".campu-cal-sync");
       // Sin paso previo: cada calendario es un botón con su logo. El primer toque crea el
       // enlace y abre Google en una pestaña que se pidió antes de esperar al servidor.
       assert.deepEqual(
@@ -953,6 +963,9 @@ try {
       await sync.getByRole("button", { name: "Quitar" }).click();
       await sync.getByRole("button", { name: "Google Calendar" }).waitFor();
       assert.deepEqual(calendarCalls, ["POST", "POST reset", "DELETE"]);
+      if (process.env.CAL_SHOT_DIR && width === 390) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular-hoja.png" });
+      await calHoja.getByRole("button", { name: "Cerrar" }).click();
+      await calHoja.waitFor({ state: "hidden" });
       // En escritorio, con la columna de WhatsApp, pasa debajo de la tarjeta.
       if (width === 1100) {
         await page.setViewportSize({ width: 1280, height: 844 });
@@ -965,11 +978,7 @@ try {
         assert.ok(Math.abs(caja.x - tarjeta.x) < 2 && caja.width <= tarjeta.width + 1, "en la misma columna");
         if (process.env.CAL_SHOT_DIR) await page.locator(".novedades-extra").screenshot({ path: process.env.CAL_SHOT_DIR + "/escritorio.png" });
         await page.setViewportSize({ width, height: 844 });
-        await sync.waitFor();
-      }
-      if (process.env.CAL_SHOT_DIR && width === 390) {
-        await sync.scrollIntoViewIfNeeded();
-        await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular.png" });
+        await calFranja.waitFor();
       }
       assert.equal(await home.getByRole("heading", { name: "Avisos que te mandé" }).count(), 1);
       assert.equal(await home.locator(".campu-day h2").first().innerText(), "Hoy");
