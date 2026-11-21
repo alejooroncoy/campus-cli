@@ -7,8 +7,8 @@ import rawBody from "../html/index.html?raw";
 import { publicHomeHtml } from "../../feature-flags.mjs";
 import { includeCampusFeedback } from "../lib/campus-feedback";
 const body = includeCampusFeedback(publicHomeHtml(rawBody));
-const title = "Campus UPC: profesores, notas y Blackboard con IA";
-const description = "Compara reseñas de profesores UPC y conecta Blackboard con tu IA para consultar tareas, notas y materiales. Prueba Campus gratis.";
+const title = "Campus Plus: Blackboard UPC con IA, precios y planes";
+const description = "Conoce Campus Plus para UPC: consulta materiales y notas de Blackboard con tu IA. Revisa precios, límites y las consultas de prueba de Campus Free.";
 
 const schemas = [
   {
@@ -77,6 +77,14 @@ const schemas = [
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué es Campus Plus y cuánto cuesta?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Campus Plus es el plan de pago de Campus para conectar una IA compatible con Blackboard UPC. Incluye 100 consultas diarias en la web y consultas ilimitadas por MCP. El precio fundador es S/10 al mes para los primeros 25 usuarios de pago; al completar ese grupo, las nuevas suscripciones cuestan S/15 al mes desde el inicio. Las suscripciones de otras IA se pagan por separado."
+      }
+    },
     {
       "@type": "Question",
       "name": "¿Necesito crear una cuenta?",
