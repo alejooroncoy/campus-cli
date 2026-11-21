@@ -1063,6 +1063,10 @@ export default function CampuUpdates() {
   // aparece al cargar el estado, así que se baja a ella cuando existe.
   // Si los ajustes están plegados se abren primero, y se baja cuando ya existen.
   // Solo la llegada inicial: después la persona puede volver a plegarlos.
+  // Los ajustes plegados recuerdan si la persona los abrió: guardar no los cierra.
+  const [settingsOpen, setSettingsOpen] = useState(
+    () => typeof location !== "undefined" && location.hash === "#avisos",
+  );
   const anchored = useRef(false);
   useEffect(() => {
     if (anchored.current || !status || location.hash !== "#avisos") return;
@@ -1320,8 +1324,19 @@ export default function CampuUpdates() {
                     Ver mi resumen de esta semana
                   </button>
                 </section>
-                <section className="campu-card" id="avisos">
-                  <h2>Ajustes de avisos</h2>
+                {/* Plegados en el detalle: están a mano sin ocupar la página. Se
+                    abren solos si el seguimiento está apagado, en la vista simple
+                    (ahí se piden con su botón) o al llegar por #avisos. */}
+                <details
+                  className="campu-card campu-fold"
+                  id="avisos"
+                  open={!prefs.enabled || simple || settingsOpen}
+                  onToggle={(e) => setSettingsOpen(e.currentTarget.open)}
+                >
+                  <summary>
+                    <h2>Ajustes de avisos</h2>
+                    <span>Ajustes</span>
+                  </summary>
                   <p>
                     Reviso tus cursos a las 8, 12, 16 y 20 h y cada lunes te
                     armo el resumen de la semana. Si cambia algo importante te
@@ -1539,7 +1554,7 @@ export default function CampuUpdates() {
                       Desactivar en este dispositivo
                     </button>
                   </div>
-                </section>
+                </details>
               <section className="campu-card campu-status">
                 <div>
                   <h2>{labels[status.status] ?? "Revisando tu conexión"}</h2>
@@ -1557,12 +1572,20 @@ export default function CampuUpdates() {
                 <a href="/app/copilot/">Revisar conexión con mi IA →</a>
               </section>
               {context && (
-                <section className="campu-card campu-context">
-                  <p className="campu-eyebrow">
-                    Contexto preparado · {timestamp(context.preparedAt)}
-                  </p>
-                  <h2>Esto es lo que pude revisar.</h2>
-                  <p>{context.summary}</p>
+                // Plegado: a la vista queda la frase de lo revisado; las fuentes, el
+                // pedido para la IA y la evidencia se abren cuando se quieren.
+                <details className="campu-card campu-fold campu-context">
+                  <summary>
+                    {/* En <summary> solo caben un título y texto en línea. */}
+                    <span className="campu-fold-text">
+                      <span className="campu-eyebrow">
+                        Contexto preparado · {timestamp(context.preparedAt)}
+                      </span>
+                      <h2>Esto es lo que pude revisar.</h2>
+                      <span>{context.summary}</span>
+                    </span>
+                    <span>Ver detalle</span>
+                  </summary>
                   <p
                     className={
                       context.freshness === "stale"
@@ -1738,7 +1761,7 @@ export default function CampuUpdates() {
                       </button>
                     )}
                   </details>
-                </section>
+                </details>
               )}
               <section className="campu-card campu-privacy">
                 <h2>Tú controlas lo que preparo.</h2>
