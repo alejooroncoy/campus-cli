@@ -10,11 +10,11 @@ import {
   enablePushDevice,
   removePushDevice,
 } from "../scripts/proactive-device";
-import CalendarSubscribe from "./CalendarSubscribe";
+import CalendarSubscribe, { CalendarStrip } from "./CalendarSubscribe";
 import "./campu-updates.css";
 
 /** Dónde va "Tus entregas en Google Calendar": justo debajo de WhatsApp, que vive fuera
- * de este componente (novedades/index.astro). En celular, debajo de la franja; en
+ * de este componente (novedades/index.astro). En celular, su propia franja debajo de esa; en
  * escritorio, debajo de la tarjeta en la columna derecha. Sin WhatsApp a la vista,
  * null: se queda en su lugar, debajo de las entregas. */
 function useCalendarSlot(active: boolean) {
@@ -742,8 +742,10 @@ function Home({
   more,
   onMore,
   calendarSync,
+  calendarConnected = false,
 }: {
   calendarSync?: ReactNode;
+  calendarConnected?: boolean;
   context: Context | null;
   events: any[];
   notices: Notice[];
@@ -802,7 +804,17 @@ function Home({
       {u &&
         calendarSync &&
         (slot
-          ? createPortal(<div className="campu-updates campu-cal-slot">{calendarSync}</div>, slot)
+          ? createPortal(
+              <div className="campu-updates campu-cal-slot">
+                {/* En celular, franja con hoja como la de WhatsApp; en escritorio, la tarjeta. */}
+                {slot.dataset.calSlot === "main" ? (
+                  <CalendarStrip connected={calendarConnected}>{calendarSync}</CalendarStrip>
+                ) : (
+                  calendarSync
+                )}
+              </div>,
+              slot,
+            )
           : calendarSync)}
       <h2 className="campu-home-label">Avisos que te mandé</h2>
       {shown.length ? (
@@ -1118,6 +1130,7 @@ export default function CampuUpdates() {
       connect={async (reset) => {
         const result = await api("/calendar", "POST", reset ? { reset: true } : {});
         setStatus((s: any) => ({ ...s, calendarUrl: result.calendarUrl }));
+        return result.calendarUrl as string;
       }}
       remove={async () => {
         await api("/calendar", "DELETE");
@@ -1289,6 +1302,7 @@ export default function CampuUpdates() {
                   more={more}
                   onMore={() => setMore((v) => !v)}
                   calendarSync={calendarSync}
+                  calendarConnected={Boolean(status.calendarUrl)}
                 />
               )}
               {showDetail && (

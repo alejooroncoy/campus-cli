@@ -86,7 +86,7 @@ import WhatsAppStrip from '../../../components/WhatsAppStrip.astro';
   }
   .novedades-main > .novedades-cal {
     max-width: 640px;
-    margin: 12px auto 0;
+    margin: 8px auto 0;
     padding: 0 clamp(16px, 3vw, 36px);
     box-sizing: content-box;
   }
@@ -103,17 +103,6 @@ import WhatsAppStrip from '../../../components/WhatsAppStrip.astro';
     /* Con el calendario, la columna ya no entra en la pantalla: fija, se cortaría abajo. */
     .novedades-layout .novedades-extra:has(.novedades-cal:not(:empty)) {
       position: static;
-    }
-    /* En la columna de 300 px, los cuatro botones van de dos en dos. */
-    .novedades-extra .campu-cal-sync-targets {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-    .novedades-extra .campu-updates .campu-cal-sync-target {
-      width: 100%;
-      justify-content: center;
-      text-align: center;
-      padding-inline: 8px;
     }
   }
   /* Con la franja visible, la tarjeta solo se abre desde ella: abajo no se repite. Al
