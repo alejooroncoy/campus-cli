@@ -1,10 +1,10 @@
 ---
-title: "Gemini MCP: cómo conectar Blackboard UPC con Campus"
-seoTitle: "Gemini MCP: conecta Blackboard UPC con Campus"
-ogTitle: "Conecta Blackboard UPC con Gemini mediante Campus MCP"
-description: "Conecta Blackboard UPC con Gemini mediante Campus MCP y consulta cursos, tareas, fechas, notas y materiales desde un chat de Gemini."
+title: "Gemini para UPC: requisitos para conectar Blackboard"
+seoTitle: "Gemini para UPC: requisitos y conexión con Blackboard"
+ogTitle: "Gemini y Blackboard UPC: comprueba los requisitos de conexión"
+description: "Comprueba si tu cuenta Gemini admite apps personalizadas antes de conectar Blackboard UPC con Campus MCP. Requisitos, disponibilidad y pasos de configuración."
 published: "2026-09-13"
-updated: "2026-10-15"
+updated: "2026-11-21"
 tag: "Tutorial · Gemini"
 section: tutorial
 readingMinutes: 7
@@ -13,7 +13,7 @@ howTo:
   totalTime: "PT5M"
   steps:
     - name: "Abre las aplicaciones conectadas"
-      text: "En Gemini, abre Connected Apps y pulsa Create custom app."
+      text: "En Gemini en la web, abre Settings, Connected Apps y busca el apartado Custom apps. Comprueba primero que tu cuenta cumpla los requisitos de Google."
     - name: "Pega la URL MCP de Campus"
       text: "Escribe https://mcp.campuscli.com/mcp en MCP Server URL. La ruta /mcp al final es obligatoria."
     - name: "Continúa con el registro automático"
@@ -25,6 +25,8 @@ howTo:
     - name: "Comprueba la conexión en Gemini"
       text: "Abre un chat de Gemini, selecciona @Campus y pregunta qué cursos tienes. Si aparece @Campus Relay, también funciona: no necesitas eliminarlo ni reconectarlo. Si Gemini devuelve tus cursos de Blackboard, la conexión está lista."
 faq:
+  - q: "¿Puedo conectar Gemini con Blackboard UPC desde Perú?"
+    a: "Google limita las apps personalizadas de Gemini a mayores de 18 años en Estados Unidos, con una cuenta personal de Google, el historial activado y Gemini en inglés. No anuncia disponibilidad general de esta función para Perú ni para cuentas universitarias. Comprueba los requisitos oficiales antes de configurar Campus."
   - q: "¿Cuál es la URL de Campus para Gemini?"
     a: "La URL correcta es https://mcp.campuscli.com/mcp. Debe incluir https y la ruta /mcp al final."
   - q: "¿Necesito un Client ID y un Client secret?"
@@ -38,15 +40,22 @@ faq:
   - q: "¿Puedo probar Campus en Gemini sin pagar?"
     a: "Campus Free incluye 25 consultas de bienvenida en la web y 15 de prueba en el conector MCP. Campus Plus incluye 100 consultas diarias en la web y consultas ilimitadas mediante MCP con un asistente compatible. Consulta los planes vigentes antes de elegir Plus."
 summary:
+  - "**Primero comprueba la disponibilidad:** Google limita las apps personalizadas a mayores de 18 años en Estados Unidos, con una cuenta personal, el historial activado y Gemini en inglés."
   - "La URL que debes pegar es **https://mcp.campuscli.com/mcp**; escribir solo el dominio no conecta el servidor MCP."
   - "**Campus Free** incluye 25 consultas de bienvenida en la web y 15 de prueba en el conector MCP; **Campus Plus** incluye 100 al día en la web e ilimitadas mediante MCP."
   - "Campus admite el **registro automático OAuth** de Gemini: no necesitas crear ni copiar un Client ID o Client secret."
   - "Después de autorizar tu cuenta puedes preguntar por **cursos, tareas, fechas, notas, anuncios y materiales** de Blackboard UPC desde un chat de Gemini."
   - "La advertencia de Google es normal para una app personalizada: verifica el dominio y recuerda que **ninguna entrega se envía sin tu confirmación**."
 ---
-Gemini ya puede conectarse con Blackboard UPC mediante el servidor MCP de Campus. Eso significa que puedes consultar tu Aula Virtual desde un chat de Gemini sin descargar archivos, abrir cada curso ni copiar fechas a mano. Campus funciona como la conexión MCP que permite a Gemini descubrir y usar sus herramientas académicas.
+Para conectar Gemini con Blackboard UPC necesitas que tu cuenta de Google tenga acceso a las **apps personalizadas de Gemini**. Campus aporta el servidor MCP para consultar cursos, tareas y materiales; la disponibilidad de esa función la determina Google.
 
 En esta guía vas a conectar la cuenta, comprobar que funciona y ver qué preguntas conviene hacer después. La configuración toma unos cinco minutos si ya tienes acceso a Gemini y tu sesión institucional está vigente.
+
+## ¿Puedo conectar Gemini con Blackboard UPC desde Perú?
+
+Google limita las apps personalizadas de Gemini a mayores de 18 años en Estados Unidos, con una cuenta personal de Google, el historial activado y Gemini en inglés. No anuncia disponibilidad general de esta función para Perú ni para cuentas universitarias. Comprueba los requisitos oficiales antes de configurar Campus.
+
+Revisa la [guía oficial de apps personalizadas de Google](https://support.google.com/gemini/answer/17209137). Si tu cuenta no cumple los requisitos, consulta las [otras conexiones de IA compatibles con Campus](/app/copilot/); su disponibilidad también depende de la cuenta y del plan de cada asistente.
 
 ## Antes de empezar
 
@@ -62,7 +71,7 @@ Según la [guía oficial de Google para aplicaciones personalizadas](https://sup
 
 ## Paso 1: abre Connected apps en Gemini
 
-Abre [Connected Apps de Gemini](https://gemini.google.com/customize/connectors?pageId=none&hl=en) desde una computadora. El enlace abre la configuración en inglés, el idioma que Google admite para esta función. Pulsa **Create custom app**. También puedes entrar desde **Settings → Connected Apps**; si esa opción no aparece directamente, busca en **Personal Intelligence → Connected Apps**.
+Abre [Connected Apps de Gemini](https://gemini.google.com/customize/connectors?pageId=none&hl=en) desde una computadora. El enlace abre la configuración en inglés, el idioma que Google admite para esta función. Busca el apartado **Custom apps** para añadir la URL del servidor MCP. También puedes entrar desde **Settings → Connected Apps**; si esa opción no aparece directamente, busca en **Personal Intelligence → Connected Apps**.
 
 Se abrirá «Connect to an MCP server», con el campo **MCP Server URL**. Gemini pide la dirección del servidor que debe descubrir; todavía no solicita tu usuario ni tu contraseña de Blackboard.
 
