@@ -914,10 +914,26 @@ try {
       const bajoFranja = await franja.boundingBox();
       assert.ok((await sync.boundingBox()).y >= bajoFranja.y + bajoFranja.height, "va debajo de la franja");
       assert.ok((await sync.boundingBox()).y < (await home.boundingBox()).y, "y antes del calendario");
-      await sync.getByRole("button", { name: "Conectar mi calendario" }).click();
+      // Sin paso previo: cada calendario es un botón con su logo. El primer toque crea el
+      // enlace y abre Google en una pestaña que se pidió antes de esperar al servidor.
+      assert.deepEqual(
+        await sync.locator(".campu-cal-sync-target").allInnerTexts(),
+        ["Google Calendar", "Outlook", "iPhone o Mac", "Copiar enlace"],
+      );
+      await page.context().route("https://calendar.google.com/**", (r) =>
+        r.fulfill({ status: 200, contentType: "text/html", body: "ok" }),
+      );
+      const [pestana] = await Promise.all([
+        page.waitForEvent("popup"),
+        sync.getByRole("button", { name: "Google Calendar" }).click(),
+      ]);
+      await pestana.waitForURL(/^https:\/\/calendar\.google\.com\//);
+      const first = calendarUrl;
+      assert.equal(pestana.url(), "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(first));
+      assert.equal(await pestana.evaluate(() => window.opener), null, "sin acceso a Campus");
+      await pestana.close();
       const google = sync.getByRole("link", { name: "Google Calendar" });
       await google.waitFor();
-      const first = calendarUrl;
       assert.equal(
         await google.getAttribute("href"),
         "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(first),
@@ -935,7 +951,7 @@ try {
       assert.notEqual(calendarUrl, first);
       assert.equal(await sync.getByRole("link", { name: "iPhone o Mac" }).getAttribute("href"), calendarUrl.replace("https:", "webcal:"));
       await sync.getByRole("button", { name: "Quitar" }).click();
-      await sync.getByRole("button", { name: "Conectar mi calendario" }).waitFor();
+      await sync.getByRole("button", { name: "Google Calendar" }).waitFor();
       assert.deepEqual(calendarCalls, ["POST", "POST reset", "DELETE"]);
       // En escritorio, con la columna de WhatsApp, pasa debajo de la tarjeta.
       if (width === 1100) {
@@ -947,7 +963,7 @@ try {
         const caja = await lateral.boundingBox();
         assert.ok(caja.y >= tarjeta.y + tarjeta.height, "debajo de la tarjeta de WhatsApp");
         assert.ok(Math.abs(caja.x - tarjeta.x) < 2 && caja.width <= tarjeta.width + 1, "en la misma columna");
-        if (process.env.CAL_SHOT_DIR) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/escritorio.png" });
+        if (process.env.CAL_SHOT_DIR) await page.locator(".novedades-extra").screenshot({ path: process.env.CAL_SHOT_DIR + "/escritorio.png" });
         await page.setViewportSize({ width, height: 844 });
         await sync.waitFor();
       }

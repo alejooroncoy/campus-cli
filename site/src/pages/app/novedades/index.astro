@@ -104,17 +104,6 @@ import WhatsAppStrip from '../../../components/WhatsAppStrip.astro';
     .novedades-layout .novedades-extra:has(.novedades-cal:not(:empty)) {
       position: static;
     }
-    /* En la columna de 300 px, los cuatro botones van de dos en dos. */
-    .novedades-extra .campu-cal-sync-targets {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-    .novedades-extra .campu-updates .campu-cal-sync-target {
-      width: 100%;
-      justify-content: center;
-      text-align: center;
-      padding-inline: 8px;
-    }
   }
   /* Con la franja visible, la tarjeta solo se abre desde ella: abajo no se repite. Al
      tocar la franja, la tarjeta pasa a la hoja, que está fuera de esta columna. */

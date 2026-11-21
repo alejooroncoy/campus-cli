@@ -1118,6 +1118,7 @@ export default function CampuUpdates() {
       connect={async (reset) => {
         const result = await api("/calendar", "POST", reset ? { reset: true } : {});
         setStatus((s: any) => ({ ...s, calendarUrl: result.calendarUrl }));
+        return result.calendarUrl as string;
       }}
       remove={async () => {
         await api("/calendar", "DELETE");
