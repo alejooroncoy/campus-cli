@@ -12,7 +12,9 @@ export const calendarTargets = (url: string) => {
     {
       id: "google",
       label: "Google Calendar",
-      href: "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(webcal),
+      // Con webcal:// Google pide http://, recibe una redirección a https y nombró el
+      // calendario con la URL en vez de X-WR-CALNAME (2026-11-20). Con https:// va directo.
+      href: "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(url),
     },
     {
       // La cuenta de la UPC es de Microsoft 365.

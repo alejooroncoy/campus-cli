@@ -915,7 +915,7 @@ try {
       const first = calendarUrl;
       assert.equal(
         await google.getAttribute("href"),
-        "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(first.replace("https:", "webcal:")),
+        "https://calendar.google.com/calendar/render?cid=" + encodeURIComponent(first),
       );
       assert.match(await sync.getByRole("link", { name: "Outlook", exact: true }).getAttribute("href"), /^https:\/\/outlook\.office\.com\/calendar\/0\/addfromweb\?url=https%3A%2F%2Fcampuscli\.com%2Fcal%2F/);
       assert.equal(await sync.getByRole("link", { name: "iPhone o Mac" }).getAttribute("href"), first.replace("https:", "webcal:"));
