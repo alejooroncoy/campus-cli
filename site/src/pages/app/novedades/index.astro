@@ -34,10 +34,13 @@ import WhatsAppStrip from '../../../components/WhatsAppStrip.astro';
   <div class="novedades-layout">
     <div class="novedades-main">
       <div class="novedades-strip"><WhatsAppStrip /></div>
+      <!-- "Tus entregas en Google Calendar" debajo de WhatsApp: CampuUpdates elige el lugar. -->
+      <div class="novedades-cal" data-cal-slot="main"></div>
       <CampuUpdates client:load />
     </div>
     <aside class="novedades-extra" aria-label="Tu semana en WhatsApp">
       <WhatsAppReminders />
+      <div class="novedades-cal" data-cal-slot="side"></div>
     </aside>
   </div>
 </AppShell>
@@ -68,6 +71,50 @@ import WhatsAppStrip from '../../../components/WhatsAppStrip.astro';
   .novedades-layout:not(:has(.campu-home)) .novedades-strip,
   .novedades-layout:has(#avisos) .novedades-strip {
     display: none;
+  }
+  /* El calendario va debajo de WhatsApp. Sin él, los huecos no ocupan espacio. */
+  .novedades-cal:empty {
+    display: none;
+  }
+  .novedades-cal .campu-cal-slot {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+  .novedades-cal .campu-cal-sync {
+    margin: 0;
+  }
+  .novedades-main > .novedades-cal {
+    max-width: 640px;
+    margin: 12px auto 0;
+    padding: 0 clamp(16px, 3vw, 36px);
+    box-sizing: content-box;
+  }
+  @media (max-width: 760px) {
+    .novedades-main > .novedades-cal {
+      padding: 0 10px;
+    }
+  }
+  .novedades-extra > .novedades-cal {
+    max-width: 640px;
+    margin: 16px auto 0;
+  }
+  @media (min-width: 1240px) {
+    /* Con el calendario, la columna ya no entra en la pantalla: fija, se cortaría abajo. */
+    .novedades-layout .novedades-extra:has(.novedades-cal:not(:empty)) {
+      position: static;
+    }
+    /* En la columna de 300 px, los cuatro botones van de dos en dos. */
+    .novedades-extra .campu-cal-sync-targets {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .novedades-extra .campu-updates .campu-cal-sync-target {
+      width: 100%;
+      justify-content: center;
+      text-align: center;
+      padding-inline: 8px;
+    }
   }
   /* Con la franja visible, la tarjeta solo se abre desde ella: abajo no se repite. Al
      tocar la franja, la tarjeta pasa a la hoja, que está fuera de esta columna. */

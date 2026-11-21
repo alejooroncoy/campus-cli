@@ -906,9 +906,14 @@ try {
       assert.equal(await cabeza.getAttribute("aria-expanded"), "false");
       await tabs.first().click();
       // Los avisos van debajo del calendario, con su título.
-      // Tus entregas en Google Calendar u Outlook: debajo de las semanas, con un enlace privado.
-      const sync = home.locator(".campu-cal-sync");
-      assert.ok((await sync.boundingBox()).y > (await cal.boundingBox()).y, "va después del calendario");
+      // Tus entregas en Google Calendar u Outlook: debajo de WhatsApp, con un enlace privado.
+      // Con la franja (celular y pantallas medianas), entre la franja y el calendario.
+      const sync = page.locator(".novedades-main > .novedades-cal .campu-cal-sync");
+      await sync.waitFor();
+      assert.equal(await page.locator(".campu-cal-sync").count(), 1, "una sola vez");
+      const bajoFranja = await franja.boundingBox();
+      assert.ok((await sync.boundingBox()).y >= bajoFranja.y + bajoFranja.height, "va debajo de la franja");
+      assert.ok((await sync.boundingBox()).y < (await home.boundingBox()).y, "y antes del calendario");
       await sync.getByRole("button", { name: "Conectar mi calendario" }).click();
       const google = sync.getByRole("link", { name: "Google Calendar" });
       await google.waitFor();
@@ -932,6 +937,24 @@ try {
       await sync.getByRole("button", { name: "Quitar" }).click();
       await sync.getByRole("button", { name: "Conectar mi calendario" }).waitFor();
       assert.deepEqual(calendarCalls, ["POST", "POST reset", "DELETE"]);
+      // En escritorio, con la columna de WhatsApp, pasa debajo de la tarjeta.
+      if (width === 1100) {
+        await page.setViewportSize({ width: 1280, height: 844 });
+        const lateral = page.locator(".novedades-extra .campu-cal-sync");
+        await lateral.waitFor();
+        assert.equal(await page.locator(".campu-cal-sync").count(), 1, "una sola vez en escritorio");
+        const tarjeta = await page.locator(".novedades-extra [data-whatsapp-reminders]").boundingBox();
+        const caja = await lateral.boundingBox();
+        assert.ok(caja.y >= tarjeta.y + tarjeta.height, "debajo de la tarjeta de WhatsApp");
+        assert.ok(Math.abs(caja.x - tarjeta.x) < 2 && caja.width <= tarjeta.width + 1, "en la misma columna");
+        if (process.env.CAL_SHOT_DIR) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/escritorio.png" });
+        await page.setViewportSize({ width, height: 844 });
+        await sync.waitFor();
+      }
+      if (process.env.CAL_SHOT_DIR && width === 390) {
+        await sync.scrollIntoViewIfNeeded();
+        await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular.png" });
+      }
       assert.equal(await home.getByRole("heading", { name: "Avisos que te mandé" }).count(), 1);
       assert.equal(await home.locator(".campu-day h2").first().innerText(), "Hoy");
       assert.equal(

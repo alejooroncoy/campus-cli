@@ -1,5 +1,6 @@
 import { track } from "../scripts/analytics";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { cachedReportOwner, forgetReport, readReport, writeReport } from "../lib/campu-report-cache";
 import {
   getCampusSession,
@@ -11,6 +12,39 @@ import {
 } from "../scripts/proactive-device";
 import CalendarSubscribe from "./CalendarSubscribe";
 import "./campu-updates.css";
+
+/** Dónde va "Tus entregas en Google Calendar": justo debajo de WhatsApp, que vive fuera
+ * de este componente (novedades/index.astro). En celular, debajo de la franja; en
+ * escritorio, debajo de la tarjeta en la columna derecha. Sin WhatsApp a la vista,
+ * null: se queda en su lugar, debajo de las entregas. */
+function useCalendarSlot(active: boolean) {
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!active) return setSlot(null);
+    const strip = document.querySelector<HTMLElement>("[data-wa-strip]");
+    const card = document.querySelector<HTMLElement>("[data-whatsapp-reminders]");
+    const aside = card?.closest<HTMLElement>(".novedades-extra");
+    const shown = (el?: HTMLElement | null) => Boolean(el && el.getClientRects().length);
+    const pick = () => {
+      const name = shown(strip) ? "main" : card && !card.hidden && shown(aside) ? "side" : null;
+      setSlot(name ? document.querySelector<HTMLElement>(`[data-cal-slot="${name}"]`) : null);
+    };
+    pick();
+    // La franja y la columna aparecen o se ocultan por CSS (ancho, #avisos) y por atributo.
+    const resized = new ResizeObserver(pick);
+    const changed = new MutationObserver(pick);
+    for (const el of [strip, card, aside]) {
+      if (!el) continue;
+      resized.observe(el);
+      changed.observe(el, { attributes: true, attributeFilter: ["hidden"] });
+    }
+    return () => {
+      resized.disconnect();
+      changed.disconnect();
+    };
+  }, [active]);
+  return slot;
+}
 
 type Preferences = {
   enabled: boolean;
@@ -722,6 +756,7 @@ function Home({
   const today = limaDay(Date.now());
   const changed = events.filter((e) => !tidied(e));
   const u = context?.upcoming ?? null;
+  const slot = useCalendarSlot(Boolean(u && calendarSync));
   const pending = u ? u.items.filter((i) => i.studentAction && !i.done) : [];
   // Cuándo es, en palabras: hoy, mañana, en N días o esta semana.
   const whenOf = (i: UpcomingItem) =>
@@ -764,7 +799,11 @@ function Home({
       <ChangesCard events={events} />
       {/* Con cambios, el titular habla de ellos: la frase de lo que viene va en el calendario. */}
       {u && <UpcomingView upcoming={u} bare quiet={!changed.length} renderItem={item} />}
-      {u && calendarSync}
+      {u &&
+        calendarSync &&
+        (slot
+          ? createPortal(<div className="campu-updates campu-cal-slot">{calendarSync}</div>, slot)
+          : calendarSync)}
       <h2 className="campu-home-label">Avisos que te mandé</h2>
       {shown.length ? (
         GROUPS.map((name, g) => {
