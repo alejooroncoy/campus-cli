@@ -13,6 +13,21 @@
       "permanent": true
     },
     {
+      "source": "/blog/conectar-blackboard-gemini-spark-campus",
+      "destination": "/blog/conectar-blackboard-gemini-campus/",
+      "permanent": true
+    },
+    {
+      "source": "/blog/conectar-blackboard-gemini-spark-campus/",
+      "destination": "/blog/conectar-blackboard-gemini-campus/",
+      "permanent": true
+    },
+    {
+      "source": "/blog/conectar-blackboard-gemini-spark-campus/index.md",
+      "destination": "/blog/conectar-blackboard-gemini-campus/index.md",
+      "permanent": true
+    },
+    {
       "source": "/app/review",
       "destination": "/app/asistente/?modal=review",
       "permanent": false
