@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { captureLocalLogin, capturePayload, loginLocally, loginUniversity } from '../src/relay/local-login.js';
+import { captureLocalLogin, capturePayload, loginLocally, loginUniversity, universityLoginUrl } from '../src/relay/local-login.js';
 import { RelayCredentialStore } from '../src/relay/auth.js';
 import { loginHosted } from '../src/relay/hosted-login.js';
 
@@ -65,7 +65,7 @@ async function relay(t: any, status = 201, hostedUniversity?: string, tokenScope
       return reply({ access_token: 'identity-only', refresh_token: 'identity-refresh', token_type: 'Bearer', scope: tokenScope ?? (hostedUniversity ? 'campus.read' : 'campus.identity') });
     }
     if (url.pathname === '/v1/account') { assert.equal(req.headers.authorization, 'Bearer identity-only'); return reply({ account: { id: 'google:test', universityId: hostedUniversity ?? 'upc-pe' } }); }
-    if (url.pathname === '/v1/cli/login' && req.method === 'GET') return reply({ localLogin: true, universities: ['upc-pe', 'upn-pe'] });
+    if (url.pathname === '/v1/cli/login' && req.method === 'GET') return reply({ localLogin: true, universities: ['upc-pe', 'upn-pe', 'ulima-pe'] });
     if (url.pathname === '/v1/cli/login' && req.method === 'POST') {
       assert.equal(req.headers.authorization, 'Bearer identity-only'); received.push(JSON.parse(raw));
       return reply({ tokens: { access_token: 'verified-relay-read', refresh_token: 'verified-refresh', token_type: 'Bearer', scope: 'campus.read' } }, status);
@@ -132,4 +132,26 @@ test('a hosted grant without campus.read cannot enable queries or trigger a loca
   const f=await relay(t,201,'palermo-ar','campus.identity');
   await assert.rejects(loginHosted({...f,universityId:'palermo-ar'}),/no habilitó/);
   assert.equal(f.store.load(),undefined);assert.equal(f.received.length,0);
+});
+
+test('Universidad de Lima opens the native Blackboard form and transfers only its own cookies', () => {
+  assert.equal(loginUniversity('ulima-pe'), 'ulima-pe');
+  assert.equal(universityLoginUrl('ulima-pe'), 'https://ulima.blackboard.com/webapps/login/');
+  assert.equal(new URL(universityLoginUrl('upn-pe')).searchParams.get('apId'), '_111_1');
+  const result = capturePayload([cookie('ulima.blackboard.com'), cookie('upn.blackboard.com'), cookie('ulima.blackboard.com.evil.test'), cookie('.blackboard.com')], 'ulima-pe');
+  assert.deepEqual(result.cookies.map(item => item.domain), ['ulima.blackboard.com']);
+  // UPN conserva su filtro anterior.
+  assert.deepEqual(capturePayload([cookie('upn.blackboard.com'), cookie('.blackboard.com')], 'upn-pe').cookies.map(item => item.domain), ['upn.blackboard.com', '.blackboard.com']);
+});
+
+test('Ulima no se inscribe en la renovación automática ni pide un consentimiento que promete renovar', async t => {
+  const f = await relay(t);
+  let prompted = false;
+  await loginLocally({ ...f, universityId: 'ulima-pe', confirm: async () => { prompted = true; return true; },
+    capture: async id => { assert.equal(id, 'ulima-pe'); return { cookies: [cookie('ulima.blackboard.com'), cookie('.blackboard.com')], expiresAt: Date.now() + 60_000 }; } });
+  assert.ok(prompted);
+  assert.equal(f.received[0].universityId, 'ulima-pe');
+  assert.deepEqual(f.received[0].cookies.map((item: any) => item.domain), ['ulima.blackboard.com']);
+  assert.equal(f.store.load()?.tokens?.access_token, 'verified-relay-read');
+  assert.equal(f.store.load()?.sessionUpload, undefined, 'sin SSO no hay renovación que autorizar');
 });

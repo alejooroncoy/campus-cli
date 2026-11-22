@@ -14,20 +14,29 @@ export const LOGIN_UNIVERSITIES = {
   'upc-pe': { name: 'UPC', origin: 'https://aulavirtual.upc.edu.pe', apId: '_4893_1' },
   'upn-pe': { name: 'UPN', origin: 'https://upn.blackboard.com', apId: '_111_1' },
   'palermo-ar': { name: 'Universidad de Palermo', origin: 'https://palermo.blackboard.com', apId: '_2352_1' },
+  // Sin SSO: el estudiante escribe usuario y contraseña en el formulario propio de Blackboard.
+  'ulima-pe': { name: 'Universidad de Lima', origin: 'https://ulima.blackboard.com', apId: null },
 } as const;
 export type LoginUniversity = keyof typeof LOGIN_UNIVERSITIES;
 export type LoginCapture = { cookies: Awaited<ReturnType<BrowserContext['cookies']>>; expiresAt: number };
 
 export function loginUniversity(value: string): LoginUniversity {
-  if (!Object.hasOwn(LOGIN_UNIVERSITIES, value)) throw new Error('Universidad no admitida: usa upc-pe, upn-pe o palermo-ar.');
+  if (!Object.hasOwn(LOGIN_UNIVERSITIES, value)) throw new Error('Universidad no admitida: usa upc-pe, upn-pe, palermo-ar o ulima-pe.');
   return value as LoginUniversity;
+}
+
+/** Sin SSO: el estudiante escribe usuario y contraseña en el formulario propio de Blackboard. */
+export function isNativeLogin(universityId: LoginUniversity): boolean {
+  return LOGIN_UNIVERSITIES[universityId].apId === null;
 }
 
 export function capturePayload(cookies: LoginCapture['cookies'], universityId: LoginUniversity, now = Date.now()): LoginCapture {
   const host = new URL(LOGIN_UNIVERSITIES[universityId].origin).hostname;
+  // Un tenant de *.blackboard.com sin SSO no envía cookies del dominio padre compartido.
+  const exactHost = isNativeLogin(universityId);
   const filtered = cookies.filter(cookie => {
     const domain = cookie.domain.replace(/^\./, '').toLowerCase();
-    return (domain === host || (domain.includes('.') && host.endsWith(`.${domain}`))) && (cookie.expires <= 0 || cookie.expires * 1000 > now);
+    return (domain === host || (!exactHost && domain.includes('.') && host.endsWith(`.${domain}`))) && (cookie.expires <= 0 || cookie.expires * 1000 > now);
   }).map(({ name, value, domain, path, expires, httpOnly, secure, sameSite }) => ({ name, value, domain, path, expires, httpOnly, secure, sameSite }));
   const credentials = filtered.filter(cookie => ['BbRouter', 'JSESSIONID'].includes(cookie.name) && cookie.value.length > 0);
   if (!credentials.length) throw new Error('El navegador todavía no tiene una sesión universitaria válida.');
@@ -41,8 +50,9 @@ export function capturePayload(cookies: LoginCapture['cookies'], universityId: L
   return { cookies: filtered, expiresAt };
 }
 
-function universityLoginUrl(universityId: LoginUniversity): string {
+export function universityLoginUrl(universityId: LoginUniversity): string {
   const university = LOGIN_UNIVERSITIES[universityId];
+  if (university.apId === null) return new URL('/webapps/login/', university.origin).href;
   const login = new URL('/auth-saml/saml/login', university.origin);
   login.searchParams.set('apId', university.apId); login.searchParams.set('redirectUrl', `${university.origin}/ultra`);
   return login.href;
@@ -178,10 +188,13 @@ export async function captureWithProfile(universityId: LoginUniversity, signal: 
   }
 }
 
-async function confirmSessionUpload(): Promise<boolean> {
+async function confirmSessionUpload(native = false): Promise<boolean> {
   if (!process.stdin.isTTY || !process.stderr.isTTY) throw new Error('El login requiere una terminal interactiva o --consent-session-upload.');
   const prompt = createInterface({ input: process.stdin, output: process.stderr });
-  try { return /^(s|si|sí|y|yes)$/i.test((await prompt.question('¿Autorizas enviar tu sesión universitaria al relay para consultar tu campus? Mientras uses el MCP se renovará sola, reenviando solo cookies de tu universidad con el acceso que queda guardado en este equipo, hasta 30 días o hasta campus logout. [s/N] ')).trim()); }
+  const renewal = native
+    ? 'Tu universidad no usa SSO: la sesión no se renueva sola y este equipo no guarda la sesión del navegador; cuando venza, vuelve a ejecutar campus login.'
+    : 'Mientras uses el MCP se renovará sola, reenviando solo cookies de tu universidad con el acceso que queda guardado en este equipo, hasta 30 días o hasta campus logout.';
+  try { return /^(s|si|sí|y|yes)$/i.test((await prompt.question(`¿Autorizas enviar tu sesión universitaria al relay para consultar tu campus? ${renewal} [s/N] `)).trim()); }
   finally { prompt.close(); }
 }
 
@@ -200,7 +213,8 @@ export async function loginLocally(options: {
   if (supported.localLogin !== true || !Array.isArray(supported.universities)) throw new Error('El relay no anunció un contrato válido de login local.');
   if (options.universityId && !supported.universities.includes(options.universityId)) throw new Error('Esta universidad todavía no admite login local en el relay configurado.');
   console.error('Campus enviará al relay solo las cookies de tu campus universitario para comprobar la sesión y guardarla cifrada. La contraseña y las cookies de Microsoft/Google no se transfieren.');
-  if (options.consent !== true && !await (options.confirm ?? confirmSessionUpload)()) throw new Error('Login cancelado: no se autorizó transferir la sesión.');
+  const nativeRequested = options.universityId ? isNativeLogin(loginUniversity(options.universityId)) : false;
+  if (options.consent !== true && !await (options.confirm ?? (() => confirmSessionUpload(nativeRequested)))()) throw new Error('Login cancelado: no se autorizó transferir la sesión.');
   await loginToRelay({ url, store: options.store, openBrowser: options.openBrowser, scope: 'campus.identity',
     finalize: async (tokens: OAuthTokens, signal) => {
       const fetcher = relayFetch(url, signal, 30_000);
@@ -211,7 +225,8 @@ export async function loginLocally(options: {
       const universityId = loginUniversity(options.universityId ?? account?.universityId ?? 'upc-pe');
       if (!supported.universities.includes(universityId)) throw new Error('Esta universidad todavía no admite login local en el relay configurado.');
       console.error(`Completa el login de ${LOGIN_UNIVERSITIES[universityId].name} y su MFA en el navegador local.`);
-      const captured = await (options.capture ?? captureWithProfile)(universityId, signal);
+      // Sin SSO el perfil persistente no renovaría nada y solo dejaría en disco una sesión viva de Blackboard.
+      const captured = await (options.capture ?? (isNativeLogin(universityId) ? captureLocalLogin : captureWithProfile))(universityId, signal);
       signal.throwIfAborted();
       const payload = capturePayload(captured.cookies, universityId);
       const response = await fetcher(new URL('/v1/cli/login', url), { method: 'POST', headers,
@@ -228,5 +243,6 @@ export async function loginLocally(options: {
   // El consentimiento dado aquí es lo que permite renovar después solo cookies de la universidad.
   const store = options.store ?? new RelayCredentialStore(url);
   const saved = store.load();
-  if (saved && uploaded) store.save({ ...saved, sessionUpload: uploaded });
+  // Sin SSO no hay renovación automática: no se inscribe la sesión para renovarla.
+  if (saved && uploaded && !isNativeLogin(loginUniversity(uploaded.universityId))) store.save({ ...saved, sessionUpload: uploaded });
 }

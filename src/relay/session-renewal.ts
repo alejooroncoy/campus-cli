@@ -5,7 +5,7 @@ import { auth } from '@modelcontextprotocol/sdk/client/auth.js';
 import { OAuthTokensSchema } from '@modelcontextprotocol/sdk/shared/auth.js';
 import { RelayAuthProvider, RelayCredentialStore, type RelayCredentials } from './auth.js';
 import { relayFetch, relayUrl } from './config.js';
-import { captureWithProfile, capturePayload, loginUniversity, type LoginCapture, type LoginUniversity } from './local-login.js';
+import { captureWithProfile, capturePayload, isNativeLogin, loginUniversity, type LoginCapture, type LoginUniversity } from './local-login.js';
 
 /**
  * La sesión de Blackboard dura 3 h. Se renueva cuando le quedan menos de 2 h (cada ~60 min): usar el SSO
@@ -75,6 +75,8 @@ export async function renewRelaySession(options: RenewalOptions = {}): Promise<R
       if (again !== 'due') return again === 'unauthorized' ? 'unavailable' : again;
       const upload = current!.sessionUpload!;
       const universityId = loginUniversity(upload.universityId);
+      // Sin SSO no hay nada que reproducir en segundo plano; el estudiante vuelve a iniciar sesión.
+      if (isNativeLogin(universityId)) return 'unavailable';
       // `campus login` y `logout` escriben sin este candado: si cambian las credenciales mientras renovamos
       // (otra cuenta, otro registro de cliente), el resultado pertenece al login anterior y se descarta.
       const clientId = current!.client.client_id;
