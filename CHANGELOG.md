@@ -4,7 +4,7 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
-## [Unreleased]
+## [3.2.1] — 2026-11-22
 
 ### Fixed
 - El aviso de `campus login --university ulima-pe` decía que la sesión de la Ulima no se renueva sola. Tu equipo no la renueva, pero el relay consulta tu Blackboard cada hora para intentar mantenerla activa mientras uses Campus al menos una vez cada 30 días. Si aun así vence, vuelve a ejecutar `campus login`. El aviso y el README ahora dicen también que `campus logout` no detiene esa renovación y que se corta con `campus tools call campus_revoke_persistent_access`.
