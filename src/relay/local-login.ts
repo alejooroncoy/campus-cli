@@ -192,7 +192,7 @@ async function confirmSessionUpload(native = false): Promise<boolean> {
   if (!process.stdin.isTTY || !process.stderr.isTTY) throw new Error('El login requiere una terminal interactiva o --consent-session-upload.');
   const prompt = createInterface({ input: process.stdin, output: process.stderr });
   const renewal = native
-    ? 'Tu universidad no usa SSO: la sesión no se renueva sola y este equipo no guarda la sesión del navegador; cuando venza, vuelve a ejecutar campus login.'
+    ? 'Tu universidad no usa SSO: este equipo no guarda la sesión del navegador, pero el relay la mantiene activa mientras uses Campus al menos una vez cada 30 días. Si vence, vuelve a ejecutar campus login.'
     : 'Mientras uses el MCP se renovará sola, reenviando solo cookies de tu universidad con el acceso que queda guardado en este equipo, hasta 30 días o hasta campus logout.';
   try { return /^(s|si|sí|y|yes)$/i.test((await prompt.question(`¿Autorizas enviar tu sesión universitaria al relay para consultar tu campus? ${renewal} [s/N] `)).trim()); }
   finally { prompt.close(); }
