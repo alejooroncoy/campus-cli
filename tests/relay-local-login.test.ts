@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { captureLocalLogin, capturePayload, loginLocally, loginUniversity } from '../src/relay/local-login.js';
+import { captureLocalLogin, capturePayload, loginLocally, loginUniversity, universityLoginUrl } from '../src/relay/local-login.js';
 import { RelayCredentialStore } from '../src/relay/auth.js';
 import { loginHosted } from '../src/relay/hosted-login.js';
 
@@ -132,4 +132,12 @@ test('a hosted grant without campus.read cannot enable queries or trigger a loca
   const f=await relay(t,201,'palermo-ar','campus.identity');
   await assert.rejects(loginHosted({...f,universityId:'palermo-ar'}),/no habilitó/);
   assert.equal(f.store.load(),undefined);assert.equal(f.received.length,0);
+});
+
+test('Universidad de Lima opens the native Blackboard form and transfers only its own cookies', () => {
+  assert.equal(loginUniversity('ulima-pe'), 'ulima-pe');
+  assert.equal(universityLoginUrl('ulima-pe'), 'https://ulima.blackboard.com/webapps/login/');
+  assert.equal(new URL(universityLoginUrl('upn-pe')).searchParams.get('apId'), '_111_1');
+  const result = capturePayload([cookie('ulima.blackboard.com'), cookie('upn.blackboard.com'), cookie('ulima.blackboard.com.evil.test')], 'ulima-pe');
+  assert.deepEqual(result.cookies.map(item => item.domain), ['ulima.blackboard.com']);
 });

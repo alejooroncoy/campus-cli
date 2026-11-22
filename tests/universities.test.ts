@@ -66,3 +66,16 @@ test('UPN client sends only UPN credentials and rejects cross-university request
     axios.defaults.adapter = previous;
   }
 });
+
+test('Universidad de Lima uses the native Blackboard login and stays bound to its origin', () => {
+  const ulima = 'https://ulima.blackboard.com';
+  assert.equal(blackboardUniversity('ulima-pe').origin, ulima);
+  assert.equal(blackboardLoginUrl('ulima-pe'), `${ulima}/webapps/login/`);
+  assert.equal(isBlackboardUltraUrl(`${ulima}/ultra/stream`, 'ulima-pe'), true);
+  assert.equal(isBlackboardUltraUrl(`${upn}/ultra`, 'ulima-pe'), false);
+  assert.equal(isBlackboardUltraUrl('https://ulima.blackboard.com.evil.test/ultra', 'ulima-pe'), false);
+  const mixed = [...cookies, { name: 'BbRouter', value: 'ulima-session', domain: 'ulima.blackboard.com', path: '/' }];
+  assert.deepEqual(blackboardCookies(mixed, 'ulima-pe').map(c => c.value), ['ulima-session']);
+  assert.throws(() => assertPublicApiUrl(`${upn}/learn/api/public/v1/users/me`, ulima));
+  assert.doesNotThrow(() => assertBlackboardFileUrl(`${ulima}/bbcswebdav/file`, ulima));
+});

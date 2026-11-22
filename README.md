@@ -32,6 +32,7 @@ Tras instalar la versión 3.x, estos comandos están disponibles como `campus`, 
 ```bash
 campus login
 campus login --university upn-pe
+campus login --university ulima-pe   # Universidad de Lima: usuario y contraseña de Blackboard, sin Microsoft
 campus status --json
 campus whoami
 campus courses list --json

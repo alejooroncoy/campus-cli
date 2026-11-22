@@ -14,12 +14,14 @@ export const LOGIN_UNIVERSITIES = {
   'upc-pe': { name: 'UPC', origin: 'https://aulavirtual.upc.edu.pe', apId: '_4893_1' },
   'upn-pe': { name: 'UPN', origin: 'https://upn.blackboard.com', apId: '_111_1' },
   'palermo-ar': { name: 'Universidad de Palermo', origin: 'https://palermo.blackboard.com', apId: '_2352_1' },
+  // Sin SSO: el estudiante escribe usuario y contraseña en el formulario propio de Blackboard.
+  'ulima-pe': { name: 'Universidad de Lima', origin: 'https://ulima.blackboard.com', apId: null },
 } as const;
 export type LoginUniversity = keyof typeof LOGIN_UNIVERSITIES;
 export type LoginCapture = { cookies: Awaited<ReturnType<BrowserContext['cookies']>>; expiresAt: number };
 
 export function loginUniversity(value: string): LoginUniversity {
-  if (!Object.hasOwn(LOGIN_UNIVERSITIES, value)) throw new Error('Universidad no admitida: usa upc-pe, upn-pe o palermo-ar.');
+  if (!Object.hasOwn(LOGIN_UNIVERSITIES, value)) throw new Error('Universidad no admitida: usa upc-pe, upn-pe, palermo-ar o ulima-pe.');
   return value as LoginUniversity;
 }
 
@@ -41,8 +43,9 @@ export function capturePayload(cookies: LoginCapture['cookies'], universityId: L
   return { cookies: filtered, expiresAt };
 }
 
-function universityLoginUrl(universityId: LoginUniversity): string {
+export function universityLoginUrl(universityId: LoginUniversity): string {
   const university = LOGIN_UNIVERSITIES[universityId];
+  if (university.apId === null) return new URL('/webapps/login/', university.origin).href;
   const login = new URL('/auth-saml/saml/login', university.origin);
   login.searchParams.set('apId', university.apId); login.searchParams.set('redirectUrl', `${university.origin}/ultra`);
   return login.href;

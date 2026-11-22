@@ -110,10 +110,10 @@ async function waitForAuthenticationDestination(
   page: Page,
   timeout: number,
   universityId?: string,
-): Promise<'microsoft' | 'ultra'> {
+): Promise<'microsoft' | 'native' | 'ultra'> {
   return new Promise((resolve, reject) => {
     let settled = false;
-    const finish = (destination: 'microsoft' | 'ultra') => {
+    const finish = (destination: 'microsoft' | 'native' | 'ultra') => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
@@ -132,13 +132,20 @@ async function waitForAuthenticationDestination(
           if (visible) finish('microsoft');
         })
         .catch(() => undefined);
+      // Universidades sin SSO: el formulario propio de Blackboard lo completa el estudiante.
+      void page.locator('input[name="user_id"]')
+        .isVisible()
+        .then(visible => {
+          if (visible) finish('native');
+        })
+        .catch(() => undefined);
     };
     const timer = setTimeout(() => {
       if (settled) return;
       settled = true;
       page.off('framenavigated', inspect);
       page.off('domcontentloaded', inspect);
-      reject(new Error('Timed out waiting for Microsoft login or Blackboard Ultra'));
+      reject(new Error('Timed out waiting for the university login or Blackboard Ultra'));
     }, timeout);
     page.on('framenavigated', inspect);
     page.on('domcontentloaded', inspect);
