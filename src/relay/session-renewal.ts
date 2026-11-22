@@ -75,7 +75,7 @@ export async function renewRelaySession(options: RenewalOptions = {}): Promise<R
       if (again !== 'due') return again === 'unauthorized' ? 'unavailable' : again;
       const upload = current!.sessionUpload!;
       const universityId = loginUniversity(upload.universityId);
-      // Sin SSO no hay nada que reproducir en segundo plano; el estudiante vuelve a iniciar sesión.
+      // Sin SSO este equipo no tiene nada que reproducir; la sesión nativa la renueva el relay.
       if (isNativeLogin(universityId)) return 'unavailable';
       // `campus login` y `logout` escriben sin este candado: si cambian las credenciales mientras renovamos
       // (otra cuenta, otro registro de cliente), el resultado pertenece al login anterior y se descarta.
