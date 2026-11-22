@@ -4,6 +4,17 @@ All notable changes to `campus-cli` (formerly `blackboard-upc`) will be document
 
 ---
 
+## [3.2.0] — 2026-11-22
+
+### Added
+- Universidad de Lima: `campus login --university ulima-pe`. Inicias sesión con tu usuario y contraseña de Blackboard en la página de la Ulima, sin Microsoft. Campus no ve ni guarda tu contraseña; solo envía al relay las cookies de `ulima.blackboard.com` y nunca las de otros sitios de `blackboard.com`.
+- `courses grades` acepta `--columns-done` y `--grades-done` para continuar solo la lista que quedó pendiente.
+
+### Changed
+- La sesión de la Ulima no se renueva en segundo plano desde tu equipo, porque no hay un inicio de sesión de Microsoft que reutilizar. Si vence, vuelve a ejecutar `campus login --university ulima-pe`.
+
+---
+
 ## [3.1.1] — 2026-11-05
 
 ### Fixed
