@@ -1,5 +1,6 @@
 // @ts-check
-import { readFileSync, readdirSync, statSync, appendFileSync } from "node:fs";
+import { readFileSync, readdirSync, appendFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import react from "@astrojs/react";
@@ -28,15 +29,39 @@ for (const file of readdirSync("./src/content/blog")) {
   if (updated && !draft) lastmod.set(`/blog/${file.replace(/\.md$/, "")}/`, updated);
 }
 
-// Everything else is rendered from a body of html, so the file's own mtime is
-// the honest answer to "when did this page last change".
+// El resto sale de un cuerpo de html: su fecha es la del último commit que lo
+// tocó. No se usa el mtime del archivo: en un checkout nuevo (Vercel) es la hora
+// del clon, y eso marcaba como cambiadas el día del despliegue a 21 páginas que
+// no cambiaron. Con un clon superficial el último commit visible tampoco es
+// confiable, así que esas páginas van sin fecha (VERCEL_DEEP_CLONE=true trae la
+// historia completa).
+const fullHistory = (() => {
+  try {
+    return execFileSync("git", ["rev-parse", "--is-shallow-repository"], { encoding: "utf8" }).trim() === "false";
+  } catch {
+    return false;
+  }
+})();
 /** @param {string} route @param {string} path */
 const fromFile = (route, path) => {
+  if (!fullHistory) return;
   try {
-    lastmod.set(route, statSync(path).mtime.toISOString().slice(0, 10));
+    const date = execFileSync("git", ["log", "-1", "--format=%cs", "--", path], { encoding: "utf8" }).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) lastmod.set(route, date);
   } catch {
-    // A page whose source moved simply goes without a date, which is the same
-    // state the whole sitemap was in before.
+    // Una página sin fecha es honesta; una fecha inventada no.
+  }
+};
+// Fecha que la propia página declara (const updated = "AAAA-MM-DD"), para que el
+// sitemap y la «última actualización» impresa no se contradigan.
+/** @param {string} route @param {string} path */
+const fromDeclared = (route, path) => {
+  try {
+    const date = readFileSync(path, "utf8").match(/^const updated = "(\d{4}-\d{2}-\d{2})";/m)?.[1];
+    if (date) lastmod.set(route, date);
+    else fromFile(route, path);
+  } catch {
+    fromFile(route, path);
   }
 };
 
@@ -64,11 +89,15 @@ for (const file of readdirSync("./src/html/blackboard-mcp/clients")) {
   fromFile(`/blackboard-mcp/${slug}/`, `./src/html/blackboard-mcp/clients/${file}`);
 }
 
-// The legal pages keep their body inside the .astro itself, so that file is
-// the source whose date matters. It is also the date the page prints as its
-// own "última actualización", so the two cannot disagree.
-for (const slug of ["terminos", "privacidad", "no-afiliacion", "cancelaciones-y-devoluciones"]) {
-  fromFile(`/${slug}/`, `./src/pages/${slug}/index.astro`);
+// Las páginas legales imprimen su propia «última actualización»; el sitemap usa
+// esa misma fecha.
+for (const slug of ["terminos", "privacidad", "no-afiliacion"]) {
+  fromDeclared(`/${slug}/`, `./src/pages/${slug}/index.astro`);
+}
+// La política de cancelaciones imprime la versión de su JSON, no una constante.
+{
+  const policy = JSON.parse(readFileSync("./src/data/commerce-policy.json", "utf8"));
+  if (/^\d{4}-\d{2}-\d{2}$/.test(policy.version ?? "")) lastmod.set(policy.path, policy.version);
 }
 
 export default defineConfig({
