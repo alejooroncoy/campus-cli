@@ -11,13 +11,14 @@ import {
   removePushDevice,
 } from "../scripts/proactive-device";
 import CalendarSubscribe, { CalendarStrip } from "./CalendarSubscribe";
+import OutlookImportant from "./OutlookImportant";
 import "./campu-updates.css";
 
 /** Dónde va "Tus entregas en Google Calendar": justo debajo de WhatsApp, que vive fuera
  * de este componente (novedades/index.astro). En celular, su propia franja debajo de esa; en
  * escritorio, debajo de la tarjeta en la columna derecha. Sin WhatsApp a la vista,
  * null: se queda en su lugar, debajo de las entregas. */
-function useCalendarSlot(active: boolean) {
+function useCalendarSlot(active: boolean, attribute = "cal-slot") {
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   useEffect(() => {
     if (!active) return setSlot(null);
@@ -27,7 +28,7 @@ function useCalendarSlot(active: boolean) {
     const shown = (el?: HTMLElement | null) => Boolean(el && el.getClientRects().length);
     const pick = () => {
       const name = shown(strip) ? "main" : card && !card.hidden && shown(aside) ? "side" : null;
-      setSlot(name ? document.querySelector<HTMLElement>(`[data-cal-slot="${name}"]`) : null);
+      setSlot(name ? document.querySelector<HTMLElement>(`[data-${attribute}="${name}"]`) : null);
     };
     pick();
     // La franja y la columna aparecen o se ocultan por CSS (ancho, #avisos) y por atributo.
@@ -42,7 +43,7 @@ function useCalendarSlot(active: boolean) {
       resized.disconnect();
       changed.disconnect();
     };
-  }, [active]);
+  }, [active, attribute]);
   return slot;
 }
 
@@ -68,6 +69,9 @@ type Fact = {
   submitted?: boolean;
   status?: string;
   text?: string;
+  /** Correo: fecha límite explícita (AAAA-MM-DD) y enlace al mensaje en Outlook. */
+  deadline?: string;
+  locator?: string;
   source: string;
 };
 type Source = {
@@ -84,6 +88,7 @@ const sourceNames: Record<string, string> = {
   "miupc:grades": "Notas oficiales de Mi UPC",
   "miupc:procedureRequests": "Trámites de Mi UPC",
   "miupc:legacyRequests": "Mis Trámites (Mi UPC)",
+  "outlook:important": "Correos importantes de la UPC",
 };
 const gradeStatus: Record<string, string> = {
   not_published: "Sin nota publicada",
@@ -210,6 +215,10 @@ const message = (code: string) =>
       "Conecta o renueva tu Aula Virtual para activar el seguimiento.",
     CONTEXT_NOT_READY:
       "Campito todavía está preparando este resumen. Vuelve después de la próxima revisión.",
+    OUTLOOK_POLICY_CHANGED:
+      "El texto del permiso cambió. Recarga la página para leerlo antes de activarlo.",
+    OUTLOOK_UNAVAILABLE: "Los correos importantes no están disponibles en este momento.",
+    UNIVERSITY_UNSUPPORTED: "Por ahora esto funciona solo con cuentas de la UPC.",
     DELETION_PENDING:
       "La eliminación de la memoria está en curso. Podrás activar de nuevo cuando termine.",
   })[code] ??
@@ -484,6 +493,20 @@ function UpcomingView({
   );
 }
 
+/** Solo enlaces de Outlook: el relay ya los filtró, pero la página no confía a ciegas. */
+const outlookLink = (v?: string) => {
+  try {
+    const u = new URL(v ?? "");
+    return u.protocol === "https:" && ["outlook.office.com", "outlook.office365.com", "outlook.cloud.microsoft"].includes(u.hostname) ? u.href : null;
+  } catch {
+    return null;
+  }
+};
+/** "viernes 27 de noviembre": la fecha explícita del correo, sin hora inventada. */
+const mailDay = (day: string) =>
+  new Intl.DateTimeFormat("es-PE", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(
+    new Date(day + "T12:00:00Z"),
+  );
 function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
   const miupc = f.source === "miupc:grades";
   return (
@@ -494,6 +517,10 @@ function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
           ? "Ya no aparece en la fuente"
           : f.kind === "assignment"
             ? "Publicado en Blackboard"
+            : f.kind === "mail"
+              ? f.status === "action"
+                ? "Te pide hacer algo"
+                : "Invitación opcional"
             : f.kind === "procedure"
               ? "Estado publicado en Mi UPC"
               : f.kind === "grade"
@@ -523,12 +550,20 @@ function FactView({ fact: f, removed }: { fact: Fact; removed?: boolean }) {
       )}
       {typeof f.weight === "number" && <p>Peso: {f.weight}%</p>}
       {/* En un material no hay estado: los avisos antiguos guardaban ahí una fecha técnica. */}
-      {f.status && f.kind !== "material" && (
+      {f.kind === "mail" && f.deadline && <p>Hasta el {mailDay(f.deadline)}</p>}
+      {f.kind === "mail" && (
+        <p>
+          <a href={outlookLink(f.locator) ?? "https://outlook.cloud.microsoft/mail/"} target="_blank" rel="noopener noreferrer">
+            {outlookLink(f.locator) ? "Abrir el correo en Outlook" : "Abrir Outlook"}
+          </a>
+        </p>
+      )}
+      {f.status && f.kind !== "material" && f.kind !== "mail" && (
         <p>
           Estado: {miupc ? (gradeStatus[f.status] ?? f.status) : f.status}
         </p>
       )}
-      {f.text && <p className="campu-preserve">{plainText(f.text)}</p>}
+      {f.text && f.kind !== "mail" && <p className="campu-preserve">{plainText(f.text)}</p>}
       {removed && (
         <small>
           Lo vi en dos revisiones completas seguidas sin este registro. Se
@@ -707,10 +742,27 @@ function ChangesCard({ events: all }: { events: any[] }) {
     </section>
   );
 }
+/** Correos de la UPC: su propio hueco debajo del calendario (franja en celular,
+ * tarjeta en la columna). No depende de que la semana esté preparada ni del modo de
+ * la página: activar o desactivar siempre está a mano. */
+function OutlookSlot({ available, render }: { available: boolean; render: (mode: "card" | "strip") => ReactNode }) {
+  const slot = useCalendarSlot(available, "mail-slot");
+  if (!available) return null;
+  return slot
+    ? createPortal(
+        <div className="campu-updates campu-cal-slot">{render(slot.dataset.mailSlot === "main" ? "strip" : "card")}</div>,
+        slot,
+      )
+    : <>{render("card")}</>;
+}
 /** El cambio en una frase, sin jerga: qué cambió y dónde. */
 function changeSentence(events: any[]) {
   if (events.length !== 1) return `Encontré ${events.length} cambios en tus cursos.`;
   const f = events[0].fact;
+  if (f.kind === "mail" && events[0].meaning !== "removed") {
+    const what = factTitle(f.title) || "Revisa tu correo.";
+    return `${f.course === "Correo de un profesor" ? "Un profesor te escribió" : "La UPC te escribió"}: ${what.charAt(0).toLowerCase()}${what.slice(1)}`;
+  }
   const what =
     events[0].meaning === "removed"
       ? "Ya no aparece"
@@ -1289,6 +1341,17 @@ export default function CampuUpdates() {
           )}
           {status && !loadingReport && (
             <>
+              <OutlookSlot
+                available={Boolean(status.outlook?.available)}
+                render={(mode) => (
+                  <OutlookImportant
+                    api={api}
+                    mode={mode}
+                    status={status.outlook}
+                    onStatus={(next) => setStatus((st: any) => ({ ...st, outlook: next }))}
+                  />
+                )}
+              />
               {simple && (
                 <Home
                   context={context}
