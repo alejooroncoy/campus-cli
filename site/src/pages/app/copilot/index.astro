@@ -2,8 +2,8 @@
 import AppShell from "../../../layouts/AppShell.astro";
 const connectorName = "Campus";
 const connectorUrl = "https://mcp.campuscli.com/mcp";
-// Claude ya no rellena el formulario desde la URL: este enlace solo lo abre vacío.
-const claudeConnectorUrl = "https://claude.ai/plugins/yours?modal=add-custom-connector";
+// Claude solo rellena el formulario desde /customize/connectors; /new con #settings ya no lo abre.
+const claudeConnectorUrl = `https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=${encodeURIComponent(connectorName)}&connectorUrl=${encodeURIComponent(connectorUrl)}`;
 ---
 <AppShell title="Conectar Campus a tu IA" active="copilot">
   <a class="app-assistant-return" data-assistant-return hidden>
@@ -70,8 +70,8 @@ const claudeConnectorUrl = "https://claude.ai/plugins/yours?modal=add-custom-con
       <a class="app-provider-link" href={claudeConnectorUrl} target="_blank" rel="noopener noreferrer" aria-label="Conectar Campus en Claude en otra pestaña">Conectar <svg class="site-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-up-right"></use></svg></a>
       <ol class="app-connector-steps">
         <li><strong>Inicia sesión en Claude</strong><p>La conexión personalizada también funciona con su plan gratuito.</p></li>
-        <li><strong>Abre el formulario</strong><p>Pulsa “Conectar”. Claude abrirá “Add custom connector” (Añadir conector personalizado).</p></li>
-        <li><strong>Pega los datos y añade</strong><p>Copia el nombre y la URL, pégalos en el formulario y pulsa “Continue” y luego “Add”.</p><div class="connector-copy"><div class="connector-copy__row"><div><span>Nombre</span><strong>{connectorName}</strong></div><button type="button" data-copy-value={connectorName} data-copy-label="Nombre" aria-label="Copiar nombre Campus">Copiar</button></div><div class="connector-copy__row"><div><span>URL del servidor</span><code>{connectorUrl}</code></div><button type="button" data-copy-value={connectorUrl} data-copy-label="URL" aria-label="Copiar URL de Campus">Copiar</button></div><p data-copy-status role="status" aria-live="polite"></p></div></li>
+        <li><strong>Abre el conector</strong><p>Pulsa “Conectar”. Claude abrirá el formulario con Campus y su URL ya completados.</p></li>
+        <li><strong>Revisa y añade</strong><p>Claude avisa que los datos vienen de un enlace externo: comprueba que la URL sea esta y pulsa “Continue” y luego “Add”. Si necesitas escribirlos a mano, cópialos aquí.</p><div class="connector-copy"><div class="connector-copy__row"><div><span>Nombre</span><strong>{connectorName}</strong></div><button type="button" data-copy-value={connectorName} data-copy-label="Nombre" aria-label="Copiar nombre Campus">Copiar</button></div><div class="connector-copy__row"><div><span>URL del servidor</span><code>{connectorUrl}</code></div><button type="button" data-copy-value={connectorUrl} data-copy-label="URL" aria-label="Copiar URL de Campus">Copiar</button></div><p data-copy-status role="status" aria-live="polite"></p></div></li>
         <li><strong>Autoriza y empieza</strong><p>Conecta tu cuenta Campus y prueba “Muéstrame mis cursos”.</p></li>
       </ol>
       <p class="app-connector-card__note">¿No se abre el formulario? En Claude ve a Plugins → Add → Add custom connector. <a href="/blog/conectar-blackboard-claude-campus/">Ver guía →</a></p>
