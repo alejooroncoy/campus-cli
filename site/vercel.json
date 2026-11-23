@@ -1,6 +1,12 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "crons": [
+    {
+      "path": "/api/indexnow",
+      "schedule": "0 11 * * *"
+    }
+  ],
   "redirects": [
     {
       "source": "/ucal/",
