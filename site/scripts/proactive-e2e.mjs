@@ -284,6 +284,24 @@ const events = [
       source: "blackboard_list_contents",
     },
   },
+  {
+    id: "ev4",
+    kind: "mail_published",
+    meaning: "record_added",
+    detectedAt: "2026-11-09T13:00:00Z",
+    fact: {
+      id: "mail:" + "a".repeat(64),
+      kind: "mail",
+      course: "Correo de la UPC",
+      title: "Revisa la constancia solicitada y el canal oficial para entregarla.",
+      status: "action",
+      text: "documents",
+      deadline: "2026-11-27",
+      // Un enlace que no es de Outlook nunca se muestra.
+      locator: "https://evil.test/mail",
+      source: "outlook:important",
+    },
+  },
 ];
 try {
   for (const width of [390, 1100]) {
@@ -677,6 +695,14 @@ try {
       assert.match(cambiosTexto, /Control & Monitoreo:\nValidar el alcance\./, cambiosTexto);
       // Comparaciones y ejemplos escritos por el profesor no se borran al limpiar.
       assert.ok(cambiosTexto.includes("Usa 0 < x < 10 y x > 2, y escribe <section> como ejemplo."), cambiosTexto);
+      // Un correo de la UPC: qué hacer y hasta cuándo, sin estado ni categoría internos,
+      // y el enlace solo va a Outlook.
+      assert.match(cambiosTexto, /Correo de la UPC · Te pide hacer algo\s+Revisa la constancia solicitada/i, cambiosTexto);
+      assert.match(cambiosTexto, /Hasta el viernes, 27 de noviembre|Hasta el viernes 27 de noviembre/, cambiosTexto);
+      assert.ok(!/Estado: action|documents/.test(cambiosTexto), cambiosTexto);
+      const enlaceCorreo = page.locator(".campu-changes").first().getByRole("link", { name: "Abrir Outlook" });
+      assert.equal(await enlaceCorreo.getAttribute("href"), "https://outlook.cloud.microsoft/mail/");
+      assert.equal(await page.locator('a[href^="https://evil.test"]').count(), 0);
       const pagina = await page.locator("body").innerText();
       for (const raro of ["ultraDocumentBody", "&nbsp;", "&amp;", "Estado: 2026-"]) assert.ok(!pagina.includes(raro), raro);
       assert.ok(
@@ -817,6 +843,8 @@ try {
       for (let i = 0; i < 50 && !weekFailed; i++)
         await page.waitForTimeout(100);
       assert.ok(weekFailed >= 1);
+      // Sin semana preparada, los correos de la UPC siguen a mano para activarlos o quitarlos.
+      await page.locator('.campu-cal-strip[data-strip="mail"], .campu-mail').first().waitFor();
       await openDetail();
       const apodoSemana = page.getByLabel("Mi apodo");
       await apodoSemana.fill("Ale");
