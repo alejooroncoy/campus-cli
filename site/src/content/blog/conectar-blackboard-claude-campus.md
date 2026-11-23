@@ -11,7 +11,7 @@ readingMinutes: 3
 quickAction:
   label: "Conectar Campus a Claude"
   href: "https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Campus&connectorUrl=https%3A%2F%2Fmcp.campuscli.com%2Fmcp"
-  note: "Abre Claude con el nombre y la URL de Campus ya escritos. Solo revisa y pulsa Continue y luego Add."
+  note: "Abre Claude con el nombre y la URL de Campus ya escritos. Pulsa Continue y luego Add, y después inicia sesión con tu cuenta Campus."
 howTo:
   name: "Cómo conectar Campus a Claude"
   totalTime: "PT3M"
@@ -20,13 +20,15 @@ howTo:
       text: "Abre https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Campus&connectorUrl=https%3A%2F%2Fmcp.campuscli.com%2Fmcp y Claude muestra el formulario con Campus ya completado. También puedes entrar a Plugins, pulsar Add y elegir Add custom connector."
     - name: "Escribe el nombre y la URL"
       text: "Nombre: Campus. URL: https://mcp.campuscli.com/mcp. Pulsa Continue y luego Add. No necesitas Client ID ni Client secret."
-    - name: "Autoriza Campus y tu Aula Virtual"
-      text: "Inicia sesión en tu cuenta Campus. Si tu Blackboard todavía no está vinculado, sigue el acceso institucional de Microsoft y UPC."
+    - name: "Inicia sesión con tu cuenta Campus"
+      text: "Después de Add, Claude abre el inicio de sesión de Campus. Entra con la misma cuenta que usas en la app de Campus y autoriza el acceso. Si tu Blackboard todavía no está vinculado, sigue el acceso institucional de Microsoft y UPC."
     - name: "Activa Campus en un chat y pregunta"
       text: "En un chat pulsa +, entra a Plugins, activa Campus y pregunta por tus tareas de la semana."
 faq:
   - q: "¿Cuál es la URL de Campus para Claude?"
     a: "https://mcp.campuscli.com/mcp, con https y la ruta /mcp al final. Como nombre puedes escribir Campus."
+  - q: "¿Con qué cuenta inicio sesión?"
+    a: "Con dos cuentas distintas: tu cuenta de Claude, para abrir el formulario y agregar el conector, y tu cuenta Campus, que Claude te pide justo después de pulsar Add. Usa la misma cuenta Campus que en la app web; si no tienes una, créala antes en campuscli.com/app."
   - q: "¿Necesito pagar Claude Pro?"
     a: "No. El plan gratuito de Claude admite un conector personalizado. Si ya tienes otro, quítalo para agregar Campus."
   - q: "¿Funciona en la app de Claude del celular?"
@@ -40,11 +42,11 @@ summary:
 ---
 Con el conector de Campus, Claude lee tus cursos, tareas, notas y materiales de Blackboard UPC cuando se lo pides. Lo configuras una vez, en unos tres minutos, y sin instalar nada.
 
-Necesitas una cuenta de Claude (la gratuita sirve), tu acceso a Blackboard UPC y tu [cuenta Campus](/app/). Las capturas son de Claude en inglés; si lo usas en español, los botones dicen lo mismo traducido.
+Necesitas dos cuentas: la de **Claude** (la gratuita sirve) y la de **Campus** (si no tienes, [créala aquí](/app/)), además de tu acceso a Blackboard UPC. Las capturas son de Claude en inglés; si lo usas en español, los botones dicen lo mismo traducido.
 
 ## 1. Abre «Add custom connector»
 
-Pulsa **Conectar Campus a Claude** (el botón de arriba, o [este enlace](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Campus&connectorUrl=https%3A%2F%2Fmcp.campuscli.com%2Fmcp)) y Claude te muestra el formulario con el nombre y la URL de Campus ya escritos. Si prefieres llegar a mano: en [claude.ai](https://claude.ai) entra a **Plugins** en la barra lateral, pulsa **Add** y elige **Add custom connector** (*Añadir conector personalizado*).
+Pulsa **Conectar Campus a Claude** (el botón de arriba, o [este enlace](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Campus&connectorUrl=https%3A%2F%2Fmcp.campuscli.com%2Fmcp)) y Claude te muestra el formulario con el nombre y la URL de Campus ya escritos. Si no has entrado a Claude, primero te pide iniciar sesión con tu cuenta de Claude. Si prefieres llegar a mano: en [claude.ai](https://claude.ai) entra a **Plugins** en la barra lateral, pulsa **Add** y elige **Add custom connector** (*Añadir conector personalizado*).
 
 ![Menú Add de la página Plugins de Claude con la opción Add custom connector](/assets/blog/claude/01-menu.webp)
 
@@ -59,9 +61,9 @@ Si usaste el botón, ya están escritos. Si no, escribe:
 
 Si usaste el enlace, Claude añade un aviso de que los datos vienen de un enlace externo: es normal, solo revisa que la URL sea exactamente esa. Pulsa **Continue** y luego **Add**. No llenes **Client ID** ni **Client secret**: Campus no los necesita. El aviso de «connectors from developers you trust» sale con cualquier conector personalizado; lo importante es que el dominio sea `mcp.campuscli.com`.
 
-## 3. Autoriza Campus y tu Aula Virtual
+## 3. Inicia sesión con tu cuenta Campus
 
-Claude abre el inicio de sesión de Campus. Entra con tu cuenta y, si tu Blackboard aún no está vinculado, sigue el acceso de Microsoft UPC. Tu contraseña universitaria solo se escribe en la página de la UPC, nunca en Claude.
+Al pulsar **Add**, Claude abre la página de inicio de sesión de Campus. Entra con la **misma cuenta que usas en la app de Campus** y acepta que Claude se conecte a ella. Así Claude usa tu cuenta, tu plan y tus consultas. Si tu Blackboard aún no está vinculado a Campus, en ese momento te lleva al acceso de Microsoft UPC. Tu contraseña universitaria solo se escribe en la página de la UPC, nunca en Claude.
 
 ## 4. Actívalo en un chat
 
@@ -89,6 +91,7 @@ Otras preguntas que funcionan bien: «¿qué nota tengo en Finanzas?», «busca 
 
 - **Claude no encuentra el servidor:** revisa que la URL termine en `/mcp` y no tenga espacios.
 - **No te deja agregar otro conector:** en el plan gratuito solo cabe uno; quita el anterior.
+- **Campus aparece como desconectado:** abre **Plugins**, busca Campus y pulsa **Reconnect** para volver a iniciar sesión con tu cuenta Campus.
 - **Conecta pero no ve tus cursos:** tu sesión de UPC venció; vuelve a vincular Blackboard cuando Campus lo pida.
 - **Campus no aparece en el chat:** actívalo desde **+ → Plugins**; cada chat puede tenerlo apagado.
 
