@@ -6,8 +6,9 @@ name: Aviso diario a IndexNow
 # promovido, así que un cron en vercel.json nunca corría.
 on:
   schedule:
-    # 06:00 en Lima (UTC-5 todo el año).
-    - cron: '0 11 * * *'
+    # 06:23 en Lima (UTC-5 todo el año). Fuera de la hora en punto, que es
+    # cuando GitHub más retrasa o salta las corridas programadas.
+    - cron: '23 11 * * *'
   workflow_dispatch:
     inputs:
       all:

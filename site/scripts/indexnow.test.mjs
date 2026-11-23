@@ -81,7 +81,7 @@ test('un fallo de IndexNow no se oculta', async () => {
 test('un sitemap caído no frena el aviso de los demás', async () => {
   const calls = [];
   const flaky = async (url, options) => { calls.push({ url: String(url) }); return String(url).includes('/profes/') ? new Response('', { status: 503 }) : fakeFetch()(url, options); };
-  const result = await notifyChanged({ fetchData: flaky, now: new Date('2026-11-22T15:00:00Z') });
+  const result = await notifyChanged({ fetchData: flaky, now: new Date('2026-11-22T15:00:00Z'), wait: async () => {} });
   assert.deepEqual(result.urls, ['https://campuscli.com/blog/a/']);
   assert.match(result.errors[0], /profes.*503/);
   assert.equal(calls.filter(c => c.url === 'https://api.indexnow.org/indexnow').length, 1);
@@ -92,7 +92,47 @@ test('el aviso diario corre en GitHub Actions, no como cron de Vercel', () => {
   const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
   assert.equal(config.crons, undefined);
   const workflow = readFileSync(new URL('../../.github/workflows/indexnow.yml', import.meta.url), 'utf8');
-  assert.match(workflow, /cron: '0 11 \* \* \*'/);
+  assert.match(workflow, /cron: '23 11 \* \* \*'/);
   assert.match(workflow, /working-directory: site\s+[\s\S]*node scripts\/indexnow-submit\.mjs/);
   assert.ok(existsSync(new URL('./indexnow-submit.mjs', import.meta.url)));
+});
+
+test('un fallo pasajero del sitemap se reintenta y no queda como error', async () => {
+  const waits = [];
+  let profesCalls = 0;
+  const flaky = async (url, options) => {
+    if (String(url).includes('/profes/') && profesCalls++ < 2) return profesCalls === 1 ? new Response('', { status: 502 }) : Promise.reject(new Error('socket hang up'));
+    return fakeFetch()(url, options);
+  };
+  const { entries, errors } = await collectEntries({ fetchData: flaky, wait: async ms => { waits.push(ms); } });
+  assert.deepEqual(errors, []);
+  assert.equal(profesCalls, 3);
+  assert.deepEqual(waits, [2_000, 8_000]);
+  assert.ok(entries.some(e => e.loc === 'https://campuscli.com/profes/upc/ana-perez/'));
+});
+
+test('un 404 del sitemap no se reintenta', async () => {
+  let calls = 0;
+  const missing = async (url, options) => String(url).includes('/profes/') ? (calls++, new Response('', { status: 404 })) : fakeFetch()(url, options);
+  const { errors } = await collectEntries({ fetchData: missing, wait: async () => { throw new Error('no debía esperar'); } });
+  assert.equal(calls, 1);
+  assert.match(errors[0], /profes.*404/);
+});
+
+test('si IndexNow falla, los sitemaps sin leer viajan con el error', async () => {
+  const both = async (url, options) => {
+    if (String(url).includes('indexnow.org')) return new Response(null, { status: 429 });
+    if (String(url).includes('/profes/')) return new Response('', { status: 500 });
+    return fakeFetch()(url, options);
+  };
+  const error = await notifyChanged({ fetchData: both, now: new Date('2026-11-22T15:00:00Z'), wait: async () => {} }).catch(e => e);
+  assert.match(error.message, /429/);
+  assert.match(error.sitemapErrors[0], /profes.*500/);
+});
+
+test('las peticiones se identifican con un User-Agent propio', async () => {
+  const calls = [];
+  await notifyChanged({ fetchData: fakeFetch(calls), now: new Date('2026-11-22T15:00:00Z') });
+  assert.ok(calls.length > 0);
+  assert.ok(calls.every(c => /^campuscli-indexnow/.test(c.options.headers['User-Agent'])));
 });

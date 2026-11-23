@@ -7,7 +7,15 @@ import { notifyChanged } from '../src/lib/indexnow.mjs';
 
 const all = process.argv.includes('--all');
 const dryRun = process.argv.includes('--dry-run');
-const { since, urls, errors, submitted, status } = await notifyChanged({ all, dryRun });
+let report;
+try {
+  report = await notifyChanged({ all, dryRun });
+} catch (error) {
+  for (const sitemapError of error.sitemapErrors ?? []) console.error(`No se pudo leer: ${sitemapError}`);
+  console.error(`No se pudo avisar a IndexNow: ${error?.message ?? error}`);
+  process.exit(1);
+}
+const { since, urls, errors, submitted, status } = report;
 console.log(`${urls.length} URL${urls.length === 1 ? '' : 's'} ${all ? 'en el sitemap' : 'con fecha desde ' + since}`);
 for (const url of urls) console.log(`  ${url}`);
 if (!dryRun) console.log(`Enviadas: ${submitted}${status ? ` (IndexNow respondió ${status})` : ''}`);
