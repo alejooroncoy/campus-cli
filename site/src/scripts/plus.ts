@@ -21,6 +21,12 @@ function mount(){
   let surveySession:CampusSession|undefined;
   const find=<T extends HTMLElement>(key:string)=>root.querySelector<T>(`[data-plus-${key}]`)!;
   const text=(key:string,value:string)=>{find(key).textContent=value;};
+  // Llegó desde la invitación a Plus de la extensión. Se recuerda en esta pestaña para que el aviso siga después de iniciar sesión.
+  const fromCampitoKey='campus:plus-from-campito';
+  let fromCampito=new URLSearchParams(location.search).get('utm_source')==='campito';
+  try{if(fromCampito)sessionStorage.setItem(fromCampitoKey,'1');else fromCampito=sessionStorage.getItem(fromCampitoKey)==='1';}catch{}
+  const campito=find('campito');
+  if(fromCampito)find<HTMLDetailsElement>('includes').open=true;
   const status=find('message'),form=find<HTMLFormElement>('form'),input=form.elements.namedItem('receipt') as HTMLInputElement;
   let disposed=false,quote:Order|null=null,timer:ReturnType<typeof setInterval>|undefined,busy=false,pendingPayment=false,poll=0,currentOwner:string|undefined;
   const message=(value='',error=false,loading=false)=>{
@@ -40,7 +46,7 @@ function mount(){
     text('flow-copy',resuming?'Flow todavía no confirma este pago. Si ya pagaste, actualiza el estado; si no, termínalo aquí. No se cobra dos veces.':'Escanea el QR con Yape o Plin. Plus se activa cuando Flow confirma el pago.');
   };
   let lastView='';let expiryTracked=false;
-  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);if(['guest','unavailable','university','loading'].includes(view)){find('subscription').hidden=true;find('history-panel').hidden=true;}if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}void survey.update(view,surveySession);};
+  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);campito.hidden=!fromCampito||['active','pending','loading','unavailable'].includes(view);if(['guest','unavailable','university','loading'].includes(view)){find('subscription').hidden=true;find('history-panel').hidden=true;}if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}void survey.update(view,surveySession);};
   async function api(path:string,data?:unknown){
     const response=await fetch(`/api/app/plus/${path}`,{method:data===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(30000),
       headers:{...analyticsHeaders(),...(data===undefined?{}:{'content-type':'application/json'})},...(data===undefined?{}:{body:JSON.stringify(data)})});

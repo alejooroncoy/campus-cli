@@ -78,3 +78,6 @@
 .plus-history__note{color:#963f32!important}
 @media(max-width:600px){.plus-actions{display:grid;justify-items:stretch}.plus-link-button{justify-self:center}}
 .plus-page .plus-history-block h2{font-size:20px}
+.plus-page .plus-campito{border-color:#b8dce6;background:#f5fbfd;gap:12px}
+.plus-page .plus-campito h2{font-size:clamp(20px,3vw,24px);line-height:1.3}
+.plus-page .plus-campito p:not(.app-kicker){color:#27546c;line-height:1.6;max-width:62ch}
