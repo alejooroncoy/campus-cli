@@ -1,0 +1,44 @@
+name: Aviso diario a IndexNow
+
+# Avisa a Bing (y a los demás buscadores de IndexNow) qué páginas cambiaron.
+# Va aquí y no como cron de Vercel: el sitio se publica asignando el dominio sin
+# promover el despliegue, y Vercel solo registra los crons del despliegue
+# promovido, así que un cron en vercel.json nunca corría.
+on:
+  schedule:
+    # 06:00 en Lima (UTC-5 todo el año).
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+    inputs:
+      all:
+        description: Avisar todas las URLs del sitemap, no solo las que cambiaron
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    # Los forks no avisan por el dominio.
+    if: github.repository == 'alejooroncoy/campus-cli'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          sparse-checkout: site
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      # Sin npm install: el script solo usa Node y lee el sitemap en vivo.
+      - name: Avisar a IndexNow
+        working-directory: site
+        env:
+          INDEXNOW_FLAGS: ${{ inputs.all && '--all' || '' }}
+        run: node scripts/indexnow-submit.mjs $INDEXNOW_FLAGS

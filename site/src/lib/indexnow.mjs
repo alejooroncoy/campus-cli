@@ -87,3 +87,23 @@ export async function submit(urls, { fetchData = fetch } = {}) {
 export function limaDate(days = 0, now = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima' }).format(new Date(now.getTime() - days * 86_400_000));
 }
+
+// Días hacia atrás que cubre cada aviso. Un cambio fechado el día D que se
+// publica uno o dos días después todavía entra; repetir una URL en avisos de
+// días seguidos está permitido por el protocolo.
+export const WINDOW_DAYS = 3;
+
+/**
+ * Lee el sitemap en vivo y avisa a IndexNow las URLs con lastmod dentro de la
+ * ventana (hora de Lima), o todas con `all`. Un sitemap caído no frena el aviso
+ * de los demás: queda en `errors`.
+ */
+export async function notifyChanged({ all = false, dryRun = false, fetchData = fetch, now = new Date() } = {}) {
+  const since = limaDate(WINDOW_DAYS - 1, now);
+  // Un día de margen arriba: la fecha de un commit va en la zona de quien lo hizo.
+  const until = limaDate(-1, now);
+  const { entries, errors } = await collectEntries({ fetchData });
+  const urls = all ? [...new Set(entries.map(e => e.loc).filter(ownUrl))] : changedSince(entries, since, until);
+  const result = dryRun ? { submitted: 0, status: null } : await submit(urls, { fetchData });
+  return { since, until, urls, errors, ...result };
+}
