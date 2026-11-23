@@ -132,6 +132,14 @@ const updated = new Date(`${data.updated}T12:00:00Z`).toLocaleDateString("es-PE"
       <span>{data.readingMinutes} min de lectura</span>
     </p>
 
+    {/* Before the summary: the table of contents is inserted right after it. */}
+    {data.quickAction && (
+      <div class="quick-action">
+        <a class="button" href={data.quickAction.href} target="_blank" rel="noopener noreferrer">{data.quickAction.label}</a>
+        {data.quickAction.note && <p>{data.quickAction.note}</p>}
+      </div>
+    )}
+
     {data.summary?.length && (
       <section class="summary" aria-labelledby="resumen-title">
         <h2 id="resumen-title">En resumen</h2>
