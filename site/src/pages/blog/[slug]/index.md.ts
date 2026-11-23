@@ -35,6 +35,11 @@ export const GET: APIRoute = ({ props }) => {
     "",
   ];
 
+  if (data.quickAction) {
+    const { label, href, note } = data.quickAction;
+    header.push(`**[${label}](${href})**${note ? ` ${note}` : ""}`, "");
+  }
+
   if (data.summary?.length) {
     header.push("## En resumen", "");
     // The page renders these as html; strip the tags so the Markdown reads as

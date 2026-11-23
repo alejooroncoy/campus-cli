@@ -8,6 +8,10 @@ updated: "2026-11-22"
 tag: "Tutorial · Claude"
 section: tutorial
 readingMinutes: 3
+quickAction:
+  label: "Conectar Campus a Claude"
+  href: "https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Campus&connectorUrl=https%3A%2F%2Fmcp.campuscli.com%2Fmcp"
+  note: "Abre Claude con el nombre y la URL de Campus ya escritos. Solo revisa y pulsa Continue y luego Add."
 howTo:
   name: "Cómo conectar Campus a Claude"
   totalTime: "PT3M"
@@ -40,11 +44,13 @@ Necesitas una cuenta de Claude (la gratuita sirve), tu acceso a Blackboard UPC y
 
 ## 1. Abre «Add custom connector»
 
-Abre [este enlace](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Campus&connectorUrl=https%3A%2F%2Fmcp.campuscli.com%2Fmcp) y Claude te muestra el formulario con el nombre y la URL de Campus ya escritos. También puedes llegar a mano: en [claude.ai](https://claude.ai) entra a **Plugins** en la barra lateral, pulsa **Add** y elige **Add custom connector** (*Añadir conector personalizado*).
+Pulsa **Conectar Campus a Claude** (el botón de arriba, o [este enlace](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Campus&connectorUrl=https%3A%2F%2Fmcp.campuscli.com%2Fmcp)) y Claude te muestra el formulario con el nombre y la URL de Campus ya escritos. Si prefieres llegar a mano: en [claude.ai](https://claude.ai) entra a **Plugins** en la barra lateral, pulsa **Add** y elige **Add custom connector** (*Añadir conector personalizado*).
 
 ![Menú Add de la página Plugins de Claude con la opción Add custom connector](/assets/blog/claude/01-menu.webp)
 
-## 2. Escribe el nombre y la URL
+## 2. Revisa el nombre y la URL
+
+Si usaste el botón, ya están escritos. Si no, escribe:
 
 - **Name:** `Campus`
 - **MCP server URL:** `https://mcp.campuscli.com/mcp` (la ruta `/mcp` es obligatoria)
