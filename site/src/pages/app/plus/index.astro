@@ -9,8 +9,8 @@ import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
 <AppShell title="Mi suscripción" active="suscripcion">
   <link rel="stylesheet" href="/campus-plus.css?v=8" />
   <div class="plus-page" data-plus-root>
-    <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Mi suscripción</h1><p>{CHARACTER_NAME} en todas tus clases de UClass, Campus sin límite desde tu IA y 100 consultas diarias en la web.</p></section>
-    {/* Solo para quien llega desde la invitación de la extensión (utm_source=campito); plus.ts lo muestra y lo oculta si ya tiene Plus. */}
+    <section class="app-page-heading app-page-heading--compact"><p class="app-kicker">CAMPUS PLUS</p><h1>Mi suscripción</h1><p>{CHARACTER_NAME} en todas tus clases de UClass (UPC), Campus sin límite desde tu IA y 100 consultas diarias en la web.</p></section>
+    {/* Solo para quien llega desde la invitación de la extensión (utm_source=campito); plus.ts lo muestra solo antes de pagar (invitado, listo para pagar o eligiendo universidad). */}
     <section class="app-panel plus-campito" data-plus-campito hidden aria-labelledby="plus-campito-title">
       <p class="app-kicker">DESPUÉS DE TU CLASE DE PRUEBA</p>
       <h2 id="plus-campito-title">Sigue con {CHARACTER_NAME} en todas tus clases.</h2>
@@ -90,7 +90,7 @@ import WhatsAppReminders from '../../../components/WhatsAppReminders.astro';
       <p class="plus-muted" data-survey-status role="status" aria-live="polite"></p>
     </section>
     <WhatsAppReminders />
-    <details class="app-panel plus-includes" data-plus-includes><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>{CHARACTER_NAME} en todas tus clases de UClass: te avisa cuando el profe dice tu nombre o va a tomar lista, y le preguntas qué te perdiste.</li><li>Campus conectado a tu IA (ChatGPT, Claude o Gemini) sin límite de consultas: tus cursos, materiales y clases, en tu propio chat.</li><li>100 consultas diarias con {CHARACTER_NAME} en la web.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles desde tu IA.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
+    <details class="app-panel plus-includes" data-plus-includes><summary>¿Qué incluye mi mes de Plus?</summary><ul><li>{CHARACTER_NAME} en todas tus clases de UClass (UPC): te avisa cuando el profe dice tu nombre o va a tomar lista, y le preguntas qué te perdiste.</li><li>Campus conectado a tu IA (ChatGPT, Claude o Gemini) sin límite de consultas: tus cursos, materiales y clases, en tu propio chat.</li><li>100 consultas diarias con {CHARACTER_NAME} en la web.</li><li>Guardar referencias en Mendeley y lectura experimental de fuentes accesibles desde tu IA.</li><li>Analizar clases virtuales desde sus transcripciones disponibles.</li></ul><p class="plus-muted">La suscripción de tu IA, si la requiere, se paga aparte.{turnitinServiceEnabled ? " Turnitin se cobra por documento." : ""}</p></details>
     <p class="plus-support">¿Necesitas ayuda? <a class="app-text-link" href="https://wa.me/51946189585" target="_blank" rel="noopener">WhatsApp +51 946 189 585</a> · <a class="app-text-link" href={commerceSupportHref("Campus Plus")}>Escribir por correo</a> · <a class="app-text-link" href="/cancelaciones-y-devoluciones/">Cancelaciones y devoluciones</a></p>
   </div>
   <script src="../../../scripts/plus.ts"></script>

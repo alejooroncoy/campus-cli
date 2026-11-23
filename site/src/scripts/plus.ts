@@ -23,8 +23,12 @@ function mount(){
   const text=(key:string,value:string)=>{find(key).textContent=value;};
   // Llegó desde la invitación a Plus de la extensión. Se recuerda en esta pestaña para que el aviso siga después de iniciar sesión.
   const fromCampitoKey='campus:plus-from-campito';
-  let fromCampito=new URLSearchParams(location.search).get('utm_source')==='campito';
+  const params=new URLSearchParams(location.search);
+  // Las dos marcas del botón de la extensión: un post con utm_source=campito no basta para decir «ya probaste a Campito».
+  let fromCampito=params.get('utm_source')==='campito'&&params.get('utm_medium')==='extension';
   try{if(fromCampito)sessionStorage.setItem(fromCampitoKey,'1');else fromCampito=sessionStorage.getItem(fromCampitoKey)==='1';}catch{}
+  // Quien ya pagó, está pagando o tiene Plus no vuelve a ver el aviso en esta pestaña.
+  const forgetCampito=()=>{fromCampito=false;try{sessionStorage.removeItem(fromCampitoKey);}catch{}};
   const campito=find('campito');
   if(fromCampito)find<HTMLDetailsElement>('includes').open=true;
   const status=find('message'),form=find<HTMLFormElement>('form'),input=form.elements.namedItem('receipt') as HTMLInputElement;
@@ -46,7 +50,7 @@ function mount(){
     text('flow-copy',resuming?'Flow todavía no confirma este pago. Si ya pagaste, actualiza el estado; si no, termínalo aquí. No se cobra dos veces.':'Escanea el QR con Yape o Plin. Plus se activa cuando Flow confirma el pago.');
   };
   let lastView='';let expiryTracked=false;
-  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);campito.hidden=!fromCampito||['active','pending','loading','unavailable'].includes(view);if(['guest','unavailable','university','loading'].includes(view)){find('subscription').hidden=true;find('history-panel').hidden=true;}if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}void survey.update(view,surveySession);};
+  const show=(view:string)=>{root.querySelectorAll<HTMLElement>('[data-plus-view]').forEach(node=>node.hidden=node.dataset.plusView!==view);if(['payment','flow','pending','active'].includes(view))forgetCampito();campito.hidden=!fromCampito||!['guest','ready','university'].includes(view);if(['guest','unavailable','university','loading'].includes(view)){find('subscription').hidden=true;find('history-panel').hidden=true;}if(view!==lastView){lastView=view;track('campus_plus_step_viewed',{plus_step:view});if(view==='ready')track('campus_plus_offer_viewed',{location:'app'});}void survey.update(view,surveySession);};
   async function api(path:string,data?:unknown){
     const response=await fetch(`/api/app/plus/${path}`,{method:data===undefined?'GET':'POST',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(30000),
       headers:{...analyticsHeaders(),...(data===undefined?{}:{'content-type':'application/json'})},...(data===undefined?{}:{body:JSON.stringify(data)})});
@@ -138,6 +142,8 @@ function mount(){
       if(!session.authenticated){pendingPayment=false;show('guest');message();return;}
       if(!config.ordersAvailable){show('unavailable');message('No pudimos comprobar los pagos de Plus. No realices un pago nuevo.',true);return;}
       const state:State=await api('state');if(disposed)return;
+      // Un mes ya pagado (vigente o vencido) no es alguien que viene de su clase de prueba.
+      if(state.subscription&&!state.subscription.isTest)forgetCampito();
       if(state.blocked||state.unavailable){show('unavailable');message(state.blocked?'Tu cuenta requiere revisión. Contacta a soporte.':'No pudimos verificar tu plan. Vuelve a comprobarlo.',true);return;}
       text('account',`Cuenta: ${session.email??'tu cuenta Campus'}`);
       const pending=state.orders.find(order=>order.status==='payment_review');
