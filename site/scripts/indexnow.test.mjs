@@ -1,12 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-import { INDEXNOW_KEY, WINDOW_DAYS, changedSince, collectEntries, limaDate, notifyChanged, parseSitemapIndex, parseUrlset, submit } from '../src/lib/indexnow.mjs';
+import { INDEXNOW_KEY, WINDOW_DAYS, changedSince, collectEntries, limaDate, notifyChanged, parseRobotsSitemaps, parseSitemapIndex, parseUrlset, submit } from '../src/lib/indexnow.mjs';
 
 const index = '<?xml version="1.0"?><sitemapindex><sitemap><loc>https://campuscli.com/profes/sitemap.xml</loc></sitemap><sitemap><loc>https://campuscli.com/sitemap-0.xml</loc><lastmod>2026-11-23T00:00:00.000Z</lastmod></sitemap><sitemap><loc>https://otro.com/sitemap.xml</loc></sitemap></sitemapindex>';
 const main = '<urlset><url><loc>https://campuscli.com/</loc></url><url><loc>https://campuscli.com/blog/a/</loc><lastmod>2026-11-22T00:00:00.000Z</lastmod></url><url><loc>https://campuscli.com/blog/b/</loc><lastmod>2026-08-04T00:00:00.000Z</lastmod></url><url><loc>https://campuscli.com/blog/futuro/</loc><lastmod>2027-01-01</lastmod></url></urlset>';
 const profes = '<urlset><url><loc>https://campuscli.com/profes/upc/</loc></url><url><loc>https://campuscli.com/profes/upc/ana-perez/</loc><lastmod>2026-11-21</lastmod></url><url><loc>https://otro.com/x/</loc><lastmod>2026-11-22</lastmod></url></urlset>';
-const sitemaps = { 'https://campuscli.com/sitemap-index.xml': index, 'https://campuscli.com/sitemap-0.xml': main, 'https://campuscli.com/profes/sitemap.xml': profes };
+const robots = '# Sitemap: https://campuscli.com/comentado.xml\nUser-agent: *\nSitemap: https://campuscli.com/sitemap-index.xml\nsitemap: https://campuscli.com/biblioteca/sitemap.xml\nSitemap: https://otro.com/sitemap.xml\n';
+const biblioteca = '<sitemapindex><sitemap><loc>https://campuscli.com/biblioteca/sitemap-1.xml</loc></sitemap><sitemap><loc>https://campuscli.com/sitemap-0.xml</loc></sitemap></sitemapindex>';
+const bibliotecaUrls = '<urlset><url><loc>https://campuscli.com/biblioteca/upc/apuntes/</loc><lastmod>2026-11-22</lastmod></url><url><loc>https://campuscli.com/biblioteca/</loc></url></urlset>';
+const sitemaps = { 'https://campuscli.com/robots.txt': robots, 'https://campuscli.com/sitemap-index.xml': index, 'https://campuscli.com/sitemap-0.xml': main, 'https://campuscli.com/profes/sitemap.xml': profes, 'https://campuscli.com/biblioteca/sitemap.xml': biblioteca, 'https://campuscli.com/biblioteca/sitemap-1.xml': bibliotecaUrls };
 
 function fakeFetch(calls = []) {
   return async (url, options = {}) => {
@@ -27,7 +30,7 @@ test('lee el índice y solo sigue sitemaps propios', () => {
 test('avisa solo URLs propias con fecha dentro de la ventana', async () => {
   const { entries, errors } = await collectEntries({ fetchData: fakeFetch() });
   assert.deepEqual(errors, []);
-  assert.deepEqual(changedSince(entries, '2026-11-21', '2026-11-23').sort(), ['https://campuscli.com/blog/a/', 'https://campuscli.com/profes/upc/ana-perez/']);
+  assert.deepEqual(changedSince(entries, '2026-11-21', '2026-11-23').sort(), ['https://campuscli.com/biblioteca/upc/apuntes/', 'https://campuscli.com/blog/a/', 'https://campuscli.com/profes/upc/ana-perez/']);
   assert.deepEqual(changedSince(entries, '2026-11-23', '2026-11-24'), []);
   // Sin tope, una fecha futura se repetiría cada día hasta llegar.
   assert.ok(changedSince(entries, '2026-11-21').includes('https://campuscli.com/blog/futuro/'));
@@ -58,16 +61,16 @@ test('el aviso diario cubre la ventana en hora de Lima', async () => {
   assert.equal(WINDOW_DAYS, 3);
   assert.equal(result.since, '2026-11-20');
   assert.equal(result.until, '2026-11-23');
-  assert.deepEqual(result.urls.sort(), ['https://campuscli.com/blog/a/', 'https://campuscli.com/profes/upc/ana-perez/']);
+  assert.deepEqual(result.urls.sort(), ['https://campuscli.com/biblioteca/upc/apuntes/', 'https://campuscli.com/blog/a/', 'https://campuscli.com/profes/upc/ana-perez/']);
   assert.deepEqual(result.errors, []);
-  assert.deepEqual([result.submitted, result.status], [2, 202]);
+  assert.deepEqual([result.submitted, result.status], [3, 202]);
   assert.equal(calls.filter(c => c.url === 'https://api.indexnow.org/indexnow').length, 1);
 });
 
 test('con all avisa todas las URLs propias y con dryRun no envía nada', async () => {
   const calls = [];
   const result = await notifyChanged({ all: true, dryRun: true, fetchData: fakeFetch(calls), now: new Date('2026-11-22T15:00:00Z') });
-  assert.equal(result.urls.length, 6);
+  assert.equal(result.urls.length, 8);
   assert.ok(result.urls.every(url => url.startsWith('https://campuscli.com/')));
   assert.equal(result.submitted, 0);
   assert.equal(calls.filter(c => c.url === 'https://api.indexnow.org/indexnow').length, 0);
@@ -82,7 +85,7 @@ test('un sitemap caído no frena el aviso de los demás', async () => {
   const calls = [];
   const flaky = async (url, options) => { calls.push({ url: String(url) }); return String(url).includes('/profes/') ? new Response('', { status: 503 }) : fakeFetch()(url, options); };
   const result = await notifyChanged({ fetchData: flaky, now: new Date('2026-11-22T15:00:00Z'), wait: async () => {} });
-  assert.deepEqual(result.urls, ['https://campuscli.com/blog/a/']);
+  assert.deepEqual(result.urls.sort(), ['https://campuscli.com/biblioteca/upc/apuntes/', 'https://campuscli.com/blog/a/']);
   assert.match(result.errors[0], /profes.*503/);
   assert.equal(calls.filter(c => c.url === 'https://api.indexnow.org/indexnow').length, 1);
 });
@@ -135,4 +138,32 @@ test('las peticiones se identifican con un User-Agent propio', async () => {
   await notifyChanged({ fetchData: fakeFetch(calls), now: new Date('2026-11-22T15:00:00Z') });
   assert.ok(calls.length > 0);
   assert.ok(calls.every(c => /^campuscli-indexnow/.test(c.options.headers['User-Agent'])));
+});
+
+test('lee los sitemaps que declara robots.txt, incluido el índice de la biblioteca', async () => {
+  assert.deepEqual(parseRobotsSitemaps(robots), ['https://campuscli.com/sitemap-index.xml', 'https://campuscli.com/biblioteca/sitemap.xml', 'https://otro.com/sitemap.xml']);
+  const calls = [];
+  const { entries, errors } = await collectEntries({ fetchData: fakeFetch(calls) });
+  assert.deepEqual(errors, []);
+  assert.ok(entries.some(e => e.loc === 'https://campuscli.com/biblioteca/upc/apuntes/'));
+  // sitemap-0 aparece en dos índices y se lee una sola vez; otro.com nunca se pide.
+  assert.equal(calls.filter(c => c.url === 'https://campuscli.com/sitemap-0.xml').length, 1);
+  assert.equal(entries.filter(e => e.loc === 'https://campuscli.com/blog/a/').length, 1);
+  assert.ok(!calls.some(c => c.url.startsWith('https://otro.com/')));
+});
+
+test('sin robots.txt se lee al menos el índice principal y el fallo queda a la vista', async () => {
+  const noRobots = async (url, options) => String(url).endsWith('/robots.txt') ? new Response('', { status: 404 }) : fakeFetch()(url, options);
+  const { entries, errors } = await collectEntries({ fetchData: noRobots, wait: async () => {} });
+  assert.match(errors[0], /robots\.txt.*404/);
+  assert.ok(entries.some(e => e.loc === 'https://campuscli.com/blog/a/'));
+  assert.ok(!entries.some(e => e.loc.includes('/biblioteca/')));
+});
+
+test('un índice dentro de otro índice no se recorre', async () => {
+  const nested = async (url, options) => String(url) === 'https://campuscli.com/biblioteca/sitemap-1.xml'
+    ? new Response('<sitemapindex><sitemap><loc>https://campuscli.com/biblioteca/sitemap-9.xml</loc></sitemap></sitemapindex>', { status: 200 })
+    : fakeFetch()(url, options);
+  const { errors } = await collectEntries({ fetchData: nested });
+  assert.match(errors[0], /sitemap-1\.xml: índice dentro de otro índice/);
 });

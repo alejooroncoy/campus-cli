@@ -49,12 +49,19 @@ export function changedSince(entries, since, until = '9999-12-31') {
   return [...new Set(urls)];
 }
 
+/** Sitemaps que declara robots.txt (líneas `Sitemap:`). */
+export function parseRobotsSitemaps(text) {
+  return [...text.matchAll(/^[ \t]*sitemap:[ \t]*(\S+)/gim)].map(([, url]) => url);
+}
+
 /**
- * Todas las URLs del sitio que lista el índice de sitemaps. Si un sitemap
- * falla (por ejemplo el de profes, que depende de otro servicio), se siguen
- * leyendo los demás y el fallo queda en `errors`.
+ * Todas las URLs del sitio: las de cada sitemap que declara robots.txt. Así
+ * entra también la biblioteca, que publica su propio índice fuera de
+ * sitemap-index.xml (un índice no puede contener otro). Si un sitemap falla
+ * (por ejemplo el de profes, que depende de otro servicio), se siguen leyendo
+ * los demás y el fallo queda en `errors`.
  */
-export async function collectEntries({ fetchData = fetch, index = `${SITE_ORIGIN}/sitemap-index.xml`, wait = ms => new Promise(r => setTimeout(r, ms)) } = {}) {
+export async function collectEntries({ fetchData = fetch, robots = `${SITE_ORIGIN}/robots.txt`, wait = ms => new Promise(r => setTimeout(r, ms)) } = {}) {
   // El sitemap de profes sale de una función que depende de otro servicio: un
   // 5xx o un corte pasajero se reintenta antes de darlo por caído.
   const read = async url => {
@@ -71,16 +78,40 @@ export async function collectEntries({ fetchData = fetch, index = `${SITE_ORIGIN
       throw new Error(`sitemap ${url}: ${response.status}`);
     }
   };
-  const sitemaps = parseSitemapIndex(await read(index)).filter(ownUrl);
   const entries = [];
   const errors = [];
-  for (const sitemap of sitemaps) {
+  let roots = [];
+  try {
+    roots = parseRobotsSitemaps(await read(robots)).filter(ownUrl);
+  } catch (error) {
+    errors.push(String(error?.message ?? error));
+  }
+  // Sin robots.txt legible, al menos el índice principal.
+  if (!roots.length) roots = [`${SITE_ORIGIN}/sitemap-index.xml`];
+  const seen = new Set();
+  // depth 0: lo que declara robots.txt (índice o sitemap). depth 1: lo que lista
+  // un índice. Más abajo no se baja: el protocolo no admite índices anidados.
+  const visit = async (url, depth) => {
+    if (seen.has(url)) return;
+    seen.add(url);
+    let xml;
     try {
-      entries.push(...parseUrlset(await read(sitemap)));
+      xml = await read(url);
     } catch (error) {
       errors.push(String(error?.message ?? error));
+      return;
     }
-  }
+    if (!/<sitemapindex[\s>]/.test(xml)) {
+      entries.push(...parseUrlset(xml));
+      return;
+    }
+    if (depth > 0) {
+      errors.push(`sitemap ${url}: índice dentro de otro índice`);
+      return;
+    }
+    for (const child of parseSitemapIndex(xml).filter(ownUrl)) await visit(child, depth + 1);
+  };
+  for (const root of roots) await visit(root, 0);
   return { entries, errors };
 }
 
