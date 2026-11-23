@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "crons": [
     {
-      "path": "/api/indexnow",
+      "path": "/api/indexnow/",
       "schedule": "0 11 * * *"
     }
   ],

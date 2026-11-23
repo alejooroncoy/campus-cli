@@ -91,8 +91,13 @@ for (const file of readdirSync("./src/html/blackboard-mcp/clients")) {
 
 // Las páginas legales imprimen su propia «última actualización»; el sitemap usa
 // esa misma fecha.
-for (const slug of ["terminos", "privacidad", "no-afiliacion", "cancelaciones-y-devoluciones"]) {
+for (const slug of ["terminos", "privacidad", "no-afiliacion"]) {
   fromDeclared(`/${slug}/`, `./src/pages/${slug}/index.astro`);
+}
+// La política de cancelaciones imprime la versión de su JSON, no una constante.
+{
+  const policy = JSON.parse(readFileSync("./src/data/commerce-policy.json", "utf8"));
+  if (/^\d{4}-\d{2}-\d{2}$/.test(policy.version ?? "")) lastmod.set(policy.path, policy.version);
 }
 
 export default defineConfig({

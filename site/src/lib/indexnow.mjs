@@ -36,15 +36,20 @@ const ownUrl = value => {
 };
 
 /**
- * URLs con lastmod desde `since` (AAAA-MM-DD, inclusive). Las que no tienen
- * fecha no se avisan: sin fecha no hay forma de saber si cambiaron.
+ * URLs con lastmod entre `since` y `until` (AAAA-MM-DD, ambos inclusive). Las
+ * que no tienen fecha no se avisan: sin fecha no hay forma de saber si
+ * cambiaron. El tope evita repetir cada día una URL con fecha futura.
  */
-export function changedSince(entries, since) {
-  const urls = entries.filter(e => e.lastmod && e.lastmod >= since && ownUrl(e.loc)).map(e => e.loc);
+export function changedSince(entries, since, until = '9999-12-31') {
+  const urls = entries.filter(e => e.lastmod && e.lastmod >= since && e.lastmod <= until && ownUrl(e.loc)).map(e => e.loc);
   return [...new Set(urls)];
 }
 
-/** Todas las URLs del sitio que lista el índice de sitemaps. */
+/**
+ * Todas las URLs del sitio que lista el índice de sitemaps. Si un sitemap
+ * falla (por ejemplo el de profes, que depende de otro servicio), se siguen
+ * leyendo los demás y el fallo queda en `errors`.
+ */
 export async function collectEntries({ fetchData = fetch, index = `${SITE_ORIGIN}/sitemap-index.xml` } = {}) {
   const read = async url => {
     const response = await fetchData(url, { headers: { Accept: 'application/xml' }, signal: AbortSignal.timeout(15_000), redirect: 'error' });
@@ -53,8 +58,15 @@ export async function collectEntries({ fetchData = fetch, index = `${SITE_ORIGIN
   };
   const sitemaps = parseSitemapIndex(await read(index)).filter(ownUrl);
   const entries = [];
-  for (const sitemap of sitemaps) entries.push(...parseUrlset(await read(sitemap)));
-  return entries;
+  const errors = [];
+  for (const sitemap of sitemaps) {
+    try {
+      entries.push(...parseUrlset(await read(sitemap)));
+    } catch (error) {
+      errors.push(String(error?.message ?? error));
+    }
+  }
+  return { entries, errors };
 }
 
 /** Envía la lista a IndexNow. 200 y 202 significan recibido. */
