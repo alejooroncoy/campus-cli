@@ -6,7 +6,7 @@ import { INDEXNOW_KEY, WINDOW_DAYS, changedSince, collectEntries, limaDate, noti
 const index = '<?xml version="1.0"?><sitemapindex><sitemap><loc>https://campuscli.com/profes/sitemap.xml</loc></sitemap><sitemap><loc>https://campuscli.com/sitemap-0.xml</loc><lastmod>2026-11-23T00:00:00.000Z</lastmod></sitemap><sitemap><loc>https://otro.com/sitemap.xml</loc></sitemap></sitemapindex>';
 const main = '<urlset><url><loc>https://campuscli.com/</loc></url><url><loc>https://campuscli.com/blog/a/</loc><lastmod>2026-11-22T00:00:00.000Z</lastmod></url><url><loc>https://campuscli.com/blog/b/</loc><lastmod>2026-08-04T00:00:00.000Z</lastmod></url><url><loc>https://campuscli.com/blog/futuro/</loc><lastmod>2027-01-01</lastmod></url></urlset>';
 const profes = '<urlset><url><loc>https://campuscli.com/profes/upc/</loc></url><url><loc>https://campuscli.com/profes/upc/ana-perez/</loc><lastmod>2026-11-21</lastmod></url><url><loc>https://otro.com/x/</loc><lastmod>2026-11-22</lastmod></url></urlset>';
-const robots = '# Sitemap: https://campuscli.com/comentado.xml\nUser-agent: *\nSitemap: https://campuscli.com/sitemap-index.xml\nsitemap: https://campuscli.com/biblioteca/sitemap.xml\nSitemap: https://otro.com/sitemap.xml\n';
+const robots = '# Sitemap: https://campuscli.com/comentado.xml\nUser-agent: *\nSitemap: https://campuscli.com/sitemap-index.xml\nsitemap: https://campuscli.com/biblioteca/sitemap.xml\n';
 const biblioteca = '<sitemapindex><sitemap><loc>https://campuscli.com/biblioteca/sitemap-1.xml</loc></sitemap><sitemap><loc>https://campuscli.com/sitemap-0.xml</loc></sitemap></sitemapindex>';
 const bibliotecaUrls = '<urlset><url><loc>https://campuscli.com/biblioteca/upc/apuntes/</loc><lastmod>2026-11-22</lastmod></url><url><loc>https://campuscli.com/biblioteca/</loc></url></urlset>';
 const sitemaps = { 'https://campuscli.com/robots.txt': robots, 'https://campuscli.com/sitemap-index.xml': index, 'https://campuscli.com/sitemap-0.xml': main, 'https://campuscli.com/profes/sitemap.xml': profes, 'https://campuscli.com/biblioteca/sitemap.xml': biblioteca, 'https://campuscli.com/biblioteca/sitemap-1.xml': bibliotecaUrls };
@@ -141,7 +141,7 @@ test('las peticiones se identifican con un User-Agent propio', async () => {
 });
 
 test('lee los sitemaps que declara robots.txt, incluido el índice de la biblioteca', async () => {
-  assert.deepEqual(parseRobotsSitemaps(robots), ['https://campuscli.com/sitemap-index.xml', 'https://campuscli.com/biblioteca/sitemap.xml', 'https://otro.com/sitemap.xml']);
+  assert.deepEqual(parseRobotsSitemaps(robots), ['https://campuscli.com/sitemap-index.xml', 'https://campuscli.com/biblioteca/sitemap.xml']);
   const calls = [];
   const { entries, errors } = await collectEntries({ fetchData: fakeFetch(calls) });
   assert.deepEqual(errors, []);
@@ -166,4 +166,52 @@ test('un índice dentro de otro índice no se recorre', async () => {
     : fakeFetch()(url, options);
   const { errors } = await collectEntries({ fetchData: nested });
   assert.match(errors[0], /sitemap-1\.xml: índice dentro de otro índice/);
+});
+
+test('un sitemap ajeno en robots.txt se ignora y queda a la vista', async () => {
+  const withForeign = async (url, options) => String(url).endsWith('/robots.txt') ? new Response(robots + 'Sitemap: https://otro.com/sitemap.xml\nSitemap: /relativo.xml\n', { status: 200 }) : fakeFetch()(url, options);
+  const calls = [];
+  const spy = async (url, options) => { calls.push(String(url)); return withForeign(url, options); };
+  const { errors } = await collectEntries({ fetchData: spy });
+  assert.equal(errors.length, 2);
+  assert.ok(errors.every(e => /sitemap ajeno o no https/.test(e)));
+  assert.ok(!calls.some(url => url.startsWith('https://otro.com/')));
+});
+
+test('si el índice principal lista el de la biblioteca, igual se lee entero', async () => {
+  const withLibrary = index.replace('</sitemapindex>', '<sitemap><loc>https://campuscli.com/biblioteca/sitemap.xml</loc></sitemap></sitemapindex>');
+  const listing = async (url, options) => String(url) === 'https://campuscli.com/sitemap-index.xml' ? new Response(withLibrary, { status: 200 }) : fakeFetch()(url, options);
+  const { entries, errors } = await collectEntries({ fetchData: listing });
+  assert.deepEqual(errors, []);
+  assert.ok(entries.some(e => e.loc === 'https://campuscli.com/biblioteca/upc/apuntes/'));
+});
+
+test('robots.txt sin el índice principal: el índice se lee igual', async () => {
+  const onlyLibrary = async (url, options) => String(url).endsWith('/robots.txt') ? new Response('Sitemap: https://campuscli.com/biblioteca/sitemap.xml\n', { status: 200 }) : fakeFetch()(url, options);
+  const { entries, errors } = await collectEntries({ fetchData: onlyLibrary });
+  assert.deepEqual(errors, []);
+  assert.ok(entries.some(e => e.loc === 'https://campuscli.com/blog/a/'));
+  assert.ok(entries.some(e => e.loc === 'https://campuscli.com/biblioteca/upc/apuntes/'));
+});
+
+test('una página HTML o un sitemap vacío con 200 no pasan en silencio', async () => {
+  const broken = async (url, options) => {
+    if (String(url) === 'https://campuscli.com/biblioteca/sitemap-1.xml') return new Response('<!doctype html><html></html>', { status: 200 });
+    if (String(url) === 'https://campuscli.com/profes/sitemap.xml') return new Response('<urlset></urlset>', { status: 200 });
+    return fakeFetch()(url, options);
+  };
+  const { errors } = await collectEntries({ fetchData: broken });
+  assert.ok(errors.some(e => /biblioteca\/sitemap-1\.xml: no es un sitemap/.test(e)));
+  assert.ok(errors.some(e => /profes\/sitemap\.xml: no lista ninguna URL/.test(e)));
+});
+
+test('hay un tope de sitemaps por corrida', async () => {
+  const many = '<sitemapindex>' + Array.from({ length: 80 }, (_, n) => `<sitemap><loc>https://campuscli.com/biblioteca/sitemap-${n + 1}.xml</loc></sitemap>`).join('') + '</sitemapindex>';
+  const huge = async (url, options) => {
+    if (String(url) === 'https://campuscli.com/biblioteca/sitemap.xml') return new Response(many, { status: 200 });
+    if (/\/biblioteca\/sitemap-\d+\.xml$/.test(String(url))) return new Response(bibliotecaUrls, { status: 200 });
+    return fakeFetch()(url, options);
+  };
+  const { errors } = await collectEntries({ fetchData: huge });
+  assert.ok(errors.some(e => /tope de 50 sitemaps/.test(e)));
 });

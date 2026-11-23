@@ -28,7 +28,8 @@ jobs:
     # Los forks no avisan por el dominio.
     if: github.repository == 'alejooroncoy/campus-cli'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Cada sitemap puede tardar ~55 s con reintentos y hoy se leen 7 archivos en fila.
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
