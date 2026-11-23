@@ -13,7 +13,7 @@ howTo:
   totalTime: "PT3M"
   steps:
     - name: "Abre Add custom connector"
-      text: "Abre https://claude.ai/plugins/yours?modal=add-custom-connector, o en claude.ai entra a Plugins, pulsa Add y elige Add custom connector."
+      text: "Abre https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Campus&connectorUrl=https%3A%2F%2Fmcp.campuscli.com%2Fmcp y Claude muestra el formulario con Campus ya completado. También puedes entrar a Plugins, pulsar Add y elegir Add custom connector."
     - name: "Escribe el nombre y la URL"
       text: "Nombre: Campus. URL: https://mcp.campuscli.com/mcp. Pulsa Continue y luego Add. No necesitas Client ID ni Client secret."
     - name: "Autoriza Campus y tu Aula Virtual"
@@ -40,7 +40,7 @@ Necesitas una cuenta de Claude (la gratuita sirve), tu acceso a Blackboard UPC y
 
 ## 1. Abre «Add custom connector»
 
-Abre [este enlace](https://claude.ai/plugins/yours?modal=add-custom-connector) y Claude te lleva directo al formulario. También puedes llegar a mano: en [claude.ai](https://claude.ai) entra a **Plugins** en la barra lateral, pulsa **Add** y elige **Add custom connector** (*Añadir conector personalizado*).
+Abre [este enlace](https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Campus&connectorUrl=https%3A%2F%2Fmcp.campuscli.com%2Fmcp) y Claude te muestra el formulario con el nombre y la URL de Campus ya escritos. También puedes llegar a mano: en [claude.ai](https://claude.ai) entra a **Plugins** en la barra lateral, pulsa **Add** y elige **Add custom connector** (*Añadir conector personalizado*).
 
 ![Menú Add de la página Plugins de Claude con la opción Add custom connector](/assets/blog/claude/01-menu.webp)
 
@@ -51,7 +51,7 @@ Abre [este enlace](https://claude.ai/plugins/yours?modal=add-custom-connector) y
 
 ![Formulario Add custom connector con el nombre Campus y la URL https://mcp.campuscli.com/mcp](/assets/blog/claude/02-formulario.webp)
 
-Pulsa **Continue** y luego **Add**. No llenes **Client ID** ni **Client secret**: Campus no los necesita. El aviso de «connectors from developers you trust» sale con cualquier conector personalizado; lo importante es que el dominio sea `mcp.campuscli.com`.
+Si usaste el enlace, Claude añade un aviso de que los datos vienen de un enlace externo: es normal, solo revisa que la URL sea exactamente esa. Pulsa **Continue** y luego **Add**. No llenes **Client ID** ni **Client secret**: Campus no los necesita. El aviso de «connectors from developers you trust» sale con cualquier conector personalizado; lo importante es que el dominio sea `mcp.campuscli.com`.
 
 ## 3. Autoriza Campus y tu Aula Virtual
 
