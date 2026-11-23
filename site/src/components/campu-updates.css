@@ -979,19 +979,19 @@
   margin: 0;
   border: 0;
 }
-.campu-mail-consent {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin: 12px 0;
-  font-size: 14px;
-  line-height: 1.4;
-  cursor: pointer;
+/* "Entrar con Microsoft" es un enlace (abre otra pestaña con el toque) con forma de botón. */
+.campu-updates .campu-mail-login {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 9px;
+  background: #103b48;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
 }
-.campu-mail-consent input {
-  width: 20px;
-  height: 20px;
-  margin: 1px 0 0;
-  flex: none;
-  accent-color: #103b48;
+.campu-updates .campu-mail-login:focus-visible {
+  outline: 3px solid #4fb3c4;
+  outline-offset: 2px;
 }

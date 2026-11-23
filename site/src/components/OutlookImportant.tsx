@@ -17,6 +17,10 @@ type Api = (path: string, method?: string, body?: unknown) => Promise<any>;
 
 const POLL_MS = 4000;
 const POLL_LIMIT_MS = 5 * 60_000;
+/** Con la sesión de Microsoft de Campus el worker entra solo en ~10 s: se pregunta más
+ * seguido y, si no termina en este tiempo, se ofrece entrar a mano. */
+const SILENT_POLL_MS = 2000;
+const SILENT_LIMIT_MS = 45_000;
 const waiting = (c?: Connection) => c === "pending_login" || c === "saving";
 
 /** El estado llega con el de la página (una sola consulta); aquí solo se actualiza
@@ -39,19 +43,32 @@ function useOutlook(api: Api, status: OutlookStatus | null, onStatus: (next: Out
     if (polling.current !== null) window.clearTimeout(polling.current);
     polling.current = null;
   };
-  // Mientras el alumno entra a Microsoft en otra pestaña, se vuelve a preguntar.
-  const poll = (until = Date.now() + POLL_LIMIT_MS, mine = (stop(), generation.current)) => {
+  // Mientras se conecta (solo o con el alumno en Microsoft), se vuelve a preguntar.
+  // Si iba solo y no terminó a tiempo, se ofrece entrar a mano con el enlace.
+  const [loginUrl, setLoginUrl] = useState<string | null>(null);
+  const [silent, setSilent] = useState(false);
+  const poll = (
+    until = Date.now() + POLL_LIMIT_MS,
+    mine = (stop(), generation.current),
+    every = POLL_MS,
+    giveUp?: number,
+  ) => {
     polling.current = window.setTimeout(async () => {
       polling.current = null;
       try {
         const next: OutlookStatus = await api("/outlook");
         if (mine !== generation.current) return;
         setStatus(next);
-        if (waiting(next.connection) && Date.now() < until) poll(until, mine);
+        if (!waiting(next.connection)) return setSilent(false);
+        if (giveUp && Date.now() >= giveUp) {
+          setSilent(false);
+          return poll(until, mine);
+        }
+        if (Date.now() < until) poll(until, mine, every, giveUp);
       } catch {
-        if (mine === generation.current && Date.now() < until) poll(until, mine);
+        if (mine === generation.current && Date.now() < until) poll(until, mine, every, giveUp);
       }
-    }, POLL_MS);
+    }, every);
   };
   useEffect(() => stop, []);
   useEffect(() => {
@@ -68,38 +85,34 @@ function useOutlook(api: Api, status: OutlookStatus | null, onStatus: (next: Out
       setBusy(false);
     }
   };
-  // La pestaña se abre en el mismo toque: si se abre después de esperar al servidor,
-  // el navegador la bloquea. Si Outlook queda conectado sin pasar por Microsoft, se cierra.
+  // Un solo toque: se acepta el permiso y se conecta. Con la sesión de Microsoft que
+  // Campus ya tiene, no se abre nada; solo si hace falta entrar se muestra el botón.
   const connect = (accept: boolean) =>
     run(async () => {
       stop();
-      const tab = window.open("", "_blank");
-      try {
-        if (accept && status) setStatus(await api("/outlook", "POST", { consent: true, policy: status.policy }));
-        const result = await api("/outlook/connect", "POST", {});
-        if (result.loginUrl && tab) {
-          tab.opener = null;
-          tab.location.href = result.loginUrl;
-        } else tab?.close();
-        if (result.loginUrl && !tab) window.location.assign(result.loginUrl);
-        setStatus((s) => ({ ...s, enabled: true, connection: result.status }));
-        if (waiting(result.status)) poll();
-      } catch (e) {
-        tab?.close();
-        throw e;
-      }
+      setLoginUrl(null);
+      if (accept && status) setStatus(await api("/outlook", "POST", { consent: true, policy: status.policy }));
+      const result = await api("/outlook/connect", "POST", {});
+      setStatus((s) => ({ ...s, enabled: true, connection: result.status }));
+      if (typeof result.loginUrl === "string") setLoginUrl(result.loginUrl);
+      if (!waiting(result.status)) return;
+      if (result.silent === true) {
+        setSilent(true);
+        poll(Date.now() + POLL_LIMIT_MS, undefined, SILENT_POLL_MS, Date.now() + SILENT_LIMIT_MS);
+      } else poll();
     });
   const remove = () =>
     run(async () => {
       stop();
+      setSilent(false);
+      setLoginUrl(null);
       setStatus(await api("/outlook", "DELETE"));
     });
-  return { status, busy, error, connect, remove };
+  return { status, busy, error, connect, remove, loginUrl, silent };
 }
 
 function Card({ state }: { state: ReturnType<typeof useOutlook> }) {
-  const { status, busy, error, connect, remove } = state;
-  const [agreed, setAgreed] = useState(false);
+  const { status, busy, error, connect, remove, loginUrl, silent } = state;
   if (!status?.available) return null;
   const on = status.enabled && status.connection === "connected";
   const pending = status.enabled && waiting(status.connection);
@@ -121,19 +134,31 @@ function Card({ state }: { state: ReturnType<typeof useOutlook> }) {
         </>
       ) : status.enabled ? (
         <>
-          <p className="campu-cal-sync-lead">
-            {pending
-              ? "Termina de entrar con tu cuenta de la UPC en la pestaña de Microsoft. Esta tarjeta se actualiza sola."
-              : "Falta conectar tu Outlook de la UPC para revisar tus correos."}
+          <p className="campu-cal-sync-lead" role="status">
+            {pending && silent
+              ? "Conectando tu Outlook de la UPC con tu cuenta de Campus. Tarda unos segundos."
+              : pending && loginUrl
+                ? "Falta un paso: entra con tu cuenta de la UPC en Microsoft. Esta tarjeta se actualiza sola."
+                : pending
+                  ? "Conectando tu Outlook de la UPC. Esta tarjeta se actualiza sola."
+                  : "Falta conectar tu Outlook de la UPC para revisar tus correos."}
           </p>
-          <div className="campu-cal-sync-actions">
-            <button type="button" disabled={busy} onClick={() => connect(false)}>
-              {pending ? "Abrir Microsoft de nuevo" : "Conectar Outlook"}
-            </button>
-            <button type="button" className="campu-secondary" disabled={busy} onClick={remove}>
-              Desactivar
-            </button>
-          </div>
+          {!(pending && silent) && (
+            <div className="campu-cal-sync-actions">
+              {pending && loginUrl ? (
+                <a className="campu-mail-login" href={loginUrl} target="_blank" rel="noopener noreferrer">
+                  Entrar con Microsoft
+                </a>
+              ) : (
+                <button type="button" disabled={busy} onClick={() => connect(false)}>
+                  {pending ? "Volver a intentar" : "Conectar Outlook"}
+                </button>
+              )}
+              <button type="button" className="campu-secondary" disabled={busy} onClick={remove}>
+                Desactivar
+              </button>
+            </div>
+          )}
         </>
       ) : (
         <>
@@ -145,16 +170,15 @@ function Card({ state }: { state: ReturnType<typeof useOutlook> }) {
             <summary>Qué reviso y qué no</summary>
             <p>{status.permission}</p>
           </details>
-          <label className="campu-mail-consent">
-            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.currentTarget.checked)} />
-            <span>Acepto que Campus revise mis correos de la UPC como se explica arriba.</span>
-          </label>
           <div className="campu-cal-sync-actions">
-            <button type="button" disabled={busy || !agreed} onClick={() => connect(true)}>
-              Activar y conectar Outlook
+            <button type="button" disabled={busy} onClick={() => connect(true)}>
+              Aceptar y activar
             </button>
           </div>
-          <p className="campu-cal-sync-fine">Entras con tu cuenta de la UPC en la página de Microsoft. Puedes desactivarlo cuando quieras.</p>
+          <p className="campu-cal-sync-fine">
+            Al aceptar autorizas lo que explica «Qué reviso y qué no». Uso la cuenta de la UPC con la que entras a
+            Campus y puedes desactivarlo cuando quieras.
+          </p>
         </>
       )}
       {error && (
@@ -187,7 +211,7 @@ export default function OutlookImportant({
       kind="mail"
       logo={LOGOS.outlook}
       text={on ? "Tus correos de la UPC" : "Correos de la UPC"}
-      action={on ? "Ajustes" : state.status.enabled ? "Conectar" : "Activar"}
+      action={on ? "Ajustes" : state.status.enabled && waiting(state.status.connection) ? "Conectando" : state.status.enabled ? "Conectar" : "Activar"}
       quiet={on}
       label="Correos importantes de la UPC"
     >

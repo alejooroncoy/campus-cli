@@ -346,6 +346,7 @@ try {
       outlookCalls = [],
       outlookPolls = 0,
       outlookSlowGet = 0,
+      outlookSilent = true,
       statusCalls = 0,
       failNotices = false,
       noticesFailed = 0,
@@ -495,7 +496,8 @@ try {
         outlookCalls.push("CONNECT");
         outlook = { ...outlook, connection: "pending_login" };
         outlookPolls = 0;
-        return json({ status: "pending_login", loginUrl: "https://www.browserbase.com/devtools-internal/fixture" });
+        // Con la sesión de Microsoft de Campus va sola (silent); sin ella, hay que entrar.
+        return json({ status: "pending_login", loginUrl: "https://www.browserbase.com/devtools-internal/fixture", ...(outlookSilent ? { silent: true } : {}) });
       }
       if (path === "/api/app/proactive/data" && method === "DELETE") {
         deleted++;
@@ -1026,9 +1028,9 @@ try {
       if (process.env.CAL_SHOT_DIR && width === 390) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular-hoja.png" });
       await calHoja.getByRole("button", { name: "Cerrar" }).click();
       await calHoja.waitFor({ state: "hidden" });
-      // Correos importantes de la UPC: su franja va debajo de la del calendario. Sin aceptar
-      // el texto no se activa; activar abre Microsoft en una pestaña pedida en el mismo
-      // toque, y la tarjeta se actualiza sola cuando termina.
+      // Correos importantes de la UPC: su franja va debajo de la del calendario. Un solo
+      // toque acepta el permiso (con su texto a la vista) y conecta. Con la sesión de
+      // Microsoft de Campus no se abre ninguna pestaña: la tarjeta pasa sola a «Activo».
       const correoFranja = page.locator('.novedades-main > .novedades-cal .campu-cal-strip[data-strip="mail"]');
       await correoFranja.waitFor();
       const cajaCorreo = await correoFranja.boundingBox();
@@ -1039,45 +1041,62 @@ try {
       await correoFranja.click();
       const correoHoja = page.locator('.campu-cal-sheet[data-sheet="mail"]');
       await correoHoja.waitFor();
-      const activar = correoHoja.getByRole("button", { name: "Activar y conectar Outlook" });
-      assert.equal(await activar.isDisabled(), true, "sin aceptar no se activa");
+      const activar = correoHoja.getByRole("button", { name: "Aceptar y activar" });
+      assert.equal(await correoHoja.getByRole("checkbox").count(), 0, "un solo toque, sin casilla");
+      assert.match(await correoHoja.innerText(), /Al aceptar autorizas lo que explica «Qué reviso y qué no»/);
       await correoHoja.locator("summary", { hasText: "Qué reviso y qué no" }).click();
       await correoHoja.getByText(outlook.permission).waitFor();
-      await correoHoja.getByRole("checkbox").check();
       if (process.env.CAL_SHOT_DIR && width === 390) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular-correos.png" });
       await page.context().route("https://www.browserbase.com/**", (r) =>
         r.fulfill({ status: 200, contentType: "text/html", body: "Microsoft" }),
       );
       outlookCalls.length = 0;
-      const [microsoft] = await Promise.all([page.waitForEvent("popup"), activar.click()]);
-      await microsoft.waitForURL(/^https:\/\/www\.browserbase\.com\//);
-      assert.equal(await microsoft.evaluate(() => window.opener), null, "sin acceso a Campus");
-      await microsoft.close();
-      await correoHoja.getByText(/Termina de entrar/).waitFor();
-      await correoHoja.getByText(/^Activo\./).waitFor({ timeout: 20000 });
+      let pestanas = 0;
+      const contar = () => pestanas++;
+      page.on("popup", contar);
+      await activar.click();
+      await correoHoja.getByText(/Conectando tu Outlook de la UPC con tu cuenta de Campus/).waitFor();
+      if (process.env.CAL_SHOT_DIR && width === 390) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular-correos-conectando.png" });
+      await correoHoja.getByText(/^Activo\./).waitFor({ timeout: 15000 });
+      page.off("popup", contar);
+      assert.equal(pestanas, 0, "sin abrir ninguna pestaña");
       assert.match(await correoFranja.innerText(), /Tus correos de la UPC\s*Ajustes/);
       assert.deepEqual(outlookCalls.slice(0, 2), ['POST {"consent":true,"policy":"upc-important-mail-v3"}', "CONNECT"]);
       if (process.env.CAL_SHOT_DIR && width === 390) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular-correos-activo.png" });
       await correoHoja.getByRole("button", { name: "Desactivar y borrar avisos" }).click();
-      await correoHoja.getByRole("button", { name: "Activar y conectar Outlook" }).waitFor();
+      await correoHoja.getByRole("button", { name: "Aceptar y activar" }).waitFor();
       assert.equal(outlookCalls.at(-1), "DELETE");
-      // Desactivar mientras una consulta de espera sigue en curso: su respuesta atrasada
-      // no vuelve a mostrar Outlook como activo ni sigue preguntando.
       if (width === 390) {
-        await correoHoja.getByRole("checkbox").check();
-        const [otra] = await Promise.all([page.waitForEvent("popup"), correoHoja.getByRole("button", { name: "Activar y conectar Outlook" }).click()]);
-        await otra.close();
-        await correoHoja.getByText(/Termina de entrar/).waitFor();
+        // Sin la sesión de Microsoft de Campus: aparece «Entrar con Microsoft», que abre
+        // la página de inicio de sesión con el toque del alumno y sin acceso a Campus.
+        outlookSilent = false;
+        await correoHoja.getByRole("button", { name: "Aceptar y activar" }).click();
+        const entrar = correoHoja.getByRole("link", { name: "Entrar con Microsoft" });
+        await entrar.waitFor();
+        assert.equal(await entrar.getAttribute("href"), "https://www.browserbase.com/devtools-internal/fixture");
+        assert.match(await entrar.getAttribute("rel"), /noopener/);
+        const [microsoft] = await Promise.all([page.waitForEvent("popup"), entrar.click()]);
+        await microsoft.waitForURL(/^https:\/\/www\.browserbase\.com\//);
+        assert.equal(await microsoft.evaluate(() => window.opener), null, "sin acceso a Campus");
+        await microsoft.close();
+        await correoHoja.getByText(/^Activo\./).waitFor({ timeout: 20000 });
+        await correoHoja.getByRole("button", { name: "Desactivar y borrar avisos" }).click();
+        await correoHoja.getByRole("button", { name: "Aceptar y activar" }).waitFor();
+        // Desactivar mientras una consulta de espera sigue en curso: su respuesta atrasada
+        // no vuelve a mostrar Outlook como activo ni sigue preguntando.
+        await correoHoja.getByRole("button", { name: "Aceptar y activar" }).click();
+        await correoHoja.getByRole("link", { name: "Entrar con Microsoft" }).waitFor();
         outlookSlowGet = 3000;
         await page.waitForRequest((r) => r.method() === "GET" && new URL(r.url()).pathname === "/api/app/proactive/outlook/", { timeout: 10000 });
         await correoHoja.getByRole("button", { name: "Desactivar" }).click();
-        await correoHoja.getByRole("button", { name: "Activar y conectar Outlook" }).waitFor();
+        await correoHoja.getByRole("button", { name: "Aceptar y activar" }).waitFor();
         const antes = outlookCalls.length;
         await page.waitForTimeout(outlookSlowGet + 5000);
         assert.equal(await correoHoja.getByText(/^Activo\./).count(), 0, "la respuesta atrasada no reactiva la tarjeta");
-        assert.equal(await correoHoja.getByRole("button", { name: "Activar y conectar Outlook" }).count(), 1);
+        assert.equal(await correoHoja.getByRole("button", { name: "Aceptar y activar" }).count(), 1);
         assert.equal(outlookCalls.slice(antes).filter((c) => c === "GET").length, 0, "no sigue preguntando");
         outlookSlowGet = 0;
+        outlookSilent = true;
       }
       await correoHoja.getByRole("button", { name: "Cerrar" }).click();
       await correoHoja.waitFor({ state: "hidden" });
