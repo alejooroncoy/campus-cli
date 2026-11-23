@@ -1037,6 +1037,8 @@ export default function CampuUpdates() {
       const keepSaved =
         (identity !== null && owner.current === identity) ||
         Boolean(saved && savedOwner && savedOwner === identity && owner.current === null);
+      // Otra cuenta: el enlace de Microsoft y el plazo eran de la anterior.
+      if (owner.current !== identity) setOutlookLocal({});
       owner.current = identity;
       loaded.current = false;
       weekPending.current = false;

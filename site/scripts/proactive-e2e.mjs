@@ -1110,6 +1110,26 @@ try {
         outlookFailGet = false;
         await correoHoja.getByRole("button", { name: "Desactivar" }).click();
         await correoHoja.getByRole("button", { name: "Aceptar y activar" }).waitFor();
+        // Cambia la cuenta con la página abierta: el enlace de Microsoft de la anterior
+        // no queda a la vista para la nueva.
+        outlookSilent = false;
+        await correoHoja.getByRole("button", { name: "Aceptar y activar" }).click();
+        await correoHoja.getByRole("link", { name: "Entrar con Microsoft" }).waitFor();
+        await correoHoja.getByRole("button", { name: "Cerrar" }).click();
+        const cambiarA = (detail) => page.evaluate((d) => window.dispatchEvent(new CustomEvent("campus:session-updated", { detail: d })), detail);
+        await cambiarA({ ...session, analyticsId: "campus:otra-cuenta", email: "otra@example.test" });
+        await correoFranja.waitFor();
+        await correoFranja.click();
+        await correoHoja.getByText(/Conectando tu Outlook de la UPC|Falta conectar|Falta un paso/).waitFor();
+        assert.equal(await correoHoja.getByRole("link", { name: "Entrar con Microsoft" }).count(), 0, "sin el enlace de la otra cuenta");
+        await correoHoja.getByRole("button", { name: "Desactivar" }).click();
+        await correoHoja.getByRole("button", { name: "Aceptar y activar" }).waitFor();
+        await correoHoja.getByRole("button", { name: "Cerrar" }).click();
+        await cambiarA(session);
+        await correoFranja.waitFor();
+        await correoFranja.click();
+        await correoHoja.getByRole("button", { name: "Aceptar y activar" }).waitFor();
+        outlookSilent = true;
       }
       await correoHoja.getByRole("button", { name: "Cerrar" }).click();
       await correoHoja.waitFor({ state: "hidden" });
