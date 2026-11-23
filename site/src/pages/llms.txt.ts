@@ -46,6 +46,7 @@ More than 350 students have used the professor-rating feature.
 ${turnitinServiceEnabled ? `- Turnitin reports in Peru: https://campuscli.com/turnitin/ (Markdown: https://campuscli.com/turnitin/index.md). AI-only: S/6 (processed by academi.cx, not Turnitin); similarity: S/9; similarity + AI: S/14 (both via Turnitin API), per document. Processing through Turnitin API except AI-only; results may differ from institutional Turnitin reports. Selected reports, delivered in 10 minutes to 1 hour after payment validation. Upload and Yape/Plin receipt through https://campuscli.com/app/turnitin/; check live availability there.\n` : ""}- Blackboard UPC: tareas, notas y materiales con IA: https://campuscli.com/blackboard-upc/ (Markdown: https://campuscli.com/blackboard-upc/index.md)
 - Blackboard in ChatGPT, nothing to install (paid): https://campuscli.com/blackboard-chatgpt/ (Markdown: https://campuscli.com/blackboard-chatgpt/index.md)
 - Blackboard MCP: https://campuscli.com/blackboard-mcp/ (Markdown: https://campuscli.com/blackboard-mcp/index.md)
+- Claude MCP: https://campuscli.com/blog/conectar-blackboard-claude-campus/ (Markdown: https://campuscli.com/blog/conectar-blackboard-claude-campus/index.md)
 - Gemini MCP: https://campuscli.com/blog/conectar-blackboard-gemini-campus/ (Markdown: https://campuscli.com/blog/conectar-blackboard-gemini-campus/index.md)
 - Blackboard CLI, free and open source: https://campuscli.com/blackboard-cli/ (Markdown: https://campuscli.com/blackboard-cli/index.md)
 - Blog: https://campuscli.com/blog/
@@ -70,6 +71,7 @@ explicit confirmation before submitting an assignment.
 Step-by-step for connecting Blackboard UPC to each client, plus a comparison of
 the options that exist.
 
+- [Claude MCP: cómo conectar Blackboard UPC con Campus](https://campuscli.com/blog/conectar-blackboard-claude-campus/) (Markdown: https://campuscli.com/blog/conectar-blackboard-claude-campus/index.md)
 - [Gemini MCP: cómo conectar Blackboard UPC con Campus](https://campuscli.com/blog/conectar-blackboard-gemini-campus/) (Markdown: https://campuscli.com/blog/conectar-blackboard-gemini-campus/index.md)
 ${perClient.join("\n")}
 
