@@ -65,9 +65,15 @@ Si usaste el enlace, Claude añade un aviso de que los datos vienen de un enlace
 
 ## 3. Inicia sesión con tu cuenta Campus
 
-Al pulsar **Add**, Claude abre la página de inicio de sesión de Campus. Entra con Google usando **el mismo correo con el que te registraste en Campus**. Si es tu primera vez, elige el correo de Google que quieras usar: tu cuenta Campus se crea en ese momento. Luego acepta que Claude se conecte a ella. Así Claude usa tu cuenta, tu plan y tus consultas.
+Al pulsar **Add**, Claude abre el inicio de sesión de Google para Campus. Elige **el mismo correo con el que te registraste en Campus**. Si es tu primera vez, elige el correo de Google que quieras usar: tu cuenta Campus se crea en ese momento. Luego acepta que Claude se conecte a ella. Así Claude usa tu cuenta, tu plan y tus consultas.
 
-Si es tu primera vez en Campus, te pide **elegir tu universidad**. Hoy puedes conectar el Aula Virtual de la **UPC**, la **UPN**, la **Universidad de Lima** y la **Universidad de Palermo**. Después, Campus te lleva al inicio de sesión de tu universidad:
+![Pantalla de Google «Selecciona una cuenta» para ir a Campus, con una cuenta de ejemplo](/assets/blog/claude/inicio-google.webp)
+
+Si es tu primera vez en Campus, te pide **elegir tu universidad**. Hoy puedes conectar el Aula Virtual de la **UPC**, la **UPN**, la **Universidad de Lima** y la **Universidad de Palermo**. Marca la tuya y pulsa **Continuar**.
+
+![Pantalla de Campus «¿De qué institución vienes?» con las opciones UPC, UPN, Palermo y Ulima](/assets/blog/claude/elegir-universidad.webp)
+
+Después, Campus te lleva al inicio de sesión de tu universidad:
 
 - **UPC y UPN:** el acceso institucional de tu universidad, con tu correo y contraseña de alumno.
 - **Universidad de Lima:** el formulario de inicio de sesión de su Blackboard.
