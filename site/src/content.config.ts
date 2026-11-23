@@ -60,6 +60,19 @@ const blog = defineCollection({
         }),
       })
       .optional(),
+    /**
+     * A one-click shortcut shown right under the summary, for guides whose
+     * whole point is an action the reader can start from a link (a connector
+     * form that arrives pre-filled, for example). Data rather than a button
+     * in the body so the Markdown twin gets a plain link, not markup.
+     */
+    quickAction: z
+      .object({
+        label: z.string(),
+        href: z.string().url(),
+        note: z.string().optional(),
+      })
+      .optional(),
     howTo: z
       .object({
         name: z.string(),
