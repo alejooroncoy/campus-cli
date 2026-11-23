@@ -347,6 +347,7 @@ try {
       outlookPolls = 0,
       outlookSlowGet = 0,
       outlookSilent = true,
+      outlookFailGet = false,
       statusCalls = 0,
       failNotices = false,
       noticesFailed = 0,
@@ -482,6 +483,8 @@ try {
           outlook = { ...outlook, enabled: true };
         }
         if (method === "DELETE") outlook = { ...outlook, enabled: false, connection: "not_connected" };
+        if (method === "GET" && outlookFailGet)
+          return route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ error: "PROACTIVE_UNAVAILABLE" }) });
         // Respuesta atrasada: el estado de cuando se pidió, ya conectado, llega tarde.
         if (method === "GET" && outlookSlowGet) {
           const stale = { ...outlook, connection: "connected" };
@@ -1097,6 +1100,16 @@ try {
         assert.equal(outlookCalls.slice(antes).filter((c) => c === "GET").length, 0, "no sigue preguntando");
         outlookSlowGet = 0;
         outlookSilent = true;
+        // Va sola pero las consultas fallan: a los 45 s vuelven «Entrar con Microsoft» y
+        // «Desactivar»; la tarjeta no se queda en «Conectando» sin salida.
+        outlookFailGet = true;
+        await correoHoja.getByRole("button", { name: "Aceptar y activar" }).click();
+        await correoHoja.getByText(/Conectando tu Outlook de la UPC con tu cuenta de Campus/).waitFor();
+        await correoHoja.getByRole("link", { name: "Entrar con Microsoft" }).waitFor({ timeout: 60000 });
+        assert.equal(await correoHoja.getByRole("button", { name: "Desactivar" }).count(), 1);
+        outlookFailGet = false;
+        await correoHoja.getByRole("button", { name: "Desactivar" }).click();
+        await correoHoja.getByRole("button", { name: "Aceptar y activar" }).waitFor();
       }
       await correoHoja.getByRole("button", { name: "Cerrar" }).click();
       await correoHoja.waitFor({ state: "hidden" });

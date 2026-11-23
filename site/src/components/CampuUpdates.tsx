@@ -11,7 +11,7 @@ import {
   removePushDevice,
 } from "../scripts/proactive-device";
 import CalendarSubscribe, { CalendarStrip } from "./CalendarSubscribe";
-import OutlookImportant from "./OutlookImportant";
+import OutlookImportant, { type OutlookLocal } from "./OutlookImportant";
 import "./campu-updates.css";
 
 /** Dónde va "Tus entregas en Google Calendar": justo debajo de WhatsApp, que vive fuera
@@ -921,6 +921,8 @@ function Home({
 export default function CampuUpdates() {
   const [session, setSession] = useState<CampusSession | null>(null),
     [status, setStatus] = useState<any>(null),
+    // Enlace de Microsoft y plazo de "va sola": aparte del estado del servidor.
+    [outlookLocal, setOutlookLocal] = useState<OutlookLocal>({}),
     [prefs, setPrefs] = useState<Preferences>(initial),
     [notices, setNotices] = useState<Notice[]>([]),
     [next, setNext] = useState<string | null>(null),
@@ -1349,6 +1351,8 @@ export default function CampuUpdates() {
                     mode={mode}
                     status={status.outlook}
                     onStatus={(next) => setStatus((st: any) => ({ ...st, outlook: next }))}
+                    local={outlookLocal}
+                    onLocal={setOutlookLocal}
                   />
                 )}
               />

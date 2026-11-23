@@ -13,6 +13,10 @@ export type OutlookStatus = {
   permission: string;
   connection: Connection;
 };
+/** Solo en el navegador: enlace de Microsoft y plazo de "va sola" del último intento.
+ * Viven en la página, aparte del estado del servidor: ni un refresco ni volver a montar
+ * la tarjeta los pierden. Nunca se guardan en el reporte local. */
+export type OutlookLocal = { loginUrl?: string; silentUntil?: number };
 type Api = (path: string, method?: string, body?: unknown) => Promise<any>;
 
 const POLL_MS = 4000;
@@ -22,10 +26,18 @@ const POLL_LIMIT_MS = 5 * 60_000;
 const SILENT_POLL_MS = 2000;
 const SILENT_LIMIT_MS = 45_000;
 const waiting = (c?: Connection) => c === "pending_login" || c === "saving";
+/** Plazos con reloj monótono: no dependen de la hora del sistema. */
+const clock = () => performance.now();
 
 /** El estado llega con el de la página (una sola consulta); aquí solo se actualiza
  * después de una acción o mientras se espera a Microsoft. */
-function useOutlook(api: Api, status: OutlookStatus | null, onStatus: (next: OutlookStatus) => void) {
+function useOutlook(
+  api: Api,
+  status: OutlookStatus | null,
+  onStatus: (next: OutlookStatus) => void,
+  local: OutlookLocal,
+  onLocal: (next: OutlookLocal) => void,
+) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const polling = useRef<number | null>(null);
@@ -33,7 +45,12 @@ function useOutlook(api: Api, status: OutlookStatus | null, onStatus: (next: Out
   latest.current = status;
   const setStatus = (next: OutlookStatus | ((s: OutlookStatus) => OutlookStatus)) => {
     const value = typeof next === "function" ? (latest.current ? next(latest.current) : null) : next;
-    if (value) onStatus(value);
+    // El último estado queda a mano enseguida: otra actualización en el mismo turno
+    // parte de él y no de una copia vieja.
+    if (value) {
+      latest.current = value;
+      onStatus(value);
+    }
   };
   // Cada acción (conectar, desactivar) y el desmontaje cambian la generación: una
   // consulta de espera que vuelve después ya no pisa el estado ni sigue preguntando.
@@ -45,34 +62,47 @@ function useOutlook(api: Api, status: OutlookStatus | null, onStatus: (next: Out
   };
   // Mientras se conecta (solo o con el alumno en Microsoft), se vuelve a preguntar.
   // Si iba solo y no terminó a tiempo, se ofrece entrar a mano con el enlace.
-  const [loginUrl, setLoginUrl] = useState<string | null>(null);
-  const [silent, setSilent] = useState(false);
+  const loginUrl = local.loginUrl ?? null;
+  const silent = Boolean(local.silentUntil && clock() < local.silentUntil);
+  const localNow = useRef(local);
+  localNow.current = local;
+  const setLocal = (next: OutlookLocal) => {
+    localNow.current = next;
+    onLocal(next);
+  };
   const poll = (
-    until = Date.now() + POLL_LIMIT_MS,
+    until = clock() + POLL_LIMIT_MS,
     mine = (stop(), generation.current),
     every = POLL_MS,
     giveUp?: number,
   ) => {
     polling.current = window.setTimeout(async () => {
       polling.current = null;
-      try {
-        const next: OutlookStatus = await api("/outlook");
-        if (mine !== generation.current) return;
-        setStatus(next);
-        if (!waiting(next.connection)) return setSilent(false);
-        if (giveUp && Date.now() >= giveUp) {
-          setSilent(false);
-          return poll(until, mine);
-        }
-        if (Date.now() < until) poll(until, mine, every, giveUp);
-      } catch {
-        if (mine === generation.current && Date.now() < until) poll(until, mine, every, giveUp);
+      // Pasado el plazo de "va sola" (también si las consultas fallan), se muestran
+      // otra vez los botones: entrar con Microsoft o desactivar.
+      const fresh: OutlookStatus | null = await api("/outlook").catch(() => null);
+      if (mine !== generation.current) return;
+      const done = Boolean(fresh && !waiting(fresh.connection));
+      const expired = Boolean(giveUp && clock() >= giveUp) || clock() >= until;
+      if (fresh) setStatus(fresh);
+      if (done) setLocal({});
+      else if (expired && localNow.current.silentUntil) setLocal({ ...localNow.current, silentUntil: undefined });
+      if (done || clock() >= until) return;
+      if (giveUp && clock() >= giveUp) {
+        giveUp = undefined;
+        every = POLL_MS;
       }
+      poll(until, mine, every, giveUp);
     }, every);
   };
   useEffect(() => stop, []);
+  // Al montar (o volver a montar) con una conexión en curso, se sigue preguntando; si
+  // iba sola, con el plazo que le queda.
   useEffect(() => {
-    if (waiting(status?.connection) && polling.current === null) poll();
+    if (!waiting(status?.connection) || polling.current !== null) return;
+    const until = localNow.current.silentUntil;
+    if (until && clock() < until) poll(clock() + POLL_LIMIT_MS, undefined, SILENT_POLL_MS, until);
+    else poll();
   }, [status?.connection]);
   const run = async (work: () => Promise<void>) => {
     setBusy(true);
@@ -90,22 +120,19 @@ function useOutlook(api: Api, status: OutlookStatus | null, onStatus: (next: Out
   const connect = (accept: boolean) =>
     run(async () => {
       stop();
-      setLoginUrl(null);
       if (accept && status) setStatus(await api("/outlook", "POST", { consent: true, policy: status.policy }));
       const result = await api("/outlook/connect", "POST", {});
+      const silentUntil = result.silent === true && waiting(result.status) ? clock() + SILENT_LIMIT_MS : undefined;
+      setLocal({ loginUrl: typeof result.loginUrl === "string" ? result.loginUrl : undefined, silentUntil });
       setStatus((s) => ({ ...s, enabled: true, connection: result.status }));
-      if (typeof result.loginUrl === "string") setLoginUrl(result.loginUrl);
       if (!waiting(result.status)) return;
-      if (result.silent === true) {
-        setSilent(true);
-        poll(Date.now() + POLL_LIMIT_MS, undefined, SILENT_POLL_MS, Date.now() + SILENT_LIMIT_MS);
-      } else poll();
+      if (silentUntil) poll(clock() + POLL_LIMIT_MS, undefined, SILENT_POLL_MS, silentUntil);
+      else poll();
     });
   const remove = () =>
     run(async () => {
       stop();
-      setSilent(false);
-      setLoginUrl(null);
+      setLocal({});
       setStatus(await api("/outlook", "DELETE"));
     });
   return { status, busy, error, connect, remove, loginUrl, silent };
@@ -196,13 +223,17 @@ export default function OutlookImportant({
   status,
   onStatus,
   mode,
+  local,
+  onLocal,
 }: {
   api: Api;
   status: OutlookStatus | null | undefined;
   onStatus: (next: OutlookStatus) => void;
   mode: "card" | "strip";
+  local: OutlookLocal;
+  onLocal: (next: OutlookLocal) => void;
 }) {
-  const state = useOutlook(api, status ?? null, onStatus);
+  const state = useOutlook(api, status ?? null, onStatus, local, onLocal);
   if (!state.status?.available) return null;
   if (mode === "card") return <Card state={state} />;
   const on = state.status.enabled && state.status.connection === "connected";
