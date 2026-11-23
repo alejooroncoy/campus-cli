@@ -327,6 +327,7 @@ try {
       outlook = { available: true, enabled: false, policy: "upc-important-mail-v3", permission: "Autorizo a Campus a revisar vistas previas de mis correos de prueba.", connection: "not_connected" },
       outlookCalls = [],
       outlookPolls = 0,
+      outlookSlowGet = 0,
       statusCalls = 0,
       failNotices = false,
       noticesFailed = 0,
@@ -462,6 +463,12 @@ try {
           outlook = { ...outlook, enabled: true };
         }
         if (method === "DELETE") outlook = { ...outlook, enabled: false, connection: "not_connected" };
+        // Respuesta atrasada: el estado de cuando se pidió, ya conectado, llega tarde.
+        if (method === "GET" && outlookSlowGet) {
+          const stale = { ...outlook, connection: "connected" };
+          await new Promise((r) => setTimeout(r, outlookSlowGet));
+          return json(stale);
+        }
         // Microsoft termina después de la primera consulta de espera.
         if (method === "GET" && outlook.connection === "pending_login" && ++outlookPolls > 1) outlook = { ...outlook, connection: "connected" };
         return json(outlook);
@@ -1026,6 +1033,24 @@ try {
       await correoHoja.getByRole("button", { name: "Desactivar y borrar avisos" }).click();
       await correoHoja.getByRole("button", { name: "Activar y conectar Outlook" }).waitFor();
       assert.equal(outlookCalls.at(-1), "DELETE");
+      // Desactivar mientras una consulta de espera sigue en curso: su respuesta atrasada
+      // no vuelve a mostrar Outlook como activo ni sigue preguntando.
+      if (width === 390) {
+        await correoHoja.getByRole("checkbox").check();
+        const [otra] = await Promise.all([page.waitForEvent("popup"), correoHoja.getByRole("button", { name: "Activar y conectar Outlook" }).click()]);
+        await otra.close();
+        await correoHoja.getByText(/Termina de entrar/).waitFor();
+        outlookSlowGet = 3000;
+        await page.waitForRequest((r) => r.method() === "GET" && new URL(r.url()).pathname === "/api/app/proactive/outlook/", { timeout: 10000 });
+        await correoHoja.getByRole("button", { name: "Desactivar" }).click();
+        await correoHoja.getByRole("button", { name: "Activar y conectar Outlook" }).waitFor();
+        const antes = outlookCalls.length;
+        await page.waitForTimeout(outlookSlowGet + 5000);
+        assert.equal(await correoHoja.getByText(/^Activo\./).count(), 0, "la respuesta atrasada no reactiva la tarjeta");
+        assert.equal(await correoHoja.getByRole("button", { name: "Activar y conectar Outlook" }).count(), 1);
+        assert.equal(outlookCalls.slice(antes).filter((c) => c === "GET").length, 0, "no sigue preguntando");
+        outlookSlowGet = 0;
+      }
       await correoHoja.getByRole("button", { name: "Cerrar" }).click();
       await correoHoja.waitFor({ state: "hidden" });
       // En escritorio, con la columna de WhatsApp, pasa debajo de la tarjeta.

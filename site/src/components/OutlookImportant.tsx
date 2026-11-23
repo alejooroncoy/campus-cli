@@ -31,21 +31,25 @@ function useOutlook(api: Api, status: OutlookStatus | null, onStatus: (next: Out
     const value = typeof next === "function" ? (latest.current ? next(latest.current) : null) : next;
     if (value) onStatus(value);
   };
+  // Cada acción (conectar, desactivar) y el desmontaje cambian la generación: una
+  // consulta de espera que vuelve después ya no pisa el estado ni sigue preguntando.
+  const generation = useRef(0);
   const stop = () => {
+    generation.current++;
     if (polling.current !== null) window.clearTimeout(polling.current);
     polling.current = null;
   };
   // Mientras el alumno entra a Microsoft en otra pestaña, se vuelve a preguntar.
-  const poll = (until = Date.now() + POLL_LIMIT_MS) => {
-    stop();
+  const poll = (until = Date.now() + POLL_LIMIT_MS, mine = (stop(), generation.current)) => {
     polling.current = window.setTimeout(async () => {
       polling.current = null;
       try {
         const next: OutlookStatus = await api("/outlook");
+        if (mine !== generation.current) return;
         setStatus(next);
-        if (waiting(next.connection) && Date.now() < until) poll(until);
+        if (waiting(next.connection) && Date.now() < until) poll(until, mine);
       } catch {
-        if (Date.now() < until) poll(until);
+        if (mine === generation.current && Date.now() < until) poll(until, mine);
       }
     }, POLL_MS);
   };
@@ -68,6 +72,7 @@ function useOutlook(api: Api, status: OutlookStatus | null, onStatus: (next: Out
   // el navegador la bloquea. Si Outlook queda conectado sin pasar por Microsoft, se cierra.
   const connect = (accept: boolean) =>
     run(async () => {
+      stop();
       const tab = window.open("", "_blank");
       try {
         if (accept && status) setStatus(await api("/outlook", "POST", { consent: true, policy: status.policy }));
