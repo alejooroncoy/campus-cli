@@ -32,7 +32,7 @@ faq:
 summary:
   - "Agrega **https://mcp.campuscli.com/mcp** como conector personalizado en Claude; no instalas nada."
   - "Funciona con el **plan gratuito de Claude**, en la web, el escritorio y el celular."
-  - "**Campus Free** incluye 25 consultas de bienvenida en la web; **Campus Plus** suma consultas ilimitadas mediante MCP."
+  - "**Campus Free** incluye 25 consultas de bienvenida en la web y 15 de prueba en el conector; **Campus Plus** da consultas ilimitadas mediante MCP."
 ---
 Con el conector de Campus, Claude lee tus cursos, tareas, notas y materiales de Blackboard UPC cuando se lo pides. Lo configuras una vez, en unos tres minutos, y sin instalar nada.
 
