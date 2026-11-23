@@ -11,6 +11,8 @@ const MAX_URLS = 10_000;
 // Identifica el aviso en los registros y reglas del firewall de Vercel.
 const USER_AGENT = 'campuscli-indexnow (+https://campuscli.com)';
 const RETRY_MS = [2_000, 8_000];
+// Tope de archivos de sitemap por corrida (hoy se leen 6).
+const MAX_SITEMAPS = 50;
 const RETRIES = RETRY_MS.length;
 
 const unescapeXml = text => text.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
@@ -49,12 +51,19 @@ export function changedSince(entries, since, until = '9999-12-31') {
   return [...new Set(urls)];
 }
 
+/** Sitemaps que declara robots.txt (líneas `Sitemap:`). */
+export function parseRobotsSitemaps(text) {
+  return [...text.matchAll(/^[ \t]*sitemap:[ \t]*(\S+)/gim)].map(([, url]) => url);
+}
+
 /**
- * Todas las URLs del sitio que lista el índice de sitemaps. Si un sitemap
- * falla (por ejemplo el de profes, que depende de otro servicio), se siguen
- * leyendo los demás y el fallo queda en `errors`.
+ * Todas las URLs del sitio: las de cada sitemap que declara robots.txt. Así
+ * entra también la biblioteca, que publica su propio índice fuera de
+ * sitemap-index.xml (un índice no puede contener otro). Si un sitemap falla
+ * (por ejemplo el de profes, que depende de otro servicio), se siguen leyendo
+ * los demás y el fallo queda en `errors`.
  */
-export async function collectEntries({ fetchData = fetch, index = `${SITE_ORIGIN}/sitemap-index.xml`, wait = ms => new Promise(r => setTimeout(r, ms)) } = {}) {
+export async function collectEntries({ fetchData = fetch, robots = `${SITE_ORIGIN}/robots.txt`, wait = ms => new Promise(r => setTimeout(r, ms)) } = {}) {
   // El sitemap de profes sale de una función que depende de otro servicio: un
   // 5xx o un corte pasajero se reintenta antes de darlo por caído.
   const read = async url => {
@@ -71,16 +80,58 @@ export async function collectEntries({ fetchData = fetch, index = `${SITE_ORIGIN
       throw new Error(`sitemap ${url}: ${response.status}`);
     }
   };
-  const sitemaps = parseSitemapIndex(await read(index)).filter(ownUrl);
   const entries = [];
   const errors = [];
-  for (const sitemap of sitemaps) {
+  // El índice principal se lee siempre, aunque robots.txt no responda o no lo declare.
+  const roots = new Set([`${SITE_ORIGIN}/sitemap-index.xml`]);
+  try {
+    for (const url of parseRobotsSitemaps(await read(robots))) {
+      if (ownUrl(url)) roots.add(url);
+      else errors.push(`robots.txt: sitemap ajeno o no https, se ignora: ${url}`);
+    }
+  } catch (error) {
+    errors.push(String(error?.message ?? error));
+  }
+  const seen = new Set();
+  // depth 0: lo que declara robots.txt (índice o sitemap). depth 1: lo que lista
+  // un índice. Más abajo no se baja: el protocolo no admite índices anidados.
+  const visit = async (url, depth) => {
+    if (seen.has(url)) return;
+    // Un tope por si un índice lista miles de archivos por un conteo errado.
+    if (seen.size >= MAX_SITEMAPS) {
+      errors.push(`sitemap ${url}: se superó el tope de ${MAX_SITEMAPS} sitemaps`);
+      return;
+    }
+    seen.add(url);
+    let xml;
     try {
-      entries.push(...parseUrlset(await read(sitemap)));
+      xml = await read(url);
     } catch (error) {
       errors.push(String(error?.message ?? error));
+      return;
     }
-  }
+    if (/<urlset[\s>]/.test(xml)) {
+      const found = parseUrlset(xml);
+      if (!found.length) errors.push(`sitemap ${url}: no lista ninguna URL`);
+      entries.push(...found);
+      return;
+    }
+    if (!/<sitemapindex[\s>]/.test(xml)) {
+      // Por ejemplo una página HTML servida con 200 en lugar del XML.
+      errors.push(`sitemap ${url}: no es un sitemap`);
+      return;
+    }
+    if (depth > 0) {
+      errors.push(`sitemap ${url}: índice dentro de otro índice`);
+      return;
+    }
+    // Un hijo que también es raíz se lee como raíz: si el índice principal
+    // llegara a listar el de la biblioteca, no se pierde por el orden de lectura.
+    for (const child of parseSitemapIndex(xml).filter(ownUrl)) {
+      if (!roots.has(child)) await visit(child, depth + 1);
+    }
+  };
+  for (const root of roots) await visit(root, 0);
   return { entries, errors };
 }
 
@@ -119,6 +170,7 @@ export async function notifyChanged({ all = false, dryRun = false, fetchData = f
   const until = limaDate(-1, now);
   const { entries, errors } = await collectEntries({ fetchData, wait });
   const urls = all ? [...new Set(entries.map(e => e.loc).filter(ownUrl))] : changedSince(entries, since, until);
+  if (urls.length > MAX_URLS) errors.push(`${urls.length} URLs: IndexNow acepta ${MAX_URLS} por aviso y el resto no se envía`);
   let result = { submitted: 0, status: null };
   if (!dryRun) {
     try {
