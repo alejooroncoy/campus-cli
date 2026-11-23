@@ -21,16 +21,16 @@ howTo:
     - name: "Escribe el nombre y la URL"
       text: "Nombre: Campus. URL: https://mcp.campuscli.com/mcp. Pulsa Continue y luego Add. No necesitas Client ID ni Client secret."
     - name: "Inicia sesión con tu cuenta Campus"
-      text: "Después de Add, Claude abre el inicio de sesión de Campus. Entra con la misma cuenta que usas en la app de Campus y autoriza el acceso. La primera vez, elige tu universidad (por ejemplo UPC o Universidad de Lima) y conecta su Aula Virtual."
+      text: "Después de Add, Claude abre el inicio de sesión de Campus. Entra con el correo de Google con el que te registraste en Campus (si es tu primera vez, elige uno) y autoriza el acceso. La primera vez, elige tu universidad (UPC, UPN, Universidad de Lima o Universidad de Palermo) y conecta su Aula Virtual con el inicio de sesión oficial de tu universidad."
     - name: "Activa Campus en un chat y pregunta"
       text: "En un chat pulsa +, entra a Plugins, activa Campus y pregunta por tus tareas de la semana."
 faq:
   - q: "¿Cuál es la URL de Campus para Claude?"
     a: "https://mcp.campuscli.com/mcp, con https y la ruta /mcp al final. Como nombre puedes escribir Campus."
   - q: "¿Con qué cuenta inicio sesión?"
-    a: "Con dos cuentas distintas: tu cuenta de Claude, para abrir el formulario y agregar el conector, y tu cuenta Campus, que Claude te pide justo después de pulsar Add. Usa la misma cuenta Campus que en la app web; si no tienes una, créala antes en campuscli.com/app."
-  - q: "¿Sirve si estudio en la Universidad de Lima?"
-    a: "Sí. La primera vez que entras a Campus eliges tu universidad, y la Universidad de Lima ya aparece en la lista. Los pasos en Claude son los mismos; solo cambia el inicio de sesión de tu Aula Virtual."
+    a: "Con dos cuentas distintas: tu cuenta de Claude, para abrir el formulario y agregar el conector, y tu cuenta Campus, que Claude te pide justo después de pulsar Add. En Campus entras con Google: usa el mismo correo con el que te registraste en campuscli.com; si es tu primera vez, elige el correo de Google que quieras y tu cuenta se crea en ese momento."
+  - q: "¿Sirve si no estudio en la UPC?"
+    a: "Sí, si tu universidad usa Blackboard y está en la lista de Campus: hoy son la UPC, la UPN, la Universidad de Lima y la Universidad de Palermo. Los pasos en Claude son los mismos; solo cambia el inicio de sesión de tu Aula Virtual, que eliges la primera vez que entras a Campus."
   - q: "¿Necesito pagar Claude Pro?"
     a: "No. El plan gratuito de Claude admite un conector personalizado. Si ya tienes otro, quítalo para agregar Campus."
   - q: "¿Funciona en la app de Claude del celular?"
@@ -42,9 +42,9 @@ summary:
   - "Funciona con el **plan gratuito de Claude**, en la web, el escritorio y el celular."
   - "**Campus Free** incluye 25 consultas de bienvenida en la web y 15 de prueba en el conector; **Campus Plus** da consultas ilimitadas mediante MCP."
 ---
-Con el conector de Campus, Claude lee tus cursos, tareas, notas y materiales de Blackboard UPC cuando se lo pides. Lo configuras una vez, en unos tres minutos, y sin instalar nada.
+Con el conector de Campus, Claude lee tus cursos, tareas, notas y materiales de Blackboard cuando se lo pides. Funciona con la UPC, la UPN, la Universidad de Lima y la Universidad de Palermo. Lo configuras una vez, en unos tres minutos, y sin instalar nada.
 
-Necesitas dos cuentas: la de **Claude** (la gratuita sirve) y la de **Campus** (si no tienes, [créala aquí](/app/)), además de tu acceso al Blackboard de tu universidad. Las capturas son de Claude en inglés; si lo usas en español, los botones dicen lo mismo traducido.
+Necesitas dos cuentas: la de **Claude** (la gratuita sirve) y la de **Campus**, que se abre con tu correo de Google, además de tu acceso al Blackboard de tu universidad. Las capturas son de Claude en inglés; si lo usas en español, los botones dicen lo mismo traducido.
 
 ## 1. Abre «Add custom connector»
 
@@ -65,9 +65,15 @@ Si usaste el enlace, Claude añade un aviso de que los datos vienen de un enlace
 
 ## 3. Inicia sesión con tu cuenta Campus
 
-Al pulsar **Add**, Claude abre la página de inicio de sesión de Campus. Entra con la **misma cuenta que usas en la app de Campus** y acepta que Claude se conecte a ella. Así Claude usa tu cuenta, tu plan y tus consultas.
+Al pulsar **Add**, Claude abre la página de inicio de sesión de Campus. Entra con Google usando **el mismo correo con el que te registraste en Campus**. Si es tu primera vez, elige el correo de Google que quieras usar: tu cuenta Campus se crea en ese momento. Luego acepta que Claude se conecte a ella. Así Claude usa tu cuenta, tu plan y tus consultas.
 
-Si es tu primera vez en Campus, te pide **elegir tu universidad**: búscala en la lista (por ejemplo **UPC** o **Universidad de Lima**). Después conectas su Aula Virtual: en la UPC, con el acceso de Microsoft; en la Universidad de Lima, con el inicio de sesión de su Blackboard. Tu contraseña universitaria solo se escribe en la página de tu universidad, nunca en Claude.
+Si es tu primera vez en Campus, te pide **elegir tu universidad**. Hoy puedes conectar el Aula Virtual de la **UPC**, la **UPN**, la **Universidad de Lima** y la **Universidad de Palermo**. Después, Campus te lleva al inicio de sesión de tu universidad:
+
+- **UPC y UPN:** el acceso institucional de tu universidad, con tu correo y contraseña de alumno.
+- **Universidad de Lima:** el formulario de inicio de sesión de su Blackboard.
+- **Universidad de Palermo:** tu usuario y contraseña de MyUP, en la página de conexión de Campus. Ahí puedes autorizar que Campus los guarde cifrados hasta 30 días para reconectarte solo.
+
+Claude nunca ve tu contraseña universitaria: no la escribas en el chat ni en el formulario del conector. Si tu Aula Virtual ya estaba conectada a Campus, este paso no aparece.
 
 ## 4. Actívalo en un chat
 
