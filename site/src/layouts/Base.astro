@@ -2,6 +2,7 @@
 import { turnitinServiceEnabled, libraryServiceEnabled } from "../../feature-flags.mjs";
 import Analytics from "../components/Analytics.astro";
 import WhatsAppSupport from "../components/WhatsAppSupport.astro";
+import { CHARACTER_NAME } from "../lib/character.mjs";
 /**
  * The shell every page shares: announcement bar, header, footer and the head.
  *
@@ -105,6 +106,7 @@ const {
       <a class="brand" href="/" aria-label="Campus, inicio"><img src="/assets/campus-logo.webp" width="160" height="160" alt="" /><span>Campus</span></a>
       <nav aria-label="Principal">
         <a href="/#incluye">Cómo funciona</a>
+        <a href="/campito/">{CHARACTER_NAME}</a>
         <a href="/#planes">Precios</a>
         <a href="/profes/">Profesores</a>
       </nav>
@@ -114,6 +116,7 @@ const {
           <summary role="button" aria-label="Menú de navegación"><svg class="site-menu__mobile-icon" viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg></summary>
           <div class="site-menu__panel">
             <a href="/#incluye">Cómo funciona</a>
+            <a href="/campito/">{CHARACTER_NAME}</a>
             <a href="/#planes">Precios</a>
             <a href="/profes/">Profesores</a>
           </div>
