@@ -324,6 +324,9 @@ try {
       nicknameCalls = 0,
       calendarUrl = null,
       calendarCalls = [],
+      outlook = { available: true, enabled: false, policy: "upc-important-mail-v3", permission: "Autorizo a Campus a revisar vistas previas de mis correos de prueba.", connection: "not_connected" },
+      outlookCalls = [],
+      outlookPolls = 0,
       statusCalls = 0,
       failNotices = false,
       noticesFailed = 0,
@@ -357,6 +360,8 @@ try {
         coverage: { complete: false },
         pushPublicKey: "fake-public-key",
         calendarUrl,
+        // Los correos importantes llegan con el estado: Novedades no los pide aparte.
+        outlook,
       });
       if (path === "/api/app/proactive/status") {
         statusCalls++;
@@ -446,6 +451,26 @@ try {
         else if (!calendarUrl || body.reset)
           calendarUrl = "https://campuscli.com/cal/" + "T".repeat(40) + calendarCalls.length + ".ics";
         return json({ calendarUrl });
+      }
+      // Correos importantes de la UPC: permiso con su texto, conexión con Microsoft y quitar.
+      if (path === "/api/app/proactive/outlook") {
+        const body = method === "POST" ? JSON.parse(route.request().postData() || "{}") : {};
+        outlookCalls.push(method === "POST" ? "POST " + JSON.stringify(body) : method);
+        if (method === "POST") {
+          if (body.consent !== true || body.policy !== outlook.policy)
+            return route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ error: "OUTLOOK_POLICY_CHANGED" }) });
+          outlook = { ...outlook, enabled: true };
+        }
+        if (method === "DELETE") outlook = { ...outlook, enabled: false, connection: "not_connected" };
+        // Microsoft termina después de la primera consulta de espera.
+        if (method === "GET" && outlook.connection === "pending_login" && ++outlookPolls > 1) outlook = { ...outlook, connection: "connected" };
+        return json(outlook);
+      }
+      if (path === "/api/app/proactive/outlook/connect" && method === "POST") {
+        outlookCalls.push("CONNECT");
+        outlook = { ...outlook, connection: "pending_login" };
+        outlookPolls = 0;
+        return json({ status: "pending_login", loginUrl: "https://www.browserbase.com/devtools-internal/fixture" });
       }
       if (path === "/api/app/proactive/data" && method === "DELETE") {
         deleted++;
@@ -909,9 +934,9 @@ try {
       // Tus entregas en Google Calendar u Outlook: debajo de WhatsApp, con un enlace privado.
       // Con la franja (celular y pantallas medianas): su propia franja debajo de la de
       // WhatsApp, antes del calendario, que abre la tarjeta en una hoja inferior.
-      const calFranja = page.locator(".novedades-main > .novedades-cal .campu-cal-strip");
+      const calFranja = page.locator('.novedades-main > .novedades-cal .campu-cal-strip[data-strip="calendar"]');
       await calFranja.waitFor();
-      assert.equal(await page.locator(".campu-cal-sync").count(), 1, "una sola vez");
+      assert.equal(await page.locator(".campu-cal-sync:not(.campu-mail)").count(), 1, "una sola vez");
       const bajoFranja = await franja.boundingBox();
       const cajaCal = await calFranja.boundingBox();
       assert.ok(cajaCal.y >= bajoFranja.y + bajoFranja.height, "va debajo de la franja de WhatsApp");
@@ -919,7 +944,7 @@ try {
       assert.ok(Math.abs(cajaCal.x - bajoFranja.x) < 2 && Math.abs(cajaCal.width - bajoFranja.width) < 2, "mismo ancho");
       assert.match(await calFranja.innerText(), /Tus entregas en tu calendario\s*Agregar/);
       if (process.env.CAL_SHOT_DIR && width === 390) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular-franjas.png" });
-      const calHoja = page.locator(".campu-cal-sheet");
+      const calHoja = page.locator('.campu-cal-sheet[data-sheet="calendar"]');
       assert.equal(await calHoja.isVisible(), false);
       await calFranja.click();
       await calHoja.waitFor();
@@ -966,12 +991,55 @@ try {
       if (process.env.CAL_SHOT_DIR && width === 390) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular-hoja.png" });
       await calHoja.getByRole("button", { name: "Cerrar" }).click();
       await calHoja.waitFor({ state: "hidden" });
+      // Correos importantes de la UPC: su franja va debajo de la del calendario. Sin aceptar
+      // el texto no se activa; activar abre Microsoft en una pestaña pedida en el mismo
+      // toque, y la tarjeta se actualiza sola cuando termina.
+      const correoFranja = page.locator('.novedades-main > .novedades-cal .campu-cal-strip[data-strip="mail"]');
+      await correoFranja.waitFor();
+      const cajaCorreo = await correoFranja.boundingBox();
+      assert.ok(cajaCorreo.y >= cajaCal.y + cajaCal.height, "debajo de la franja del calendario");
+      assert.ok(Math.abs(cajaCorreo.width - cajaCal.width) < 2, "mismo ancho");
+      assert.match(await correoFranja.innerText(), /Correos de la UPC\s*Activar/);
+      assert.ok(cajaCorreo.height <= cajaCal.height + 1, "una sola línea, como la del calendario");
+      await correoFranja.click();
+      const correoHoja = page.locator('.campu-cal-sheet[data-sheet="mail"]');
+      await correoHoja.waitFor();
+      const activar = correoHoja.getByRole("button", { name: "Activar y conectar Outlook" });
+      assert.equal(await activar.isDisabled(), true, "sin aceptar no se activa");
+      await correoHoja.locator("summary", { hasText: "Qué reviso y qué no" }).click();
+      await correoHoja.getByText(outlook.permission).waitFor();
+      await correoHoja.getByRole("checkbox").check();
+      if (process.env.CAL_SHOT_DIR && width === 390) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular-correos.png" });
+      await page.context().route("https://www.browserbase.com/**", (r) =>
+        r.fulfill({ status: 200, contentType: "text/html", body: "Microsoft" }),
+      );
+      outlookCalls.length = 0;
+      const [microsoft] = await Promise.all([page.waitForEvent("popup"), activar.click()]);
+      await microsoft.waitForURL(/^https:\/\/www\.browserbase\.com\//);
+      assert.equal(await microsoft.evaluate(() => window.opener), null, "sin acceso a Campus");
+      await microsoft.close();
+      await correoHoja.getByText(/Termina de entrar/).waitFor();
+      await correoHoja.getByText(/^Activo\./).waitFor({ timeout: 20000 });
+      assert.match(await correoFranja.innerText(), /Tus correos de la UPC\s*Ajustes/);
+      assert.deepEqual(outlookCalls.slice(0, 2), ['POST {"consent":true,"policy":"upc-important-mail-v3"}', "CONNECT"]);
+      if (process.env.CAL_SHOT_DIR && width === 390) await page.screenshot({ path: process.env.CAL_SHOT_DIR + "/celular-correos-activo.png" });
+      await correoHoja.getByRole("button", { name: "Desactivar y borrar avisos" }).click();
+      await correoHoja.getByRole("button", { name: "Activar y conectar Outlook" }).waitFor();
+      assert.equal(outlookCalls.at(-1), "DELETE");
+      await correoHoja.getByRole("button", { name: "Cerrar" }).click();
+      await correoHoja.waitFor({ state: "hidden" });
       // En escritorio, con la columna de WhatsApp, pasa debajo de la tarjeta.
       if (width === 1100) {
         await page.setViewportSize({ width: 1280, height: 844 });
-        const lateral = page.locator(".novedades-extra .campu-cal-sync");
+        const lateral = page.locator(".novedades-extra .campu-cal-sync:not(.campu-mail)");
         await lateral.waitFor();
-        assert.equal(await page.locator(".campu-cal-sync").count(), 1, "una sola vez en escritorio");
+        assert.equal(await page.locator(".campu-cal-sync:not(.campu-mail)").count(), 1, "una sola vez en escritorio");
+        // Correos importantes: su tarjeta, debajo de la del calendario, sin franja.
+        const correoLateral = page.locator(".novedades-extra .campu-mail");
+        await correoLateral.waitFor();
+        assert.equal(await page.locator(".campu-mail").count(), 1, "una sola tarjeta de correos");
+        const cajaLateral = await lateral.boundingBox(), cajaCorreoLateral = await correoLateral.boundingBox();
+        assert.ok(cajaCorreoLateral.y >= cajaLateral.y + cajaLateral.height + 8, "debajo del calendario, separada");
         const tarjeta = await page.locator(".novedades-extra [data-whatsapp-reminders]").boundingBox();
         const caja = await lateral.boundingBox();
         assert.ok(caja.y >= tarjeta.y + tarjeta.height, "debajo de la tarjeta de WhatsApp");

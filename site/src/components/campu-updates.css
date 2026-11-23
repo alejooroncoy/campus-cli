@@ -966,3 +966,32 @@
     animation: none;
   }
 }
+
+/* Correos importantes de la UPC: misma tarjeta y franja que el calendario. */
+.campu-cal-slot .campu-cal-strip[data-strip="mail"] {
+  margin-top: 8px;
+}
+/* Más específico que el margen 0 de las tarjetas en la columna de Novedades. */
+.campu-cal-slot .campu-cal-sync.campu-mail {
+  margin-top: 16px;
+}
+.campu-cal-sheet-body .campu-mail {
+  margin: 0;
+  border: 0;
+}
+.campu-mail-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.campu-mail-consent input {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  flex: none;
+  accent-color: #103b48;
+}

@@ -11,6 +11,7 @@ import {
   removePushDevice,
 } from "../scripts/proactive-device";
 import CalendarSubscribe, { CalendarStrip } from "./CalendarSubscribe";
+import OutlookImportant from "./OutlookImportant";
 import "./campu-updates.css";
 
 /** Dónde va "Tus entregas en Google Calendar": justo debajo de WhatsApp, que vive fuera
@@ -210,6 +211,10 @@ const message = (code: string) =>
       "Conecta o renueva tu Aula Virtual para activar el seguimiento.",
     CONTEXT_NOT_READY:
       "Campito todavía está preparando este resumen. Vuelve después de la próxima revisión.",
+    OUTLOOK_POLICY_CHANGED:
+      "El texto del permiso cambió. Recarga la página para leerlo antes de activarlo.",
+    OUTLOOK_UNAVAILABLE: "Los correos importantes no están disponibles en este momento.",
+    UNIVERSITY_UNSUPPORTED: "Por ahora esto funciona solo con cuentas de la UPC.",
     DELETION_PENDING:
       "La eliminación de la memoria está en curso. Podrás activar de nuevo cuando termine.",
   })[code] ??
@@ -743,8 +748,11 @@ function Home({
   onMore,
   calendarSync,
   calendarConnected = false,
+  outlook,
 }: {
   calendarSync?: ReactNode;
+  /** Correos importantes de la UPC: va junto al calendario, en la franja o en la tarjeta. */
+  outlook?: (mode: "card" | "strip") => ReactNode;
   calendarConnected?: boolean;
   context: Context | null;
   events: any[];
@@ -808,14 +816,25 @@ function Home({
               <div className="campu-updates campu-cal-slot">
                 {/* En celular, franja con hoja como la de WhatsApp; en escritorio, la tarjeta. */}
                 {slot.dataset.calSlot === "main" ? (
-                  <CalendarStrip connected={calendarConnected}>{calendarSync}</CalendarStrip>
+                  <>
+                    <CalendarStrip connected={calendarConnected}>{calendarSync}</CalendarStrip>
+                    {outlook?.("strip")}
+                  </>
                 ) : (
-                  calendarSync
+                  <>
+                    {calendarSync}
+                    {outlook?.("card")}
+                  </>
                 )}
               </div>,
               slot,
             )
-          : calendarSync)}
+          : (
+              <>
+                {calendarSync}
+                {outlook?.("card")}
+              </>
+            ))}
       <h2 className="campu-home-label">Avisos que te mandé</h2>
       {shown.length ? (
         GROUPS.map((name, g) => {
@@ -1303,6 +1322,14 @@ export default function CampuUpdates() {
                   onMore={() => setMore((v) => !v)}
                   calendarSync={calendarSync}
                   calendarConnected={Boolean(status.calendarUrl)}
+                  outlook={(mode) => (
+                    <OutlookImportant
+                      api={api}
+                      mode={mode}
+                      status={status.outlook}
+                      onStatus={(next) => setStatus((s: any) => ({ ...s, outlook: next }))}
+                    />
+                  )}
                 />
               )}
               {showDetail && (
