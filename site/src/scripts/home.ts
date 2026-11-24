@@ -166,6 +166,43 @@ function motionToggle(root: HTMLElement, calm: boolean): void {
   }));
 }
 
+/**
+ * «¿De qué universidad eres?»: Campito en vivo (la extensión) hoy solo funciona en UClass de la UPC.
+ * En las demás, el botón principal es «Conectar mi IA» y se dice lo que ya tienen. Se recuerda en el navegador.
+ */
+const UNI_KEY = 'campus-home-university';
+const UNIS: Record<string, { name: string; zoom: boolean }> = {
+  upc: { name: 'UPC', zoom: false },
+  upn: { name: 'UPN', zoom: false },
+  ulima: { name: 'Universidad de Lima', zoom: true },
+  palermo: { name: 'Universidad de Palermo', zoom: true },
+};
+function universityPicker(root: HTMLElement): void {
+  const pick = root.querySelector<HTMLElement>('[data-uni-pick]');
+  if (!pick) return;
+  pick.hidden = false;
+  const buttons = Array.from(pick.querySelectorAll<HTMLButtonElement>('[data-uni-opt]'));
+  const apply = (uni: string | null): void => {
+    const info = uni ? UNIS[uni] : undefined;
+    const live = !info || uni === 'upc';
+    root.dataset.uni = info ? uni ?? '' : '';
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.uniOpt === uni)));
+    root.querySelectorAll<HTMLElement>('[data-for="upc"]').forEach((el) => { el.hidden = !live; });
+    root.querySelectorAll<HTMLElement>('[data-for="otra"]').forEach((el) => { el.hidden = live; });
+    if (!info) return;
+    root.querySelectorAll<HTMLElement>('[data-uni-name]').forEach((el) => { el.textContent = info.name; });
+    root.querySelectorAll<HTMLElement>('[data-uni-zoom]').forEach((el) => { el.hidden = !info.zoom; });
+  };
+  let saved: string | null = null;
+  try { saved = localStorage.getItem(UNI_KEY); } catch { /* Sin almacenamiento, sin elección guardada. */ }
+  apply(saved && UNIS[saved] ? saved : null);
+  buttons.forEach((b) => b.addEventListener('click', () => {
+    const uni = b.dataset.uniOpt ?? null;
+    apply(uni);
+    try { if (uni) localStorage.setItem(UNI_KEY, uni); } catch { /* Opcional. */ }
+  }));
+}
+
 function loopVideos(root: HTMLElement, calm: boolean): void {
   const videos = Array.from(root.querySelectorAll<HTMLVideoElement>('video[data-loop]'));
   // Solo corre el video que está en pantalla; al cargar, el navegador no debe reanudar uno oculto.
@@ -228,6 +265,7 @@ function setupHome(): void {
   const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   root.classList.add('is-animated');
   motionToggle(root, calm);
+  universityPicker(root);
   flowHero(root, calm);
   loopVideos(root, calm);
   reveal(root, calm);

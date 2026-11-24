@@ -358,3 +358,15 @@
   .home-v2 .hv-final {padding-top: 150px; padding-bottom: 160px;}
   .home-v2 .hv-final__cta {width: 100%; justify-content: center; padding: 0 16px; font-size: 15.5px; white-space: nowrap;}
 }
+/* Selector de universidad: Campito en vivo solo en la UPC; las demás conectan su IA. */
+.home-v2 [hidden] {display: none !important;}
+.home-v2 .uni-pick {display: grid; justify-items: center; gap: 10px; margin-top: 24px;}
+.home-v2 .uni-pick__label {font-size: 14px; font-weight: 600; color: var(--muted);}
+.home-v2 .uni-pick__opts {display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); box-shadow: 0 8px 20px -16px rgba(16,42,58,.5);}
+.home-v2 .uni-pick__opts button {min-height: 38px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-soft); font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; transition: background-color .2s, color .2s;}
+.home-v2 .uni-pick__opts button:hover {color: var(--ink); background: var(--canvas);}
+.home-v2 .uni-pick__opts button[aria-pressed="true"] {background: var(--ink); color: #fff;}
+.home-v2 .uni-pick__opts button:focus-visible {outline: 2px solid var(--sky-deep); outline-offset: 2px;}
+.home-v2 .uni-pick + .actions {margin-top: 16px;}
+.home-v2 .uni-note {max-width: 46ch; margin-inline: auto;}
+@media (max-width: 420px) { .home-v2 .uni-pick__opts button {padding: 0 12px; font-size: 13.5px;} }
