@@ -345,3 +345,26 @@
   .home-v2 .hv-final .btn {width: 100%; justify-content: center;}
 }
 @media (prefers-reduced-motion: reduce) { .home-v2 .hv-final__art[data-reveal] {transform: translate(-50%, -87%) !important;} }
+/* Testimonios: primero lo que le ayudó (de sus palabras), después la cita tal cual. */
+.home-v2 .voice-card {grid-template-rows: auto auto 1fr auto; gap: 0;}
+.home-v2 .voice-tag {justify-self: start; padding: 4px 10px; border-radius: 999px; background: var(--sky-pale); color: var(--sky-deep); font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;}
+.home-v2 .voice-title {margin-top: 12px; font-size: 19px; line-height: 1.3; font-weight: 700; letter-spacing: -0.015em; color: var(--ink); text-wrap: balance;}
+.home-v2 .voice-card blockquote {margin: 10px 0 18px; padding: 0 0 0 12px; border-left: 3px solid var(--sky); font-size: 15px; line-height: 1.5; font-weight: 500; letter-spacing: 0; color: var(--ink-soft);}
+.home-v2 .voice-card blockquote::before {content: none;}
+/* Cabecera de testimonios: fondo de puntos y paneles de vidrio a los lados (referencia del usuario). */
+.home-v2 {overflow-x: clip;}
+.home-v2 .voice {position: relative; isolation: isolate; padding-top: clamp(88px, 11vw, 140px);}
+.home-v2 .voice::before {content: ""; position: absolute; z-index: -2; top: 0; bottom: -40px; left: 50%; width: 100vw; transform: translateX(-50%); background: radial-gradient(circle, rgba(16,42,58,.09) 1px, transparent 1.4px) 0 0 / 22px 22px; -webkit-mask-image: radial-gradient(70% 60% at 50% 30%, transparent 30%, #000 75%); mask-image: radial-gradient(70% 60% at 50% 30%, transparent 30%, #000 75%);}
+.home-v2 .voice-glass {position: absolute; z-index: -1; top: 40px; width: 340px; height: 520px; pointer-events: none;}
+.home-v2 .voice-glass--l {left: calc(50% - 50vw - 60px);}
+.home-v2 .voice-glass--r {right: calc(50% - 50vw - 60px); transform: scaleX(-1);}
+.home-v2 .voice-glass i {position: absolute; border-radius: 48px; border: 1px solid rgba(255,255,255,.7); box-shadow: inset 0 1px 0 rgba(255,255,255,.8); transform: skewY(24deg); backdrop-filter: blur(6px);}
+.home-v2 .voice-glass i:nth-child(1) {left: 0; top: 0; width: 230px; height: 360px; background: linear-gradient(160deg, rgba(23,182,231,.14), rgba(37,150,235,.62) 60%, rgba(23,182,231,.08));}
+.home-v2 .voice-glass i:nth-child(2) {left: 120px; top: 90px; width: 200px; height: 340px; background: linear-gradient(170deg, rgba(255,255,255,.65), rgba(143,220,245,.35) 55%, rgba(255,255,255,0));}
+.home-v2 .voice-glass i:nth-child(3) {left: -20px; top: 230px; width: 210px; height: 260px; background: linear-gradient(180deg, rgba(74,222,128,.72), rgba(74,222,128,.1) 80%);}
+.home-v2 .voice-kicker {color: var(--sky-deep); font-weight: 700;}
+.home-v2 .voice h2 {font-size: clamp(36px, 5.6vw, 64px); max-width: 12ch; margin: 12px auto 0; letter-spacing: -0.045em; line-height: 1.02;}
+.home-v2 .voice-lead {max-width: 54ch; margin: 18px auto 0; font-size: 18px; line-height: 1.55; color: var(--ink-soft);}
+.home-v2 .voice-grid {position: relative; margin-top: 44px;}
+@media (max-width: 1100px) { .home-v2 .voice-glass {opacity: .55;} }
+@media (max-width: 760px) { .home-v2 .voice-glass {width: 200px; top: 0; opacity: .45;} .home-v2 .voice-glass--l {left: -150px;} .home-v2 .voice-glass--r {right: -150px;} .home-v2 .voice-lead {font-size: 16.5px;} }
