@@ -1,151 +1,181 @@
-<main id="inicio" class="campus-landing">
-  <section class="cp-hero shell" aria-labelledby="cp-title">
-    <div class="cp-hero__copy">
-      <p class="cp-kicker"><span></span> HECHO POR ESTUDIANTES · PARA UPC</p>
-      <h1 id="cp-title">Que tu IA entienda tu <em>curso</em> antes de ayudarte.</h1>
-      <p class="cp-lead">Campus Plus conecta tu IA con los materiales de Blackboard UPC y las transcripciones disponibles de tus clases para ayudarte a estudiar y preparar tus entregas con el contexto de tu curso.</p>
-      <div class="cp-actions"><a class="button" href="/app/copilot/">Conectar mi IA <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a class="cp-link" href="#planes">Ver precios de Campus Plus <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-down"></use></svg></a></div>
+<main id="inicio" class="home-v2">
+<!-- Portada: {{CHARACTER_NAME}} como acompañante -->
+<section class="shell hv-hero" aria-labelledby="titulo">
+  <span class="uni-pill rise" style="--d:0s"><i aria-hidden="true"></i>Hecho por estudiantes · para universitarios</span>
+  <h1 id="titulo" data-words><span>Conoce a {{CHARACTER_NAME}},</span> <span class="hl">tu bestie en clase.</span></h1>
+  <p class="lead rise" style="--d:.55s">Haz tus trabajos con todo tu curso: los materiales de Blackboard y lo que dijo el profe en clase, en la IA que ya usas.</p>
+  <div class="uni-pick rise" style="--d:.62s" role="radiogroup" aria-labelledby="uni-pick-t" data-uni-pick hidden><span class="uni-pick__label" id="uni-pick-t">¿De qué universidad eres?</span><span class="sr-only" role="status" data-uni-status></span><div class="uni-pick__opts"><button type="button" data-uni-opt="upc" role="radio" aria-checked="false">UPC</button><button type="button" data-uni-opt="upn" role="radio" aria-checked="false">UPN</button><button type="button" data-uni-opt="ulima" role="radio" aria-checked="false">U. de Lima</button><button type="button" data-uni-opt="palermo" role="radio" aria-checked="false">Palermo</button><button type="button" data-uni-opt="otra" role="radio" aria-checked="false">Otra</button></div></div>
+  <div class="actions rise" style="--d:.7s"><a class="btn btn--primary" href="/campito/" data-for="upc"><svg class="chrome" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#4285F4"/><path d="M24 2a22 22 0 0 1 19.05 11H24a11 11 0 0 0-9.53 5.5L5 13A22 22 0 0 1 24 2z" fill="#EA4335"/><path d="M43.05 13A22 22 0 0 1 24 46l9.53-16.5A11 11 0 0 0 33.53 18.5 11 11 0 0 0 35 24c0-4.07-2.2-7.62-5.47-9.53z" fill="#FBBC05"/><path d="M5 13l9.47 16.5A11 11 0 0 0 24 35l-9.53 11A22 22 0 0 1 5 13z" fill="#34A853"/><circle cx="24" cy="24" r="9" fill="#fff"/><circle cx="24" cy="24" r="7" fill="#4285F4"/></svg>Agregar {{CHARACTER_NAME}} a Chrome</a><a class="btn btn--primary" href="/app/copilot/" data-for="otra" hidden>Conectar mi IA <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a class="btn btn--ghost" href="/app/copilot/" data-for="upc">Conectar mi IA</a></div>
+  <!-- trial:start --><p class="trial-line rise" style="--d:.8s" data-for="upc">Tu primera clase gratis, luego <b>S/10 al mes</b>. Sin tarjeta y sin cobro automático.</p><!-- trial:end --><!-- plus:start --><p class="trial-line rise" style="--d:.8s" data-for="upc">{{CHARACTER_NAME}} viene con Campus Plus: <b>S/10 al mes</b>. Sin tarjeta y sin cobro automático.</p><!-- plus:end --><!-- demo:start --><p class="trial-line uni-note" data-for="otra" hidden>En la <span data-uni-name>tu universidad</span>, tu IA ya lee tus cursos<span data-uni-zoom> y tus clases grabadas en Zoom</span>. {{CHARACTER_NAME}} en vivo llega pronto a tu universidad.</p><!-- demo:end --><!-- demo:start --><form class="uni-ask" id="pedir-universidad" data-for="pedir" data-uni-ask hidden><p class="uni-ask__title">¿Quieres a Campus en tu universidad?</p><p class="uni-ask__hint">Dinos cuál es. Se abre WhatsApp con tu pedido y te avisamos cuando lleguemos.</p><div class="uni-ask__row"><label class="sr-only" for="uni-ask-name">Tu universidad</label><input id="uni-ask-name" name="universidad" type="text" required minlength="2" maxlength="80" placeholder="Nombre de tu universidad" autocomplete="organization"><button class="btn btn--primary" type="submit">Pedir Campus <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></button></div><p class="uni-ask__done" role="status" data-uni-ask-done hidden>¡Gracias! Envía el mensaje en WhatsApp y te avisamos cuando Campus llegue a tu universidad. <a data-uni-ask-link href="https://wa.me/51946189585" target="_blank" rel="noopener">Si no se abrió, toca aquí</a>.</p><p class="uni-ask__error" role="alert" data-uni-ask-error hidden>Escribe el nombre de tu universidad.</p></form><!-- demo:end -->
+
+<!-- demo:start -->
+  <div class="flow" data-flow role="group" aria-label="{{CHARACTER_NAME}} conecta tu universidad con tu IA">
+    <svg class="links" data-links aria-hidden="true"></svg>
+    <div class="side side--uni"><small class="rise" style="--d:.9s">Tu universidad</small>
+      <span class="chip" data-from style="--d:1s"><svg class="uclass-logo" width="70" height="16" viewBox="0 0 70 16" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="UClass"><path d="M20.2207 10.2815C20.2207 6.98337 22.6395 4.56445 26.0698 4.56445C28.9503 4.56445 31.1051 6.27974 31.6768 8.78625H29.5659C29.0381 7.40105 27.7629 6.49949 26.0698 6.49949C23.8269 6.49949 22.3316 8.08262 22.3316 10.2815C22.3316 12.4804 23.8269 14.0636 26.0698 14.0636C27.7628 14.0636 29.0382 13.1621 29.5659 11.7768H31.6768C31.1051 14.2836 28.9503 15.9986 26.0698 15.9986C22.6395 15.9986 20.2207 13.5797 20.2207 10.2815Z" fill="currentColor"/><path d="M33.5891 0.101562H35.6779V15.7134H33.5891V0.101562Z" fill="currentColor"/><path d="M37.5686 10.3696C37.5686 6.96131 39.9875 4.56445 43.4395 4.56445C46.8478 4.56445 49.2226 6.89534 49.2226 10.3696V15.7127H47.3096V13.3379C46.5839 15.0971 44.9787 15.9986 43.0878 15.9986C40.2512 15.9986 37.5686 13.9537 37.5686 10.3696ZM47.1556 10.2815C47.1556 8.08262 45.6605 6.49949 43.4176 6.49949C41.1748 6.49949 39.6795 8.08262 39.6795 10.2815C39.6795 12.4804 41.1748 14.0636 43.4176 14.0636C45.6605 14.0636 47.1556 12.4805 47.1556 10.2815Z" fill="currentColor"/><path d="M50.7611 12.5683H52.872C52.9159 13.4698 53.7515 14.1075 55.2688 14.1075C56.8519 14.1075 57.6654 13.4259 57.6654 12.5683C57.6654 11.5348 56.5221 11.4031 55.1587 11.227C53.2678 10.9852 50.9811 10.6332 50.9811 8.14859C50.9811 6.01585 52.6521 4.56445 55.2467 4.56445C57.8414 4.56445 59.4465 6.0377 59.4906 7.90675H57.4237C57.3577 7.07119 56.5881 6.45558 55.2689 6.45558C53.8834 6.45558 53.092 7.11532 53.092 7.97274C53.092 9.00621 54.2354 9.11611 55.5767 9.29196C57.4676 9.53401 59.7764 9.88571 59.7764 12.3704C59.7764 14.5693 57.9953 15.9987 55.2689 15.9987C52.5425 15.9987 50.827 14.5472 50.7611 12.5683Z" fill="currentColor"/><path d="M60.9191 12.5683H63.0302C63.0742 13.4698 63.9097 14.1075 65.4269 14.1075C67.01 14.1075 67.8235 13.4259 67.8235 12.5683C67.8235 11.5348 66.6801 11.4031 65.317 11.227C63.4259 10.9852 61.1391 10.6332 61.1391 8.14859C61.1391 6.01585 62.8103 4.56445 65.4048 4.56445C67.9994 4.56445 69.6048 6.0377 69.6487 7.90675H67.5818C67.5158 7.07119 66.7462 6.45558 65.427 6.45558C64.0417 6.45558 63.2501 7.11532 63.2501 7.97274C63.2501 9.00621 64.3935 9.11611 65.7348 9.29196C67.6259 9.53401 69.9347 9.88571 69.9347 12.3704C69.9347 14.5693 68.1535 15.9987 65.427 15.9987C62.7005 15.9987 60.9851 14.5472 60.9191 12.5683Z" fill="currentColor"/><path d="M8.59526 9.71615H1.10952C0.815532 9.71531 0.533821 9.59816 0.325929 9.39028C0.118037 9.18241 0.000861713 8.9007 0 8.60671L0 1.10952C0.000838116 0.815516 0.118003 0.533792 0.325897 0.325897C0.533792 0.118003 0.815516 0.000838116 1.10952 0L8.59526 0C8.88927 0.000838116 9.17099 0.118003 9.37889 0.325897C9.58678 0.533792 9.70394 0.815516 9.70478 1.10952V8.60671C9.70394 8.90072 9.58678 9.18244 9.37889 9.39034C9.17099 9.59823 8.88927 9.7154 8.59526 9.71624V9.71615Z" fill="#FFBA00"/><path d="M14.8412 9.64845H12.0455C11.7511 9.6476 11.469 9.53028 11.2609 9.32212C11.0527 9.11397 10.9354 8.83189 10.9346 8.53752V5.74179C10.9354 5.44742 11.0528 5.16535 11.2609 4.9572C11.4691 4.74904 11.7511 4.63172 12.0455 4.63086H14.8412C15.1356 4.63173 15.4177 4.74905 15.6258 4.9572C15.834 5.16536 15.9513 5.44742 15.9521 5.74179V7.13965V8.53752C15.9513 8.83189 15.8339 9.11395 15.6258 9.3221C15.4176 9.53025 15.1356 9.64757 14.8412 9.64845H14.8412Z" fill="#4739E7"/><path d="M14.8197 15.9355H12.0199C11.7261 15.9347 11.4445 15.8176 11.2368 15.6098C11.029 15.4021 10.9119 15.1206 10.911 14.8268V12.0268C10.9119 11.733 11.029 11.4514 11.2368 11.2437C11.4445 11.0359 11.7261 10.9188 12.0199 10.918H14.8197C15.1135 10.9188 15.3951 11.0359 15.6028 11.2437C15.8106 11.4514 15.9277 11.733 15.9285 12.0268V14.8268C15.9277 15.1206 15.8106 15.4021 15.6028 15.6098C15.395 15.8176 15.1135 15.9347 14.8197 15.9355Z" fill="#4739E7"/><path d="M8.63273 15.8984H5.83897C5.54433 15.8976 5.26201 15.7801 5.05368 15.5718C4.84534 15.3635 4.72791 15.0811 4.72705 14.7865V11.9928C4.72791 11.6981 4.84534 11.4158 5.05368 11.2075C5.26201 10.9991 5.54433 10.8817 5.83897 10.8809H8.63273C8.92736 10.8817 9.20968 10.9991 9.41802 11.2075C9.62635 11.4158 9.74378 11.6981 9.74464 11.9928V14.7865C9.74378 15.0811 9.62635 15.3635 9.41802 15.5718C9.20968 15.7801 8.92736 15.8976 8.63273 15.8984Z" fill="#4739E7"/></svg></span>
+      <span class="chip" data-from style="--d:1.1s"><img src="/assets/blackboard-logo.webp" alt="">Blackboard</span>
+      <span class="chip" data-from style="--d:1.2s"><svg class="zoom-mark" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#0B5CFF"/><rect x="4.5" y="7.5" width="10" height="9" rx="2" fill="#fff"/><path d="M15.5 10.6 19.5 8v8l-4-2.6z" fill="#fff"/></svg>Zoom</span>
     </div>
-    <figure class="cp-motion" data-campus-demo>
-      <div class="cp-motion__window">
-        <div>
-          <div class="cp-motion__bar"><span><img src="/assets/campus-logo.webp" alt="" width="26" height="26">Campus <span class="cp-motion__plus">Plus</span></span><span class="cp-motion__badge">TU CURSO, EN CONTEXTO</span></div>
-          <div class="cp-motion__body">
-            <p class="cp-motion__question">No sé cómo empezar mi entrega de Estadística. Revisa la consigna y lo visto en clase.</p>
-            <div class="cp-motion__answer"><div class="cp-motion__thinking" aria-hidden="true"><span>Revisando tu curso</span><i></i><i></i><i></i></div><img src="/assets/campus-logo.webp" alt="" width="30" height="30"><div>
-              <p class="cp-motion__context">He revisado la consigna y la clase de la semana 4.</p>
-              <strong>La entrega pide comparar dos grupos. Empieza así:</strong>
-              <ol class="cp-motion__steps">
-                <li><b>Elige qué vas a comparar.</b><span>Define los dos grupos y una variable común.</span></li>
-                <li><b>Aplica lo trabajado en clase.</b><span>Calcula la media y la dispersión de cada grupo.</span></li>
-                <li><b>Explica lo que encontraste.</b><span>Compara los resultados y justifica tu conclusión.</span></li>
-              </ol>
-              <div class="cp-motion__sources" aria-label="Fuentes del ejemplo"><span>Consigna de la entrega</span><span>Clase · Semana 4</span></div>
-            </div></div>
-          </div>
-        </div>
-      </div>
-      <figcaption><span>Ejemplo ilustrativo con contenido ficticio. Requiere conectar tu cuenta y disponer de los materiales y la transcripción.</span><button type="button" data-demo-replay hidden>Repetir demo <svg class="cp-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a9 9 0 1 1 2.7 8.4M3 4v6h6"></path></svg></button></figcaption>
-    </figure>
-  </section>
-
-  <aside class="cp-ucal shell" aria-label="Bienvenida a estudiantes UCAL"><div><strong>¿Vienes de UCAL?</strong><span>Profesores UPC y herramientas para tu nueva etapa.</span></div><a href="/upc-compra-ucal/">Conoce Campus para UCAL <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></aside>
-  <div class="cp-connect shell"><span>Una cuenta. Tu Campus.</span><p><span><svg class="cp-connect__web" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c3 3 4 6 4 9s-1 6-4 9c-3-3-4-6-4-9s1-6 4-9z"></path></svg>En la web</span><span><img src="/assets/openai-mark.svg" alt="" width="20" height="20">ChatGPT</span><span><img src="/assets/claude-mark.svg" alt="" width="20" height="20">Claude</span><span><img src="/assets/gemini-mark.png" alt="" width="20" height="20">Gemini</span></p><a href="/app/copilot/">Conectar Campus a tu IA <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div>
-
-  <section class="cp-section cp-benefits shell" id="incluye" aria-labelledby="cp-features-title">
-    <div class="cp-section__heading cp-benefits__heading">
-      <p class="cp-kicker">CON CAMPUS PLUS</p>
-      <h2 id="cp-features-title">De la clase a tu<br>próxima entrega.</h2>
-      <p>Tu IA, con los materiales y las clases de tu curso.</p>
+    <div class="core">
+      <div class="bubble" aria-hidden="true" data-live-alert data-character="{{CHARACTER_NAME}}"><div class="alert"><img src="/assets/campu/campu-wave-v2-96.webp" alt=""><div><small>{{CHARACTER_NAME}} · 7:58 p. m.</small><strong>«Esto viene en el parcial»</strong></div></div></div>
+      <span class="halo" aria-hidden="true"></span>
+      <div class="campu-wrap"><video class="campu campu--video" data-campu data-loop muted loop playsinline preload="auto" poster="/assets/campu/campito-saludo-loop-480.webp" width="240" height="240" aria-label="{{CHARACTER_NAME}} saluda"><source src="/assets/campu/campito-saludo-loop-480.mov" type='video/quicktime; codecs="hvc1"'><source src="/assets/campu/campito-saludo-loop-480.webm" type="video/webm"></video></div>
     </div>
-    <div class="cp-features">
-      <article class="cp-feature" aria-labelledby="cp-course-title">
-        <img class="cp-feature__art" src="/assets/campus-feature-delivery.svg" alt="" width="340" height="240" loading="lazy" decoding="async">
-        <span class="cp-feature__label">CAMPUS PLUS</span>
-        <h3 id="cp-course-title">Empieza tu entrega.</h3>
-        <p>Tu IA lee la consigna y los materiales del curso para ayudarte a empezar.</p>
-        <a href="/app/copilot/">Conectar mi IA <svg class="cp-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
-      </article>
-      <article class="cp-feature" aria-labelledby="cp-class-title">
-        <img class="cp-feature__art" src="/assets/campus-feature-class.svg" alt="" width="340" height="240" loading="lazy" decoding="async">
-        <span class="cp-feature__label">CAMPUS PLUS</span>
-        <h3 id="cp-class-title">Entiende esa clase.</h3>
-        <p>Vuelve a una explicación con las transcripciones disponibles de tu profe.</p>
-        <a href="/app/copilot/">Repasar con mi IA <svg class="cp-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
-      </article>
-      <article class="cp-feature cp-feature--free" aria-labelledby="cp-professors-title">
-        <img class="cp-feature__art" src="/assets/campus-feature-professors.svg" alt="" width="340" height="240" loading="lazy" decoding="async">
-        <span class="cp-feature__label">TAMBIÉN EN CAMPUS FREE</span>
-        <h3 id="cp-professors-title">Elige a tus profes.</h3>
-        <p>Lee opiniones de otros estudiantes antes de elegir tu sección.</p>
-        <a href="/profes/">Buscar profesor <svg class="cp-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
-      </article>
+    <div class="side side--ia"><small class="rise" style="--d:.9s">Tu IA</small>
+      <span class="chip" data-to style="--d:1.2s"><img src="/assets/openai-mark.svg" alt="">ChatGPT</span>
+      <span class="chip" data-to style="--d:1.3s"><img src="/assets/claude-mark.svg" alt="">Claude</span>
+      <span class="chip" data-to style="--d:1.4s"><img src="/assets/gemini-mark.png" alt="">Gemini</span>
+      <button type="button" class="motion-toggle" data-motion-toggle><svg class="i-pause" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M8 5v14M16 5v14"/></svg><svg class="i-play" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M7 4.5v15l12-7.5z"/></svg><span>Pausar animación</span></button>
     </div>
-  </section>
+  </div>
 
+<!-- demo:end -->
+  <p class="unis rise" style="--d:1.5s"><span>Para estudiantes de</span>
+    <span class="sr-only">UPC, UPN, Universidad de Lima y Universidad de Palermo.</span>
+    <!-- demo:start --><span class="uni-logos" aria-hidden="true"><span class="uni"><img src="/assets/universidades/upc.webp" alt="" width="32" height="32"><b>UPC</b></span>
+    <span class="uni"><img src="/assets/universidades/upn.svg" alt="UPN" width="69" height="32"></span>
+    <span class="uni"><img src="/assets/universidades/ulima.svg" alt="Universidad de Lima" width="130" height="32"></span>
+    <span class="uni"><img src="/assets/universidades/palermo.webp" alt="Universidad de Palermo" width="32" height="32"></span></span><!-- demo:end -->
+  </p>
+</section>
 
-  <section class="research-feature shell" id="investigacion" aria-labelledby="research-title">
-    <div class="research-feature__heading"><p class="research-feature__kicker">CAMPUS PLUS · CON TU IA POR MCP</p><h2 id="research-title">Fuentes para tu tesis.</h2><p>Lee su contenido y guarda las referencias en Mendeley, desde tu IA.</p></div>
-    <div class="research-feature__grid">
-      <article><div class="research-feature__top"><svg class="cp-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#file-text"></use></svg><span class="research-feature__badge">Lectura experimental</span></div><h3>Lee más que el resumen.</h3><p>Analiza el texto completo accesible: método, resultados y limitaciones, con evidencia por página o sección.</p></article>
-      <article><div class="research-feature__top"><svg class="cp-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#book-open"></use></svg><span class="research-feature__label">Tu biblioteca Mendeley</span></div><h3>Guarda en Mendeley.</h3><p>Conecta tu biblioteca y guarda las referencias que elijas para tu tesis.</p></article>
-    </div>
-    <div class="research-feature__actions">
-    <details class="research-feature__details"><summary>Ver ejemplos y alcance<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><div>
-      <p><strong>Para leer:</strong> “Lee esta fuente y dime qué aporta a mi tesis, con sus limitaciones y páginas.”</p>
-      <p><strong>Para guardar:</strong> “Conecta mi Mendeley y guarda esta referencia.”</p>
-      <p>La lectura es experimental y depende del acceso al documento. Si solo se lee el resumen o algunas páginas, se indica ese alcance; no equivale a una revisión completa.</p>
-      <p>Tú autorizas tu cuenta de Mendeley y decides qué guardar en tu biblioteca o en un grupo con acceso de escritura. Guardar una referencia no da acceso al documento completo.</p>
-    </div></details>
-    <div class="research-feature__footer"><a href="/app/copilot/">Conectar Campus a tu IA <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div>
-    </div>
-  </section>
+<!-- Índice: un {{CHARACTER_NAME}} para cada momento -->
+<!-- demo:start --><section class="shell modes-wrap" id="incluye" aria-labelledby="modes-title">
+  <h2 class="modes-title" id="modes-title">Un {{CHARACTER_NAME}} para cada momento</h2>
+  <div class="modes">
+    <a class="mode" data-reveal style="--i:0" href="#trabajos"><img src="/assets/campu/campito-tarea-v1-256.webp" alt=""><b>Tus trabajos</b><span>Con todo tu curso</span></a>
+    <a class="mode" data-reveal style="--i:1" href="#en-clase"><img src="/assets/campu/campito-clase-v1-256.webp" alt=""><b>En clase</b><span>Lo que dijo el profe</span></a>
+    <a class="mode" data-reveal style="--i:2" href="#examen"><img src="/assets/campu/campito-cuaderno-v1-256.webp" alt=""><b>Antes del examen</b><span>Repasa con tus clases</span></a>
+    <a class="mode" data-reveal style="--i:3" href="#investigacion"><img src="/assets/campu/campito-tesis-v1-256.webp" alt=""><b>Tu tesis</b><span>Fuentes y Mendeley</span></a>
+  </div>
+</section><!-- demo:end -->
 
-  <section class="cp-start shell" aria-labelledby="cp-start-title" id="como-empezar">
-    <div class="cp-section__heading"><p class="cp-kicker">ASÍ EMPIEZAS</p><h2 id="cp-start-title">Empieza con Campus Plus.</h2></div>
-    <ol class="cp-start__steps">
-      <li>
-        <img class="cp-start__art" src="/assets/campus-start-account.svg" alt="" width="340" height="240" loading="lazy" decoding="async">
-        <span class="cp-start__connector" aria-hidden="true"><svg class="cp-icon" viewBox="0 0 24 24"><use href="/assets/lucide.svg#arrow-right"></use></svg></span>
-        <div class="cp-start__copy"><span class="cp-start__number" aria-hidden="true">01</span><h3>Crea tu cuenta.</h3><p>Regístrate en Campus y elige UPC como tu universidad.</p></div>
-      </li>
-      <li>
-        <img class="cp-start__art" src="/assets/campus-start-plus.svg" alt="" width="340" height="240" loading="lazy" decoding="async">
-        <span class="cp-start__connector" aria-hidden="true"><svg class="cp-icon" viewBox="0 0 24 24"><use href="/assets/lucide.svg#arrow-right"></use></svg></span>
-        <div class="cp-start__copy"><span class="cp-start__number" aria-hidden="true">02</span><h3>Activa Campus Plus.</h3><p>Paga con Yape o Plin y envía tu comprobante. Activamos Plus al confirmar el abono.</p></div>
-      </li>
-      <li>
-        <img class="cp-start__art" src="/assets/campus-start-connect.svg" alt="" width="340" height="240" loading="lazy" decoding="async">
-        <div class="cp-start__copy"><span class="cp-start__number" aria-hidden="true">03</span><h3>Conecta tu IA.</h3><p>Añade Campus a ChatGPT o Claude y autoriza el acceso a Blackboard.</p></div>
-      </li>
-    </ol>
-  </section>
+<!-- Capítulo 1 · Tus trabajos (el caso de uso más frecuente) -->
+<section class="shell" id="trabajos" aria-labelledby="c1">
+  <div class="chapter" data-chapter><div class="line"></div><span class="label" style="--c:var(--green)">{{CHARACTER_NAME}} para tus trabajos</span>
+    <h2 id="c1">Haz tus trabajos <img src="/assets/campu/campito-tarea-v1-256.webp" alt=""> con todo tu curso.</h2>
+    <p>Tu IA lee la consigna, los materiales de Blackboard y lo que dijo el profe en clase antes de ayudarte. Con ChatGPT, Claude o Gemini, sin límite con Plus.</p></div>
+  <div class="bento">
+    <article data-reveal style="--i:1" class="hv-card tint-mint"><h3>Empieza tu entrega <b>con la consigna y la clase.</b></h3>
+      <!-- demo:start --><div class="phone"><div class="scr"><div class="status"><span>10:30</span><span class="bat" aria-hidden="true"></span></div><div class="app-bar"><img src="/assets/openai-mark.svg" alt="">ChatGPT<span class="with">con Campus</span></div><p class="q">¿Por dónde empiezo la entrega de Estadística?</p><p class="tool"><img src="/assets/campus-favicon.png" alt="">Campus leyó la consigna<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg></p><div class="ans"><img src="/assets/openai-mark.svg" alt=""><div><p class="a"><b>La consigna pide comparar dos grupos.</b>Empieza por definir la variable, como explicó el profe en la semana 4.</p><div class="src"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>Consigna</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></svg>Semana 4 · <b>18:40</b></span></div></div></div><div class="composer" aria-hidden="true"><span>Pregunta sobre tus cursos</span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7"/></svg></i></div></div></div><!-- demo:end --><span class="plus" aria-hidden="true">+</span></article>
+    <article data-reveal style="--i:2" class="hv-card tint-mint"><h3>Arma el proyecto <b>con los materiales del curso.</b></h3>
+      <!-- demo:start --><div class="phone"><div class="scr"><div class="status"><span>16:40</span><span class="bat" aria-hidden="true"></span></div><div class="app-bar"><img src="/assets/claude-mark.svg" alt="">Claude<span class="with">con Campus</span></div><p class="q">Junta lo que necesito para el proyecto de Marketing</p><p class="tool"><img src="/assets/campus-favicon.png" alt="">Campus buscó en tu curso<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg></p><div class="ans"><img src="/assets/claude-mark.svg" alt=""><div><p class="a"><b>Encontré la guía y dos clases clave.</b>La guía pide un plan para una marca local; en las semanas 5 y 7 el profe explicó cómo segmentar.</p><div class="src"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>Guía del proyecto</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></svg>Semana 7 · <b>31:05</b></span></div></div></div><div class="composer" aria-hidden="true"><span>Pregunta sobre tus cursos</span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7"/></svg></i></div></div></div><!-- demo:end --><span class="plus" aria-hidden="true">+</span></article>
+    <article data-reveal style="--i:0" class="hv-card wide"><div style="display:grid;gap:12px"><h3>Tareas, anuncios y notas <b>sin entrar a Blackboard a cada rato.</b></h3><p style="color:var(--ink-soft)">Desde el celular, le preguntas a tu IA qué entregas vencen esta semana o cómo vas en un curso.</p></div>
+      <!-- demo:start --><div class="phone"><div class="scr"><div class="status"><span>13:15</span><span class="bat" aria-hidden="true"></span></div><div class="app-bar"><img src="/assets/gemini-mark.png" alt="">Gemini<span class="with">con Campus</span></div><p class="q">¿Qué tengo pendiente esta semana?</p><p class="tool"><img src="/assets/campus-favicon.png" alt="">Campus revisó tu Blackboard<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg></p><div class="ans"><img src="/assets/gemini-mark.png" alt=""><div><p class="a"><b>Dos entregas y una PC.</b>Estadística (jueves), PC1 de Finanzas (sábado) y el foro de Ética.</p><div class="src"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario del curso</span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>Foro de Ética</span></div></div></div><div class="composer" aria-hidden="true"><span>Pregunta sobre tus cursos</span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7"/></svg></i></div></div></div><!-- demo:end --><span class="plus" aria-hidden="true">+</span></article>
+  </div>
+  <!-- demo:start --><p class="note-demo">Ejemplos ilustrativos con contenido ficticio.</p><!-- demo:end -->
+</section>
 
-  <!-- campus-feedback -->
+<!-- Capítulo 2 · En clase: sin perder nada de lo que dijo el profe -->
+<section class="shell" id="en-clase" aria-labelledby="c2">
+  <div class="chapter" data-chapter><div class="line"></div><span class="label" style="--c:var(--sky)">{{CHARACTER_NAME}} en clase</span>
+    <h2 id="c2">Sin perder nada <img src="/assets/campu/campito-clase-v1-256.webp" alt=""> de lo que dijo el profe.</h2>
+    <p>Tú estás en la clase, en tu compu, y {{CHARACTER_NAME}} la sigue contigo: la deja transcrita con cada minuto y, si te distraes, te avisa y te dice qué te perdiste. En vivo, por ahora en UClass de la UPC; si la clase quedó grabada en UClass o Zoom, tu IA también la lee.</p></div>
+  <div class="loop-wrap" data-reveal><video class="loop-clase" data-loop muted loop playsinline preload="metadata" poster="/assets/campu/campito-clase-loop-480.webp" width="300" height="300" aria-label="{{CHARACTER_NAME}} con audífonos escucha la clase en su laptop"><source src="/assets/campu/campito-clase-loop-480.mov" type='video/quicktime; codecs="hvc1"'><source src="/assets/campu/campito-clase-loop-480.webm" type="video/webm"></video><button type="button" class="motion-toggle" data-motion-toggle><svg class="i-pause" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M8 5v14M16 5v14"/></svg><svg class="i-play" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M7 4.5v15l12-7.5z"/></svg><span>Pausar animación</span></button></div>
+  <div class="steps" role="group" aria-label="Una clase virtual con {{CHARACTER_NAME}}">
+    <div class="meter" aria-hidden="true"><div class="bar"><i data-meter></i></div><small data-meter-label>0% de la clase al día</small></div>
+    <div class="stem"></div>
+    <article class="step" data-step><span class="ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg></span><div><small>7:58 P. M.</small><b>«Esto viene en el parcial»</b><span>Queda marcado con su minuto para repasarlo.</span></div></article>
+    <div class="stem"></div>
+    <article class="step" data-step><span class="ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg></span><div><small>8:05 P. M.</small><b>Dicen tu nombre</b><span>Te avisa y le preguntas qué preguntó el profe.</span></div></article>
+    <div class="stem"></div>
+    <article class="step" data-step><span class="ic"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></span><div><small>8:20 P. M.</small><b>¿De qué me perdí?</b><span>Te lo resume con el minuto.</span></div></article>
+    <div class="stem"></div>
+    <article class="step" data-step><span class="ic"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><use href="/assets/lucide.svg#file-text"></use></svg></span><div><small>9:00 P. M.</small><b>Resumen de la clase</b><span>Al terminar, queda guardado en tu cuenta.</span></div></article>
+  </div>
+  <div class="bento">
+    <article data-reveal style="--i:0" class="hv-card wide tint-sky"><div style="display:grid;gap:16px"><h3>Pasa del «¿qué preguntó?» <b>a «ya sé qué responder».</b></h3><div class="alert alert--hot"><img src="/assets/campu/campu-wave-v2-96.webp" alt=""><div><small>{{CHARACTER_NAME}} · 8:05 p. m.</small><strong>El profe dijo tu nombre</strong></div></div></div>
+      <!-- demo:start --><div class="ext-panel"><div class="ext-top"><img src="/assets/campu/campu-wave-v2-96.webp" alt="">{{CHARACTER_NAME}} · en tu pestaña de UClass</div><div class="scr"><p class="q">¿Qué me preguntó?</p><p class="a"><b>Si inviertes cuando el VAN sale negativo.</b>Lo explicó en el min 48: con VAN negativo el proyecto pierde valor.</p></div></div><!-- demo:end --><span class="plus" aria-hidden="true">+</span></article>
+  </div>
+  <!-- demo:start --><p class="note-demo">Ejemplos ilustrativos.</p><!-- demo:end -->
+</section>
 
-  <section class="cp-plans" id="planes" aria-labelledby="cp-plans-title">
-    <div class="shell">
-      <div class="cp-section__heading cp-plans__heading"><div><p class="cp-kicker">DOS PLANES. UN SOLO CAMPUS.</p><h2 id="cp-plans-title">Precios de Campus Free y Plus.</h2></div><p>Precios en soles.</p></div>
-      <div class="cp-plan-grid">
-        <article class="cp-plan cp-plan--free" aria-labelledby="free-title">
-          <div class="cp-plan__top"><h3 id="free-title">Campus Free</h3></div>
-          <p class="cp-plan__price"><strong>Gratis</strong></p>
-          <p class="cp-plan__description">Para conocer Campus.</p>
-          <a class="button cp-button--outline" href="/app/">Usar Campus <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
-          <p class="cp-plan__includes">Incluye:</p>
-          <ul><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>25 consultas de bienvenida con {{CHARACTER_NAME}} en la web</li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>15 consultas de prueba en el conector MCP</li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>Reseñas de profesores y cursos</li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>Acceso a tu panel</li></ul>
-          <div class="cp-plan__conditions"><p class="cp-plan__footnote">Las consultas de bienvenida y de prueba no se renuevan cada mes.</p></div>
-        </article>
-        <article class="cp-plan cp-plan--plus" id="plan-plus" aria-labelledby="plus-title">
-          <div class="cp-plan__top"><h3 id="plus-title">Campus Plus</h3><span class="cp-plan__badge">PRIMEROS 25 DE PAGO</span></div>
-          <p class="cp-plan__price"><strong>S/10</strong><span>al mes desde el inicio</span></p>
-          <p class="cp-plan__description">Precio fundador para los primeros 25 usuarios de pago.</p>
-          <a class="button cp-button--mint" href="/app/plus/">Activar Campus Plus <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
-          <p class="cp-plan__includes">Todo lo de Free, más:</p>
-          <ul><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>100 consultas al día en la web</li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>Consultas ilimitadas con tu IA (MCP)</li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span>Guardar referencias en <strong>Mendeley</strong></span></li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg><span><strong>Lectura experimental</strong> de fuentes accesibles</span></li><li><svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#check"></use></svg>Clases virtuales desde sus transcripciones</li><li>Resumen semanal por WhatsApp; 20 avisos extra al mes por S/5.</li></ul>
-          <div class="cp-plan__conditions">
-            <p class="cp-plan__footnote">Al completar los primeros 25 usuarios de pago, las nuevas suscripciones costarán <strong>S/15 al mes desde el primer mes.</strong></p>
-          </div>
-        </article>
-      </div>
-      <p class="cp-plans__note">Con Plus, conecta Campus a ChatGPT, Claude u otra IA compatible para consultar sin límite de Campus desde allí. Si tu IA requiere una suscripción, se paga aparte.</p>
-      <p class="cp-plans__note">Activa Plus en la app con Yape o Plin y envía tu comprobante. Tu mes empieza cuando confirmamos el abono.</p>
-    </div>
-  </section>
+<!-- Capítulo 3 · Antes del examen -->
+<section class="shell" id="examen" aria-labelledby="c3">
+  <div class="chapter" data-chapter><div class="line"></div><span class="label" style="--c:#7c6cf0">{{CHARACTER_NAME}} antes del examen</span>
+    <h2 id="c3">Repasa con <img src="/assets/campu/campito-cuaderno-v1-256.webp" alt=""> lo que dijo el profe.</h2>
+    <p>Pregúntale qué entra y dónde lo explicó: tu IA cruza el sílabo con tus clases y te da el minuto exacto. Y cada semana, lo que viene, por WhatsApp.</p></div>
+  <div class="bento">
+    <article data-reveal style="--i:2" class="hv-card tint-mint"><h3>Repasa lo que dijo el profe <b>con el minuto exacto.</b></h3>
+      <!-- demo:start --><div class="phone"><div class="scr"><div class="status"><span>21:10</span><span class="bat" aria-hidden="true"></span></div><div class="app-bar"><img src="/assets/claude-mark.svg" alt="">Claude<span class="with">con Campus</span></div><p class="q">¿Qué dijo sobre flujo de caja para la PC1?</p><p class="tool"><img src="/assets/campus-favicon.png" alt="">Campus leyó la grabación<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 6 9 17l-5-5"/></svg></p><div class="ans"><img src="/assets/claude-mark.svg" alt=""><div><p class="a"><b>Del minuto 22 al 35 de la semana 3.</b>Cómo armarlo y el error más común al proyectar ingresos.</p><div class="src"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/></svg>Semana 3 · <b>22:10</b></span><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>Sílabo</span></div></div></div><div class="composer" aria-hidden="true"><span>Pregunta sobre tus cursos</span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5M5 12l7-7 7 7"/></svg></i></div></div></div><!-- demo:end --><span class="plus" aria-hidden="true">+</span></article>
+    <article data-reveal style="--i:1" class="hv-card"><h3>Tu semana, <b>por WhatsApp.</b></h3><!-- demo:start --><div class="wa"><small>Campus · resumen semanal</small><p>Esta semana: entrega de Estadística el jueves 11:59 p. m. y PC1 de Finanzas el sábado.</p></div><!-- demo:end --><span class="plus" aria-hidden="true">+</span></article>
+    <article data-reveal style="--i:2" class="hv-card wide"><h3>100 consultas al día <b>con {{CHARACTER_NAME}} en la web.</b></h3><!-- demo:start --><div class="mini-chat" style="text-align:left;max-width:340px;justify-self:center;width:100%"><p class="q">¿Qué temas entran en la PC2?</p><p class="a"><b>Según el sílabo:</b> unidades 3 y 4, semanas 9 a 12.</p></div><!-- demo:end --><span class="plus" aria-hidden="true">+</span></article>
+  </div>
+  <!-- demo:start --><p class="note-demo">Ejemplos ilustrativos con contenido ficticio.</p><!-- demo:end -->
+</section>
 
+<!-- Capítulo 4 · Para tu tesis -->
+<section class="shell" id="investigacion" aria-labelledby="c4">
+  <div class="chapter" data-chapter><div class="line"></div><span class="label" style="--c:var(--warm)">{{CHARACTER_NAME}} para tu tesis</span>
+    <h2 id="c4">Lee tus fuentes <img src="/assets/campu/campito-tesis-v1-256.webp" alt=""> y las guarda.</h2>
+    <p>Tu IA lee el texto accesible de una fuente, te dice qué aporta y guarda la referencia en tu Mendeley. <span class="exp">Experimental</span></p></div>
+  <div class="bento">
+    <article data-reveal style="--i:0" class="hv-card wide"><div style="display:grid;gap:12px"><h3>De «encontré un paper» <b>a «ya está en mi Mendeley».</b></h3><p style="color:var(--ink-soft)">Le pides a tu IA que revise si la fuente sirve para tu tema y que la guarde con su DOI.</p></div>
+      <!-- demo:start --><div class="ref"><div><b>Fuente revisada</b>Habla de tu variable en estudiantes universitarios; sirve para tu marco teórico.</div><div><b>Mendeley</b><span class="ok">Guardada en la carpeta «Tesis»</span></div></div><!-- demo:end --><span class="plus" aria-hidden="true">+</span></article>
+  </div>
+  <!-- demo:start --><p class="note-demo">Ejemplo ilustrativo.</p><!-- demo:end -->
+</section>
+
+<!-- demo:start --><section class="shell voice" aria-labelledby="voz-t">
+  <p class="voice-kicker">Lo que dicen</p>
+  <h2 id="voz-t">Así les está ayudando Campus</h2>
+  <div class="voice-grid">
+    <figure class="voice-card" data-reveal style="--i:0"><p class="voice-tag">Repaso</p><p class="voice-title">Fue directo a los temas que el profe dijo que podían venir.</p><blockquote>«Le pedí los minutos en los que hablaba de los posibles temas que podían venir.»</blockquote><figcaption><span class="voice-avatar" aria-hidden="true">G</span><span><b>Gustavo</b><small>Ingeniería de Software, 7.º ciclo · UPC</small></span></figcaption></figure>
+    <figure class="voice-card" data-reveal style="--i:1"><p class="voice-tag">Blackboard</p><p class="voice-title">Tiene su curso a la mano sin entrar a Blackboard a cada rato.</p><blockquote>«Ya no tengo que entrar a Blackboard a cada rato cuando estoy en mi celular.»</blockquote><figcaption><span class="voice-avatar" aria-hidden="true">A</span><span><b>Adrián</b><small>Ciencias de la Computación, 6.º ciclo · UPC</small></span></figcaption></figure>
+    <figure class="voice-card" data-reveal style="--i:2"><p class="voice-tag">Campus Plus</p><p class="voice-title">Lo usa desde agosto y le funciona.</p><blockquote>«Realmente funciona muy bien.»</blockquote><figcaption><span class="voice-avatar" aria-hidden="true">M</span><span><b>Matías</b><small>Ingeniería de Sistemas, 7.º ciclo · UPC</small></span></figcaption></figure>
+    <figure class="voice-card" data-reveal style="--i:3"><p class="voice-tag">Profesores</p><p class="voice-title">Le sirvió y se lo va a recomendar a sus compañeros.</p><blockquote>«Gracias, voy a recomendarle a mis compañeros tmb usar a Campus Profe.»</blockquote><figcaption><span class="voice-avatar" aria-hidden="true">U</span><span><b>Usuario de Campus</b><small>Mensaje recibido por WhatsApp · agosto de 2026</small></span></figcaption></figure>
+  </div>
+  <a class="voice-more" href="/opiniones-campus/">Leer opiniones sobre Campus <svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
+</section><!-- demo:end -->
+<section class="shell price-craft price-v2" id="planes" aria-labelledby="p-t">
+  <p class="hv-eyebrow">Precios en soles</p>
+  <h2 id="p-t">Elige cómo empezar.</h2>
+  <!-- trial:start --><p class="trial-line" data-for="upc">Empieza gratis en tu próxima clase. Paga solo si te sirve.</p><p class="trial-line" data-for="otra pedir" hidden>Empieza gratis con tu IA. Paga solo si te sirve.</p><!-- trial:end --><!-- plus:start --><p class="trial-line">Empieza gratis con tu IA. Activa Plus cuando quieras a {{CHARACTER_NAME}} en tus clases.</p><!-- plus:end -->
+  <div class="plans">
+    <article class="plan plan--free" data-reveal style="--i:0">
+      <h3>Gratis</h3><p class="note">Para empezar a usar Campus.</p>
+      <p class="hv-price">S/0</p>
+      <!-- trial:start --><a class="btn btn--ghost" href="/campito/" data-for="upc">Probar una clase gratis</a><a class="btn btn--ghost" href="/app/" data-for="otra pedir" hidden>Empezar gratis</a><!-- trial:end --><!-- plus:start --><a class="btn btn--ghost" href="/app/">Empezar gratis</a><!-- plus:end -->
+      <p class="incl">Incluye:</p>
+      <ul class="checks"><!-- trial:start --><li data-for="upc">Tu primera clase completa con {{CHARACTER_NAME}}</li><!-- trial:end --><li>25 consultas con {{CHARACTER_NAME}} en la web</li><li>15 consultas desde tu IA: ChatGPT, Claude o Gemini</li><li>Reseñas de profesores</li></ul>
+      <p class="note small">Las consultas de prueba no se renuevan cada mes.</p>
+    </article>
+    <article class="plan plan--plus" data-reveal style="--i:1">
+      <span class="badge">Recomendado</span>
+      <h3>Campus Plus</h3><p class="note" data-for="upc">{{CHARACTER_NAME}} en todas tus clases, todo el ciclo.</p><p class="note" data-for="otra pedir" hidden>Tu IA con tus cursos y tus clases grabadas, sin límite.</p>
+      <p class="hv-price"><s><span class="sr-only">Antes </span>S/15</s><span class="sr-only">, ahora</span> S/10 <small>al mes</small></p>
+      <p class="hv-founder">Precio de fundador para los primeros 25 · luego S/15 · unos S/0,33 al día</p>
+      <a class="btn btn--sky" href="/app/plus/">Activar Campus Plus</a>
+      <ul class="reassure"><li>Sin tarjeta</li><li>Sin cobro automático</li><li>Yape o Plin</li></ul>
+      <p class="incl">Todo lo de Gratis, más:</p>
+      <ul class="checks"><li>{{CHARACTER_NAME}} en todas tus clases de UClass (UPC)</li><li>Repasa tus clases grabadas en UClass o Zoom, con el minuto exacto</li><li>Tu IA con tu Blackboard, sin límite</li><li>100 consultas al día con {{CHARACTER_NAME}} en la web</li><li>Resumen de tu semana por WhatsApp</li><li>Fuentes para tu tesis y Mendeley <span class="exp-mini">experimental</span></li></ul>
+    </article>
+  </div>
+  <p class="price-foot">Pagas un mes con Yape o Plin y tu mes empieza cuando confirmamos el pago. Si no renuevas, vuelves al plan gratis.</p>
+</section>
+<div class="campus-landing">
+  <section class="cp-extra shell" aria-labelledby="profes-home-title"><div class="cp-extra__icon" aria-hidden="true"><svg class="cp-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#users"></use></svg></div><div><p class="cp-kicker">TAMBIÉN EN CAMPUS · GRATIS</p><h2 id="profes-home-title">Elige a tus profes.</h2><p>Reseñas de profesores y cursos de la UPC, escritas por estudiantes, antes de elegir tu sección.</p></div><div class="cp-extra__action"><a href="/profes/">Ver profesores <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div></section>
 <!-- turnitin:start -->  <section class="cp-extra shell" aria-labelledby="turnitin-service-title"><div class="cp-extra__icon" aria-hidden="true"><svg class="cp-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#shield-check"></use></svg></div><div><p class="cp-kicker">TAMBIÉN EN CAMPUS · SERVICIO APARTE</p><h2 id="turnitin-service-title">Revisa tu documento con Turnitin.</h2><p>Informe de similitud y detección de escritura con IA. Se paga por documento y no está incluido en los planes.</p></div><div class="cp-extra__action"><p><strong>Desde S/6</strong> <span>similitud S/9 · ambos S/14</span></p><a href="/turnitin/">Conocer el servicio <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div></section><!-- turnitin:end -->
 
   <section class="cp-faq shell" aria-labelledby="cp-faq-title"><div><p class="cp-kicker">TODO CLARO, DESDE EL INICIO</p><h2 id="cp-faq-title">Antes de empezar.</h2><a class="cp-link" href="/blog/">Explorar las guías de Campus <svg class="cp-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></div><div class="cp-faq__items">
-    <details><summary>¿Qué es Campus Plus y cuánto cuesta?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Campus Plus es el plan de pago de Campus para conectar una IA compatible con Blackboard UPC. Incluye 100 consultas diarias en la web y consultas ilimitadas por MCP. El precio fundador es S/10 al mes para los primeros 25 usuarios de pago; al completar ese grupo, las nuevas suscripciones cuestan S/15 al mes desde el inicio. Las suscripciones de otras IA se pagan por separado.</p></details>
-    <details><summary>¿Necesito crear una cuenta?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Sí. Crea tu cuenta Campus o inicia sesión para hablar con {{CHARACTER_NAME}}. Campus Free incluye 25 consultas de bienvenida.</p></details>
-    <details><summary>¿Qué necesito para analizar mis clases?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Campus usa las transcripciones de las grabaciones publicadas en UPC Class. Necesitas acceso al curso y que la grabación tenga transcripción disponible.</p></details>
+    <details><summary>¿Qué es Campus Plus y cuánto cuesta?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Campus Plus es el plan de pago de Campus: {{CHARACTER_NAME}} en todas tus clases de UClass, consultas ilimitadas desde tu IA con tu Blackboard, 100 consultas diarias en la web y tus clases grabadas para repasar. El precio fundador es S/10 al mes para los primeros 25 usuarios de pago; al completar ese grupo, las nuevas suscripciones cuestan S/15 al mes desde el inicio. Las suscripciones de otras IA se pagan por separado.</p></details>
+    <details><summary>¿Dónde funciona?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>{{CHARACTER_NAME}} en clase, por ahora en UClass de la UPC. Tu IA con tus cursos de Blackboard: UPC, UPN, Universidad de Lima y Universidad de Palermo. Tus clases grabadas: UClass en la UPC y Zoom en la Universidad de Lima y Palermo.</p></details>
+    <details><summary>¿{{CHARACTER_NAME}} entra a clase por mí?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>No. {{CHARACTER_NAME}} solo escucha la pestaña de UClass que tú abriste con tu cuenta, en tu compu. Nunca entra solo a una clase, no responde por ti ni marca tu asistencia.</p></details>
+    <details><summary>¿{{CHARACTER_NAME}} graba mi micrófono?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Escucha el audio de la pestaña de UClass. Tu micrófono, solo cuando estás desmuteado en UClass. Lo transcrito queda cifrado en tu cuenta y puedes borrar cada clase.</p></details>
+    <details><summary>¿Necesito crear una cuenta?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Sí. Crea tu cuenta Campus o inicia sesión para hablar con {{CHARACTER_NAME}}. Campus Free incluye 25 consultas de bienvenida en la web y 15 de prueba desde tu IA.</p></details>
     <details><summary>¿Cómo activo Campus Plus?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Entra desde “Activar Campus Plus”, inicia sesión y confirma tu universidad. La app muestra tu precio y los datos de Yape o Plin. Adjunta el comprobante y consulta ahí la confirmación del pago. Tu mes empieza al aprobarlo; no hay cobros automáticos.</p></details>
     <details><summary>¿Necesito otra suscripción para usar mi IA?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Depende del asistente compatible y de las funciones que uses. Cualquier suscripción externa se contrata por separado de Campus.</p></details>
     <details><summary>¿Puede leer cualquier fuente?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>La lectura es experimental y depende del acceso al documento. Si solo se lee el resumen o algunas páginas, se indica ese alcance. Guardar una referencia en Mendeley no da acceso al texto completo.</p></details>
-    <details><summary>¿Puedo cambiar mi universidad?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Sí. Con tu cuenta, puedes cambiarla desde Mi perfil. Por ahora, el asistente y Blackboard están disponibles para UPC.</p></details>
-    <details><summary>¿Campus es parte de la UPC?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Campus es un proyecto independiente, hecho por estudiantes. No está afiliado a UPC, Blackboard, OpenAI ni Anthropic.</p></details>
+    <details><summary>¿Campus es parte de la UPC?<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#plus"></use></svg></summary><p>Campus es un proyecto independiente, hecho por estudiantes. No está afiliado a la UPC ni a otras universidades, ni a Blackboard, OpenAI, Anthropic o Google.</p></details>
   </div></section>
-  <section class="cp-final shell"><p class="cp-kicker">TU SIGUIENTE CICLO EMPIEZA AQUÍ</p><h2>Hazle espacio a lo importante.</h2><a class="button" href="/app/">Entrar a Campus gratis <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a></section>
+  <section class="cp-final hv-final shell" aria-labelledby="final-t">
+    <span class="hv-glass hv-glass--l" aria-hidden="true"><i></i><i></i><i></i></span><span class="hv-glass hv-glass--r" aria-hidden="true"><i></i><i></i><i></i></span>
+    <p class="hv-final__kicker">Tu próxima clase empieza aquí</p>
+    <h2 id="final-t">¿Qué quieres lograr este ciclo?</h2>
+    <p class="hv-final__lead">Entregar tus trabajos con todo el curso. Repasar lo que dijo el profe con el minuto exacto. Llegar a la PC sabiendo qué entra. <span data-for="upc">Empieza agregando a {{CHARACTER_NAME}}.</span><!-- demo:start --><span data-for="otra" hidden>Empieza conectando tu IA.</span><span data-for="pedir" hidden>Pide que lleguemos a tu universidad.</span><!-- demo:end --></p>
+    <a class="btn btn--primary hv-final__cta" href="/campito/" data-for="upc"><svg class="chrome" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#4285F4"/><path d="M24 2a22 22 0 0 1 19.05 11H24a11 11 0 0 0-9.53 5.5L5 13A22 22 0 0 1 24 2z" fill="#EA4335"/><path d="M43.05 13A22 22 0 0 1 24 46l9.53-16.5A11 11 0 0 0 33.53 18.5 11 11 0 0 0 35 24c0-4.07-2.2-7.62-5.47-9.53z" fill="#FBBC05"/><path d="M5 13l9.47 16.5A11 11 0 0 0 24 35l-9.53 11A22 22 0 0 1 5 13z" fill="#34A853"/><circle cx="24" cy="24" r="9" fill="#fff"/><circle cx="24" cy="24" r="7" fill="#4285F4"/></svg>Agregar {{CHARACTER_NAME}} a Chrome<svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a class="btn btn--primary hv-final__cta" href="#pedir-universidad" data-for="pedir" hidden>Pedir Campus en mi universidad <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a class="btn btn--primary hv-final__cta" href="/app/copilot/" data-for="otra" hidden>Conectar mi IA <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><use href="/assets/lucide.svg#arrow-right"></use></svg></a>
+    <!-- trial:start --><p class="trial-line" data-for="upc">Tu primera clase gratis, luego <b>S/10 al mes</b>. Sin tarjeta y sin cobro automático.</p><!-- trial:end --><!-- plus:start --><p class="trial-line" data-for="upc">{{CHARACTER_NAME}} viene con Campus Plus: <b>S/10 al mes</b>. Sin tarjeta y sin cobro automático.</p><!-- plus:end --><!-- demo:start --><p class="trial-line uni-note" data-for="otra" hidden>En la <span data-uni-name>tu universidad</span>, tu IA ya lee tus cursos<span data-uni-zoom> y tus clases grabadas en Zoom</span>. {{CHARACTER_NAME}} en vivo llega pronto a tu universidad.</p><!-- demo:end -->
+  </section>
 
 <!-- library:start -->
   <section class="cp-extra cp-extra--library shell" id="biblioteca" aria-labelledby="home-library-title">
@@ -154,4 +184,5 @@
     <div class="cp-extra__action"><a href="/biblioteca/">Explorar la biblioteca <svg class="cp-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="/assets/lucide.svg#arrow-right"></use></svg></a><a href="/app/biblioteca/#subir">Compartir mi trabajo</a></div>
   </section>
 <!-- library:end -->
+</div>
 </main>

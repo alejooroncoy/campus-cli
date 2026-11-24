@@ -43,3 +43,6 @@ marketing/
 # Campus Connect native build outputs
 /.tmp/
 /connect-artifact/
+
+# Maquetas locales del rediseño de la home: no se publican.
+/site/public/maqueta/

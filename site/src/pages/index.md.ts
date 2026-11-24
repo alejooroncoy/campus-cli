@@ -1,8 +1,9 @@
 import type { APIRoute } from "astro";
 import rawBody from "../html/index.html?raw";
-import { publicHomeHtml } from "../../feature-flags.mjs";
-import { includeCampusFeedback } from "../lib/campus-feedback";
-const body = includeCampusFeedback(publicHomeHtml(rawBody));
+import { publicHomeText } from "../../feature-flags.mjs";
+// Los ejemplos ilustrativos (la clase de UClass, los chats de muestra, los logos) son decorado:
+// en Markdown se leerían como datos reales, así que quedan fuera.
+const body = publicHomeText(rawBody);
 import { htmlToMarkdown } from "../lib/html-to-markdown";
 
 /**

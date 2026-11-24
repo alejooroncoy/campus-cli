@@ -49,13 +49,14 @@ try {
       return json({});
     });
     await page.goto(base + '/');
-    await page.locator('.cp-plan--free').waitFor();
-    assert.equal(await page.locator('.cp-plan-trial').count(), 0);
-    assert.equal(await page.getByText('¿Solo quieres probar?', {exact:true}).count(), 0);
+    await page.locator('.home-v2 .plan--free').waitFor();
+    // Sin el flag de Campito, la tarjeta Gratis no ofrece la clase gratis.
+    if (process.env.CAMPUS_CAMPITO_TRIAL_ENABLED !== 'true') assert.equal(await page.locator('.home-v2 .plan--free a[href="/campito/"]').count(), 0);
     if (width > 760) {
-      const free = await page.locator('.cp-plan--free').boundingBox();
-      const plus = await page.locator('.cp-plan--plus').boundingBox();
-      assert.ok(Math.abs(free.y - plus.y) < 2, 'Plan cards share a row after removing the trial');
+      // offsetTop mide el layout, no la animación de entrada (las tarjetas suben 34 px al aparecer).
+      const free = await page.locator('.home-v2 .plan--free').evaluate(el => el.offsetTop);
+      const plus = await page.locator('.home-v2 .plan--plus').evaluate(el => el.offsetTop);
+      assert.ok(Math.abs(free - plus) < 2, 'Plan cards share a row after removing the trial');
     }
     await page.goto(base + '/app/asistente/');
     await page.getByRole('heading', {name:'Entra para hablar con Campito.'}).waitFor();

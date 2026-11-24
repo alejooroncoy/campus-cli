@@ -142,6 +142,10 @@ export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
     return selected === 'trial' || selected === 'free' || selected === 'plus' ? selected : undefined;
   } catch { return undefined; }
 }
+/** Universidad elegida en el selector de la home (se guarda solo si es una con Campus). Viaja en cada evento para partir los embudos por universidad. */
+function homeUniversity(): Record<string, string> {
+  try { const value = localStorage.getItem('campus-home-university'); return value ? { home_university: value } : {}; } catch { return {}; }
+}
 export function track(event: string, properties: Record<string, unknown> = {}): void {
   if (!browser || !allowedEvent(event)) return;
   if (surveyEvents.has(event) && (!safeSurveyProperties(event, properties).$survey_id || !surveyActive(properties.$survey_id))) return;
@@ -150,6 +154,7 @@ export function track(event: string, properties: Record<string, unknown> = {}): 
     page: analyticsPage(location.pathname), current_plan: currentPlan,
     ...(isTest!==undefined?{is_test:isTest}:{}),
     selected_plan: selectedPlan(),
+    ...homeUniversity(),
     viewport: innerWidth < 761 ? 'mobile' : innerWidth < 1200 ? 'tablet' : 'desktop',
     environment: local ? 'development' : 'production',
     ...(entryEvents.has(event) && !local && key ? firstEntry(key) : {}), ...experimentProperties, ...properties,
@@ -271,10 +276,11 @@ export function resetAnalytics(forgetCampaign = false): void {
 function locationFor(element: Element): string {
   if (element.closest('.site-header')) return 'header';
   if (element.closest('.footer')) return 'footer';
-  if (element.closest('.cp-plan--plus')) return 'plus';
-  if (element.closest('.cp-plan--free')) return 'free';
-  if (element.closest('.cp-plan-trial')) return 'trial';
-  if (element.closest('.cp-hero')) return 'hero';
+  if (element.closest('.cp-plan--plus, .home-v2 .plan--plus')) return 'plus';
+  // En la home nueva la clase gratis de Campito vive dentro de la tarjeta Gratis.
+  if (element.closest('.cp-plan-trial, .home-v2 .plan--free a[href="/campito/"]')) return 'trial';
+  if (element.closest('.cp-plan--free, .home-v2 .plan--free')) return 'free';
+  if (element.closest('.cp-hero, .hv-hero')) return 'hero';
   if (element.closest('#investigacion')) return 'research';
   if (element.closest('.cp-final')) return 'closing';
   if (element.closest('.prof-public__ask')) return 'professor_profile';
@@ -318,8 +324,8 @@ function trackPage(): void {
       else { visibleHeadings.delete(element); clearTimeout(sectionTimers.get(element)); sectionTimers.delete(element); }
     }
   }, { threshold: 0.5 });
-  const sections: Record<string, string> = { '#planes': 'plans', '#incluye': 'features', '#investigacion': 'research', '#como-empezar': 'onboarding', '.cp-faq': 'faq', '.cp-final': 'closing' };
-  const plusOffer=document.querySelector<HTMLElement>('.cp-plan--plus');
+  const sections: Record<string, string> = { '#planes': 'plans', '#incluye': 'features', '#trabajos': 'assignments', '#en-clase': 'in_class', '#examen': 'exam_review', '#investigacion': 'research', '#como-empezar': 'onboarding', '.cp-faq': 'faq', '.cp-final': 'closing' };
+  const plusOffer=document.querySelector<HTMLElement>('.cp-plan--plus, .home-v2 .plan--plus');
   if(plusOffer){plusOffer.dataset.analyticsSection='plus_offer';observer.observe(plusOffer);}
   for (const [selector, section] of Object.entries(sections)) {
     const container = document.querySelector(selector);
@@ -356,6 +362,8 @@ export function setupAnalytics(): void {
     // La ficha de Campito en la Chrome Web Store: es la instalación, aunque salga del sitio.
     const store = url.hostname === 'chromewebstore.google.com';
     if (!support && !provider && !store && url.origin !== location.origin) return;
+    // Saltos dentro de la misma página (índice de momentos, «Pedir Campus»): no son clics a un destino.
+    if (url.origin === location.origin && url.pathname === location.pathname && url.hash && !['#planes', '#incluye'].includes(url.hash)) return;
     const plan = ['free', 'plus', 'trial'].includes(loc) ? loc : undefined;
     const target = support ? 'whatsapp' : store ? 'campito_install' : provider ? 'connect' : url.pathname === '/api/app/auth/start' ? 'auth'
       : url.hash === '#planes' ? 'plans' : url.hash === '#incluye' ? 'features' : analyticsPage(url.pathname);
