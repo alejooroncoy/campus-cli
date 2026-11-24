@@ -337,10 +337,14 @@
 .home-v2 .hv-final__cta:hover .cp-icon {transform: translateX(3px);}
 .home-v2 .hv-final .trial-line {margin-top: 16px;}
 /* Paneles de vidrio a los lados (imágenes generadas por el usuario, celestes de Campus). */
-.home-v2 .hv-glass {position: absolute; z-index: -1; top: 6%; width: 300px; height: 450px; pointer-events: none; background: no-repeat top / 100% auto; -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 96%); mask-image: linear-gradient(180deg, #000 55%, transparent 96%);}
+.home-v2 .hv-glass {position: absolute; z-index: -1; top: 4%; width: 340px; height: 510px; pointer-events: none; background: no-repeat top / 100% auto; -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 96%); mask-image: linear-gradient(180deg, #000 55%, transparent 96%);}
 .home-v2 .hv-glass i {display: none;}
-.home-v2 .hv-glass--l {left: calc(50% - 50vw); background-image: url(/assets/campu/vidrio-izq-560.webp); background-position: left top;}
-.home-v2 .hv-glass--r {right: calc(50% - 50vw); background-image: url(/assets/campu/vidrio-der-560.webp); background-position: right top;}
+/* El borde exterior de cada imagen es un corte recto (la imagen sangra): se desvanece hacia afuera. */
+.home-v2 .hv-glass--l {-webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 96%), linear-gradient(90deg, transparent, #000 45%); mask-image: linear-gradient(180deg, #000 55%, transparent 96%), linear-gradient(90deg, transparent, #000 45%); -webkit-mask-composite: source-in; mask-composite: intersect;}
+.home-v2 .hv-glass--r {-webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 96%), linear-gradient(270deg, transparent, #000 45%); mask-image: linear-gradient(180deg, #000 55%, transparent 96%), linear-gradient(270deg, transparent, #000 45%); -webkit-mask-composite: source-in; mask-composite: intersect;}
+/* Cerca del texto: el borde interior de cada panel queda a ~380 px del centro, en cualquier ancho de pantalla. */
+.home-v2 .hv-glass--l {left: max(calc(50% - 50vw), calc(50% - 720px)); background-image: url(/assets/campu/vidrio-izq-560.webp); background-position: left top;}
+.home-v2 .hv-glass--r {right: max(calc(50% - 50vw), calc(50% - 720px)); background-image: url(/assets/campu/vidrio-der-560.webp); background-position: right top;}
 /* Tableta: las mismas figuras a los lados, más chicas y pegadas al borde. */
 @media (max-width: 1100px) and (min-width: 761px) {
   .home-v2 .hv-glass {scale: .72;}
