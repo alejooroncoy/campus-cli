@@ -433,3 +433,8 @@
 .home-v2 .plus-safe li::before {content: "✓ "; color: var(--sky-deep);}
 @media (max-width: 760px) { .home-v2 .price-v2 .plan--plus.plus-v2 {padding: 26px 20px 22px;} .home-v2 .plus-price b {font-size: 48px;} .home-v2 .plus-cta {font-size: 16px;} }
 @media (min-width: 761px) { .home-v2 .price-v2 .plans {grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);} }
+/* Las reglas generales de listas de precios (grid con sangría) no aplican a la tarjeta Plus nueva. */
+.home-v2 .price-v2 .plan--plus.plus-v2 .plus-safe {display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; padding: 0; margin: 12px 0 0;}
+.home-v2 .price-v2 .plan--plus.plus-v2 .plus-safe li {padding: 0; margin: 0;}
+.home-v2 .price-v2 .plan--plus.plus-v2 .plus-safe li::before {position: static; content: "✓ "; width: auto; height: auto; background: none; color: var(--sky-deep);}
+.home-v2 .price-v2 .plan--plus.plus-v2 .plus-moments {padding: 20px 0 0;}
