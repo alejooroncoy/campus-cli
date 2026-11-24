@@ -83,7 +83,6 @@
 .home-v2 .price-v2 .plan {position: relative; gap: 12px;}
 .home-v2 .price-v2 .plan .btn {width: 100%; justify-content: center; margin: 6px 0 4px;}
 .home-v2 .price-v2 .hv-price s {font-size: .5em; font-weight: 500; opacity: .5; margin-right: 6px; vertical-align: .35em;}
-.home-v2 .price-v2 .hv-founder {font-size: 14px; color: #9fe6cf; margin-top: -4px;}
 .home-v2 .price-v2 .badge {position: absolute; top: -13px; right: 26px; padding: 5px 12px; border-radius: 999px; background: var(--sky); color: var(--night); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;}
 .home-v2 .price-v2 .incl {font-size: 13.5px; font-weight: 600; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--line);}
 .home-v2 .price-v2 .plan--plus .incl {border-top-color: rgba(255,255,255,.14);}
@@ -91,8 +90,6 @@
 .home-v2 .price-v2 ul.checks li {position: relative; padding-left: 30px; font-size: 15.5px;}
 .home-v2 .price-v2 ul.checks li::before {content: ""; position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--sky-pale) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a7fb0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 12px no-repeat;}
 .home-v2 .price-v2 .plan--plus ul.checks li::before {background-color: rgba(126,232,196,.16); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237ee8c4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");}
-.home-v2 .price-v2 .reassure {list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: #a9c6d4;}
-.home-v2 .price-v2 .reassure li::before {content: "✓ "; color: #7ee8c4; font-weight: 700;}
 .home-v2 .price-v2 .exp-mini {font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.12); margin-left: 4px; vertical-align: 2px;}
 .home-v2 .price-v2 .note.small {font-size: 13px;}
 .home-v2 .price-v2 .mini-quote {margin: 8px 0 0; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,.06);}
@@ -405,3 +402,36 @@
 .home-v2 .uni-pick__opts button[aria-checked="true"] {background: var(--ink); color: #fff;}
 .home-v2 .uni-ask__error {margin-top: 6px; font-size: 14px; font-weight: 600; color: var(--alert);}
 .home-v2 .uni-ask__done a {color: var(--sky-deep); text-decoration: underline;}
+/* Tarjeta de Campus Plus (variante D elegida el 2026-11-24): blanco a celeste, momentos con la frase del alumno. */
+.home-v2 .price-v2 .plan--plus.plus-v2 {gap: 0; padding: 30px 28px 26px; color: var(--ink); background: linear-gradient(180deg, #fff, var(--sky-pale)); border: 1px solid #b9e6f4; outline: 2px solid var(--sky); outline-offset: 4px; box-shadow: 0 30px 60px -44px rgba(16,42,58,.55);}
+.home-v2 .plus-v2 .badge {background: var(--sky); color: var(--night);}
+.home-v2 .plus-v2 h3 {color: var(--ink); font-size: 24px; letter-spacing: -.02em;}
+.home-v2 .plus-lead {margin-top: 8px; color: #3e5d6e; font-size: 15.5px;}
+.home-v2 .plus-price {display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; margin-top: 18px;}
+.home-v2 .plus-price s {color: #7a93a0; font-size: 22px;}
+.home-v2 .plus-price b {font-size: 56px; line-height: 1; letter-spacing: -.04em; color: var(--ink);}
+.home-v2 .plus-price small {color: #3e5d6e; font-size: 16px;}
+.home-v2 .plus-founder {margin-top: 6px; color: var(--sky-deep); font-size: 14px;}
+.home-v2 .plus-moments {display: grid; gap: 10px; margin: 20px 0 0; padding: 20px 0 0; list-style: none; border-top: 1px solid #b9e6f4;}
+.home-v2 .plus-moments li {display: grid; gap: 4px; padding: 12px 14px; border-radius: 14px; background: #fff;}
+.home-v2 .plus-when {display: flex; align-items: center; gap: 8px; color: var(--sky-deep); font-size: 12.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;}
+.home-v2 .plus-chip {padding: 1px 8px; border-radius: 999px; background: var(--sky-pale); color: var(--sky-deep); font-size: 11.5px; font-weight: 600; letter-spacing: 0; text-transform: none;}
+.home-v2 .plus-say {color: #3e5d6e; font-size: 14px; font-style: italic;}
+.home-v2 .plus-get {color: var(--ink); font-size: 15.5px;}
+.home-v2 .plus-get::before {content: "→ "; color: var(--sky-deep);}
+.home-v2 .plus-extra {margin-top: 16px; color: #6b8794; font-size: 13.5px;}
+.home-v2 .plus-v2 .exp-mini {background: var(--sky-pale); color: var(--sky-deep);}
+.home-v2 .plus-cta {position: relative; display: flex; align-items: center; justify-content: center; min-height: 58px; margin-top: 20px; padding: 0 64px 0 28px; border-radius: 999px; background: var(--night); color: #fff; font-weight: 600; font-size: 17px; text-decoration: none; box-shadow: 0 14px 28px -14px rgba(17,38,51,.6), inset 0 1px 0 rgba(255,255,255,.18); transition: transform .2s var(--ease), box-shadow .2s;}
+.home-v2 .plus-cta::after {content: ""; position: absolute; right: 7px; top: 50%; width: 44px; height: 44px; margin-top: -22px; border-radius: 50%; background: var(--sky) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23112633' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center/20px no-repeat; transition: transform .2s var(--ease);}
+.home-v2 .plus-cta:hover {transform: translateY(-2px);}
+.home-v2 .plus-cta:hover::after {transform: translateX(3px);}
+.home-v2 .plus-cta:focus-visible {outline: 2px solid var(--sky-deep); outline-offset: 3px;}
+.home-v2 .plus-safe {display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin: 12px 0 0; padding: 0; list-style: none; color: #3e5d6e; font-size: 13.5px;}
+.home-v2 .plus-safe li::before {content: "✓ "; color: var(--sky-deep);}
+@media (max-width: 760px) { .home-v2 .price-v2 .plan--plus.plus-v2 {padding: 26px 20px 22px;} .home-v2 .plus-price b {font-size: 48px;} .home-v2 .plus-cta {font-size: 16px;} }
+@media (min-width: 761px) { .home-v2 .price-v2 .plans {grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);} }
+/* Las reglas generales de listas de precios (grid con sangría) no aplican a la tarjeta Plus nueva. */
+.home-v2 .price-v2 .plan--plus.plus-v2 .plus-safe {display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; padding: 0; margin: 12px 0 0;}
+.home-v2 .price-v2 .plan--plus.plus-v2 .plus-safe li {padding: 0; margin: 0;}
+.home-v2 .price-v2 .plan--plus.plus-v2 .plus-safe li::before {position: static; content: "✓ "; width: auto; height: auto; background: none; color: var(--sky-deep);}
+.home-v2 .price-v2 .plan--plus.plus-v2 .plus-moments {padding: 20px 0 0;}
