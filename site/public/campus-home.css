@@ -326,8 +326,8 @@
 .home-v2 .voice-card blockquote::before {content: none;}
 /* Cierre al estilo de la referencia del usuario: fondo de puntos, paneles de vidrio a los lados, pregunta y un botón. */
 .home-v2 {overflow-x: clip;}
-.home-v2 .hv-final {position: relative; isolation: isolate; display: grid; justify-items: center; width: min(1180px, calc(100% - 32px)); margin: clamp(64px, 8vw, 104px) auto 0; padding: clamp(84px, 10vw, 132px) 20px clamp(96px, 11vw, 148px); text-align: center; background: none; border-radius: 0;}
-.home-v2 .hv-final::before {content: ""; position: absolute; z-index: -2; inset: 0 auto 0 50%; width: 100vw; transform: translateX(-50%); background: radial-gradient(circle, rgba(16,42,58,.10) 1px, transparent 1.4px) 0 0 / 22px 22px, linear-gradient(180deg, var(--canvas), #fff 45%, var(--canvas)); -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent); mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);}
+.home-v2 .hv-final {position: relative; isolation: isolate; display: grid; justify-items: center; width: min(1180px, calc(100% - 32px)); margin: clamp(24px, 4vw, 48px) auto 0; padding: clamp(72px, 8vw, 112px) 20px clamp(88px, 9vw, 128px); text-align: center; background: none; border-radius: 0;}
+.home-v2 .hv-final::before {content: ""; position: absolute; z-index: -2; inset: 0 auto 0 50%; width: 100vw; transform: translateX(-50%); background: radial-gradient(circle, rgba(16,42,58,.09) 1px, transparent 1.4px) 0 0 / 22px 22px; -webkit-mask-image: radial-gradient(75% 70% at 50% 50%, #000 35%, transparent 100%); mask-image: radial-gradient(75% 70% at 50% 50%, #000 35%, transparent 100%);}
 .home-v2 .hv-final__kicker {font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--sky-deep);}
 .home-v2 .hv-final h2 {max-width: 12ch; margin: 16px auto 0; font-size: clamp(40px, 6.4vw, 76px); line-height: 1; letter-spacing: -0.05em; color: var(--ink);}
 .home-v2 .hv-final__lead {max-width: 52ch; margin: 22px auto 0; font-size: clamp(17px, 1.6vw, 19px); line-height: 1.55; color: var(--ink-soft);}
