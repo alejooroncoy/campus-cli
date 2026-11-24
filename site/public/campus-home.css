@@ -336,26 +336,33 @@
 .home-v2 .hv-final__cta .cp-icon {width: 18px; height: 18px; transition: transform .2s var(--ease);}
 .home-v2 .hv-final__cta:hover .cp-icon {transform: translateX(3px);}
 .home-v2 .hv-final .trial-line {margin-top: 16px;}
-.home-v2 .hv-glass {position: absolute; z-index: -1; top: 12%; width: 360px; height: 560px; pointer-events: none;}
-.home-v2 .hv-glass--l {left: calc(50% - 50vw - 70px);}
-.home-v2 .hv-glass--r {right: calc(50% - 50vw - 70px); transform: scaleX(-1);}
-.home-v2 .hv-glass i {position: absolute; border-radius: 52px; border: 1px solid rgba(255,255,255,.75); box-shadow: inset 0 1px 0 rgba(255,255,255,.85); transform: skewY(26deg); backdrop-filter: blur(6px);}
-.home-v2 .hv-glass i:nth-child(1) {left: 0; top: 0; width: 240px; height: 380px; background: linear-gradient(160deg, rgba(226,246,251,.5), rgba(23,182,231,.6) 58%, rgba(10,127,176,.12));}
-.home-v2 .hv-glass i:nth-child(2) {left: 130px; top: 96px; width: 210px; height: 360px; background: linear-gradient(170deg, rgba(255,255,255,.75), rgba(226,246,251,.7) 55%, rgba(255,255,255,0));}
-.home-v2 .hv-glass i:nth-child(3) {left: -20px; top: 250px; width: 220px; height: 270px; background: linear-gradient(180deg, rgba(8,127,91,.42), rgba(217,241,232,.75) 45%, rgba(217,241,232,0) 90%);}
-/* En pantallas angostas los paneles no caben a los lados: se asoman por las esquinas,
-   arriba a la izquierda (sobre el kicker) y abajo a la derecha (bajo el precio), sin tapar el texto. */
+/* Figuras de Campus a los lados: esferas con el material de Campito y una «C» como la del logo. Solo celestes. */
+.home-v2 .hv-glass {position: absolute; z-index: -1; top: 10%; width: 360px; height: 560px; pointer-events: none;}
+.home-v2 .hv-glass--l {left: calc(50% - 50vw - 40px);}
+.home-v2 .hv-glass--r {right: calc(50% - 50vw - 40px);}
+.home-v2 .hv-glass i {position: absolute; border-radius: 50%; animation: hv-float 9s ease-in-out infinite;}
+.home-v2 .hv-glass i:nth-child(1), .home-v2 .hv-glass i:nth-child(3) {background: radial-gradient(circle at 32% 26%, #fff 0, #c9f1fb 10%, #3cc4ee 42%, #17b6e7 62%, #0a7fb0 100%); box-shadow: inset -16px -22px 38px rgba(10,127,176,.35), 0 34px 50px -32px rgba(10,127,176,.55);}
+.home-v2 .hv-glass i:nth-child(1) {width: 230px; height: 230px; left: 30px; top: 40px;}
+.home-v2 .hv-glass i:nth-child(3) {width: 70px; height: 70px; left: 40px; top: 400px; animation-delay: -3s; opacity: .9;}
+.home-v2 .hv-glass i:nth-child(2) {width: 170px; height: 170px; left: 170px; top: 250px; background: conic-gradient(from 35deg, transparent 0 62deg, #8fdcf5 62deg, #17b6e7 220deg, #0a7fb0 360deg); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 30px), #000 calc(100% - 29px)); mask: radial-gradient(farthest-side, transparent calc(100% - 30px), #000 calc(100% - 29px)); animation-delay: -5s; opacity: .85;}
+.home-v2 .hv-glass--r i:nth-child(1) {left: 100px; top: 210px; width: 200px; height: 200px; animation-delay: -2s;}
+.home-v2 .hv-glass--r i:nth-child(2) {left: 40px; top: 20px; width: 150px; height: 150px; transform: rotate(180deg);}
+.home-v2 .hv-glass--r i:nth-child(3) {left: 230px; top: 440px; width: 56px; height: 56px;}
+@keyframes hv-float { 50% { translate: 0 -14px; } }
+.home-v2.is-paused .hv-glass i {animation-play-state: paused;}
+@media (prefers-reduced-motion: reduce) { .home-v2 .hv-glass i {animation: none;} }
+/* En pantallas angostas las figuras no caben a los lados: van a las esquinas libres,
+   una esfera sobre el kicker y otra con la «C» bajo el precio, nunca detrás del texto. */
 @media (max-width: 1100px) {
-  .home-v2 .hv-glass {scale: .62; opacity: .95; transform-origin: center;}
-  .home-v2 .hv-glass--l {left: -128px; top: -96px;}
-  .home-v2 .hv-glass--r {right: -128px; top: auto; bottom: -76px;}
-  .home-v2 .hv-final {padding-top: 150px; padding-bottom: 170px;}
+  .home-v2 .hv-glass {inset: 0; width: auto; height: auto;}
+  .home-v2 .hv-glass i {left: auto; right: auto; top: auto; bottom: auto;}
+  .home-v2 .hv-glass--l i:nth-child(1) {left: -44px; top: 18px; right: auto; bottom: auto; width: 140px; height: 140px;}
+  .home-v2 .hv-glass--l i:nth-child(2), .home-v2 .hv-glass--l i:nth-child(3), .home-v2 .hv-glass--r i:nth-child(3) {display: none;}
+  .home-v2 .hv-glass--r i:nth-child(1) {left: auto; top: auto; right: -36px; bottom: 26px; width: 120px; height: 120px;}
+  .home-v2 .hv-glass--r i:nth-child(2) {left: 22px; top: auto; right: auto; bottom: 44px; width: 76px; height: 76px; -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 15px), #000 calc(100% - 14px)); mask: radial-gradient(farthest-side, transparent calc(100% - 15px), #000 calc(100% - 14px));}
+  .home-v2 .hv-final {padding-top: 176px; padding-bottom: 170px;}
 }
 @media (max-width: 760px) {
-  .home-v2 .hv-glass {scale: .5;}
-  .home-v2 .hv-glass--l {left: -140px; top: -120px;}
-  .home-v2 .hv-glass--r {right: -140px; bottom: -100px;}
-  .home-v2 .hv-final {padding-top: 150px; padding-bottom: 160px;}
   .home-v2 .hv-final__cta {width: 100%; justify-content: center; padding: 0 16px; font-size: 15.5px; white-space: nowrap;}
 }
 /* Selector de universidad: Campito en vivo solo en la UPC; las demás conectan su IA. */
