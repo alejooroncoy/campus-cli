@@ -172,27 +172,6 @@ function classSteps(root: HTMLElement): void {
   steps.forEach((s) => io.observe(s));
 }
 
-/** Citas de alumnos: una a la vez, cambia solo cuando el visitante toca un punto. */
-function quotes(root: HTMLElement): void {
-  root.querySelectorAll<HTMLElement>('[data-voice]').forEach((voice) => {
-    const items = Array.from(voice.querySelectorAll<HTMLElement>('.voice-quote'));
-    const dots = voice.querySelector<HTMLElement>('.voice-dots');
-    if (items.length < 2 || !dots) return;
-    const show = (n: number): void => {
-      items.forEach((q, k) => q.classList.toggle('is-on', k === n));
-      Array.from(dots.children).forEach((d, k) => d.setAttribute('aria-current', String(k === n)));
-    };
-    dots.replaceChildren(...items.map((_, k) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.setAttribute('aria-label', `Ver opinión ${k + 1}`);
-      b.addEventListener('click', () => show(k));
-      return b;
-    }));
-    show(0);
-  });
-}
-
 function teardown(): void { while (cleanups.length) cleanups.pop()?.(); }
 
 function setupHome(): void {
@@ -207,7 +186,6 @@ function setupHome(): void {
   loopVideos(root, calm);
   reveal(root, calm);
   classSteps(root);
-  quotes(root);
 }
 
 document.addEventListener('astro:before-swap', teardown);

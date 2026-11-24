@@ -5,8 +5,7 @@ import Base from "../layouts/Base.astro";
 // Shared with the Markdown route so public plan details stay consistent.
 import rawBody from "../html/index.html?raw";
 import { publicHomeHtml } from "../../feature-flags.mjs";
-import { includeCampusFeedback } from "../lib/campus-feedback";
-const body = includeCampusFeedback(publicHomeHtml(rawBody));
+const body = publicHomeHtml(rawBody);
 const title = "Campus Plus: Blackboard UPC con IA, precios y planes";
 const description = `Campus Plus para UPC: ${CHARACTER_NAME} sigue tu clase de UClass y tu IA lee tus materiales de Blackboard para tus trabajos. Precios, límites y consultas de prueba.`;
 
@@ -166,8 +165,6 @@ const schemas = [
 >
   <Fragment set:html={body} />
   <script src="../scripts/home.ts"></script>
-  <script src="../scripts/campus-feedback.ts"></script>
-  <link slot="head" rel="stylesheet" href="/campus-feedback.css" />
   <link slot="head" rel="stylesheet" href="/campus-landing.css" />
   <link slot="head" rel="stylesheet" href="/campus-home.css" />
 </Base>
