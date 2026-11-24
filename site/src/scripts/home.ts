@@ -16,6 +16,10 @@ const AVISOS: Array<[string, string, boolean]> = [
   ['Campito · 8:05 p. m.', 'El profe dijo tu nombre', true],
 ];
 
+/** Pausa del movimiento (WCAG 2.2.2). Se recuerda en este navegador. */
+const MOTION_KEY = 'campus-home-motion';
+const motion = { paused: false };
+
 /** Lo que hay que apagar al salir de la home. */
 const cleanups: Array<() => void> = [];
 function every(ms: number, fn: () => void): void { const id = window.setInterval(fn, ms); cleanups.push(() => window.clearInterval(id)); }
@@ -32,23 +36,35 @@ function watch(cb: IntersectionObserverCallback, options?: IntersectionObserverI
   const io = new IntersectionObserver(cb, options); cleanups.push(() => io.disconnect()); return io;
 }
 
-/** Líneas de la universidad a Campito y de Campito a tu IA, con puntos que viajan. */
+/** Posición de un elemento dentro del flujo según el layout, sin transformaciones: los rebotes de entrada no la mueven. */
+function layoutBox(el: HTMLElement, flow: HTMLElement): { x: number; y: number; w: number; h: number } {
+  let x = 0; let y = 0; let node: HTMLElement | null = el;
+  while (node && node !== flow) { x += node.offsetLeft; y += node.offsetTop; node = node.offsetParent as HTMLElement | null; }
+  return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+}
+
+/**
+ * Líneas de la universidad a Campito y de Campito a tu IA, con puntos que viajan.
+ * Entran por un punto en el borde izquierdo del cuerpo y salen por el derecho (medidos sobre el
+ * póster del video), así no cruzan a Campito ni asoman por las zonas transparentes del video.
+ */
 function drawLinks(flow: HTMLElement, svg: SVGSVGElement, campu: HTMLElement, calm: boolean): void {
-  const f = flow.getBoundingClientRect();
-  const c = campu.getBoundingClientRect();
-  if (!f.width || !c.width) return;
-  const cx = c.left + c.width / 2 - f.left;
-  const cy = c.top + c.height * 0.55 - f.top;
-  svg.setAttribute('viewBox', `0 0 ${f.width} ${f.height}`);
+  if (!flow.offsetWidth || !campu.offsetWidth) return;
+  svg.setAttribute('viewBox', `0 0 ${flow.offsetWidth} ${flow.offsetHeight}`);
   svg.replaceChildren();
   // En celular el flujo va en columna y las líneas se ocultan por CSS.
   if (getComputedStyle(svg).display === 'none') return;
-  const add = (el: Element, out: boolean, k: number): void => {
-    const r = el.getBoundingClientRect();
-    const x = out ? r.left - f.left : r.right - f.left;
-    const y = r.top + r.height / 2 - f.top;
-    const [x1, y1, x2, y2] = out ? [cx, cy, x, y] : [x, y, cx, cy];
-    const d = `M${x1} ${y1} C ${(x1 + x2) / 2} ${y1}, ${(x1 + x2) / 2} ${y2}, ${x2} ${y2}`;
+  const c = layoutBox(campu, flow);
+  const hubY = c.y + c.h * 0.56;
+  const hubs = { in: c.x + c.w * 0.08, out: c.x + c.w * 0.88 };
+  const add = (el: HTMLElement, out: boolean, k: number): void => {
+    const r = layoutBox(el, flow);
+    const x = out ? r.x - 6 : r.x + r.w + 6;
+    const y = r.y + r.h / 2;
+    const hub = out ? hubs.out : hubs.in;
+    const [x1, y1, x2, y2] = out ? [hub, hubY, x, y] : [x, y, hub, hubY];
+    const mid = (x1 + x2) / 2;
+    const d = `M${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`;
     const base = document.createElementNS(SVG, 'path'); base.setAttribute('d', d); svg.append(base);
     const dash = document.createElementNS(SVG, 'path'); dash.setAttribute('d', d); dash.setAttribute('class', 'dash');
     dash.id = `hv-link-${out ? 'o' : 'i'}${k}`; svg.append(dash);
@@ -62,8 +78,14 @@ function drawLinks(flow: HTMLElement, svg: SVGSVGElement, campu: HTMLElement, ca
     const path = document.createElementNS(SVG, 'mpath'); path.setAttribute('href', `#${dash.id}`);
     move.append(path); dot.append(show, move); svg.append(dot);
   };
-  flow.querySelectorAll('[data-from]').forEach((el, k) => add(el, false, k));
-  flow.querySelectorAll('[data-to]').forEach((el, k) => add(el, true, k));
+  flow.querySelectorAll<HTMLElement>('[data-from]').forEach((el, k) => add(el, false, k));
+  flow.querySelectorAll<HTMLElement>('[data-to]').forEach((el, k) => add(el, true, k));
+  for (const x of [hubs.in, hubs.out]) {
+    const port = document.createElementNS(SVG, 'circle');
+    port.setAttribute('class', 'port'); port.setAttribute('r', '5'); port.setAttribute('cx', String(x)); port.setAttribute('cy', String(hubY));
+    svg.append(port);
+  }
+  if (motion.paused) svg.pauseAnimations();
 }
 
 function flowHero(root: HTMLElement, calm: boolean): void {
@@ -80,11 +102,10 @@ function flowHero(root: HTMLElement, calm: boolean): void {
     let pending: number | undefined;
     on('load', draw);
     on('resize', () => { window.clearTimeout(pending); pending = window.setTimeout(draw, 120); });
-    later(1700, draw);
-    // Las fuentes y el rebote del último chip mueven los extremos de las líneas.
+    // Las fuentes cambian el ancho de los chips; el póster fija el tamaño de Campito.
     document.fonts?.ready.then(() => { if (root.isConnected) draw(); }).catch(() => { /* Sin fuentes, se queda el trazo anterior. */ });
-    const chips = root.querySelectorAll<HTMLElement>('.chip');
-    chips[chips.length - 1]?.addEventListener('animationend', draw, { once: true });
+    campu.addEventListener('loadedmetadata', draw, { once: true });
+    if ('ResizeObserver' in window) { const ro = new ResizeObserver(() => draw()); ro.observe(flow); cleanups.push(() => ro.disconnect()); }
     draw();
   }
   const bounce = (cls: 'hop' | 'spin'): void => {
@@ -100,6 +121,7 @@ function flowHero(root: HTMLElement, calm: boolean): void {
   if (!box || calm) return;
   let n = 0;
   every(3200, () => {
+    if (motion.paused) return;
     const alert = box.querySelector<HTMLElement>('.alert');
     if (!alert) return;
     alert.classList.add('swap');
@@ -114,21 +136,46 @@ function flowHero(root: HTMLElement, calm: boolean): void {
       alert.classList.remove('swap');
       bounce('hop');
       const chip = targets[n % targets.length];
-      if (chip) { chip.classList.add('ping'); later(1200, () => chip.classList.remove('ping')); }
+      const line = svg?.querySelector(`#hv-link-o${n % targets.length}`);
+      if (chip) { chip.classList.add('ping'); line?.classList.add('hot'); later(1200, () => { chip.classList.remove('ping'); line?.classList.remove('hot'); }); }
     });
   });
 }
 
+/** Botones «Pausar animación»: detienen los videos, las líneas del flujo y los avisos que rotan. */
+function motionToggle(root: HTMLElement, calm: boolean): void {
+  const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-motion-toggle]'));
+  if (calm || !buttons.length) return;
+  const svg = root.querySelector<SVGSVGElement>('[data-links]');
+  const apply = (paused: boolean): void => {
+    motion.paused = paused;
+    root.classList.toggle('is-paused', paused);
+    buttons.forEach((b) => { const label = b.querySelector('span'); if (label) label.textContent = paused ? 'Reanudar animación' : 'Pausar animación'; });
+    if (paused) svg?.pauseAnimations(); else svg?.unpauseAnimations();
+    root.querySelectorAll<HTMLVideoElement>('video[data-loop]').forEach((v) => {
+      if (paused) v.pause();
+      else if (v.getBoundingClientRect().bottom > 0 && v.getBoundingClientRect().top < innerHeight) v.play().catch(() => { /* El navegador decide. */ });
+    });
+  };
+  let saved = false;
+  try { saved = localStorage.getItem(MOTION_KEY) === 'paused'; } catch { /* Sin almacenamiento, empieza en movimiento. */ }
+  apply(saved);
+  buttons.forEach((b) => b.addEventListener('click', () => {
+    apply(!motion.paused);
+    try { if (motion.paused) localStorage.setItem(MOTION_KEY, 'paused'); else localStorage.removeItem(MOTION_KEY); } catch { /* Opcional. */ }
+  }));
+}
+
 function loopVideos(root: HTMLElement, calm: boolean): void {
-  const videos = Array.from(root.querySelectorAll<HTMLVideoElement>('video[autoplay]'));
+  const videos = Array.from(root.querySelectorAll<HTMLVideoElement>('video[data-loop]'));
   // Solo corre el video que está en pantalla; al cargar, el navegador no debe reanudar uno oculto.
   const visible = new WeakMap<HTMLVideoElement, boolean>();
   const observed = !calm && 'IntersectionObserver' in window;
   videos.forEach((video) => {
-    if (calm) { video.removeAttribute('autoplay'); video.pause(); video.currentTime = 0; return; }
+    if (calm) { video.pause(); video.currentTime = 0; return; }
     video.muted = true;
     const play = (): void => {
-      if (observed && !visible.get(video)) return;
+      if (motion.paused || (observed && !visible.get(video))) return;
       if (video.paused) video.play().catch(() => { /* El navegador decide. */ });
     };
     play();
@@ -139,7 +186,7 @@ function loopVideos(root: HTMLElement, calm: boolean): void {
   const io = watch((entries) => entries.forEach((entry) => {
     const video = entry.target as HTMLVideoElement;
     visible.set(video, entry.isIntersecting);
-    if (entry.isIntersecting) video.play().catch(() => { /* El navegador decide. */ });
+    if (entry.isIntersecting && !motion.paused) video.play().catch(() => { /* El navegador decide. */ });
     else video.pause();
   }));
   videos.forEach((video) => io.observe(video));
@@ -172,7 +219,7 @@ function classSteps(root: HTMLElement): void {
   steps.forEach((s) => io.observe(s));
 }
 
-function teardown(): void { while (cleanups.length) cleanups.pop()?.(); }
+function teardown(): void { while (cleanups.length) cleanups.pop()?.(); motion.paused = false; }
 
 function setupHome(): void {
   const root = document.querySelector<HTMLElement>('.home-v2');
@@ -180,6 +227,7 @@ function setupHome(): void {
   root.dataset.homeReady = 'true';
   const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   root.classList.add('is-animated');
+  motionToggle(root, calm);
   flowHero(root, calm);
   loopVideos(root, calm);
   reveal(root, calm);

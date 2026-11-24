@@ -63,7 +63,9 @@
 @keyframes hv-hop { 0% { transform: scale(1.08, .9); } 45% { transform: translateY(-22px) rotate(-6deg) scale(.95, 1.06); } 100% { transform: none; } }
 @keyframes hv-spin { 0% { transform: scale(.9, 1.1); } 60% { transform: translateY(-30px) rotate(360deg); } 100% { transform: rotate(360deg); } }
 .home-v2 .campu--video {width: clamp(190px, 20vw, 250px); filter: none; background: transparent;}
-.home-v2 .loop-clase {display: block; width: min(300px, 70vw); height: auto; margin: 28px auto 0; background: transparent;}
+.home-v2 .loop-wrap {position: relative; width: min(300px, 70vw); margin: 28px auto 0;}
+.home-v2 .loop-clase {display: block; width: 100%; height: auto; background: transparent;}
+.home-v2 .loop-wrap .motion-toggle {position: absolute; right: -8px; bottom: 6px;}
 .home-v2 .trial-line {margin-top: 14px;}
 .home-v2 .unis {display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 10px; margin-top: 22px; font-size: 14px; color: var(--muted);}
 .home-v2 .unis {gap: 10px 22px;}
@@ -273,3 +275,18 @@
 .home-v2 .voice-more { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; font-weight: 600; font-size: 15px; text-decoration: none; color: var(--ink); }
 .home-v2 .voice-more:hover { color: var(--sky-deep); }
 .home-v2 .voice-more svg { width: 16px; height: 16px; }
+/* Conexiones del flujo: llegan a un punto en el borde de Campito, nunca lo cruzan. */
+.home-v2 .links circle.port {fill: var(--paper); stroke: var(--sky); stroke-width: 2;}
+.home-v2 .links path.dash.hot {stroke: var(--sky-deep); stroke-width: 2.6; opacity: 1;}
+/* Pausa (WCAG 2.2.2): detiene los bucles; las entradas de una sola vez terminan igual. */
+.home-v2 .motion-toggle {display: none; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 18px -14px rgba(0,0,0,.5);}
+.home-v2.is-animated .motion-toggle {display: inline-flex;}
+.home-v2 .motion-toggle:hover {color: var(--ink); border-color: var(--sky);}
+.home-v2 .motion-toggle:focus-visible {outline: 2px solid var(--sky-deep); outline-offset: 2px;}
+.home-v2 .motion-toggle .i-play, .home-v2.is-paused .motion-toggle .i-pause {display: none;}
+.home-v2.is-paused .motion-toggle .i-play {display: block;}
+.home-v2 .side--ia .motion-toggle {position: absolute; top: 100%; left: 0; margin-top: 16px;}
+.home-v2.is-paused .links path.dash, .home-v2.is-paused .campu, .home-v2.is-paused .halo, .home-v2.is-paused .uni-pill i {animation-play-state: paused;}
+@media (max-width: 880px) { .home-v2 .side--ia .motion-toggle {position: static; margin: 6px 0 0;} }
+@media (prefers-reduced-motion: reduce) { .home-v2.is-animated .motion-toggle {display: none;} }
+.home-v2 .core .bubble .alert {min-height: 62px;}

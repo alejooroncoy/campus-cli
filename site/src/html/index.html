@@ -18,12 +18,13 @@
     <div class="core">
       <div class="bubble" aria-hidden="true" data-live-alert><div class="alert"><img src="/assets/campu/campu-wave-v2-96.webp" alt=""><div><small>{{CHARACTER_NAME}} · 7:58 p. m.</small><strong>«Esto viene en el parcial»</strong></div></div></div>
       <span class="halo" aria-hidden="true"></span>
-      <div class="campu-wrap"><video class="campu campu--video" data-campu autoplay muted loop playsinline preload="auto" poster="/assets/campu/campito-saludo-loop-480.webp" width="240" height="240" aria-label="{{CHARACTER_NAME}} saluda"><source src="/assets/campu/campito-saludo-loop-480.mov" type='video/quicktime; codecs="hvc1"'><source src="/assets/campu/campito-saludo-loop-480.webm" type="video/webm"></video></div>
+      <div class="campu-wrap"><video class="campu campu--video" data-campu data-loop muted loop playsinline preload="auto" poster="/assets/campu/campito-saludo-loop-480.webp" width="240" height="240" aria-label="{{CHARACTER_NAME}} saluda"><source src="/assets/campu/campito-saludo-loop-480.mov" type='video/quicktime; codecs="hvc1"'><source src="/assets/campu/campito-saludo-loop-480.webm" type="video/webm"></video></div>
     </div>
     <div class="side side--ia"><small class="rise" style="--d:.9s">Tu IA</small>
       <span class="chip" data-to style="--d:1.2s"><img src="/assets/openai-mark.svg" alt="">ChatGPT</span>
       <span class="chip" data-to style="--d:1.3s"><img src="/assets/claude-mark.svg" alt="">Claude</span>
       <span class="chip" data-to style="--d:1.4s"><img src="/assets/gemini-mark.png" alt="">Gemini</span>
+      <button type="button" class="motion-toggle" data-motion-toggle><svg class="i-pause" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M8 5v14M16 5v14"/></svg><svg class="i-play" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M7 4.5v15l12-7.5z"/></svg><span>Pausar animación</span></button>
     </div>
   </div>
 
@@ -69,7 +70,7 @@
   <div class="chapter" data-chapter><div class="line"></div><span class="label" style="--c:var(--sky)">{{CHARACTER_NAME}} en clase</span>
     <h2 id="c2">Sin perder nada <img src="/assets/campu/campito-clase-v1-256.webp" alt=""> de lo que dijo el profe.</h2>
     <p>Tú estás en la clase, en tu compu, y {{CHARACTER_NAME}} la sigue contigo: la deja transcrita con cada minuto y, si te distraes, te avisa y te dice qué te perdiste. En vivo, por ahora en UClass de la UPC; si la clase quedó grabada en UClass o Zoom, tu IA también la lee.</p></div>
-  <video class="loop-clase" data-reveal autoplay muted loop playsinline preload="metadata" poster="/assets/campu/campito-clase-loop-480.webp" width="300" height="300" aria-label="{{CHARACTER_NAME}} con audífonos escucha la clase en su laptop"><source src="/assets/campu/campito-clase-loop-480.mov" type='video/quicktime; codecs="hvc1"'><source src="/assets/campu/campito-clase-loop-480.webm" type="video/webm"></video>
+  <div class="loop-wrap" data-reveal><video class="loop-clase" data-loop muted loop playsinline preload="metadata" poster="/assets/campu/campito-clase-loop-480.webp" width="300" height="300" aria-label="{{CHARACTER_NAME}} con audífonos escucha la clase en su laptop"><source src="/assets/campu/campito-clase-loop-480.mov" type='video/quicktime; codecs="hvc1"'><source src="/assets/campu/campito-clase-loop-480.webm" type="video/webm"></video><button type="button" class="motion-toggle" data-motion-toggle><svg class="i-pause" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M8 5v14M16 5v14"/></svg><svg class="i-play" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M7 4.5v15l12-7.5z"/></svg><span>Pausar animación</span></button></div>
   <div class="steps" role="group" aria-label="Una clase virtual con {{CHARACTER_NAME}}">
     <div class="meter" aria-hidden="true"><div class="bar"><i data-meter></i></div><small data-meter-label>0% de la clase al día</small></div>
     <div class="stem"></div>
