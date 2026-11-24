@@ -45,7 +45,7 @@ const categories: Record<string, readonly string[]> = {
   page: ['home', 'ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'campito', 'other'],
   target: ['ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'campito', 'other', 'plans', 'features', 'whatsapp', 'auth', 'campito_install', 'google', 'outlook', 'apple', 'copy'],
   location: ['header', 'hero', 'trial', 'free', 'plus', 'features', 'research', 'onboarding', 'faq', 'closing', 'footer', 'app', 'professor_profile', 'other'],
-  section: ['plans', 'features', 'research', 'onboarding', 'faq', 'closing'],
+  section: ['plans', 'features', 'assignments', 'in_class', 'exam_review', 'research', 'onboarding', 'faq', 'closing'],
   intent: ['trial', 'free', 'plus', 'connect', 'turnitin', 'signup', 'support', 'navigate', 'ask', 'install'],
   selected_plan: ['trial', 'free', 'plus'], current_plan: ['guest', 'free', 'plus', 'unavailable'],
   plus_status: ['payment_review', 'active', 'rejected'], offer: ['founder', 'standard'],

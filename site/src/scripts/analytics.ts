@@ -357,6 +357,8 @@ export function setupAnalytics(): void {
     // La ficha de Campito en la Chrome Web Store: es la instalación, aunque salga del sitio.
     const store = url.hostname === 'chromewebstore.google.com';
     if (!support && !provider && !store && url.origin !== location.origin) return;
+    // Saltos dentro de la misma página (índice de momentos, «Pedir Campus»): no son clics a un destino.
+    if (url.origin === location.origin && url.pathname === location.pathname && url.hash && !['#planes', '#incluye'].includes(url.hash)) return;
     const plan = ['free', 'plus', 'trial'].includes(loc) ? loc : undefined;
     const target = support ? 'whatsapp' : store ? 'campito_install' : provider ? 'connect' : url.pathname === '/api/app/auth/start' ? 'auth'
       : url.hash === '#planes' ? 'plans' : url.hash === '#incluye' ? 'features' : analyticsPage(url.pathname);

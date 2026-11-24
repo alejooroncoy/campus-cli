@@ -191,8 +191,9 @@ function universityPicker(root: HTMLElement): void {
   const apply = (uni: string | null): void => {
     const group = universityGroup(uni);
     root.dataset.uni = uni ?? '';
-    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.uniOpt === uni)));
-    root.querySelectorAll<HTMLElement>('[data-for]').forEach((el) => { el.hidden = el.dataset.for !== group; });
+    buttons.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.uniOpt === uni)));
+    // data-for admite varios grupos separados por espacio (por ejemplo «otra pedir»).
+    root.querySelectorAll<HTMLElement>('[data-for]').forEach((el) => { el.hidden = !(el.dataset.for ?? '').split(' ').includes(group); });
     const info = uni ? UNIS[uni] : undefined;
     if (!info) return;
     root.querySelectorAll<HTMLElement>('[data-uni-name]').forEach((el) => { el.textContent = info.name; });
@@ -200,11 +201,14 @@ function universityPicker(root: HTMLElement): void {
   };
   let saved: string | null = null;
   try { saved = localStorage.getItem(UNI_KEY); } catch { /* Sin almacenamiento, sin elección guardada. */ }
-  apply(saved && (UNIS[saved] || saved === 'otra') ? saved : null);
+  apply(saved && UNIS[saved] ? saved : null);
   buttons.forEach((b) => b.addEventListener('click', () => {
     const uni = b.dataset.uniOpt ?? null;
     apply(uni);
-    try { if (uni) localStorage.setItem(UNI_KEY, uni); } catch { /* Opcional. */ }
+    // «Otra» no se recuerda: quien solo miró no debe volver a una portada sin botones.
+    try { if (uni && UNIS[uni]) localStorage.setItem(UNI_KEY, uni); else localStorage.removeItem(UNI_KEY); } catch { /* Opcional. */ }
+    const status = pick.querySelector<HTMLElement>('[data-uni-status]');
+    if (status) status.textContent = uni === 'otra' ? 'Mostrando el formulario para pedir Campus en tu universidad.' : `Mostrando las opciones para la ${uni && UNIS[uni] ? UNIS[uni].name : 'UPC'}.`;
     if (uni === 'otra') root.querySelector<HTMLInputElement>('#uni-ask-name')?.focus();
   }));
   // «Otra»: el pedido sale por WhatsApp de soporte con el nombre ya escrito; no se guarda nada en Campus.
@@ -212,11 +216,16 @@ function universityPicker(root: HTMLElement): void {
   form?.addEventListener('submit', (event) => {
     event.preventDefault();
     const name = (new FormData(form).get('universidad') ?? '').toString().trim().slice(0, 80);
+    const error = form.querySelector<HTMLElement>('[data-uni-ask-error]');
+    if (error) error.hidden = name.length >= 2;
     if (name.length < 2) return;
     const text = `Hola, quiero que Campus llegue a mi universidad: ${name}`;
-    window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+    // Un enlace real (no window.open): la analítica lo cuenta como WhatsApp de soporte y queda como plan B
+    // si el navegador de Instagram o TikTok no abre la pestaña.
+    const link = form.querySelector<HTMLAnchorElement>('[data-uni-ask-link]');
     const done = form.querySelector<HTMLElement>('[data-uni-ask-done]');
     if (done) done.hidden = false;
+    if (link) { link.href = `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(text)}`; link.click(); }
   });
 }
 
