@@ -290,3 +290,31 @@
 @media (max-width: 880px) { .home-v2 .side--ia .motion-toggle {position: static; margin: 6px 0 0;} }
 @media (prefers-reduced-motion: reduce) { .home-v2.is-animated .motion-toggle {display: none;} }
 .home-v2 .core .bubble .alert {min-height: 62px;}
+/* Teléfonos de ejemplo: como una app de chat de IA real (pregunta a la derecha, Campus como herramienta, fuentes con el minuto). */
+.home-v2 .phone {border-radius: 40px; padding: 8px; background: #0c1820;}
+.home-v2 .phone .scr {position: relative; display: flex; flex-direction: column; gap: 10px; min-height: 318px; padding: 10px 14px 12px; border-radius: 32px; background: #fff;}
+.home-v2 .phone .scr::before {content: ""; position: absolute; top: 9px; left: 50%; width: 72px; height: 20px; border-radius: 999px; background: #0c1820; transform: translateX(-50%);}
+.home-v2 .phone .status {height: 22px; align-items: center; padding: 0 10px; font-size: 11.5px;}
+.home-v2 .phone .bat {width: 21px; height: 10px; border: 1.5px solid var(--ink); border-radius: 3px; position: relative; opacity: .8;}
+.home-v2 .phone .bat::after {content: ""; position: absolute; inset: 1.5px 5px 1.5px 1.5px; border-radius: 1px; background: var(--ink);}
+.home-v2 .phone .app-bar {display: flex; align-items: center; justify-content: center; gap: 6px; padding-bottom: 9px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 700; color: var(--ink);}
+.home-v2 .phone .app-bar img {width: 16px; height: 16px; object-fit: contain;}
+.home-v2 .phone .app-bar .with {margin-left: 2px; padding: 2px 8px; border-radius: 999px; background: var(--sky-pale); color: var(--sky-deep); font-size: 10.5px; font-weight: 700;}
+.home-v2 .phone .q {align-self: flex-end; justify-self: auto; max-width: 84%; padding: 9px 13px; border-radius: 18px 18px 6px 18px; background: var(--ink); color: #fff; font-size: 13.5px; line-height: 1.35;}
+.home-v2 .phone .tool {display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--muted);}
+.home-v2 .phone .tool img {width: 16px; height: 16px; border-radius: 5px;}
+.home-v2 .phone .tool svg {width: 13px; height: 13px; color: var(--green);}
+.home-v2 .phone .ans {display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start;}
+.home-v2 .phone .ans > img {width: 22px; height: 22px; padding: 3px; border-radius: 50%; border: 1px solid var(--line); background: #fff; object-fit: contain;}
+.home-v2 .phone .a {padding: 0; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft);}
+.home-v2 .phone .a b {display: block; margin-bottom: 2px; color: var(--ink);}
+.home-v2 .phone .src {gap: 6px; margin-top: 9px; padding: 0;}
+.home-v2 .phone .src span {display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--canvas); color: var(--ink-soft); font-size: 11px; font-weight: 600;}
+.home-v2 .phone .src svg {width: 12px; height: 12px; color: var(--sky-deep);}
+.home-v2 .phone .src b {color: var(--sky-deep); font-variant-numeric: tabular-nums;}
+.home-v2 .phone .composer {margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 6px 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--muted); font-size: 12px; box-shadow: 0 8px 16px -14px rgba(0,0,0,.45);}
+.home-v2 .phone .composer i {display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: #fff;}
+.home-v2 .phone .composer svg {width: 14px; height: 14px;}
+.home-v2.is-animated .flow svg.links {opacity: 0; animation: hv-links-in .6s ease 1.5s forwards;}
+@keyframes hv-links-in { to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .home-v2.is-animated .flow svg.links {opacity: 1; animation: none;} }
