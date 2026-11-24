@@ -83,7 +83,6 @@
 .home-v2 .price-v2 .plan {position: relative; gap: 12px;}
 .home-v2 .price-v2 .plan .btn {width: 100%; justify-content: center; margin: 6px 0 4px;}
 .home-v2 .price-v2 .hv-price s {font-size: .5em; font-weight: 500; opacity: .5; margin-right: 6px; vertical-align: .35em;}
-.home-v2 .price-v2 .hv-founder {font-size: 14px; color: #9fe6cf; margin-top: -4px;}
 .home-v2 .price-v2 .badge {position: absolute; top: -13px; right: 26px; padding: 5px 12px; border-radius: 999px; background: var(--sky); color: var(--night); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;}
 .home-v2 .price-v2 .incl {font-size: 13.5px; font-weight: 600; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--line);}
 .home-v2 .price-v2 .plan--plus .incl {border-top-color: rgba(255,255,255,.14);}
@@ -91,8 +90,6 @@
 .home-v2 .price-v2 ul.checks li {position: relative; padding-left: 30px; font-size: 15.5px;}
 .home-v2 .price-v2 ul.checks li::before {content: ""; position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--sky-pale) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a7fb0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 12px no-repeat;}
 .home-v2 .price-v2 .plan--plus ul.checks li::before {background-color: rgba(126,232,196,.16); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237ee8c4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");}
-.home-v2 .price-v2 .reassure {list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: #a9c6d4;}
-.home-v2 .price-v2 .reassure li::before {content: "✓ "; color: #7ee8c4; font-weight: 700;}
 .home-v2 .price-v2 .exp-mini {font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.12); margin-left: 4px; vertical-align: 2px;}
 .home-v2 .price-v2 .note.small {font-size: 13px;}
 .home-v2 .price-v2 .mini-quote {margin: 8px 0 0; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,.06);}
