@@ -387,3 +387,19 @@
 .home-v2 .uni-ask .btn .cp-icon {width: 18px; height: 18px;}
 .home-v2 .uni-ask__done {margin-top: 6px; font-size: 14.5px; font-weight: 600; color: var(--green);}
 @media (max-width: 520px) { .home-v2 .uni-ask .btn {width: 100%; justify-content: center;} }
+/* Celular: Campito entra en la primera pantalla. Primero él y su aviso, luego tu universidad y tu IA;
+   «Conectar mi IA» como enlace cuando es la segunda opción. */
+@media (max-width: 760px) {
+  .home-v2 .hv-hero {padding-top: 18px;}
+  .home-v2 .hv-hero .lead {margin-top: 12px;}
+  .home-v2 .uni-pick {margin-top: 18px; gap: 8px;}
+  .home-v2 .hv-hero .actions {gap: 4px;}
+  .home-v2 .hv-hero .actions .btn--ghost {min-height: 40px; width: 100%; justify-content: center; border: 0; background: none; box-shadow: none; text-decoration: underline; text-underline-offset: 3px; font-size: 15px;}
+  .home-v2 .hv-hero .trial-line {margin-top: 6px;}
+  .home-v2 .flow {margin-top: 18px; padding-top: 6px; gap: 14px;}
+  .home-v2 .flow .core {order: -3;}
+  .home-v2 .flow .side--uni {order: -2;}
+  .home-v2 .flow .side--ia {order: -1;}
+  .home-v2 .core .bubble {margin-bottom: 8px;}
+  .home-v2 .campu.campu--video {width: 150px;}
+}
