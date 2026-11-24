@@ -351,9 +351,15 @@
 @keyframes hv-float { 50% { translate: 0 -14px; } }
 .home-v2.is-paused .hv-glass i {animation-play-state: paused;}
 @media (prefers-reduced-motion: reduce) { .home-v2 .hv-glass i {animation: none;} }
-/* En pantallas angostas las figuras no caben a los lados: van a las esquinas libres,
+/* Tableta: las mismas figuras a los lados, más chicas y pegadas al borde. */
+@media (max-width: 1100px) and (min-width: 761px) {
+  .home-v2 .hv-glass {scale: .72;}
+  .home-v2 .hv-glass--l {transform-origin: left center;}
+  .home-v2 .hv-glass--r {transform-origin: right center;}
+}
+/* Celular: las figuras no caben a los lados; van a las esquinas libres,
    una esfera sobre el kicker y otra con la «C» bajo el precio, nunca detrás del texto. */
-@media (max-width: 1100px) {
+@media (max-width: 760px) {
   .home-v2 .hv-glass {inset: 0; width: auto; height: auto;}
   .home-v2 .hv-glass i {left: auto; right: auto; top: auto; bottom: auto;}
   .home-v2 .hv-glass--l i:nth-child(1) {left: -44px; top: 18px; right: auto; bottom: auto; width: 140px; height: 140px;}
