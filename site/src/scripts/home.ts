@@ -177,30 +177,47 @@ const UNIS: Record<string, { name: string; zoom: boolean }> = {
   ulima: { name: 'Universidad de Lima', zoom: true },
   palermo: { name: 'Universidad de Palermo', zoom: true },
 };
+const SUPPORT_WHATSAPP = '51946189585';
+/** Grupo que se muestra: Campito en vivo (UPC), tu IA (otras con Campus) o el pedido de una universidad nueva. */
+function universityGroup(uni: string | null): 'upc' | 'otra' | 'pedir' {
+  if (uni === 'otra') return 'pedir';
+  return uni && UNIS[uni] && uni !== 'upc' ? 'otra' : 'upc';
+}
 function universityPicker(root: HTMLElement): void {
   const pick = root.querySelector<HTMLElement>('[data-uni-pick]');
   if (!pick) return;
   pick.hidden = false;
   const buttons = Array.from(pick.querySelectorAll<HTMLButtonElement>('[data-uni-opt]'));
   const apply = (uni: string | null): void => {
-    const info = uni ? UNIS[uni] : undefined;
-    const live = !info || uni === 'upc';
-    root.dataset.uni = info ? uni ?? '' : '';
+    const group = universityGroup(uni);
+    root.dataset.uni = uni ?? '';
     buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.uniOpt === uni)));
-    root.querySelectorAll<HTMLElement>('[data-for="upc"]').forEach((el) => { el.hidden = !live; });
-    root.querySelectorAll<HTMLElement>('[data-for="otra"]').forEach((el) => { el.hidden = live; });
+    root.querySelectorAll<HTMLElement>('[data-for]').forEach((el) => { el.hidden = el.dataset.for !== group; });
+    const info = uni ? UNIS[uni] : undefined;
     if (!info) return;
     root.querySelectorAll<HTMLElement>('[data-uni-name]').forEach((el) => { el.textContent = info.name; });
     root.querySelectorAll<HTMLElement>('[data-uni-zoom]').forEach((el) => { el.hidden = !info.zoom; });
   };
   let saved: string | null = null;
   try { saved = localStorage.getItem(UNI_KEY); } catch { /* Sin almacenamiento, sin elección guardada. */ }
-  apply(saved && UNIS[saved] ? saved : null);
+  apply(saved && (UNIS[saved] || saved === 'otra') ? saved : null);
   buttons.forEach((b) => b.addEventListener('click', () => {
     const uni = b.dataset.uniOpt ?? null;
     apply(uni);
     try { if (uni) localStorage.setItem(UNI_KEY, uni); } catch { /* Opcional. */ }
+    if (uni === 'otra') root.querySelector<HTMLInputElement>('#uni-ask-name')?.focus();
   }));
+  // «Otra»: el pedido sale por WhatsApp de soporte con el nombre ya escrito; no se guarda nada en Campus.
+  const form = root.querySelector<HTMLFormElement>('[data-uni-ask]');
+  form?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const name = (new FormData(form).get('universidad') ?? '').toString().trim().slice(0, 80);
+    if (name.length < 2) return;
+    const text = `Hola, quiero que Campus llegue a mi universidad: ${name}`;
+    window.open(`https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+    const done = form.querySelector<HTMLElement>('[data-uni-ask-done]');
+    if (done) done.hidden = false;
+  });
 }
 
 function loopVideos(root: HTMLElement, calm: boolean): void {

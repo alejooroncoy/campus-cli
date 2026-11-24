@@ -369,4 +369,14 @@
 .home-v2 .uni-pick__opts button:focus-visible {outline: 2px solid var(--sky-deep); outline-offset: 2px;}
 .home-v2 .uni-pick + .actions {margin-top: 16px;}
 .home-v2 .uni-note {max-width: 46ch; margin-inline: auto;}
-@media (max-width: 420px) { .home-v2 .uni-pick__opts button {padding: 0 12px; font-size: 13.5px;} }
+@media (max-width: 420px) { .home-v2 .uni-pick__opts {gap: 0; padding: 3px;} .home-v2 .uni-pick__opts button {min-height: 36px; padding: 0 10px; font-size: 13px;} }
+/* «Otra»: pedir que Campus llegue a tu universidad. */
+.home-v2 .uni-ask {display: grid; justify-items: center; gap: 6px; width: min(520px, 100%); margin: 18px auto 0; padding: 20px; border: 1px solid var(--line); border-radius: 20px; background: var(--paper); box-shadow: 0 16px 32px -26px rgba(16,42,58,.6);}
+.home-v2 .uni-ask__title {font-size: 17px; font-weight: 700; color: var(--ink);}
+.home-v2 .uni-ask__hint {font-size: 14.5px; color: var(--muted);}
+.home-v2 .uni-ask__row {display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; margin-top: 10px;}
+.home-v2 .uni-ask input {flex: 1 1 220px; min-height: 52px; padding: 0 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--canvas); color: var(--ink); font: inherit; font-size: 16px;}
+.home-v2 .uni-ask input:focus-visible {outline: 2px solid var(--sky-deep); outline-offset: 1px; background: #fff;}
+.home-v2 .uni-ask .btn .cp-icon {width: 18px; height: 18px;}
+.home-v2 .uni-ask__done {margin-top: 6px; font-size: 14.5px; font-weight: 600; color: var(--green);}
+@media (max-width: 520px) { .home-v2 .uni-ask .btn {width: 100%; justify-content: center;} }
