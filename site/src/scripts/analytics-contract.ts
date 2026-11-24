@@ -13,6 +13,8 @@ export const events = new Set([
   'campus_memory_viewed', 'campus_plus_checkout_viewed', 'campus_plus_receipt_selected', 'campus_plus_submit_started', 'campus_plus_status_viewed', 'campus_plus_payment_copied',
   'campus_page_viewed', 'campus_section_viewed', 'campus_cta_clicked',
   'campus_details_opened', 'campus_university_step_viewed', 'campus_university_selected',
+  // Home: universidad elegida en el selector y pedidos de una universidad sin Campus (solo el código, nunca el nombre).
+  'campus_home_university_selected', 'campus_university_requested',
   'campus_account_access_completed', 'campus_conversation_restored', 'campus_university_carried',
   'campus_session_ready', 'campus_usage_updated', 'campus_question_submitted', 'campus_answer_displayed',
   'campus_flow_failed', 'campus_question_retried', 'campus_connector_copied', 'campus_upload_selected',
@@ -42,6 +44,7 @@ const categories: Record<string, readonly string[]> = {
   plus_step:['guest','ready','university','payment','pending','active','rejected','unavailable','loading'],
   activity:['connecting','search','course','reviews','answer','academic','grades'],
   feedback_kind:['agent','plus'],reason:['resolved','not_resolved','price','unclear_value','payment_difficult','not_needed','technical_problem','other'],
+  home_university: ['upc', 'upn', 'ulima', 'palermo', 'otra'],
   page: ['home', 'ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'campito', 'other'],
   target: ['ucal', 'app', 'assistant', 'connect', 'profile', 'turnitin_app', 'plus', 'turnitin', 'professors', 'blackboard_upc', 'chatgpt', 'terminal', 'cli', 'mcp', 'blog', 'privacy', 'professor_directory', 'professor_profile', 'professor_review_form', 'professor_reviews', 'library', 'library_item', 'library_app', 'campus_reviews', 'about', 'contact', 'terms', 'independence', 'campito', 'other', 'plans', 'features', 'whatsapp', 'auth', 'campito_install', 'google', 'outlook', 'apple', 'copy'],
   location: ['header', 'hero', 'trial', 'free', 'plus', 'features', 'research', 'onboarding', 'faq', 'closing', 'footer', 'app', 'professor_profile', 'other'],

@@ -129,6 +129,12 @@ try {
     check(href.startsWith('https://wa.me/51946189585?text=') && decodeURIComponent(href).includes('Universidad San Martín'), '[selector] El pedido abre WhatsApp de soporte con el nombre ya escrito.');
     check(await page.locator('[data-uni-ask-done]').isVisible(), '[selector] Tras enviar se ve el aviso con el enlace de respaldo.');
     check(await page.evaluate(() => localStorage.getItem('campus-home-university')) === null, '[selector] «Otra» no se guarda en el navegador.');
+    // Analítica (en local se guarda lo que se enviaría): la universidad viaja como código, nunca el nombre escrito.
+    const sent = await page.evaluate(() => JSON.parse(sessionStorage.getItem('campus-analytics-debug') || '[]'));
+    const names = sent.map(e => `${e.event}:${e.properties?.home_university ?? ''}`);
+    check(names.includes('campus_home_university_selected:upn'), `[analítica] Elegir la UPN se mide con home_university=upn (llegó: ${names.join(', ')}).`);
+    check(names.includes('campus_university_requested:otra'), '[analítica] El pedido de otra universidad se mide.');
+    check(!JSON.stringify(sent).includes('San Martín'), '[analítica] El nombre escrito de la universidad nunca se envía.');
 
     // La UPN sí se recuerda al volver.
     await page.getByRole('radio', {name: 'UPN'}).click();

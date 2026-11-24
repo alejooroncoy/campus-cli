@@ -142,6 +142,10 @@ export function selectedPlan(): 'free' | 'plus' | 'trial' | undefined {
     return selected === 'trial' || selected === 'free' || selected === 'plus' ? selected : undefined;
   } catch { return undefined; }
 }
+/** Universidad elegida en el selector de la home (se guarda solo si es una con Campus). Viaja en cada evento para partir los embudos por universidad. */
+function homeUniversity(): Record<string, string> {
+  try { const value = localStorage.getItem('campus-home-university'); return value ? { home_university: value } : {}; } catch { return {}; }
+}
 export function track(event: string, properties: Record<string, unknown> = {}): void {
   if (!browser || !allowedEvent(event)) return;
   if (surveyEvents.has(event) && (!safeSurveyProperties(event, properties).$survey_id || !surveyActive(properties.$survey_id))) return;
@@ -150,6 +154,7 @@ export function track(event: string, properties: Record<string, unknown> = {}): 
     page: analyticsPage(location.pathname), current_plan: currentPlan,
     ...(isTest!==undefined?{is_test:isTest}:{}),
     selected_plan: selectedPlan(),
+    ...homeUniversity(),
     viewport: innerWidth < 761 ? 'mobile' : innerWidth < 1200 ? 'tablet' : 'desktop',
     environment: local ? 'development' : 'production',
     ...(entryEvents.has(event) && !local && key ? firstEntry(key) : {}), ...experimentProperties, ...properties,

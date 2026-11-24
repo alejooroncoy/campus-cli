@@ -1,3 +1,4 @@
+import { track } from './analytics';
 /**
  * Movimiento de la home (rediseño de noviembre 2026, maqueta A en public/maqueta/a.html).
  *
@@ -209,6 +210,7 @@ function universityPicker(root: HTMLElement): void {
     try { if (uni && UNIS[uni]) localStorage.setItem(UNI_KEY, uni); else localStorage.removeItem(UNI_KEY); } catch { /* Opcional. */ }
     const status = pick.querySelector<HTMLElement>('[data-uni-status]');
     if (status) status.textContent = uni === 'otra' ? 'Mostrando el formulario para pedir Campus en tu universidad.' : `Mostrando las opciones para la ${uni && UNIS[uni] ? UNIS[uni].name : 'UPC'}.`;
+    if (uni) track('campus_home_university_selected', { home_university: uni });
     if (uni === 'otra') root.querySelector<HTMLInputElement>('#uni-ask-name')?.focus();
   }));
   // «Otra»: el pedido sale por WhatsApp de soporte con el nombre ya escrito; no se guarda nada en Campus.
@@ -225,6 +227,7 @@ function universityPicker(root: HTMLElement): void {
     const link = form.querySelector<HTMLAnchorElement>('[data-uni-ask-link]');
     const done = form.querySelector<HTMLElement>('[data-uni-ask-done]');
     if (done) done.hidden = false;
+    track('campus_university_requested', { home_university: 'otra' });
     if (link) { link.href = `https://wa.me/${SUPPORT_WHATSAPP}?text=${encodeURIComponent(text)}`; link.click(); }
   });
 }
