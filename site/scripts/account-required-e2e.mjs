@@ -50,8 +50,8 @@ try {
     });
     await page.goto(base + '/');
     await page.locator('.home-v2 .plan--free').waitFor();
-    assert.equal(await page.locator('.cp-plan-trial').count(), 0);
-    assert.equal(await page.getByText('¿Solo quieres probar?', {exact:true}).count(), 0);
+    // Sin el flag de Campito, la tarjeta Gratis no ofrece la clase gratis.
+    if (process.env.CAMPUS_CAMPITO_TRIAL_ENABLED !== 'true') assert.equal(await page.locator('.home-v2 .plan--free a[href="/campito/"]').count(), 0);
     if (width > 760) {
       const free = await page.locator('.home-v2 .plan--free').boundingBox();
       const plus = await page.locator('.home-v2 .plan--plus').boundingBox();

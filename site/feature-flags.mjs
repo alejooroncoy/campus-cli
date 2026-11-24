@@ -14,6 +14,11 @@ export function publicHomeHtml(html) {
   return turnitinServiceEnabled ? html : html.replace(/<!-- turnitin:start -->[\s\S]*?<!-- turnitin:end -->/g, '');
 }
 
+/** La home como texto (Markdown, llms-full.txt): sin los ejemplos ilustrativos, que se leerían como datos reales. */
+export function publicHomeText(html) {
+  return publicHomeHtml(html).replace(/<!-- demo:start -->[\s\S]*?<!-- demo:end -->/g, '');
+}
+
 export const libraryServiceEnabled = process.env.CAMPUS_LIBRARY_ENABLED === "true";
 
 // Mis clases (grabación de clases presenciales). Apagado salvo que el build lo pida: en beta cerrada

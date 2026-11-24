@@ -272,8 +272,9 @@ function locationFor(element: Element): string {
   if (element.closest('.site-header')) return 'header';
   if (element.closest('.footer')) return 'footer';
   if (element.closest('.cp-plan--plus, .home-v2 .plan--plus')) return 'plus';
+  // En la home nueva la clase gratis de Campito vive dentro de la tarjeta Gratis.
+  if (element.closest('.cp-plan-trial, .home-v2 .plan--free a[href="/campito/"]')) return 'trial';
   if (element.closest('.cp-plan--free, .home-v2 .plan--free')) return 'free';
-  if (element.closest('.cp-plan-trial')) return 'trial';
   if (element.closest('.cp-hero, .hv-hero')) return 'hero';
   if (element.closest('#investigacion')) return 'research';
   if (element.closest('.cp-final')) return 'closing';
@@ -318,7 +319,7 @@ function trackPage(): void {
       else { visibleHeadings.delete(element); clearTimeout(sectionTimers.get(element)); sectionTimers.delete(element); }
     }
   }, { threshold: 0.5 });
-  const sections: Record<string, string> = { '#planes': 'plans', '#incluye': 'features', '#investigacion': 'research', '#como-empezar': 'onboarding', '.cp-faq': 'faq', '.cp-final': 'closing' };
+  const sections: Record<string, string> = { '#planes': 'plans', '#incluye': 'features', '#trabajos': 'assignments', '#en-clase': 'in_class', '#examen': 'exam_review', '#investigacion': 'research', '#como-empezar': 'onboarding', '.cp-faq': 'faq', '.cp-final': 'closing' };
   const plusOffer=document.querySelector<HTMLElement>('.cp-plan--plus, .home-v2 .plan--plus');
   if(plusOffer){plusOffer.dataset.analyticsSection='plus_offer';observer.observe(plusOffer);}
   for (const [selector, section] of Object.entries(sections)) {

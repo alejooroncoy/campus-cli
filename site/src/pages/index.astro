@@ -5,7 +5,11 @@ import Base from "../layouts/Base.astro";
 // Shared with the Markdown route so public plan details stay consistent.
 import rawBody from "../html/index.html?raw";
 import { publicHomeHtml } from "../../feature-flags.mjs";
-const body = publicHomeHtml(rawBody);
+// El titular sale ya partido en palabras: si lo partiera el script, se vería, desaparecería y volvería a entrar.
+let word = 0;
+const body = publicHomeHtml(rawBody).replace(/(<h1[^>]*data-words[^>]*>)([\s\S]*?)(<\/h1>)/, (_m, open: string, inner: string, close: string) =>
+  open + inner.replace(/(<span[^>]*>)([^<]*)(<\/span>)/g, (_s, a: string, text: string, b: string) =>
+    a + text.split(' ').filter(Boolean).map((w) => `<span class="w" style="--i:${word++}">${w}</span>`).join(' ') + b) + close);
 const title = "Campus Plus: Blackboard UPC con IA, precios y planes";
 const description = `Campus Plus para UPC: ${CHARACTER_NAME} sigue tu clase de UClass y tu IA lee tus materiales de Blackboard para tus trabajos. Precios, límites y consultas de prueba.`;
 

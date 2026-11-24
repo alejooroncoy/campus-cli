@@ -19,28 +19,17 @@ const AVISOS: Array<[string, string, boolean]> = [
 /** Lo que hay que apagar al salir de la home. */
 const cleanups: Array<() => void> = [];
 function every(ms: number, fn: () => void): void { const id = window.setInterval(fn, ms); cleanups.push(() => window.clearInterval(id)); }
-function later(ms: number, fn: () => void): void { const id = window.setTimeout(fn, ms); cleanups.push(() => window.clearTimeout(id)); }
+function later(ms: number, fn: () => void): void {
+  // Se quita de la lista al dispararse: los avisos de la portada lo llaman cada pocos segundos.
+  const cancel = (): void => window.clearTimeout(id);
+  const id = window.setTimeout(() => { const k = cleanups.indexOf(cancel); if (k >= 0) cleanups.splice(k, 1); fn(); }, ms);
+  cleanups.push(cancel);
+}
 function on<K extends keyof WindowEventMap>(type: K, fn: (e: WindowEventMap[K]) => void): void {
   window.addEventListener(type, fn); cleanups.push(() => window.removeEventListener(type, fn));
 }
 function watch(cb: IntersectionObserverCallback, options?: IntersectionObserverInit): IntersectionObserver {
   const io = new IntersectionObserver(cb, options); cleanups.push(() => io.disconnect()); return io;
-}
-
-function splitWords(h1: HTMLElement): void {
-  let i = 0;
-  h1.querySelectorAll<HTMLElement>(':scope > span').forEach((line) => {
-    const words = (line.textContent ?? '').split(' ');
-    line.textContent = '';
-    words.forEach((word, k) => {
-      const span = document.createElement('span');
-      span.className = 'w';
-      span.style.setProperty('--i', String(i++));
-      span.textContent = word;
-      line.append(span);
-      if (k < words.length - 1) line.append(' ');
-    });
-  });
 }
 
 /** Líneas de la universidad a Campito y de Campito a tu IA, con puntos que viajan. */
@@ -92,6 +81,10 @@ function flowHero(root: HTMLElement, calm: boolean): void {
     on('load', draw);
     on('resize', () => { window.clearTimeout(pending); pending = window.setTimeout(draw, 120); });
     later(1700, draw);
+    // Las fuentes y el rebote del último chip mueven los extremos de las líneas.
+    document.fonts?.ready.then(() => { if (root.isConnected) draw(); }).catch(() => { /* Sin fuentes, se queda el trazo anterior. */ });
+    const chips = root.querySelectorAll<HTMLElement>('.chip');
+    chips[chips.length - 1]?.addEventListener('animationend', draw, { once: true });
     draw();
   }
   const bounce = (cls: 'hop' | 'spin'): void => {
@@ -128,17 +121,24 @@ function flowHero(root: HTMLElement, calm: boolean): void {
 
 function loopVideos(root: HTMLElement, calm: boolean): void {
   const videos = Array.from(root.querySelectorAll<HTMLVideoElement>('video[autoplay]'));
+  // Solo corre el video que está en pantalla; al cargar, el navegador no debe reanudar uno oculto.
+  const visible = new WeakMap<HTMLVideoElement, boolean>();
+  const observed = !calm && 'IntersectionObserver' in window;
   videos.forEach((video) => {
-    if (calm) { video.removeAttribute('autoplay'); video.pause(); return; }
+    if (calm) { video.removeAttribute('autoplay'); video.pause(); video.currentTime = 0; return; }
     video.muted = true;
-    const play = (): void => { if (video.paused) video.play().catch(() => { /* El navegador decide. */ }); };
+    const play = (): void => {
+      if (observed && !visible.get(video)) return;
+      if (video.paused) video.play().catch(() => { /* El navegador decide. */ });
+    };
     play();
     video.addEventListener('loadeddata', play);
     video.addEventListener('canplay', play);
   });
-  if (calm || !('IntersectionObserver' in window)) return;
+  if (!observed) return;
   const io = watch((entries) => entries.forEach((entry) => {
     const video = entry.target as HTMLVideoElement;
+    visible.set(video, entry.isIntersecting);
     if (entry.isIntersecting) video.play().catch(() => { /* El navegador decide. */ });
     else video.pause();
   }));
@@ -180,8 +180,6 @@ function setupHome(): void {
   root.dataset.homeReady = 'true';
   const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   root.classList.add('is-animated');
-  const h1 = root.querySelector<HTMLElement>('[data-words]');
-  if (h1 && !calm) splitWords(h1);
   flowHero(root, calm);
   loopVideos(root, calm);
   reveal(root, calm);

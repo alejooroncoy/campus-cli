@@ -2,9 +2,10 @@
    Todo vive bajo .home-v2 para no mezclarse con styles.css ni campus-landing.css.
    Origen: site/public/maqueta/a.html (maqueta A). Clases con prefijo hv- donde el sitio ya usa el nombre. */
 .home-v2 { --ink-soft: #2b4a5c; --canvas: #f4f8f8; --sky-deep: #0a7fb0; --mint: #d9f1e8; --green: #087f5b; --warm: #f3ae55; --alert: #e5484d; --ease: cubic-bezier(.16, 1, .3, 1); }
-.home-v2 h1, .home-v2 h2, .home-v2 h3 { text-wrap: balance; letter-spacing: -0.03em; line-height: 1.04; margin: 0; }
-.home-v2 p, .home-v2 figure, .home-v2 blockquote { margin: 0; }
-.home-v2 p { text-wrap: pretty; }
+/* :where() deja la especificidad en 0,0,1: los bloques antiguos (campus-landing.css) conservan sus márgenes. */
+:where(.home-v2) :is(h1, h2, h3) { text-wrap: balance; letter-spacing: -0.03em; line-height: 1.04; margin: 0; }
+:where(.home-v2) :is(p, figure, blockquote) { margin: 0; }
+:where(.home-v2) p { text-wrap: pretty; }
 .home-v2 img { max-width: 100%; }
 .home-v2 .sr-only {position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;}
 .home-v2 .btn {display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 22px; border-radius: 14px; font-weight: 600; font-size: 16px; text-decoration: none; border: 1.5px solid transparent; transition: transform .2s var(--ease), background-color .2s, box-shadow .2s;}
@@ -30,12 +31,6 @@
 .home-v2 .plan ul {padding-left: 20px; display: grid; gap: 8px;}
 .home-v2 .plan--plus .note {color: #a9c6d4;}
 .home-v2 .note {font-size: 14px; color: var(--muted);}
-.home-v2 .hv-faq {display: grid; gap: 10px;}
-.home-v2 .hv-faq details {background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px;}
-.home-v2 .hv-faq summary {font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px;}
-.home-v2 .hv-faq summary::after {content: "+"; font-size: 22px; line-height: 1; color: var(--sky-deep);}
-.home-v2 .hv-faq details[open] summary::after {content: "−";}
-.home-v2 .hv-faq details p {margin-top: 10px; color: var(--ink-soft); max-width: 70ch;}
 @media (max-width: 760px) {
   .home-v2 .plans {grid-template-columns: 1fr;}
   .home-v2 .btn {width: 100%; justify-content: center;}
@@ -235,12 +230,10 @@
 .home-v2 .core .bubble .alert.swap {opacity: 0; transform: translateY(6px) scale(.96);}
 .home-v2 .core .halo {position: absolute; left: 50%; bottom: 8%; width: 70%; aspect-ratio: 1; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(circle, rgba(23,182,231,.28), transparent 65%); animation: hv-halo 3s ease-in-out infinite; z-index: -1;}
 .home-v2 .campu-wrap {animation: hv-drop 1s cubic-bezier(.34,1.4,.64,1) .5s both;}
-.home-v2 .campu {display: block; width: clamp(160px, 17vw, 220px); height: auto; filter: drop-shadow(0 22px 20px rgba(0,0,0,.16)); transform-origin: 50% 100%; animation: hv-breathe 3.2s ease-in-out 1.6s infinite; cursor: pointer;}
+.home-v2 .campu {display: block; width: clamp(160px, 17vw, 220px); height: auto; filter: drop-shadow(0 22px 20px rgba(0,0,0,.16)); transform-origin: 50% 100%; animation: hv-breathe 3.2s ease-in-out 1.6s infinite;}
 .home-v2 .campu.hop {animation: hv-hop .55s cubic-bezier(.34,1.56,.64,1);}
 .home-v2 .campu.spin {animation: hv-spin .8s cubic-bezier(.34,1.56,.64,1);}
-.home-v2 .side-campu {width: clamp(150px, 18vw, 230px); height: auto; margin-bottom: 10px; opacity: 0; animation: hv-peek 1s cubic-bezier(.34,1.56,.64,1) 1.5s forwards;}
 @media (max-width: 760px) {
-  .home-v2 .side-campu {order: -1; width: 130px; margin: 0 0 -24px; position: relative; z-index: 2;}
 }
 @media (max-width: 880px) {
   .home-v2 .flow {grid-template-columns: 1fr; gap: 18px;}
