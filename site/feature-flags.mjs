@@ -7,6 +7,10 @@ export const turnitinServiceEnabled = process.env.CAMPUS_TURNITIN_SERVICE_ENABLE
 export function publicHomeHtml(html) {
   html = renderCharacterName(html);
   html = libraryServiceEnabled ? html : html.replace(/<!-- library:start -->[\s\S]*?<!-- library:end -->/g, '');
+  // La home anuncia la primera clase gratis de Campito con el mismo flag que /campito/.
+  html = campitoTrialEnabled
+    ? html.replace(/<!-- plus:start -->[\s\S]*?<!-- plus:end -->/g, '')
+    : html.replace(/<!-- trial:start -->[\s\S]*?<!-- trial:end -->/g, '');
   return turnitinServiceEnabled ? html : html.replace(/<!-- turnitin:start -->[\s\S]*?<!-- turnitin:end -->/g, '');
 }
 

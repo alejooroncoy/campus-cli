@@ -49,12 +49,12 @@ try {
       return json({});
     });
     await page.goto(base + '/');
-    await page.locator('.cp-plan--free').waitFor();
+    await page.locator('.home-v2 .plan--free').waitFor();
     assert.equal(await page.locator('.cp-plan-trial').count(), 0);
     assert.equal(await page.getByText('¿Solo quieres probar?', {exact:true}).count(), 0);
     if (width > 760) {
-      const free = await page.locator('.cp-plan--free').boundingBox();
-      const plus = await page.locator('.cp-plan--plus').boundingBox();
+      const free = await page.locator('.home-v2 .plan--free').boundingBox();
+      const plus = await page.locator('.home-v2 .plan--plus').boundingBox();
       assert.ok(Math.abs(free.y - plus.y) < 2, 'Plan cards share a row after removing the trial');
     }
     await page.goto(base + '/app/asistente/');
