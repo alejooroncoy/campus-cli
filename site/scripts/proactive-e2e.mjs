@@ -715,6 +715,11 @@ try {
           .getByText("Notas oficiales de Mi UPC: necesita que renueves la conexión")
           .count(),
       );
+      // Lo revisado llega plegado: la frase se ve y el detalle se abre a pedido.
+      const revisado = page.locator("details.campu-context");
+      assert.equal(await revisado.getAttribute("open"), null);
+      assert.ok(await revisado.locator(":scope > summary").getByText(prepared.summary).isVisible());
+      await revisado.locator(":scope > summary").click();
       await page
         .getByRole("button", { name: "Copiar pedido preparado" })
         .click();
@@ -722,6 +727,18 @@ try {
         (await page.evaluate(() => window.copies))[0],
         prepared.prompt,
       );
+      // Los ajustes van después de los avisos. En el detalle llegan plegados; en la
+      // vista simple ya se pidieron con su botón y llegan abiertos.
+      const plegados = page.locator("details#avisos");
+      assert.ok(
+        await page.evaluate(() => {
+          const pos = (sel) => document.querySelector(sel)?.getBoundingClientRect().top ?? -1;
+          return pos(".campu-notices") < pos("details#avisos");
+        }),
+        "avisos, luego ajustes",
+      );
+      if ((await plegados.getAttribute("open")) === null)
+        await plegados.locator(":scope > summary").click();
       await page.getByLabel("Por correo").uncheck();
       await page.getByRole("button", { name: "Guardar ajustes" }).click();
       await page
@@ -809,6 +826,22 @@ try {
       await page
         .getByRole("heading", { name: "Tus novedades son privadas." })
         .waitFor();
+      // El botón de entrar se lee bien: contraste AA (4.5:1) entre texto y fondo.
+      const contraste = await page
+        .getByRole("link", { name: "Entrar a Campus" })
+        .evaluate((el) => {
+          const s = getComputedStyle(el);
+          const lum = (c) => {
+            const [r, g, b] = c.match(/\d+(\.\d+)?/g).slice(0, 3).map((v) => {
+              const x = v / 255;
+              return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+            });
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+          };
+          const [a, b] = [lum(s.color), lum(s.backgroundColor)].sort((x, y) => y - x);
+          return (a + 0.05) / (b + 0.05);
+        });
+      assert.ok(contraste >= 4.5, "contraste de Entrar a Campus: " + contraste.toFixed(2));
       assert.equal(
         await page
           .getByRole("button", { name: "Guardar ajustes" })
@@ -851,6 +884,8 @@ try {
       // Sin semana preparada, los correos de la UPC siguen a mano para activarlos o quitarlos.
       await page.locator('.campu-cal-strip[data-strip="mail"], .campu-mail').first().waitFor();
       await openDetail();
+      if ((await page.locator("details#avisos").getAttribute("open")) === null)
+        await page.locator("details#avisos > summary").click();
       const apodoSemana = page.getByLabel("Mi apodo");
       await apodoSemana.fill("Ale");
       failWeek = false;

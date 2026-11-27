@@ -8,7 +8,7 @@
   display: flex;
   gap: 22px;
   align-items: center;
-  margin: 8px 0 32px;
+  margin: 0 0 20px;
 }
 .campu-heading img {
   flex: none;
@@ -64,8 +64,61 @@
   justify-content: space-between;
   gap: 24px;
 }
+.campu-status {
+  padding: 14px 22px;
+}
+.campu-status h2 {
+  font-size: 17px;
+  margin: 0 0 2px;
+}
 .campu-status p {
-  margin: 6px 0;
+  margin: 2px 0;
+  font-size: 14px;
+}
+/* Ajustes plegados: una sola fila hasta que se abren. */
+.campu-fold > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.campu-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.campu-fold > summary h2 {
+  margin: 0;
+}
+.campu-fold > summary > span:last-child {
+  flex: none;
+  font-weight: 600;
+  color: #087b8b;
+}
+.campu-fold > summary > span:last-child::after {
+  content: " ▾";
+}
+.campu-context > summary {
+  align-items: flex-start;
+}
+.campu-fold-text,
+.campu-fold-text > span {
+  display: block;
+}
+.campu-fold-text {
+  min-width: 0;
+}
+.campu-fold-text > span:last-child {
+  line-height: 1.65;
+}
+.campu-context > summary h2 {
+  margin: 4px 0 6px;
+}
+.campu-fold[open] > summary {
+  margin-bottom: 14px;
+}
+.campu-fold[open] > summary > span:last-child::after {
+  content: " ▴";
 }
 .campu-card fieldset {
   border: 0;
@@ -124,9 +177,28 @@
   display: block;
   text-align: left;
 }
-.campu-updates a {
+/* El color de enlace no aplica a los botones: sobre el celeste de .app-button
+   quedaba en 2.4:1. */
+.campu-updates a:not(.app-button) {
   color: #087082;
   text-underline-offset: 4px;
+}
+/* Dentro de Novedades, un enlace con forma de botón usa el mismo botón oscuro
+   que el resto de la página: blanco sobre #103b48. */
+.campu-updates .app-button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: 9px;
+  background: #103b48;
+  color: #fff;
+  font-size: 15px;
+  text-decoration: none;
+}
+.campu-updates .app-button:hover:not(:disabled) {
+  background: #0a2a35;
+}
+.campu-card p + .app-button {
+  margin-top: 14px;
 }
 .campu-updates :is(button, a, input, textarea, select, summary):focus-visible {
   outline: 3px solid #00a8c5;
@@ -236,7 +308,7 @@
 .campu-context details {
   margin-top: 26px;
 }
-.campu-context summary {
+.campu-context details summary {
   cursor: pointer;
   min-height: 44px;
   font-weight: 600;
