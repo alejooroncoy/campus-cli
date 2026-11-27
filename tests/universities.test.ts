@@ -79,3 +79,14 @@ test('Universidad de Lima uses the native Blackboard login and stays bound to it
   assert.throws(() => assertPublicApiUrl(`${upn}/learn/api/public/v1/users/me`, ulima));
   assert.doesNotThrow(() => assertBlackboardFileUrl(`${ulima}/bbcswebdav/file`, ulima));
 });
+
+test('Universidad César Vallejo uses the native Blackboard login and stays bound to its origin', () => {
+  const ucv = 'https://ucv.blackboard.com';
+  assert.equal(blackboardUniversity('ucv-pe').origin, ucv);
+  assert.equal(blackboardLoginUrl('ucv-pe'), `${ucv}/webapps/login/`);
+  assert.equal(isBlackboardUltraUrl(`${ucv}/ultra/stream`, 'ucv-pe'), true);
+  assert.equal(isBlackboardUltraUrl('https://ulima.blackboard.com/ultra', 'ucv-pe'), false);
+  assert.equal(isBlackboardUltraUrl('https://ucv.blackboard.com.evil.test/ultra', 'ucv-pe'), false);
+  const mixed = [...cookies, { name: 'BbRouter', value: 'ucv-session', domain: 'ucv.blackboard.com', path: '/' }];
+  assert.deepEqual(blackboardCookies(mixed, 'ucv-pe').map(c => c.value), ['ucv-session']);
+});

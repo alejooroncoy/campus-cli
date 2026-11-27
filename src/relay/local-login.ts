@@ -16,12 +16,13 @@ export const LOGIN_UNIVERSITIES = {
   'palermo-ar': { name: 'Universidad de Palermo', origin: 'https://palermo.blackboard.com', apId: '_2352_1' },
   // Sin SSO: el estudiante escribe usuario y contraseña en el formulario propio de Blackboard.
   'ulima-pe': { name: 'Universidad de Lima', origin: 'https://ulima.blackboard.com', apId: null },
+  'ucv-pe': { name: 'Universidad César Vallejo', origin: 'https://ucv.blackboard.com', apId: null },
 } as const;
 export type LoginUniversity = keyof typeof LOGIN_UNIVERSITIES;
 export type LoginCapture = { cookies: Awaited<ReturnType<BrowserContext['cookies']>>; expiresAt: number };
 
 export function loginUniversity(value: string): LoginUniversity {
-  if (!Object.hasOwn(LOGIN_UNIVERSITIES, value)) throw new Error('Universidad no admitida: usa upc-pe, upn-pe, palermo-ar o ulima-pe.');
+  if (!Object.hasOwn(LOGIN_UNIVERSITIES, value)) throw new Error('Universidad no admitida: usa upc-pe, upn-pe, palermo-ar, ulima-pe o ucv-pe.');
   return value as LoginUniversity;
 }
 
