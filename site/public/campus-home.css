@@ -411,7 +411,15 @@
 .home-v2 .plus-price s {color: #7a93a0; font-size: 22px;}
 .home-v2 .plus-price b {font-size: 56px; line-height: 1; letter-spacing: -.04em; color: var(--ink);}
 .home-v2 .plus-price small {color: #3e5d6e; font-size: 16px;}
-.home-v2 .plus-promo {display: inline-block; margin-top: 14px; padding: 6px 12px; border-radius: 999px; background: #102a3a; color: #fff; font-size: 14px; font-weight: 700;}
+.home-v2 .plus-promo {position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 10px 16px 10px 10px; border-radius: 16px; background: linear-gradient(135deg, #070f15 0%, #13232f 60%, #1b3445 100%); color: #fff; font-size: 14px; font-weight: 600; box-shadow: 0 10px 24px -10px rgba(7, 15, 21, .55), inset 0 0 0 1px rgba(255, 255, 255, .08);}
+.home-v2 .plus-promo::after {content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .16) 48%, transparent 66%); transform: translateX(-100%); animation: plus-promo-shine 4.5s ease-in-out 1.2s infinite; pointer-events: none;}
+@keyframes plus-promo-shine { 0%, 55% {transform: translateX(-100%);} 85%, 100% {transform: translateX(100%);} }
+.home-v2 .plus-promo__tag {flex: none; padding: 6px 10px; border-radius: 999px; background: #fff; color: #070f15; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;}
+.home-v2 .plus-promo__body {display: flex; flex-direction: column; gap: 2px; min-width: 0;}
+.home-v2 .plus-promo__text {font-size: 16px; font-weight: 700; line-height: 1.2;}
+.home-v2 .plus-promo__left {font-size: 13px; color: #7ee8c4; font-weight: 700; font-variant-numeric: tabular-nums;}
+.home-v2 .plus-promo__left::before {content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #7ee8c4; box-shadow: 0 0 0 3px rgba(126, 232, 196, .2); vertical-align: 1px;}
+@media (prefers-reduced-motion: reduce) { .home-v2 .plus-promo::after {display: none;} }
 .home-v2 .plus-founder {margin-top: 6px; color: var(--sky-deep); font-size: 14px;}
 .home-v2 .plus-moments {display: grid; gap: 10px; margin: 20px 0 0; padding: 20px 0 0; list-style: none; border-top: 1px solid #b9e6f4;}
 .home-v2 .plus-moments li {display: grid; gap: 4px; padding: 12px 14px; border-radius: 14px; background: #fff;}

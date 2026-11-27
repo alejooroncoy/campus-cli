@@ -308,7 +308,24 @@ function applyPromoDates(now = Date.now()): void {
   document.querySelectorAll<HTMLElement>('[data-promo-after]').forEach(el => { if (now >= Date.parse(el.dataset.promoAfter!)) el.hidden = false; });
 }
 
-document.addEventListener('astro:page-load', () => applyPromoDates());
+/** Cuenta regresiva de la oferta: «termina en 2 d 4 h», y en el último día horas y minutos. */
+function promoLeft(ms: number): string {
+  const min = Math.max(1, Math.floor(ms / 60000)), d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = min % 60;
+  return d ? `termina en ${d} d ${h} h` : h ? `termina en ${h} h ${m} min` : `termina en ${m} min`;
+}
+function tickPromoCountdown(): void {
+  document.querySelectorAll<HTMLElement>('[data-promo-countdown]').forEach(el => {
+    const left = Date.parse(el.dataset.promoCountdown!) - Date.now();
+    if (left > 0) el.textContent = promoLeft(left);
+  });
+}
+let promoTimer = 0;
+function startPromoCountdown(): void {
+  tickPromoCountdown();
+  if (!promoTimer && document.querySelector('[data-promo-countdown]')) promoTimer = window.setInterval(() => { tickPromoCountdown(); applyPromoDates(); }, 30000);
+}
+
+document.addEventListener('astro:page-load', () => { applyPromoDates(); startPromoCountdown(); });
 document.addEventListener('astro:page-load', setupHome);
-if (document.readyState !== 'loading') { applyPromoDates(); setupHome(); }
-else document.addEventListener('DOMContentLoaded', () => { applyPromoDates(); setupHome(); });
+if (document.readyState !== 'loading') { applyPromoDates(); startPromoCountdown(); setupHome(); }
+else document.addEventListener('DOMContentLoaded', () => { applyPromoDates(); startPromoCountdown(); setupHome(); });
