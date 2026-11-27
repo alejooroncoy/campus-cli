@@ -68,7 +68,7 @@ export function relayCommands(program: Command, run: RelayRunner = callRelayTool
     clearLoginProfiles(); // sin esto el siguiente login reutilizaría en silencio la cuenta anterior
     console.error('Sesión local del relay eliminada.');
   };
-  const configureLogin = (command: Command) => command.option('--university <id>', 'Universidad: upc-pe, upn-pe, palermo-ar o ulima-pe')
+  const configureLogin = (command: Command) => command.option('--university <id>', 'Universidad: upc-pe, upn-pe, palermo-ar, ulima-pe o ucv-pe')
     .option('--hosted', 'Completar el acceso universitario en el relay (SSO MyUP de Palermo)')
     .option('--consent-session-upload', 'Autorizar el envío de la sesión al relay y su renovación automática durante 30 días').action(login);
   configureLogin(program.command('login').description('Autorizar Campus y conectar tu universidad con Playwright local'));

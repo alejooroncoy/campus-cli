@@ -7,6 +7,7 @@ export const BLACKBOARD_UNIVERSITIES = {
   'upc-pe': { name: 'UPC', origin: 'https://aulavirtual.upc.edu.pe', samlApId: '_4893_1' },
   'upn-pe': { name: 'UPN', origin: 'https://upn.blackboard.com', samlApId: '_111_1' },
   'ulima-pe': { name: 'Universidad de Lima', origin: 'https://ulima.blackboard.com', nativeLogin: true },
+  'ucv-pe': { name: 'Universidad César Vallejo', origin: 'https://ucv.blackboard.com', nativeLogin: true },
 } as const satisfies Record<string, BlackboardUniversity>;
 
 export type BlackboardUniversityId = keyof typeof BLACKBOARD_UNIVERSITIES;
