@@ -420,6 +420,7 @@
 .home-v2 .plus-promo__left {font-size: 13px; color: #7ee8c4; font-weight: 700; font-variant-numeric: tabular-nums;}
 .home-v2 .plus-promo__left::before {content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #7ee8c4; box-shadow: 0 0 0 3px rgba(126, 232, 196, .2); vertical-align: 1px;}
 @media (prefers-reduced-motion: reduce) { .home-v2 .plus-promo::after {display: none;} }
+.home-v2.is-paused .plus-promo::after {animation: none; display: none;}
 .home-v2 .plus-founder {margin-top: 6px; color: var(--sky-deep); font-size: 14px;}
 .home-v2 .plus-moments {display: grid; gap: 10px; margin: 20px 0 0; padding: 20px 0 0; list-style: none; border-top: 1px solid #b9e6f4;}
 .home-v2 .plus-moments li {display: grid; gap: 4px; padding: 12px 14px; border-radius: 14px; background: #fff;}
