@@ -411,6 +411,7 @@
 .home-v2 .plus-price s {color: #7a93a0; font-size: 22px;}
 .home-v2 .plus-price b {font-size: 56px; line-height: 1; letter-spacing: -.04em; color: var(--ink);}
 .home-v2 .plus-price small {color: #3e5d6e; font-size: 16px;}
+.home-v2 .plus-promo {display: inline-block; margin-top: 14px; padding: 6px 12px; border-radius: 999px; background: #102a3a; color: #fff; font-size: 14px; font-weight: 700;}
 .home-v2 .plus-founder {margin-top: 6px; color: var(--sky-deep); font-size: 14px;}
 .home-v2 .plus-moments {display: grid; gap: 10px; margin: 20px 0 0; padding: 20px 0 0; list-style: none; border-top: 1px solid #b9e6f4;}
 .home-v2 .plus-moments li {display: grid; gap: 4px; padding: 12px 14px; border-radius: 14px; background: #fff;}
