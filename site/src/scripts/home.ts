@@ -302,7 +302,7 @@ function setupHome(): void {
 }
 
 document.addEventListener('astro:before-swap', teardown);
-/** Ofertas con fecha (Black Friday): al vencer se muestra el precio normal aunque la página siga en caché. */
+/** Ofertas con fecha (precio de finales): al vencer se muestra el precio normal aunque la página siga en caché. */
 function applyPromoDates(now = Date.now()): void {
   document.querySelectorAll<HTMLElement>('[data-promo-until]').forEach(el => { if (now >= Date.parse(el.dataset.promoUntil!)) el.hidden = true; });
   document.querySelectorAll<HTMLElement>('[data-promo-after]').forEach(el => { if (now >= Date.parse(el.dataset.promoAfter!)) el.hidden = false; });
